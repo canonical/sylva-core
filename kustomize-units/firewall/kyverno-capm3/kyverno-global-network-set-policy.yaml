@@ -1,0 +1,169 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: create-global-network-set-for-capm3-cluster-nodes
+  annotations:
+    policies.kyverno.io/title: Add GlobalNetworkSet for a workload cluster
+    policies.kyverno.io/category: Firewall
+    policies.kyverno.io/subject: GlobalNetworkSet
+    policies.kyverno.io/minversion: 1.0.0
+    policies.kyverno.io/description: >-
+      Creates a GlobalNetworkSet for each workload cluster node so that firewall rules can be
+      written to allow some traffic only from/to the workload clusters.
+    kustomize.toolkit.fluxcd.io/force: Enabled
+spec:
+  rules:
+  # The public addresses of a workload cluster are used to create a GlobalNetworkSet used by some GlobalNetworkPolicies of the management cluster
+  - name: globalnetworkset-of-metal3-workload-cluster-public-addresses
+    match:
+      any:
+      - resources:
+          kinds:
+          - ipam.metal3.io/*/IPPool
+    exclude:
+      any:
+      - resources:
+          namespaces:
+          - sylva-system
+    preconditions:
+      all:
+      - key: "{{request.object.spec.namePrefix}}"
+        operator: Equals
+        value: "*-bmv4"
+    generate:
+      generateExisting: true
+      synchronize: true
+      apiVersion: crd.projectcalico.org/v1
+      kind: GlobalNetworkSet
+      name: "{{request.namespace}}-cluster-gns"
+      data:
+        kind: GlobalNetworkSet
+        metadata:
+          labels:
+            role: workload-cluster-node
+        spec:
+          nets: "{{request.object.status.indexes | items(@, 'key', 'value') | [*].value }}"
+
+  - name: globalnetworkset-of-metal3machines
+    match:
+      any:
+      - resources:
+          kinds:
+          - infrastructure.cluster.x-k8s.io/*/Metal3Machine
+    exclude:
+      any:
+      - resources:
+          namespaces:
+          - sylva-system
+    preconditions:
+      all:
+      - key: '{{ request.object.status.addresses[? type==''InternalIP'' && contains(address, ''.'') ] || `[]` | length(@) }}'
+        operator: GreaterThanOrEquals
+        value: 1
+    context:
+      - apiCall:
+          urlPath: /apis/infrastructure.cluster.x-k8s.io/v1beta1/namespaces/{{ request.namespace }}/metal3machines/
+          method: GET
+          jmesPath: items[*].status.addresses[? type=='InternalIP' && contains(address, '.') ].address[]
+        name: metal3machines
+    generate:
+      generateExisting: true
+      synchronize: true
+      apiVersion: crd.projectcalico.org/v1
+      kind: GlobalNetworkSet
+      name: "{{request.namespace}}-metal3machines-cluster-gns"
+      data:
+        kind: GlobalNetworkSet
+        metadata:
+          labels:
+            role: workload-cluster-node
+        spec:
+          nets: '{{ metal3machines }}'
+
+  # The provisioning addresses of the workload clusters are stored in a configmap that is used to create a GlobalNetworkSet in the target workload cluster
+  # It is then used by GlobalNetworkPolicies in the workload cluster
+  # TODO: replace the test on the -prov suffix with something more robust and explicit like a label on the IPPool
+  - name: provisioning-addresses-of-workload-cluster
+    match:
+      any:
+      - resources:
+          kinds:
+          - ipam.metal3.io/*/IPPool
+    preconditions:
+      all:
+      - key: "{{request.object.spec.namePrefix}}"
+        operator: Equals
+        value: "*-prov"
+    exclude:
+      any:
+      - resources:
+          namespaces:
+          - sylva-system
+    generate:
+      generateExisting: true
+      synchronize: true
+      apiVersion: v1
+      kind: ConfigMap
+      name: cluster-provisioning-addresses
+      namespace: "{{request.namespace}}"
+      data:
+        kind: ConfigMap
+        data:
+          cluster_provisioning_addresses: "[{{request.object.status.indexes | items(@, 'key', 'value') | [*].value | join(',', @) }}]"
+
+  # The public addresses are stored in a configmap that is used to create a GlobalNetworkSet in all the workload clusters
+  # A similar configmap is also created by the kyverno-capo policy
+    # TODO: replace the test on the -bmv4 suffix with something more robust and explicit like a label on the IPPool
+  - name: public-addresses-of-management-cluster
+    match:
+      any:
+      - resources:
+          kinds:
+          - ipam.metal3.io/*/IPPool
+          namespaces:
+          - sylva-system
+    preconditions:
+      all:
+      - key: "{{request.object.spec.namePrefix}}"
+        operator: Equals
+        value: "*-bmv4"
+    generate:
+      generateExisting: true
+      synchronize: true
+      apiVersion: v1
+      kind: ConfigMap
+      name: management-cluster-addresses
+      namespace: "{{ request.namespace}}"
+      data:
+        kind: ConfigMap
+        data:
+          management_cluster_addresses: "[{{request.object.status.indexes | items(@, 'key', 'value') | [*].value | join(',', @) }}]"
+
+  # The provisioning addresses are used to create a GlobalNetworkSet used by some GlobalNetworkPolicies of the management cluster
+  - name: globalnetworkset-of-management-cluster-provisioning-addresses
+    match:
+      any:
+      - resources:
+          kinds:
+          - ipam.metal3.io/*/IPPool
+          namespaces:
+          - sylva-system
+    preconditions:
+      all:
+      - key: "{{request.object.spec.namePrefix}}"
+        operator: Equals
+        value: "*-prov"
+    generate:
+      generateExisting: true
+      synchronize: true
+      apiVersion: crd.projectcalico.org/v1
+      kind: GlobalNetworkSet
+      name: "{{request.namespace}}-cluster-provisioning-addresses"
+      data:
+        kind: GlobalNetworkSet
+        metadata:
+          labels:
+            role: management-cluster-node
+            node.kubernetes.io/instance-type: provisioning
+        spec:
+          nets: "{{request.object.status.indexes | items(@, 'key', 'value') | [*].value }}"

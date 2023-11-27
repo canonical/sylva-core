@@ -1,0 +1,78 @@
+---
+# This test extracts from the logs of all the nodes the logs corresponding
+# to packets reaching the default rule of the firewall configuration
+
+mgmt-firewall-verify:
+  stage: deployment-test
+  extends:
+    - .test-tags
+    - .rules:need-management-cluster
+  dependencies:
+    - deploy-management-cluster
+  image: registry.gitlab.com/sylva-projects/sylva-elements/container-images/ci-image/ci-firewall-logs/snapshot:0.0.0-git-76b67019
+  artifacts:
+    expire_in: 48 hour
+    when: always
+    paths:
+      - management-firewall.log
+  script:
+    - touch management-firewall.log
+    - |
+      for i in management-cluster-dump/node_logs/*.tar.gz; do
+          echo "Extracting the calico logs from $i"
+          mkdir my-node-logs
+          tar -C my-node-logs -z -xf $i || true
+          for j in $(find my-node-logs -type d -name journal); do
+              echo "Found the journal at path $j"
+              journalctl -D $j | grep "calico-packet:" >> management-firewall.log || true
+          done
+          rm -rf my-node-logs
+      done
+    - count=$(cat management-firewall.log | wc -l)   # No need to count the packets to a DHCP server which can come from the test environment
+    - |
+      if [ $count -ne 0 ]; then
+          echo "Some packets reached the default policy:"
+          cat management-firewall.log
+          exit 1
+      fi
+    - echo "No packet reached the default policy, it is OK"
+  allow_failure: true
+
+# This test extracts from the logs of all the nodes the logs corresponding
+# to packets reaching the default rule of the firewall configuration
+
+wkld-firewall-verify:
+  stage: deployment-test
+  extends:
+    - .test-tags
+    - .rules:need-workload-cluster
+  dependencies:
+    - deploy-workload-cluster
+  image: registry.gitlab.com/sylva-projects/sylva-elements/container-images/ci-image/ci-firewall-logs/snapshot:0.0.0-git-76b67019
+  artifacts:
+    expire_in: 48 hour
+    when: always
+    paths:
+      - workload-firewall.log
+  script:
+    - touch workload-firewall.log
+    - |
+      for i in workload-cluster-dump/node_logs/*.tar.gz; do
+          echo "Extracting the calico logs from $i"
+          mkdir my-node-logs
+          tar -C my-node-logs -z -xf $i || true
+          for j in $(find my-node-logs -type d -name journal); do
+              echo "Found the journal at path $j"
+              journalctl -D $j | grep "calico-packet:" >> workload-firewall.log || true
+          done
+          rm -rf my-node-logs
+      done
+    - count=$(cat workload-firewall.log | wc -l)
+    - |
+      if [ $count -ne 0 ]; then
+          echo "Some packets reached the default policy:"
+          cat workload-firewall.log
+          exit 1
+      fi
+    - echo "No packet reached the default policy, it is OK"
+  allow_failure: true

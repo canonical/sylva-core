@@ -148,6 +148,23 @@ units:
   os-image-server:
     enabled: '{{ tuple . "metal3" | include "unit-enabled" }}'
 
+  firewall-kyverno-capo:
+    enabled: '{{ and (tuple . "capo" | include "unit-enabled") (.Values.security.firewall.enabled) }}'
+
+  firewall-kyverno-capm3:
+    enabled: '{{ and (tuple . "capm3" | include "unit-enabled") (.Values.security.firewall.enabled) }}'
+
+  firewall-management-cluster:
+    enabled: '{{ .Values.security.firewall.enabled }}'
+    depends_on:
+      firewall-common: true
+
+  firewall-common:
+    enabled: '{{ .Values.security.firewall.enabled }}'
+    depends_on:
+      firewall-kyverno-capo: '{{ .Values.cluster.capi_providers.infra_provider | eq "capo" }}'
+      firewall-kyverno-capm3: '{{ .Values.cluster.capi_providers.infra_provider | eq "capm3" }}'
+
   kubevirt:
     enabled: false
 

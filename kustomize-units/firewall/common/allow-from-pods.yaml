@@ -1,0 +1,14 @@
+apiVersion: crd.projectcalico.org/v1
+kind: GlobalNetworkPolicy
+metadata:
+  name: allow-from-pods
+spec:
+  selector: has(kubernetes.io/hostname)
+  order: 57
+  types:
+  - Egress
+  applyOnForward: true
+  egress:
+   # Allow forwarded traffic in the egress direction
+  - action: Allow
+

@@ -1,0 +1,18 @@
+apiVersion: crd.projectcalico.org/v1
+kind: GlobalNetworkPolicy
+metadata:
+  name: management-cluster-nodes
+spec:
+  selector: has(kubernetes.io/hostname)
+  order: 55
+  applyOnForward: true
+  preDNAT: true
+  ingress:
+  - action: Allow
+    protocol: TCP
+    source:
+      selector: role == 'workload-cluster-node'
+    destination:
+      ports:
+      - 80
+      - 443

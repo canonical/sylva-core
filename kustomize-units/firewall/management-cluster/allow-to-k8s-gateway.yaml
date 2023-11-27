@@ -1,0 +1,27 @@
+apiVersion: crd.projectcalico.org/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-to-k8s-gateway
+  namespace: k8s-gateway
+spec:
+  selector: app.kubernetes.io/instance == 'k8s-gateway'
+  order: 56
+  types:
+    - Ingress
+  ingress:
+    - action: Allow
+      protocol: UDP
+      source:
+        selector: has(kubernetes.io/hostname)
+        namespaceSelector: global()
+    - action: Allow
+      protocol: UDP
+      source:
+        selector: role == 'workload-cluster-node'
+        namespaceSelector: global()
+    - action: Allow
+      protocol: UDP
+      source:
+        selector: ${COREDNS_SELECTOR}
+        namespaceSelector: kubernetes.io/metadata.name == 'kube-system'
+

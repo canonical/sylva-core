@@ -1,0 +1,17 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+- cluster-vip-policy-management-cluster.yaml
+- management-cluster-nodes.yaml
+- allow-to-ingress.yaml
+- allow-to-k8s-gateway.yaml
+- rancher-to-vip.yaml
+- kustomize-to-vip.yaml
+- fleet-to-vip.yaml
+- vault-to-vip.yaml
+- cluster-creator-to-vip.yaml
+- flux-webui-to-vip.yaml
+- cluster-api-to-vip.yaml
+- kyverno-sync-management-cluster-addresses.yaml
+- keycloak-realm-operator-to-vip.yaml

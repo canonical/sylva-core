@@ -1,0 +1,8 @@
+apiVersion: crd.projectcalico.org/v1
+kind: GlobalNetworkSet
+metadata:
+  labels:
+    role: management-cluster-node
+  name: management-cluster-addresses
+spec:
+  nets: ${management_cluster_addresses}

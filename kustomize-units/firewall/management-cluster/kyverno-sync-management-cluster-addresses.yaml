@@ -1,0 +1,31 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: sync-management-cluster-addresses
+  annotations:
+    kustomize.toolkit.fluxcd.io/force: Enabled
+spec:
+  generateExisting: true
+  rules:
+  - name: sync-management-cluster-addresses
+    match:
+      any:
+      - resources:
+          kinds:
+          - kustomize.toolkit.fluxcd.io/v1/Kustomization
+          names:
+          - cluster
+    exclude:
+      any:
+      - resources:
+          namespaces:
+          - sylva-system
+    generate:
+      kind: ConfigMap
+      apiVersion: v1
+      name: management-cluster-addresses
+      namespace: "{{request.object.metadata.namespace}}"
+      synchronize: true
+      clone:
+        name: management-cluster-addresses
+        namespace: sylva-system

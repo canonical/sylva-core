@@ -1,0 +1,27 @@
+apiVersion: crd.projectcalico.org/v1
+kind: GlobalNetworkPolicy
+metadata:
+  name: rke2-cluster-vip-policy
+spec:
+  selector: has(node-role.kubernetes.io/control-plane)
+  order: 40
+  preDNAT: true
+  applyOnForward: true
+  ingress:
+  # temporary, allow access to the rke2 from all sources
+  # the workload nodes are not created yet before the connection
+  # from the agent to the server, so the host endpoint is not created yet
+  - action: Allow
+    protocol: TCP
+    destination:
+      nets:
+      - ${CLUSTER_VIRTUAL_IP}
+      ports:
+      - 9345 # rke2-server
+  - action: Allow
+    protocol: TCP
+    source:
+      nets:
+      - ${CLUSTER_VIRTUAL_IP}
+      ports:
+      - 9345 # rke2-server

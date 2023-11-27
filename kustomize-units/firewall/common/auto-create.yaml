@@ -1,0 +1,10 @@
+apiVersion: crd.projectcalico.org/v1
+kind: KubeControllersConfiguration
+metadata:
+  name: default
+spec:
+  controllers:
+    node:
+      hostEndpoint:
+        autoCreate: Enabled
+

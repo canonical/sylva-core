@@ -745,6 +745,12 @@ units:
                 resources: [clusters]
                 verbs: [list, get, patch]
 
+  firewall-common:
+    enabled: '{{ .Values.security.firewall.enabled }}'
+
+  firewall-workload-cluster:
+    enabled: '{{ .Values.security.firewall.enabled }}'
+
 cluster_domain: '{{ .Values.cluster.name }}.{{ .Values._internal.workload_clusters_cluster_subdomain }}'
 
 _internal:

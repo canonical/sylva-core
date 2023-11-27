@@ -1,0 +1,18 @@
+apiVersion: crd.projectcalico.org/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-to-ironic
+  namespace: metal3-system
+spec:
+  selector: app.kubernetes.io/component == 'ironic'
+  order: 56
+  types:
+    - Ingress
+  ingress:
+    - action: Allow
+      protocol: TCP
+      destination:
+        ports:
+        - 6180 # ironic
+        - 5050 # ironic
+        - 6385 # ironic
