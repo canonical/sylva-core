@@ -1,0 +1,310 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: ${USERNAME}-password
+  annotations:
+    sylvaproject.org/cluster-secrets: true
+    kustomize.toolkit.fluxcd.io/force: Enabled
+    pod-policies.kyverno.io/autogen-controllers: none
+    policies.kyverno.io/title: Generate a cluster-secrets account password for a cluster
+    policies.kyverno.io/minversion: 1.12.0
+    policies.kyverno.io/category: Multi-Tenancy
+    policies.kyverno.io/severity: medium
+    policies.kyverno.io/subject: cluster-secrets-password
+    policies.kyverno.io/description: >-
+      This policy injects objects to manage the password of a cluster-secrets account per target cluster.
+      It generates a RandomSecret to inject a preiodically rotated password in Vault.
+      It generates an ESO object to extract the password from Vault into K8S secret.
+
+spec:
+  background: true
+  rules:
+
+    - name: ${USERNAME}-password-sa
+      match:
+        any:
+          - resources:
+              kinds:
+                - cluster.x-k8s.io/*/Machine
+              operations:
+                - CONNECT
+                - CREATE
+                - UPDATE
+                - DELETE
+          - resources:
+              kinds:
+                - cluster.x-k8s.io/*/Cluster
+              operations:
+                - CONNECT
+                - CREATE
+                - UPDATE
+                - DELETE
+      generate:
+        generateExisting: true
+        synchronize: false
+        apiVersion: v1
+        kind: ServiceAccount
+        name: ${USERNAME}-password
+        namespace: "{{request.object.metadata.namespace}}"
+        data:
+          metadata:
+            annotations:
+              sylvaproject.org/cluster-name: "{{request.object.spec.clusterName}}"
+              sylvaproject.org/cluster-secrets: 'true'
+
+    - name: ${USERNAME}-password-vaultpolicy
+      match:
+        any:
+          - resources:
+              kinds:
+                - cluster.x-k8s.io/*/Machine
+              operations:
+                - CONNECT
+                - CREATE
+                - UPDATE
+                - DELETE
+          - resources:
+              kinds:
+                - cluster.x-k8s.io/*/Cluster
+              operations:
+                - CONNECT
+                - CREATE
+                - UPDATE
+                - DELETE
+      generate:
+        generateExisting: true
+        synchronize: false
+        apiVersion: redhatcop.redhat.io/v1alpha1
+        kind: Policy
+        name: "${USERNAME}-password-{{request.object.spec.clusterName}}"
+        namespace: vault
+        data:
+          metadata:
+            annotations:
+              sylvaproject.org/cluster-name: "{{request.object.spec.clusterName}}"
+              sylvaproject.org/cluster-secrets: 'true'
+          spec:
+            authentication:
+              path: kubernetes
+              role: admin
+              serviceAccount:
+                name: vault
+            connection:
+              address: https://vault.vault.svc.cluster.local:8200
+              tLSConfig:
+                skipVerify: true
+            type: acl
+            policy: |
+              path "/sys/policies/password/+/generate" {
+                capabilities = ["read"]
+              }
+              path "/cluster-secrets/data/{{request.object.spec.clusterName}}/${USERNAME}-password" {
+                capabilities = ["create", "read", "list", "update", "delete"]
+              }
+              path "/cluster-secrets/metadata/{{request.object.spec.clusterName}}/${USERNAME}-password" {
+                capabilities = ["read", "list", "delete"]
+              }
+
+    - name: ${USERNAME}-password-k8sauthenginerole
+      match:
+        any:
+          - resources:
+              kinds:
+                - cluster.x-k8s.io/*/Machine
+              operations:
+                - CONNECT
+                - CREATE
+                - UPDATE
+                - DELETE
+          - resources:
+              kinds:
+                - cluster.x-k8s.io/*/Cluster
+              operations:
+                - CONNECT
+                - CREATE
+                - UPDATE
+                - DELETE
+      generate:
+        generateExisting: true
+        synchronize: false
+        apiVersion: redhatcop.redhat.io/v1alpha1
+        kind: KubernetesAuthEngineRole
+        name: "${USERNAME}-password-{{request.object.spec.clusterName}}"
+        namespace: vault
+        data:
+          metadata:
+            annotations:
+              sylvaproject.org/cluster-name: "{{request.object.spec.clusterName}}"
+              sylvaproject.org/cluster-secrets: 'true'
+          spec:
+            authentication:
+              path: kubernetes
+              role: admin
+              serviceAccount:
+                name: vault
+            connection:
+              address: https://vault.vault.svc.cluster.local:8200
+              tLSConfig:
+                skipVerify: true
+            path: kubernetes
+            policies:
+              - "${USERNAME}-password-{{request.object.spec.clusterName}}"
+            targetNamespaces:
+              targetNamespaces:
+                - "{{request.object.metadata.namespace}}"
+            targetServiceAccounts:
+              - ${USERNAME}-password
+            tokenTTL: 3600
+            tokenType: default
+
+
+    - name: ${USERNAME}-password-randomsecret
+      match:
+        any:
+          - resources:
+              kinds:
+                - cluster.x-k8s.io/*/Machine
+              operations:
+                - CONNECT
+                - CREATE
+                - UPDATE
+                - DELETE
+          - resources:
+              kinds:
+                - cluster.x-k8s.io/*/Cluster
+              operations:
+                - CONNECT
+                - CREATE
+                - UPDATE
+                - DELETE
+      generate:
+        generateExisting: true
+        synchronize: true
+        apiVersion: redhatcop.redhat.io/v1alpha1
+        kind: RandomSecret
+        name: ${USERNAME}-password
+        namespace: "{{request.object.metadata.namespace}}"
+        data:
+          metadata:
+            annotations:
+              sylvaproject.org/cluster-name: "{{request.object.spec.clusterName}}"
+              sylvaproject.org/cluster-secrets: 'true'
+          spec:
+            connection:
+              tLSConfig:
+                skipVerify: true  # not cool but refering tlsSecret does not work in release v0.8.13 - see https://gitlab.com/sylva-projects/sylva-core/-/issues/261
+                #  name: vault-tls
+              address: https://vault.vault.svc.cluster.local:8200
+            authentication:
+              path: kubernetes
+              role: "${USERNAME}-password-{{request.object.spec.clusterName}}"
+              serviceAccount:
+                name: ${USERNAME}-password
+            isKVSecretsEngineV2: true
+            path: "cluster-secrets/data/{{request.object.spec.clusterName}}"
+            secretKey: password
+            secretFormat:
+              passwordPolicyName: sylva-password-policy
+            refreshPeriod: ${REFRESH_PERIOD}
+
+
+    - name: ${USERNAME}-password-clustersecretstore
+      match:
+        any:
+          - resources:
+              kinds:
+                - cluster.x-k8s.io/*/Machine
+              operations:
+                - CONNECT
+                - CREATE
+                - UPDATE
+                - DELETE
+          - resources:
+              kinds:
+                - cluster.x-k8s.io/*/Cluster
+              operations:
+                - CONNECT
+                - CREATE
+                - UPDATE
+                - DELETE
+      generate:
+        generateExisting: true
+        synchronize: true
+        apiVersion: external-secrets.io/v1beta1
+        kind: ClusterSecretStore
+        name: "${USERNAME}-password-{{request.object.spec.clusterName}}"
+        data:
+          spec:
+            provider:
+              vault:
+                auth:
+                  kubernetes:
+                    mountPath: kubernetes
+                    role: "${USERNAME}-password-{{request.object.spec.clusterName}}"
+                    serviceAccountRef:
+                      name: ${USERNAME}-password
+                      namespace: "{{request.object.metadata.namespace}}"
+                caProvider:
+                  key: ca.crt
+                  name: ca-key-pair
+                  namespace: cert-manager
+                  type: Secret
+                path: cluster-secrets
+                server: https://vault.vault.svc.cluster.local:8200
+                version: v2
+    - name: ${USERNAME}-password-externalsecret
+      match:
+        any:
+          - resources:
+              kinds:
+                - cluster.x-k8s.io/*/Machine
+              operations:
+                - CONNECT
+                - CREATE
+                - UPDATE
+                - DELETE
+          - resources:
+              kinds:
+                - cluster.x-k8s.io/*/Cluster
+              operations:
+                - CONNECT
+                - CREATE
+                - UPDATE
+                - DELETE
+      generate:
+        generateExisting: true
+        synchronize: true
+        apiVersion: external-secrets.io/v1beta1
+        kind: ExternalSecret
+        name: ${USERNAME}-password
+        namespace: "{{request.object.metadata.namespace}}"
+        data:
+          metadata:
+            name: "${USERNAME}-password"
+            namespace: "{{request.object.metadata.namespace}}"
+          spec:
+            secretStoreRef:
+              name: "${USERNAME}-password-{{request.object.spec.clusterName}}"
+              kind: ClusterSecretStore
+            refreshInterval: 1m0s
+            target:
+              creationPolicy: Orphan # Orphan,Owner,None,Merge
+              deletionPolicy: Retain # Delete,Merge,Retain
+              name: ${USERNAME}-password
+              template:
+                engineVersion: v2
+                mergePolicy: Merge
+                metadata:
+                  labels:
+                    sylvaproject.org/cluster-secrets: 'true'
+                  annotations:
+                    sylvaproject.org/cluster-secrets-type: ${PASSWORD_TYPE}
+                    sylvaproject.org/password-sha256sum: \{{ sha256sum .password }}
+                data:
+                  username: ${USERNAME}
+            data:
+              - secretKey: password
+                remoteRef:
+                  conversionStrategy: Unicode
+                  key: "{{request.object.spec.clusterName}}/${USERNAME}-password"
+                  property: password
