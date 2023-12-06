@@ -19,7 +19,7 @@ spec:
         spec:
           containers:
           - name: run-script
-            image: registry.gitlab.com/sylva-projects/sylva-elements/container-images/kube-job:v1.1.1
+            image: registry.gitlab.com/sylva-projects/sylva-elements/container-images/kube-job/snapshot:0.0.0-git-74666015
             command: ["/bin/sh", "-c", "/opt/kube-cronjob.sh"]
             securityContext:
               allowPrivilegeEscalation: false

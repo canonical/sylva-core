@@ -51,7 +51,8 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
     spec:
       url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-capi-cluster.git
       ref:
-        tag: 0.8.3
+#        tag: 0.4.11
+        branch: tmon/cluster-secrets
 
   sync-openstack-images:
     kind: GitRepository
@@ -1188,6 +1189,7 @@ units:
         image:
           repository: ghcr.io/bank-vaults/vault-operator
           tag: '{{ .Values.source_templates | dig "vault-operator" "spec" "ref" "tag" "" | required "source_templates.vault-operator.spec.ref.tag is unset" }}'
+        replicaCount: '{{ .Values._internal.default_replicas | include "preserve-type" }}'
 
   vault:
     info:
@@ -1312,6 +1314,7 @@ units:
       values:
         enableCertManager: true
         enableMonitoring: false
+        replicaCount: '{{ .Values._internal.default_replicas | include "preserve-type" }}'
 
   vault-secrets:
     info:
@@ -2172,6 +2175,26 @@ units:
               - apiGroups: ["*"]
                 resources: [ "secrets" ]
                 verbs: ["get", "list", "watch"]
+              - apiGroups: ["redhatcop.redhat.io"]
+                resources:
+                  - authenginemounts
+                  - kubernetesauthengineconfigs
+                  - kubernetesauthengineroles
+                  - policies
+                  - randomsecrets
+                  - secretenginemounts
+                  - vaultsecrets
+                verbs: ["create", "patch", "update", "delete", "list", "get"]
+              - apiGroups: [""]
+                resources:
+                  - serviceaccounts
+                verbs: ["create", "patch", "update", "delete"]
+              - apiGroups: ["external-secrets.io"]
+                resources:
+                  - "externalsecrets"
+                  - "secretstores"
+                  - "clustersecretstores"
+                verbs: ["create", "delete", "get", "list", "watch", "patch", "update"]
           container:
             resources:
               limits:
@@ -2249,7 +2272,9 @@ units:
               - apiGroups: ["external-secrets.io"]
                 resources:
                   - "externalsecrets"
-                verbs: ["get", "list", "watch", "patch", "update"]
+                  - "secretstores"
+                  - "clustersecretstores"
+                verbs: ["create", "delete", "get", "list", "watch", "patch", "update"]
               - apiGroups: ["unitsoperator.sylva"]
                 resources:
                   - "sylvaunitsreleasetemplates"
@@ -2265,7 +2290,7 @@ units:
               - apiGroups: [""]
                 resources:
                   - serviceaccounts
-                verbs: ["get", "list", "watch", "patch", "update"]
+                verbs: ["get", "list", "watch", "create", "delete", "patch", "update"]
               - apiGroups: ["metallb.io"]
                 resources:
                   - ipaddresspools
@@ -2277,6 +2302,16 @@ units:
                 resources:
                   - baremetalhosts
                 verbs: ["get", "list", "watch", "patch", "update"]
+              - apiGroups: ["redhatcop.redhat.io"]
+                resources:
+                  - authenginemounts
+                  - kubernetesauthengineconfigs
+                  - kubernetesauthengineroles
+                  - policies
+                  - randomsecrets
+                  - secretenginemounts
+                  - vaultsecrets
+                verbs: ["get", "list", "watch", "create", "delete", "patch", "update"]
               # for rke2-helmchart-prevent-uninstall policy:
               - >-
                 {{
@@ -3043,7 +3078,6 @@ units:
         - kind: ConfigMap
           name: openstack-images-uuids  ## this ConfigMap is a byproduct of the sync-openstack-images job
           optional: '{{ not (.Values.cluster.capi_providers.infra_provider | eq "capo") | include "as-bool" }}'
-
         # os-images-info ConfigMap
         #
         # this ConfigMap is a byproduct of the os-images-info unit
@@ -3097,6 +3131,30 @@ units:
             .Values._internal.capo_calico_autodetection_method_use_canReach_vip
           | include "set-only-if"
           -}}
+        # cluster-secrets ConfigMap
+        #
+        # Used to inject OS encrypted secrets for a cluster for the following types:
+        # - capm3
+        # - capo
+        # - capv
+        #
+        # - kind: ConfigMap
+        #   name: cluster-secrets
+        #   valuesKey: secrets.yaml
+        #   optional: true
+        - |
+          {{-
+          tuple
+            (dict "kind" "ConfigMap"
+                  "name" "cluster-secrets"
+                  "valuesKey" "secrets.yaml"
+                  "optional" true)
+            (or (.Values.cluster.capi_providers.infra_provider | eq "capm3")
+                (.Values.cluster.capi_providers.infra_provider | eq "capo")
+                (.Values.cluster.capi_providers.infra_provider | eq "capv")
+            )
+          | include "set-only-if"
+          -}}
       _postRenderers:
         - kustomize:
             patches:
@@ -3122,7 +3180,6 @@ units:
                           extraArgs:
                             feature-gates: ValidatingAdmissionPolicy=true
                             runtime-config: admissionregistration.k8s.io/v1beta1
-
     # we pass everything that is under `cluster` to this unit that uses sylva-capi-cluster chart
     # (we do it via a secret because some of the values are credentials in many scenarios)
     helm_secret_values: '{{ .Values.cluster | include "preserve-type" }}'
@@ -5746,6 +5803,104 @@ units:
       USERNAME: '{{ .Values.cluster.capv.username }}'
       PASSWORD: '{{ .Values.cluster.capv.password }}'
 
+  cluster-secrets-store:
+    info:
+      description: Configure a dedicated Vault KV for cluster-secrets (Disabled by default)
+      maturity: stable
+      internal: true
+    enabled: false
+    unit_templates:
+    - base-deps
+    - kube-cronjob
+    enabled_conditions:
+      - '{{ tuple . "cluster-secrets" | include "unit-enabled" }}'
+    depends_on:
+      vault: true
+      vault-config-operator: true
+    repo: sylva-core
+    kustomization_spec:
+      path: ./kustomize-units/cluster-secrets/init
+      wait: true
+      targetNamespace: vault
+      postBuild:
+        substitute:
+          CLUSTER_SECRETS_STORE: cluster-secrets
+
+
+  cluster-secrets:
+    info:
+      description: Configure base job to manage secrets for a target Cluster
+      maturity: stable
+      internal: true
+    unit_templates:
+    - base-deps
+    - kube-cronjob
+    enabled_conditions:
+      - '{{ (or (.Values.cluster.capi_providers.infra_provider | eq "capm3")
+                (.Values.cluster.capi_providers.infra_provider | eq "capo")
+                (.Values.cluster.capi_providers.infra_provider | eq "capv")
+            ) | include "as-bool" }}'
+    depends_on:
+      vault: true
+      vault-config-operator: true
+    kustomization_spec:
+      path: ./kustomize-units/cluster-secrets/sync
+      wait: true
+      targetNamespace: '{{ .Release.Namespace }}'
+      postBuild:
+        substitute:
+          NAMESPACE: '{{ .Release.Namespace }}'
+
+  cluster-secrets-root-password:
+    info:
+      description: Configure root password per cluster
+      maturity: stable
+      internal: true
+    unit_templates:
+    - base-deps
+    enabled_conditions:
+      - '{{ tuple . "cluster-secrets" | include "unit-enabled" }}'
+    depends_on:
+      cluster-secrets: true
+    repo: sylva-core
+    kustomization_spec:
+      path: ./kustomize-units/cluster-secrets/user-password
+      wait: true
+      postBuild:
+        substitute:
+          NAMESPACE: '{{ .Release.Namespace }}'
+          CLUSTER_SECRETS_STORE: secret
+          USERNAME: root
+          PASSWORD_TYPE: user
+          REFRESH_PERIOD: '{{ .Values.cluster.secrets.refreshPeriod }}'
+          REFRESH_THRESHOLD: '{{ .Values.cluster.secrets.refreshThreshold }}'
+
+  cluster-secrets-grub-password:
+    info:
+      description: Configure grub password per cluster
+      maturity: stable
+      internal: true
+    unit_templates:
+    - base-deps
+    enabled_conditions:
+      - '{{ not (.Values.cluster.capi_providers.infra_provider | eq "capd") | include "as-bool" }}'
+      - '{{ tuple . "cluster-secrets" | include "unit-enabled" }}'
+    depends_on:
+      cluster-secrets: true
+    repo: sylva-core
+    kustomization_spec:
+      path: ./kustomize-units/cluster-secrets/user-password
+      wait: true
+      postBuild:
+        substitute:
+          NAMESPACE: '{{ .Release.Namespace }}'
+          CLUSTER_SECRETS_STORE: secret
+          USERNAME: grub
+          PASSWORD_TYPE: grub
+          REFRESH_PERIOD: '{{ .Values.cluster.secrets.refreshPeriod }}'
+          REFRESH_THRESHOLD: '{{ .Values.cluster.secrets.refreshThreshold }}'
+
+# creates the sandbox namespaces used to perform privileged operations like debugging a node
   sandbox-privileged-namespace:
     info:
       description: >
@@ -7998,6 +8153,11 @@ cluster:
     {{- $cluster_metallb_resources := dict }}
     {{- tuple $cluster_metallb_resources .Values.metallb .Values._internal.metallb | include "merge-append" }}
     {{ $cluster_metallb_resources | include "preserve-type" }}
+
+  secrets:
+    refreshPeriod: 720h
+    refreshThreshold: 85
+    data: []
 
 cluster_machines_ready:
   wait_timeout: 600s

@@ -1,0 +1,27 @@
+apiVersion: redhatcop.redhat.io/v1alpha1
+kind: KubernetesAuthEngineRole
+metadata:
+  name: ${USERNAME}-password-${NAMESPACE:-sylva-system}
+  namespace: vault
+  annotations:
+    sylvaproject.org/cluster-secrets: 'true'
+spec:
+  authentication:
+    path: kubernetes
+    role: admin
+    serviceAccount:
+      name: vault
+  connection:
+    address: https://vault.vault.svc.cluster.local:8200
+    tLSConfig:
+      skipVerify: true
+  path: kubernetes
+  policies:
+    - ${USERNAME}-password-${NAMESPACE:-sylva-system}
+  targetNamespaces:
+    targetNamespaces:
+      - ${NAMESPACE:-sylva-system}
+  targetServiceAccounts:
+    - ${USERNAME}-password
+  tokenTTL: 3600
+  tokenType: default

@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: ${USERNAME}-password
+  namespace: ${NAMESPACE:-sylva-system}
+  annotations:
+    sylvaproject.org/cluster-secrets: 'true'

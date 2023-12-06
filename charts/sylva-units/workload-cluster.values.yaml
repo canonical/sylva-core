@@ -557,6 +557,34 @@ units:
     # can be enabled at runtime if desired
     enabled: false
 
+  cluster-secrets:
+    enabled: true
+    unit_templates:
+    - kustomization-deployed-on-mgmt-cluster
+    - kube-cronjob
+    enabled_conditions:
+      - '{{ index .Values._internal.sylva_mgmt_enabled_units "vault" }}'
+      - '{{ index .Values._internal.sylva_mgmt_enabled_units "vault-config-operator" }}'
+    depends_on:
+      vault: false
+      vault-config-operator: false
+
+  cluster-secrets-root-password:
+    enabled: true
+    unit_templates:
+    - kustomization-deployed-on-mgmt-cluster
+    enabled_conditions:
+      - '{{ index .Values._internal.sylva_mgmt_enabled_units "vault" }}'
+      - '{{ index .Values._internal.sylva_mgmt_enabled_units "vault-config-operator" }}'
+
+  cluster-secrets-grub-password:
+    enabled: true
+    unit_templates:
+    - kustomization-deployed-on-mgmt-cluster
+    enabled_conditions:
+      - '{{ index .Values._internal.sylva_mgmt_enabled_units "vault" }}'
+      - '{{ index .Values._internal.sylva_mgmt_enabled_units "vault-config-operator" }}'
+
 cluster_domain: '{{ .Values.cluster.name }}.{{ .Values._internal.workload_clusters_cluster_subdomain }}'
 
 _internal:
