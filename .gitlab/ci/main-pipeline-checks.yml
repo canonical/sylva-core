@@ -129,6 +129,17 @@ yamllint:
   script:
     - 'yamllint . -d "$(cat < .gitlab/ci/configuration/yamllint.yaml) $(cat < .gitlab/ci/configuration/yamllint-helm-exclude-charts.yaml)"'
 
+shellcheck:
+  extends: .lint-base
+  image: koalaman/shellcheck-alpine:latest
+  before_script:
+    - apk update
+    - apk add git
+  script:
+    - git ls-files --exclude='*.sh' --ignored -c -z | xargs -0r shellcheck ${SHELL_CHECK_OPTIONS}
+  variables:
+    SHELL_CHECK_OPTIONS: "--severity=error"
+
 avoid-typo-on-bootstrap:
   extends: .lint-base
   script:

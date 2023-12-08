@@ -14,7 +14,7 @@ VSphereMachineTemplate.*infrastructure.cluster.x-k8s.io
 OpenStackMachineTemplate.*infrastructure.cluster.x-k8s.io
 Metal3MachineTemplate.*infrastructure.cluster.x-k8s.io
 "
-
+# shellcheck disable=SC2068
 for TEMPLATE_CR in ${TEMPLATE_TYPES_CR[@]}; do
 
     if kubectl api-resources | grep -i $TEMPLATE_CR > /dev/null ; then

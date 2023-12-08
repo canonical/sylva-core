@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # Grab some info in case of failure, essentially usefull to troubleshoot CI, fell free to add your own commands while troubleshooting
 
 # list of kinds to dump
@@ -93,6 +95,7 @@ function dump_additional_resources() {
     local cluster_dir=$1
     shift
     kubectl api-resources > $cluster_dir/api-resources.txt
+    # shellcheck disable=SC2068
     for cr in $@; do
       if ! [[  ${cr} =~ ^[A-Z][A-Za-z0-9]*s($|\.\*.*) ]]; then
           echo '${cr} does not match the expected pattern, you should provide the capiatalised (plural) NAME of the resource, not the KIND'
