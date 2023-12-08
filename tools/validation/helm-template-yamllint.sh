@@ -20,7 +20,7 @@ if [[ -z ${HELM_NAME} ]]; then
   exit 1
 fi
 
-function helm() { $(/usr/bin/which helm) $@ 2> >(grep -v 'found symbolic link' >&2); }
+function helm() { $(/usr/bin/which helm) "$@" 2> >(grep -v 'found symbolic link' >&2); }
 
 export BASE_DIR=$( cd "$(dirname "${BASH_SOURCE[0]}")/../.." ; pwd -P )
 
@@ -41,7 +41,7 @@ if [[ $HELM_NAME == "sylva-units" ]]; then
     echo "      in this case the condition will be put in 'units.xxx.enabled', but in 'management.values.yaml'"
     echo "  - 'workload-cluster.values.yaml' is the place where to set 'units.xxx.enabled' for units that we want to enable in workload clusters"
     echo
-    exit -1
+    exit 1
   fi
 fi
 
@@ -94,7 +94,7 @@ if [ -d $chart_dir/test-values ] && [ -n "$test_dirs" ] ; then
 
     if [[ $exit_code -ne $expected_exit_code ]]; then
       echo $error_message
-      exit -1
+      exit 1
     else
       echo $success_message
     fi
@@ -114,19 +114,19 @@ if [[ $HELM_NAME == "sylva-units" ]]; then
     postRenderers=$(yq eval '[.units | to_entries | .[] | select(.value.helmrelease_spec.postRenderers)] | map(.key) | join(", ")' $value_file)
     if [[ -n $postRenderers ]]; then
       echo "Some units defined in $value_file use helmrelease_spec.postRenderers, although they should use helmrelease_spec._postRenderers instead: $postRenderers"
-      exit -1
+      exit 1
     fi
 
     components=$(yq eval '[.units | to_entries | .[] | select(.value.kustomization_spec.components)] | map(.key) | join(", ")' $value_file)
     if [[ -n $components ]]; then
       echo "Some units defined in $value_file use kustomization_spec.components, although they should use kustomization_spec._components instead: $components"
-      exit -1
+      exit 1
     fi
 
     patches=$(yq eval '[.units | to_entries | .[] | select(.value.kustomization_spec.patches)] | map(.key) | join(", ")' $value_file)
     if [[ -n $patches ]]; then
       echo "Some units defined in $value_file use kustomization_spec.patches, although they should use kustomization_spec._patches instead: $patches"
-      exit -1
+      exit 1
     fi
 
     echo -e "\e[0Ksection_end:`date +%s`:additional_check_$value_file\r\e[0K"

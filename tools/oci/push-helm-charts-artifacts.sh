@@ -77,7 +77,7 @@ function artifact_integrity {
   local artifact_version=$3
 
   artifact_url=$OCI_REGISTRY/$artifact_name:${artifact_version}
-  
+
   rm -rf /tmp/*
   echo "flux pull artifact $artifact_url -o /tmp"
   # The integrity test makes sense only if the OCI artifact exists
@@ -95,16 +95,16 @@ function artifact_integrity {
 
 
 function push_and_sign {
- 
+
       local tgz_file=$1
       local artifact_name=$2
       local artifact_version=$3
 
-      if !(artifact_integrity $tgz_file $artifact_name $artifact_version); then
+      if ! (artifact_integrity $tgz_file $artifact_name $artifact_version); then
         echo "[ERROR] cannot push and sign $artifact_name because its content differs from the content of the already existing OCI artifact"
         return 1
       fi
-      
+
       helm push $tgz_file $OCI_REGISTRY >output 2>&1
       local digest=$(grep 'Digest:' output | sed 's/^.*: //')
       if [[ -v COSIGN_PRIVATE_KEY ]] && [[ -v COSIGN_PASSWORD ]]; then
