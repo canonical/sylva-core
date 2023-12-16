@@ -6,3 +6,4 @@ resources:
 - disable-automount-sa.yaml
 - ensure-force-cluster-policy.yaml
 - ensure-pdb-minreplicas.yaml
+- add-security-context.yaml
