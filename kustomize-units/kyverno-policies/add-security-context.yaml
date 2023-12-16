@@ -67,4 +67,3 @@ spec:
                       type: RuntimeDefault
                     +(runAsUser): 10000
                     +(runAsGroup): 10000
-                    
