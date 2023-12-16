@@ -705,17 +705,8 @@ units:
         createNamespace: true
       values:
         securityContext:
-          runAsNonRoot: true
-          seccompProfile:
-            type: RuntimeDefault
-          allowPrivilegeEscalation: false
-          capabilities:
-            drop:
-            - ALL
           privileged: false
           readOnlyRootFilesystem: true
-          runAsGroup: 10000
-          runAsUser: 10000
         serviceAccount:
           annotations: {}
           create: true
@@ -1761,16 +1752,9 @@ units:
             - op: replace
               path: /spec/template/spec/containers/0/securityContext
               value:
-                allowPrivilegeEscalation: false
-                capabilities:
-                  drop:
-                    - ALL
                 privileged: false
-                runAsNonRoot: true
                 runAsGroup: 1000
                 runAsUser: 1000
-                seccompProfile:
-                  type: RuntimeDefault
           target:
             kind: Deployment
             name: keycloak-operator
@@ -1791,29 +1775,6 @@ units:
       path: ./kustomize-units/keycloak-legacy-operator
       targetNamespace: keycloak
       wait: true
-      _patches:
-        - patch: |
-            apiVersion: apps/v1
-            kind: Deployment
-            metadata:
-              name: keycloak-realm-operator
-            spec:
-              template:
-                spec:
-                  containers:
-                    - name: keycloak-realm-operator
-                      securityContext:
-                        runAsUser: 10000
-                        allowPrivilegeEscalation: false
-                        capabilities:
-                          drop:
-                            - ALL
-                        runAsNonRoot: true
-                        seccompProfile:
-                          type: RuntimeDefault
-          target:
-            kind: Deployment
-            name: keycloak-realm-operator
 
   keycloak-resources:
     info:
@@ -3820,15 +3781,8 @@ units:
                         containers:
                         - name: k8s-gateway
                           securityContext:
-                            allowPrivilegeEscalation: false
-                            capabilities:
-                              drop:
-                              - ALL
-                            runAsNonRoot: true
                             runAsGroup: 1000
                             runAsUser: 1000
-                            seccompProfile:
-                              type: RuntimeDefault
 
   cluster-vip-fix-lbclass:
     info:
@@ -3911,16 +3865,8 @@ units:
         createNamespace: true
       values:
         securityContext:
-          allowPrivilegeEscalation: false
-          capabilities:
-            drop:
-              - ALL
-          privileged: false
-          runAsNonRoot: true
-          runAsGroup: 10000
-          runAsUser: 10000
-          seccompProfile:
-            type: RuntimeDefault
+          runAsGroup: 1
+          runAsUser: 1
         conf:
           env:
             - name: URL_REMAP
@@ -4174,17 +4120,10 @@ units:
                         containers:
                         - name: weave-gitops
                           securityContext:
-                            allowPrivilegeEscalation: false
-                            capabilities:
-                              drop:
-                              - ALL
                             privileged: false
                             readOnlyRootFilesystem: true
-                            runAsNonRoot: true
                             runAsGroup: 1000
                             runAsUser: 1000
-                            seccompProfile:
-                              type: RuntimeDefault
 
   prometheus-custom-metrics:
     info:
@@ -5428,26 +5367,10 @@ units:
           no_proxy: '{{ include "sylva-units.no_proxy" (tuple .) }}'
           extra_ca_certs: '{{ .Values.oci_registry_extra_ca_certs | include "set-if-defined" }}'
           securityContext:
-            capabilities:
-              drop:
-              - ALL
-            runAsNonRoot: true
-            runAsUser: 10000
             readOnlyRootFilesystem: true
-            allowPrivilegeEscalation: false
-            seccompProfile:
-              type: RuntimeDefault
         nginx:
           securityContext:
-            capabilities:
-              drop:
-              - ALL
-            runAsNonRoot: true
-            runAsUser: 10000
             readOnlyRootFilesystem: true
-            allowPrivilegeEscalation: false
-            seccompProfile:
-              type: RuntimeDefault
         ingress:
           className: nginx
           hosts:
