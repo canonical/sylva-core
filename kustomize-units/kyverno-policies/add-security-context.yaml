@@ -31,6 +31,13 @@ spec:
           selector:
             matchLabels:
               skipSecurityContext: "true"
+      - resources:
+          namespaceSelector:
+            matchExpressions:
+            - key: skipSecurityContext
+              operator: In
+              values:
+              - "true"
     mutate:
       foreach:
       - list: request.object.spec.template.spec.containers[]
