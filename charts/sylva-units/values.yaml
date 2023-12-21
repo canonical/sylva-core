@@ -638,6 +638,8 @@ units:
           database: keycloak
           password: '{{ .Values._internal.postgres_user_password }}'
           replicationPassword: '{{ .Values._internal.postgres_replication_password }}'
+        commonLabels:
+          skipSecurityContext: "true"
         architecture: replication
         nameOverride: postgres
         serviceAccount:
