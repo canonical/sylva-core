@@ -706,9 +706,6 @@ units:
       install:
         createNamespace: true
       values:
-        securityContext:
-          privileged: false
-          readOnlyRootFilesystem: true
         serviceAccount:
           annotations: {}
           create: true
@@ -5373,11 +5370,6 @@ units:
           proxy: '{{ get .Values.proxies "https_proxy" }}'
           no_proxy: '{{ include "sylva-units.no_proxy" (tuple .) }}'
           extra_ca_certs: '{{ .Values.oci_registry_extra_ca_certs | include "set-if-defined" }}'
-          securityContext:
-            readOnlyRootFilesystem: true
-        nginx:
-          securityContext:
-            readOnlyRootFilesystem: true
         ingress:
           className: nginx
           hosts:
