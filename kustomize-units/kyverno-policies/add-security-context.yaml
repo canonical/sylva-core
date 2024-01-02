@@ -12,9 +12,8 @@ metadata:
     policies.kyverno.io/description: >-
       This kyverno policy is to add security context to all pods as it was being very repetitive in values.yaml for every unit.
       This policy is a bit flexible in terms of if someone wants to exclude some resource from this policy, "skipSecurityContext: "true" can be used.
-      Also, this policy is flexible on setting runAsUser and runAsGroup, If nothing will be set, the default will be set which is:
+      Also, this policy is flexible on setting runAsUser, If nothing will be set, the default will be set which is:
         - runAsUser: 10000
-        - runAsGroup: 10000
 spec:
   rules:
   - name: add-security-context
@@ -31,6 +30,9 @@ spec:
           selector:
             matchLabels:
               skipSecurityContext: "true"
+      - resources:
+          namespaces:
+          - calico-system
       - resources:
           namespaceSelector:
             matchExpressions:
