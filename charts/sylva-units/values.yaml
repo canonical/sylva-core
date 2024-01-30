@@ -2624,6 +2624,9 @@ units:
           provisioningInterface: eth0
         metal3-ironic:
           fullnameOverride: metal3-ironic
+          podSecurityContext:
+            runAsUser: 10475
+            fsGroup: 10475
           service:
             type: LoadBalancer
             externalIPs:
@@ -2639,6 +2642,9 @@ units:
         metal3-baremetal-operator:
           replicaCount: '{{ .Values._internal.ha_cluster.is_ha | ternary 2 1 | include "preserve-type" }}'
         metal3-mariadb:
+          podSecurityContext:
+            runAsUser: 10060
+            fsGroup: 10060
           persistence:
             storageClass: '{{ .Values._internal.default_storage_class }}'
       _postRenderers:
