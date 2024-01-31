@@ -704,6 +704,10 @@ units:
       install:
         createNamespace: true
       values:
+        securityContext:
+          privileged: false
+          readOnlyRootFilesystem: true
+          runAsGroup: 10000
         serviceAccount:
           annotations: {}
           create: true
