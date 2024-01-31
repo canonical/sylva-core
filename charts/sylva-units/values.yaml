@@ -705,6 +705,9 @@ units:
         createNamespace: true
       values:
         securityContext:
+          runAsNonRoot: true
+          seccompProfile:
+            type: RuntimeDefault
           privileged: false
           readOnlyRootFilesystem: true
           runAsGroup: 10000
