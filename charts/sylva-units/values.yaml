@@ -1778,6 +1778,29 @@ units:
       path: ./kustomize-units/keycloak-legacy-operator
       targetNamespace: keycloak
       wait: true
+      _patches:
+        - patch: |
+            apiVersion: apps/v1
+            kind: Deployment
+            metadata:
+              name: keycloak-realm-operator
+            spec:
+              template:
+                spec:
+                  containers:
+                    - name: keycloak-realm-operator
+                      securityContext:
+                        runAsUser: 10000
+                        allowPrivilegeEscalation: false
+                        capabilities:
+                          drop:
+                            - ALL
+                        runAsNonRoot: true
+                        seccompProfile:
+                          type: RuntimeDefault
+          target:
+            kind: Deployment
+            name: keycloak-realm-operator
 
   keycloak-resources:
     info:
