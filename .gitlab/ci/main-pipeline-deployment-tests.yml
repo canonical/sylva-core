@@ -24,7 +24,7 @@ variables:
     value: "45"
     description: "bootstrap.sh timeout for bootstrap cluster"
   APPLY_WC_WATCH_TIMEOUT_MIN:
-    value: "30"
+    value: "45"
     description: "apply-workload-cluster.sh timeout"
 
   # Management cluster relative variables
