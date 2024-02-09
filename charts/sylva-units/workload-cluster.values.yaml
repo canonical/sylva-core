@@ -287,12 +287,7 @@ units:
           name: "cattle-agent-{{ .Values.cluster.name }}"
           namespace: '{{ .Release.Namespace }}'
         # this resource would be checked by "wait: true" but we have
-        # to check it explicitly because we use `healthChecks` which implies `wait: false`
-        - apiVersion: provisioning.cattle.io/v1
-          kind: Cluster
-          name: "{{ .Values.cluster.name }}-capi"
-          namespace: '{{ .Release.Namespace }}'
-
+        # to check it explicitly because logging
   vsphere-cpi:
     enabled: true
     # setting the same dependencies of the capv cluster unit in order to run in parallel
@@ -319,6 +314,14 @@ units:
 
   sylva-prometheus-rules:
     enabled: true
+
+  glauth:
+    enabled: false
+
+  rancher-users-resources:
+    enabled: true
+    depends_on:
+      glauth/glauth: true
 
 _internal:
   # for capm3 the os-image-info configmap is copied by kyverno from main sylva-units release, corresponding to what os-image-server will serve

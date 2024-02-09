@@ -24,6 +24,178 @@ spec:
     - name: infra-restricted-admins
     - name: infra-standard-users
     - name: infra-base-users
+    components:
+      org.keycloak.storage.UserStorageProvider:
+      - config:
+          allowKerberosAuthentication:
+          - 'false'
+          authType:
+          - simple
+          batchSizeForSync:
+          - '1000'
+          bindCredential:
+          - ${LDAP_BIND_CREDENTIAL}
+          bindDn:
+          - cn=keycloak,ou=sylva_admins,${LDAP_BASE_DC}
+          cachePolicy:
+          - DEFAULT
+          changedSyncPeriod:
+          - '86400'
+          connectionPooling:
+          - 'true'
+          connectionUrl:
+          - ldap://glauth.glauth.svc.cluster.local
+          debug:
+          - 'false'
+          editMode:
+          - READ_ONLY
+          enabled:
+          - 'true'
+          fullSyncPeriod:
+          - '-1'
+          importEnabled:
+          - 'true'
+          lastSync:
+          - '1679910597'
+          pagination:
+          - 'true'
+          priority:
+          - '0'
+          rdnLDAPAttribute:
+          - cn
+          searchScope:
+          - '2'
+          syncRegistrations:
+          - 'false'
+          trustEmail:
+          - 'true'
+          useKerberosForPasswordAuthentication:
+          - 'false'
+          useTruststoreSpi:
+          - never
+          userObjectClasses:
+          - posixAccount
+          usernameLDAPAttribute:
+          - uid
+          usersDn:
+          - ou=users,${LDAP_BASE_DC}
+          uuidLDAPAttribute:
+          - uidNumber
+          validatePasswordPolicy:
+          - 'false'
+          vendor:
+          - other
+        name: ldap
+        providerId: ldap
+        subComponents:
+          org.keycloak.storage.ldap.mappers.LDAPStorageMapper:
+          - config:
+              always.read.value.from.ldap:
+              - 'false'
+              is.mandatory.in.ldap:
+              - 'true'
+              ldap.attribute:
+              - uid
+              read.only:
+              - 'true'
+              user.model.attribute:
+              - username
+            name: username
+            providerId: user-attribute-ldap-mapper
+          - config:
+              always.read.value.from.ldap:
+              - 'false'
+              is.mandatory.in.ldap:
+              - 'false'
+              ldap.attribute:
+              - mail
+              read.only:
+              - 'true'
+              user.model.attribute:
+              - email
+            name: email
+            providerId: user-attribute-ldap-mapper
+          - config:
+              drop.non.existing.groups.during.sync:
+              - 'false'
+              group.name.ldap.attribute:
+              - uid
+              group.object.classes:
+              - groupOfUniqueNames
+              groups.dn:
+              - ou=groups,${LDAP_BASE_DC}
+              groups.path:
+              - /
+              ignore.missing.groups:
+              - 'false'
+              memberof.ldap.attribute:
+              - memberOf
+              membership.attribute.type:
+              - DN
+              membership.ldap.attribute:
+              - uniqueMember
+              membership.user.ldap.attribute:
+              - cn
+              mode:
+              - READ_ONLY
+              preserve.group.inheritance:
+              - 'true'
+              user.roles.retrieve.strategy:
+              - LOAD_GROUPS_BY_MEMBER_ATTRIBUTE
+            name: groups
+            providerId: group-ldap-mapper
+          - config:
+              always.read.value.from.ldap:
+              - 'true'
+              is.mandatory.in.ldap:
+              - 'true'
+              ldap.attribute:
+              - sn
+              read.only:
+              - 'true'
+              user.model.attribute:
+              - lastName
+            name: last name
+            providerId: user-attribute-ldap-mapper
+          - config:
+              always.read.value.from.ldap:
+              - 'true'
+              is.mandatory.in.ldap:
+              - 'false'
+              ldap.attribute:
+              - modifyTimestamp
+              read.only:
+              - 'true'
+              user.model.attribute:
+              - modifyTimestamp
+            name: modify date
+            providerId: user-attribute-ldap-mapper
+          - config:
+              always.read.value.from.ldap:
+              - 'true'
+              is.mandatory.in.ldap:
+              - 'false'
+              ldap.attribute:
+              - createTimestamp
+              read.only:
+              - 'true'
+              user.model.attribute:
+              - createTimestamp
+            name: creation date
+            providerId: user-attribute-ldap-mapper
+          - config:
+              always.read.value.from.ldap:
+              - 'true'
+              is.mandatory.in.ldap:
+              - 'true'
+              ldap.attribute:
+              - cn
+              read.only:
+              - 'true'
+              user.model.attribute:
+              - firstName
+            name: first name
+            providerId: user-attribute-ldap-mapper
 ---
 apiVersion: legacy.k8s.keycloak.org/v1alpha1
 kind: KeycloakRealm

@@ -54,6 +54,13 @@ units:
   kubevirt-test-vms:
     enabled: false
 
+  glauth:
+    enabled: true
+
+  rancher-users-resources:
+    depends_on:
+      glauth: '{{ tuple . "glauth" | include "unit-enabled" }}'
+
   monitoring:
     helmrelease_spec:
       values:

@@ -1,0 +1,73 @@
+# the scope of this policy is to add the Secrets and ConfigMaps matching the criteria
+# to the list of the `Deployment/glauth` .spec.template.spec.volumes[0].projected.sources
+---
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: set-glauth-deployment-project-volume-sources
+  annotations:
+    kustomize.toolkit.fluxcd.io/force: Enabled
+spec:
+  mutateExistingOnPolicyUpdate: true
+  rules:
+  - name: set-glauth-deployment-project-volume-sources-configmaps
+    match:
+      any:
+      - resources:
+          kinds:
+          - ConfigMap
+          namespaces:
+          - glauth
+          selector:
+            matchLabels:
+              sylva.org/rancher-users-resources: "*"
+    mutate:
+      targets:
+      - apiVersion: apps/v1
+        kind: Deployment
+        name: glauth
+        namespace: glauth
+      patchStrategicMerge:
+        spec:
+          template:
+            spec:
+              volumes:
+              - (name): "config"
+                projected:
+                  sources:
+                  - configMap:
+                      items:
+                      - key: "{{request.object.metadata.name}}.cfg"
+                        path: "{{request.object.metadata.name}}.cfg"
+                      name: "{{request.object.metadata.name}}"
+
+  - name: set-glauth-deployment-project-volume-sources-secrets
+    match:
+      any:
+      - resources:
+          kinds:
+          - Secret
+          namespaces:
+          - glauth
+          selector:
+            matchLabels:
+              sylva.org/rancher-users-resources: "*"
+    mutate:
+      targets:
+      - apiVersion: apps/v1
+        kind: Deployment
+        name: glauth
+        namespace: glauth
+      patchStrategicMerge:
+        spec:
+          template:
+            spec:
+              volumes:
+              - (name): "config"
+                projected:
+                  sources:
+                  - secret:
+                      items:
+                      - key: "{{request.object.metadata.name}}.cfg"
+                        path: "{{request.object.metadata.name}}.cfg"
+                      name: "{{request.object.metadata.name}}"

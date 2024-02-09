@@ -7128,6 +7128,78 @@
         }
       ]
     },
+    "glauth": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "ldap_base_dc": {
+          "type": "string"
+        }
+      }
+    },
+    "rancher": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "users": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "secret_name": {
+              "type": "string"
+            },
+            "users": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "givenname": {
+                    "type": "string"
+                  },
+                  "sn": {
+                    "type": "string"
+                  },
+                  "mail": {
+                    "type": "string"
+                  },
+                  "uidnumber": {
+                    "type": "string"
+                  },
+                  "primarygroup": {
+                    "type": "string"
+                  },
+                  "passsha256": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "groups": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "configmap_name": {
+              "type": "string"
+            },
+            "groups": {
+              "type": "object"
+            },
+            "additionalProperties": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "gidnumber": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "external_hostnames": {
       "type": "object",
       "additionalProperties": false,
