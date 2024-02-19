@@ -8,9 +8,11 @@ spec:
     metadata:
       labels:
         kubevirt.io/size: small
-        kubevirt.io/domain: testvm
+        kubevirt.io/domain: centos
     spec:
       domain:
+        cpu:
+          cores: 2
         devices:
           disks:
             - name: containerdisk
@@ -26,7 +28,7 @@ spec:
             bridge: {}
         resources:
           requests:
-            memory: 64M
+            memory: 4096M
       networks:
       - name: default
         pod: {}
