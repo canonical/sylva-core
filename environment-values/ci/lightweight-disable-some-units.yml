@@ -1,0 +1,19 @@
+---
+# Disabling some units for lightweight deployment testing
+units:
+  cluster-creator-policy:
+    enabled: false
+  monitoring:
+    enabled: false
+  keycloak:
+    enabled: false
+  flux-webui:
+    enabled: false
+  capi-rancher-import:
+    enabled: false
+  shared-workload-clusters-settings:
+    enabled: false
+  harbor:
+    enabled: false
+  minio-monitoring-tenant:
+    enabled: false
