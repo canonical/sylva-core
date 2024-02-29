@@ -1755,9 +1755,16 @@ units:
             - op: replace
               path: /spec/template/spec/containers/0/securityContext
               value:
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop:
+                    - ALL
                 privileged: false
+                runAsNonRoot: true
                 runAsGroup: 1000
                 runAsUser: 1000
+                seccompProfile:
+                  type: RuntimeDefault
           target:
             kind: Deployment
             name: keycloak-operator
@@ -3894,8 +3901,16 @@ units:
         createNamespace: true
       values:
         securityContext:
-          runAsGroup: 1
-          runAsUser: 1
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
+          privileged: false
+          runAsNonRoot: true
+          runAsGroup: 10000
+          runAsUser: 10000
+          seccompProfile:
+            type: RuntimeDefault
         conf:
           env:
             - name: URL_REMAP
