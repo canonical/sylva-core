@@ -522,6 +522,15 @@ units:
         spec:
           chart: charts/libvirt-metal
       values: '{{ mergeOverwrite (dict "clusterVirtualIp" .Values.cluster_virtual_ip "clusterPublicIP" .Values._internal.bootstrap_node_ip "clusterPublicDomain" .Values.cluster_domain ) .Values.libvirt_metal | include "preserve-type" }}'
+      _postRenderers:
+        - kustomize:
+            patches:
+            - target:
+                kind: StatefulSet
+              patch: |
+                - op: add
+                  path: /metadata/labels/skipSecurityContext
+                  value: true
 
   vsphere-cpi:
     # overload vsphere-cpi definition in bootstrap context to deploy in the management cluster
