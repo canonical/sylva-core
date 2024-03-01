@@ -530,7 +530,7 @@ units:
               patch: |
                 - op: add
                   path: /metadata/labels/skipSecurityContext
-                  value: true
+                  value: "true"
 
   vsphere-cpi:
     # overload vsphere-cpi definition in bootstrap context to deploy in the management cluster
