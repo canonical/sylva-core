@@ -4698,15 +4698,8 @@ units:
             - name: no_proxy
               value: '{{ include "sylva-units.no_proxy" (tuple .) | quote }}'
           securityContext:
-            capabilities:
-              drop:
-              - ALL
-            runAsNonRoot: true
             runAsUser: 1000
             readOnlyRootFilesystem: true
-            allowPrivilegeEscalation: false
-            seccompProfile:
-              type: RuntimeDefault
           volumeMounts:
             - mountPath: /config
               name: config
@@ -5913,20 +5906,6 @@ units:
         createNamespace: false
       values:
         operator:
-          containerSecurityContext:
-            allowPrivilegeEscalation: false
-            capabilities:
-              drop:
-                - ALL
-            seccompProfile:
-              type: RuntimeDefault
-          securityContext:
-            allowPrivilegeEscalation: false
-            capabilities:
-              drop:
-                - ALL
-            seccompProfile:
-              type: RuntimeDefault
           resources:
             requests:
               cpu: 200m
@@ -5934,21 +5913,6 @@ units:
               ephemeral-storage: 500Mi
         console:
           enabled: true
-          containerSecurityContext:
-            allowPrivilegeEscalation: false
-            capabilities:
-              drop:
-                - ALL
-            seccompProfile:
-              type: RuntimeDefault
-          securityContext:
-            allowPrivilegeEscalation: false
-            capabilities:
-              drop:
-                - ALL
-            runAsNonRoot: true
-            seccompProfile:
-              type: RuntimeDefault
           ingress:
             enabled: true
             ingressClassName: nginx
