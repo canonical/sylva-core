@@ -1102,14 +1102,17 @@ units:
                     path: /spec/template/spec/containers/0/securityContext
                     value:
                       runAsUser: 999
+                      fsGroup: 999
                   - op: add
                     path: /spec/template/spec/initContainers/0/securityContext
                     value:
                       runAsUser: 999
+                      fsGroup: 999
                   - op: add
                     path: /spec/template/spec/initContainers/1/securityContext
                     value:
                       runAsUser: 999
+                      fsGroup: 999
       install:
         createNamespace: true
 
@@ -3866,6 +3869,16 @@ units:
         createNamespace: true
       values:
         securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
+          privileged: false
+          runAsNonRoot: true
+          runAsGroup: 10000
+          runAsUser: 10000
+          seccompProfile:
+            type: RuntimeDefault
           runAsGroup: 1
           runAsUser: 1
         conf:
@@ -5692,6 +5705,13 @@ units:
       releaseName: gitea
       values:
         containerSecurityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
+          privileged: false
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
           runAsGroup: 1000
           runAsUser: 1000
         redis-cluster:
