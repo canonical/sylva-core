@@ -9,4 +9,3 @@ resources:
 - multus-vm.yaml
 - cirros-vm.yaml
 - cpumanager-fg-vm.yaml
-- numa-fg-vm.yaml
