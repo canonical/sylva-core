@@ -1104,6 +1104,11 @@ units:
                       runAsUser: 999
                       fsGroup: 999
                   - op: add
+                    path: /spec/template/spec/securityContext
+                    value:
+                      runAsUser: 999
+                      fsGroup: 999
+                  - op: add
                     path: /spec/template/spec/initContainers/0/securityContext
                     value:
                       runAsUser: 999
