@@ -7139,6 +7139,10 @@
           ]
         }
       ]
+    },
+    "pub-key": {
+      "type": "string",
+      "pattern": "^-----BEGIN PUBLIC KEY-----"
     }
   },
   "additionalProperties": false,
@@ -8322,6 +8326,9 @@
           "$ref": "#/$defs/cert-and-key"
         }
       }
+    },
+    "oci_registry_cosign_pub_key": {
+      "$ref": "#/$defs/pub-key"
     },
     "keycloak": {
       "type": "object",

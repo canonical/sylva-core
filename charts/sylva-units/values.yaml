@@ -223,6 +223,7 @@ unit_templates:
       prune: false
       _components:
       - '{{ tuple "../components/extra-ca" .Values.oci_registry_extra_ca_certs | include "set-only-if" }}'
+      - '{{ tuple "../components/cosign" .Values.oci_registry_cosign_pub_key | include "set-only-if" }}'
       postBuild:
         substitute:
           var_substitution_enabled: "true" # To force substitution when configmap does not exist
@@ -236,6 +237,7 @@ unit_templates:
           SOURCE_CONCURRENT: '{{ .Values.flux.source.concurrent }}'
           SOURCE_LOG_LEVEL: '{{ .Values.flux.source.log_level }}'
           SOURCE_FEATURES_GATES: '{{ tuple .Values.flux.source.features_gates | include "dict_to_key_values_separated_string"  }}'
+          SYLVA_BASE_OCI_COSIGN_PUB: '{{ tuple (.Values.oci_registry_cosign_pub_key | default "" | b64enc) .Values.oci_registry_cosign_pub_key | include "set-only-if" }}'
         substituteFrom:
         - kind: ConfigMap
           name: proxy-env-vars

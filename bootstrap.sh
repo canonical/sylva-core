@@ -29,6 +29,7 @@ set_current_namespace sylva-system
 
 echo_b "\U0001F4DC Install sylva-units Helm release and associated resources"
 _kustomize ${ENV_PATH} | \
+  validate_oci_artifact | \
   define_source | \
   inject_bootstrap_values | \
   kubectl apply -f -

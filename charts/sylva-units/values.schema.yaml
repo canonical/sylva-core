@@ -146,6 +146,10 @@ $defs:
     type: string
     pattern: "[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12}"  # an OpenStack UUID
 
+  pub-key:
+    type: string
+    pattern: ^-----BEGIN PUBLIC KEY-----
+
 # lines with '# -------------------------------' correspond to keys in values.yaml
 # (the rest being the JSONSchema language itself)
 
@@ -891,6 +895,9 @@ properties:
         $ref: "#/$defs/cert-and-key"
       kubevirt_manager:  # -------------------------------
         $ref: "#/$defs/cert-and-key"
+
+  oci_registry_cosign_pub_key:  # -------------------------------
+    $ref: "#/$defs/pub-key"
 
   keycloak: # -------------------------------
     type: object

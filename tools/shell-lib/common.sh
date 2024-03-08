@@ -257,6 +257,13 @@ function reconcile_sylva_units() {
     --exit-condition reason=InstallFailed
 }
 
+function validate_oci_artifact() {
+  if [[ -v COSIGN_PUBLIC_KEY ]]; then
+    COSIGN_PUBLIC_KEY_B64=$(echo ${COSIGN_PUBLIC_KEY} | base64 -w 0)
+    sed "s/SYLVA_BASE_OCI_COSIGN_PUB/${COSIGN_PUBLIC_KEY_B64}/" "$@"
+  fi
+}
+
 function define_source() {
   sed "s/CURRENT_COMMIT/${CURRENT_COMMIT}/" "$@" | \
     sed "s,SYLVA_CORE_REPO,${SYLVA_CORE_REPO},g" "$@" | \
@@ -352,6 +359,7 @@ EOF
   # for bootstrap cluster, we need to inject bootstrap values
   # (for mgmt cluster, we do not so we "pipe through" with "cat")
   _kustomize ${PREVIEW_DIR} \
+    | validate_oci_artifact \
     | define_source \
     | (if [[ $bootstrap == "yes" ]]; then inject_bootstrap_values ; else cat ; fi) \
     | kubectl apply -f -

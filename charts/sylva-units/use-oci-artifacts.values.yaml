@@ -90,6 +90,7 @@ source_templates:
         # the Helm release iteration, so we need to remove it)
         commit: '{{ tuple "(unused)" false | include "set-only-if" }}'  # hack to ensure that this field is absent from the manifest we build (see https://gitlab.com/sylva-projects/sylva-core/-/merge_requests/472#note_1530500014)
         tag: '{{ .Values._internal.sylva_core_version }}'
+      verify: '{{ tuple (dict "provider" "cosign" "secretRef" (dict "name" "cosign-public-keys")) (.Values.oci_registry_cosign_pub_key) | include "set-only-if" }}'
 
   capi-rancher-import:
     spec:

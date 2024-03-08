@@ -1,0 +1,9 @@
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: cosign-public-keys
+  namespace: flux-system
+type: Opaque
+data:
+  cosign.pub: ${SYLVA_BASE_OCI_COSIGN_PUB}
