@@ -240,6 +240,7 @@ unit_templates:
       prune: false
       _components:
       - '{{ tuple "../components/extra-ca" .Values.oci_registry_extra_ca_certs | include "set-only-if" }}'
+      - '{{ tuple "../components/cosign" (not .Values.security.oci_artifacts.skip_signing_check) | include "set-only-if" }}'
       postBuild:
         substitute:
           var_substitution_enabled: "true" # To force substitution when configmap does not exist
@@ -253,6 +254,7 @@ unit_templates:
           SOURCE_CONCURRENT: '{{ .Values.flux.source.concurrent }}'
           SOURCE_LOG_LEVEL: '{{ .Values.flux.source.log_level }}'
           SOURCE_FEATURES_GATES: '{{ tuple .Values.flux.source.features_gates | include "dict_to_key_values_separated_string"  }}'
+          COSIGN_PUBLIC_KEY: '{{ (tuple (.Values.security.oci_artifacts.cosign_public_key | quote) (not .Values.security.oci_artifacts.skip_signing_check)) | include "set-only-if" }}'
         substituteFrom:
         - kind: ConfigMap
           name: proxy-env-vars
@@ -7613,6 +7615,14 @@ security:
   os_images:
     skip_signing_check: false
     cosign_public_key: '{{ .Values.security.default_cosign_public_key }}'
+  oci_artifacts:
+    skip_signing_check: false
+    cosign_public_key: | # the OCI public key is not the default public key used to verify sylva elements, e.g. os_images
+      -----BEGIN PUBLIC KEY-----
+      MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEEN6LNycNA/OB8/dtqTPZcPDuLnxW
+      hR0Rskmno7Lx1WqBl2ylN/sfkLEAPfCkizceHiu/fw8lnsPq9uSGlAICeQ==
+      -----END PUBLIC KEY-----
+
 
 monitoring:
   platform_tag: Sylva

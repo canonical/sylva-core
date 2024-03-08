@@ -152,12 +152,17 @@ function ensure_flux {
     if ! kubectl get namespace flux-system &>/dev/null; then
         echo_b "\U0001F503 Install flux"
         flux install --components "source-controller,kustomize-controller,helm-controller" --namespace=flux-system --export > ${BASE_DIR}/kustomize-units/flux-system/offline/manifests.yaml
-        if _kustomize ${ENV_PATH} | python3 ${BASE_DIR}/tools/extractHelmReleaseValues.py --values-path .spec.valuesFrom | yq -e '.oci_registry_extra_ca_certs' &>/dev/null; then
+        EXTRACTED_VALUES=$(_kustomize ${ENV_PATH} | python3 ${BASE_DIR}/tools/extractHelmReleaseValues.py --values-path .spec.valuesFrom)
+        if echo "$EXTRACTED_VALUES" | yq -e '.oci_registry_extra_ca_certs' &>/dev/null; then
             if ! yq -e '.components[] | select(. == "../components/extra-ca")' ${BASE_DIR}/kustomize-units/flux-system/offline/kustomization.yaml &> /dev/null; then
                 yq -i '.components += ["../components/extra-ca"]' ${BASE_DIR}/kustomize-units/flux-system/offline/kustomization.yaml
             fi
-            B64_CERTS=$(_kustomize ${ENV_PATH} | python3 ${BASE_DIR}/tools/extractHelmReleaseValues.py --values-path .spec.valuesFrom | yq '.oci_registry_extra_ca_certs | @base64')
+            B64_CERTS=$(echo "$EXTRACTED_VALUES" | yq '.oci_registry_extra_ca_certs | @base64')
             yq -i ".data[\"extra-ca-certs.pem\"]=\"$B64_CERTS\"" ${BASE_DIR}/kustomize-units/flux-system/components/extra-ca/certs.yaml
+        fi
+        if [ "$(yq '.security.oci_artifacts.skip_signing_check' ${BASE_DIR}/charts/sylva-units/values.yaml)" = "false" ]; then
+            COSIGN_PUBLIC_KEY_B64=$(yq '.security.oci_artifacts.cosign_public_key | @base64' ${BASE_DIR}/charts/sylva-units/values.yaml)
+            yq -i ".data[\"cosign.pub\"]=\"$COSIGN_PUBLIC_KEY_B64\"" ${BASE_DIR}/kustomize-units/flux-system/components/cosign/cosign-public-keys.yaml
         fi
         _kustomize ${BASE_DIR}/kustomize-units/flux-system/offline | envsubst | kubectl apply -f -
         command -v git &>/dev/null && git checkout HEAD -- ${BASE_DIR}/kustomize-units/flux-system/
