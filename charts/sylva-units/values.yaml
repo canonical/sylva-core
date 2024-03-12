@@ -1091,36 +1091,8 @@ units:
           httpProxy: '{{ get .Values.proxies "http_proxy" }}'
           httpsProxy: '{{ get .Values.proxies "https_proxy" }}'
           noProxy: '{{ include "sylva-units.no_proxy" (tuple .) }}'
-      _postRenderers:
-        - kustomize:
-            patches:
-              - target:
-                  kind: Deployment|StatefulSet
-                patch: |-
-                  - op: add
-                    path: /spec/template/spec/containers/0/securityContext
-                    value:
-                      runAsUser: 999
-              - target:
-                  kind: Deployment
-                  name: harbor-registry
-                patch: |-
-                  - op: add
-                    path: /spec/template/spec/containers/1/securityContext
-                    value:
-                      runAsUser: 999
-              - target:
-                  kind: StatefulSet
-                  name: harbor-database
-                patch: |-
-                  - op: add
-                    path: /spec/template/spec/initContainers/0/securityContext
-                    value:
-                      runAsUser: 999
-                  - op: add
-                    path: /spec/template/spec/initContainers/1/securityContext
-                    value:
-                      runAsUser: 999
+        containerSecurityContext:
+          runAsUser: 999
       install:
         createNamespace: true
 
