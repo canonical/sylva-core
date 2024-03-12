@@ -1095,11 +1095,14 @@ units:
         - kustomize:
             patches:
               - target:
-                  kind: StatefulSet
-                  name: harbor-database
+                  kind: Deployment|StatefulSet
                 patch: |-
                   - op: add
                     path: /spec/template/spec/containers/0/securityContext
+                    value:
+                      runAsUser: 999
+                  - op: add
+                    path: /spec/template/spec/containers/1/securityContext
                     value:
                       runAsUser: 999
                   - op: add
