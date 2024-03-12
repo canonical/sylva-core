@@ -1101,10 +1101,18 @@ units:
                     path: /spec/template/spec/containers/0/securityContext
                     value:
                       runAsUser: 999
+              - target:
+                  kind: Deployment
+                  name: harbor-registry
+                patch: |-
                   - op: add
                     path: /spec/template/spec/containers/1/securityContext
                     value:
                       runAsUser: 999
+              - target:
+                  kind: StatefulSet
+                  name: harbor-database
+                patch: |-
                   - op: add
                     path: /spec/template/spec/initContainers/0/securityContext
                     value:
