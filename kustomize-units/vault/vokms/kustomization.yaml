@@ -1,0 +1,77 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: vault
+
+resources:
+  - ../base
+
+patches:
+  - patch: |
+      apiVersion: vault.banzaicloud.com/v1alpha1
+      kind: Vault
+      metadata:
+        name: vault
+      spec:
+        image: 172.20.129.169/alain.thioliere/vo_vault:0.0.16
+        unsealConfig:
+          options:
+            secretShares: 0
+            secretThreshold: 0
+        config:
+          seal:
+            vokms:
+              region: eu-west-1
+              access_key: ${VO_VAULT_ACCESS_KEY}
+              secret_key: ${VO_VAULT_SECRET_KEY}
+              kms_key_id: VO_SMP_KMS_KeyId_K_V1
+              endpoint: https://smp-pp.vo.services
+
+  - patch: |
+      - op: add
+        path: /spec/vaultEnvsConfig/-
+        value:
+          name: BAO_K8S_POD_NAME
+          value: $(POD_NAME)
+
+      - op: add
+        path: /spec/vaultEnvsConfig/-
+        value:
+          name: http_proxy
+          value: ${http_proxy}
+
+      - op: add
+        path: /spec/vaultEnvsConfig/-
+        value:
+          name: https_proxy
+          value: ${http_proxy}
+
+      - op: add
+        path: /spec/vaultEnvsConfig/-
+        value:
+          name: no_proxy
+          value: ${no_proxy},vault,$(KUBERNETES_SERVICE_HOST)
+
+      - op: add
+        path: /spec/volumeClaimTemplates/-
+        value:
+          metadata:
+            name: vault-smp
+          spec:
+            # https://kubernetes.io/docs/concepts/storage/persistent-volumes/#class-1
+            # storageClassName: ""
+            accessModes:
+              - ReadWriteOnce
+            volumeMode: Filesystem
+            resources:
+              requests:
+                storage: 1Gi
+  
+      - op: add
+        path: /spec/volumeMounts/-
+        value:
+          name: vault-smp
+          mountPath: /vault/smp 
+    target:
+      kind: Vault
+      name: vault
