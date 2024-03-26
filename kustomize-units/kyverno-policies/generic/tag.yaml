@@ -1,19 +1,19 @@
 apiVersion: kyverno.io/v1
 kind: ClusterPolicy
 metadata:
-  name: disallow-latest-tag
+  name: disallow-latest-and-main-tag
   annotations:
     kustomize.toolkit.fluxcd.io/force: Enabled
-    policies.kyverno.io/title: Disallow Latest Tag
+    policies.kyverno.io/title: Disallow Latest and Main Tag
     policies.kyverno.io/category: Best Practices
     policies.kyverno.io/minversion: 1.6.0
     policies.kyverno.io/severity: medium
     policies.kyverno.io/subject: Pod
     policies.kyverno.io/description: >-
-      The ':latest' tag is mutable and can lead to unexpected errors if the
+      The ':latest' and ':main' tags are mutable and can lead to unexpected errors if the
       image changes. A best practice is to use an immutable tag that maps to
       a specific version of an application Pod. This policy validates that the image
-      specifies a tag and that it is not called `latest`.
+      specifies a tag and that it is not called `latest` or 'main'.
 spec:
   validationFailureAction: Enforce
   rules:
@@ -34,8 +34,8 @@ spec:
         kinds:
         - Pod
     validate:
-      message: "Using a mutable image tag e.g. 'latest' is not allowed"
+      message: "Using a mutable image tag e.g. 'latest' or 'main' is not allowed"
       pattern:
         spec:
           containers:
-          - image: "!*:latest"
+          - image: "!*:latest | !*:main"
