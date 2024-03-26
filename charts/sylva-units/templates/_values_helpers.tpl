@@ -64,6 +64,7 @@ This field is defined differently according to the deployment type.
 type: oci
 url: {{ .Values.sylva_core_oci_registry }}
 tag: {{ .Values._internal.sylva_core_version }}
+verify: {{ tuple (dict "provider" "cosign" "secretRef" (dict "name" "cosign-public-keys")) .Values.oci_registry_cosign_pub_key | include "set-only-if" }}
  {{- else -}}
    {{- $sylva_spec := dict -}}
    {{- $sylva_spec = (lookup "source.toolkit.fluxcd.io/v1beta2" "GitRepository" "sylva-system" "sylva-core" | dig "spec" "") -}}

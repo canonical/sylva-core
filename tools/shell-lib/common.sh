@@ -152,12 +152,17 @@ function ensure_flux {
     if ! kubectl get namespace flux-system &>/dev/null; then
         echo_b "\U0001F503 Install flux"
         flux install --components "source-controller,kustomize-controller,helm-controller" --namespace=flux-system --export > ${BASE_DIR}/kustomize-units/flux-system/offline/manifests.yaml
-        if _kustomize ${ENV_PATH} | python3 ${BASE_DIR}/tools/extractHelmReleaseValues.py --values-path .spec.valuesFrom | yq -e '.oci_registry_extra_ca_certs' &>/dev/null; then
+        EXTRACTED_VALUES=$(_kustomize ${ENV_PATH} | python3 ${BASE_DIR}/tools/extractHelmReleaseValues.py --values-path .spec.valuesFrom)
+        if echo "$EXTRACTED_VALUES" | yq -e '.oci_registry_extra_ca_certs' &>/dev/null; then
             if ! yq -e '.components[] | select(. == "../components/extra-ca")' ${BASE_DIR}/kustomize-units/flux-system/offline/kustomization.yaml &> /dev/null; then
                 yq -i '.components += ["../components/extra-ca"]' ${BASE_DIR}/kustomize-units/flux-system/offline/kustomization.yaml
             fi
-            B64_CERTS=$(_kustomize ${ENV_PATH} | python3 ${BASE_DIR}/tools/extractHelmReleaseValues.py --values-path .spec.valuesFrom | yq '.oci_registry_extra_ca_certs | @base64')
+            B64_CERTS=$(echo "$EXTRACTED_VALUES" | yq '.oci_registry_extra_ca_certs | @base64')
             yq -i ".data[\"extra-ca-certs.pem\"]=\"$B64_CERTS\"" ${BASE_DIR}/kustomize-units/flux-system/components/extra-ca/certs.yaml
+        fi
+        if echo "$EXTRACTED_VALUES" | yq -e '.oci_registry_cosign_pub_key | length > 0' &>/dev/null; then
+            COSIGN_PUBLIC_KEY_B64=$(echo "$EXTRACTED_VALUES" | yq '.oci_registry_cosign_pub_key | @base64')
+            yq -i ".data[\"cosign.pub\"]=\"$COSIGN_PUBLIC_KEY_B64\"" ${BASE_DIR}/kustomize-units/flux-system/components/cosign/cosign-public-keys.yaml
         fi
         _kustomize ${BASE_DIR}/kustomize-units/flux-system/offline | envsubst | kubectl apply -f -
         command -v git &>/dev/null && git checkout HEAD -- ${BASE_DIR}/kustomize-units/flux-system/
@@ -257,13 +262,6 @@ function reconcile_sylva_units() {
     --exit-condition reason=InstallFailed
 }
 
-function validate_oci_artifact() {
-  if [[ -v COSIGN_PUBLIC_KEY ]]; then
-    COSIGN_PUBLIC_KEY_B64=$(echo ${COSIGN_PUBLIC_KEY} | base64 -w 0)
-    sed "s/SYLVA_BASE_OCI_COSIGN_PUB/${COSIGN_PUBLIC_KEY_B64}/" "$@"
-  fi
-}
-
 function define_source() {
   sed "s/CURRENT_COMMIT/${CURRENT_COMMIT}/" "$@" | \
     sed "s,SYLVA_CORE_REPO,${SYLVA_CORE_REPO},g" "$@" | \
@@ -359,7 +357,6 @@ EOF
   # for bootstrap cluster, we need to inject bootstrap values
   # (for mgmt cluster, we do not so we "pipe through" with "cat")
   _kustomize ${PREVIEW_DIR} \
-    | validate_oci_artifact \
     | define_source \
     | (if [[ $bootstrap == "yes" ]]; then inject_bootstrap_values ; else cat ; fi) \
     | kubectl apply -f -

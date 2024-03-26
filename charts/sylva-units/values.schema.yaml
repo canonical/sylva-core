@@ -300,6 +300,10 @@ properties:
                           type: string
                         commit:  # -------------------------------
                           const: '{{ tuple "(unused)" false | include "set-only-if" }}'  # particular case to allow key deletion (see use-oci-artifacts.values.yaml)
+                        verify:  # -------------------------------
+                          anyOf:
+                            - type: string
+                            - type: "null"
 
   helm_repo_spec_default:  # -------------------------------
     type: object
