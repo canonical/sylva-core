@@ -385,7 +385,6 @@ units:
         {{- $chartValues := lookup "helm.toolkit.fluxcd.io/v2" "HelmRelease" "sylva-system" "sylva-units" | dig "spec" "values" dict -}}
         {{- $disableCluster := dict "units" (dict "cluster"     (dict "enabled" false)
                                                   "cluster-bmh" (dict "enabled" false)
-                                                  "os-image-server" (dict "enabled" false)
                                             )
         -}}
         {{- mergeOverwrite $chartValues $disableCluster | include "preserve-type" -}}'
