@@ -2599,6 +2599,7 @@ units:
           ironicIP: '{{ .Values.display_external_ip }}'
           provisioningInterface: eth0
         metal3-ironic:
+          fullnameOverride: metal3-ironic
           service:
             type: LoadBalancer
             externalIPs:
@@ -2616,6 +2617,15 @@ units:
         metal3-mariadb:
           persistence:
             storageClass: '{{ .Values._internal.default_storage_class }}'
+      _postRenderers:
+        - kustomize:
+            patchesStrategicMerge:
+              - kind: Service
+                apiVersion: v1
+                metadata:
+                  name: metal3-ironic
+                spec:
+                  loadBalancerClass: '{{ .Values.cluster.loadBalancerClass }}'
 
   metal3-pdb:
     info:
@@ -3720,27 +3730,32 @@ units:
               fallthrough
       _postRenderers:
         - kustomize:
-            patches:
-              - patch: |-
-                  apiVersion: apps/v1
-                  kind: Deployment
-                  metadata:
-                    name: k8s-gateway
-                  spec:
-                    template:
-                      spec:
-                        containers:
-                        - name: k8s-gateway
-                          securityContext:
-                            allowPrivilegeEscalation: false
-                            capabilities:
-                              drop:
-                              - ALL
-                            runAsNonRoot: true
-                            runAsGroup: 1000
-                            runAsUser: 1000
-                            seccompProfile:
-                              type: RuntimeDefault
+            patchesStrategicMerge:
+              - kind: Service
+                apiVersion: v1
+                metadata:
+                  name: k8s-gateway
+                spec:
+                  loadBalancerClass: '{{ .Values._internal.loadBalancerClass }}'
+              - kind: Deployment
+                apiVersion: apps/v1
+                metadata:
+                  name: k8s-gateway
+                spec:
+                  template:
+                    spec:
+                      containers:
+                      - name: k8s-gateway
+                        securityContext:
+                          allowPrivilegeEscalation: false
+                          capabilities:
+                            drop:
+                            - ALL
+                          runAsNonRoot: true
+                          runAsGroup: 1000
+                          runAsUser: 1000
+                          seccompProfile:
+                            type: RuntimeDefault
 
   cluster-vip:
     info:
@@ -3863,6 +3878,7 @@ units:
             node-role.kubernetes.io/control-plane: '{{ .Values._internal.cp_node_label_value }}'
           kind: DaemonSet
           service:
+            loadBalancerClass: '{{ .Values._internal.loadBalancerClass }}'
             enabled: true
             externalIPs:
             - '{{ .Values.cluster_virtual_ip }}'
@@ -7219,6 +7235,8 @@ cluster:
     metallb: ""
     calico: ""
 
+  loadBalancerClass: '{{ .Values._internal.loadBalancerClass }}'
+
   capv:
     # image_name: # vSphere image name
     # username: ""
@@ -7911,6 +7929,9 @@ _internal:
                 values:
                   - sso
           topologyKey: kubernetes.io/hostname
+
+  # loadBalancerClass to be used in order to limit the services served by metallb/kube-vip and allow multiple lb to run in parallel
+  loadBalancerClass: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" | ternary "sylva.org/metallb-class" "kube-vip.io/kube-vip-class" }}'
 
   # this is used in use-oci-artifacts.values.yaml
   # and in a few other places
