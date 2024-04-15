@@ -3736,7 +3736,7 @@ units:
                 metadata:
                   name: k8s-gateway
                 spec:
-                  loadBalancerClass: '{{ .Values._internal.loadBalancerClass }}'
+                  loadBalancerClass: '{{ .Values.cluster.loadBalancerClass }}'
               - kind: Deployment
                 apiVersion: apps/v1
                 metadata:
@@ -3878,7 +3878,7 @@ units:
             node-role.kubernetes.io/control-plane: '{{ .Values._internal.cp_node_label_value }}'
           kind: DaemonSet
           service:
-            loadBalancerClass: '{{ .Values._internal.loadBalancerClass }}'
+            loadBalancerClass: '{{ .Values.cluster.loadBalancerClass }}'
             enabled: true
             externalIPs:
             - '{{ .Values.cluster_virtual_ip }}'
@@ -7235,7 +7235,7 @@ cluster:
     metallb: ""
     calico: ""
 
-  loadBalancerClass: '{{ .Values._internal.loadBalancerClass }}'
+  loadBalancerClass: '{{ .Values.cluster.capi_providers.infra_provider | eq "capd" | ternary "" .Values._internal.loadBalancerClass }}'
 
   capv:
     # image_name: # vSphere image name
@@ -7931,7 +7931,7 @@ _internal:
           topologyKey: kubernetes.io/hostname
 
   # loadBalancerClass to be used in order to limit the services served by metallb/kube-vip and allow multiple lb to run in parallel
-  loadBalancerClass: '{{ or (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpr") (tuple . "metallb" | include "unit-enabled") | ternary "sylva.org/metallb-class" "kube-vip.io/kube-vip-class" }}'
+  loadBalancerClass: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" | ternary "sylva.org/metallb-class" "kube-vip.io/kube-vip-class" }}'
 
   # this is used in use-oci-artifacts.values.yaml
   # and in a few other places
