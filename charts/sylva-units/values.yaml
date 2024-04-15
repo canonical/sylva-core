@@ -3736,7 +3736,8 @@ units:
                 metadata:
                   name: k8s-gateway
                 spec:
-                  loadBalancerClass: '{{ .Values.cluster.loadBalancerClass }}'
+                  type: LoadBalancer
+                  loadBalancerClass: '{{ tuple (.Values.cluster.loadBalancerClass) .Values.cluster.loadBalancerClass | include "set-only-if" }}'
               - kind: Deployment
                 apiVersion: apps/v1
                 metadata:
@@ -3878,7 +3879,7 @@ units:
             node-role.kubernetes.io/control-plane: '{{ .Values._internal.cp_node_label_value }}'
           kind: DaemonSet
           service:
-            loadBalancerClass: '{{ .Values.cluster.loadBalancerClass }}'
+            loadBalancerClass: '{{ tuple (.Values.cluster.loadBalancerClass) .Values.cluster.loadBalancerClass | include "set-only-if" }}'
             enabled: true
             externalIPs:
             - '{{ .Values.cluster_virtual_ip }}'
@@ -7235,7 +7236,7 @@ cluster:
     metallb: ""
     calico: ""
 
-  loadBalancerClass: '{{ .Values.cluster.capi_providers.infra_provider | eq "capd" | ternary "" .Values._internal.loadBalancerClass }}'
+  loadBalancerClass: '{{ tuple (.Values._internal.loadBalancerClass ) (not (eq .Values.cluster.capi_providers.infra_provider "capd")) | include "set-only-if" }}'
 
   capv:
     # image_name: # vSphere image name
