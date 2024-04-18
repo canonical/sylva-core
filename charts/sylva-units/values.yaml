@@ -3634,6 +3634,12 @@ units:
     depends_on:
       namespace-defs: true
     helm_repo_url: https://kubernetes.github.io/cloud-provider-openstack
+    kustomization_spec:
+      healthChecks:
+        - apiVersion: apps/v1
+          kind: DaemonSet
+          name: openstack-cinder-csi-nodeplugin
+          namespace: cinder-csi
     helmrelease_spec:
       chart:
         spec:
