@@ -7237,8 +7237,8 @@ cluster:
     metallb: ""
     calico: ""
 
-  set_loadBalancerClass: false  # set default loadBalancerClass on the lb controller and Sylva services
-  loadBalancerClass: '{{ tuple (.Values._internal.loadBalancerClass ) (and .Values.cluster.set_loadBalancerClass (not (eq .Values.cluster.capi_providers.infra_provider "capd"))) | include "set-only-if" }}'
+  set_lb_class: false  # set default loadBalancerClass on the lb controller and Sylva services
+  loadBalancerClass: '{{ tuple (.Values._internal.loadBalancerClass ) (and .Values.cluster.set_lb_class (not (eq .Values.cluster.capi_providers.infra_provider "capd"))) | include "set-only-if" }}'
 
   capv:
     # image_name: # vSphere image name
