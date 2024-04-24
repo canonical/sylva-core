@@ -454,6 +454,7 @@ units:
         secretRef:
           name: cluster-creator-kubeconfig
           key: kubeconfig
+      targetNamespace: '{{ .Release.Namespace }}'  # (in mgmt cluster)
       wait: false
       path: ./kustomize-units/cluster-import
       postBuild:
