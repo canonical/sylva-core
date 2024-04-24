@@ -24,6 +24,7 @@ spec:
           - StatefulSet
           - Deployment
           - Job
+          - DaemonSet
     exclude:
       any:
       - resources:

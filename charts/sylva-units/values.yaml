@@ -5384,6 +5384,9 @@ units:
                 seccompProfile:
                   type: RuntimeDefault
               securityContext:
+                runAsNonRoot: true
+                seccompProfile:
+                  type: RuntimeDefault
                 runAsUser: 1000
                 runAsGroup: 1000
                 fsGroup: 1000
@@ -5876,6 +5879,20 @@ units:
               - hosts:
                   - '{{ .Values.external_hostnames.thanos_query }}'
                 secretName: thanos-tls
+          containerSecurityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            seccompProfile:
+              type: RuntimeDefault
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            seccompProfile:
+              type: RuntimeDefault
         queryFrontend:
           loglevel: debug
           extraFlags:
@@ -5894,6 +5911,20 @@ units:
               - hosts:
                   - '{{ .Values.external_hostnames.thanos }}'
                 secretName: thanos-tls
+          containerSecurityContext:
+            capabilities:
+              drop:
+                - ALL
+            seccompProfile:
+              type: RuntimeDefault
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            runAsNonRoot: true
+            seccompProfile:
+              type: RuntimeDefault
         storegateway:
           enabled: true
           logLevel: debug
@@ -5934,6 +5965,20 @@ units:
               memory: 6144Mi
           persistence:
             enabled: false
+          containerSecurityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            seccompProfile:
+              type: RuntimeDefault
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            seccompProfile:
+              type: RuntimeDefault
           ingress:
             enabled: true
             ingressClassName: "nginx"
