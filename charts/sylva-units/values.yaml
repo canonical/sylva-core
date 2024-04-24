@@ -5709,6 +5709,8 @@ units:
           runAsNonRoot: true
           runAsGroup: 1000
           runAsUser: 1000
+          seccompProfile:
+            type: RuntimeDefault
         redis-cluster:
           enabled: false
         postgresql:
@@ -5869,6 +5871,20 @@ units:
         createNamespace: false
       values:
         operator:
+          containerSecurityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            seccompProfile:
+              type: RuntimeDefault
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            seccompProfile:
+              type: RuntimeDefault
           resources:
             requests:
               cpu: 200m
@@ -5876,6 +5892,21 @@ units:
               ephemeral-storage: 500Mi
         console:
           enabled: true
+          containerSecurityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            seccompProfile:
+              type: RuntimeDefault
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            runAsNonRoot: true
+            seccompProfile:
+              type: RuntimeDefault
           ingress:
             enabled: true
             ingressClassName: nginx
