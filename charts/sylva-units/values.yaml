@@ -3372,9 +3372,6 @@ units:
               echo "--- waiting for all machines to be Ready..."
               kubectl wait Machine -l cluster.x-k8s.io/cluster-name={{ .Values.cluster.name }} --for condition=Ready --timeout $WAIT_TIMEOUT
 
-              echo "--- waiting for all machines to be NodeHealthy..."
-              kubectl -n $TARGET_NAMESPACE wait Machine -l cluster.x-k8s.io/cluster-name={{ .Values.cluster.name }} --for condition=NodeHealthy --timeout $WAIT_TIMEOUT
-
               echo "--- waiting for all machines to have a provider id (unset if the Node has not joined the cluster)..."
               kubectl wait Machine -l cluster.x-k8s.io/cluster-name={{ .Values.cluster.name }} --for=jsonpath='{.spec.providerID}' --timeout $WAIT_TIMEOUT
 
