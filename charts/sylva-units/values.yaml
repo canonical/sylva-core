@@ -7007,6 +7007,17 @@ units:
             minReplicas: 2
             maxReplicas: 6
             targetCPUUtilizationPercentage: 40
+          podSecurityContext:
+            seccompProfile:
+              type: RuntimeDefault
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            runAsNonRoot: true
+            seccompProfile:
+              type: RuntimeDefault
           extraVolumes:
             - name: data
               emptyDir: {}
@@ -7021,10 +7032,32 @@ units:
           replicas: '{{ int .Values._internal.node_count | gt 2 | ternary 1 2 }}'
           persistence:
             size: 3Gi
+          podSecurityContext:
+            seccompProfile:
+              type: RuntimeDefault
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            runAsNonRoot: true
+            seccompProfile:
+              type: RuntimeDefault
         backend:
           replicas: '{{ int .Values._internal.node_count | gt 2 | ternary 1 2 }}'
           persistence:
             size: 3Gi
+          podSecurityContext:
+            seccompProfile:
+              type: RuntimeDefault
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            runAsNonRoot: true
+            seccompProfile:
+              type: RuntimeDefault
         memberlist:
           service:
             publishNotReadyAddresses: true
