@@ -1707,6 +1707,10 @@ units:
       postBuild:
         substitute:
           CAPD_DOCKER_HOST: '{{ .Values.capd_docker_host }}'
+        substituteFrom:
+        - kind: ConfigMap
+          name: proxy-env-vars
+          optional: true
       wait: true
       _components:
         - '{{ tuple "components/ha" (.Values._internal.ha_cluster.is_ha) | include "set-only-if" }}'
