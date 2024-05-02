@@ -1929,6 +1929,19 @@ units:
       wait: true
       _components:
         - '{{ tuple "components/ha" (.Values._internal.ha_cluster.is_ha) | include "set-only-if" }}'
+      _patches:
+        - target:
+            group: apps
+            version: v1
+            kind: Deployment
+            name: capd-controller-manager
+            namespace: capd-system
+          patch: |-
+            - op: add
+              path: /spec/template/spec/containers/0/securityContext
+              value:
+                privileged: false
+                allowPrivilegeEscalation: true
 
   # this unit and the capo-v1alpha8-fix fix an issue we have with CAPO CRDs apiVersion
   #
