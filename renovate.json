@@ -334,6 +334,15 @@
         "#\\s?renovate: datasource=(?<datasource>.*?)\\n[\\w\\W]*?value: (?<registryUrl>.*)\/(?<depName>.*):(?<currentValue>.*)"
       ],
       "registryUrlTemplate": "https://{{{ registryUrl }}}"
+    },
+    {
+      "description": "Match docker image defined in HELM_TOOLBOX",
+      "customType": "regex",
+      "fileMatch": ["tools/validation/helm-validate.sh"],
+      "matchStrings": [
+            "\\s+datasource=(?<datasource>.*?)\\s+.*?_IMAGE=\\${.*?:-(?<registryUrl>.*?)\/(?<depName>.*?):(?<currentValue>.*?)}"
+          ],
+      "registryUrlTemplate": "https://{{{ registryUrl }}}"
     }
   ]
 }
