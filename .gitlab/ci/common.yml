@@ -10,6 +10,8 @@ variables:
   # renovate: datasource=docker
   CI_IMAGE: registry.gitlab.com/sylva-projects/sylva-elements/container-images/ci-image:v1.0.41
 
+  CHART_DIR: "charts/sylva-units"
+
 .docker-service:
   services:
     - name: docker:27.1.2-dind

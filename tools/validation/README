@@ -1,0 +1,9 @@
+### Helm validation wrapper script
+
+A simple script for developers to validate Helm charts with either [`helm-schema-validation.sh`](https://gitlab.com/sylva-projects/sylva-elements/container-images/helm-toolbox/-/blob/main/tools/helm-schema-validation.sh?ref_type=heads) or [`helm-template-yamllint.sh`](https://gitlab.com/sylva-projects/sylva-elements/container-images/helm-toolbox/-/blob/main/tools/helm-template-yamllint.sh?ref_type=heads) by using [`helm-toolbox` container](https://gitlab.com/sylva-projects/sylva-elements/container-images/helm-toolbox).
+
+Usage:
+ - <chart-directory>: the directory where the Helm chart is located (for e.g. `charts/sylva-units`).
+ - <option>: the type of validation to perform. Options are:
+     * `schema-validation` for JSON schema validation and
+     * `yamllint` for YAML linting.

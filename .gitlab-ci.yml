@@ -25,6 +25,10 @@ include:
     file:
       - 'templates/release-notes.yml'
 
+  - project: 'sylva-projects/sylva-elements/ci-tooling/ci-templates'
+    ref: 1.0.22
+    file: 'templates/helm-tooling.yml'
+
   - local: .gitlab/ci/common.yml
   - local: .gitlab/ci/main-pipeline-workflow-and-globals.yml
   - local: .gitlab/ci/main-pipeline-checks.yml
