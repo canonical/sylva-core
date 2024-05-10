@@ -173,6 +173,9 @@ units:
               httpHeaderValue1: '{{ .Values.cluster.name }}'
               basicAuthPassword: '{{ .Values._internal.loki_password }}'
 
+  kepler:
+    enabled: false
+
   logging:
     depends_on:
       loki: '{{ tuple . "loki" | include "unit-enabled" }}'

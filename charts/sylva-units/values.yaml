@@ -563,6 +563,7 @@ units:
         - '{{ tuple "components/minio-monitoring-tenant" (tuple . "minio-monitoring-tenant" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/thanos" (tuple . "thanos" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/loki" (tuple . "loki" | include "unit-enabled") | include "set-only-if" }}'
+        - '{{ tuple "components/kepler" (tuple . "kepler" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/kube-system" (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpr") | include "set-only-if" }}'
 
   postgres:
@@ -3713,6 +3714,7 @@ units:
       namespace-defs: true
       monitoring-crd: true
       prometheus-resources: '{{ tuple . "prometheus-resources" | include "unit-enabled" }}'
+      kepler-resources: '{{ tuple . "kepler-resources" | include "unit-enabled" }}'
     helm_repo_url: https://charts.rancher.io/
     helmrelease_spec:
       releaseName: rancher-monitoring
@@ -4008,6 +4010,61 @@ units:
               seccompProfile:
                 type: RuntimeDefault
 
+  kepler-resources:
+    info:
+      description: creates ConfigMaps required by Kepler
+      internal: true
+    unit_templates:
+    - base-deps
+    depends_on:
+      namespace-defs: true
+    enabled_conditions:
+      - '{{ tuple . "kepler" | include "unit-enabled" }}'
+    repo: sylva-core
+    kustomization_spec:
+      path: ./kustomize-units/kepler-resources
+      targetNamespace: kepler
+      wait: true
+      force: true
+
+  kepler:
+    info:
+      description: installs Kepler (Kubernetes-based Efficient Power Level Exporter) exporter for Prometheus
+      maturity: stable
+    unit_templates:
+    - base-deps
+    depends_on:
+      monitoring: true
+    helm_repo_url: https://sustainable-computing-io.github.io/kepler-helm-chart
+    helmrelease_spec:
+      releaseName: kepler
+      targetNamespace: kepler
+      chart:
+        spec:
+          chart: kepler
+          version: 0.5.7
+      install:
+        createNamespace: false
+      values:
+        extraEnvVars: null
+        serviceMonitor:
+          enabled: true
+          labels:
+            release: rancher-monitoring
+        redfish:
+          enabled: true
+      _postRenderers:
+        - kustomize:
+            patches:
+              - target:
+                  kind: DaemonSet
+                  name: kepler
+                  namespace: kepler
+                patch: |
+                  - op: add
+                    path: /spec/template/spec/containers/0/envFrom
+                    value: ["configMapRef": { "name": "kepler-configmap"}]
+
   snmp-exporter:
     info:
       description: installs SNMP exporter
@@ -4163,6 +4220,8 @@ units:
             enabled: '{{ tuple . "flux-system" | include "unit-enabled" }}'
           minio:
             enabled: '{{ tuple . "minio-monitoring-tenant" | include "unit-enabled" }}'
+          kepler:
+            enabled: '{{ tuple . "kepler" | include "unit-enabled" }}'
 
   multus:
     info:
