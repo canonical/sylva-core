@@ -2,7 +2,11 @@ _internal:
   # this mimics what gets injected into a workload-cluster release of sylva-units
   # thanks to shared_workload_clusters_values._internal.sylva_mgmt_enabled_units
   sylva_mgmt_enabled_units:
+    # we need all units to pass workload cluster helm template tests done by tools/unit-dependency-diagram
     capi: true
     cabpk: true
+    cabpr: true
     capd: true
-
+    capo: true
+    capv: true
+    capm3: true
