@@ -19,11 +19,19 @@ var (
 	Codecs = serializer.NewCodecFactory(Scheme)
 )
 
-func extractDependency(suPath string, clusterType string, clusterFlavor string) []string {
+func RemoveIndex(s []string, index int) []string {
+	if index == (len(s) - 1) {
+		return s[:index]
+	} else {
+		return append(s[:index], s[index+1:]...)
+	}
+}
+
+func extractDependency(suPath string, clusterType string, clusterFlavor string, skipUnits map[string]bool) []string {
 	// register the imported kubernetes type, to unmarshall slice of bytes to Kustomization.kustomize.toolkit.fluxcd.io
 	kustomizev1.AddToScheme(Scheme)
 
-	diagramText := []string{}
+	diagramText := make([]string, 0, 500)
 
 	// source: https://pkg.go.dev/github.com/bitfield/script#Pipe.String
 	// helmTemplate, err := script.Exec("helm template ../../charts/sylva-units/ --values ../../charts/sylva-units/values.yaml --values ../../charts/sylva-units/management.values.yaml --values ../../charts/sylva-units/bootstrap.values.yaml -s templates/units.yaml").String()
@@ -53,14 +61,17 @@ func extractDependency(suPath string, clusterType string, clusterFlavor string) 
 	if err != nil {
 		panic(err)
 	}
-	// Split the YAML data from helm template into individual Kubernetes manifests
+	// split the YAML data from helm template into individual Kubernetes manifests
 	// by checking for "---" appearing after a newline character
 	manifests := strings.Split(string(helmTemplate), "\n---")
 
-	// Parse each Kubernetes manifest
+	// a map of key unit name and value Kustomization name
+	ksUnitMap := make(map[string]string)
+
+	// parse each Kubernetes manifest
 	for _, manifest := range manifests {
 		manifestByteArray := []byte(manifest)
-		// Parse the YAML into a custom struct
+		// parse the YAML into a custom struct
 		obj, _, err := Codecs.UniversalDeserializer().Decode(manifestByteArray, nil, nil)
 
 		if err != nil {
@@ -68,23 +79,57 @@ func extractDependency(suPath string, clusterType string, clusterFlavor string) 
 			continue
 		}
 
-		// Process the parsed manifest
+		// process the parsed manifest
 		// fmt.Println(reflect.TypeOf(obj)) // *v1.Kustomization
 
 		// obj holds the decoded Kubernetes object, but its type is runtime.Object
 		// which is an interface representing any Kubernetes API object.
-		// We need to assert obj to type *v1.Kustomization
+		// we need to assert obj to type *v1.Kustomization
 		kustomization, ok := obj.(*kustomizev1.Kustomization)
 		if !ok {
 			fmt.Println("Error: Failed to assert obj to *v1.Kustomization")
 			continue
 		}
+		// get the unit name (ks.metadata.name can be different than ks.metadata.labels."sylva-units.unit")
+		// and save it in a map with Kustomization name as key, when the unit name is different
+		unitName := kustomization.Labels["sylva-units.unit"]
+		if unitName != kustomization.Name {
+			ksUnitMap[kustomization.Name] = unitName
+		}
 
-		fmt.Println("Parsing Kustomization " + kustomization.Name + " for elements of ks.spec.dependsOn")
-		for _, dependency_unit := range kustomization.Spec.DependsOn {
-			// fmt.Println(reflect.TypeOf(dependency_unit)) // meta.NamespacedObjectReference
-			// fmt.Printf("%s\n", dependency_unit.Name)
-			diagramText = append(diagramText, "  "+dependency_unit.Name+" --> "+kustomization.Name)
+		if skipUnits[unitName] {
+			fmt.Println("Kustomization " + kustomization.Name + " (produced by unit " + unitName + ") is skipped from the diagram as dependent unit")
+			continue
+		} else {
+			fmt.Println("Parsing Kustomization " + kustomization.Name + " (produced by unit " + unitName + ") for elements of ks.spec.dependsOn")
+			for _, dependencyKs := range kustomization.Spec.DependsOn {
+				// fmt.Println(reflect.TypeOf(dependencyKs)) // meta.NamespacedObjectReference
+				// fmt.Printf("%s\n", dependencyKs.Name)
+				diagramText = append(diagramText, "  "+dependencyKs.Name+" --> "+kustomization.Name)
+			}
+		}
+	}
+	for ksName := range ksUnitMap {
+		for i, line := range diagramText {
+			// if one of the Kustomization names for which the unit name is different was used in diagramText elements
+			// replace one occurence in that element with the unit name
+			if strings.Contains(line, ksName) {
+				diagramText[i] = strings.Replace(line, ksName, ksUnitMap[ksName], 1)
+			}
+		}
+	}
+	for _, line := range diagramText {
+		fmt.Println(line)
+	}
+
+	for unitName := range skipUnits {
+		for i := 0; i < len(diagramText); i++ {
+			// if one of the unit names designated to be skipped was used as a dependency (x in "x --> y") in diagramText elements
+			// remove the element
+			if strings.Contains(diagramText[i], unitName+" -->") {
+				diagramText = RemoveIndex(diagramText, i)
+				i-- // decrement i to account for the removed element
+			}
 		}
 	}
 	return diagramText
