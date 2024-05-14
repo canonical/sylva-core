@@ -2626,7 +2626,7 @@ units:
                   name: metal3-ironic
                 spec:
                   type: LoadBalancer
-                  loadBalancerClass: '{{ tuple (.Values.cluster.loadBalancerClass) .Values.cluster.loadBalancerClass | include "set-only-if" }}'
+                  loadBalancerClass: '{{ .Values.cluster.loadBalancerClass | include "set-if-defined" }}'
 
   metal3-pdb:
     info:
@@ -3738,7 +3738,7 @@ units:
                   name: k8s-gateway
                 spec:
                   type: LoadBalancer
-                  loadBalancerClass: '{{ tuple (.Values.cluster.loadBalancerClass) .Values.cluster.loadBalancerClass | include "set-only-if" }}'
+                  loadBalancerClass: '{{ .Values.cluster.loadBalancerClass | include "set-if-defined" }}'
               - kind: Deployment
                 apiVersion: apps/v1
                 metadata:
@@ -3880,7 +3880,7 @@ units:
             node-role.kubernetes.io/control-plane: '{{ .Values._internal.cp_node_label_value }}'
           kind: DaemonSet
           service:
-            loadBalancerClass: '{{ tuple (.Values.cluster.loadBalancerClass) .Values.cluster.loadBalancerClass | include "set-only-if" }}'
+            loadBalancerClass: '{{ .Values.cluster.loadBalancerClass | include "set-if-defined" }}'
             enabled: true
             externalIPs:
             - '{{ .Values.cluster_virtual_ip }}'
