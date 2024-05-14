@@ -382,7 +382,12 @@ units:
 
   vsphere-cpi:
     enabled: true
-    # setting the same dependencies of the capv cluster unit in order to run in parallel
+    # some dependencies of base-deps are inherited, but don't apply here (we need the CCM for workload clusters to only have root dependencies - `root-dependency` & `mgmt-cluster-ready`):
+    depends_on:
+      cluster-reachable: false
+      namespace-defs: false
+      calico: false
+      cluster-machines-ready: false
 
   vsphere-csi-driver:
     enabled: true
