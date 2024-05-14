@@ -69,6 +69,7 @@ if echo "$EXTRACTED_VALUES" | yq -e '.registry_mirrors.hosts_config | length > 0
     rm -Rf $KIND_CONFIG_DIRECTORY/*
     KIND_CONFIG=$(echo -e "$KIND_CONFIG\n$KIND_CONFIG_REGISTRY" | yq)
     KIND_CONFIG=$(echo "$KIND_CONFIG" | yq '.nodes[0].extraMounts += [{"hostPath": env(KIND_CONFIG_DIRECTORY), "containerPath": "/etc/containerd/registry.d"}]')
+    helm dependency update charts/sylva-units/
     echo "$EXTRACTED_VALUES" | yq 'with_entries(select(.key == "registry_mirrors"))' |\
         helm template kind-registry-config ${BASE_DIR}/charts/sylva-units --show-only templates/extras/kind.yaml --values - | yq .script | bash
 fi
