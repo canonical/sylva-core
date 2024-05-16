@@ -11,12 +11,15 @@ Help()
    echo "Before runing this script: export the environment variable GITLAB_TOKEN with rights to create CI/CD variables"
    echo
    echo "Syntax: "
-   echo "$(basename "$0") [-c|h] PROJECT_ID GROUP_ID"
-   echo "$(basename "$0") [-d|h] GROUP_ID"
+   echo "$(basename "$0") [-c|h] -i GROUP_ID PROJECT_ID "
+   echo "$(basename "$0") [-d|h] -i GROUP_ID"
+   echo "$(basename "$0") [-c|h] GROUP_NAME PROJECT_NAME"
+   echo "$(basename "$0") [-d|h] GROUP_NAME"
    echo
    echo "options:"
-   echo "c     Create Cosign key pair in PROJECT_ID before moving it."
+   echo "c     Create Cosign key pair in a project before moving it to a parent group."
    echo "d     Delete key pair"
+   echo "i     Reference group and project by their IDS rather that the names"
    echo "h     Print this Help."
    echo
 }
@@ -30,8 +33,9 @@ fi
 
 GENERATE_KEY=false
 DELETE_KEY=false
+IDS=false
 
-while getopts "hcd" option; do
+while getopts "hcdi" option; do
    case $option in
       h) # display Help
          Help
@@ -43,9 +47,12 @@ while getopts "hcd" option; do
       d) # delete key pair
         DELETE_KEY=true
         ;;
+      i) # use group and repository IDS
+        IDS=true
+        ;;
       \?) # Invalid option
          echo "Error: Invalid option"
-         exit
+      exit
          ;;
    esac
 done
@@ -54,7 +61,7 @@ shift $(($OPTIND -1))
 
 if [ $# -eq 0 ];
 then
-    echo "[ERROR] PROJET and GROUP IDs are missing"
+    echo "[ERROR] PROJET and GROUP references are missing"
     Help
     exit 1
 fi
@@ -64,19 +71,30 @@ if ! [[ -v  GITLAB_TOKEN ]]; then
    exit 1
 fi
 
+if $IDS; then
+     GROUP_ID=$1
+     GROUP_NAME=$(curl -s --header "PRIVATE-TOKEN: $GITLAB_TOKEN" "https://gitlab.com/api/v4/groups/${GROUP_ID}" | jq -r '.name')
+   else 
+     GROUP_NAME=$(echo $1 | sed 's/\//%2F/g')
+     GROUP_ID=$(curl -s --header "PRIVATE-TOKEN: $GITLAB_TOKEN" https://gitlab.com/api/v4/groups/${GROUP_NAME} | jq '.id')
+   fi
+
 if $DELETE_KEY; then
-   GROUP_ID=$1
-   printf "Deleting key pair from Group: \033[1m%s\033[0m (ID: %s)\n" $(curl -s --header "PRIVATE-TOKEN: $GITLAB_TOKEN" "https://gitlab.com/api/v4/groups/${GROUP_ID}" | jq -r '.name') $GROUP_ID 
+   printf "Deleting key pair from Group: \033[1m%s\033[0m (ID: %s)\n" $GROUP_NAME $GROUP_ID 
    curl -s -XDELETE --header "PRIVATE-TOKEN: $GITLAB_TOKEN" "https://gitlab.com/api/v4/groups/"${GROUP_ID}"/variables/COSIGN_PRIVATE_KEY" | jq
    curl -s -XDELETE --header "PRIVATE-TOKEN: $GITLAB_TOKEN" "https://gitlab.com/api/v4/groups/"${GROUP_ID}"/variables/COSIGN_PASSWORD" | jq
    curl -s -XDELETE --header "PRIVATE-TOKEN: $GITLAB_TOKEN" "https://gitlab.com/api/v4/groups/"${GROUP_ID}"/variables/COSIGN_PUBLIC_KEY" | jq
 
 else
-   PROJECT_ID=$1
-   GROUP_ID=$2
-   GROUP_NAME=$(curl -s --header "PRIVATE-TOKEN: $GITLAB_TOKEN" "https://gitlab.com/api/v4/groups/${GROUP_ID}" | jq -r '.name')
-   PROJECT_NAME=$(curl -s --header "PRIVATE-TOKEN: $GITLAB_TOKEN" "https://gitlab.com/api/v4/projects/${PROJECT_ID}" | jq -r '.name')
-
+# create keypair and move it to a parent group
+   if $IDS; then
+     PROJECT_ID=$2
+     PROJECT_NAME=$(curl -s --header "PRIVATE-TOKEN: $GITLAB_TOKEN" "https://gitlab.com/api/v4/projects/${PROJECT_ID}" | jq -r '.name')
+   else 
+     PROJECT_NAME=$(echo $2 | sed 's/\//%2F/g')
+     PROJECT_ID=$(curl -s --header "PRIVATE-TOKEN: $GITLAB_TOKEN" https://gitlab.com/api/v4/projects/${PROJECT_NAME} | jq '.id')
+   fi
+   
    if $GENERATE_KEY; then
      printf "Generating key pair for Project \033[1m%s\033[0m (ID: %s)\n" $PROJECT_NAME  $PROJECT_ID 
      cosign generate-key-pair gitlab://"${PROJECT_ID}"

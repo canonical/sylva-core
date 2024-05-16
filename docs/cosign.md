@@ -52,7 +52,7 @@ cSWbGpnECsZ7IvdUj9GGGlmPpYl8H0WCHCRuWGSGX58ZiiSuUQRDQoHAxw==
 
 ### Generating a Cosign Key Pair for a GitLab Group
 
-When dealing with a bunch of GitLab project aiming at producing Sylva artifacts, e.g. projects of the group `sylva-elements`, the cosign keypair should be created at the group to avoid different keys key per project, which would turn the signature verification of Sylva artifacts into a nightmare. In this case, all the the projects belonging to the group inherit of the same signing metrial stored in the group variables. However `cosign generate-key-pair gitlab://foo/bar`, used in the preceding section, only generates a key pair with a project as destination (cf. https://github.com/sigstore/cosign/issues/2914). To adress the issue, a group member with read/write privileges on CI/CD variables can use the script `sylva-core/tools/security/groups-keys.sh`. This script generates the key pair in a target project (or copy an existing key pair from a given project) and then promotes it at the group level (Export the environment variable `GITLAB_TOKEN` with rights to create CI/CD variables before runing the script):
+When dealing with a bunch of GitLab project aiming at producing Sylva artifacts, e.g. projects of the group `sylva-elements`, the cosign keypair should be created at the group to avoid using different keys per project, which would turn the signature verification of Sylva artifacts into a nightmare. In this case, all the projects belonging to the group inherit the same signing material stored in the group variables. However `cosign generate-key-pair gitlab://foo/bar`, used in the previous section, only generates a key pair with a project as destination (cf. https://github.com/sigstore/cosign/issues/2914). To adress the issue, a group member with read/write privileges on CI/CD variables can use the script `sylva-core/tools/security/groups-keys.sh`. This script generates the key pair in a target project (or copy an existing key pair from a given project) and then promotes it at the group level (export the environment variable `GITLAB_TOKEN` with rights to create CI/CD variables before runing the script):
 
 ```shell
 $ ./groups-keys.sh -h
@@ -64,19 +64,28 @@ Manages Cosign Key pair at the Gitlab Group level
 Before runing this script: export the environment variable GITLAB_TOKEN with rights to create CI/CD variables
 
 Syntax:
-groups-keys.sh [-c|h] PROJECT_ID GROUP_ID
-groups-keys.sh [-d|h] GROUP_ID
+groups-keys.sh [-c|h] -i GROUP_ID PROJECT_ID
+groups-keys.sh [-d|h] -i GROUP_ID
+groups-keys.sh [-c|h] GROUP_NAME PROJECT_NAME
+groups-keys.sh [-d|h] GROUP_NAME
 
 options:
-c     Create Cosign key pair in PROJECT_ID before moving it.
+c     Create Cosign key pair in a project before moving it to a parent group.
 d     Delete key pair
+i     Reference group and project by their IDS rather that the names
 h     Print this Help.
 ```
 
-For example, to create a key pair in a givent GitLab proj-ect and promote it at the group level:
+user the flag `-c` to create a key pair in a given GitLab project and promote it at the group level. The group is not necessarily the immediate parent group of the project, for example:
 
 ```shell
-$ ./groups-keys.sh -c 43786055 63142339
+./groups-keys.sh -c Sylva-projects Sylva-projects/sylva-elements/diskimage-builder
+```
+
+You can also refer to the group via its ID by using the option `-i`:
+
+```shell
+$ ./groups-keys.sh -c -i 43786055 63142339
 Generating key pair for Project diskimage-builder (ID: 43786055)
 Password written to "COSIGN_PASSWORD" variable
 Private key written to "COSIGN_PRIVATE_KEY" variable
@@ -95,7 +104,7 @@ Project Variable COSIGN_PUBLIC_KEY deleted
 Skip the flag `-c` if you want to promote an existing key pair at the group level. For example, to promote **diskimage-builder** cosign signing material at the **sylva-elements** group level, run the following command:
 
 ```shell
-$ ./groups-keys.sh 43786055 63142339
+$ ./groups-keys.sh -i 43786055 63142339
 Moving key pair from diskimage-builder (ID: 43786055) to Group sylva-elements (ID: 63142339)
 Group Variable COSIGN_PRIVATE_KEY created
 Group Variable COSIGN_PASSWORD created
@@ -108,10 +117,16 @@ Project Variable COSIGN_PUBLIC_KEY deleted
 
 Now, you should have the `cosign` material stored in the CI/CD variable of the group **sylva-elements** and all projects of this group inherit from these CI/CD variables.
 
-To delete the group key pair, run:
+Use the flag `-d` to delete the group key pair:
 
 ```shell
-$ ./groups-keys.sh -d 63142339
+./groups-keys.sh -d Sylva-projects/sylva-elements
+```
+
+You can also refer to the group via its ID by using the option `-i`:
+
+```shell
+$ ./groups-keys.sh -d -i 63142339
 Deleting key pair from Group: sylva-elements (ID: 63142339)
 ```
 
