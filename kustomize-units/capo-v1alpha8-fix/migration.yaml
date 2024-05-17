@@ -1,0 +1,39 @@
+apiVersion: migration.k8s.io/v1alpha1
+kind: StorageVersionMigration
+metadata:
+  name: capo-v1alpha8-fix-openstackmachines
+spec:
+  resource:
+    group: infrastructure.cluster.x-k8s.io
+    resource: openstackmachines
+    version: v1alpha8
+---
+apiVersion: migration.k8s.io/v1alpha1
+kind: StorageVersionMigration
+metadata:
+  name: capo-v1alpha8-fix-openstackmachinetemplates
+spec:
+  resource:
+    group: infrastructure.cluster.x-k8s.io
+    resource: openstackmachinetemplates
+    version: v1alpha8
+---
+apiVersion: migration.k8s.io/v1alpha1
+kind: StorageVersionMigration
+metadata:
+  name: capo-v1alpha8-fix-openstackclusters
+spec:
+  resource:
+    group: infrastructure.cluster.x-k8s.io
+    resource: openstackclusters
+    version: v1alpha8
+---
+apiVersion: migration.k8s.io/v1alpha1
+kind: StorageVersionMigration
+metadata:
+  name: capo-v1alpha8-fix-openstackclustertemplates
+spec:
+  resource:
+    group: infrastructure.cluster.x-k8s.io
+    resource: openstackclustertemplates
+    version: v1alpha8
