@@ -69,6 +69,9 @@
 | **capi-rancher-import** | installs the capi-rancher-import operator, which let's us import Cluster AIP workload clusters in management cluster's Rancher |  | True | Helm | N/A |
 | **capo-cloud-config** | creates CAPO cloud-config used to produce Heat stack |  | True | Kustomize | N/A |
 | **capo-cluster-resources** | installs OpenStack Heat stack for CAPO cluster prerequisites |  | True | Kustomize | N/A |
+| **capo-v1alpha8-clear** | handles CAPO apiVersion v1alpha8 issues (clear CRD)<br/><br/>fixes CAPO CRDs to clear v1alpha8 from stored versions |  | True | Kustomize | N/A |
+| **capo-v1alpha8-fix-crd** | handles CAPO apiVersion v1alpha8 issues (fix CRD)<br/><br/>fixes CAPO CRDs to use v1alpha7 as storage version |  | True | Kustomize | N/A |
+| **capo-v1alpha8-fix-resources** | handles CAPO apiVersion v1alpha8 issues (fix resources)<br/><br/>migrates CAPO CRs from v1alpha8 back to v1alpha7 |  | True | Kustomize | N/A |
 | **cis-operator-scan** | allows for running a CIS scan for management cluster<br/><br/>it generates a report which can be viewed and downloaded in CSV from the Rancher UI, at https://rancher.sylva/dashboard/c/local/cis/cis.cattle.io.clusterscan |  | True | Kustomize | N/A |
 | **cluster-creator-login** | configures Rancher account used for workload cluster imports |  | True | Kustomize | N/A |
 | **cluster-creator-policy** | Kyverno policy for cluster creator<br/><br/>This units defines a Kyverno policy to distribute the Kubeconfig of cluster creator<br/>in all workload cluster namespaces, to allow the import of workload clusters in<br/>Rancher. |  | True | Kustomize | N/A |
@@ -89,6 +92,7 @@
 | **keycloak-add-truststore** | configures Keycloak truststore<br/><br/>a job to manually add a truststore to Keycloak instance, e.h. to enable LDAPS protocol when using user federation) |  | True | Kustomize | N/A |
 | **keycloak-oidc-external-secrets** | configures OIDC secrets for Keycloak |  | True | Kustomize | N/A |
 | **keycloak-resources** | configures keycloak resources |  | True | Kustomize | N/A |
+| **kube-storage-version-migrator** | installs kube-storage-version-migrator to assist apiVersion migrations |  |  | [Kustomize](https://github.com/kubernetes-sigs/kube-storage-version-migrator/manifests?ref=v0.0.5) | v0.0.5 |
 | **kubevirt-test-vms** | deploys kubevirt VMs for testing |  | True | Kustomize | N/A |
 | **kyverno-policies** | configures Kyverno policies |  | True | Kustomize | N/A |
 | **kyverno-policy-prevent-mgmt-cluster-delete** | Kyverno policies to prevent deletion of critical resources for mgmt cluster |  | True | Kustomize | N/A |
