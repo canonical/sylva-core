@@ -1,0 +1,45 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - https://github.com/kubernetes-sigs/kube-storage-version-migrator/manifests?ref=v0.0.5
+  - service-account.yaml
+
+namespace: kube-storage-version-migrator
+
+images:
+  - name: REGISTRY/storage-version-migration-migrator:VERSION
+    #newName: eu.gcr.io/k8s-artifacts-prod/storage-migrator/storage-version-migration-migrator
+    newName: registry.gitlab.com/sylva-projects/sylva-elements/container-images/sandbox-registry/storage-version-migration-migrator  # (mirror of the above)
+    newTag: v0.0.5
+  - name: REGISTRY/storage-version-migration-trigger:VERSION
+    #newName: eu.gcr.io/k8s-artifacts-prod/storage-migrator/storage-version-migration-trigger
+    newName: registry.gitlab.com/sylva-projects/sylva-elements/container-images/sandbox-registry/storage-version-migration-trigger   # (mirror of the above)
+    newTag: v0.0.5
+
+patches:
+# fix securityContext
+- target:
+    group: apps
+    version: v1
+    kind: Deployment
+  patch: |-
+    - op: add
+      path: /spec/template/spec/containers/0/securityContext
+      value:
+        runAsNonRoot: true
+        runAsUser: 999
+        seccompProfile:
+          type: RuntimeDefault
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop:
+            - ALL
+# inject service account
+- target:
+    group: apps
+    version: v1
+    kind: Deployment
+  patch: |-
+    - op: add
+      path: /spec/template/spec/serviceAccountName
+      value: kube-storage-version-migrator
