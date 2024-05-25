@@ -10,10 +10,17 @@ cluster:
           matchLabels:
             cluster-role: worker
 
-        provisioning_pool_interface: ens4
-        primary_pool_interface: ens5
+        provisioning_pool_interface: bond0
+        primary_pool_interface: bond0.100
 
       network_interfaces:
+        bond0:
+          type: bond
+          interfaces:
+            - ens4
+            - ens5
+          vlans:
+            - id: 100  # VLAN ID is fixed, per libvirt-metal internals
         ens4:
           type: phy
         ens5:

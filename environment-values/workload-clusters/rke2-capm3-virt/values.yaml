@@ -37,20 +37,27 @@ cluster:
     provisioning_pool_start: 192.168.10.60
     provisioning_pool_end: 192.168.10.90
     provisioning_pool_prefix: "24"
-
+    network_interfaces:
+      bond_mode: "active-backup"
     dns_servers: [1.1.1.1]
 
-  control_plane:  # tweak network configuration as needed
-
+  control_plane:
     capm3:
-      hostSelector:  # criteria for matching labels on BareMetalHost objects defined by baremetal_hosts value
+      hostSelector:
         matchLabels:
           cluster-role: control-plane
 
-      provisioning_pool_interface: ens4
-      primary_pool_interface: ens5
+      provisioning_pool_interface: bond0
+      primary_pool_interface: bond0.100
 
     network_interfaces:
+      bond0:
+        type: bond
+        interfaces:
+          - ens4
+          - ens5
+        vlans:
+          - id: 100  # VLAN ID is fixed, per libvirt-metal internals
       ens4:
         type: phy
       ens5:
@@ -71,7 +78,7 @@ cluster:
       rootDeviceHints:
         deviceName: /dev/vda
 
-  baremetal_hosts:  # corresponding credentials need to be set in secrets.yaml
+  baremetal_hosts:
     workload-cp-0:
       bmh_metadata:
         labels:

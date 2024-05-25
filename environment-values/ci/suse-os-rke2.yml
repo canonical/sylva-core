@@ -6,8 +6,10 @@ sylva_diskimagebuilder_images:
     default_enabled: true
 
 cluster:
-  # following are needed to override the Ubuntu based image for capm3-rke2-virt CIs
   capm3:
     image_key: opensuse-15-5-plain-rke2-1-28-9
+    network_interfaces:
+      bond_mode: "active-backup"
+      bondXmitHashPolicy: "layer2"
   capo:
     image_key: opensuse-15-5-plain-rke2-1-28-9

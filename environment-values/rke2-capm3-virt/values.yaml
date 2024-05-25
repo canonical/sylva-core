@@ -42,7 +42,8 @@ cluster:
     provisioning_pool_start: 192.168.10.20
     provisioning_pool_end: 192.168.10.50
     provisioning_pool_prefix: "24"
-
+    network_interfaces:
+      bond_mode: "active-backup"
     dns_servers: [1.1.1.1]
 
   control_plane:
@@ -51,10 +52,17 @@ cluster:
         matchLabels:
           cluster-role: control-plane
 
-      provisioning_pool_interface: ens4
-      primary_pool_interface: ens5
+      provisioning_pool_interface: bond0
+      primary_pool_interface: bond0.100
 
     network_interfaces:
+      bond0:
+        type: bond
+        interfaces:
+          - ens4
+          - ens5
+        vlans:
+          - id: 100  # VLAN ID is fixed, per libvirt-metal internals
       ens4:
         type: phy
       ens5:
