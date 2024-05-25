@@ -73,6 +73,11 @@ if echo "$EXTRACTED_VALUES" | yq -e '.registry_mirrors.hosts_config | length > 0
         helm template kind-registry-config ${BASE_DIR}/charts/sylva-units --show-only templates/extras/kind.yaml --values - | yq .script | bash
 fi
 
+# Try to retrieve proxies config in values passed (in local values.yaml or through Kustomize) and export them for bootstrap cluster
+    PROXIES_EXPORT_COMMANDS=$(echo "$EXTRACTED_VALUES" | yq 'with_entries(select(.key == "proxies"))' |\
+        helm template bootstrap-cluster-proxies charts/sylva-units --show-only templates/extras/bootstrap-cluster-proxies.yaml --values - | yq .script)
+    eval "$PROXIES_EXPORT_COMMANDS"
+
 # Try to retrieve bootstrap_ip config in values.yaml and expose ironic and os-image-server ports if defined
 if echo "$EXTRACTED_VALUES" | yq -e '.metal3.bootstrap_ip'  &>/dev/null; then
     BOOTSTRAP_IP=$(echo "$EXTRACTED_VALUES" | yq -e '.metal3.bootstrap_ip')

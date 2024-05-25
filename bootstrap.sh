@@ -14,7 +14,7 @@ validate_input_values
 check_pivot_has_ran
 
 echo_b "\U0001F503 Preparing bootstrap cluster"
-tools/kind/bootstrap-cluster.sh
+source tools/kind/bootstrap-cluster.sh
 
 ensure_flux
 

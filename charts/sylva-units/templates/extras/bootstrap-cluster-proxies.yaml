@@ -1,0 +1,35 @@
+{{/*
+
+This template is used to export proxy env vars during bootstrap cluster install
+following '.proxies' sylva-units values used to configure management cluster
+(defined in environment-values/x/values.yaml).
+
+For the bootstrap cluster the stack operator is expected to provide the **proxies**
+environment variables (http_proxy, https_proxy, no_proxy), if deploying behind a corporate proxy,
+and these vars end up in Flux controllers proxy variables patching
+(in kustomize-units/flux-system/components/common/kustomization.yaml) after being envsubst-ed
+during 'ensure_flux' function call in bootstrap.sh.
+
+This template will generate shell commands that can export the proxy variables, which will be executed
+in the current shell by
+```shell
+eval "$(helm template helm template bootstrap-cluster-proxies charts/sylva-units \
+                                   --show-only templates/extras/bootstrap-cluster-proxies.yaml \
+                                   --values your-environment/proxies.yaml | yq .script)"
+```
+during tools/kind/bootstrap-cluster.sh.
+
+In order to generate a valid yaml, these shell commands will be stored in the 'script' key.
+*/}}
+
+{{- if (eq .Release.Name "bootstrap-cluster-proxies") -}}
+
+script: |-
+  {{ $httpProxy := get .Values.proxies "http_proxy" | default "" -}}
+  {{ $httpsProxy := get .Values.proxies "https_proxy" | default "" -}}
+  {{ $noProxy := include "sylva-units.no_proxy" (tuple .) -}}
+
+  export http_proxy=${http_proxy:-{{ $httpProxy }}}
+  export https_proxy=${https_proxy:-{{ $httpsProxy }}}
+  export no_proxy=${no_proxy:-{{ $noProxy }}}
+{{- end -}}
