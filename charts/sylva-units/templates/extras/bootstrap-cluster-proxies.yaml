@@ -1,0 +1,28 @@
+{{/*
+
+This template is used to export proxy env vars during bootstrap cluster install
+following '.proxies' sylva-units values used to configure management cluster
+(defined in environment-values/x/values.yaml).
+
+For the bootstrap cluster, if deploying behind a corporate proxy, these **proxies**
+environment variables (http_proxy, https_proxy, no_proxy) end up in Flux controllers proxy variables 
+patching (in kustomize-units/flux-system/components/common/kustomization.yaml) after being envsubst-ed
+during 'ensure_flux' function call in bootstrap.sh.
+
+This template will generate shell commands that can export the proxy variables automatically.
+```shell
+eval "$(helm template bootstrap-cluster-proxies charts/sylva-units \
+                                   --show-only templates/extras/bootstrap-cluster-proxies.yaml \
+                                   --values your-environment/proxies.yaml | yq .script)"
+```-
+
+In order to generate a valid yaml, these shell commands will be stored in the 'script' key.
+*/}}
+
+{{- if (eq .Release.Name "bootstrap-cluster-proxies") -}}
+
+script: |-
+  export http_proxy={{ get .Values.proxies "http_proxy" | default "" }}
+  export https_proxy={{ get .Values.proxies "https_proxy" | default "" }}
+  export no_proxy={{ include "sylva-units.no_proxy" (tuple .) }}
+{{- end -}}

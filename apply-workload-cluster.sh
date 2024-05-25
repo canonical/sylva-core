@@ -7,7 +7,7 @@
 
 source $(dirname $0)/tools/shell-lib/common.sh
 
-check_args
+check_args "$@"
 
 wc_namespace=$(basename ${ENV_PATH})
 
