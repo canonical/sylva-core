@@ -366,20 +366,14 @@ units:
        # the cluster-wide CRD resources in order to move CAPI objects to management cluster
       _patches:
       - target:
-          kind: Role
+          kind: ClusterRole
         patch: |
           - op: replace
-            path: /kind
-            value: ClusterRole
-      - target:
-          kind: RoleBinding
-        patch: |
-          - op: replace
-            path: /kind
-            value: ClusterRoleBinding
-          - op: replace
-            path: /roleRef/kind
-            value: ClusterRole
+            path: /rules
+            value:
+              - apiGroups: ["*"]
+                resources: ["*"]
+                verbs: ["*"]
       - target:
           kind: ConfigMap
         patch: |

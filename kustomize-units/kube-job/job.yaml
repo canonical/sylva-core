@@ -86,6 +86,25 @@ roleRef:
   name: ${JOB_NAME}
   apiGroup: rbac.authorization.k8s.io
 ---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: ${JOB_NAME}
+rules: []
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: ${JOB_NAME}
+subjects:
+- kind: ServiceAccount
+  name: ${JOB_NAME}-${JOB_TARGET_NAMESPACE:-sylva-system}-sa${DISCRIMINATOR:-}
+  namespace: kube-job
+roleRef:
+  kind: ClusterRole
+  name: ${JOB_NAME}
+  apiGroup: rbac.authorization.k8s.io
+---
 apiVersion: v1
 kind: ConfigMap
 metadata:
