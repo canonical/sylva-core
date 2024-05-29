@@ -854,11 +854,11 @@ units:
     - base-deps
     helm_repo_url: https://sustainable-computing-io.github.io/kepler-helm-chart
     helmrelease_spec:
+      targetNamespace: kepler
       chart:
         spec:
           chart: kepler
           version: 0.5.6
-      targetNamespace: kepler
       install:
         createNamespace: false
         remediation:
