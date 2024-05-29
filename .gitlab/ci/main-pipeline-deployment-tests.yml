@@ -51,11 +51,11 @@ variables:
       Path to a file for customizing the values used
       during the management cluster update stage
   MGMT_INITIAL_REVISION:
-    value: ""
+    value: "Rolling_upgrade"
     description: |
       Git revision used for the management cluster deployment
   MGMT_UPDATE_REVISION:
-    value: ""
+    value: "main"
     description: |
       Git revision used for the management cluster update"
   # Workload cluster relative variables
@@ -343,8 +343,6 @@ capm3-ha-rke2-virt-ubuntu:
   extends: .capm3-virt-equinix
   variables:
     MGMT_ADDITIONAL_VALUES: environment-values/rke2-capm3-virt/ha.yaml
-    MGMT_INITIAL_ADDITIONAL_VALUES: environment-values/ci/control-plane-replicas-3.yml
-    MGMT_UPDATE_ADDITIONAL_VALUES: environment-values/ci/dummy-rolling-update-trigger.yml
     WC_ADDITIONAL_VALUES: environment-values/workload-clusters/rke2-capm3-virt/ha.yaml
     RUNNER_PLAN: m3.large.x86
 
