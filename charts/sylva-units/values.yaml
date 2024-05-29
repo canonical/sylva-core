@@ -844,6 +844,33 @@ units:
       install:
         createNamespace: true
 
+  kepler:
+    info:
+      description: installs kepler
+      maturity: beta
+    depends_on:
+      namespace-defs: true
+    unit_templates:
+    - base-deps
+    helm_repo_url: https://sustainable-computing-io.github.io/kepler-helm-chart
+    helmrelease_spec:
+      chart:
+        spec:
+          chart: kepler
+          version: 0.5.6
+      targetNamespace: kepler
+      install:
+        createNamespace: false
+        remediation:
+          retries: -1
+      values:
+        serviceMonitor:
+          enabled: false
+          labels:
+            release: rancher-monitoring
+        service:
+          type: NodePort
+
   vault-operator:
     info:
       description: installs Vault operator
