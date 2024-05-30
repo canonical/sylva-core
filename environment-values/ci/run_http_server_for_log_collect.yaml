@@ -10,8 +10,8 @@ cluster:
         export no_proxy={{ include "sylva-units.no_proxy" (tuple .) }}
         {{- end }}
         MINISERVE_VERSION=v0.27.1
-        MINISERVE_URL=https://github.com/svenstaro/miniserve/releases/download/${MINISERVE_VERSION}/miniserve-${MINISERVE_VERSION#v}-x86_64-unknown-linux-musl
-        curl -L --fail $MINISERVE_URL -o /usr/local/bin/miniserve || wget $MINISERVE_URL -O /usr/local/bin/miniserve || true
+        MINISERVE_URL={{ .Values._internal.miniserve_url }}
+        curl -L --fail $MINISERVE_URL -o /usr/local/bin/miniserve || wget $MINISERVE_URL -O /usr/local/bin/miniserve --tries=1 || true
         chmod +x /usr/local/bin/miniserve || true
         /usr/local/bin/miniserve --enable-tar-gz --interfaces 0.0.0.0 --port 25888 --hidden /var/log >/var/log/miniserve.log 2>&1 &
 
@@ -25,3 +25,6 @@ cluster:
     capo:
       additional_security_group_names:
         - allow_port_25888
+
+_internal:
+  miniserve_url: https://github.com/svenstaro/miniserve/releases/download/${MINISERVE_VERSION}/miniserve-${MINISERVE_VERSION#v}-x86_64-unknown-linux-musl
