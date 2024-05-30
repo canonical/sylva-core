@@ -17,9 +17,7 @@ default:
   - echo -e "\e[1m\e[0Ksection_start:`date +%s`:gitlab_ci_capo[collapsed=true]\r\e[0KApplying specific capo configuration\e[0m"
   - !reference [.os_cloud]
   - |
-    if [[ ${CLUSTER_TYPE} == 'management' ]]; then
-      yq -i eval-all 'select(fileIndex==0).cluster.capo.clouds_yaml = select(fileIndex==1) | select(fileIndex==0)' $ENV_PATH/secrets.yaml ~/.config/openstack/clouds.yml
-    fi
+    yq -i eval-all 'select(fileIndex==0).cluster.capo.clouds_yaml = select(fileIndex==1) | select(fileIndex==0)' $ENV_PATH/secrets.yaml ~/.config/openstack/clouds.yml
     yq -i '.cluster.capo.resources_tag = strenv(CAPO_TAG)' $values_file
     # The PRIVATE variables below are set in the gitlab runner configuration
     # and allow to enable extra values needed in the context of the platform on which this test actually runs
