@@ -8,6 +8,8 @@ The results are summarized by the following table:
 
 | Date                      | Management Cluster CAPI Providers | Sylva-Core main commit ID        | Management cluster result                    | Workload cluster result              | Test logs (only for failed tests) |
 |---------------------------|-----------------------------------|----------------------------------|----------------------------------------------|--------------------------------------|-----------------------------------|
+|2024-05-30 02:56|rke2-capv|a1d803bc51302429c71412eb1498e7f238856703|:x:|N/A|[link](https://gitlab.com/sylva-projects/sylva-core/-/wikis/uploads/fe36c2c9130895c182753597c42ea293/capv-logs.gz)|
+|2024-05-30 02:00|kubeadm-capv|a1d803bc51302429c71412eb1498e7f238856703|:x:|N/A|[link](https://gitlab.com/sylva-projects/sylva-core/-/wikis/uploads/fe36c2c9130895c182753597c42ea293/capv-logs.gz)|
 |2024-05-29 02:56|rke2-capv|bc311d854f3862544cbe1d52aeb47a413b877233|:x:|N/A|[link](https://gitlab.com/sylva-projects/sylva-core/-/wikis/uploads/90baa6e8943ead5258bd1bd20951327b/capv-logs.gz)|
 |2024-05-29 02:00|kubeadm-capv|bc311d854f3862544cbe1d52aeb47a413b877233|:x:|N/A|[link](https://gitlab.com/sylva-projects/sylva-core/-/wikis/uploads/90baa6e8943ead5258bd1bd20951327b/capv-logs.gz)|
 |2024-05-28 02:56|rke2-capv|4b7f0a5a066603a9c53c7dc7af8bc2316b2f3896|:x:|N/A|[link](https://gitlab.com/sylva-projects/sylva-core/-/wikis/uploads/c64be60566a72d38272d0aab1148a7ea/capv-logs.gz)|
@@ -27,8 +29,6 @@ The results are summarized by the following table:
 |2024-05-08 02:30|rke2-capv|be13817adbed3760ef33b8b7f5e8a1fc148f222c|:white_check_mark:|:x:||
 |2024-05-08 02:32|kubeadm-capv|be13817adbed3760ef33b8b7f5e8a1fc148f222c|:white_check_mark:|:x:||
 |2024-05-07 02:37|rke2-capv|16f216b588903bc264f070d716e3d44c7cd7a2b5|:white_check_mark:|:x:||
-|2024-05-07 02:34|kubeadm-capv|16f216b588903bc264f070d716e3d44c7cd7a2b5|:white_check_mark:|:x:||
-|2024-05-03 02:35|rke2-capv|af401ecf561077f073b28a61f0c2521a28f6c2e8|:white_check_mark:|:x:||
 
 Old layout table:
 
