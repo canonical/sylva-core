@@ -5814,8 +5814,6 @@ shared_workload_clusters_values:
     use_custom_rancher_dns_resolver: true
     capm3:
       image_provisioning_host: '{{ .Values.display_external_ip }}'
-    capo:
-      network_id: '{{ .Values.cluster.capo.network_id | include "set-if-defined" }}'
     default_node_class: '{{ .Values.cluster.default_node_class }}'
     node_classes: '{{ .Values.cluster.node_classes | include "preserve-type" }}'
 
@@ -5843,8 +5841,6 @@ shared_workload_clusters_values:
       {{- $units | include "preserve-type" -}}
 
 shared_workload_clusters_secret_values:
-  cluster:
-    capo: '{{ tuple (dict "clouds_yaml" (.Values.cluster | dig "capo" "clouds_yaml" dict)) (.Values.cluster | dig "capo" "clouds_yaml" dict) | include "set-only-if" }}'
   _internal:
     thanos_password: '{{ .Values._internal.thanos_password }}'
     loki_password: '{{ .Values._internal.loki_password }}'
