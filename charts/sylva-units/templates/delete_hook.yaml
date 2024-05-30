@@ -29,13 +29,13 @@ spec:
             }
 
             echo "=== Disabling the pruning of kustomizations installed on workload cluster ==="
-            for KUST in $(_kubectl get kustomization -l app.kubernetes.io/instance=$NAME -o json | jq -r '.items[] | select(.spec.kubeConfig != null) | .metadata.name'); do
+            for KUST in $(_kubectl get kustomization -l app.kubernetes.io/instance=$NAME -o json | jq -r '.items[] | select(.spec.kubeConfig != null and .spec.kubeConfig.secretRef.name != "cluster-creator-kubeconfig") | .metadata.name'); do
                 echo "Disable pruning in kustomization $KUST"
                 _kubectl patch kustomization $KUST --type=merge --patch='{"spec":{"prune":false}}' >/dev/null
             done
 
             echo "=== Disabling the pruning of helmreleases installed on workload cluster ==="
-            for RELEASE in $(_kubectl get  helmreleases -l app.kubernetes.io/instance=$NAME -o json | jq -r '.items[] | select(.spec.kubeConfig != null) | .metadata.name'); do
+            for RELEASE in $(_kubectl get  helmreleases -l app.kubernetes.io/instance=$NAME -o json | jq -r '.items[] | select(.spec.kubeConfig != null and .spec.kubeConfig.secretRef.name != "cluster-creator-kubeconfig") | .metadata.name'); do
                 echo "Suspending helmreleases $RELEASE"
                 _kubectl patch helmreleases $RELEASE --type=merge --patch='{"spec":{"suspend":true}}' >/dev/null
             done
