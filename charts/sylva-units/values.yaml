@@ -5061,15 +5061,12 @@ units:
           rules:
             enabled: false
         loki:
-          auth_enabled: true
           containerSecurityContext:
             seccompProfile:
               type: RuntimeDefault
           analytics:
             reporting_enabled: false
           server:
-            http_listen_port: 3100
-            grpc_listen_port: 9095
             http_server_idle_timeout: 600s
             http_server_read_timeout: 600s
             http_server_write_timeout: 600s
@@ -5105,26 +5102,16 @@ units:
               admin: "loki-admin"
             type: s3
             s3:
-              s3: null
               endpoint: "minio.minio-monitoring-tenant.svc.cluster.local:443"
-              region: null
               # accessKeyId and secretAccessKey are passed via helm_secret_values, see below
-              signatureVersion: null
               s3ForcePathStyle: true
-              insecure: false
               http_config:
                 idle_conn_timeout: 90s
                 insecure_skip_verify: true
         test:
           enabled: false
         monitoring:
-          dashboards:
-            enabled: true
-            labels:
-              grafana_dashboard: "1"
           rules:
-            enabled: true
-            alerting: true
             additionalGroups:
               - name: additional-loki-rules
                 rules:
@@ -5134,39 +5121,13 @@ units:
                     expr: sum(rate(loki_request_duration_seconds_bucket[1m])) by (le, job, route)
                   - record: node_namespace_pod_container:container_cpu_usage_seconds_total:sum_rate
                     expr: sum(rate(container_cpu_usage_seconds_total[1m])) by (node, namespace, pod, container)
-            podsecurityContext:
-              seccompProfile:
-                type: RuntimeDefault
-            securityContext:
-              allowPrivilegeEscalation: false
-              capabilities:
-                drop:
-                  - ALL
-              runAsNonRoot: true
-              seccompProfile:
-                type: RuntimeDefault
-          serviceMonitor:
-            enabled: true
-            metricsInstance:
-              enabled: true
           # todo: need GrafanaAgent
           selfMonitoring:
             enabled: false
-            tenant:
-              name: "self-monitoring"
             grafanaAgent:
               installOperator: false
           lokiCanary:
             enabled: false
-            labelname: pod
-            securityContext:
-              allowPrivilegeEscalation: false
-              capabilities:
-                drop:
-                  - ALL
-              runAsNonRoot: true
-              seccompProfile:
-                type: RuntimeDefault
         write:
           replicas: '{{ int .Values._internal.node_count | gt 2 | ternary 1 2 }}'
           persistence:
@@ -5176,17 +5137,6 @@ units:
             minReplicas: 2
             maxReplicas: 6
             targetCPUUtilizationPercentage: 40
-          podSecurityContext:
-            seccompProfile:
-              type: RuntimeDefault
-          securityContext:
-            allowPrivilegeEscalation: false
-            capabilities:
-              drop:
-                - ALL
-            runAsNonRoot: true
-            seccompProfile:
-              type: RuntimeDefault
           extraVolumes:
             - name: data
               emptyDir: {}
@@ -5197,46 +5147,20 @@ units:
               mountPath: /data
             - name: loki
               mountPath: /loki
-        tablemanager:
-          enabled: false
         read:
           replicas: '{{ int .Values._internal.node_count | gt 2 | ternary 1 2 }}'
           persistence:
             size: 3Gi
-          podSecurityContext:
-            seccompProfile:
-              type: RuntimeDefault
-          securityContext:
-            allowPrivilegeEscalation: false
-            capabilities:
-              drop:
-                - ALL
-            runAsNonRoot: true
-            seccompProfile:
-              type: RuntimeDefault
         backend:
           replicas: '{{ int .Values._internal.node_count | gt 2 | ternary 1 2 }}'
           persistence:
             size: 3Gi
-          podSecurityContext:
-            seccompProfile:
-              type: RuntimeDefault
-          securityContext:
-            allowPrivilegeEscalation: false
-            capabilities:
-              drop:
-                - ALL
-            runAsNonRoot: true
-            seccompProfile:
-              type: RuntimeDefault
         memberlist:
           service:
             publishNotReadyAddresses: true
           join_members:
             - loki-memberlist
         gateway:
-          enabled: true
-          verboseLogging: true
           replicas: '{{ int .Values._internal.node_count | gt 2 | ternary 1 2 }}'
           ingress:
             enabled: true
