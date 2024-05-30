@@ -266,62 +266,62 @@ Note well that there are a few limitations:
 
 */}}
 
-{{ define "interpret-inner-gotpl" }}
-    {{ $envAll := index . 0 }}
-    {{ $data := index . 1 }}
-    {{ $kind := kindOf $data }}
-    {{ $result := 0 }}
-    {{ if (eq $kind "string") }}
-        {{ if regexMatch "(.|\n)*{{(.|\n)+}}(.|\n)*" $data }}
+{{- define "interpret-inner-gotpl" -}}
+    {{- $envAll := index . 0 -}}
+    {{- $data := index . 1 -}}
+    {{- $kind := kindOf $data -}}
+    {{- $result := 0 -}}
+    {{- if (eq $kind "string") -}}
+        {{- if regexMatch "(.|\n)*{{(.|\n)+}}(.|\n)*" $data -}}
             {{/* This is where we actually trigger GoTPL interpretation */}}
-            {{ $tpl_res := tpl $data $envAll }}
-            {{ if (regexMatch "^( |\n)*{\"encapsulated-result\":" $tpl_res) }}
-                {{ $result = index (fromJson $tpl_res) "encapsulated-result" }}
-            {{ else }}
-                {{ $result = $tpl_res }}
-            {{ end }}
+            {{- $tpl_res := tpl $data $envAll -}}
+            {{- if (regexMatch "^( |\n)*{\"encapsulated-result\":" $tpl_res) -}}
+                {{- $result = index (fromJson $tpl_res) "encapsulated-result" -}}
+            {{- else -}}
+                {{- $result = $tpl_res -}}
+            {{- end -}}
             {{/* recurse to also interpret any nested GoTPL */}}
-            {{ $result = index (tuple $envAll $result | include "interpret-inner-gotpl" | fromJson) "result" }}
-        {{ else }}
-            {{ $result = $data }}
-        {{ end }}
-    {{ else if (eq $kind "slice") }}
+            {{- $result = index (tuple $envAll $result | include "interpret-inner-gotpl" | fromJson) "result" -}}
+        {{- else -}}
+            {{- $result = $data -}}
+        {{- end -}}
+    {{- else if (eq $kind "slice") -}}
         {{/* this is a list, recurse on each item */}}
-        {{ $result = list }}
-        {{ range $data }}
-            {{ $tpl_item := index (tuple $envAll . | include "interpret-inner-gotpl" | fromJson) "result" }}
-            {{ if (eq (kindOf $tpl_item) "string") }}
-                {{ if (regexMatch "^( |\n)*{\"encapsulated-result\":" $tpl_item) }}
-                    {{ $result = append $result (index (fromJson $tpl_item) "encapsulated-result") }}
-                {{ else if (ne $tpl_item "skip-as-set-only-if-result-was-false") }}
-                    {{ $result = append $result $tpl_item }}
-                {{ end }}
-            {{ else }}
-                {{ $result = append $result $tpl_item }}
-            {{ end }}
-        {{ end }}
-    {{ else if (eq $kind "map") }}
+        {{- $result = list -}}
+        {{- range $data -}}
+            {{- $tpl_item := index (tuple $envAll . | include "interpret-inner-gotpl" | fromJson) "result" -}}
+            {{- if (eq (kindOf $tpl_item) "string") -}}
+                {{- if (regexMatch "^( |\n)*{\"encapsulated-result\":" $tpl_item) -}}
+                    {{- $result = append $result (index (fromJson $tpl_item) "encapsulated-result") -}}
+                {{- else if (ne $tpl_item "skip-as-set-only-if-result-was-false") -}}
+                    {{- $result = append $result $tpl_item -}}
+                {{- end -}}
+            {{- else -}}
+                {{- $result = append $result $tpl_item -}}
+            {{- end -}}
+        {{- end -}}
+    {{- else if (eq $kind "map") -}}
         {{/* this is a dictionary, recurse on each key-value pair */}}
-        {{ $result = dict }}
-        {{ range $key,$value := $data }}
-            {{ $tpl_key := index (tuple $envAll $key | include "interpret-inner-gotpl" | fromJson) "result" }}
-            {{ $tpl_value := index (tuple $envAll $value | include "interpret-inner-gotpl" | fromJson) "result" }}
-            {{ if (eq (kindOf $tpl_value) "string") }}
-                {{ if (regexMatch "^( |\n)*{\"encapsulated-result\":" $tpl_value) }}
-                    {{ $_ := set $result $tpl_key (index (fromJson $tpl_value) "encapsulated-result") }}
-                {{ else if (ne $tpl_value "skip-as-set-only-if-result-was-false") }}
-                    {{ $_ := set $result $tpl_key $tpl_value }}
-                {{ end }}
-            {{ else }}
-                {{ $_ := set $result $tpl_key $tpl_value }}
-            {{ end }}
-        {{ end }}
-    {{ else }}  {{/* bool, int, float64 */}}
-        {{ $result = $data }}
-    {{ end }}
+        {{- $result = dict -}}
+        {{- range $key,$value := $data -}}
+            {{- $tpl_key := index (tuple $envAll $key | include "interpret-inner-gotpl" | fromJson) "result" -}}
+            {{- $tpl_value := index (tuple $envAll $value | include "interpret-inner-gotpl" | fromJson) "result" -}}
+            {{- if (eq (kindOf $tpl_value) "string") -}}
+                {{- if (regexMatch "^( |\n)*{\"encapsulated-result\":" $tpl_value) -}}
+                    {{- $_ := set $result $tpl_key (index (fromJson $tpl_value) "encapsulated-result") -}}
+                {{- else if (ne $tpl_value "skip-as-set-only-if-result-was-false") -}}
+                    {{- $_ := set $result $tpl_key $tpl_value -}}
+                {{- end -}}
+            {{- else -}}
+                {{- $_ := set $result $tpl_key $tpl_value -}}
+            {{- end -}}
+        {{- end -}}
+    {{- else -}}  {{/* bool, int, float64 */}}
+        {{- $result = $data -}}
+    {{- end -}}
 
-{{ dict "result" $result | toJson }}
-{{ end }}
+{{- dict "result" $result | toJson -}}
+{{- end -}}
 
 {{/*
 
