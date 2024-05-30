@@ -8,10 +8,16 @@
 # the Rancher one (e.g Clusters.provisioning.cattle.io)
 additional_resources="
   Namespaces
+  Roles
+  RoleBindings
+  ClusterRoles
+  ClusterRoleBindings
+  ServiceAccounts
   HelmReleases
   HelmRepositories
   HelmCharts
   GitRepositories
+  OCIRepositories
   Kustomizations
   StatefulSets
   Jobs
