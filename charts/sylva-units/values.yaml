@@ -69,7 +69,7 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
     spec:
       url: https://github.com/rancher/local-path-provisioner.git
       ref:
-        tag: v0.0.26
+        tag: v0.0.27
 
   sriov-resources:
     kind: GitRepository
