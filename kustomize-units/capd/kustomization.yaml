@@ -10,6 +10,30 @@ patches:
     patch: |-
       - op: remove
         path: /spec/conversion/webhook/clientConfig/caBundle
+  - patch: |
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: all
+      spec:
+        template:
+          spec:
+            containers:
+              - name: manager
+                env:
+                  - name: "HTTP_PROXY"
+                    value: "${http_proxy}"
+                  - name: "HTTPS_PROXY"
+                    value: "${https_proxy}"
+                  - name: "http_proxy"
+                    value: "${http_proxy}"
+                  - name: "https_proxy"
+                    value: "${https_proxy}"
+                  - name: "no_proxy"
+                    value: "localhost,100.96.0.1,${no_proxy},${KIND_POD_SUBNET},${KIND_SVC_SUBNET},.cluster.local.,.cluster.local,.svc"
+    target:
+      kind: Deployment
+      labelSelector: control-plane=controller-manager
 
 images:
   - name: gcr.io/k8s-staging-cluster-api/capd-manager
