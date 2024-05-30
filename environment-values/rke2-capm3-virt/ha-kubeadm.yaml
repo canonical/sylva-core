@@ -1,0 +1,113 @@
+---
+
+# Additional values for deploying libvirt BM emulated cluster in HA mode
+
+cluster:
+  control_plane_replicas: 3
+
+  machine_deployments:
+    md0:
+      replicas: 1
+
+      capm3:
+        hostSelector:
+          matchLabels:
+            cluster-role: worker
+
+        provisioning_pool_interface: ens4
+        primary_pool_interface: ens5
+
+      network_interfaces:
+        ens4:
+          type: phy
+        ens5:
+          type: phy
+
+  capi_providers:
+    bootstrap_provider: cabpk
+  capm3:
+    image_key: ubuntu-jammy-plain-kubeadm-1-28-9
+
+  baremetal_hosts:
+    management-cp-0:
+      bmh_metadata:
+        labels:
+          cluster-role: control-plane
+      bmh_spec:
+        bmc:
+          address: redfish-virtualmedia://{{ .Values._internal.bootstrap_node_ip }}:8000/redfish/v1/Systems/c0014001-b10b-f001-c0de-feeb1e54ee15
+        bootMACAddress: 52:54:00:44:44:00
+    management-cp-1:
+      bmh_metadata:
+        labels:
+          cluster-role: control-plane
+      bmh_spec:
+        bmc:
+          address: redfish-virtualmedia://{{ .Values._internal.bootstrap_node_ip }}:8001/redfish/v1/Systems/c0014001-b10b-f001-c0de-feeb1e54ee15
+        bootMACAddress: 52:54:00:44:44:01
+    management-cp-2:
+      bmh_metadata:
+        labels:
+          cluster-role: control-plane
+      bmh_spec:
+        bmc:
+          address: redfish-virtualmedia://{{ .Values._internal.bootstrap_node_ip }}:8002/redfish/v1/Systems/c0014001-b10b-f001-c0de-feeb1e54ee15
+        bootMACAddress: 52:54:00:44:44:02
+    management-md-0:
+      bmh_metadata:
+        labels:
+          cluster-role: worker
+      bmh_spec:
+        bmc:
+          address: redfish-virtualmedia://{{ .Values._internal.bootstrap_node_ip }}:8003/redfish/v1/Systems/c0014001-b10b-f001-c0de-feeb1e54ee15
+        bootMACAddress: 52:54:00:44:44:03
+
+units:
+  longhorn:
+    helmrelease_spec:
+      values:
+        persistence:
+          defaultClassReplicaCount: 3   # enable data replication
+
+libvirt_metal:
+  #image: registry.gitlab.com/sylva-projects/sylva-elements/container-images/libvirt-metal:0.1.4  # customize if wanted
+  nodes:
+    management-cp-0:
+      redfishPort: 8000
+      memGB: 16
+      numCPUs: 6
+    management-cp-1:
+      redfishPort: 8001
+      memGB: 16
+      numCPUs: 6
+    management-cp-2:
+      redfishPort: 8002
+      memGB: 16
+      numCPUs: 6
+    management-md-0:
+      redfishPort: 8003
+      memGB: 16
+      numCPUs: 6
+
+    workload-cp-0:
+      redfishPort: 8010
+      memGB: 16
+      numCPUs: 4
+    workload-cp-1:
+      redfishPort: 8011
+      memGB: 16
+      numCPUs: 4
+    workload-cp-2:
+      redfishPort: 8012
+      memGB: 16
+      numCPUs: 4
+    workload-md-0:
+      redfishPort: 8013
+      memGB: 16
+      numCPUs: 4
+
+sylva_diskimagebuilder_images:
+  ubuntu-jammy-plain-rke2-1-28-9:
+    default_enabled: false
+  ubuntu-jammy-plain-kubeadm-1-28-9:
+    default_enabled: true
