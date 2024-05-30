@@ -2,6 +2,5 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
 resources:
-- rancher-bootstrap-secret.yaml
 - flux-webui-cluster-user-auth.yaml
 - cluster-creator-password.yaml

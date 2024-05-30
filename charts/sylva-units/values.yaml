@@ -2695,14 +2695,11 @@ units:
       path: ./kustomize-units/synchronize-secrets
       _components:
         - '{{ tuple "components/keycloak" (tuple . "keycloak" | include "unit-enabled") | include "set-only-if" }}'
+        - '{{ tuple "components/rancher" (tuple . "rancher" | include "unit-enabled") | include "set-only-if" }}'
       postBuild:
         substitute:
           FLUX_ADMIN_USERNAME: '{{ .Values.flux_webui.admin_user }}'
       healthChecks:
-        - apiVersion: v1
-          kind: Secret
-          name: bootstrap-secret
-          namespace: cattle-system
         - apiVersion: v1
           kind: Secret
           name: cluster-user-auth
@@ -2711,7 +2708,26 @@ units:
           kind: Secret
           name: cluster-creator-secret
           namespace: flux-system
-        - '{{ tuple (dict "apiVersion" "v1" "kind" "Secret" "name" "keycloak-initial-admin" "namespace" "keycloak") (tuple . "keycloak" | include "unit-enabled") | include "set-only-if" }}'
+        - >-
+          {{ tuple (dict
+                "apiVersion" "v1"
+                "kind" "Secret"
+                "name" "bootstrap-secret"
+                "namespace" "cattle-system"
+             )
+             (tuple . "rancher" | include "unit-enabled")
+               | include "set-only-if"
+          }}
+        - >-
+          {{ tuple (dict
+                "apiVersion" "v1"
+                "kind" "Secret"
+                "name" "keycloak-initial-admin"
+                "namespace" "keycloak"
+             )
+             (tuple . "keycloak" | include "unit-enabled")
+               | include "set-only-if"
+          }}
 
   rancher-init:
     info:
