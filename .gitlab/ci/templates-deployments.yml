@@ -116,7 +116,11 @@ include:
   - values_file=$ENV_PATH/values.yaml
   - |
     # Force intialization of an http server for log collection in cluster on capm3/capo
-    DISPLAY="false" update_values_file environment-values/ci/run_http_server_for_log_collect.yaml
+    if [ -f environment-values/ci/run_http_server_for_log_collect.yaml ]; then
+      DISPLAY="false" update_values_file environment-values/ci/run_http_server_for_log_collect.yaml
+    else
+      echo "File 'run_http_server_for_log_collect.yaml' not found, skipping"
+    fi
   - |
     if [ ${OCI_TAG} ]; then
       echo -e "Applying OCI configuration for tag: ${OCI_TAG}"
