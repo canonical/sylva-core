@@ -131,9 +131,7 @@ def search_version_in_kustomize_unit_files(kustomize_unit_path):
         "kind=Kustomization/resources/1",
         ]
     possible_regexp = [
-        r"/(v?[\d\.]+)/",
-        r"ref=(v?[\d\.]+-\w+)",
-        r"ref=(v?[\d\.]+)",
+        r"(?:ref=|/)(v?[\d.]+(?:[\w.-]+)?)(?:/|$)",
     ]
     for path in possible_paths:
         yaml_focus = yaml_objects
