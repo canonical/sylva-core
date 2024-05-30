@@ -9,6 +9,10 @@ data:
       prometheusSpec:
         configMaps: ${CONFIGMAPS}
         additionalScrapeConfigs:
+          - job_name: 'pushgateway'
+            honor_labels: true
+            static_configs:
+            - targets: ['prometheus-pushgateway.pushgateway.svc.cluster.local:9091']
           - job_name: 'snmp-exporter'
             scrape_interval: 90s
             scrape_timeout: 60s
