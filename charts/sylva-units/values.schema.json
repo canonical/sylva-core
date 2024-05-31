@@ -116,18 +116,8 @@
       ]
     },
     "openstack-uuid": {
-      "anyOf": [
-        {
-          "type": "string",
-          "pattern": "[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12}"
-        },
-        {
-          "$ref": "#/$defs/string-with-gotpl"
-        },
-        {
-          "type": "null"
-        }
-      ]
+      "type": "string",
+      "pattern": "[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12}"
     },
     "openstack-clouds-yaml": {
       "anyOf": [
@@ -8596,6 +8586,12 @@
                   "type"
                 ]
               },
+              "cluster_virtual_ip_port_uuid": {
+                "$ref": "#/$defs/openstack-uuid"
+              },
+              "cluster_floating_ip_uuid": {
+                "$ref": "#/$defs/openstack-uuid"
+              },
               "control_plane_affinity_policy": {
                 "type": "string",
                 "enum": [
@@ -8613,6 +8609,12 @@
               "external_network_id": {
                 "type": "string"
               }
+            },
+            "not": {
+              "required": [
+                "external_network_id",
+                "cluster_floating_ip_uuid"
+              ]
             }
           }
         }

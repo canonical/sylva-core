@@ -142,6 +142,10 @@ $defs:
       - not:
           required: [ key ]
 
+  openstack-uuid:
+    type: string
+    pattern: "[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12}"  # an OpenStack UUID
+
 # lines with '# -------------------------------' correspond to keys in values.yaml
 # (the rest being the JSONSchema language itself)
 
@@ -1300,6 +1304,12 @@ allOf:
               required:
                 - type
 
+            cluster_virtual_ip_port_uuid:
+              $ref: "#/$defs/openstack-uuid"
+
+            cluster_floating_ip_uuid:
+              $ref: "#/$defs/openstack-uuid"
+
             control_plane_affinity_policy:  # -------------------------------
               type: string
               enum:
@@ -1314,6 +1324,12 @@ allOf:
 
             external_network_id:  # -------------------------------
               type: string
+
+        # prevent having both external_network_id and cluster_floating_ip_uuid specified:
+          not:
+            required:
+              - external_network_id
+              - cluster_floating_ip_uuid
 
   # additional constraints for .metal3
   - if:

@@ -2496,6 +2496,8 @@ units:
           CAPO_CREATE_IRONIC_SECURITY_GROUP: '{{ tuple . (and (tuple . "metal3" | include "unit-enabled") (.Values.cluster.capi_providers.infra_provider | eq "capo")) "true" "false" | include "interpret-ternary" }}'
           COMMON_SECURITY_GROUP_NAME: 'capo-{{ .Values.cluster.name }}-security-group-common-{{ .Values.cluster.capo.resources_tag }}'
           DUMMY_UPDATE_TRIGGER: 'helm-release-revision/{{ .Release.Revision }},sylva-units-version/{{ .Chart.Version }}'
+          CLUSTER_VIRTUAL_IP_PORT_UUID: '{{ .Values.openstack.cluster_virtual_ip_port_uuid | default "" }}'
+          CLUSTER_FLOATING_IP_UUID: '{{ .Values.openstack.cluster_floating_ip_uuid | default "" }}'
 
   calico-crd:
     info:

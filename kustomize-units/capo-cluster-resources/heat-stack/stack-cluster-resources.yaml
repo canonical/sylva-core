@@ -24,6 +24,14 @@ spec:
           type: string
           description: "External Network ID"
           default: ""
+        cluster_virtual_ip_port_uuid:
+          type: string
+          description: "Port UUID to adopt as cluster virtual IP (if set, will be used instead of creating a new port to allocate a VIP)"
+          default: ""
+        cluster_floating_ip_uuid:
+          type: string
+          description: "Floating-ip UUID to adopt as cluster public IP (if set, will be used instead of allocating a floating IP)"
+          default: ""
         control_plane_affinity_policy:
           type: string
           description: "Control plane affinity policy"
@@ -85,23 +93,53 @@ spec:
           default: "unspecified"
 
       conditions:
-        external_network_cond:
+        vip_requested:
+          equals:
+            - get_param: cluster_virtual_ip_port_uuid
+            - ""
+        floating_ip_allocation_requested:
           not:
             equals:
               - get_param: external_network
               - ""
+        adopt_port:
+          not:
+            equals:
+              - get_param: cluster_virtual_ip_port_uuid
+              - ""
+        adopt_floating_ip:
+          not:
+            equals:
+              - get_param: cluster_floating_ip_uuid
+              - ""
+
 
       resources:
         port:
           type: OS::Neutron::Port
+          condition: vip_requested
           properties:
             network: { get_param: network }
+        adopted-port:
+          type: OS::Neutron::Port
+          condition: adopt_port
+          external_id: { get_param: cluster_virtual_ip_port_uuid }
         floating-ip:
           type: OS::Neutron::FloatingIP
-          condition: external_network_cond
+          condition: floating_ip_allocation_requested
           properties:
             floating_network: { get_param: external_network }
-            port_id: { get_resource: port }
+            port_id: { if: [vip_requested, { get_resource: port }, { get_resource: adopted-port }] }
+        adopted-floating-ip:
+          type: OS::Neutron::FloatingIP
+          condition: adopt_floating_ip
+          external_id: {get_param: cluster_floating_ip_uuid }
+        floating-ip-association:
+          type: OS::Neutron::FloatingIPAssociation
+          condition: adopt_floating_ip
+          properties:
+            floatingip_id: { get_resource: adopted-floating-ip }
+            port_id: {if: [vip_requested, { get_resource: port }, {get_resource: adopted-port }] }
         srvgroup-ctrl-plane:
           type: OS::Nova::ServerGroup
           properties:
@@ -171,10 +209,21 @@ spec:
                 permutations: false
       outputs:
         allocated_ip:
-          value: { get_attr: [port, fixed_ips, 0, ip_address] }
+          value:
+            if:
+              - vip_requested
+              - get_attr: [port, fixed_ips, 0, ip_address]
+              - get_attr: [adopted-port, fixed_ips, 0, ip_address]
           description: IP address allocated to the port
         allocated_fip:
-          value: {if: [external_network_cond, { get_attr: [floating-ip, floating_ip_address] }, ""]}
+          value:
+            if:
+              - floating_ip_allocation_requested
+              - get_attr: [floating-ip, floating_ip_address]
+              - if:
+                - adopt_floating_ip
+                - get_attr: [adopted-floating-ip, floating_ip_address]
+                - ""
           description: Floating IP associated to the port
         control_plane_servergroup_id:
           value: { get_resource: srvgroup-ctrl-plane }
@@ -186,6 +235,8 @@ spec:
     environment:
       parameters:
         network: "${CAPO_NETWORK_ID}"
+        cluster_floating_ip_uuid: "${CLUSTER_FLOATING_IP_UUID}"
+        cluster_virtual_ip_port_uuid: "${CLUSTER_VIRTUAL_IP_PORT_UUID}"
         external_network: "${CAPO_EXTERNAL_NETWORK_ID}"
         control_plane_affinity_policy: "${CONTROL_PLANE_AFFINITY_POLICY}"
         worker_affinity_policy: "${WORKER_AFFINITY_POLICY}"
