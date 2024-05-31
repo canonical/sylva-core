@@ -23,19 +23,34 @@ spec:
 
             NS="{{ .Release.Namespace }}"
             NAME="{{ .Release.Name }}"
+            WORKLOAD_CLUSTER_KUBECONFIG_SECRET_NAME="{{ .Values.cluster.name }}-kubeconfig"
 
             function _kubectl {
                 kubectl -n $NS $@
             }
 
             echo "=== Disabling the pruning of kustomizations installed on workload cluster ==="
-            for KUST in $(_kubectl get kustomization -l app.kubernetes.io/instance=$NAME -o json | jq -r '.items[] | select(.spec.kubeConfig.secretRef.name == "{{ .Values.cluster.name }}-kubeconfig") | .metadata.name'); do
+            for KUST in $(
+                  _kubectl get kustomization -l app.kubernetes.io/instance=$NAME -o json |
+                  jq --arg kubeconfig_secret $WORKLOAD_CLUSTER_KUBECONFIG_SECRET_NAME -r '
+                      .items[] | 
+                      select(.spec.kubeConfig.secretRef.name == $kubeconfig_secret) |
+                      .metadata.name
+                    '
+                ); do
                 echo "Disable pruning in kustomization $KUST"
                 _kubectl patch kustomization $KUST --type=merge --patch='{"spec":{"prune":false}}' >/dev/null
             done
 
             echo "=== Disabling the pruning of helmreleases installed on workload cluster ==="
-            for RELEASE in $(_kubectl get  helmreleases -l app.kubernetes.io/instance=$NAME -o json | jq -r '.items[] | select(.spec.kubeConfig.secretRef.name == "{{ .Values.cluster.name }}-kubeconfig") | .metadata.name'); do
+            for RELEASE in $(
+                  _kubectl get  helmreleases -l app.kubernetes.io/instance=$NAME -o json |
+                  jq --arg kubeconfig_secret $WORKLOAD_CLUSTER_KUBECONFIG_SECRET_NAME -r '
+                    .items[] |
+                    select(.spec.kubeConfig.secretRef.name == $kubeconfig_secret) |
+                    .metadata.name
+                    '
+                ); do
                 echo "Suspending helmreleases $RELEASE"
                 _kubectl patch helmreleases $RELEASE --type=merge --patch='{"spec":{"suspend":true}}' >/dev/null
             done
@@ -72,10 +87,13 @@ spec:
                     #  * the Kustomization was suspended (in that case Flux controller will not delete anything)
                     #  * the Kustomization had "prune: false" (in that case Flux controller will not delete anything)
                     if ! _kubectl get kustomization $KUST 2>/dev/null &&
-                       jq -e <<< $KUST_JSON '(.spec.kubeConfig != null) or
-                                             (.status.inventory.entries // [] | length == 0) or
-                                             (.spec.prune == false) or
-                                             (.spec.suspend // false)' >/dev/null; then
+                       jq --arg kubeconfig_secret $WORKLOAD_CLUSTER_KUBECONFIG_SECRET_NAME -e <<< $KUST_JSON '
+                          (.spec.kubeConfig.secretRef.name == $kubeconfig_secret) or
+                          (.status.inventory.entries // [] | length == 0) or
+                          (.spec.prune == false) or
+                          (.spec.suspend // false)
+                        ' >/dev/null; then
+                        
                         CLEANED_KS=$(jq --arg kust $KUST <<< $CLEANED_KS '. + [$kust]')
 
                     # Wait for kustomization's resources to be pruned from API, as kustomize controller is not (yet?) doing it
