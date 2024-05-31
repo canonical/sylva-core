@@ -7514,6 +7514,11 @@
     "vsphere": {
       "type": "object"
     },
+    "machine_pools": {
+      "replicas": {
+        "type": "integer"
+      }
+    },
     "capd_docker_host": {
       "type": "string",
       "format": "uri",

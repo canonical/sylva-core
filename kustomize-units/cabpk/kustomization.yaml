@@ -11,6 +11,33 @@ patches:
     patch: |-
       - op: remove
         path: /spec/conversion/webhook/clientConfig/caBundle
+  - target:
+      kind: Deployment
+      name: capi-kubeadm-bootstrap-controller-manager
+    patch: |-
+      - op: add
+        path: /spec/template/spec/containers/0/env
+        value:
+        - name: http_proxy
+          value: "http://172.20.129.49:3128"
+        - name: https_proxy
+          value: "http://172.20.129.49:3128"
+        - name: no_proxy
+          value: "localhost,127.0.0.1,192.168.0.0/16,172.16.0.0/12,10.0.0.0/8,172.20.18.0/24,0.0.0.0,100.73.0.0/16,100.96.0.1"
+  - target:
+      kind: Deployment
+      name: capi-kubeadm-control-plane-controller-manager
+    patch: |-
+      - op: add
+        path: /spec/template/spec/containers/0/env
+        value:
+        - name: http_proxy
+          value: "http://172.20.129.49:3128"
+        - name: https_proxy
+          value: "http://172.20.129.49:3128"
+        - name: no_proxy
+          value: "localhost,127.0.0.1,192.168.0.0/16,172.16.0.0/12,10.0.0.0/8,172.20.18.0/24,0.0.0.0,100.73.0.0/16,100.96.0.1"
+      
 # Add labels to enable clusterctl move to retrieve resources correponding to capbk CRDs
 labels:
   - pairs:

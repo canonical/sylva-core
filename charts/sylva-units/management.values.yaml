@@ -22,6 +22,9 @@ units:
 
   capo:
     enabled: '{{ .Values.cluster.capi_providers.infra_provider | eq "capo" }}'
+  
+  capa:
+    enabled: false
 
   capm3:
     enabled: '{{ .Values.cluster.capi_providers.infra_provider | eq "capm3" }}'
@@ -37,6 +40,9 @@ units:
 
   cabpr:  # RKE2
     enabled: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" }}'
+
+  cabpe:  # EKS
+    enabled: false
 
   get-openstack-images:
     depends_on:

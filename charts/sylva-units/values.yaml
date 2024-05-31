@@ -62,7 +62,8 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
     spec:
       url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-capi-cluster.git
       ref:
-        tag: 0.2.19
+        #tag: 0.2.19
+        branch: jagrati/machine-pool-test
 
   local-path-provisioner:
     kind: GitRepository
@@ -1699,9 +1700,28 @@ units:
       postBuild:
         substitute:
           force_var_substitution_enabled: "true"  # dummy value to ensure substitution of defaults
+          EXP_MACHINE_POOL: "true"
+          EXP_CLUSTER_RESOURCE_SET: "true"
       wait: true
       _components:
         - '{{ tuple "components/ha" (.Values._internal.ha_cluster.is_ha) | include "set-only-if" }}'
+
+  capa:
+    info:
+      description: installs capa CAPI infra provider, for aws
+      maturity: core-component
+    unit_templates:
+    - base-deps
+    repo: sylva-core
+    #depends_on:
+    #  cert-manager: true
+    kustomization_spec:
+      path: ./kustomize-units/capa
+      wait: true
+    kustomization_substitute_secrets: 
+      CREDENTIALS: '{{ printf "%s" (trimPrefix "map[credentials:" (trimSuffix "]" (toString .Values.cluster.capa))) | b64enc }}'
+  #CREDENTIALS: '{{ printf "%s" (trimPrefix "map[credentials:" (toString .Values.cluster.capa)) | b64enc }}'
+  # CREDENTIALS:  '{{ join "\n" (dropLast 1 (split "\n" (printf "%s" (trimPrefix "map[credentials:" (toString .Values.cluster.capa)) | b64enc))) }}'
 
   capd:
     info:
@@ -2000,9 +2020,22 @@ units:
       postBuild:
         substitute:
           force_var_substitution_enabled: "true"  # dummy value to ensure substitution of defaults
+          EXP_MACHINE_POOL: "true"
       wait: true
       _components:
         - '{{ tuple "components/ha" (.Values._internal.ha_cluster.is_ha) | include "set-only-if" }}'
+
+  cabpe:
+    enabled: false
+    info:
+      description: installs eks CAPI bootstrap provider
+      maturity: core-component
+    unit_templates:
+    - base-deps
+    repo: sylva-core
+    kustomization_spec:
+      path: ./kustomize-units/cabpe
+      wait: true
 
   cabpr:
     info:
