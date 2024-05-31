@@ -348,21 +348,24 @@ capo-rke2-oci-suse:
 capm3-ha-rke2-virt-ubuntu:
   extends: .capm3-virt-equinix
   variables:
-    MGMT_ADDITIONAL_VALUES: environment-values/rke2-capm3-virt/ha.yaml
-    WC_ADDITIONAL_VALUES: environment-values/workload-clusters/rke2-capm3-virt/ha.yaml
+    MGMT_ADDITIONAL_VALUES: environment-values/rke2-capm3-virt/ha.yaml environment-values/ci/enable-kubevirt.yml
+    WC_ADDITIONAL_VALUES: environment-values/workload-clusters/rke2-capm3-virt/ha.yaml environment-values/ci/enable-kubevirt.yml
     RUNNER_PLAN: m3.large.x86
 
 capm3-rke2-virt-ubuntu:
   extends: .capm3-virt-equinix
+  variables:
+    MGMT_ADDITIONAL_VALUES: environment-values/ci/enable-kubevirt.yml
+    WC_ADDITIONAL_VALUES: environment-values/ci/enable-kubevirt.yml
 
 capm3-rke2-virt-suse:
   extends: .capm3-virt-equinix
   variables:
-    MGMT_ADDITIONAL_VALUES: environment-values/ci/suse-os-rke2.yml
-    WC_ADDITIONAL_VALUES: environment-values/ci/suse-os-rke2.yml
+    MGMT_ADDITIONAL_VALUES: environment-values/ci/suse-os-rke2.yml environment-values/ci/enable-kubevirt.yml
+    WC_ADDITIONAL_VALUES: environment-values/ci/suse-os-rke2.yml environment-values/ci/enable-kubevirt.yml
 
 capm3-kubeadm-virt-ubuntu:
   extends: .capm3-virt-equinix
   variables:
-    MGMT_ADDITIONAL_VALUES: environment-values/ci/ubuntu-os-kubeadm-capm3-virt.yml
-    WC_ADDITIONAL_VALUES: environment-values/ci/ubuntu-os-kubeadm-capm3-virt.yml
+    MGMT_ADDITIONAL_VALUES: environment-values/ci/ubuntu-os-kubeadm-capm3-virt.yml environment-values/ci/enable-kubevirt.yml
+    WC_ADDITIONAL_VALUES: environment-values/ci/ubuntu-os-kubeadm-capm3-virt.yml environment-values/ci/enable-kubevirt.yml
