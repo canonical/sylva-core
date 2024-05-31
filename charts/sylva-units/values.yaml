@@ -4912,7 +4912,7 @@ units:
       chart:
         spec:
           chart: thanos
-          version: 12.23.2
+          version: 15.5.0
       values:
         fullnameOverride: "thanos"
         metrics:
@@ -5037,12 +5037,26 @@ units:
         compactor:
           enabled: true
           logLevel: debug
+          resources:
+            requests:
+              cpu: 0.5
+              memory: 512Mi
+            limits:
+              cpu: 1
+              memory: 1024Mi
           retentionResolutionRaw: 2d
           retentionResolution5m: 30d
           retentionResolution1h: 1y
         receive:
           enabled: true
           logLevel: debug
+          resources:
+            requests:
+              cpu: 0.5
+              memory: 2048Mi
+            limits:
+              cpu: 1
+              memory: 3072Mi
           persistence:
             enabled: false
           ingress:
