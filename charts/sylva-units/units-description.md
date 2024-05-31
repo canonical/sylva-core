@@ -56,6 +56,7 @@
 | **rancher-init** | initializes and configures Rancher | beta | True | Kustomize | N/A |
 | **snmp-exporter** | installs SNMP exporter | beta |  | [Helm](https://prometheus-community.github.io/helm-charts) | 5.4.0 |
 | **sylva-prometheus-rules** | installs prometheus rules using external helm chart & rules git repo | beta |  | [Helm](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-prometheus-rules.git) | 0.0.10 |
+| **sylva-thanos-rules** | installs Thanos rules using external helm chart & rules git repo | beta |  | [Helm](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-thanos-rules.git) | 0.0.1 |
 | **sylva-units-operator** | installs sylva-units operator | experimental |  | [Kustomize](https://gitlab.com/sylva-projects/sylva-elements/sylva-units-operator.git/config/default?ref=0.1.1) | 0.1.1 |
 | **sylva-units-release-template** | create the default sylva-units-release-template used by workload-cluster CR | experimental | True | Kustomize | N/A |
 | **thanos** | installs Thanos | beta |  | [Helm](https://charts.bitnami.com/bitnami) | 12.23.2 |

@@ -148,6 +148,13 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
       ref:
         tag: 0.0.10
 
+  sylva-thanos-rules:
+    kind: GitRepository
+    spec:
+      url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-thanos-rules.git
+      ref:
+        tag: 0.0.1
+
   sylva-alertmanager-resources:
     kind: GitRepository
     spec:
@@ -4920,6 +4927,68 @@ units:
                 username:
                   name: thanos-basic-auth
                   key: username
+        ruler:
+          enabled: true
+          resources:
+            requests:
+              cpu: 0.1
+              memory: 128Mi
+            limits:
+              cpu: 0.5
+              memory: 512Mi
+          dnsDiscovery:
+            enabled: false
+          extraFlags:
+          - --query.config-file=/etc/thanos/ruler-queries.yaml
+          extraVolumes:
+          - name: thanos-ruler-queries-config
+            secret:
+              secretName: thanos-ruler-queries
+          extraVolumeMounts:
+          - name: thanos-ruler-queries-config
+            mountPath: /etc/thanos/ruler-queries.yaml
+            subPath: ruler-queries.yaml
+          alertmanagers:
+          - http://rancher-monitoring-alertmanager.cattle-monitoring-system:9093
+          existingConfigmap: "sylva-thanos-rules-configmap"  # this ConfigMap is a byproduct of the sylva-thanos-rules unit
+          sidecars:
+          # reload thanos-ruler when changes to rule files are detected
+          - name: configmap-reload
+            image: bitnami/configmap-reload:0.13.0
+            args:
+            - --volume-dir=/conf/rules/
+            - --webhook-url=http://thanos-user:{{ .Values._internal.thanos_password }}@localhost:10902/-/reload
+            volumeMounts:
+            - name: ruler-config
+              mountPath: /conf/rules
+            securityContext:
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop:
+                - ALL
+              privileged: false
+              runAsNonRoot: true
+              seccompProfile:
+                type: RuntimeDefault
+            resources:
+              requests:
+                memory: "64Mi"
+                cpu: "100m"
+              limits:
+                memory: "128Mi"
+                cpu: "250m"
+          persistence:
+            enabled: true
+            storageClass: '{{ tuple . (tuple . "single-replica-storageclass" | include "unit-enabled") "single-replica-storageclass" .Values._internal.default_storage_class | include "interpret-ternary" }}'
+            accessModes: ["ReadWriteOnce"]
+            size: '{{  has .Values.env_type (list "dev" "ci") | ternary "2Gi" "4Gi" }}'
+          evalInterval: 1m
+          replicaCount: '{{ .Values._internal.ha_cluster.is_ha | ternary 2 1 | include "preserve-type" }}'
+          pdb:
+            create: true
+            minAvailable: '{{ .Values._internal.ha_cluster.is_ha | ternary 1 0 | include "preserve-type" }}'
+          service:
+            clusterIP: None
         query:
           logLevel: debug
           extraFlags:
@@ -5007,6 +5076,22 @@ units:
         data:
           username: '{{ "thanos-user" | b64enc }}'
           password: '{{ .Values._internal.thanos_password | b64enc }}'
+      - apiVersion: v1
+        kind: Secret
+        metadata:
+          name: thanos-ruler-queries
+          namespace: thanos
+        type: Opaque
+        stringData:
+          ruler-queries.yaml: |
+            - http_config:
+                basic_auth:
+                  username: "thanos-user"
+                  password: "{{ .Values._internal.thanos_password }}"
+                tls_config:
+                  insecure_skip_verify: true
+              static_configs: ["thanos-query-frontend:9090"]
+              scheme: http
       auth:
         basicAuthUsers:
           thanos-user: '{{ .Values._internal.thanos_password }}'
@@ -5351,6 +5436,26 @@ units:
         createRules:
           allclusters: true
           '{{ .Values.cluster.name }}': true
+
+  sylva-thanos-rules:
+    info:
+      description: installs Thanos rules using external helm chart & rules git repo
+      maturity: beta
+    unit_templates:
+    - base-deps
+    depends_on:
+      thanos-init: true
+    enabled_conditions:
+      - '{{ tuple . "thanos" | include "unit-enabled" }}'
+      - '{{ .Values.units.thanos.helmrelease_spec.values.ruler.enabled }}'
+    repo: sylva-thanos-rules
+    helm_chart_artifact_name: sylva-thanos-rules
+    helmrelease_spec:
+      releaseName: sylva-thanos-rules
+      targetNamespace: thanos
+      chart:
+        spec:
+          chart: .
 
   get-openstack-images:
     info:
