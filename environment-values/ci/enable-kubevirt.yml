@@ -1,9 +1,0 @@
-units:
-  multus:
-    enabled: true
-  multus-ready:
-    enabled: true
-  kubevirt:
-    enabled: true
-  kubevirt-test-vms:
-    enabled: true
