@@ -885,7 +885,7 @@ units:
         serviceMonitor:
           enabled: false
           labels:
-            release: '{{ .Values.source_templates.monitoring.helmrelease_spec.releaseName}}'
+            release: '{{ .Values.units.monitoring.helmrelease_spec.releaseName}}'
         service:
           type: NodePort
 
