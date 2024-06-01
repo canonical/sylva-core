@@ -885,7 +885,7 @@ units:
         serviceMonitor:
           enabled: false
           labels:
-            release: rancher-monitoring
+            release: '{{ .Values.source_templates.monitoring.helmrelease_spec.releaseName}}'
         service:
           type: NodePort
 
