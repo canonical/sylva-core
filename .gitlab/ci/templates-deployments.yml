@@ -55,14 +55,28 @@ include:
   # Common function to update the deployment values file with the content of multiple yaml files
   - |
     function update_values_file() {
-    echo -e "Applying values from \\e[1;94m$@\\e[0m to \\e[1;92m$values_file\\e[0m"
-    yq -i eval-all '. as $item ireduce ({}; . * $item )' $values_file $@
+
+    # Checking if the files exist before using them
+    existing_values_files=()
+    for file in $@; do
+        if [ -f "$file" ]; then
+          existing_values_files+=( $file )
+          echo ${existing_values_files[@]}
+        else
+          echo "$file doesn't exist, it was not applied"
+        fi
+    done
+
+    echo -e "Applying values from \\e[1;94m${existing_values_files[@]}\\e[0m to \\e[1;92m$values_file\\e[0m"
+    yq -i eval-all '. as $item ireduce ({}; . * $item )' $values_file ${existing_values_files[@]}
 
     if [[ ${DISPLAY:-true} == "true" ]]; then
       echo "Content of $values_file:"
       cat $values_file
     fi
+
     }
+
 
 .function_download_artifact:
   - |
