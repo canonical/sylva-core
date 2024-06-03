@@ -352,6 +352,13 @@ capm3-ha-rke2-virt-ubuntu:
     WC_ADDITIONAL_VALUES: environment-values/workload-clusters/rke2-capm3-virt/ha.yaml
     RUNNER_PLAN: m3.large.x86
 
+capm3-ha-kubeadm-virt-ubuntu:
+  extends: .capm3-virt-equinix
+  variables:
+    MGMT_ADDITIONAL_VALUES: environment-values/rke2-capm3-virt/ha-kubeadm.yaml
+    WC_ADDITIONAL_VALUES: environment-values/workload-clusters/rke2-capm3-virt/ha-kubeadm.yaml
+    RUNNER_PLAN: m3.large.x86
+
 capm3-rke2-virt-ubuntu:
   extends: .capm3-virt-equinix
 
