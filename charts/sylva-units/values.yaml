@@ -2287,6 +2287,7 @@ units:
   cluster-ready:
     info:
       description: unit to check readiness of cluster CAPI objects
+      details: the healthChecks on this unit complements the one done in the 'cluster' unit, which in some cases can't cover all CAPI resources
       internal: true
     unit_templates:
     - dummy
@@ -2297,16 +2298,9 @@ units:
     kustomization_spec:
       healthChecks: >-
         {{
-        (include "cluster-healthchecks" (dict "ns" .Release.Namespace "cluster" .Values.cluster "sleep_job" true) | fromYaml).result
+        (include "cluster-healthchecks" (dict "ns" .Release.Namespace "cluster" .Values.cluster) | fromYaml).result
         | include "preserve-type"
         }}
-      # we add a sleep to overcome a race condition happening when
-      # from bootstrap cluster, after pivot, the cluster unit is enabled
-      _components:
-        - ../components/sleep-job
-      postBuild:
-        substitute:
-          SLEEP_TIME: 60s
 
   cluster-reachable:
     info:
