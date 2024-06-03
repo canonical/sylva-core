@@ -89,13 +89,13 @@ roleRef:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: ${JOB_NAME}
+  name: ${JOB_NAME}-${JOB_TARGET_NAMESPACE:-sylva-system}
 rules: []
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: ${JOB_NAME}
+  name: ${JOB_NAME}-${JOB_TARGET_NAMESPACE:-sylva-system}
 subjects:
 - kind: ServiceAccount
   name: ${JOB_NAME}-${JOB_TARGET_NAMESPACE:-sylva-system}-sa${DISCRIMINATOR:-}
