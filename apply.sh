@@ -30,11 +30,6 @@ check_management_kubeconfig
 
 ensure_flux
 
-echo_b "\U0001F50E Validate sylva-units values for management cluster"
-validate_sylva_units
-
-echo_b "\U0001F5D1 Delete preview chart and namespace"
-cleanup_preview
 
 echo_b "\U0001F4DC Update sylva-units Helm release and associated resources"
 _kustomize ${ENV_PATH} | define_source | kubectl apply -f -
@@ -42,7 +37,7 @@ _kustomize ${ENV_PATH} | define_source | kubectl apply -f -
 echo_b "\U0001F3AF Trigger reconciliation of units"
 
 # this is just to force-refresh on refreshed parameters
-force_reconcile helmrelease sylva-units
+reconcile_sylva_units
 
 echo_b "\U000023F3 Wait for units to be ready"
 
