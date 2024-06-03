@@ -24,11 +24,6 @@ validate_sylva_units force-management
 echo_b "\U0001F5D1 Delete preview chart and namespace for management cluster"
 cleanup_preview
 
-echo_b "\U0001F50E Validate sylva-units values for bootstrap cluster"
-validate_sylva_units
-
-echo_b "\U0001F5D1 Delete preview chart and namespace"
-cleanup_preview
 
 set_current_namespace sylva-system
 
@@ -40,7 +35,7 @@ _kustomize ${ENV_PATH} | \
 
 echo_b "\U0001F3AF Trigger reconciliation of units"
 # this is just to force-refresh on refreshed parameters
-force_reconcile helmrelease sylva-units
+reconcile_sylva_units
 
 # Attempt to retrieve management-cluster-kubeconfig in background
 retrieve_kubeconfig &

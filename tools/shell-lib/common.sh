@@ -6,7 +6,7 @@ export PATH=${BASE_DIR}/bin:${PATH}
 export KIND_CLUSTER_NAME=${KIND_CLUSTER_NAME:-sylva}
 
 SYLVA_BASE_OCI_REGISTRY=${SYLVA_BASE_OCI_REGISTRY:-registry.gitlab.com/sylva-projects}
-SYLVA_TOOLBOX_VERSION=${SYLVA_TOOLBOX_VERSION:-"v0.3.15"}
+SYLVA_TOOLBOX_VERSION=${SYLVA_TOOLBOX_VERSION:-"v0.4.0"}
 SYLVA_TOOLBOX_IMAGE=${SYLVA_TOOLBOX_IMAGE:-container-images/sylva-toolbox}
 SYLVA_TOOLBOX_REGISTRY=${SYLVA_TOOLBOX_REGISTRY:-${SYLVA_BASE_OCI_REGISTRY}/sylva-elements}
 export KIND_POD_SUBNET=${KIND_POD_SUBNET:-100.100.0.0/16}
@@ -231,16 +231,28 @@ function exit_trap() {
 }
 trap exit_trap EXIT
 
-function force_reconcile() {
-  local kinds=$1
-  local name_or_selector=$2
-  local namespace=${3:-sylva-system}
-  echo "force reconciliation of $1 $2"
-  RECONCILE_REQUEST_DATE=$(date -uIs)
-  kubectl annotate -n $namespace --overwrite $kinds $name_or_selector reconcile.fluxcd.io/requestedAt=$RECONCILE_REQUEST_DATE | sed -e 's/^/  /'
-  if ! kubectl -n $namespace wait --for=jsonpath='{.status.lastHandledReconcileAt}'="$RECONCILE_REQUEST_DATE" $kinds $name_or_selector; then
-          echo "Timed out while waiting for sylva-units HelmRelease to report lastHandledReconcileAt"
+function reconcile_sylva_units() {
+  local namespace=${1:-sylva-system}
+  echo "trigger reconciliation of sylva-units HelmRelease..."
+  RECONCILE_REQUEST_DATE=$(date -uIs | sed -e 's/+00:00//')
+
+  # we need to ensure that:
+  # - we force an update of sylva-units HelmRelease **if it was in error state**
+  # - we don't return until the HelmRelease has reconciled (and that the last revision of the source was reconciled first)
+  #   (this last point is important in particular because we most often follow with a "sylvactl watch"
+  #    which can't give a relevant result if it starts before all Kustomizations are the new ones)
+  #
+  FORCE_RECONCILE_ANNOTATION=""
+  if (kubectl get -n $namespace HelmRelease sylva-units -o yaml | yq -e '.status.conditions[] | select(.type=="Ready") | (.reason == "InstallFailed" or .reason == "UpgradeFailed")' >& /dev/null); then
+    echo "  using forced reconciliation"
+    FORCE_RECONCILE_ANNOTATION="reconcile.fluxcd.io/forceAt=$RECONCILE_REQUEST_DATE"
   fi
+  kubectl annotate -n $namespace --overwrite HelmRelease sylva-units \
+      reconcile.fluxcd.io/requestedAt=$RECONCILE_REQUEST_DATE \
+      $FORCE_RECONCILE_ANNOTATION \
+    | sed -e 's/^/  /'
+
+  sylvactl watch -n $namespace HelmRelease/$namespace/sylva-units --timeout 60s --skip-inventory
 }
 
 function define_source() {
@@ -315,14 +327,8 @@ EOF
   rm -Rf ${PREVIEW_DIR}
 
   # this is just to force-refresh in a dev environment with  refreshed parameters
-  force_reconcile helmrelease sylva-units sylva-units-preview
+  reconcile_sylva_units sylva-units-preview
 
-  echo "Wait for Helm release to be ready"
-  if ! sylvactl watch --reconcile --timeout 120s --ignore-suspended -n sylva-units-preview HelmRelease/sylva-units-preview/sylva-units; then
-    echo "the preview Helm release of sylva-units used for validation did not become ready in time"
-    kubectl -n sylva-units-preview get hr sylva-units -o yaml | yq '.status.conditions[] | select(.type=="Ready" or .type == "Released") | .message'
-    exit 1
-  fi
 }
 
 function cleanup_preview() {

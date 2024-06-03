@@ -35,11 +35,6 @@ if ! (kubectl -n sylva-system get cm sylva-units-status > /dev/null); then
    exit -1
 fi
 
-echo_b "\U0001F50E Validate sylva-units values for workload cluster"
-validate_sylva_units
-
-echo_b "\U0001F5D1 Delete preview chart and namespace"
-cleanup_preview
 
 echo_b "\U0001F4DC Install a sylva-units Helm release for workload cluster $wc_namespace"
 _kustomize ${ENV_PATH} | define_source | set_wc_namespace | kubectl apply -f -
@@ -47,7 +42,7 @@ _kustomize ${ENV_PATH} | define_source | set_wc_namespace | kubectl apply -f -
 echo_b "\U0001F3AF Trigger reconciliation of units"
 
 # this is just to force-refresh on refreshed parameters
-force_reconcile helmrelease sylva-units $wc_namespace
+reconcile_sylva_units $wc_namespace
 
 echo_b "\U000023F3 Wait for units to be ready"
 sylvactl watch \
