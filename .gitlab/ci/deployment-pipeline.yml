@@ -27,52 +27,14 @@ default:
     - gitlab-org-docker
   image: $CI_IMAGE
   before_script:
-    - !reference [.deployment-information]
+    - !reference [.display-deployment-configuration]
   cache:
     - key: toolbox  # cache shared by all jobs
       paths:
         - ./bin/
 
-.deployment-information:
-  - |
-      echo -e "[\\e[1;94mEnvironment INFO\\e[0m]"
-      if [[ -n ${EXTRA_DESCRIPTION} ]]; then
-        echo -e "  ${EXTRA_DESCRIPTION}"
-      fi
-      echo "  Fetch CI values from ${SYLVA_CI_VALUES_REPO} using ${SYLVA_CI_VALUES_REVISION} revision"
-      echo "  CAPO_TAG = $CAPO_TAG"
-      echo "  OCI_TAG = ${OCI_TAG:-'N/A'}"
-      echo "  ENV_NAME = $ENV_NAME"
-      echo "  KIND_CLUSTER_NAME = $KIND_CLUSTER_NAME"
-      echo "  BOOTSTRAP_WATCH_TIMEOUT_MIN = $BOOTSTRAP_WATCH_TIMEOUT_MIN"
-      echo -e "[\\e[1;94mCommon cluster INFO\\e[0m]"
-      echo "  REMOTE_VALUES = ${REMOTE_VALUES:-'N/A'}"
-      echo -e "[\\e[1;94mManagement cluster INFO\\e[0m]"
-      echo "  MANAGEMENT_CLUSTER_NAME = $MANAGEMENT_CLUSTER_NAME"
-      echo "  MGMT_ADDITIONAL_VALUES = ${MGMT_ADDITIONAL_VALUES:-'N/A'}"
-      echo "  MGMT_INITIAL_ADDITIONAL_VALUES = ${MGMT_INITIAL_ADDITIONAL_VALUES:-'N/A'}"
-      echo "  MGMT_UPDATE_ADDITIONAL_VALUES = ${MGMT_UPDATE_ADDITIONAL_VALUES:-'N/A'}"
-      echo "  MGMT_INITIAL_REVISION = ${MGMT_INITIAL_REVISION:-'N/A'}"
-      echo "  MGMT_UPDATE_REVISION = ${MGMT_UPDATE_REVISION:-'N/A'}"
-      echo "  MGMT_WATCH_TIMEOUT_MIN = ${MGMT_WATCH_TIMEOUT_MIN}"
-      echo "  MGMT_INITIAL_CI_VALUES_REVISION = ${MGMT_INITIAL_CI_VALUES_REVISION}"
-      echo "  MGMT_UPDATE_CI_VALUES_REVISION = ${MGMT_UPDATE_CI_VALUES_REVISION}"
-      echo "  APPLY_WATCH_TIMEOUT_MIN = ${APPLY_WATCH_TIMEOUT_MIN}"
-      echo -e "[\\e[1;94mWorkload cluster INFO\\e[0m]"
-      echo "  WORKLOAD_CLUSTER_NAME = $WORKLOAD_CLUSTER_NAME"
-      echo "  WC_ADDITIONAL_VALUES = ${WC_ADDITIONAL_VALUES:-'N/A'}"
-      echo "  WC_INITIAL_ADDITIONAL_VALUES = ${WC_INITIAL_ADDITIONAL_VALUES:-'N/A'}"
-      echo "  WC_UPDATE_ADDITIONAL_VALUES = ${WC_UPDATE_ADDITIONAL_VALUES:-'N/A'}"
-      echo "  WC_INITIAL_REVISION = ${WC_INITIAL_REVISION:-'N/A'}"
-      echo "  WC_UPDATE_REVISION = ${WC_UPDATE_REVISION:-'N/A'}"
-      echo "  WC_INITIAL_CI_VALUES_REVISION = ${WC_INITIAL_CI_VALUES_REVISION}"
-      echo "  WC_UPDATE_CI_VALUES_REVISION = ${WC_UPDATE_CI_VALUES_REVISION}"
-      echo "  APPLY_WC_WATCH_TIMEOUT_MIN = ${APPLY_WC_WATCH_TIMEOUT_MIN}"
-
 # ----------------------------------------------------------
 .test-tags:
-  tags:
-    - gitlab-org-docker
   dependencies: []
 
 # ----------------------------------------------------------
@@ -134,6 +96,7 @@ update-workload-cluster:
   needs:
     - job: deploy-workload-cluster
       artifacts: false
+      optional: true
     - job: update-management-cluster
       artifacts: false
       optional: true

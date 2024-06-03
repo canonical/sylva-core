@@ -101,19 +101,73 @@ include:
       ip route add $KIND_PREFIX via $DOCKER_IP
     fi
 
-.setup_ci_context_and_values:
+.display-deployment-configuration:
+  - |
+    # Extract deployment parameters from WORKFLOW_NAME
+    DEPLOYMENT_INFRA_PROV=${DEPLOYMENT_INFRA_PROV:-$(echo $WORKFLOW_NAME | sed -n -e 's/.*☁\([[:alnum:]\,\-]\+\).*/\1/p')}
+    DEPLOYMENT_BOOTSTRAP_PROV=${DEPLOYMENT_BOOTSTRAP_PROV:-$(echo $WORKFLOW_NAME | sed -n -e 's/.*🚀\([[:alnum:]\,\-]\+\).*/\1/p')}
+    DEPLOYMENT_OS=${DEPLOYMENT_OS:-$(echo $WORKFLOW_NAME | sed -n -e 's/.*🎸\([[:alnum:]\,\-]\+\).*/\1/p')}
+    DEPLOYMENT_OPTIONS=${DEPLOYMENT_OPTIONS:-$(echo $WORKFLOW_NAME | sed -n -e 's/.*🛠\([[:alnum:]\,\-]\+\).*/\1/p')}
+
+    export ENV_NAME="${DEPLOYMENT_BOOTSTRAP_PROV}-${DEPLOYMENT_INFRA_PROV}"
+    export ENV_TAG="${CI_PIPELINE_ID}-${ENV_NAME}"
+    export CAPO_TAG=$ENV_TAG
+    export KIND_CLUSTER_NAME="bootstrap-${ENV_TAG}"
+    export MANAGEMENT_CLUSTER_NAME="mgmt-${ENV_TAG}"
+    export WORKLOAD_CLUSTER_NAME="wc-${ENV_TAG}"
+
+    if [[ ${DEPLOYMENT_OPTIONS} == *"oci"* ]] && [[ ${DEPLOYMENT_OPTIONS} != *"no-oci"* ]]; then
+      export OCI_TAG="$OCI_TAG_FORMAT"
+    fi
+  - |
+      echo -e "[\\e[1;94mEnvironment INFO\\e[0m]"
+      echo "  Fetch CI values from ${SYLVA_CI_VALUES_REPO} using ${SYLVA_CI_VALUES_REVISION} revision"
+      echo "  WORKFLOW_NAME = $WORKFLOW_NAME"
+      echo "  CAPO_TAG = $CAPO_TAG"
+      echo "  OCI_TAG = ${OCI_TAG:-'N/A'}"
+      echo "  ENV_NAME = $ENV_NAME"
+      echo "  DEPLOYMENT_OS = $DEPLOYMENT_OS"
+      echo "  KIND_CLUSTER_NAME = $KIND_CLUSTER_NAME"
+      echo "  BOOTSTRAP_WATCH_TIMEOUT_MIN = $BOOTSTRAP_WATCH_TIMEOUT_MIN"
+      echo -e "[\\e[1;94mCommon cluster INFO\\e[0m]"
+      echo "  REMOTE_VALUES = ${REMOTE_VALUES:-'N/A'}"
+      echo -e "[\\e[1;94mManagement cluster INFO\\e[0m]"
+      echo "  MANAGEMENT_CLUSTER_NAME = $MANAGEMENT_CLUSTER_NAME"
+      echo "  MGMT_ADDITIONAL_VALUES = ${MGMT_ADDITIONAL_VALUES:-'N/A'}"
+      echo "  MGMT_INITIAL_ADDITIONAL_VALUES = ${MGMT_INITIAL_ADDITIONAL_VALUES:-'N/A'}"
+      echo "  MGMT_UPDATE_ADDITIONAL_VALUES = ${MGMT_UPDATE_ADDITIONAL_VALUES:-'N/A'}"
+      echo "  MGMT_INITIAL_REVISION = ${MGMT_INITIAL_REVISION:-'N/A'}"
+      echo "  MGMT_UPDATE_REVISION = ${MGMT_UPDATE_REVISION:-'N/A'}"
+      echo "  MGMT_WATCH_TIMEOUT_MIN = ${MGMT_WATCH_TIMEOUT_MIN}"
+      echo "  MGMT_INITIAL_CI_VALUES_REVISION = ${MGMT_INITIAL_CI_VALUES_REVISION}"
+      echo "  MGMT_UPDATE_CI_VALUES_REVISION = ${MGMT_UPDATE_CI_VALUES_REVISION}"
+      echo "  APPLY_WATCH_TIMEOUT_MIN = ${APPLY_WATCH_TIMEOUT_MIN}"
+      echo -e "[\\e[1;94mWorkload cluster INFO\\e[0m]"
+      echo "  WORKLOAD_CLUSTER_NAME = $WORKLOAD_CLUSTER_NAME"
+      echo "  WC_ADDITIONAL_VALUES = ${WC_ADDITIONAL_VALUES:-'N/A'}"
+      echo "  WC_INITIAL_ADDITIONAL_VALUES = ${WC_INITIAL_ADDITIONAL_VALUES:-'N/A'}"
+      echo "  WC_UPDATE_ADDITIONAL_VALUES = ${WC_UPDATE_ADDITIONAL_VALUES:-'N/A'}"
+      echo "  WC_INITIAL_REVISION = ${WC_INITIAL_REVISION:-'N/A'}"
+      echo "  WC_UPDATE_REVISION = ${WC_UPDATE_REVISION:-'N/A'}"
+      echo "  WC_INITIAL_CI_VALUES_REVISION = ${WC_INITIAL_CI_VALUES_REVISION}"
+      echo "  WC_UPDATE_CI_VALUES_REVISION = ${WC_UPDATE_CI_VALUES_REVISION}"
+      echo "  APPLY_WC_WATCH_TIMEOUT_MIN = ${APPLY_WC_WATCH_TIMEOUT_MIN}"
+
+.configure-deployment:
   - echo -e "\e[1m\e[0Ksection_start:`date +%s`:gitlab_ci_common[collapsed=true]\r\e[0KRunning common deployment steps\e[0m"
   - !reference [.import_functions]
   - !reference [.setup_docker]
   - !reference [.clone_ci_values]
   - download_artifact deploy-management-cluster management-cluster-kubeconfig
   - |
+    # configure Git revision
     if [ -n "${GIT_REVISION}" ] ; then
       change_git_revision $GIT_REVISION
     else
       echo -e "Current revision: $(git rev-parse HEAD)"
     fi
   - |
+    # configure env type
     if [[ ${CLUSTER_TYPE} == 'workload' ]]; then
         ENV_SUB_PATH="environment-values/workload-clusters"
         export OCI_COMPONENT_PATH="../../components/workload-cluster-oci-artifacts"
@@ -123,16 +177,58 @@ include:
         export OCI_COMPONENT_PATH="../components/oci-artifacts"
         export CLUSTER_CI_NAME=${MANAGEMENT_CLUSTER_NAME}
     fi
-  - export ENV_PATH=${ENV_SUB_PATH}/${ENV_NAME}
+    export ENV_PATH=${ENV_SUB_PATH}/${ENV_NAME}
   - values_file=$ENV_PATH/values.yaml
   - |
-    # Force intialization of an http server for log collection in cluster on capm3/capo
-    if [ -f ${SYLVA_CI_VALUES_FOLDER}/run_http_server_for_log_collect.yaml ]; then
-      DISPLAY="false" update_values_file ${SYLVA_CI_VALUES_FOLDER}/run_http_server_for_log_collect.yaml
-    else
-      echo "File 'run_http_server_for_log_collect.yaml' not found, skipping"
+    # Apply values for requested options
+    yq -i '.cluster.name = strenv(CLUSTER_CI_NAME)' $values_file
+    DISPLAY="false" update_values_file ${SYLVA_CI_VALUES_FOLDER}/common.yml
+    if [[ $DEPLOYMENT_OS == "suse" ]]; then
+      DISPLAY="false" update_values_file ${SYLVA_CI_VALUES_FOLDER}/node-os-suse.yml
+    else  # ubuntu
+      DISPLAY="false" update_values_file ${SYLVA_CI_VALUES_FOLDER}/node-os-ubuntu.yml
+    fi
+    options=$(echo $DEPLOYMENT_OPTIONS | tr "," "\n")
+    for option in $options; do
+      if [ -f "${SYLVA_CI_VALUES_FOLDER}/${option}.yml" ]; then
+        DISPLAY="false" update_values_file ${SYLVA_CI_VALUES_FOLDER}/${option}.yml
+      elif [ -f "${SYLVA_CI_VALUES_FOLDER}/${option#mgmt-}.yml" ] && [[ ${CLUSTER_TYPE} == 'management' ]]; then
+        echo ">> applying ${option#mgmt-}.yml on management cluster"
+        DISPLAY="false" update_values_file ${SYLVA_CI_VALUES_FOLDER}/${option#mgmt-}.yml
+      elif [ -f "${SYLVA_CI_VALUES_FOLDER}/${option#wkld-}.yml" ] && [[ ${CLUSTER_TYPE} == 'workload' ]]; then
+        echo ">> applying ${option#wkld-}.yml on workload cluster"
+        DISPLAY="false" update_values_file ${SYLVA_CI_VALUES_FOLDER}/${option#wkld-}.yml
+      else
+        echo ">> [ERROR] ${option} option file not found"
+      fi
+    done
+    if [[ "$DEPLOYMENT_INFRA_PROV" == "capm3-virt" ]] && [[ "$DEPLOYMENT_OPTIONS" == *single-node* ]]; then
+      yq -i '.components = []' $ENV_PATH/kustomization.yaml  # remove ha component
     fi
   - |
+    # Apply management/workload cluster additionnal values
+    if [ -n "${MGMT_ADDITIONAL_VALUES}" ] && [ "${CLUSTER_TYPE}" = "management" ]; then
+      DISPLAY="false" update_values_file ${MGMT_ADDITIONAL_VALUES}
+    fi
+    if [ -n "${WC_ADDITIONAL_VALUES}" ] && [ "${CLUSTER_TYPE}" = "workload" ]; then
+      DISPLAY="false" update_values_file ${WC_ADDITIONAL_VALUES}
+    fi
+  - |
+    # Apply remote values in case of cross project pipeline
+    if [ -n "${REMOTE_VALUES}" ]; then
+      echo -e "This pipeline is a cross project pipeline."
+      echo "${REMOTE_VALUES}" > /tmp/remote_values.yaml
+      DISPLAY="false" update_values_file /tmp/remote_values.yaml
+    fi
+  - |
+    # Apply specific value file
+    if [ -n "${SPECIFIC_VALUES_FILE}" ]; then
+      DISPLAY="false" update_values_file $SPECIFIC_VALUES_FILE
+    else
+      echo -e "No specific values to apply"
+    fi
+  - |
+    # configure OCI artifacts if needed
     if [ ${OCI_TAG} ]; then
       echo -e "Applying OCI configuration for tag: ${OCI_TAG}"
       if [ $(yq '.components | length' $ENV_PATH/kustomization.yaml) -eq "0" ]; then
@@ -149,35 +245,13 @@ include:
           path: /spec/chart/spec/version
           value: ${OCI_TAG}
     EOF
-      cat $ENV_PATH/kustomization.yaml
-    fi
-  - yq -i '.cluster.name = strenv(CLUSTER_CI_NAME)' $values_file
-  - yq -i '.env_type = "ci"' $values_file
-  - update_values_file ${SYLVA_CI_VALUES_FOLDER}/image-key-common.yaml
-  - |
-    if [ -n "${MGMT_ADDITIONAL_VALUES}" ] && [ "${CLUSTER_TYPE}" = "management" ]; then
-      update_values_file ${MGMT_ADDITIONAL_VALUES}
-    fi
-  - |
-    if [ -n "${WC_ADDITIONAL_VALUES}" ] && [ "${CLUSTER_TYPE}" = "workload" ]; then
-      update_values_file ${WC_ADDITIONAL_VALUES}
-    fi
-  - |
-    if [ -n "${REMOTE_VALUES}" ]; then
-      echo -e "This pipeline is a cross project pipeline."
-      echo "${REMOTE_VALUES}" > /tmp/remote_values.yaml
-      update_values_file /tmp/remote_values.yaml
+      echo ">> \$ENV_PATH/kustomization.yaml:"
     fi
   - echo -e "\e[0Ksection_end:`date +%s`:gitlab_ci_common\r\e[0K"
-  - !reference [.flavored-pre-deployment-configuration]
-  - echo -e "\e[1m\e[0Ksection_start:`date +%s`:gitlab_ci_update_values[collapsed=true]\r\e[0KApply specific values\e[0m"
   - |
-    if [ -n "${SPECIFIC_VALUES_FILE}" ]; then
-      update_values_file $SPECIFIC_VALUES_FILE
-    else
-      echo -e "No specific values to apply"
-    fi
-  - echo -e "\e[0Ksection_end:`date +%s`:gitlab_ci_update_values\r\e[0K"
+    # Display kustomization.yaml
+    cat $ENV_PATH/kustomization.yaml
+  - !reference [.flavored-pre-deployment-configuration]
 
 # By default we don't have specific configuration to apply
 .flavored-pre-deployment-configuration:
@@ -230,7 +304,7 @@ include:
 .deploy-management:
   extends: .management-base
   script:
-    - !reference [.setup_ci_context_and_values]
+    - !reference [.configure-deployment]
     - ./bootstrap.sh environment-values/${ENV_NAME}
   variables:
     SPECIFIC_VALUES_FILE: $MGMT_INITIAL_ADDITIONAL_VALUES
@@ -240,7 +314,7 @@ include:
 .update-management:
   extends: .management-base
   script:
-    - !reference [.setup_ci_context_and_values]
+    - !reference [.configure-deployment]
     - ./apply.sh environment-values/${ENV_NAME}
   variables:
     SPECIFIC_VALUES_FILE: $MGMT_UPDATE_ADDITIONAL_VALUES
@@ -273,7 +347,7 @@ include:
 .deploy-workload:
   extends: .workload-base
   script:
-    - !reference [.setup_ci_context_and_values]
+    - !reference [.configure-deployment]
     - ./apply-workload-cluster.sh environment-values/workload-clusters/${ENV_NAME}
   variables:
     SPECIFIC_VALUES_FILE: $WC_INITIAL_ADDITIONAL_VALUES
@@ -283,7 +357,7 @@ include:
 .update-workload:
   extends: .workload-base
   script:
-    - !reference [.setup_ci_context_and_values]
+    - !reference [.configure-deployment]
     - ./apply-workload-cluster.sh environment-values/workload-clusters/${ENV_NAME}
   variables:
     SPECIFIC_VALUES_FILE: $WC_UPDATE_ADDITIONAL_VALUES

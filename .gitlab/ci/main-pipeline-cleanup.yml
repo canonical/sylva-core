@@ -6,6 +6,9 @@
 # CAPO_CLEANUP_GITLAB_AUTH_TOKEN variable can be used
 # to authenticate against gitlab pipeline API
 
+include:
+  - local: .gitlab/ci/templates-deployments.yml
+
 .scheduled-cleanup-capo:
   stage: cleanup
   image:
@@ -61,15 +64,17 @@
     - if: '$CI_PIPELINE_SOURCE == "schedule" && $CI_CAPO_CLEANUP'
       when: always
   tags:
-    - $CAPO_PLATFORM_TAG
+    - $CAPO_RUNNER_PLATFORM_TAG
 
 # Falcon platform is not used anymore
 # scheduled-cleanup-capo-falcon:
 #   extends: .scheduled-cleanup-capo
 #   variables:
-#     CAPO_PLATFORM_TAG: capo-ci
+#     CAPO_RUNNER_PLATFORM_TAG: capo-infra-rocket
+#     PRIVATE_RUNNER_CONTEXT: rocket
 
 scheduled-cleanup-capo-rocket:
   extends: .scheduled-cleanup-capo
   variables:
-    CAPO_PLATFORM_TAG: capo-infra-rocket
+    CAPO_RUNNER_PLATFORM_TAG: capo-infra-rocket
+    PRIVATE_RUNNER_CONTEXT: rocket

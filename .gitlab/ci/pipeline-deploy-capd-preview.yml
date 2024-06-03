@@ -6,6 +6,9 @@ default:
 include:
   - local: .gitlab/ci/deployment-pipeline.yml
 
+variables:
+  CAPD_RUNNER_TAG: saas-linux-medium-amd64
+
 # This configuration is specific to capd deployments
 .flavored-pre-deployment-configuration:
   - echo -e "\e[1m\e[0Ksection_start:`date +%s`:gitlab_ci_capd[collapsed=true]\r\e[0KApplying specific capd configuration\e[0m"
@@ -19,7 +22,7 @@ include:
 deploy-management-cluster:
   timeout: 15min
   script:
-    - !reference [.setup_ci_context_and_values]
+    - !reference [.configure-deployment]
     - ./preview.sh environment-values/${ENV_NAME}
   artifacts:
     when: on_failure

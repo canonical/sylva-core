@@ -1,0 +1,109 @@
+---
+# ==========================================
+# Deploy stage
+# ==========================================
+
+workflow:
+  rules:
+    - when: always
+
+stages:
+  - deploy
+
+include:
+  - local: .gitlab/ci/templates-deployments.yml
+
+variables:
+
+  # Used for cross repo pipelines
+  REMOTE_VALUES: ""
+
+  # Timeout configuration
+  APPLY_WATCH_TIMEOUT_MIN:
+    value: "20"
+    description: "apply.sh timeout"
+  MGMT_WATCH_TIMEOUT_MIN:
+    value: "30"
+    description: "bootstrap.sh timeout"
+  BOOTSTRAP_WATCH_TIMEOUT_MIN:
+    value: "45"
+    description: "bootstrap.sh timeout for bootstrap cluster"
+  APPLY_WC_WATCH_TIMEOUT_MIN:
+    value: "30"
+    description: "apply-workload-cluster.sh timeout"
+
+  # Management cluster relative variables
+  MGMT_ADDITIONAL_VALUES: ""  # Path to a file for customizing the values used during all management cluster stages
+  MGMT_INITIAL_ADDITIONAL_VALUES: "" # Path to a file for customizing the values used during the management cluster deployment stage
+  MGMT_UPDATE_ADDITIONAL_VALUES: "" # Path to a file for customizing the values used during the management cluster update stage
+  MGMT_INITIAL_REVISION: ""  # Git revision used for the management cluster deployment
+  MGMT_UPDATE_REVISION: ""  # Git revision used for the management cluster update
+
+  # Workload cluster relative variables
+  WC_ADDITIONAL_VALUES: ""  # Path to a file for customizing the values used during all workload cluster stages
+  WC_INITIAL_ADDITIONAL_VALUES: ""  # Path to a file for customizing the values used during the workload cluster deployment stage
+  WC_UPDATE_ADDITIONAL_VALUES: ""  # Path to a file for customizing the values used during the workload cluster update stage
+  WC_INITIAL_REVISION: ""  # Git revision used for the workload cluster deployment
+  WC_UPDATE_REVISION: ""  # Git revision used for the workload cluster update"
+
+  # Repo used to store CI values
+  SYLVA_CI_VALUES_REPO: https://gitlab.com/sylva-projects/sylva-elements/ci-tooling/ci-deployment-values.git
+  SYLVA_CI_VALUES_FOLDER: environment-values/sylva-core-ci-values
+  # Reference to checkout for CI values, by default we use the same for all stages but it can be overriden
+  # eg: if we have a breaking change during an upgrade we could use a different branch for the deployment and update
+
+  # CI_VALUES_REVISION: 0.2.1
+  CI_VALUES_REVISION: reorganize_values  # Do not nmerge
+  MGMT_INITIAL_CI_VALUES_REVISION: ${CI_VALUES_REVISION}
+  MGMT_UPDATE_CI_VALUES_REVISION: ${MGMT_INITIAL_CI_VALUES_REVISION}
+  WC_INITIAL_CI_VALUES_REVISION: ${CI_VALUES_REVISION}
+  WC_UPDATE_CI_VALUES_REVISION: ${CI_VALUES_REVISION}
+
+.default-deploy-config:
+  stage: deploy
+  trigger:
+    forward:
+      pipeline_variables: true  # required to pass variables from upstream to downstream pipelines
+  variables:
+    WORKFLOW_NAME: $CI_JOB_NAME  # Used to pass parent JOB_NAME to the child pipelines
+  needs: []
+
+
+# PREVIEW ----------------------------------------------------
+
+.preview:
+  extends: .default-deploy-config
+  trigger:
+    include: .gitlab/ci/pipeline-deploy-capd-preview.yml
+    strategy: depend
+
+
+# CAPD ---------------------------------------------------
+
+.capd:
+  extends: .default-deploy-config
+  trigger:
+    include: .gitlab/ci/pipeline-deploy-capd.yml
+    strategy: depend
+
+
+# CAPO -----------------------------------------
+
+.capo:
+  extends: .default-deploy-config
+  trigger:
+    include: .gitlab/ci/pipeline-deploy-capo.yml
+    strategy: depend
+
+# CAPM3 --------------------------------------------------------
+
+.capm3-virt:
+  extends: .default-deploy-config
+  trigger:
+    include: .gitlab/ci/pipeline-deploy-capm3-virt-equinix.yml
+    strategy: depend
+  variables:
+    DOCKER_HOST: ""
+    MGMT_WATCH_TIMEOUT_MIN: 35
+    APPLY_WATCH_TIMEOUT_MIN: 80
+    APPLY_WC_WATCH_TIMEOUT_MIN: 80

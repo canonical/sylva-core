@@ -17,3 +17,6 @@ reports/
 
 # Pipeline reports
 report_output.md
+
+# Templated
+.gitlab/ci/main-pipeline-deployment-tests.yml

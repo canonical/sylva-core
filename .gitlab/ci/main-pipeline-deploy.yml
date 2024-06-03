@@ -1,0 +1,34 @@
+---
+# ==========================================
+# Generate deployment jobs
+# ==========================================
+
+.deploy_rules:
+  rules:
+    - if: $CI_COMMIT_TAG
+    - if: $CI_PIPELINE_SOURCE == 'pipeline'
+      when: never
+    - if: $CI_PIPELINE_SOURCE == 'web'
+    - if: '$CI_PIPELINE_SOURCE == "schedule" && $CI_DEPLOYMENTS'
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+prepare_deployment_jobs:
+  stage: deploy
+  extends: .deploy_rules
+  needs: []
+  script:
+    - ./.gitlab/ci/scripts/generate_deployment_jobs.py | tee .gitlab/ci/main-pipeline-deployment-tests.yml
+  artifacts:
+    paths:
+      - .gitlab/ci/main-pipeline-deployment-tests.yml
+
+deployment_jobs:
+  stage: deploy
+  extends: .deploy_rules
+  needs: [prepare_deployment_jobs]
+  trigger:
+    include:
+      - artifact: .gitlab/ci/main-pipeline-deployment-tests.yml
+        job: prepare_deployment_jobs
+    strategy: depend
