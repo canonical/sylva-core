@@ -756,7 +756,7 @@ units:
       chart:
         spec:
           chart: harbor
-          version: 1.14.0
+          version: 1.14.2
       targetNamespace: harbor
       values:
         persistence:

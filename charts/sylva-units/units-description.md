@@ -46,7 +46,7 @@
 | **alertmanager-jiralert** | installs Alertmanager webhook Jiralert<br/><br/>Jiralert is an Alertmanager wehbook that creates Jira issues | beta |  | [Helm](https://prometheus-community.github.io/helm-charts) | 1.7.1 |
 | **ceph-csi-cephfs** | Installs Ceph-CSI | beta |  | [Helm](https://ceph.github.io/csi-charts) | 3.10.2 |
 | **flux-webui-init** | initializes and configures flux-webui | beta | True | Kustomize | N/A |
-| **harbor** | installs Harbor | beta |  | [Helm](https://helm.goharbor.io) | 1.14.0 |
+| **harbor** | installs Harbor | beta |  | [Helm](https://helm.goharbor.io) | 1.14.2 |
 | **kubevirt** | installs kubevirt | beta |  | [Helm](https://suse-edge.github.io/charts) | 0.2.4 |
 | **logging** | installs Rancher Fluentbit/Fluentd logging stack, for log collecting and shipping | beta |  | [Helm](https://charts.rancher.io/) | 103.1.1+up4.4.0 |
 | **loki** | installs Loki log storage<br/><br/>installs Loki log storage in simple scalable mode | beta |  | Helm | v2.9.2 |
