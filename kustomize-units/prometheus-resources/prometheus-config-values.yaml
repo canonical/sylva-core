@@ -9,6 +9,110 @@ data:
       prometheusSpec:
         configMaps: ${CONFIGMAPS}
         additionalScrapeConfigs:
+          - job_name: 'minio-tenant-monitoring/cluster'
+            scrape_interval: 1m
+            scrape_timeout: 30s
+            metrics_path: '/minio/v2/metrics/cluster'
+            scheme: https
+            tls_config:
+              insecure_skip_verify: true
+            follow_redirects: true
+            kubernetes_sd_configs:
+            - role: service
+            relabel_configs:
+            - source_labels: ['__meta_kubernetes_service_labelpresent_v1_min_io_tenant']
+              regex: 'true'
+              action: keep
+            - source_labels: ['__meta_kubernetes_service_cluster_ip']
+              regex: 'None'
+              action: drop
+            - source_labels: ['__meta_kubernetes_service_label_v1_min_io_tenant']
+              target_label: 'minio_tenant'
+              regex: '(.+)'
+              replacement: '$1'
+            - source_labels: ['__meta_kubernetes_namespace']
+              target_label: 'namespace'
+              regex: '(.+)'
+              replacement: '$1'
+          - job_name: 'minio-tenant-monitoring/bucket'
+            scrape_interval: 1m
+            scrape_timeout: 30s
+            metrics_path: /minio/v2/metrics/bucket
+            scheme: https
+            tls_config:
+              insecure_skip_verify: true
+            follow_redirects: true
+            kubernetes_sd_configs:
+            - role: service
+            relabel_configs:
+            - source_labels: ['__meta_kubernetes_service_labelpresent_v1_min_io_tenant']
+              regex: 'true'
+              action: keep
+            - source_labels: ['__meta_kubernetes_service_cluster_ip']
+              regex: 'None'
+              action: drop
+            - source_labels: ['__meta_kubernetes_service_label_v1_min_io_tenant']
+              target_label: 'minio_tenant'
+              regex: '(.+)'
+              replacement: '$1'
+            - source_labels: ['__meta_kubernetes_namespace']
+              target_label: 'namespace'
+              regex: '(.+)'
+              replacement: '$1'
+          - job_name: 'minio-tenant-monitoring/resource'
+            scrape_interval: 1m
+            scrape_timeout: 30s
+            metrics_path: /minio/v2/metrics/resource
+            scheme: https
+            tls_config:
+              insecure_skip_verify: true
+            follow_redirects: true
+            kubernetes_sd_configs:
+            - role: service
+            relabel_configs:
+            - source_labels: ['__meta_kubernetes_service_labelpresent_v1_min_io_tenant']
+              regex: 'true'
+              action: keep
+            - source_labels: ['__meta_kubernetes_service_cluster_ip']
+              regex: 'None'
+              action: drop
+            - source_labels: ['__meta_kubernetes_service_label_v1_min_io_tenant']
+              target_label: 'minio_tenant'
+              regex: '(.+)'
+              replacement: '$1'
+            - source_labels: ['__meta_kubernetes_namespace']
+              target_label: 'namespace'
+              regex: '(.+)'
+              replacement: '$1'
+          - job_name: 'minio-tenant-monitoring/node'
+            scrape_interval: 1m
+            scrape_timeout: 30s
+            metrics_path: /minio/v2/metrics/node
+            scheme: https
+            tls_config:
+              insecure_skip_verify: true
+            follow_redirects: true
+            kubernetes_sd_configs:
+            - role: endpoints
+            relabel_configs:
+            - source_labels: ['__meta_kubernetes_pod_labelpresent_v1_min_io_tenant']
+              regex: 'true'
+              action: keep
+            - source_labels: ['__meta_kubernetes_endpoint_port_name']
+              regex: 'https-minio'
+              action: keep
+            - source_labels: ['__meta_kubernetes_pod_label_v1_min_io_tenant']
+              target_label: 'minio_tenant'
+              regex: '(.+)'
+              replacement: '$1'
+            - source_labels: ['__meta_kubernetes_namespace']
+              target_label: 'namespace'
+              regex: '(.+)'
+              replacement: '$1'
+            - source_labels: ['__meta_kubernetes_pod_label_v1_min_io_pool']
+              target_label: 'minio_pool'
+              regex: '(.+)'
+              replacement: '$1'
           - job_name: 'pushgateway'
             honor_labels: true
             static_configs:
