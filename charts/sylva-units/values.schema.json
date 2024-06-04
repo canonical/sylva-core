@@ -862,12 +862,44 @@
               "anyOf": [
                 {
                   "type": "object",
-                  "additionalProperties": false,
+                  "additionalProperties": true,
+                  "allOf": [
+                    {
+                      "required": [
+                        "network"
+                      ]
+                    },
+                    {
+                      "not": {
+                        "required": [
+                          "description"
+                        ]
+                      }
+                    }
+                  ],
                   "properties": {
-                    "network_id": {
+                    "network": {
+                      "type": "object",
                       "anyOf": [
                         {
-                          "$ref": "#/$defs/openstack-uuid"
+                          "required": [
+                            "id"
+                          ]
+                        },
+                        {
+                          "required": [
+                            "name"
+                          ]
+                        },
+                        {
+                          "required": [
+                            "tags"
+                          ]
+                        },
+                        {
+                          "required": [
+                            "tagsAny"
+                          ]
                         },
                         {
                           "$ref": "#/$defs/string-with-gotpl"
@@ -875,11 +907,24 @@
                         {
                           "type": "null"
                         }
-                      ]
+                      ],
+                      "if": {
+                        "required": [
+                          "id"
+                        ]
+                      },
+                      "then": {
+                        "properties": {
+                          "id": {
+                            "$ref": "#/$defs/openstack-uuid"
+                          }
+                        }
+                      }
                     },
-                    "vnic_type": {
+                    "vnicType": {
                       "anyOf": [
                         {
+                          "type": "string",
                           "enum": [
                             "normal",
                             "macvtap",
@@ -2847,7 +2892,23 @@
             "nodeTaints": {
               "anyOf": [
                 {
-                  "type": "object"
+                  "type": "object",
+                  "patternProperties": {
+                    "^[a-zA-Z0-9][a-zA-Z0-9_.-]*[a-zA-Z0-9]$": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "pattern": "^[^:]+:(PreferNoSchedule|NoSchedule|NoExecute)$"
+                        },
+                        {
+                          "$ref": "#/$defs/string-with-gotpl"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  }
                 },
                 {
                   "$ref": "#/$defs/string-with-gotpl"
@@ -3392,6 +3453,7 @@
           "anyOf": [
             {
               "type": "object",
+              "additionalProperties": false,
               "properties": {
                 "image_name": {
                   "anyOf": [
@@ -3625,6 +3687,7 @@
           "anyOf": [
             {
               "type": "object",
+              "additionalProperties": false,
               "properties": {
                 "image_name": {
                   "anyOf": [
