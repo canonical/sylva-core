@@ -37,12 +37,14 @@ deploying the CNI, and the CNI itself is needed before the MachineDeployment nod
 Wait for Cluster resource:
 
 */}}
-{{- $result = append $result (dict
-    "apiVersion" "cluster.x-k8s.io/v1beta1"
-    "kind" "Cluster"
-    "name" $cluster.name
-    "namespace" $ns
-) -}}
+{{ if $cluster.capi_providers.infra_provider | ne "capv" -}}
+  {{- $result = append $result (dict
+      "apiVersion" "cluster.x-k8s.io/v1beta1"
+      "kind" "Cluster"
+      "name" $cluster.name
+      "namespace" $ns
+  ) -}}
+{{- end -}}
 {{/*
 
 Wait for infra provider Cluster
@@ -66,13 +68,14 @@ Wait for infra provider Cluster
 {{- else -}}
   {{- fail (printf "sylva-units cluster-healthchecks named template would need to be extended to support CAPI infra provider %s" $cluster.capi_providers.infra_provider) -}}
 {{- end }}
-
-{{- $result = append $result (dict
-    "apiVersion" $cluster_apiVersion
-    "kind" $cluster_kind
-    "name" $cluster.name
-    "namespace" $ns
-) -}}
+{{- if $cluster.capi_providers.infra_provider | ne "capv" -}}
+  {{- $result = append $result (dict
+      "apiVersion" $cluster_apiVersion
+      "kind" $cluster_kind
+      "name" $cluster.name
+      "namespace" $ns
+  ) -}}
+{{- end }}
 
 {{/* Workaround for https://gitlab.com/sylva-projects/sylva-core/-/issues/959; we drop the last element (Metal3Cluster) */}}
 {{- if $cluster.capi_providers.infra_provider | eq "capm3" -}}
@@ -96,12 +99,14 @@ on the CAPI bootstrap provider being used.
 {{- else -}}
   {{- fail (printf "sylva-units cluster-healthchecks named template would need to be extended to support CAPI bootstrap provider %s" $cluster.capi_providers.bootstrap_provider) -}}
 {{- end }}
-{{ $result = append $result (dict
-    "apiVersion" $cp_apiVersion
-    "kind" $cp_kind
-    "name" (printf "%s-control-plane" $cluster.name)
-    "namespace" $ns
-) -}}
+{{- if $cluster.capi_providers.infra_provider | ne "capv" -}}
+  {{- $result = append $result (dict
+      "apiVersion" $cp_apiVersion
+      "kind" $cp_kind
+      "name" (printf "%s-control-plane" $cluster.name)
+      "namespace" $ns
+  ) -}}
+{{- end }}
 {{/*
 
 If $includeMDs was specified, we include all the MachineDeployments in the healthChecks.
