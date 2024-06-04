@@ -35,9 +35,7 @@ Process all units
 
     {{/*********** Prepare labels used in all generated objects */}}
 
-    {{- $labels := deepCopy ($unit_def.labels | default dict) -}}
-    {{- $_ := set $labels "sylva-units.unit" $unit_name -}}
-    {{- $_ := mergeOverwrite $labels (include "sylva-units.labels" $envAll | fromYaml) }}
+    {{- $labels := tuple $envAll $unit_def | include "unit-labels" | fromJson -}}
 
     {{- $helmrelease_spec_overrides := dict -}}
     {{- $kustomization_spec_overrides := dict -}}

@@ -371,7 +371,9 @@ properties:
             type: object
             patternProperties:
               ".*":
-                type: string
+                anyOf:
+                - type: string
+                - const: null
 
           annotations:  # -------------------------------
             type: object

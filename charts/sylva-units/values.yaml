@@ -321,6 +321,8 @@ units:
     repo: sylva-core
     unit_templates: []
     kustomization_name: root-dependency-{{ .Release.Revision }}
+    labels:
+      sylva-units/root-dependency-wait: null  # cancel the label set in unit_definition_defaults, because the root-dependency wait job should _not_ wait for this unit
     kustomization_spec:
       path: ./kustomize-units/kube-job
       wait: true

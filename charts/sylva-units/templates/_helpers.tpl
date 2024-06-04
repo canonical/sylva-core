@@ -111,6 +111,44 @@ patches:
 
 {{/*
 
+unit-labels
+
+Returns a JSON dict with the labels of a unit.
+
+Parameters:
+- $envAll
+- unit definition dictionary
+
+Usage:
+
+  {{ include "unit-labels" $unit_def }}
+
+*/}}
+{{- define "unit-labels" -}}
+  {{- $envAll := index . 0 -}}
+  {{- $unit_def := index . 1 -}}
+
+  {{- $labels := $unit_def.labels | default dict -}}
+
+  {{/* remove labels with 'null' values */}}
+  {{- range $k,$v := $labels -}}
+    {{- if $v | eq nil -}}
+      {{- $_ := unset $labels $k -}}
+    {{- end -}}
+  {{- end -}}
+
+  {{/* add global Helm chart labels */}}
+  {{- $_ := mergeOverwrite $labels (include "sylva-units.labels" $envAll | fromYaml) -}}
+
+  {{/* add unit name label */}}
+  {{- $_ := set $labels "sylva-units.unit" $unit_def._unit_name_ -}}
+
+  {{/* return result */}}
+  {{- $labels | toJson -}}
+{{- end -}}
+
+{{/*
+
 Test if a unit is enabled or not
 
 Usage:
@@ -195,6 +233,9 @@ See usage in units.yaml and sources.yaml
 
   {{/* clear _unit_name_ from Values, we don't need it anymore */}}
   {{- $_ := set $envAll.Values "_unit_name_" "N/A" -}}
+
+  {{/* include the unit name in the unit_def result */}}
+  {{- $_ := set $unit_def "_unit_name_" $unit_name }}
 
   {{/* return the result */}}
   {{- $unit_def | toJson -}}
