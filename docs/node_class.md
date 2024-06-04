@@ -20,7 +20,16 @@ Starting from Sylva V1.0.0, the generic node class is predefined. Users can defi
 
 ### Deployment Considerations
 
-When deploying Sylva, the defined node classes become available for both management and workload clusters through the `shared_workload_clusters_values` configmaps. It's possible to specify node classes for the entire cluster, control plane, default machine deployment, or specific machine deployments.
+When deploying Sylva, the defined node classes become available for both management and workload clusters through the `shared_workload_clusters_values` configmaps.
+
+It is possible to select a node class for :
+
+- the entire cluster : `cluster.default_node_class`
+- the control plane: `cluster.control_plane.node_class`
+- machine deployments (default value): `cluster.machine_deployment_default.node_class`
+- a specific machine deployment: `cluster.machine_deployments.X.node_class`
+
+Node classes are only available on RKE2 clusters. It has not yet been implemented for Kubeadm.
 
 ## kernel configuration
 
