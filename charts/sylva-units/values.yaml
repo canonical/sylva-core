@@ -883,7 +883,7 @@ units:
           retries: -1
       values:
         serviceMonitor:
-          enabled: false
+          enabled: true
           labels:
             release: '{{ .Values.units.monitoring.helmrelease_spec.releaseName}}'
         service:
