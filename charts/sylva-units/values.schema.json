@@ -8495,17 +8495,18 @@
         }
       }
     },
-    "baremetal_host_default": null,
-    "type": "object",
-    "additionalProperties": false,
-    "properties": {
-      "bmh_metadata": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "annotations": {
-            "type": "string",
-            "pattern": "^\\[\\{\"path\":\"\\/var\\/longhorn\\/disks\\/disk_by-path_pci-[0-9a-f:.]+\",\"storageReserved\":\\d+,\"allowScheduling\":(true|false),\"tags\":\\[\"[a-zA-Z]+\"(,\"[a-zA-Z]+\")*\\]\\}\\]$"
+    "baremetal_host_default": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "bmh_metadata": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "annotations": {
+              "type": "string",
+              "pattern": "^\\[\\{\"path\":\"\\/var\\/longhorn\\/disks\\/disk_by-path_pci-[0-9a-f:.]+\",\"storageReserved\":\\d+,\"allowScheduling\":(true|false),\"tags\":\\[\"[a-zA-Z]+\"(,\"[a-zA-Z]+\")*\\]\\}\\]$"
+            }
           }
         }
       }
