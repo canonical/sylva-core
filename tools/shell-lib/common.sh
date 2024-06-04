@@ -252,7 +252,7 @@ function reconcile_sylva_units() {
       $FORCE_RECONCILE_ANNOTATION \
     | sed -e 's/^/  /'
 
-  sylvactl watch -n $namespace HelmRelease/$namespace/sylva-units --timeout 60s --skip-inventory
+  sylvactl watch -n $namespace HelmRelease/$namespace/sylva-units --timeout 60s --skip-inventory --reconcile
 }
 
 function define_source() {
