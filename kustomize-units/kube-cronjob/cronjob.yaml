@@ -1,0 +1,91 @@
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: ${CRONJOB_NAME}
+  namespace: ${NAMESPACE:-sylva-system}
+spec:
+   # executed by default every saturday at 00:00am
+   # if not overriden from sylva-units by patching spec/schedule
+  schedule: "0 0 * * SAT"
+  jobTemplate:
+    spec:
+      backoffLimit: 5
+      activeDeadlineSeconds: 1800
+      template:
+        metadata:
+          annotations:
+            checksum: s${JOB_CHECKSUM}  # s prefix to avoid this turning into a number if we're unlucky
+        spec:
+          containers:
+          - name: run-script
+            image: registry.gitlab.com/sylva-projects/sylva-elements/container-images/kube-job:v1.0.11
+            command: ["/bin/sh", "-c", "/opt/kube-cronjob.sh"]
+            securityContext:
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop:
+                  - ALL
+              runAsNonRoot: true
+              runAsUser: ${RUNASUSER:-1000}
+              runAsGroup: ${RUNASGROUP:-1000}
+              privileged: false
+              seccompProfile:
+                type: RuntimeDefault
+            volumeMounts:
+            - mountPath: /opt/
+              name: script-volume
+          imagePullSecrets:
+          - name: registry-secret
+          restartPolicy: Never
+          serviceAccountName: ${CRONJOB_NAME}-sa
+          securityContext:
+            runAsNonRoot: true
+            seccompProfile:
+              type: RuntimeDefault
+          volumes:
+          - name: script-volume
+            configMap:
+              name: ${CRONJOB_NAME}-cm
+              defaultMode: 0755
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: ${CRONJOB_NAME}-sa
+  namespace: ${NAMESPACE:-sylva-system}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: ${CRONJOB_NAME}
+  namespace: ${NAMESPACE:-sylva-system}
+rules:
+- apiGroups: ["*"]
+  resources: ["*"]
+  verbs: ["*"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: ${CRONJOB_NAME}
+  namespace: ${NAMESPACE:-sylva-system}
+subjects:
+- kind: ServiceAccount
+  name: ${CRONJOB_NAME}-sa
+  namespace: ${NAMESPACE:-sylva-system}
+roleRef:
+  kind: Role
+  name: ${CRONJOB_NAME}
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kube-cronjob-cm
+  namespace: ${NAMESPACE:-sylva-system}
+  annotations:
+    kustomize.toolkit.fluxcd.io/substitute: disabled
+data:
+  kube-cronjob.sh: |
+  #sleep 20
