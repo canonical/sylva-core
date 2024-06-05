@@ -1302,6 +1302,8 @@ units:
           SERVICE_DNS: '{{ .Values.external_hostnames.keycloak }}'
           CERT: '{{ .Values.external_certificates.keycloak.cert | default "" | b64enc }}'
           CACERT: '{{ .Values.external_certificates.cacert | default "" | b64enc }}'
+          KEYCLOAK_REPLICAS: '{{ .Values._internal.ha_cluster.is_ha | ternary 3 1 | include "preserve-type" }}'
+          AFFINITY: '{{ eq (int .Values._internal.ha_cluster.is_ha | ternary 3 1 | include "preserve-type") 3 | ternary (.Values.keycloak_affinity | toJson | indent 12) (.Values.keycloak_no_affinity | toJson | indent 12) }}'
         substituteFrom:
         - kind: ConfigMap
           name: proxy-env-vars
@@ -6658,6 +6660,19 @@ _internal:
           topologyKey: kubernetes.io/hostname
 
   vault_no_affinity: {}
+
+  keycloak_affinity:
+    podAntiAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        - labelSelector:
+            matchExpressions:
+              - key: app
+                operator: In
+                values:
+                  - sso
+          topologyKey: kubernetes.io/hostname
+
+  keycloak_no_affinity: {}
 
   # this is used in use-oci-artifacts.values.yaml
   # and in a few other places
