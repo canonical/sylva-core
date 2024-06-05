@@ -70,7 +70,7 @@ units:
           defaultClassReplicaCount: 3   # enable data replication
 
 libvirt_metal:
-  #image: registry.gitlab.com/sylva-projects/sylva-elements/container-images/libvirt-metal:0.1.4  # customize if wanted
+  image: registry.gitlab.com/sylva-projects/sylva-elements/container-images/libvirt-metal:0.1.12-test-size
   nodes:
     management-cp-0:
       redfishPort: 8000
