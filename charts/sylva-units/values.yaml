@@ -1224,6 +1224,7 @@ units:
       vault-operator: true
     annotations:
       sylvactl/readyMessage: "Vault UI can be reached at https://{{ .Values.external_hostnames.vault }} ({{ .Values.external_hostnames.vault }} must resolve to {{ .Values.display_external_ip }})"
+      sylvactl/unitTimeout: "{{ printf \"%dm\" (mul 5 .Values.cluster.control_plane_replicas) }}"
     repo: sylva-core
     kustomization_substitute_secrets:
       ADMIN_PASSWORD: '{{ .Values.admin_password }}'
@@ -3045,6 +3046,8 @@ units:
       calico: '{{ .Values._internal.state.is_upgrade }}'
       calico-ready: '{{ .Values._internal.state.is_upgrade }}'
       cluster-garbage-collector: '{{ and (tuple . "cluster-garbage-collector" | include "unit-enabled") .Values._internal.state.is_upgrade }}'
+    annotations:
+      sylvactl/unitTimeout: '{{ printf "%dm" ( include "cluster-unit-timeout" . | int) }}'
     kustomization_spec:
       prune: '{{ not (eq .Release.Namespace "sylva-system") | include "preserve-type" }}'
       # we wait on all important resources built by sylva-capi-cluster,
@@ -3220,6 +3223,9 @@ units:
     - '{{ tuple . "cluster" | include "unit-enabled" }}'
     depends_on:
       cluster: true
+    annotations:
+      sylvactl/unitTimeout: '{{ printf "%dm" ( include "cluster-unit-timeout" . | int) }}'
+      sylvactl/timeoutReference: "Kustomization/{{ .Release.Namespace }}/cluster"
     kustomization_spec:
       healthChecks: >-
         {{
@@ -3240,6 +3246,8 @@ units:
     depends_on:
       # cluster-reachable depends on cluster only on first installation
       cluster: '{{ not .Values._internal.state.is_upgrade }}'
+    annotations:
+      sylvactl/unitTimeout: 10m
     kustomization_spec:
       targetNamespace: default
       kubeConfig:
@@ -3273,6 +3281,9 @@ units:
       vsphere-cpi: '{{ .Values.cluster.capi_providers.infra_provider | eq "capv" }}'
     unit_templates:
     - kube-job
+    annotations:
+      sylvactl/unitTimeout: '{{ printf "%dm" (add (include "cluster-unit-timeout" . | int) 10) }}'
+      sylvactl/timeoutReference: "Kustomization/{{ .Release.Namespace }}/cluster"
     kustomization_spec:
       _patches:
       - target:
@@ -4488,6 +4499,8 @@ units:
       namespace-defs: true
       monitoring-crd: true
       prometheus-resources: '{{ tuple . "prometheus-resources" | include "unit-enabled" }}'
+    annotations:
+      sylvactl/unitTimeout: "{{ printf \"%dm\" (mul 5 .Values.cluster.control_plane_replicas) }}"
     helm_repo_url: https://charts.rancher.io/
     helmrelease_spec:
       driftDetection:
@@ -5679,6 +5692,7 @@ units:
         {{- if not (eq $osImageFqdn .Values.display_external_ip)}}
         ({{ .Values.external_hostnames.os_image_server }} must resolve to {{ .Values.display_external_ip }})
         {{- end }}
+      sylvactl/unitTimeout: 20m
     helmrelease_spec:
       chart:
         spec:
@@ -7786,6 +7800,9 @@ units:
     - base-deps
     depends_on:
       os-images-info: true
+      capo-cloud-config: true
+    annotations:
+      sylvactl/unitTimeout: 20m
     enabled_conditions:
       - '{{ eq .Values.cluster.capi_providers.infra_provider "capo" }}'
     repo: sync-openstack-images

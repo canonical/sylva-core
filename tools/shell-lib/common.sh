@@ -21,6 +21,8 @@ SYLVA_TOOLBOX_REGISTRY=${SYLVA_TOOLBOX_REGISTRY:-${SYLVA_BASE_OCI_REGISTRY}/sylv
 export KIND_POD_SUBNET=${KIND_POD_SUBNET:-100.100.0.0/16}
 export KIND_SVC_SUBNET=${KIND_SVC_SUBNET:-100.96.0.0/16}
 
+UNIT_TIMEOUT=${UNIT_TIMEOUT:-5m}
+
 if [[ -n "${CI:-}" ]]; then
   SYLVACTL_SAVE=1
   CHECK_TEST_UNITS=1
@@ -198,6 +200,8 @@ function ensure_sylvactl {
         curl -q --progress-bar -f https://gitlab.com/api/v4/projects/43501695/packages/generic/$SYLVACTL_RELEASE_NAME/$SYLVACTL_VERSION/sylvactl -o ${USER_DIR}/bin/sylvactl
         chmod +x ${USER_DIR}/bin/sylvactl
     fi
+    curl -q --progress-bar -f https://gitlab.com/api/v4/projects/43501695/packages/generic/sylvactl-unstable/0.0.0-git-bb66d20b/sylvactl -o ${BASE_DIR}/bin/sylvactl
+    chmod +x ${BASE_DIR}/bin/sylvactl
 }
 
 function cleanup_bootstrap_cluster() {

@@ -46,6 +46,7 @@ KUBECONFIG_PID=$!
 echo_b "\U000023F3 Wait for bootstrap units and management cluster to be ready"
 sylvactl watch \
   --reconcile \
+  --unit-timeout $UNIT_TIMEOUT \
   --timeout $(ci_remaining_minutes_and_at_most ${BOOTSTRAP_WATCH_TIMEOUT_MIN:-30}) \
   ${SYLVACTL_SAVE:+--save bootstrap-timeline.html} \
   ${SYLVACTL_RECORD:+--record bootstrap-record.yaml} \
@@ -61,7 +62,9 @@ echo_b "\U000023F3 Wait for units installed on management cluster to be ready"
 sylvactl watch \
   --reconcile \
   --kubeconfig management-cluster-kubeconfig \
+  --reconcile \
   --timeout $(ci_remaining_minutes_and_at_most ${MGMT_WATCH_TIMEOUT_MIN:-45}) \
+  --unit-timeout $UNIT_TIMEOUT \
   ${SYLVACTL_SAVE:+--save management-cluster-timeline.html} \
   ${SYLVACTL_RECORD:+--record management-cluster-record.yaml} \
   -n sylva-system \
