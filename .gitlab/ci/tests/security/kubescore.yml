@@ -59,7 +59,7 @@ variables:
     - echo -e ${KUBE_SCORE_TESTS_WHITELIST// /'\n'} > kube-score-test-whitelist
     # Build tests blacklist
     - KUBE_SCORE_BLACKLIST=$(comm kube-score-tests kube-score-test-whitelist -2 -3 | awk '{ print "--ignore-test " $1}')
-    - kube-score score $KUBE_SCORE_OPTIONS $KUBE_SCORE_BLACKLIST $DUMP_FOLDER/**.yaml | tee ${DUMP_FOLDER}-kube-score-results
+    - kube-score score $KUBE_SCORE_OPTIONS $KUBE_SCORE_BLACKLIST $DUMP_FOLDER/**.yaml | tee ${CI_PROJECT_DIR}/${DUMP_FOLDER}-kube-score-results
   artifacts:
     expire_in: 48 hour
     when: always

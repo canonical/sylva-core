@@ -109,7 +109,7 @@ test-login:
   extends:
     - .test-tags
   variables:
-    HURL_JUNIT_REPORT: login_junit_report.xml
+    HURL_JUNIT_REPORT: ${CI_PROJECT_DIR}/login_junit_report.xml
   artifacts:
     expire_in: 48 hour
     when: always
@@ -143,4 +143,4 @@ test-login:
       else
           rm -rf  ./tools/login-test/harbor-admin.hurl
       fi
-    - hurl -k ./tools/login-test/*.hurl --test --color --noproxy=".$domain"  --report-junit $HURL_JUNIT_REPORT --report-html .
+    - hurl -k ./tools/login-test/*.hurl --test --color --noproxy=".$domain"  --report-junit $HURL_JUNIT_REPORT --report-html ${CI_PROJECT_DIR}

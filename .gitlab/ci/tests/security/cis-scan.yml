@@ -14,9 +14,9 @@ cis-scan-report:
       if kubectl --kubeconfig management-cluster-kubeconfig get namespace cis-operator-system &>/dev/null; then
         REPORT=$(kubectl --kubeconfig management-cluster-kubeconfig -n cis-operator-system get clusterscanreports -o name)
         echo "Report name: $REPORT"
-        kubectl --kubeconfig management-cluster-kubeconfig -n cis-operator-system get $REPORT -o jsonpath={.spec.reportJSON} | jq | tools/display-scan-report.py | tee cis-report.log
+        kubectl --kubeconfig management-cluster-kubeconfig -n cis-operator-system get $REPORT -o jsonpath={.spec.reportJSON} | jq | tools/display-scan-report.py | tee ${CI_PROJECT_DIR}/cis-report.log
       else
-        echo "cis-scan-operator wasn't present, no report was generated" | tee cis-report.log
+        echo "cis-scan-operator wasn't present, no report was generated" | tee ${CI_PROJECT_DIR}/cis-report.log
       fi
   artifacts:
     paths:
