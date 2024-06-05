@@ -102,11 +102,14 @@ units:
           - name: Thanos
             type: "prometheus"
             access: "proxy"
-            url: "https://{{ .Values.external_hostnames.thanos_query }}"
+            url: "https://{{ .Values.external_hostnames.thanos }}"
             basicAuth: true
             basicAuthUser: "thanos-user"
             jsonData:
               tlsSkipVerify: true
+              timeInterval: 60s
+              prometheusVersion: "0.35.0"
+              customQueryParameters: "deduplicate=1"
             secureJsonData:
               basicAuthPassword: '{{ .Values._internal.thanos_password }}'
             #isDefault: true
