@@ -68,6 +68,8 @@ units:
       values:
         persistence:
           defaultClassReplicaCount: 3   # enable data replication
+  monitoring:
+    enabled: false
 
 libvirt_metal:
   image: registry.gitlab.com/sylva-projects/sylva-elements/container-images/libvirt-metal:0.1.12-test-size
