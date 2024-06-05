@@ -1303,7 +1303,7 @@ units:
           CERT: '{{ .Values.external_certificates.keycloak.cert | default "" | b64enc }}'
           CACERT: '{{ .Values.external_certificates.cacert | default "" | b64enc }}'
           KEYCLOAK_REPLICAS: '{{ .Values._internal.ha_cluster.is_ha | ternary 3 1 | include "preserve-type" }}'
-          AFFINITY: '{{ eq (int .Values._internal.ha_cluster.is_ha | ternary 3 1 | include "preserve-type") 3 | ternary (.Values.keycloak_affinity | toJson | indent 12) (.Values.keycloak_no_affinity | toJson | indent 12) }}'
+          AFFINITY: '{{ .Values._internal.ha_cluster.is_ha | ternary (.Values.keycloak_affinity | toJson | indent 12) (.Values.keycloak_no_affinity | toJson | indent 12) }}'
         substituteFrom:
         - kind: ConfigMap
           name: proxy-env-vars
