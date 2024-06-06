@@ -2893,12 +2893,12 @@
               "anyOf": [
                 {
                   "type": "object",
-                  "patternProperties": {
-                    "^[a-zA-Z0-9][a-zA-Z0-9_.-]*[a-zA-Z0-9]$": {
+                  "properties": {
+                    "items": {
                       "anyOf": [
                         {
                           "type": "string",
-                          "pattern": "^[^:]+:(PreferNoSchedule|NoSchedule|NoExecute)$"
+                          "pattern": "^[a-zA-Z0-9]+:\\s\"([a-zA-Z0-9_\\-\\.]+):(NoSchedule|PreferNoSchedule|NoExecute)\"$"
                         },
                         {
                           "$ref": "#/$defs/string-with-gotpl"
