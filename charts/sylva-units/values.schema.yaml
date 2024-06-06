@@ -798,6 +798,12 @@ properties:
             format: hostname
           - const: ''
           - $ref: "#/$defs/string-with-gotpl"
+      grafana:
+        anyOf:
+          - type: string
+            format: hostname
+          - const: ''
+          - $ref: "#/$defs/string-with-gotpl"
 
   external_certificates:  # -------------------------------
     type: object
@@ -828,6 +834,8 @@ properties:
       thanos:  # -------------------------------
         $ref: "#/$defs/cert-and-key"
       loki:  # -------------------------------
+        $ref: "#/$defs/cert-and-key"
+      grafana:  # -------------------------------
         $ref: "#/$defs/cert-and-key"
 
   keycloak: # -------------------------------

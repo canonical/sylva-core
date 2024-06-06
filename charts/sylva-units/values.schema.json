@@ -7845,6 +7845,20 @@
               "$ref": "#/$defs/string-with-gotpl"
             }
           ]
+        },
+        "grafana": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "hostname"
+            },
+            {
+              "const": ""
+            },
+            {
+              "$ref": "#/$defs/string-with-gotpl"
+            }
+          ]
         }
       }
     },
@@ -7889,6 +7903,9 @@
           "$ref": "#/$defs/cert-and-key"
         },
         "loki": {
+          "$ref": "#/$defs/cert-and-key"
+        },
+        "grafana": {
           "$ref": "#/$defs/cert-and-key"
         }
       }

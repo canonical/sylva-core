@@ -16,6 +16,13 @@ spec:
     accountTheme: keycloak
     adminTheme: keycloak
     passwordPolicy: length(12) and upperCase(1) and lowerCase(1) and digits(1) and forceExpiredPasswordChange(${EXPIRE_PASSWORD_DAYS})
+    roles:
+      realm:
+        - name: grafanaadmin
+          description: "Admin role for Grafana"
+          composite: false
+          clientRole: false
+          containerId: sylva
     groups:
     - name: infra-admins
       clientRoles:

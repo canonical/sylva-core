@@ -19,6 +19,7 @@ spec:
       - infra-admins
     realmRoles:
       - default-roles-sylva
+      - grafanaadmin
     credentials:
       - type: password
         value: "${SSO_PASSWORD}"

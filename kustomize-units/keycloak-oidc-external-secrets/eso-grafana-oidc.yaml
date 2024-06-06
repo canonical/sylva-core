@@ -1,0 +1,22 @@
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  name: eso-grafana-oidc
+  namespace: cattle-monitoring-system
+spec:
+  refreshInterval: 1h
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: eso-store-k8s-keycloak
+  target:
+    name: grafana-oidc
+    template:
+      data:
+        GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET: "{{ .clientSecret }}"
+      engineVersion: v2
+      mergePolicy: Replace
+  data:
+    - secretKey: clientSecret
+      remoteRef:
+        key: keycloak-client-secret-grafana-client  # this secret is a byproduct of the grafana-client KeycloakClient resource
+        property: CLIENT_SECRET

@@ -1383,8 +1383,10 @@ units:
       _components:
         - '{{ tuple "components/neuvector" (tuple . "neuvector" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/harbor" (tuple . "harbor" | include "unit-enabled") | include "set-only-if" }}'
+        - '{{ tuple "components/grafana" (tuple . "monitoring" | include "unit-enabled") | include "set-only-if" }}'
       postBuild:
         substitute:
+          GRAFANA_DNS: '{{ .Values.external_hostnames.grafana }}'
           RANCHER_DNS: '{{ .Values.external_hostnames.rancher }}'
           FLUX_WEBUI_DNS: '{{ .Values.external_hostnames.flux }}'
           HARBOR_DNS: '{{ .Values.external_hostnames.harbor }}'
@@ -1406,6 +1408,7 @@ units:
           namespace: keycloak
         - '{{ tuple (dict "apiVersion" "v1" "kind" "Secret" "name" "keycloak-client-secret-neuvector-client" "namespace" "keycloak") (tuple . "neuvector" | include "unit-enabled") | include "set-only-if" }}'  # # this secret is a byproduct of the neuvector client KeycloakClient resource
         - '{{ tuple (dict "apiVersion" "v1" "kind" "Secret" "name" "keycloak-client-secret-harbor-client" "namespace" "keycloak") (tuple . "harbor" | include "unit-enabled") | include "set-only-if" }}'  # # this secret is a byproduct of the harbor client KeycloakClient resource
+        - '{{ tuple (dict "apiVersion" "v1" "kind" "Secret" "name" "keycloak-client-secret-grafana-client" "namespace" "keycloak") (tuple . "monitoring" | include "unit-enabled") | include "set-only-if" }}'  # # this secret is a byproduct of the grafana client KeycloakClient resource
 
 
   keycloak-add-client-scope:
@@ -1452,6 +1455,49 @@ units:
             value: |
           {{ .Files.Get "scripts/keycloak-add-client-scope.sh" | indent 4 }}
 
+# Workaround for realm role creation
+  keycloak-add-realm-role:
+    info:
+      description: Creates Keycloak realm role
+      details: >
+        a job to manually create a custom realm role to sylva realm (on top of default ones) and assigns it to sylva-admin
+        while CRD option does not allow updates.
+      internal: true
+    unit_templates:
+    - base-deps
+    enabled_conditions:
+    - '{{ tuple . "keycloak" | include "unit-enabled" }}'
+    repo: sylva-core
+    depends_on:
+      keycloak-resources: true
+      keycloak: true  # defines the keycloak-initial-admin Secret used by the script
+    kustomization_spec:
+      path: ./kustomize-units/kube-job
+      wait: true
+      force: true
+      postBuild:
+        substitute:
+          JOB_NAME: keycloak-add-realm-role-job
+          JOB_TARGET_NAMESPACE: keycloak
+          RUNASUSER: '10000'
+          RUNASGROUP: '10000'
+      _patches:
+      - target:
+          kind: Job
+        patch: |
+          - op: replace
+            path: /spec/backoffLimit
+            value: 15
+      - target:
+          kind: ConfigMap
+        patch: |
+          - op: replace
+            path: /metadata/name
+            value: keycloak-add-realm-role-job-keycloak-cm
+          - op: replace
+            path: /data/kube-job.sh
+            value: |
+          {{ .Files.Get "scripts/keycloak-add-realm-role.sh" | indent 4 }}
 
   keycloak-add-truststore:
     info:
@@ -1527,6 +1573,10 @@ units:
           kind: Secret
           name: oidc-auth
           namespace: flux-system
+        - apiVersion: v1
+          kind: Secret
+          name: grafana-oidc
+          namespace: cattle-monitoring-system
 
   kyverno:
     info:
@@ -3260,6 +3310,31 @@ units:
           version: 103.1.0+up45.31.1
       install:
         createNamespace: true
+
+  grafana-init:
+    info:
+      description: sets up Grafana certificate for Keycloak OIDC integration
+      internal: true
+    enabled_conditions:
+      - '{{ tuple . "monitoring" | include "unit-enabled" }}'
+      - '{{ tuple . "keycloak" | include "unit-enabled" }}'
+    unit_templates:
+    - base-deps
+    depends_on:
+      namespace-defs: true
+      sylva-ca: true
+    repo: sylva-core
+    kustomization_spec:
+      path: ./kustomize-units/grafana-init
+      postBuild:
+        substitute:
+          SERVICE: rancher-monitoring-grafana
+          GRAFANA_DNS: '{{ .Values.external_hostnames.grafana }}'
+      healthChecks:
+        - apiVersion: v1
+          kind: Secret
+          name: grafana-general-tls
+          namespace: cattle-monitoring-system
 
   monitoring:
     info:
@@ -5764,6 +5839,7 @@ external_hostnames:
   thanos_receive: 'thanos-receive.{{ .Values.cluster_domain }}'
   thanos_query: 'thanos-query.{{ .Values.cluster_domain }}'
   loki: 'loki.{{ .Values.cluster_domain }}'
+  grafana: 'grafana.{{ .Values.cluster_domain }}'
 
 external_certificates:
   rancher: {}
@@ -5778,6 +5854,7 @@ external_certificates:
   minio_monitoring_tenant: {}
   thanos: {}
   loki: {}
+  grafana: {}
 
 audit_log:
   level: 0
