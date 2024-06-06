@@ -1,0 +1,76 @@
+apiVersion: legacy.k8s.keycloak.org/v1alpha1
+kind: KeycloakClient
+metadata:
+  labels:
+    realm1: sylva
+  name: grafana-client
+  namespace: keycloak
+spec:
+  client:
+    attributes:
+      use.refresh.tokens: "false"
+    clientAuthenticatorType: client-secret
+    clientId: grafana
+    defaultClientScopes:
+    - profile
+    - openid
+    - email
+    - groups
+    - roles
+    - offline_access
+    directAccessGrantsEnabled: true
+    enabled: true
+    implicitFlowEnabled: false
+    name: grafana
+    optionalClientScopes:
+    - phone
+    - openid
+    - address
+    protocol: openid-connect
+    protocolMappers:
+    - config:
+        access.token.claim: "false"
+        claim.name: groups
+        full.path: "false"
+        id.token.claim: "false"
+        userinfo.token.claim: "true"
+      name: Groups Mapper
+      protocol: openid-connect
+      protocolMapper: oidc-group-membership-mapper
+    - config:
+        access.token.claim: "true"
+        included.client.audience: grafana
+      name: Client Audience
+      protocol: openid-connect
+      protocolMapper: oidc-audience-mapper
+    - config:
+        access.token.claim: "false"
+        claim.name: full_group_path
+        full.path: "true"
+        id.token.claim: "false"
+        userinfo.token.claim: "true"
+      name: Group Path
+      protocol: openid-connect
+      protocolMapper: oidc-group-membership-mapper
+    - config:
+        access.token.claim: "true"
+        claim.name: "roles"
+        id.token.claim: "true"
+        jsonType.label: "String"
+        multivalued: "true"
+        user.attribute: "realm_access.roles"
+        userinfo.token.claim: "true"
+      name: Role List
+      protocol: openid-connect
+      protocolMapper: oidc-usermodel-realm-role-mapper
+    publicClient: false
+    redirectUris:
+    - https://${GRAFANA_DNS}/login/generic_oauth
+    standardFlowEnabled: true
+    rootUrl: https://${GRAFANA_DNS}
+    adminUrl: https://${GRAFANA_DNS}
+    webOrigins:
+    - https://${GRAFANA_DNS}
+  realmSelector:
+    matchLabels:
+      realm1: sylva
