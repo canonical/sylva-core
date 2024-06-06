@@ -1725,9 +1725,6 @@ units:
       wait: true
       force: true
       targetNamespace: sylva-system
-      postBuild:
-        substitute:
-          OS_IMAGES_INFO_CM: '{{ .Values._internal.os_images_info_configmap }}'
       _patches:
         - target:
             kind: ConfigMap
@@ -2307,7 +2304,9 @@ units:
           name: openstack-images-uuids  ## this ConfigMap is a byproduct of the get-openstack-images job
           optional: '{{ not (.Values.cluster.capi_providers.infra_provider | eq "capo") | include "as-bool" }}'
         - kind: ConfigMap
-          name: '{{ .Values._internal.os_images_info_configmap }}'  # this configmap is a byproduct of the os-images-info unit
+          # this configmap is a byproduct of the os-images-info unit, a different configmap is used for capm3 workload clusters
+          # see workload-cluster.values.yaml
+          name: '{{ .Values._internal.cluster_unit_os_images_info_configmap }}'
           valuesKey: values.yaml
           optional: '{{ not (.Values.cluster.capi_providers.infra_provider | eq "capm3") | include "as-bool" }}'
     # we pass everything that is under `cluster` to this unit that uses sylva-capi-cluster chart
@@ -4124,7 +4123,16 @@ units:
         substitute:
           JOB_NAME: create-image-info
           JOB_TARGET_NAMESPACE: '{{ .Release.Namespace }}'
-          JOB_CHECKSUM: '{{ .Values._internal.os_images_info_input_hash }}'
+          JOB_CHECKSUM: >-
+            '{{
+            list
+              .Values._internal.sylva_core_version
+              (include "generate-os-images" .)
+              .Values.proxies
+              (index (tuple . .Values.no_proxy_additional | include "interpret-inner-gotpl" | fromJson) "result")
+              .Values.oci_registry_insecure
+            | toJson | sha256sum | trunc 8
+            }}'
           EXTRA_CA_CERTS: '{{ tuple (.Values.oci_registry_extra_ca_certs | default "" | b64enc) (not .Values.oci_registry_insecure) | include "set-only-if" }}'
       _patches:
         - target:
@@ -4149,11 +4157,6 @@ units:
               value:
                 name: oci_registry_insecure
                 value: '{{ .Values.oci_registry_insecure }}'
-            - op: add
-              path: /spec/template/spec/containers/0/env/-
-              value:
-                name: OUTPUT_CONFIGMAP
-                value: '{{ .Values._internal.os_images_info_configmap }}'
         - target:
             kind: ConfigMap
           patch: >-
@@ -4174,7 +4177,7 @@ units:
       healthChecks:
         - apiVersion: v1
           kind: ConfigMap
-          name: '{{ .Values._internal.os_images_info_configmap }}'
+          name: os-images-info
           namespace: '{{ .Release.Namespace }}'
 
   os-image-server:
@@ -4246,7 +4249,7 @@ units:
           storageClass: '{{ .Values._internal.default_storage_class }}'
       valuesFrom:
         - kind: ConfigMap
-          name: '{{ .Values._internal.os_images_info_configmap }}'  # this configmap is a byproduct of the os-images-info unit
+          name: os-images-info  # this configmap is a byproduct of the os-images-info unit
 
   capo-contrail-bgpaas:
     info:
@@ -5605,13 +5608,6 @@ units:
           TMP_STORAGE_SPACE: '{{ .Values.os_images_default_download_storage_space }}'
           # compute total timeout based on per-image timeout and number of images
           ACTIVE_DEADLINE_SECONDS: '{{ mul .Values.get_openstack_images_per_image_timeout_minutes 60 (include "generate-os-images" . | fromYaml | dig "os_images" dict | len) }}'
-      _patches:
-        - target:
-            kind: Job
-          patch: |
-            - op: replace
-              path: /spec/template/spec/volumes/2/configMap/name
-              value: {{ .Values._internal.os_images_info_configmap }}  # this configmap is a byproduct of the os-images-info unit
 
 ##### stuff related to the 'cluster' unit #####
 #
@@ -6234,20 +6230,7 @@ _internal:
     {{ $n | include "preserve-type" }}
     '
 
-  os_images_info_input_hash:
-    '{{
-    list
-      .Values._internal.sylva_core_version
-      (include "generate-os-images" . | indent 4)
-      .Values._internal.os_images_info_configmap
-      .Values.proxies
-      .Values.no_proxy_additional
-      .Values.oci_registry_insecure
-    | toJson | sha256sum | trunc 8
-    }}'
-  default_os_images_info_configmap: os-images-info-{{ tuple . .Values._internal.os_images_info_input_hash | include "interpret-as-string" }}
-  os_images_info_configmap: '{{ .Values._internal.default_os_images_info_configmap }}'  # overridden in workload-cluster.values.yaml
-
+  cluster_unit_os_images_info_configmap: os-images-info
 
   default_calico_autodetection_method:
     canReach: '{{ not (empty .Values.cluster.mgmt_cluster_ip) | ternary .Values.cluster.mgmt_cluster_ip .Values.cluster.cluster_virtual_ip }}'
