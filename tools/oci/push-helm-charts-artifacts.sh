@@ -89,8 +89,22 @@ function artifact_integrity {
     echo "---------- make a diff --------------"
     find /tmp -name Chart.lock -type f -delete
     find /tmp -depth -name .git -type d -exec rm -rv {} +
-    diff -qr /tmp/$pulled_name $tmp_dir/$pulled_name
+    set +e
+    diff -ru /tmp/$pulled_name $tmp_dir/$pulled_name
+    diff_status=$?
+    set -e
+    echo "diff result: $diff_status"
   fi
+
+  if ! [[ $diff_status -eq 0 ]]; then
+    echo "artifact_integrity: special treatment, diff ignoring space for $artifact_name"
+    set +e
+    diff -ruw /tmp/$pulled_name $tmp_dir/$pulled_name
+    set -e
+    diff_status=$?
+  fi
+  echo "artifact_integrity, return status: $diff_status"
+  return $diff_status
 }
 
 
@@ -102,9 +116,9 @@ function push_and_sign {
 
       if !(artifact_integrity $tgz_file $artifact_name $artifact_version); then
         echo "[ERROR] cannot push and sign $artifact_name because its content differs from the content of the already existing OCI artifact"
-        return 1
       fi
-      
+
+      echo "pushing and signing $artifact_name..."
       helm push $tgz_file $OCI_REGISTRY >output 2>&1
       local digest=$(grep 'Digest:' output | sed 's/^.*: //')
       if [[ -v COSIGN_PRIVATE_KEY ]] && [[ -v COSIGN_PASSWORD ]]; then
