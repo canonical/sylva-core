@@ -761,6 +761,8 @@ units:
           version: 1.14.2
       targetNamespace: harbor
       values:
+        updateStrategy:
+          type: '{{ eq .Values._internal.default_storage_class_access_mode_rwx "ReadWriteMany" | ternary "RollingUpdate" "Recreate" }}'
         persistence:
           enabled: true
           resourcePolicy: "keep"
@@ -768,10 +770,11 @@ units:
             registry:
               storageClass: '{{ .Values._internal.default_storage_class }}'
               #size: 32Gi
+              accessMode: '{{ .Values._internal.default_storage_class_access_mode_rwx }}'
             jobservice:
               storageClass: '{{ .Values._internal.default_storage_class }}'
               #size: 8Gi
-              #size: 8Gi
+              accessMode: '{{ .Values._internal.default_storage_class_access_mode_rwx }}'
             redis:
               storageClass: '{{ .Values._internal.default_storage_class }}'
               #size: 8Gi
@@ -4559,12 +4562,7 @@ units:
           size: 10Gi
           storageClass: "{{ .Values._internal.default_storage_class }}"
           accessModes:
-            - >-
-                {{- if eq .Values._internal.default_storage_class_RWX_support "true" -}}
-                  ReadWriteMany
-                {{- else -}}
-                  ReadWriteOnce
-                {{- end -}}
+            - "{{ .Values._internal.default_storage_class_access_mode_rwx }}"
         replicaCount: >-
           {{- if eq .Values._internal.default_storage_class_RWX_support "true" -}}
           {{ 3 | include "preserve-type" }}
@@ -4572,12 +4570,7 @@ units:
           {{ 1 | include "preserve-type" }}
           {{- end -}}
         strategy:
-          type: >-
-            {{- if eq .Values._internal.default_storage_class_RWX_support "true" -}}
-              RollingUpdate
-            {{- else -}}
-              Recreate
-            {{- end -}}
+          type: "{{ .Values._internal.rwx_update_strategy }}"
         gitea:
           admin:
             existingSecret: gitea-admin
@@ -6183,6 +6176,7 @@ _internal:
   default_storage_class_RWX_support: >-
     {{- $default_storage_class := tuple . .Values._internal.default_storage_class | include "interpret-as-string" -}}
     {{- has $default_storage_class .Values._internal.storage_class_RWX_support -}}
+  default_storage_class_access_mode_rwx: '{{ eq (tuple . .Values._internal.default_storage_class_RWX_support | include "interpret-as-string") "true" | ternary "ReadWriteMany" "ReadWriteOnce" }}'
 
   vault_replicas: >-
     {{ or (.Values.cluster.capi_providers.infra_provider | eq "capd") (and (lt (int .Values.cluster.control_plane_replicas) 3) (eq .Values._internal.default_storage_class_unit "local-path")) | ternary 1 3  }}
