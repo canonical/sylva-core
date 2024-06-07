@@ -21,7 +21,7 @@
     - chart_dir=charts/${HELM_NAME}
     # we replace 'helm' by a wrapper ignoring the warnings about symlinks
     - |
-      function helm() { $(which helm) $@ 2> >(grep -v 'found symbolic link' >&2); }
+      function helm() { $(/usr/bin/which helm) $@ 2> >(grep -v 'found symbolic link' >&2); }
   rules:
     - if: $CI_PIPELINE_SOURCE == 'merge_request_event' ||  $CI_PIPELINE_SOURCE == 'pipeline'
       changes:
