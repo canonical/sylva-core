@@ -89,7 +89,7 @@ function artifact_integrity {
     echo "---------- make a diff --------------"
     find /tmp -name Chart.lock -type f -delete
     find /tmp -depth -name .git -type d -exec rm -rv {} +
-    diff -qr /tmp/$pulled_name $tmp_dir/$pulled_name
+    diff -ru /tmp/$pulled_name $tmp_dir/$pulled_name
   fi
 }
 
