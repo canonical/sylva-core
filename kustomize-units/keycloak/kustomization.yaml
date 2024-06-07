@@ -12,10 +12,3 @@ resources:
 - keycloak-ingress.yaml
 - keycloak-internal-certificate.yaml
 
-patches:
-- target:
-    kind: Deployment
-    name: keycloak-operator
-  patch: |
-    - op: remove
-      path: /spec/selector/matchLabels/app.kubernetes.io~1version
