@@ -3257,7 +3257,7 @@ units:
       chart:
         spec:
           chart: rancher-monitoring-crd
-          version: 103.1.0+up45.31.1
+          version: 103.1.1+up45.31.1
       install:
         createNamespace: true
 
@@ -3279,7 +3279,7 @@ units:
       chart:
         spec:
           chart: rancher-monitoring
-          version: 103.1.0+up45.31.1
+          version: 103.1.1+up45.31.1
       install:
         createNamespace: false
       values:
