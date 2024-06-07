@@ -43,7 +43,7 @@ spec:
       namespace: "{{request.object.metadata.name}}"
       synchronize: true
       clone:
-        name: ${OS_IMAGES_INFO_CM}
+        name: os-images-info
         namespace: sylva-system
   - name: generate-secret
     skipBackgroundRequests: false
