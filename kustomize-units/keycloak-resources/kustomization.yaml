@@ -9,3 +9,4 @@ resources:
 - flux-webui-client.yaml
 - vault-client.yaml
 - keycloak-user.yaml
+- thanos-client.yaml

@@ -8117,6 +8117,20 @@
               "$ref": "#/$defs/string-with-gotpl"
             }
           ]
+        },
+        "oauth2_proxy": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "hostname"
+            },
+            {
+              "const": ""
+            },
+            {
+              "$ref": "#/$defs/string-with-gotpl"
+            }
+          ]
         }
       }
     },
@@ -8164,9 +8178,6 @@
           "$ref": "#/$defs/cert-and-key"
         },
         "grafana": {
-          "$ref": "#/$defs/cert-and-key"
-        },
-        "kubevirt_manager": {
           "$ref": "#/$defs/cert-and-key"
         }
       }
