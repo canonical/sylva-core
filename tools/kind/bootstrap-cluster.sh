@@ -63,7 +63,7 @@ EXTRACTED_VALUES=$(_kustomize ${ENV_PATH} | python3 ${BASE_DIR}/tools/extractHel
 
 # Try to retrieve registry config in values passed (in local values.yaml or through Kustomize) and prepare KIND_CONFIG consequently
 if echo "$EXTRACTED_VALUES" | yq -e '.registry_mirrors.hosts_config | length > 0' &>/dev/null; then
-    function helm() { $(which helm) $@ 2> >(grep -v 'found symbolic link' >&2); }
+    function helm() { $(/usr/bin/which helm) $@ 2> >(grep -v 'found symbolic link' >&2); }
     export KIND_CONFIG_DIRECTORY=${BASE_DIR}/tools/kind/registry.d/
     mkdir -p $KIND_CONFIG_DIRECTORY
     rm -Rf $KIND_CONFIG_DIRECTORY/*

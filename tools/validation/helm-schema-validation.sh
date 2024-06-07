@@ -18,7 +18,7 @@ if [[ -z ${HELM_NAME} ]]; then
   exit 1
 fi
 
-function helm() { $(which helm) $@ 2> >(grep -v 'found symbolic link' >&2); }
+function helm() { $(/usr/bin/which helm) $@ 2> >(grep -v 'found symbolic link' >&2); }
 
 export BASE_DIR=$( cd "$(dirname "${BASH_SOURCE[0]}")/../.." ; pwd -P )
 
