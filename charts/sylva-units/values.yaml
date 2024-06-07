@@ -3326,6 +3326,8 @@ units:
       namespace-defs: true
       sylva-ca: true
     repo: sylva-core
+    kustomization_substitute_secrets:
+      KEY: '{{ .Values.external_certificates.grafana.key | default "" | b64enc }}'
     kustomization_spec:
       path: ./kustomize-units/grafana-init
       postBuild:
@@ -3337,6 +3339,8 @@ units:
           kind: Secret
           name: grafana-general-tls
           namespace: cattle-monitoring-system
+      _components:
+        - '{{ ternary "../tls-components/tls-secret" "../tls-components/tls-certificate" (hasKey .Values.external_certificates.grafana "cert") }}'
 
   monitoring:
     info:
