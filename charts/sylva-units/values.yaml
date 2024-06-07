@@ -5974,6 +5974,7 @@ os_images_oci_registries:
   sylva:
     url: '{{ .Values.sylva_base_oci_registry }}/sylva-elements/diskimage-builder'
     tag: '{{ .Values.sylva_diskimagebuilder_version }}'
+    insecure: false
 
 k8s_version_short: "1.28"
 

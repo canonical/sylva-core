@@ -26,16 +26,17 @@
   {{- $os_image_props := mergeOverwrite (dict "os_images_oci_registry" "sylva") $os_image_props }}
   {{- $oci_registry_url := dig $os_image_props.os_images_oci_registry "url" "" $os_images_oci_registries }}
   {{- $oci_registry_tag := dig $os_image_props.os_images_oci_registry "tag" "" $os_images_oci_registries }}
+  {{- $oci_registry_insecure := dig $os_image_props.os_images_oci_registry "insecure" false $os_images_oci_registries }}
     {{- if ($bootstrap_images) }}
       {{- if (has $os_image_name $bootstrap_images) }}
         {{- $os_image_props := mergeOverwrite (dict "os_images_oci_registry" "sylva") $os_image_props }}
         {{- $uri := printf "%s/%s:%s" $oci_registry_url $os_image_name $oci_registry_tag }}
-        {{- $props := dict "uri" $uri "sylva_dib_image" true }}
+        {{- $props := dict "uri" $uri "sylva_dib_image" true "insecure" $oci_registry_insecure }}
         {{- $_ := set $images $os_image_name $props }}
       {{- end }}
     {{- else if (or ($os_image_props.enabled) (and $os_image_props.default_enabled (not $os_images ))) }}
         {{- $uri := printf "%s/%s:%s" $oci_registry_url $os_image_name $oci_registry_tag }}
-        {{- $props := dict "uri" $uri "sylva_dib_image" true }}
+        {{- $props := dict "uri" $uri "sylva_dib_image" true "insecure" $oci_registry_insecure }}
         {{- $_ := set $images $os_image_name $props }}
     {{- end }}
   {{- end }}

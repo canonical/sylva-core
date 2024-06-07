@@ -217,14 +217,12 @@ except KeyError:
 conn = openstack.connect(cloud=cloud_name, verify=False)
 openstack_user_project_id = conn.current_project_id
 
-# Initialize oras class
-insecure_tls = strtobool(os.environ.get('INSECURE_CLIENT','false'))
-oras_client = MyProvider(tls_verify=not insecure_tls)
-
 for os_name, os_image_info in os_images.items():
     artifact = os_image_info["uri"]
     md5_checksum = os_image_info['md5']
     image_format = os_image_info['image-format']
+    insecure_tls = os_image_info['insecure']
+    os_image_info.pop('insecure', None)
     parsed_url = urlparse(artifact)
     if os_image_info.get("commit-tag"):
         _os_name = f'{os_name}-sylva-diskimage-builder-{os_image_info["commit-tag"]}'
@@ -240,6 +238,7 @@ for os_name, os_image_info in os_images.items():
         if parsed_url.scheme in ['http', 'https']:
             image_path = download_file(artifact, verify_ssl=not insecure_tls)
         elif parsed_url.scheme == 'oci':
+            oras_client = MyProvider(tls_verify=not insecure_tls)
             oras_pull_path = oras_client.pull_image(artifact)
             logger.info(f"Unzipping artifact...")
             image_path = unzip_artifact(oras_pull_path)
@@ -269,6 +268,7 @@ for os_name, os_image_info in os_images.items():
 
         # Optional: Pull manifest to verify/update image properties
         if parsed_url.scheme == 'oci':
+            oras_client = MyProvider(tls_verify=not insecure_tls)
             manifest = oras_client.get_oci_manifest(artifact)
 
         try:

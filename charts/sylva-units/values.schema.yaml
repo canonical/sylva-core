@@ -970,6 +970,8 @@ properties:
               - $ref: "#/$defs/string-with-gotpl"
           tag:  # -------------------------------
             type: string
+          insecure:
+            type: boolean
 
   oci_registry_extra_ca_certs:  # -------------------------------
     type: string

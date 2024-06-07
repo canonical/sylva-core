@@ -28,12 +28,13 @@ yq '.os_images | keys | .[]' /opt/images.yaml | while read os_image_key; do
   echo "      $os_image_key:" >> $configmap_file
   # Check if the artifact is a Sylva diskimage-builder artifact
   uri=$(yq '.os_images.[env(os_image_key)].uri' /opt/images.yaml)
+  insecure_oci=$(yq '.os_images.[env(os_image_key)].insecure' /opt/images.yaml)
   sylva_dib_image=$(yq '.os_images.[env(os_image_key)].sylva_dib_image' /opt/images.yaml)
   if [[ "$sylva_dib_image" == "true" ]]; then
     echo "This is a Sylva diskimage-builder image. Updating image details from artifact at $uri"
     url=$(echo $uri| sed 's|oci://||')
     # Get artifact annotations and insert them as image details
-    insecure=$([[ $oci_registry_insecure == "true" ]] && echo "--insecure" || true)
+    insecure=$([[ $insecure_oci == "true" ]] && echo "--insecure" || true)
     manifest=$(oras manifest fetch $url $insecure)
     echo $manifest | yq '.annotations |with_entries(select(.key|contains("sylva")))' -P | sed "s|.*/|        |" >> $configmap_file
   fi
