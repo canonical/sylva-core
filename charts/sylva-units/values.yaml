@@ -106,13 +106,6 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
       ref:
         tag: v1.22.2
 
-  cloud-provider-vsphere:
-    kind: GitRepository
-    spec:
-      url: https://github.com/kubernetes/cloud-provider-vsphere.git
-      ref:
-        tag: v1.26.2
-
   sylva-dashboards:
     kind: GitRepository
     spec:
@@ -4269,11 +4262,16 @@ units:
     - base-deps
     enabled_conditions:
       - '{{ eq .Values.cluster.capi_providers.infra_provider "capv" }}'
-    repo: cloud-provider-vsphere
+    helm_repo_url: https://kubernetes.github.io/cloud-provider-vsphere
+    helm_chart_versions:
+      1.26.0: '{{ include "k8s-version-match" (tuple . ">=1.26.0,<1.27.0") }}'
+      1.27.0: '{{ include "k8s-version-match" (tuple . ">=1.27.0,<1.28.0") }}'
+      1.28.0: '{{ include "k8s-version-match" (tuple . ">=1.28.0") }}'
     helmrelease_spec:
       chart:
         spec:
-          chart: charts/vsphere-cpi
+          chart: vsphere-cpi
+          version: "" # defined by helm_chart_versions
       install:
         remediation:
           retries: -1
@@ -4285,7 +4283,7 @@ units:
           enabled: true
           vcenter: '{{ .Values.cluster.capv.server }}'
           datacenter: '{{ .Values.cluster.capv.dataCenter }}'
-          tlsTumbprint: '{{ .Values.cluster.capv.tlsThumbprint }}'
+          '{{ tuple . (include "k8s-version-match" (tuple . ">=1.26.0,<1.27.0")) "tlsThumbprint" "thumbprint" | include "interpret-ternary" }}': '{{ .Values.cluster.capv.tlsThumbprint }}'
       _postRenderers:
         - kustomize:
             patchesStrategicMerge:
