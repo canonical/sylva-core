@@ -3057,11 +3057,10 @@ units:
       maturity: stable
     unit_templates:
     - base-deps
-    enabled_conditions:
-      - '{{ and (.Values.cluster.capi_providers.infra_provider | ne "capa") (.Values.cluster.capi_providers.bootstrap_provider | ne "capbk") }}'
     depends_on:
       capd-metallb-config: '{{ tuple . "capd-metallb-config" | include "unit-enabled" }}'
-      calico: '{{ tuple . "calico" | include "unit-enabled" }}'
+      # disabling calico depend on  for kubeadm capa
+      #calico: '{{ tuple . "calico" | include "unit-enabled" }}'
     helm_repo_url: https://rke2-charts.rancher.io
     helm_chart_versions:
       4.5.202: '{{ include "k8s-version-match" (tuple . "<1.26") }}'
