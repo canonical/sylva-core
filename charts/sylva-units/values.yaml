@@ -3057,6 +3057,8 @@ units:
       maturity: stable
     unit_templates:
     - base-deps
+    enabled_conditions:
+      - '{{ and (.Values.cluster.capi_providers.infra_provider | ne "capa") (.Values.cluster.capi_providers.bootstrap_provider | ne "capbk") }}'
     depends_on:
       capd-metallb-config: '{{ tuple . "capd-metallb-config" | include "unit-enabled" }}'
       calico: '{{ tuple . "calico" | include "unit-enabled" }}'
