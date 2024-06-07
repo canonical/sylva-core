@@ -179,9 +179,12 @@ ensure_sylva_toolbox
 
 function ensure_sylvactl {
     if [[ -n ${SYLVACTL_VERSION:-} ]]; then
-        echo_b "\U0001F4E5 Downloading sylvactl version: ${SYLVACTL_VERSION}"
+        SYLVACTL_RELEASE_NAME="sylvactl"
+        UNSTABLE_REGEXP='^0\.0\.0-git-.*|^main$'
+        [[ $SYLVACTL_VERSION =~ $UNSTABLE_REGEXP ]] && SYLVACTL_RELEASE_NAME="sylvactl-unstable" || true
+        echo_b "\U0001F4E5 Downloading ${SYLVACTL_RELEASE_NAME} version: ${SYLVACTL_VERSION}"
         mkdir -p ${BASE_DIR}/bin
-        curl -q --progress-bar -f https://gitlab.com/api/v4/projects/43501695/packages/generic/releases/$SYLVACTL_VERSION/sylvactl -o ${BASE_DIR}/bin/sylvactl
+        curl -q --progress-bar -f https://gitlab.com/api/v4/projects/43501695/packages/generic/$SYLVACTL_RELEASE_NAME/$SYLVACTL_VERSION/sylvactl -o ${BASE_DIR}/bin/sylvactl
         chmod +x ${BASE_DIR}/bin/sylvactl
     fi
 }
