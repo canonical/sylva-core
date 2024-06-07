@@ -3142,6 +3142,8 @@ units:
       internal: true
     unit_templates:
     - base-deps
+    enabled_conditions:
+      - '{{ tuple . "flux-webui" | include "unit-enabled" }}'
     depends_on:
       sylva-ca: true
       ingress-nginx: '{{ tuple . "ingress-nginx" | include "unit-enabled" }}'
