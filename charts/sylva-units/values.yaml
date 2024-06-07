@@ -705,7 +705,7 @@ units:
       chart:
         spec:
           chart: postgresql
-          version: 14.0.5
+          version: 14.3.3
       targetNamespace: harbor
       values:
         auth:
