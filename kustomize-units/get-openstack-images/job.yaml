@@ -67,7 +67,7 @@ spec:
             path: push-images-to-glance.py
       - name: os-images-info
         configMap:
-          name: os-images-info
+          name: os-images-info  # replaced at runtime with a Kustomization patch, by os-images-info-xxxxx
           items:
           - key: values.yaml
             path: os-images-info.yaml
