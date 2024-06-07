@@ -198,7 +198,7 @@ include:
   extends: .docker-service
   variables:
     CLUSTER_TYPE: management
-  timeout: 60min
+  timeout: 90min
   stage: deploy
   artifacts:
     expire_in: 48 hour
@@ -246,7 +246,7 @@ include:
   extends: .docker-service
   variables:
     CLUSTER_TYPE: workload
-  timeout: 60min
+  timeout: 90min
   stage: deploy
   artifacts:
     expire_in: 48 hour
