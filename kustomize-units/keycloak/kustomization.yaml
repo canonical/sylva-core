@@ -11,4 +11,5 @@ resources:
 - keycloak-server.yaml
 - keycloak-ingress.yaml
 - keycloak-internal-certificate.yaml
+- service-account.yaml
 

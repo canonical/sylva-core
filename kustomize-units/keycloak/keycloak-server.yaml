@@ -24,6 +24,7 @@ spec:
   unsupported:
     podTemplate:
       spec:
+        serviceAccountName: keycloak
         containers:
           - securityContext:
               allowPrivilegeEscalation: false
