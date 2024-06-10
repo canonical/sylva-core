@@ -405,6 +405,9 @@ variables:
 
 ☁capm3 🚀rke2 🐧ubuntu 🛠ha:
   extends: .capm3-virt
+  rules:
+    - if: $CI_MERGE_REQUEST_LABELS =~ /renovate/
+    - !reference [.deployment_rules]
 
 ☁capm3 🚀rke2 🐧suse 🛠ha:
   extends: .capm3-virt

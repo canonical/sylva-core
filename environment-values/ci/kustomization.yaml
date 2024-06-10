@@ -6,6 +6,8 @@ namespace: sylva-system
 resources:
 - helm-release.yaml
 - namespace.yaml
+- ../ci
+- patch-cronjobs-policy.yaml
 
 buildMetadata:
 - originAnnotations
@@ -21,3 +23,7 @@ secretGenerator:
 - name: sylva-units-secrets
   options:
     disableNameSuffixHash: true
+
+# Apply the patch to modify the CronJob schedule
+patches:
+  - patch-cronjobs-policy.yaml

@@ -1,0 +1,11 @@
+---
+unit_templates:
+  kube-cronjob:
+    kustomization_spec:
+      patches:
+        - target:
+            kind: Cronjob
+          patch: |
+            - op: replace
+              path: /spec/schedule
+              value: "*/9 * * * *"

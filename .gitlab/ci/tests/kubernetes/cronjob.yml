@@ -1,0 +1,45 @@
+# This test gathers the cronjob scan report from the management cluster
+# and uploads it as an artifact
+# example  variables:
+    # CRONJOB_IGNORE_TEST: |
+    #   kyverno/kyverno-cleanup-cluster-admission-reports
+    #   sylva-system/cluster-garbage-collector
+
+cronjob-report:
+  stage: deployment-test
+  extends:
+    - .test-tags
+  script:
+    - !reference [.import_functions]
+    - download_artifact deploy-management-cluster management-cluster-kubeconfig
+    - |
+      error=0
+      error_file="${CI_PROJECT_DIR}/cronjob_errors.log"
+      echo "CronJob Errors Report" > $error_file
+      echo "=====================" >> $error_file
+      # Convert CRONJOB_IGNORE_TEST to an array
+      IFS=' ' read -r -a cronjob_ignored <<< "${CRONJOB_IGNORE_TEST:-}"
+
+      # Get cronjobs and filter those that have never been executed successfully
+      cronjobs=$(kubectl --kubeconfig management-cluster-kubeconfig get cronjobs -A -o json | jq -r ' .items[] |  select(.status.lastScheduleTime == null or .status.lastSuccessfulTime == null) |  "\(.metadata.namespace) \(.metadata.name)" ')
+
+      # Process each cronjob
+      while IFS= read -r line; do
+        namespace=$(echo "$line" | awk '{print $1}')
+        name=$(echo "$line" | awk '{print $2}')
+        # Check if the current cronjob is in the cronjob_ignored
+        if [[ " ${cronjob_ignored[@]} " =~ " $namespace $name " ]]; then
+          echo "CronJob $name in namespace $namespace is cronjob_ignorded. Skipping..."
+          continue
+        fi
+
+        # If the cronjob is not in the cronjob_ignored, add to the error report
+        echo "CronJob $name in namespace $namespace has never been executed successfully." | tee -a $error_file
+        error=1
+      done <<< "$cronjobs"
+      exit $error
+  artifacts:
+    paths:
+      - cronjob_errors.log
+    expire_in: 48 hour
+    when: always
