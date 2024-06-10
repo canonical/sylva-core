@@ -133,6 +133,8 @@ _internal:
 You can find examples of how the values of this chart are typically overriden for a given deployment
 in the `values.yaml` files in sub-directories of [`environment-values`](../../environment-values).
 
+Such a value, that can be useful to be overriden, is the timeout download value for oci image artifacts for os-image-server unit. This is set by default to 30 minutes but this values can be customized for some environments if needed. To override the default value just set parameter `.Values.units.os-image-server.helmrelease_spec.values.downloader.oci_timeout`.
+
 ## Controlling which _units_ are enabled on a given run
 
 A few settings are taken into account to determine which _units_ are
