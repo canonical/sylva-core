@@ -2893,12 +2893,12 @@
               "anyOf": [
                 {
                   "type": "object",
-                  "properties": {
-                    "items": {
+                  "patternProperties": {
+                    "^[a-zA-Z0-9]([a-zA-Z0-9.-]*)?[A-Za-z0-9]$": {
                       "anyOf": [
                         {
                           "type": "string",
-                          "pattern": "^[a-zA-Z0-9]+:\\s\"([a-zA-Z0-9_\\-\\.]+):(NoSchedule|PreferNoSchedule|NoExecute)\"$"
+                          "pattern": "^[a-zA-Z0-9]([a-zA-Z0-9.-]*)?[a-zA-Z0-9]:(NoExecute|NoSchedule)$"
                         },
                         {
                           "$ref": "#/$defs/string-with-gotpl"
@@ -2908,7 +2908,8 @@
                         }
                       ]
                     }
-                  }
+                  },
+                  "additionalProperties": false
                 },
                 {
                   "$ref": "#/$defs/string-with-gotpl"
