@@ -178,7 +178,7 @@ function ensure_sylva_toolbox {
 ensure_sylva_toolbox
 
 function ensure_sylvactl {
-    if [[ -n ${SYLVACTL_VERSION:-} ]]; then
+    if [[ -n ${SYLVACTL_VERSION:-} ]] && [[ ${SYLVACTL_VERSION} != $(${BASE_DIR}/bin/sylvactl version 2>&1) ]]; then
         SYLVACTL_RELEASE_NAME="sylvactl"
         UNSTABLE_REGEXP='^0\.0\.0-git-.*|^main$'
         [[ $SYLVACTL_VERSION =~ $UNSTABLE_REGEXP ]] && SYLVACTL_RELEASE_NAME="sylvactl-unstable" || true
