@@ -4,4 +4,3 @@ kind: Kustomization
 resources:
 - eso-flux-webui-oidc.yaml
 - eso-rancher-oidc.yaml
-- eso-grafana-oidc.yaml
