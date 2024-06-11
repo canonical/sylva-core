@@ -1569,10 +1569,9 @@ units:
           kind: Secret
           name: oidc-auth
           namespace: flux-system
-        - apiVersion: v1
-          kind: Secret
-          name: grafana-oidc
-          namespace: cattle-monitoring-system
+        - '{{ tuple (dict "apiVersion" "v1" "kind" "Secret" "name" "grafana-oidc" "namespace" "cattle-monitoring-system") (tuple . "monitoring" | include "unit-enabled") | include "set-only-if" }}'  # this secret is a byproduct of the grafana monitoring resource
+      _components:
+        - '{{ tuple "components/grafana-oidc" (tuple . "monitoring" | include "unit-enabled") | include "set-only-if" }}'
 
   kyverno:
     info:
