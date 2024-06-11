@@ -2805,6 +2805,19 @@
                         }
                       ]
                     },
+                    "system_reserved_memory_gb": {
+                      "anyOf": [
+                        {
+                          "type": "integer"
+                        },
+                        {
+                          "$ref": "#/$defs/string-with-gotpl"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
                     "extra_options": {
                       "anyOf": [
                         {
