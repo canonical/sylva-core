@@ -1,0 +1,97 @@
+cluster_virtual_ip: 192.168.100.3
+
+cluster:
+  capi_providers:
+    infra_provider: capm3
+    bootstrap_provider: cabpr
+
+  control_plane_replicas: 1
+
+  # Add kind container address to cluster kubernetes api certificate SubjectAltNames,
+  # in order to be able to reach it from the outside through kubernetes-external service created by libvirt-metal unit
+  # once pivot to management cluster will happen, this IP will be retrieved in a cluster-public-endpoint configMap created for that purpose
+  cluster_api_cert_extra_SANs:
+    - '{{ .Values._internal.bootstrap_node_ip }}'
+
+  rke2:
+    additionalUserData:
+      config:
+        #cloud-config
+        users:
+          - name: sylva
+            groups: users
+            sudo: ALL=(ALL) NOPASSWD:ALL
+            shell: /bin/bash
+            lock_passwd: false
+            passwd: $1$pdWEicWs$9ZWQf5.CWyXccmP8Chuu01 # sylva
+
+  capm3:
+    image_key: opensuse-15-5-plain-rke2-1-28-9
+    primary_pool_network: 192.168.100.0
+    primary_pool_gateway: 192.168.100.1
+    primary_pool_start: 192.168.100.60
+    primary_pool_end: 192.168.100.90
+    primary_pool_prefix: "24"
+    provisioning_pool_network: 192.168.10.0
+    provisioning_pool_gateway: 192.168.10.1
+    provisioning_pool_start: 192.168.10.60
+    provisioning_pool_end: 192.168.10.90
+    provisioning_pool_prefix: "24"
+    network_interfaces:
+      bond_mode: "active-backup"
+      bondXmitHashPolicy: "layer2"
+    dns_servers: [1.1.1.1]
+
+  control_plane:
+    capm3:
+      hostSelector:
+        matchLabels:
+          cluster-role: control-plane
+
+      provisioning_pool_interface: bond0
+      primary_pool_interface: bond0.100
+
+    network_interfaces:
+      bond0:
+        type: bond
+        interfaces:
+          - ens4
+          - ens5
+        vlans:
+          - id: 100  # VLAN ID is fixed, per libvirt-metal internals
+      ens4:
+        type: phy
+      ens5:
+        type: phy
+
+  baremetal_host_default:
+    bmh_metadata:
+      annotations:
+        sylvaproject.org/default-longhorn-disks-config: >-
+          [{"path":"/var/longhorn/disks/disk_by-path_pci-0000:00:0a.0", "storageReserved":0, "allowScheduling":true, "tags":[ "vhdd", "fast"] },
+           {"path":"/var/longhorn/disks/disk_by-path_pci-0000:00:0b.0", "storageReserved":0, "allowScheduling":true, "tags":[ "vhdd", "fast"] }]
+    bmh_spec:
+      online: true
+      description: workload cluster node
+      bmc:
+        disableCertificateVerification: true
+      bootMode: legacy
+      rootDeviceHints:
+        deviceName: /dev/vda
+
+  baremetal_hosts:
+    workload-cp-0:
+      bmh_metadata:
+        labels:
+          cluster-role: control-plane
+      bmh_spec:
+        bmc:
+          address: redfish-virtualmedia://{{ .Values._internal.bootstrap_node_ip }}:8010/redfish/v1/Systems/c0014001-b10b-f001-c0de-feeb1e54ee15
+        bootMACAddress: 52:54:00:44:44:10
+units:
+  longhorn:
+    helmrelease_spec:
+      values:
+        persistence:
+          defaultClassReplicaCount: 1
+
