@@ -2367,7 +2367,8 @@ units:
       # for kubeadm, calico is installed by Flux and Machines don't become ready until calico is installed
       # so we need to have cluster-machines-ready depend on 'calico'
       # (this is relevant only on installation, on upgrades calico is already installed)
-      calico: '{{ and (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpk") (not .Release.IsUpgrade) }}'
+      # commenting it out for kubeadm capa as using custom cni
+      # calico: '{{ and (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpk") (not .Release.IsUpgrade) }}'
       cluster: true
       cluster-ready: true  # no need to start waiting for anything until
     unit_templates: []
