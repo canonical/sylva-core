@@ -2152,6 +2152,9 @@ units:
         metal3-mariadb:
           persistence:
             storageClass: '{{ .Values._internal.default_storage_class }}'
+          image:
+            repository: registry.suse.com/suse/rmt-mariadb
+            version: 10.6
 
   metal3-pdb:
     info:
