@@ -58,7 +58,6 @@ scheduled-cleanup-capo:
     - if: '$CI_PIPELINE_SOURCE == "schedule" && $CI_CAPO_CLEANUP'
       when: always
   tags:
-    - capo-ci
     - $CAPO_PLATFORM_TAG
 
 scheduled-cleanup-capo-falcon:
