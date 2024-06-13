@@ -88,7 +88,7 @@ include:
   - |
     # Configure docker for bootstrap cluster
     if [ -n "$DOCKER_HOST" ]; then
-      docker network create --attachable kind || true
+      docker network create --attachable kind --subnet=172.21.0.0/24 || true
       export DOCKER_IP=$(getent ahostsv4 docker | awk '{print $1}' | sort -u)
       KIND_PREFIX=$(docker network inspect kind -f '{{ (index .IPAM.Config 0).Subnet }}')
       ip route add $KIND_PREFIX via $DOCKER_IP
