@@ -2617,6 +2617,14 @@ units:
           chart: rke2-calico
           version: "" # will be defined by helm_chart_versions
       values:
+        global:
+          clusterCIDR: '{{ first .Values.cluster.cluster_pods_cidrs }}'
+          clusterCIDRv4: '{{ first .Values.cluster.cluster_pods_cidrs }}'
+          # for clusterDNS, take the .10 of the first subnet of cluster.cluster_services_cidrs
+          # FIXME: this will not work for subnets not starting at 0 (e.g. 192.168.1.128/25)
+          clusterDNS: '{{ regexReplaceAll "[.]0/.*" (first .Values.cluster.cluster_services_cidrs) ".10" }}'
+          clusterDomain: cluster.local
+          serviceCIDR: '{{ first .Values.cluster.cluster_services_cidrs }}'
         installation:
           calicoNetwork:
             bgp: Enabled
