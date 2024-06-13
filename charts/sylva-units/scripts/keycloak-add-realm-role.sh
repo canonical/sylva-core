@@ -23,8 +23,6 @@ KEYCLOAK_USERNAME="sylva-admin"
 echo "-- Retrieve Keycloak admin initial password" | tee -a $LOGFILE
 KEYCLOAK_INITIAL_PASSWORD=$(kubectl -n keycloak get secret keycloak-initial-admin -o jsonpath='{.data.password}' | base64 -d)
 
-echo $KEYCLOAK_INITIAL_PASSWORD | tee -a $LOGFILE
-
 echo "-- Retrieve Keycloak access token" | tee -a $LOGFILE
 ACCESS_TOKEN=$(curl -k -s -X POST \
 -H "Content-Type: application/x-www-form-urlencoded" \
