@@ -18,8 +18,16 @@ HTTP 200
 [Captures]
 workload_cluster_id: jsonpath "$.data[0].id"
 
-GET https://{{rancher_url}}/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/?orgId=1
+POST https://{{rancher_url}}/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/?orgId=1
 Authorization: Bearer {{token_rancher}}
+HTTP 302
+[Asserts]
+header "Location" == "/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/login"
+
+GET https://{{rancher_url}}/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/login
+Authorization: Bearer {{token_rancher}}
+{"username":"admin",
+"password":"{{password_grafana}}"}
 HTTP 200
 
 
@@ -36,5 +44,3 @@ HTTP 200
 GET https://{{rancher_url}}/k8s/clusters/{{workload_cluster_id}}/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-prometheus:9090/proxy/targets?search=
 Authorization: Bearer {{token_rancher}}
 HTTP 200
-
-
