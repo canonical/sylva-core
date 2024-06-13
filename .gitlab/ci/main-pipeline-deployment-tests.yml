@@ -7,7 +7,7 @@ include:
   - local: .gitlab/ci/templates-deployments.yml
 
 variables:
-  CAPO_PLATFORM_TAG: $CAPO_PLATFORM_TAG
+  CAPO_PLATFORM_TAG: capo-ci
   # if a deploy job sets this to "even" (resp. "odd"), the job will automatically trigger
   # for any MR having an even MR number and the run-e2e-tests label
   E2E_JOB_MR_PARITY: any
