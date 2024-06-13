@@ -1,1 +1,1 @@
-{"kubeadm": {"color": "", "result": "success"}, "rke2": {"color": "", "result": "success"}}
+{"kubeadm": {"color": "", "result": "failed"}, "rke2": {"color": "", "result": "failed"}}
