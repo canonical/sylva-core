@@ -5,6 +5,7 @@ include:
 # Default tag will be used for all deployments/updates jobs
 default:
   tags:
+    - capo-ci
     - $CAPO_PLATFORM_TAG
 
 # test-tags will be used to run the tests jobs in a docker executor based runner

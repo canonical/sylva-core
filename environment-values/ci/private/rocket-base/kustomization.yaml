@@ -1,0 +1,34 @@
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
+
+secretGenerator:
+- name: rocket-base-secrets
+  options:
+    disableNameSuffixHash: true
+  files:
+  - rocket-base-secrets=secrets.yaml
+
+configMapGenerator:
+- name: rocket-base-values
+  options:
+    disableNameSuffixHash: true
+  files:
+  - rocket-base-values=values.yaml
+
+patches:
+- target:
+    kind: HelmRelease
+    name: sylva-units
+  patch: |
+    - op: add
+      path: /spec/valuesFrom/-
+      value:
+        kind: Secret
+        name: rocket-base-secrets
+        valuesKey: rocket-base-secrets
+    - op: add
+      path: /spec/valuesFrom/-
+      value:
+        kind: ConfigMap
+        name: rocket-base-values
+        valuesKey: rocket-base-values

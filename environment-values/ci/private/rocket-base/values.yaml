@@ -1,0 +1,50 @@
+cluster:
+  capo:
+    ssh_key_name: otc_caas
+    network_id: 1f96aab6-280f-4cf8-833f-8dac8fb9313b
+    rootVolume:
+      diskSize: 100
+      volumeType: ceph_ssd
+    flavor_name: m1.xlarge
+  machine_deployments:
+    md0:
+      replicas: 3
+      capo:
+        failure_domain: nova
+openstack:
+  storageClass:
+    name: cinder-ceph-ssd
+    type: ceph_ssd
+
+# Add external ceph cluster details
+ceph:
+  cephfs_csi:
+    clusterID: "72451b38-2d3c-11ee-80a2-652991486dfa" # ceph cluster fsid
+    fs_name: "test" # ceph fs name
+    monitors_ips:
+    - 192.168.128.45 # ceph cluster monitors IP
+
+oci_registry_insecure: true
+
+oci_registry_extra_ca_certs: |-
+  -----BEGIN CERTIFICATE-----
+  MIIDXzCCAkegAwIBAgIUH344/MkyUtoagAV6vESAJy0dO1kwDQYJKoZIhvcNAQEL
+  BQAwPzELMAkGA1UEBhMCRlIxCzAJBgNVBAgMAkZSMQwwCgYDVQQHDANWRFIxFTAT
+  BgNVBAMMDHJvY2tldC5sb2NhbDAeFw0yNDAxMzAxMzEwNTZaFw0yNzAxMjkxMzEw
+  NTZaMD8xCzAJBgNVBAYTAkZSMQswCQYDVQQIDAJGUjEMMAoGA1UEBwwDVkRSMRUw
+  EwYDVQQDDAxyb2NrZXQubG9jYWwwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEK
+  AoIBAQC9CVJ7+2v0xzzf5u+qQFbnllg3XlS66On1sDFzJePX28x2YgYLW8TWyIPk
+  /aGxKFRaBpsMhQZYH4Vj9k0ThB/2y/HgIn0igLNlxLW7MdzsUOJXv0MWQy4UIy7J
+  L2rzgdWRxXlmiuIoPULO+Po9MujJWgWeF6IsIRWJEUv7qwwBpFiXtJv4P6yjZjwL
+  ccwTuEcUdKtnf64eixpGiZ1pghlCSEb1aADrqc+/0wejTrC4tqaE1R9pvmiyAG/u
+  5bZ4WndQCIUV0NbgQAGyEbOro1hhVXMMtdUPYPYeYRslhPF7/nUxhkVVPzOP372B
+  LGypHqjRYZ19+UyknOFt5JAEG+01AgMBAAGjUzBRMB0GA1UdDgQWBBTrdI1WzQC+
+  nXVf6Rr4P42ptNZ+oTAfBgNVHSMEGDAWgBTrdI1WzQC+nXVf6Rr4P42ptNZ+oTAP
+  BgNVHRMBAf8EBTADAQH/MA0GCSqGSIb3DQEBCwUAA4IBAQCawm9jWR7zxpJDlT3J
+  vN9N2Su4EsLsDbf08oooCxAzlf6ibAVvlEzLxCtHtmSFn4/k8TfD/RHrmFbGh3MI
+  QmahM9lxIrHHXrLE1ptDGMHcpxUeMu8eCknnq1PpSA+RukBMCYbK5V4YHUa7Om+l
+  YShOtrSpcUi8dRYq2fDWM4KMu7Uz1dv1zwBYYl6Ged0BrTeQ8iBN0YjK6HLqQ9RN
+  ZWFLVau30LB6b6/nwvXSOLQbbExyuajS6ZrFYnwfrfR9Pjcpx11P9+6IrbPC1CfZ
+  ux7cKFCq4wuhq3hUyVZHrzo23pUfxFq+/5RHzrlw5CB2c/HdcZ0dgqQi2lq681T9
+  pbve
+  -----END CERTIFICATE-----
