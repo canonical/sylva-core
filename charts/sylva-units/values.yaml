@@ -2849,7 +2849,18 @@ units:
           version: 2.8.3
       targetNamespace: cattle-system
       interval: 10m0s
+      # Increase upgrade timeout as ingress-nginx pods have a longer terminationGracePeriodSeconds
+      upgrade:
+        timeout: 30m
       values:
+        controller:
+          # Decrease default terminationGracePeriodSeconds (of 300s) to fasten upgrades, and tune worker_shutdown_timeout accordingly (default is 240s)
+          terminationGracePeriodSeconds: 90s
+          config:
+            worker-shutdown-timeout: 60s
+          # Install controllers only on control plane nodes, otherwise it may take a while to upgrade them successively on clusters with lot of nodes
+          nodeSelector:
+            node-role.kubernetes.io/control-plane: "true"
         auditLog:
           level: '{{ .Values.audit_log.level }}'
         privateCA: true
