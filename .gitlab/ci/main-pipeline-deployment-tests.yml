@@ -339,32 +339,38 @@ capo-rke2-oci-suse:
 .capm3-virt-equinix:
   extends: .default-trigger
   variables:
-    ENV_NAME: rke2-capm3-virt
     DOCKER_HOST: ""
     APPLY_WATCH_TIMEOUT_MIN: 80
     APPLY_WC_WATCH_TIMEOUT_MIN: 80
+    RUNNER_PLAN: m3.large.x86
   trigger:
     include: .gitlab/ci/pipeline-deploy-capm3-virt-equinix.yml
     strategy: depend
 
-capm3-ha-rke2-virt-ubuntu:
+.rke2-capm3-virt-equinix:
   extends: .capm3-virt-equinix
   variables:
-    MGMT_ADDITIONAL_VALUES: environment-values/rke2-capm3-virt/ha.yaml
-    WC_ADDITIONAL_VALUES: environment-values/workload-clusters/rke2-capm3-virt/ha.yaml
-    RUNNER_PLAN: m3.large.x86
+    ENV_NAME: rke2-capm3-virt
 
-capm3-rke2-virt-ubuntu:
+.kubeadm-capm3-virt-equinix:
   extends: .capm3-virt-equinix
+  variables:
+    ENV_NAME: kubeadm-capm3-virt
 
-capm3-rke2-virt-suse:
-  extends: .capm3-virt-equinix
+capm3-ha-rke2-virt-ubuntu:
+  extends: .rke2-capm3-virt-equinix
+
+capm3-ha-kubeadm-virt-ubuntu:
+  extends: .kubeadm-capm3-virt-equinix
+
+#capm3-ha-kubeadm-virt-suse:
+#  extends: .kubeadm-capm3-virt-equinix
+#  variables:
+#    MGMT_ADDITIONAL_VALUES: environment-values/ci/suse-os-kubeadm.yml
+#    WC_ADDITIONAL_VALUES: environment-values/ci/suse-os-kubeadm.yml
+
+capm3-ha-rke2-virt-suse:
+  extends: .rke2-capm3-virt-equinix
   variables:
     MGMT_ADDITIONAL_VALUES: environment-values/ci/suse-os-rke2.yml
     WC_ADDITIONAL_VALUES: environment-values/ci/suse-os-rke2.yml
-
-capm3-kubeadm-virt-ubuntu:
-  extends: .capm3-virt-equinix
-  variables:
-    MGMT_ADDITIONAL_VALUES: environment-values/ci/ubuntu-os-kubeadm-capm3-virt.yml
-    WC_ADDITIONAL_VALUES: environment-values/ci/ubuntu-os-kubeadm-capm3-virt.yml
