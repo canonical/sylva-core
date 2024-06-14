@@ -87,10 +87,6 @@
         }
       ]
     },
-    "string-with-gotpl": {
-      "type": "string",
-      "pattern": "(.|\\n)*{{(.|\\n)*}}(.|\\n)*"
-    },
     "dict-with-strings": {
       "anyOf": [
         {
@@ -102,12 +98,6 @@
                   "type": "string"
                 },
                 {
-                  "type": "array",
-                  "items": {
-                    "type": "object"
-                  }
-                },
-                {
                   "$ref": "#/$defs/string-with-gotpl"
                 },
                 {
@@ -116,12 +106,6 @@
               ]
             }
           }
-        },
-        {
-          "$ref": "#/$defs/string-with-gotpl"
-        },
-        {
-          "type": "null"
         },
         {
           "$ref": "#/$defs/string-with-gotpl"
@@ -1945,12 +1929,6 @@
         },
         {
           "type": "null"
-        },
-        {
-          "$ref": "#/$defs/string-with-gotpl"
-        },
-        {
-          "type": "null"
         }
       ]
     },
@@ -2023,44 +2001,19 @@
                     "annotations": {
                       "anyOf": [
                         {
-                          "type": "object",
-                          "properties": {
-                            "sylvaproject.org/default-longhorn-disks-config": {
-                              "anyOf": [
-                                {
-                                  "type": "array",
-                                  "items": {
-                                    "type": "object",
-                                    "additionalProperties": false,
-                                    "properties": {
-                                      "path": {
-                                        "type": "string"
-                                      },
-                                      "storageReserved": {
-                                        "type": "integer",
-                                        "minimum": 0
-                                      },
-                                      "allowScheduling": {
-                                        "type": "boolean"
-                                      },
-                                      "tags": {
-                                        "type": "array",
-                                        "items": {
-                                          "type": "string"
-                                        }
-                                      }
-                                    }
-                                  }
-                                },
-                                {
-                                  "$ref": "#/$defs/string-with-gotpl"
-                                },
-                                {
-                                  "type": "null"
+                          "oneOf": [
+                            {
+                              "$ref": "#/$defs/dict-with-strings"
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "sylvaproject.org/default-longhorn-disks-config": {
+                                  "$ref": "#/$defs/longhorn-validation"
                                 }
-                              ]
+                              }
                             }
-                          }
+                          ]
                         },
                         {
                           "$ref": "#/$defs/string-with-gotpl"
@@ -3098,6 +3051,10 @@
           "$ref": "#/$defs/boolean-string"
         }
       ]
+    },
+    "string-with-gotpl": {
+      "type": "string",
+      "pattern": "(.|\\n)*{{(.|\\n)*}}(.|\\n)*"
     },
     "sylva-capi-cluster-values": {
       "$schema": "https://json-schema.org/draft-07/schema#",
