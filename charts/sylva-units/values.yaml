@@ -3813,13 +3813,14 @@ units:
       chart:
         spec:
           chart: rke2-multus
-          version: v3.9.3-build2023010901
+          version: v4.0.2-build2024020802
       targetNamespace: kube-system
       install:
         createNamespace: false
       values:
         rke2-whereabouts:
           enabled: true
+          tolerations: []
       _postRenderers:
         - kustomize:
             patchesStrategicMerge:
@@ -3859,7 +3860,7 @@ units:
       healthChecks:
         - apiVersion: apps/v1
           kind: DaemonSet
-          name: multus-ds
+          name: multus
           namespace: kube-system
         - apiVersion: apps/v1
           kind: DaemonSet
