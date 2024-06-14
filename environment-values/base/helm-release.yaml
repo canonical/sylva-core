@@ -28,7 +28,6 @@ spec:
         - charts/sylva-units/management.values.yaml
       driftDetection:
         mode: enabled
-  
   interval: 10m0s
   valuesFrom:
   - kind: Secret
