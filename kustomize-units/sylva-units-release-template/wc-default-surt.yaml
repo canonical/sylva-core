@@ -10,8 +10,8 @@ spec:
     type: git
     url: https://gitlab.com/sylva-projects/sylva-core.git
     branch: main
-    driftDetection:
-      mode: enabled
+  driftDetection:
+    mode: enabled
   valuesFrom:
     - layerName: configmap-shared
       name: shared-workload-clusters-settings
