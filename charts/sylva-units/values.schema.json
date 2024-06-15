@@ -394,6 +394,19 @@
                   "type": "null"
                 }
               ]
+            },
+            "nodeTaints": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/dict-with-strings"
+                },
+                {
+                  "$ref": "#/$defs/string-with-gotpl"
+                },
+                {
+                  "type": "null"
+                }
+              ]
             }
           }
         },
@@ -5349,7 +5362,54 @@
                 "kubeadm": {
                   "anyOf": [
                     {
-                      "$ref": "#/$defs/kubeadm-users"
+                      "allOf": [
+                        {
+                          "$ref": "#/$defs/kubeadm-users"
+                        },
+                        {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "properties": {
+                            "nodeRegistration": {
+                              "type": "object",
+                              "additionalProperties": false,
+                              "properties": {
+                                "taints": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "object",
+                                    "additionalProperties": false,
+                                    "properties": {
+                                      "key": {
+                                        "type": "string"
+                                      },
+                                      "value": {
+                                        "type": "string"
+                                      },
+                                      "effect": {
+                                        "type": "string",
+                                        "enum": [
+                                          "NoSchedule",
+                                          "PreferNoSchedule",
+                                          "NoExecute"
+                                        ]
+                                      },
+                                      "timeAdded": {
+                                        "type": "string"
+                                      }
+                                    },
+                                    "required": [
+                                      "key",
+                                      "value",
+                                      "effect"
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      ]
                     },
                     {
                       "$ref": "#/$defs/string-with-gotpl"
