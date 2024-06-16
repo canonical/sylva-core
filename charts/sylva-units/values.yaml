@@ -194,7 +194,7 @@ unit_helmrelease_kustomization_spec_default:
     {{- end -}}
   wait: true
   driftDetection:
-  mode: enabled
+    mode: enabled
 
 # default value used if units.xxx.enabled is not specified
 units_enabled_default: false
