@@ -193,8 +193,6 @@ unit_helmrelease_kustomization_spec_default:
       {{- dict "kind" (index .Values.source_templates "sylva-core" | dig "kind" "GitRepository") "name" "sylva-core" | include "preserve-type" -}}
     {{- end -}}
   wait: true
-  driftDetection:
-    mode: enabled
 
 # default value used if units.xxx.enabled is not specified
 units_enabled_default: false
