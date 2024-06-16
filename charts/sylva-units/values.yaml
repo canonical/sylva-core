@@ -2273,10 +2273,10 @@ units:
     helmrelease_spec:
       driftDetection:
       mode: enabled
-        ignore:
-          apiVersion: cluster.x-k8s.io/v1beta1
-          kind: MachineDeployment
-          name: management-cluster-md0s
+      ignore:
+        apiVersion: cluster.x-k8s.io/v1beta1
+        kind: MachineDeployment
+        name: management-cluster-md0s
       upgrade:
         remediation:  # don't inherit retry settings from unit_helmrelease_spec_default (we don't want to try rollback CAPI resources)
           retries: 0
