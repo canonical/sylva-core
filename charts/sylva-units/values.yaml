@@ -2271,6 +2271,12 @@ units:
         | include "preserve-type"
         }}
     helmrelease_spec:
+      driftDetection:
+      mode: enabled
+        ignore:
+          apiVersion: cluster.x-k8s.io/v1beta1
+          kind: MachineDeployment
+          name: management-cluster-md0s
       upgrade:
         remediation:  # don't inherit retry settings from unit_helmrelease_spec_default (we don't want to try rollback CAPI resources)
           retries: 0
@@ -2312,15 +2318,6 @@ units:
           name: '{{ .Values._internal.os_images_info_configmap }}'  # this configmap is a byproduct of the os-images-info unit
           valuesKey: values.yaml
           optional: '{{ not (.Values.cluster.capi_providers.infra_provider | eq "capm3") | include "as-bool" }}'
-      _postRenderers:
-        - kustomize:
-            patches:
-            - target:
-                kind: MachineDeployment
-              patch: |
-                - op: add
-                  path: /metadata/annotations/helm.toolkit.fluxcd.io~1driftDetection
-                  value: disabled
     # we pass everything that is under `cluster` to this unit that uses sylva-capi-cluster chart
     # (we do it via a secret because some of the values are credentials in many scenarios)
     helm_secret_values: '{{ .Values.cluster | include "preserve-type" }}'
