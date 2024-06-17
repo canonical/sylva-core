@@ -3372,7 +3372,7 @@ units:
         ignore: 
          - paths: ["/spec/resources/request"]
            target: 
-             kind: prometheus
+             kind: Prometheus
          - paths: ["/spec/remoteWrite"]
            target: 
              kind: prometheus
