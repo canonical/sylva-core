@@ -2718,6 +2718,7 @@
           "type": "object",
           "additionalProperties": false,
           "required": [
+            "non_hugepages_minimum_memory_gb",
             "kernel_cmdline",
             "kubelet_extra_args",
             "kubelet_config_file_options",
@@ -2727,6 +2728,19 @@
             "additional_commands"
           ],
           "properties": {
+            "non_hugepages_minimum_memory_gb": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "$ref": "#/$defs/string-with-gotpl"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
             "kernel_cmdline": {
               "anyOf": [
                 {
@@ -2796,19 +2810,6 @@
                               ]
                             }
                           }
-                        },
-                        {
-                          "$ref": "#/$defs/string-with-gotpl"
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    },
-                    "system_reserved_memory_gb": {
-                      "anyOf": [
-                        {
-                          "type": "integer"
                         },
                         {
                           "$ref": "#/$defs/string-with-gotpl"
@@ -2918,6 +2919,36 @@
                   "type": "null"
                 }
               ]
+            }
+          },
+          "if": {
+            "properties": {
+              "kernel_cmdline": {
+                "properties": {
+                  "hugepages": {
+                    "enabled": {
+                      "const": true
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "non_hugepages_minimum_memory_gb": {
+                "anyOf": [
+                  {
+                    "minimum": 2
+                  },
+                  {
+                    "$ref": "#/$defs/string-with-gotpl"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
             }
           }
         },

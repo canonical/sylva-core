@@ -9,8 +9,8 @@
 | **capo** | installs OpenStack CAPI infra provider | core-component |  | [Kustomize](https://github.com/kubernetes-sigs/cluster-api-provider-openstack/config/default?ref=75ffe73f88544dbc26c6636a491bca5b3f63c3d4) | 75 |
 | **capv** | installs vSphere CAPI infra provider | core-component |  | [Kustomize](https://github.com/kubernetes-sigs/cluster-api-provider-vsphere/releases/download/v1.9.3/infrastructure-components.yaml) | v1.9.3 |
 | **cert-manager** | installs cert-manager, an X.509 certificate controller | core-component |  | [Helm](https://charts.jetstack.io) | v1.14.5 |
-| **cluster** | holds the Cluster API definition for the cluster | core-component |  | [Helm](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-capi-cluster.git) | 0.2.19-hp |
-| **cluster-bmh** | definitions for Cluster API BareMetalHosts resources (capm3) | core-component |  | [Helm](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-capi-cluster.git) | 0.2.19-hp |
+| **cluster** | holds the Cluster API definition for the cluster | core-component |  | [Helm](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-capi-cluster.git) | 0.0.0-hp |
+| **cluster-bmh** | definitions for Cluster API BareMetalHosts resources (capm3) | core-component |  | [Helm](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-capi-cluster.git) | 0.0.0-hp |
 | **flux-system** | contains Flux definitions *to manage the Flux system itself via gitops*<br/><br/>Note that Flux is always installed on the current cluster as a pre-requisite to installing the chart | core-component |  | [Kustomize](https://github.com/fluxcd/flux2/releases/download/v2.2.3/install.yaml) | v2.2.3 |
 | **heat-operator** | installs OpenStack Heat operator | core-component |  | [Kustomize](https://gitlab.com/sylva-projects/sylva-elements/heat-operator.git/config/default?ref=0.0.7) | 0.0.7 |
 | **kyverno** | installs Kyverno | core-component |  | [Helm](https://kyverno.github.io/kyverno) | 3.1.5 |
