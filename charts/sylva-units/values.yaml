@@ -4029,6 +4029,7 @@ units:
     depends_on:
       namespace-defs: true
       longhorn-crd: true
+      monitoring-crd: '{{ tuple . "monitoring" | include "unit-enabled" }}'
     helm_repo_url: https://charts.rancher.io/
     helmrelease_spec:
       releaseName: longhorn
@@ -4042,7 +4043,7 @@ units:
       values:
         metrics:
           serviceMonitor:
-            enabled: true
+            enabled: '{{ tuple . "monitoring" | include "unit-enabled" | include "as-bool" }}'
         defaultSettings:
           createDefaultDiskLabeledNodes: true
           allowVolumeCreationWithDegradedAvailability: false
