@@ -3422,7 +3422,7 @@ units:
                     key: password
                 tlsConfig:
                   insecureSkipVerify: true
-                queue_config:
+                queueConfig:
                   batch_send_deadline: 5s
                   min_backoff: 1s
                   max_backoff: 30s
