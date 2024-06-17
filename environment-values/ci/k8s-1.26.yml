@@ -2,9 +2,6 @@ k8s_version_short: "1.26"
 
 cluster:
   control_plane_replicas: 3
-  capo:
-    image_key: ubuntu-jammy-plain-rke2-1-26-9
 
-sylva_diskimagebuilder_images:
-  ubuntu-jammy-plain-rke2-1-26-9:
-    enabled: true
+# image_key and sylva_diskimagebuilder_images.<image_key>.enabled handled by environment-values/ci/image-key-common.yaml
+
