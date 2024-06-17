@@ -1899,10 +1899,13 @@
               "path": {
                 "type": "string",
                 "if": {
-                  "pattern": ".*by.*path.*"
+                  "pattern": ".*/disk.*by.*"
                 },
                 "then": {
-                  "pattern": ".*/disk_by-path_pci-.*"
+                  "pattern": "/var/longhorn/disks/disk_by-(uuid_|path_pci-).*"
+                },
+                "else": {
+                  "pattern": "/var/longhorn/disks/(sd|vd)[a-z]"
                 }
               },
               "storageReserved": {
@@ -1938,6 +1941,19 @@
           "type": "object",
           "additionalProperties": false,
           "properties": {
+            "longhorn_disk_config": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/longhorn-validation"
+                },
+                {
+                  "$ref": "#/$defs/string-with-gotpl"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
             "credentials": {
               "anyOf": [
                 {
@@ -2001,19 +2017,7 @@
                     "annotations": {
                       "anyOf": [
                         {
-                          "oneOf": [
-                            {
-                              "$ref": "#/$defs/dict-with-strings"
-                            },
-                            {
-                              "type": "object",
-                              "properties": {
-                                "sylvaproject.org/default-longhorn-disks-config": {
-                                  "$ref": "#/$defs/longhorn-validation"
-                                }
-                              }
-                            }
-                          ]
+                          "$ref": "#/$defs/dict-with-strings"
                         },
                         {
                           "$ref": "#/$defs/string-with-gotpl"
