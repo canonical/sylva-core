@@ -3396,7 +3396,7 @@ units:
             resources:
               limits:
                 memory: 6Gi
-              request:
+              requests:
                 memory: 3Gi
             storageSpec:
               volumeClaimTemplate:
