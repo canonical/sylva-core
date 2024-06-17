@@ -1,0 +1,40 @@
+# This file contains information and computations to automatically determine 'image_key'
+# and sylva_diskimagebuilder_images.xxx.enabled, for CAPO and CAPM3, based on:
+# * .k8s_version_short
+# * .cluster.capi_providers.bootstrap_provider
+# * ._internal.os_key
+# * ._internal.os_flavor
+#
+# It is meant to faciliate CI configuration until https://gitlab.com/sylva-projects/sylva-core/-/issues/1101
+# is implemented.
+#
+# It is called directly .gitlab/ci/templates-deployments.yml .
+
+_internal:
+  os_key: ubuntu-jammy ## or opensuse-15.5
+  os_flavor: plain ## or hardened
+
+  k8s_flavor_key: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpk" | ternary "kubeadm" "rke2" }}'
+  k8s_version_key: >-
+    {{
+    regexReplaceAll "v?([^+]*)([+]rke2.*)?"
+                    (tuple . .Values.cluster.k8s_version | include "interpret-as-string")
+                    "${1}"
+      | replace "." "-"
+    }}
+  image_key: '{{ .Values._internal.os_key }}-{{ .Values._internal.os_flavor }}-{{ tuple . .Values._internal.k8s_flavor_key | include "interpret-as-string" }}-{{ tuple . .Values._internal.k8s_version_key | include "interpret-as-string" }}'
+
+cluster:
+  capm3:
+    image_key: '{{ .Values._internal.image_key }}'
+  capo:
+    image_key: '{{ .Values._internal.image_key }}'
+
+sylva_diskimagebuilder_images:
+  '{{ .Values._internal.image_key }}':
+    enabled: true
+
+  # disable the default from sylva-units/values.yaml
+  # if this image is wanted, then the computation above will enable it
+  ubuntu-jammy-plain-rke2-1-28-9:
+    default_enabled: false

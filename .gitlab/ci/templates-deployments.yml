@@ -145,6 +145,7 @@ include:
     fi
   - yq -i '.cluster.name = strenv(CLUSTER_CI_NAME)' $values_file
   - yq -i '.env_type = "ci"' $values_file
+  - update_values_file environment-values/ci/image-key-common.yaml
   - |
     if [ -n "${MGMT_ADDITIONAL_VALUES}" ] && [ "${CLUSTER_TYPE}" = "management" ]; then
       update_values_file ${MGMT_ADDITIONAL_VALUES}
