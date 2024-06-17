@@ -5066,7 +5066,7 @@ units:
           sidecars:
           # reload thanos-ruler when changes to rule files are detected
           - name: configmap-reload
-            image: bitnami/configmap-reload:0.13.0
+            image: bitnami/configmap-reload:0.13.1
             args:
             - --volume-dir=/conf/rules/
             - --webhook-url=http://thanos-user:{{ .Values._internal.thanos_password }}@localhost:10902/-/reload
