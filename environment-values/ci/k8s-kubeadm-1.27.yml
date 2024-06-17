@@ -1,7 +1,0 @@
-k8s_version_short: "1.27"
-
-cluster:
-  control_plane_replicas: 3
-
-# image_key and sylva_diskimagebuilder_images.<image_key>.enabled handled by environment-values/ci/image-key-common.yaml
-
