@@ -3375,7 +3375,7 @@ units:
              kind: Prometheus
          - paths: ["/spec/remoteWrite"]
            target: 
-             kind: prometheus
+             kind: Prometheus
       releaseName: rancher-monitoring
       targetNamespace: cattle-monitoring-system
       storageNamespace: cattle-monitoring-system # see https://gitlab.com/sylva-projects/sylva-core/-/issues/443
