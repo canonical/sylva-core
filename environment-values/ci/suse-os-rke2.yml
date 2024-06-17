@@ -1,5 +1,0 @@
----
-_internal:
-  os_key: opensuse-15-5
-
-# image_key and sylva_diskimagebuilder_images.<image_key>.enabled handled by environment-values/ci/image-key-common.yaml

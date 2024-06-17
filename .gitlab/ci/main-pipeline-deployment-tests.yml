@@ -307,14 +307,14 @@ capo-fip-kubeadm-oci-ubuntu:
 capo-rke2-suse:
   extends: capo-rke2-ubuntu
   variables:
-    MGMT_ADDITIONAL_VALUES: environment-values/ci/suse-os-rke2.yml
-    WC_ADDITIONAL_VALUES: environment-values/ci/suse-os-rke2.yml
+    MGMT_ADDITIONAL_VALUES: environment-values/ci/suse-os.yml
+    WC_ADDITIONAL_VALUES: environment-values/ci/suse-os.yml
 
 capo-rke2-oci-suse:
   extends: capo-rke2-oci-ubuntu
   variables:
-    MGMT_ADDITIONAL_VALUES: environment-values/ci/suse-os-rke2.yml
-    WC_ADDITIONAL_VALUES: environment-values/ci/suse-os-rke2.yml
+    MGMT_ADDITIONAL_VALUES: environment-values/ci/suse-os.yml
+    WC_ADDITIONAL_VALUES: environment-values/ci/suse-os.yml
 
 .capm3-virt-equinix:
   extends: .default-trigger
@@ -346,11 +346,11 @@ capm3-ha-kubeadm-virt-ubuntu:
 #capm3-ha-kubeadm-virt-suse:
 #  extends: .kubeadm-capm3-virt-equinix
 #  variables:
-#    MGMT_ADDITIONAL_VALUES: environment-values/ci/suse-os-kubeadm.yml
-#    WC_ADDITIONAL_VALUES: environment-values/ci/suse-os-kubeadm.yml
+#    MGMT_ADDITIONAL_VALUES: environment-values/ci/suse-os.yml
+#    WC_ADDITIONAL_VALUES: environment-values/ci/suse-os.yml
 
 capm3-ha-rke2-virt-suse:
   extends: .rke2-capm3-virt-equinix
   variables:
-    MGMT_ADDITIONAL_VALUES: environment-values/ci/suse-os-rke2.yml
-    WC_ADDITIONAL_VALUES: environment-values/ci/suse-os-rke2.yml
+    MGMT_ADDITIONAL_VALUES: environment-values/ci/suse-os.yml
+    WC_ADDITIONAL_VALUES: environment-values/ci/suse-os.yml
