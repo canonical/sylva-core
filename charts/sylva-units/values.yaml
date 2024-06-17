@@ -2105,6 +2105,49 @@ units:
                   drop:
                     - ALL
 
+  metal3-automated-cleanup-fix:
+    info:
+      description: fix metal3MachineTemplates produced by sylva-capi-cluster version =< 0.2.14 in sylva release =< 1.1.0
+      internal: true
+    unit_templates:
+    - base-deps
+    enabled_conditions:
+    - '{{ .Values.cluster.capi_providers.infra_provider | eq "capm3" }}'
+    - '{{ tuple . "longhorn" | include "unit-enabled" }}'
+    - '{{ .Values._internal.metal3_need_automated_cleanup_fix }}'
+    repo: sylva-core
+    kustomization_spec:
+      path: ./kustomize-units/kube-job
+      wait: true
+      force: true
+      postBuild:
+        substitute:
+          JOB_NAME: metal3-automated-cleanup-fix
+          JOB_TARGET_NAMESPACE: '{{ .Release.Namespace }}'
+          JOB_CHECKSUM: '{{ .Values | toJson | sha256sum }}'
+      _patches:
+      - target:
+          kind: ConfigMap
+        patch: |
+          - op: replace
+            path: /metadata/name
+            value: metal3-automated-cleanup-fix-{{ .Release.Namespace }}-cm
+          - op: replace
+            path: /data/kube-job.sh
+            value: |
+              #!/bin/bash
+              set -e
+
+              for Metal3MachineTemplate in $(kubectl get -n $TARGET_NAMESPACE metal3machinetemplates.infrastructure.cluster.x-k8s.io -o name); do
+                echo "-- Setting automatedCleaningMode disabled in Metal3MachineTemplate $Metal3MachineTemplate"
+                kubectl patch -n $TARGET_NAMESPACE $Metal3MachineTemplate --type=json --patch '[{"op": "replace", "path": "/spec/template/spec/automatedCleaningMode", "value": "disabled"}]'
+              done
+
+              echo "-- Waiting for all Metal3Machines to have automatedCleaningMode set to disabled"
+              kubectl wait -n $TARGET_NAMESPACE metal3Machine --all --timeout 300s --for='jsonpath={.spec.automatedCleaningMode}="disabled"'
+
+              echo "-- Sucessfully updated Metal3Machines automatedCleaningMode"
+
   metal3:
     info:
       description: installs SUSE-maintained Metal3 operator
@@ -2252,6 +2295,7 @@ units:
       capo-cluster-resources: '{{ .Values.cluster.capi_providers.infra_provider | eq "capo" }}'
       get-openstack-images: '{{ .Values.cluster.capi_providers.infra_provider | eq "capo" }}'
       cluster-bmh: '{{ .Values.cluster.capi_providers.infra_provider | eq "capm3" }}'
+      metal3-automated-cleanup-fix: '{{ tuple . "metal3-automated-cleanup-fix" | include "unit-enabled" }}'
     kustomization_spec:
       prune: '{{ not (eq .Release.Namespace "sylva-system") | include "preserve-type" }}'
       # we wait on all important resources built by sylva-capi-cluster,
@@ -6252,6 +6296,17 @@ _internal:
     {{
     .Capabilities.APIVersions | has "infrastructure.cluster.x-k8s.io/v1alpha8/OpenStackCluster" | include "preserve-type"
     }}
+
+  metal3_need_automated_cleanup_fix: >
+    {{- $result := "false" -}}
+    {{- if .Capabilities.APIVersions | has "infrastructure.cluster.x-k8s.io/v1beta1/Metal3MachineTemplate" -}}
+      {{- range (lookup "infrastructure.cluster.x-k8s.io/v1beta1" "Metal3MachineTemplate" .Release.Namespace "" | dig "items" list) -}}
+        {{- if eq "metadata" (dig "spec" "template" "spec" "automatedCleaningMode" "disabled" .) -}}
+          {{- $result = "true" -}}
+        {{- end -}}
+      {{- end -}}
+    {{- end -}}
+    {{- $result -}}
 
 
 shared_workload_clusters_values:
