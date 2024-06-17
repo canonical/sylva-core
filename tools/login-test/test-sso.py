@@ -17,6 +17,7 @@ vault_url=os.getenv('vault_url')
 flux_url=os.getenv('flux_url')
 harbor_url=os.getenv('harbor_url')
 neuvector_url=os.getenv('neuvector_url')
+grafana_url=os.getenv('grafana_url')
 mgmt_only=os.getenv('ONLY_DEPLOY_MGMT')
 workload_name=os.getenv('WORKLOAD_CLUSTER_NAME')
 download_file=os.getenv('PWD')
@@ -26,6 +27,7 @@ options.set_preference("browser.download.dir", download_file)
 options.set_preference("browser.download.folderList", 2)
 options.set_preference("browser.download.manager.useWindow", False)
 options.add_argument("-headless")
+
 
 def rancher_sso(endpoint, username, password, workload_name):
   print("--------------------------------")
@@ -43,7 +45,7 @@ def rancher_sso(endpoint, username, password, workload_name):
     WebDriverWait(browser, delay).until(element_present)
   except TimeoutException:
     print ("Cannot access SSO option")
-    exit (1)
+    return None
   browser.find_element(By.XPATH, '//button[@class="btn bg-primary"]').click()
   print("Redirect to SSO")
   try:
@@ -51,7 +53,7 @@ def rancher_sso(endpoint, username, password, workload_name):
     WebDriverWait(browser, delay).until(element_present)
   except TimeoutException:
     print ("Cannot access SSO Sign In page")
-    exit (1)
+    return None
   print(browser.title)
   print(browser.current_url)
   browser.implicitly_wait(10)
@@ -85,7 +87,7 @@ def rancher_sso(endpoint, username, password, workload_name):
     WebDriverWait(browser, delay).until(mgmt_clickable)
   except TimeoutException:
     print ("Cannot access the Rancher UI")
-    exit(1)
+    return None
   print("Redirect to rancher UI home page")
   print(browser.current_url)
   if mgmt_only == "TRUE":
@@ -94,6 +96,7 @@ def rancher_sso(endpoint, username, password, workload_name):
       print(Style.RESET_ALL)
       browser.delete_all_cookies()
       browser.quit()
+      return True
   else:
     cluster=workload_name + '-capi'
     try:
@@ -103,7 +106,7 @@ def rancher_sso(endpoint, username, password, workload_name):
       WebDriverWait(browser, delay).until(workload_clickable)
     except TimeoutException:
       print ("Cannot access workload cluster in Rancher UI")
-      exit(1)
+      return None
     print ("Switch to workload cluster " + workload_name)
     browser.find_element(By.LINK_TEXT,cluster).click()
     time.sleep(15)
@@ -127,6 +130,7 @@ def rancher_sso(endpoint, username, password, workload_name):
     print(Style.RESET_ALL)
     browser.delete_all_cookies()
     browser.quit()
+    return True
 
 def vault_sso(endpoint, username, password):
   print("--------------------------------")
@@ -155,7 +159,7 @@ def vault_sso(endpoint, username, password):
     WebDriverWait(browser, delay).until(element_present)
   except TimeoutException:
     print ("Cannot access SSO Sign In page")
-    exit (1)
+    return None
   print(browser.title)
   print(browser.current_url)
   browser.find_element(By.ID,"username").send_keys(username)
@@ -173,9 +177,10 @@ def vault_sso(endpoint, username, password):
     print(Style.RESET_ALL)
   except TimeoutException:
     print ("Cannot access the Vault UI")
-    exit(1)
+    return None
   browser.delete_all_cookies()
   browser.quit()
+  return True
 
 def flux_sso(endpoint, username, password):
   print("--------------------------------")
@@ -192,7 +197,7 @@ def flux_sso(endpoint, username, password):
     WebDriverWait(browser, delay).until(element_present)
   except TimeoutException:
     print ("Cannot access SSO option")
-    exit (1)
+    return None
   # force to retry
   retry = 0
   while (retry < 25):
@@ -209,7 +214,7 @@ def flux_sso(endpoint, username, password):
     WebDriverWait(browser, delay).until(element_present)
   except TimeoutException:
     print ("Cannot access SSO Sign In page")
-    exit (1)
+    return None
   print(browser.title)
   print(browser.current_url)
   browser.find_element(By.ID,"username").send_keys(username)
@@ -227,13 +232,16 @@ def flux_sso(endpoint, username, password):
     print(Style.RESET_ALL)
   except TimeoutException:
     print ("Cannot access the Flux UI")
-    exit(1)
+    return None
   browser.delete_all_cookies()
   browser.quit()
+  return True
 
 def neuvector_sso(endpoint, username, password):
    if not endpoint:
+      print ("-----------------------------------------------")
       print ("Neuvector is not defined in this configuration")
+      return True
    else:
       print("--------------------------------")
       browser = webdriver.Firefox(options=options)
@@ -256,7 +264,7 @@ def neuvector_sso(endpoint, username, password):
         WebDriverWait(browser, delay).until(element_present)
       except TimeoutException:
         print ("Cannot access SSO option")
-        exit (1)
+        return None
       browser.find_element(By.XPATH, '//button[normalize-space()="Login with OpenID"]').click()
       print("Redirect to SSO")
       try:
@@ -264,7 +272,7 @@ def neuvector_sso(endpoint, username, password):
         WebDriverWait(browser, delay).until(element_present)
       except TimeoutException:
         print ("Cannot access SSO Sign In page")
-        exit (1)
+        return None
       print(browser.title)
       print(browser.current_url)
       browser.find_element(By.ID,"username").send_keys(username)
@@ -282,13 +290,16 @@ def neuvector_sso(endpoint, username, password):
         print(Style.RESET_ALL)
       except TimeoutException:
         print ("Cannot access the Neuvector UI")
-        exit(1)
-        browser.delete_all_cookies()
-        browser.quit()
+        return None
+      browser.delete_all_cookies()
+      browser.quit()
+      return True
 
 def harbor_sso(endpoint, username, password):
   if not endpoint:
+      print("---------------------------------------------")
       print ("Harbor is not defined in this configuration")
+      return True
   else:
      print("--------------------------------")
      print("Checking SSO auth Harbor")
@@ -304,7 +315,7 @@ def harbor_sso(endpoint, username, password):
        WebDriverWait(browser, delay).until(element_present)
      except TimeoutException:
        print ("Cannot access SSO option")
-       exit (1)
+       return None
      browser.find_element(By.XPATH, '//button[@id="log_oidc"]').click()
      print("Redirect to SSO")
      try:
@@ -312,7 +323,7 @@ def harbor_sso(endpoint, username, password):
        WebDriverWait(browser, delay).until(element_present)
      except TimeoutException:
        print ("Cannot access SSO Sign In page")
-       exit (1)
+       return None
      print(browser.title)
      print(browser.current_url)
      browser.find_element(By.ID,"username").send_keys(username)
@@ -330,13 +341,153 @@ def harbor_sso(endpoint, username, password):
        print(Style.RESET_ALL)
      except TimeoutException:
        print ("Cannot access the Harbor UI")
-       exit(1)
+       return None
      browser.delete_all_cookies()
      browser.quit()
+     return True 
 
-rancher_sso( rancher_url, user, password, workload_name )
-vault_sso( vault_url, user, password )
-flux_sso( flux_url, user, password )
-harbor_sso( harbor_url, user, password )
-neuvector_sso( neuvector_url, user, password )
+def grafana_sso(endpoint, username, password):
+  if not endpoint:
+      print("--------------------------------------------")
+      print ("Grafana is not defined in this configuration")
+      return True
+  else:
+     print("--------------------------------")
+     print("Checking SSO auth Grafana")
+     browser = webdriver.Firefox(options=options)
+     url='https://' + endpoint
+     browser.get(url)
+     print(browser.current_url)
+     print(browser.title)
+     browser.implicitly_wait(10)
+     delay = 30
+     try:
+       element_present = EC.presence_of_element_located((By.XPATH, '//a[@href="login/generic_oauth"]'))
+       WebDriverWait(browser, delay).until(element_present)
+     except TimeoutException:
+       print ("Cannot access SSO option")
+       return None
+     browser.find_element(By.XPATH, '//a[@href="login/generic_oauth"]').click()
+     print("Redirect to SSO")
+     try:
+       element_present = EC.presence_of_element_located((By.ID,"username"))
+       WebDriverWait(browser, delay).until(element_present)
+     except TimeoutException:
+       print ("Cannot access SSO Sign In page")
+       return None
+     #print(browser.title)
+     print(browser.current_url)
+     browser.find_element(By.ID,"username").send_keys(username)
+     browser.find_element(By.ID,"password").send_keys(password)
+     browser.find_element(By.ID,"kc-login").click()
+     print(browser.current_url)
+     print("Waiting to be redirect towards grafana UI home page")
+     time.sleep(25)
+     print("Redirect to grafana UI home page")
+     try:
+       print(browser.title)
+       print(browser.current_url)
+       print("Access dashboards")
+       element_present = EC.presence_of_element_located((By.XPATH, '//a[@aria-label="Dashboards"]'))
+       WebDriverWait(browser, delay).until(element_present)
+       browser.find_element(By.XPATH, '//a[@aria-label="Dashboards"]').click()
+       print(browser.current_url)
+       print("Trying to access Grafana Overwiev dashboard")
+       browser.find_element(By.XPATH, '//span[@id="section-header-label-17"]').click()
+       browser.find_element(By.XPATH, '//a[@href="/d/6be0s85Mk/grafana-overview"]').click()
+       element_present = EC.presence_of_element_located((By.XPATH, '//header[@data-testid="data-testid Panel header Dashboards"]'))
+       WebDriverWait(browser, delay).until(element_present)
+       print(browser.title)
+       print(browser.current_url)
+       print(Fore.GREEN + "Grafana SSO check done")
+       print(Style.RESET_ALL)
+     except TimeoutException:
+       print ("Cannot access the Grafana UI")
+       return None
+     browser.delete_all_cookies()
+     browser.quit()
+     return True
 
+all_tests=0
+passed_tests=0
+retry=0
+
+# dict with keys app name and value 1 for OK/passed and 0 for KO/failed, initial value 0
+test={}
+
+env_vars = os.environ
+for key, value in env_vars.items():
+    if key.endswith("_url"):
+       test[key.split("_")[0]]=0
+       all_tests += 1
+
+# a function is True when the sso test passed
+if  rancher_sso( rancher_url, user, password, workload_name ) == True:
+    test['rancher']=1
+    passed_tests += 1
+
+if  vault_sso( vault_url, user, password ) == True:
+    test['vault']=1
+    passed_tests += 1
+
+if  flux_sso( flux_url, user, password ) == True:
+    test['flux']=1
+    passed_tests += 1
+
+if  neuvector_sso( neuvector_url, user, password ) == True:
+    test['neuvector']=1
+    passed_tests += 1
+
+if  harbor_sso( harbor_url, user, password ) == True:
+    test['harbor']=1
+    passed_tests += 1
+
+if  grafana_sso( grafana_url, user, password ) == True:
+    test['grafana']=1
+    passed_tests += 1
+
+while ( all_tests > passed_tests):
+  if  test['rancher'] != 1:
+      if rancher_sso( rancher_url, user, password, workload_name ) == True:
+           test['rancher']=1
+           passed_tests += 1
+      else: 
+        retry +=1
+  
+  if  test['vault'] != 1:
+      if vault_sso( vault_url, user, password ) == True:
+           test['vault']=1
+           passed_tests += 1
+      else:
+        retry +=1
+
+  if  test['flux'] != 1:
+      if flux_sso( flux_url, user, password ) == True:
+           test['flux']=1
+           passed_tests += 1
+      else:
+        retry +=1
+
+  if  test['neuvector'] != 1:
+      if neuvector_sso( neuvector_url, user, password ) == True:
+           test['neuvector']=1
+           passed_tests += 1
+      else:
+        retry +=1
+
+  if  test['harbor'] != 1:
+      if harbor_sso( harbor_url, user, password ) == True:
+           test['harbor']=1
+           passed_tests += 1
+      else:
+        retry +=1
+
+  if  test['grafana'] !=1:
+      if grafana_sso( grafana_url, user, password ) == True:
+        test['grafana']=1
+        passed_tests += 1
+      else:
+         retry += 1
+  if retry > 20:
+     print("The maximum number of retries was reached")
+     exit (1)
