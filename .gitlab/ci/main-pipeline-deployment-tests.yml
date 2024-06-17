@@ -104,48 +104,28 @@ variables:
   # For capd no ha capm3 scheduled pipelines we don't want to test rolling upgrades
   # As it's not supported for single node deployments
   - if: '$CI_PIPELINE_SOURCE == "schedule" && $CI_DEPLOYMENTS && $CI_JOB_NAME =~ $DEPLOYMENT_FLAVOR && $CI_JOB_NAME =~ /capd.*|capm3.*/ && $CI_JOB_NAME !~ /capm3-ha-.*/'
-  # RKE2 override to test rolling upgrades in scheduled pipelines
-  - if: '$CI_PIPELINE_SOURCE == "schedule" && $CI_DEPLOYMENTS && $CI_JOB_NAME =~ $DEPLOYMENT_FLAVOR && $ENV_NAME =~ /.*rke2.*/'
+  # override to test rolling upgrades in scheduled pipelines
+  - if: '$CI_PIPELINE_SOURCE == "schedule" && $CI_DEPLOYMENTS && $CI_JOB_NAME =~ $DEPLOYMENT_FLAVOR'
     variables:
       MGMT_INITIAL_ADDITIONAL_VALUES: environment-values/ci/control-plane-replicas-3.yml
       MGMT_UPDATE_ADDITIONAL_VALUES: environment-values/ci/dummy-rolling-update-trigger.yml
       APPLY_WATCH_TIMEOUT_MIN: 40
       WC_INITIAL_ADDITIONAL_VALUES: environment-values/ci/k8s-1.27.yml
       WC_UPDATE_ADDITIONAL_VALUES: environment-values/ci/k8s-1.28.yml
-      APPLY_WC_WATCH_TIMEOUT_MIN: 40
-  # kubeadm override to test rolling upgrades in scheduled pipelines
-  - if: '$CI_PIPELINE_SOURCE == "schedule" && $CI_DEPLOYMENTS && $CI_JOB_NAME =~ $DEPLOYMENT_FLAVOR && $ENV_NAME =~ /.*kubeadm.*/'
-    variables:
-      MGMT_INITIAL_ADDITIONAL_VALUES: environment-values/ci/control-plane-replicas-3.yml
-      MGMT_UPDATE_ADDITIONAL_VALUES: environment-values/ci/dummy-rolling-update-trigger.yml
-      APPLY_WATCH_TIMEOUT_MIN: 40
-      WC_INITIAL_ADDITIONAL_VALUES: environment-values/ci/k8s-kubeadm-1.27.yml
-      WC_UPDATE_ADDITIONAL_VALUES: environment-values/ci/k8s-kubeadm-1.28.yml
       APPLY_WC_WATCH_TIMEOUT_MIN: 40
   # For capd no ha capm3 MR pipelines we don't want to test rolling upgrades in MR flagged with ci-feature::test-rolling-upgrade
   # As it's not supported for single node deployments
   - if: $CI_MERGE_REQUEST_LABELS =~ /ci-feature::test-rolling-upgrade/ && $CI_JOB_NAME =~ /capd.*|capm3.*/ && $CI_JOB_NAME !~ /capm3-ha-.*/
     allow_failure: true
     when: manual
-  # RKE2 override to test rolling upgrades in MR flagged with ci-feature::test-rolling-upgrade
-  - if: $CI_MERGE_REQUEST_LABELS =~ /ci-feature::test-rolling-upgrade/ && $ENV_NAME =~ /.*rke2.*/
+  # override to test rolling upgrades in MR flagged with ci-feature::test-rolling-upgrade
+  - if: $CI_MERGE_REQUEST_LABELS =~ /ci-feature::test-rolling-upgrade/
     variables:
       MGMT_INITIAL_ADDITIONAL_VALUES: environment-values/ci/control-plane-replicas-3.yml
       MGMT_UPDATE_ADDITIONAL_VALUES: environment-values/ci/dummy-rolling-update-trigger.yml
       APPLY_WATCH_TIMEOUT_MIN: 40
       WC_INITIAL_ADDITIONAL_VALUES: environment-values/ci/k8s-1.27.yml
       WC_UPDATE_ADDITIONAL_VALUES: environment-values/ci/k8s-1.28.yml
-      APPLY_WC_WATCH_TIMEOUT_MIN: 40
-    allow_failure: true
-    when: manual
-  # kubeadm override to test rolling upgrades in MR flagged with ci-feature::test-rolling-upgrade
-  - if: $CI_MERGE_REQUEST_LABELS =~ /ci-feature::test-rolling-upgrade/ && $ENV_NAME =~ /.*kubeadm.*/
-    variables:
-      MGMT_INITIAL_ADDITIONAL_VALUES: environment-values/ci/control-plane-replicas-3.yml
-      MGMT_UPDATE_ADDITIONAL_VALUES: environment-values/ci/dummy-rolling-update-trigger.yml
-      APPLY_WATCH_TIMEOUT_MIN: 40
-      WC_INITIAL_ADDITIONAL_VALUES: environment-values/ci/k8s-kubeadm-1.27.yml
-      WC_UPDATE_ADDITIONAL_VALUES: environment-values/ci/k8s-kubeadm-1.28.yml
       APPLY_WC_WATCH_TIMEOUT_MIN: 40
     allow_failure: true
     when: manual
