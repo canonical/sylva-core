@@ -3423,9 +3423,9 @@ units:
                 tlsConfig:
                   insecureSkipVerify: true
                 queueConfig:
-                  batch_send_deadline: 5s
-                  min_backoff: 1s
-                  max_backoff: 30s
+                  batchSendDeadline: 5s
+                  minBackoff: 1s
+                  maxBackoff: 30s
         alertmanager:
           alertmanagerSpec:
             useExistingSecret: true
