@@ -3370,6 +3370,9 @@ units:
       driftDetection:
         mode: enabled
         ignore: 
+         - paths: ["/spec/resources/request"]
+           target: 
+             kind: prometheus
          - paths: ["/spec/remoteWrite"]
            target: 
              kind: prometheus
