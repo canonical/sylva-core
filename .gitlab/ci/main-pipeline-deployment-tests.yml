@@ -301,14 +301,14 @@ capo-fip-deploy:
 capo-rke2-suse-os:
   extends: capo-rke2-deploy
   variables:
-    MGMT_ADDITIONAL_VALUES: environment-values/ci/suse-os-rke2.yml
-    WC_ADDITIONAL_VALUES: environment-values/ci/suse-os-rke2.yml
+    MGMT_ADDITIONAL_VALUES: environment-values/ci/suse-os.yml
+    WC_ADDITIONAL_VALUES: environment-values/ci/suse-os.yml
 
 capo-rke2-oci-suse-os:
   extends: capo-rke2-oci-deploy
   variables:
-    MGMT_ADDITIONAL_VALUES: environment-values/ci/suse-os-rke2.yml
-    WC_ADDITIONAL_VALUES: environment-values/ci/suse-os-rke2.yml
+    MGMT_ADDITIONAL_VALUES: environment-values/ci/suse-os.yml
+    WC_ADDITIONAL_VALUES: environment-values/ci/suse-os.yml
 
 .capm3-virt-equinix-deploy:
   extends: .default-trigger
@@ -337,8 +337,8 @@ capm3-m3sylva-ubuntu-rke2-virt-deploy:
 capm3-suse-rke2-virt-deploy:
   extends: .capm3-virt-equinix-deploy
   variables:
-    MGMT_ADDITIONAL_VALUES: environment-values/ci/suse-os-rke2.yml
-    WC_ADDITIONAL_VALUES: environment-values/ci/suse-os-rke2.yml
+    MGMT_ADDITIONAL_VALUES: environment-values/ci/suse-os.yml
+    WC_ADDITIONAL_VALUES: environment-values/ci/suse-os.yml
 
 capm3-ubuntu-kubeadm-virt-deploy:
   extends: .capm3-virt-equinix-deploy
@@ -346,3 +346,4 @@ capm3-ubuntu-kubeadm-virt-deploy:
     ENV_TAG: "${CI_PIPELINE_ID}-capm3-kubeadm-virt"
     MGMT_ADDITIONAL_VALUES: environment-values/ci/ubuntu-os-kubeadm-capm3-virt.yml
     WC_ADDITIONAL_VALUES: environment-values/ci/ubuntu-os-kubeadm-capm3-virt.yml
+

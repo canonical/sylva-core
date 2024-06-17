@@ -1,4 +1,7 @@
 ---
+_internal:
+  os_key: ubuntu-jammy
+
 cluster:
   capi_providers:
     bootstrap_provider: cabpk
