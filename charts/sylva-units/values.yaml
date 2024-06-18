@@ -4232,6 +4232,10 @@ units:
               value: |
             {{ include "generate-os-images" . | indent 4}}
       healthChecks:
+        - apiVersion: batch/v1
+          kind: Job
+          name: create-image-info-{{ .Release.Namespace }}
+          namespace: kube-job
         - apiVersion: v1
           kind: ConfigMap
           name: os-images-info
