@@ -110,7 +110,7 @@ os_images:
 
 - `sha256` and `image-format` are required for CAPM3.
 
-## bootstrap optimisation
+## bootstrap optimization
 
 In order to save time and space during bootstrap deployment, we introduced a new optional value **bootstrap_os_images_override_enabled**
 
@@ -119,7 +119,7 @@ Furthermore all image_key(s) declared for management cluster will be automatical
 
 - `cluster.capo.image_key` or `cluster.capm3.image_key`
 - `cluster.control_plane.capo.image_key` or `cluster.control_plane.capm3.image_key` if defined
-- `cluster.machine_deployment_default.capo.image_key` or `cluster.machine_deployment_default.capo.image_key` if defined
+- `cluster.machine_deployment_default.capo.image_key` or `cluster.machine_deployment_default.capm3.image_key` if defined
 - every `cluster.machine_deployments.*.capo.image_key` or `cluster.machine_deployments.*.capm3.image_key` if defined
 
 The objective is to save time and disk space during the bootstrap deployment, and avoid useless image download.
