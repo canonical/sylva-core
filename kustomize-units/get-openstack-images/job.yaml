@@ -78,7 +78,7 @@ spec:
               accessModes: ["ReadWriteOnce"]
               resources:
                 requests:
-                  storage: ${TMP_STORAGE_SPACE:-8Gi}
+                  storage: ${MAX_IMAGE_SIZE:-8Gi}
 ---
 apiVersion: v1
 kind: ServiceAccount
