@@ -64,8 +64,13 @@ Wait for infra provider Cluster
   {{- $cluster_kind = "DockerCluster" -}}
   {{- $cluster_apiVersion = "infrastructure.cluster.x-k8s.io/v1beta1" -}}
 {{- else if $cluster.capi_providers.infra_provider | eq "capa" -}}
+{{-  if $cluster.capi_providers.bootstrap_provider | eq "cabpk" -}}
   {{- $cluster_kind = "AWSCluster" -}}
   {{- $cluster_apiVersion = "infrastructure.cluster.x-k8s.io/v1beta2" -}}
+{{- else if $cluster.capi_providers.bootstrap_provider | eq "cabpe" -}}
+  {{- $cluster_kind = "AWSManagedCluster" -}}
+  {{- $cluster_apiVersion = "infrastructure.cluster.x-k8s.io/v1beta2" -}}
+{{- end }}
 {{- else -}}
   {{- fail (printf "sylva-units cluster-healthchecks named template would need to be extended to support CAPI infra provider %s" $cluster.capi_providers.infra_provider) -}}
 {{- end }}
