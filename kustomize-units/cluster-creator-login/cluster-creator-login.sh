@@ -10,7 +10,7 @@ RANCHER_PUBLIC_API=$RANCHER_API-public
 USERNAME=cluster-creator
 GLOBAL_ROLE=global-cluster-creator
 
-ADMIN_PASSWORD=$(kubectl get secrets -n cattle-system bootstrap-secret -o jsonpath='{.data.bootstrapPassword}' | base64 -d)
+ADMIN_PASSWORD=$(kubectl get secrets -n cattle-system rancher-bootstrap-secret -o jsonpath='{.data.bootstrapPassword}' | base64 -d)
 if [ $? -ne 0 ]; then
   echo "Could not read the admin password"
   exit 1
