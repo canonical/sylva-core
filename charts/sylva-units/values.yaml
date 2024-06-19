@@ -2393,17 +2393,7 @@ units:
               value: {{ .Values.cluster_machines_ready.wait_timeout }}
           - op: add
             path: /spec/template/spec/containers/0/env/-
-            value: {{- if eq .Values.cluster.capi_providers.bootstrap_provider "cabpk" -}}
-              KubeadmControlPlane
-            {{- else if eq .Values.cluster.capi_providers.infra_provider "capa" -}}
-              {{- if eq .Values.cluster.capi_providers.bootstrap_provider "cabpe" -}}
-                AWSManagedControlPlane
-              {{- else if eq .Values.cluster.capi_providers.bootstrap_provider "cabpk" -}}
-                AWSCluster
-              {{- end }}
-            {{- else -}}
-              RKE2ControlPlane
-            {{- end }}
+            value:   "{{ if eq .Values.cluster.capi_providers.bootstrap_provider "cabpk" }}KubeadmControlPlane{{ else if eq .Values.cluster.capi_providers.infra_provider "capa" }}{{ if eq .Values.cluster.capi_providers.bootstrap_provider "cabpe" }}AWSManagedControlPlane{{ else if eq .Values.cluster.capi_providers.bootstrap_provider "cabpk" }}AWSCluster{{ end }}{{ else }}RKE2ControlPlane{{ end }}"
       - target:
           kind: ConfigMap
         patch: |
