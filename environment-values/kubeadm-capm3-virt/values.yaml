@@ -6,7 +6,7 @@ cluster_domain: '{{ .Values.cluster.cluster_api_cert_extra_SANs | first }}.nip.i
 cluster_virtual_ip: 192.168.100.2
 
 sylva_diskimagebuilder_images:
-  ubuntu-jammy-plain-rke2-1-28-9:
+  ubuntu-jammy-plain-rke2-1-28-11-rc3:
     default_enabled: false
   ubuntu-jammy-plain-kubeadm-1-28-9:
     default_enabled: true

@@ -6051,10 +6051,10 @@ k8s_version_short: "1.28"
 
 # Renovate Bot needs additional information to detect sylva diskimage-builder version
 # renovate: depName=sylva-projects/sylva-elements/diskimage-builder
-sylva_diskimagebuilder_version: 0.2.9
+sylva_diskimagebuilder_version: 0.0.0-git-fad89037
 
 sylva_diskimagebuilder_images:
-  ubuntu-jammy-plain-rke2-1-28-9:
+  ubuntu-jammy-plain-rke2-1-28-11-rc3:
     default_enabled: true
   ubuntu-jammy-plain-rke2-1-27-13: {}
   ubuntu-jammy-plain-rke2-1-26-15: {}
@@ -6275,7 +6275,7 @@ _internal:
   k8s_version_map:
     1.26: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" | ternary "v1.26.15+rke2r1" "v1.26.15" }}'
     1.27: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" | ternary "v1.27.13+rke2r1" "v1.27.13" }}'
-    1.28: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" | ternary "v1.28.9+rke2r1" "v1.28.9" }}'
+    1.28: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" | ternary "v1.28.11-rc3+rke2r1" "v1.28.9" }}'
 
   # total number of nodes in this cluster
   node_count:

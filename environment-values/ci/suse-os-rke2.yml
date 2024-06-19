@@ -1,6 +1,6 @@
 ---
 sylva_diskimagebuilder_images:
-  ubuntu-jammy-plain-rke2-1-28-9:
+  ubuntu-jammy-plain-rke2-1-28-11-rc3:
     default_enabled: false
   opensuse-15-5-plain-rke2-1-28-9:
     default_enabled: true
