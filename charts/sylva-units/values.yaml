@@ -2425,8 +2425,10 @@ units:
 
               echo "--- waiting for all machines to be Ready..."
               if [ "{{ .Values.cluster.capi_providers.infra_provider }}" == "capa" ]; then
+                echo "--- MachinePool..."
                 kubectl -n $TARGET_NAMESPACE wait MachinePool -l cluster.x-k8s.io/cluster-name={{ .Values.cluster.name }} --for condition=Ready --timeout $WAIT_TIMEOUT
               else
+                echo "--- MachineDeployment..."
                 kubectl -n $TARGET_NAMESPACE wait Machine -l cluster.x-k8s.io/cluster-name={{ .Values.cluster.name }} --for condition=Ready --timeout $WAIT_TIMEOUT
               fi
 
