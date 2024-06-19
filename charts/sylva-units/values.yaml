@@ -2393,7 +2393,7 @@ units:
               value: {{ .Values.cluster_machines_ready.wait_timeout }}
           - op: add
             path: /spec/template/spec/containers/0/env/-
-            value:
+            value: >
               name: CONTROL_PLANE
               value: {{- if eq .Values.cluster.capi_providers.bootstrap_provider "cabpk" -}}
                 KubeadmControlPlane
