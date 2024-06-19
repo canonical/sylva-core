@@ -190,7 +190,8 @@ spec: {{ $helm_repo_spec | toYaml | nindent 2 }}
 
       {{/* produce the HelmRelease specification, merging the different sources we have */}}
       {{- $helmrelease_spec := dict "releaseName" $unit_name -}}
-      {{- $helmrelease_spec := mergeOverwrite $helmrelease_spec (deepCopy $envAll.Values.unit_helmrelease_spec_default) (deepCopy $unit_def.helmrelease_spec) (deepCopy $helmrelease_spec_overrides) (dict "postRenderers" $post_renderers) -}}
+      {{- $_ := tuple $helmrelease_spec $envAll.Values.unit_helmrelease_spec_default $unit_def.helmrelease_spec | include "merge-append" -}}
+      {{- $helmrelease_spec := mergeOverwrite $helmrelease_spec (deepCopy $helmrelease_spec_overrides) (dict "postRenderers" $post_renderers) -}}
 
       {{/* take unit_def.suspend into account */}}
       {{- if $unit_def | dig "suspend" false -}}
