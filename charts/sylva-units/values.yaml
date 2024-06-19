@@ -2395,8 +2395,13 @@ units:
             path: /spec/template/spec/containers/0/env/-
             value:
               name: CONTROL_PLANE
-              value: {{ .Values.cluster.capi_providers.bootstrap_provider | ternary (eq "cabpk" "KubeadmControlPlane" (eq "cabpe" "AWSManagedControlPlane" "RKE2ControlPlane")) }}
-
+              value: {{- if eq .Values.cluster.capi_providers.bootstrap_provider "cabpk" -}}
+                KubeadmControlPlane
+              {{- else if eq .Values.cluster.capi_providers.bootstrap_provider "cabpe" -}}
+                AWSManagedControlPlane
+              {{- else -}}
+                RKE2ControlPlane
+              {{- end }}
       - target:
           kind: ConfigMap
         patch: |
