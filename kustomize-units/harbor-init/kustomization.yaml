@@ -10,3 +10,5 @@ resources:
   - harbor-postgres-admin.yaml
   - harbor-postgres-user.yaml
   - harbor-postgres-replication.yaml
+  - eso-harbor-registry.yaml
+  - harbor-registry.yaml

@@ -773,6 +773,8 @@ units:
           version: 1.14.2
       targetNamespace: harbor
       values:
+        credentials:
+          existingSecret: "harbor-registry-credential-password"
         updateStrategy:
           type: '{{ eq .Values._internal.default_storage_class_access_mode_rwx "ReadWriteMany" | ternary "RollingUpdate" "Recreate" }}'
         persistence:
