@@ -400,3 +400,91 @@ is already known by caller:
 {{/* return the result */}}
 {{- $unit_def.kustomization_name | default $unit_name -}}
 {{- end -}}
+
+
+
+{{/*
+merge-append template: like mergeOverwrite, but append lists instead of overwriting them.
+
+Usage:
+
+    tuple $dst $src | include "merge-append"
+
+Values:
+
+    dest:
+      one: thing
+      two:
+       - a
+       - b
+
+    source1:
+      one: stuff
+      two:
+       - a
+       - c
+
+    source2:
+      one: other
+      two:
+       - d
+
+Template:
+
+{{- tuple .Values.dest .Values.source1 .Values.source2 | include "merge-append" }}
+{{ .Values.dest | toYaml }}
+
+Result:
+
+    one: other
+    two:
+    - a
+    - b
+    - a
+    - c
+    - d
+
+*/}}
+{{- define "merge-append" }}
+    {{- $dst := first . }}
+    {{- range $src := rest . }}
+        {{- $dst := tuple $dst $src | include "_merge-append" }}
+    {{- end }}
+{{- end }}
+
+{{- define "_merge-append" }}
+    {{- $dst := index . 0 }}
+    {{- $src := index . 1 }}
+    {{- if not (kindIs "map" $src) }}
+        {{- fail (printf "'merge-append' called with a source object which is not a map (<%s> is %s)" ($src | toString) (kindOf $src)) }}
+    {{- end }}
+    {{- if not (kindIs "map" $dst) }}
+        {{- fail (printf "'merge-append' called with a source object which is not a map (<%s> is %s)" ($dst | toString) (kindOf $dst)) }}
+    {{- end }}
+    {{- $result := $dst }}
+    {{- range $key,$value := $src }}
+        {{- if (hasKey $dst $key) }}
+            {{- if (eq (kindOf $value) (kindOf (get $dst $key))) }}
+                {{- if (eq (kindOf $value) "slice") }}
+                    {{- /* append src list to dst one */}}
+                    {{- $_ := set $result $key (concat (get $dst $key) $value) }}
+                {{- else if (eq (kindOf $value) "map") }}
+                    {{- /* recurse in that case */}}
+                    {{- $_ := tuple (get $dst $key) $value | include "merge-append" }}
+                {{- else }}
+                    {{- /* we can't merge other kind of values like string or integers, overwrite dst value with src one */}}
+                    {{- /* NOTE: maybe we should have a merge-append and merge-overwrite-append to choose whether we should keep value from dst or not */}}
+                    {{- $_ := set $result $key $value }}
+                {{- end }}
+            {{- else }}
+                {{- /* we can't merge two different kind of values, overwrite dst value with src one */}}
+                {{- /* NOTE: maybe we should have a must-merge-append variant that would fail in that case? of fail inconditionally? */}}
+                {{- $_ := set $result $key $value }}
+            {{- end }}
+        {{- else }}
+            {{- /* key not in dst, merge it from src */}}
+            {{- $_ := set $result $key $value }}
+        {{- end }}
+    {{- end }}
+    {{- $dst := $result }}
+{{- end }}
