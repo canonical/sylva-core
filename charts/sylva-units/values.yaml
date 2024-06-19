@@ -2695,7 +2695,7 @@ units:
       values:
         controller:
           nodeSelector:
-            node-role.kubernetes.io/control-plane: '{{ (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpr") | ternary "true" "" }}'
+            node-role.kubernetes.io/control-plane: '{{ .Values._internal.cp_node_label_value }}'
           tolerations:
           - key: node.cloudprovider.kubernetes.io/uninitialized
             value: "true"
@@ -2711,7 +2711,7 @@ units:
           frr:
             enabled: false
           nodeSelector:
-            node-role.kubernetes.io/control-plane: '{{ (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpr") | ternary "true" "" }}'
+            node-role.kubernetes.io/control-plane: '{{ .Values._internal.cp_node_label_value }}'
           tolerations:
           - key: node.cloudprovider.kubernetes.io/uninitialized
             value: "true"
@@ -2889,18 +2889,7 @@ units:
           version: 2.8.3
       targetNamespace: cattle-system
       interval: 10m0s
-      # Increase upgrade timeout as ingress-nginx pods have a longer terminationGracePeriodSeconds
-      upgrade:
-        timeout: 30m
       values:
-        controller:
-          # Decrease default terminationGracePeriodSeconds (of 300s) to fasten upgrades, and tune worker_shutdown_timeout accordingly (default is 240s)
-          terminationGracePeriodSeconds: 90s
-          config:
-            worker-shutdown-timeout: 60s
-          # Install controllers only on control plane nodes, otherwise it may take a while to upgrade them successively on clusters with lot of nodes
-          nodeSelector:
-            node-role.kubernetes.io/control-plane: "true"
         auditLog:
           level: '{{ .Values.audit_log.level }}'
         privateCA: true
@@ -3152,11 +3141,27 @@ units:
         spec:
           chart: rke2-ingress-nginx
           version: "" # will be defined by helm_chart_versions
+      upgrade:
+        # Increase upgrade timeout as ingress-nginx pods have a longer terminationGracePeriodSeconds,
+        # with a special case for pods that were deployed with a previous version of sylva where it was set to 300s
+        timeout: >-
+          {{- $nginxDs := lookup "apps/v1" "DaemonSet" "kube-system" "rke2-ingress-nginx-controller" -}}
+          {{- if eq ($nginxDs | dig "spec" "template" "spec" "terminationGracePeriodSeconds" 90) 300 -}}
+            {{- print (mul 10 ($nginxDs | dig "status" "desiredNumberScheduled" 3)) "m" -}}
+          {{- else -}}
+            30m
+          {{- end -}}
       values:
         fullnameOverride: rke2-ingress-nginx
         controller:
+          # Decrease default terminationGracePeriodSeconds (of 300s) to fasten upgrades, and tune worker-shutdown-timeout accordingly (default is 240s)
+          terminationGracePeriodSeconds: 90
           config:
+            worker-shutdown-timeout: 60s
             use-forwarded-headers: true
+          # Install controllers only on control plane nodes, otherwise it may take a while to upgrade them successively on clusters with lot of nodes
+          nodeSelector:
+            node-role.kubernetes.io/control-plane: '{{ .Values._internal.cp_node_label_value }}'
           kind: DaemonSet
           service:
             enabled: true
@@ -6202,6 +6207,9 @@ _internal:
 
   # default replica number computed from the ha_cluster.is_ha value
   default_replicas: '{{ tuple . .Values._internal.ha_cluster.is_ha 3 1 | include "interpret-ternary" | int | include "preserve-type" }}'
+
+  # value of "node-role.kubernetes.io/control-plane" node label that differs between kubeadm and rke2
+  cp_node_label_value: '{{ (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpr") | ternary "true" "" }}'
 
   # thanos password
   thanos_password: '{{ include "internalPersistentRandomPasswd" (tuple . "thanos_password") }}'
