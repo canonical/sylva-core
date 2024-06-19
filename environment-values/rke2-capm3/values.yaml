@@ -55,8 +55,7 @@ cluster:
       # WARNING:
       #  By default we use the SuSE version of Metal3 Chart. The IPA provided by this chart uses
       #  interface scheme naming based on PCI location, not SLOT location. So it means the
-      #  interfaces are under the template enpXXXsXfX instead of ensXfX. However if you switch
-      #  back to Sylva Metal3 Chart, the SLOT location must be used.
+      #  interfaces are under the template enpXXXsXfX instead of ensXfX.
       #  More details at https://www.freedesktop.org/software/systemd/man/latest/systemd.net-naming-scheme.html
       bond0:
         type: bond
@@ -86,8 +85,7 @@ cluster:
       # WARNING:
       #  By default we use the SuSE version of Metal3 Chart. The IPA provided by this chart uses
       #  interface scheme naming based on PCI location, not SLOT location. So it means the
-      #  interfaces are under the template enpXXXsXfX instead of ensXfX. However if you switch
-      #  back to Sylva Metal3 Chart, the SLOT location must be used.
+      #  interfaces are under the template enpXXXsXfX instead of ensXfX.
       #  More details at https://www.freedesktop.org/software/systemd/man/latest/systemd.net-naming-scheme.html
       network_interfaces:
         bond0:
