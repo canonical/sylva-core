@@ -65,7 +65,7 @@ metadata:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  name: ${JOB_NAME}
+  name: ${JOB_NAME}${DISCRIMINATOR:-}
   namespace: ${JOB_TARGET_NAMESPACE:-sylva-system}
 rules:
 - apiGroups: ["*"]
@@ -75,7 +75,7 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: ${JOB_NAME}
+  name: ${JOB_NAME}${DISCRIMINATOR:-}
   namespace: ${JOB_TARGET_NAMESPACE:-sylva-system}
 subjects:
 - kind: ServiceAccount
@@ -83,26 +83,26 @@ subjects:
   namespace: kube-job
 roleRef:
   kind: Role
-  name: ${JOB_NAME}
+  name: ${JOB_NAME}${DISCRIMINATOR:-}
   apiGroup: rbac.authorization.k8s.io
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: ${JOB_NAME}-${JOB_TARGET_NAMESPACE:-sylva-system}
+  name: ${JOB_NAME}-${JOB_TARGET_NAMESPACE:-sylva-system}${DISCRIMINATOR:-}
 rules: []
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: ${JOB_NAME}-${JOB_TARGET_NAMESPACE:-sylva-system}
+  name: ${JOB_NAME}-${JOB_TARGET_NAMESPACE:-sylva-system}${DISCRIMINATOR:-}
 subjects:
 - kind: ServiceAccount
   name: ${JOB_NAME}-${JOB_TARGET_NAMESPACE:-sylva-system}-sa${DISCRIMINATOR:-}
   namespace: kube-job
 roleRef:
   kind: ClusterRole
-  name: ${JOB_NAME}-${JOB_TARGET_NAMESPACE:-sylva-system}
+  name: ${JOB_NAME}-${JOB_TARGET_NAMESPACE:-sylva-system}${DISCRIMINATOR:-}
   apiGroup: rbac.authorization.k8s.io
 ---
 apiVersion: v1
