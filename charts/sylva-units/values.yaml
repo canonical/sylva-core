@@ -2312,15 +2312,6 @@ units:
           name: '{{ .Values._internal.os_images_info_configmap }}'  # this configmap is a byproduct of the os-images-info unit
           valuesKey: values.yaml
           optional: '{{ not (.Values.cluster.capi_providers.infra_provider | eq "capm3") | include "as-bool" }}'
-      _postRenderers:
-        - kustomize:
-            patches:
-            - target:
-                kind: (MachineDeployment|Cluster)
-              patch: |
-                - op: add
-                  path: /metadata/annotations/helm.toolkit.fluxcd.io~1driftDetection
-                  value: disabled
     # we pass everything that is under `cluster` to this unit that uses sylva-capi-cluster chart
     # (we do it via a secret because some of the values are credentials in many scenarios)
     helm_secret_values: '{{ .Values.cluster | include "preserve-type" }}'
