@@ -2716,7 +2716,11 @@ units:
     helm_repo_url: https://metallb.github.io/metallb
     helmrelease_spec:
       driftDetection:
-        mode: disabled
+        ignore:
+          - paths:
+            - /spec/conversion/webhook/clientConfig/caBundle
+            target:
+              kind: CustomResourceDefinition
       chart:
         spec:
           chart: metallb
