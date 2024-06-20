@@ -2682,6 +2682,13 @@ units:
     helm_repo_url: https://rke2-charts.rancher.io
     helm_chart_versions: *calico-chart-versions  # we use a YAML anchor rather than templating so that this file can be read by tools/generate_units_documentation.py
     helmrelease_spec:
+      driftDetection:
+        ignore:
+          - paths:
+            - /spec/conversion/webhook/clientConfig//spec/calicoNetwork/ipPools/0/blockSize
+            - /spec/calicoNetwork/ipPools/0/nodeSelector
+            target:
+              kind: Installation
       chart:
         spec:
           chart: rke2-calico
