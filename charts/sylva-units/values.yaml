@@ -2281,6 +2281,11 @@ units:
             - /spec/infrastructureRef/apiVersion
             target:
               kind: Cluster
+          - paths:
+            - /spec/files/10/content
+            - /spec/preRKE2Commands/4
+            target:
+              kind: RKE2ControlPlane
       upgrade:
         remediation:  # don't inherit retry settings from unit_helmrelease_spec_default (we don't want to try rollback CAPI resources)
           retries: 0
