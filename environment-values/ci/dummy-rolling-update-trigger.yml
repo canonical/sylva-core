@@ -1,6 +1,0 @@
-cluster:
-  control_plane_replicas: 3
-  # what setting is used here does not really matter, we just put something which will end-up in nodes CAPI configuration and
-  # trigger a rolling update
-  kubelet_extra_args:
-    file-check-frequency: 21s

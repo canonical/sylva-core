@@ -1,7 +1,8 @@
 #!/bin/bash
 
 ## This script aims to get logs directly from cluster nodes for debug purposes
-## It is designed to work for sylva CI deployments which are using `environment-values/ci/run_http_server_for_log_collect.yaml`
+## It is designed to work for sylva CI deployments which are using 
+## `run_http_server_for_log_collect.yaml` values file
 
 set -eu
 set -o pipefail

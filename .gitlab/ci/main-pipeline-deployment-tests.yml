@@ -46,7 +46,7 @@ variables:
       Path to a file for customizing the values used
       during the management cluster deployment stage
   MGMT_UPDATE_ADDITIONAL_VALUES:
-    value: "environment-values/ci/ci-enabled-units.yml"
+    value: "${SYLVA_CI_VALUES_FOLDER}/ci-enabled-units.yml"
     description: |
       Path to a file for customizing the values used
       during the management cluster update stage
@@ -69,7 +69,7 @@ variables:
       Path to a file for customizing the values used
       during the workload cluster deployment stage
   WC_UPDATE_ADDITIONAL_VALUES:
-    value: "environment-values/ci/ci-enabled-units.yml"
+    value: "${SYLVA_CI_VALUES_FOLDER}/ci-enabled-units.yml"
     description: |
       Path to a file for customizing the values used
       during the workload cluster update stage
@@ -89,6 +89,16 @@ variables:
       or it can be a regex matching some deployment job. In this case
       the value need to be enclose with / like this
       "/capo-kubeadm/"
+  # Repo used to store CI values
+  SYLVA_CI_VALUES_REPO: https://gitlab.com/sylva-projects/sylva-elements/ci-tooling/ci-deployment-values.git
+  SYLVA_CI_VALUES_FOLDER: environment-values/sylva-core-ci-values
+  # Reference to checkout for CI values, by default we use the same for all stages but it can be overriden
+  # eg: if we have a breaking change during an upgrade we could use a different branch for the deployment and update
+  MGMT_INITIAL_CI_VALUES_REVISION: main
+  MGMT_UPDATE_CI_VALUES_REVISION: ${MGMT_INITIAL_CI_VALUES_REVISION}
+  WC_INITIAL_CI_VALUES_REVISION: ${MGMT_INITIAL_CI_VALUES_REVISION}
+  WC_UPDATE_CI_VALUES_REVISION: ${MGMT_INITIAL_CI_VALUES_REVISION}
+
 
 .deployment_rules:
   - if: '$CI_COMMIT_TAG'
@@ -104,48 +114,28 @@ variables:
   # For capd no ha capm3 scheduled pipelines we don't want to test rolling upgrades
   # As it's not supported for single node deployments
   - if: '$CI_PIPELINE_SOURCE == "schedule" && $CI_DEPLOYMENTS && $CI_JOB_NAME =~ $DEPLOYMENT_FLAVOR && $CI_JOB_NAME =~ /capd.*|capm3.*/ && $CI_JOB_NAME !~ /capm3-ha-.*/'
-  # RKE2 override to test rolling upgrades in scheduled pipelines
-  - if: '$CI_PIPELINE_SOURCE == "schedule" && $CI_DEPLOYMENTS && $CI_JOB_NAME =~ $DEPLOYMENT_FLAVOR && $ENV_NAME =~ /.*rke2.*/'
+  # override to test rolling upgrades in scheduled pipelines
+  - if: '$CI_PIPELINE_SOURCE == "schedule" && $CI_DEPLOYMENTS && $CI_JOB_NAME =~ $DEPLOYMENT_FLAVOR'
     variables:
-      MGMT_INITIAL_ADDITIONAL_VALUES: environment-values/ci/control-plane-replicas-3.yml
-      MGMT_UPDATE_ADDITIONAL_VALUES: environment-values/ci/dummy-rolling-update-trigger.yml
+      MGMT_INITIAL_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/control-plane-replicas-3.yml
+      MGMT_UPDATE_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/dummy-rolling-update-trigger.yml
       APPLY_WATCH_TIMEOUT_MIN: 40
-      WC_INITIAL_ADDITIONAL_VALUES: environment-values/ci/k8s-1.27.yml
-      WC_UPDATE_ADDITIONAL_VALUES: environment-values/ci/k8s-1.28.yml
-      APPLY_WC_WATCH_TIMEOUT_MIN: 40
-  # kubeadm override to test rolling upgrades in scheduled pipelines
-  - if: '$CI_PIPELINE_SOURCE == "schedule" && $CI_DEPLOYMENTS && $CI_JOB_NAME =~ $DEPLOYMENT_FLAVOR && $ENV_NAME =~ /.*kubeadm.*/'
-    variables:
-      MGMT_INITIAL_ADDITIONAL_VALUES: environment-values/ci/control-plane-replicas-3.yml
-      MGMT_UPDATE_ADDITIONAL_VALUES: environment-values/ci/dummy-rolling-update-trigger.yml
-      APPLY_WATCH_TIMEOUT_MIN: 40
-      WC_INITIAL_ADDITIONAL_VALUES: environment-values/ci/k8s-kubeadm-1.27.yml
-      WC_UPDATE_ADDITIONAL_VALUES: environment-values/ci/k8s-kubeadm-1.28.yml
+      WC_INITIAL_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/k8s-1.27.yml
+      WC_UPDATE_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/k8s-1.28.yml
       APPLY_WC_WATCH_TIMEOUT_MIN: 40
   # For capd no ha capm3 MR pipelines we don't want to test rolling upgrades in MR flagged with ci-feature::test-rolling-upgrade
   # As it's not supported for single node deployments
   - if: $CI_MERGE_REQUEST_LABELS =~ /ci-feature::test-rolling-upgrade/ && $CI_JOB_NAME =~ /capd.*|capm3.*/ && $CI_JOB_NAME !~ /capm3-ha-.*/
     allow_failure: true
     when: manual
-  # RKE2 override to test rolling upgrades in MR flagged with ci-feature::test-rolling-upgrade
-  - if: $CI_MERGE_REQUEST_LABELS =~ /ci-feature::test-rolling-upgrade/ && $ENV_NAME =~ /.*rke2.*/
+  # override to test rolling upgrades in MR flagged with ci-feature::test-rolling-upgrade
+  - if: $CI_MERGE_REQUEST_LABELS =~ /ci-feature::test-rolling-upgrade/
     variables:
-      MGMT_INITIAL_ADDITIONAL_VALUES: environment-values/ci/control-plane-replicas-3.yml
-      MGMT_UPDATE_ADDITIONAL_VALUES: environment-values/ci/dummy-rolling-update-trigger.yml
+      MGMT_INITIAL_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/control-plane-replicas-3.yml
+      MGMT_UPDATE_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/dummy-rolling-update-trigger.yml
       APPLY_WATCH_TIMEOUT_MIN: 40
-      WC_INITIAL_ADDITIONAL_VALUES: environment-values/ci/k8s-1.27.yml
-      WC_UPDATE_ADDITIONAL_VALUES: environment-values/ci/k8s-1.28.yml
-      APPLY_WC_WATCH_TIMEOUT_MIN: 40
-    allow_failure: true
-    when: manual
-  # kubeadm override to test rolling upgrades in MR flagged with ci-feature::test-rolling-upgrade
-  - if: $CI_MERGE_REQUEST_LABELS =~ /ci-feature::test-rolling-upgrade/ && $ENV_NAME =~ /.*kubeadm.*/
-    variables:
-      MGMT_INITIAL_ADDITIONAL_VALUES: environment-values/ci/control-plane-replicas-3.yml
-      MGMT_UPDATE_ADDITIONAL_VALUES: environment-values/ci/dummy-rolling-update-trigger.yml
-      APPLY_WATCH_TIMEOUT_MIN: 40
-      WC_INITIAL_ADDITIONAL_VALUES: environment-values/ci/k8s-kubeadm-1.27.yml
-      WC_UPDATE_ADDITIONAL_VALUES: environment-values/ci/k8s-kubeadm-1.28.yml
+      WC_INITIAL_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/k8s-1.27.yml
+      WC_UPDATE_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/k8s-1.28.yml
       APPLY_WC_WATCH_TIMEOUT_MIN: 40
     allow_failure: true
     when: manual
@@ -214,7 +204,7 @@ capd-kubeadm-ubuntu:
     ENV_NAME: kubeadm-capd
     ONLY_DEPLOY_MGMT: "true"
     SKIP_TESTS: "true"
-    MGMT_ADDITIONAL_VALUES: environment-values/ci/lightweight-disable-some-units.yml
+    MGMT_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/lightweight-disable-some-units.yml
   trigger:
     include: .gitlab/ci/pipeline-deploy-capd.yml
     strategy: depend
@@ -227,7 +217,7 @@ capd-rke2-ubuntu:
     ENV_NAME: rke2-capd
     ONLY_DEPLOY_MGMT: "true"
     SKIP_TESTS: "true"
-    MGMT_ADDITIONAL_VALUES: environment-values/ci/lightweight-disable-some-units.yml
+    MGMT_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/lightweight-disable-some-units.yml
   trigger:
     include: .gitlab/ci/pipeline-deploy-capd.yml
     strategy: depend
@@ -240,7 +230,7 @@ capd-kubeadm-oci-ubuntu:
     ENV_NAME: kubeadm-capd
     ONLY_DEPLOY_MGMT: "true"
     SKIP_TESTS: "true"
-    MGMT_ADDITIONAL_VALUES: environment-values/ci/lightweight-disable-some-units.yml
+    MGMT_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/lightweight-disable-some-units.yml
   trigger:
     include: .gitlab/ci/pipeline-deploy-capd.yml
     strategy: depend
@@ -253,7 +243,7 @@ capd-rke2-oci-ubuntu:
     ENV_NAME: rke2-capd
     ONLY_DEPLOY_MGMT: "true"
     SKIP_TESTS: "true"
-    MGMT_ADDITIONAL_VALUES: environment-values/ci/lightweight-disable-some-units.yml
+    MGMT_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/lightweight-disable-some-units.yml
   trigger:
     include: .gitlab/ci/pipeline-deploy-capd.yml
     strategy: depend
@@ -304,8 +294,8 @@ capo-misc-rke2-units-ubuntu:
   variables:
     ENV_NAME: rke2-capo
     CAPO_TAG: "${ENV_TAG_OCI}-misc"
-    MGMT_ADDITIONAL_VALUES: environment-values/ci/misc-units-in-capo.yml
-    WC_ADDITIONAL_VALUES: environment-values/ci/misc-units-in-capo-wkld.yml
+    MGMT_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/misc-units-in-capo.yml
+    WC_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/misc-units-in-capo-wkld.yml
     MGMT_WATCH_TIMEOUT_MIN: 45
   trigger:
     include: .gitlab/ci/pipeline-deploy-capo.yml
@@ -316,8 +306,8 @@ capo-fip-kubeadm-oci-ubuntu:
   variables:
     ENV_NAME: kubeadm-capo
     CAPO_TAG: "${ENV_TAG_OCI}-fip"
-    MGMT_ADDITIONAL_VALUES: environment-values/ci/capo-fip.yml
-    WC_ADDITIONAL_VALUES: environment-values/ci/capo-fip.yml
+    MGMT_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/capo-fip.yml
+    WC_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/capo-fip.yml
     MGMT_WATCH_TIMEOUT_MIN: 20
     E2E_JOB_MR_PARITY: none
   trigger:
@@ -327,14 +317,14 @@ capo-fip-kubeadm-oci-ubuntu:
 capo-rke2-suse:
   extends: capo-rke2-ubuntu
   variables:
-    MGMT_ADDITIONAL_VALUES: environment-values/ci/suse-os-rke2.yml
-    WC_ADDITIONAL_VALUES: environment-values/ci/suse-os-rke2.yml
+    MGMT_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/suse-os.yml
+    WC_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/suse-os.yml
 
 capo-rke2-oci-suse:
   extends: capo-rke2-oci-ubuntu
   variables:
-    MGMT_ADDITIONAL_VALUES: environment-values/ci/suse-os-rke2.yml
-    WC_ADDITIONAL_VALUES: environment-values/ci/suse-os-rke2.yml
+    MGMT_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/suse-os.yml
+    WC_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/suse-os.yml
 
 .capm3-virt-equinix:
   extends: .default-trigger
@@ -366,11 +356,11 @@ capm3-ha-kubeadm-virt-ubuntu:
 #capm3-ha-kubeadm-virt-suse:
 #  extends: .kubeadm-capm3-virt-equinix
 #  variables:
-#    MGMT_ADDITIONAL_VALUES: environment-values/ci/suse-os-kubeadm.yml
-#    WC_ADDITIONAL_VALUES: environment-values/ci/suse-os-kubeadm.yml
+#    MGMT_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/suse-os.yml
+#    WC_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/suse-os.yml
 
 capm3-ha-rke2-virt-suse:
   extends: .rke2-capm3-virt-equinix
   variables:
-    MGMT_ADDITIONAL_VALUES: environment-values/ci/suse-os-rke2.yml
-    WC_ADDITIONAL_VALUES: environment-values/ci/suse-os-rke2.yml
+    MGMT_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/suse-os.yml
+    WC_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/suse-os.yml

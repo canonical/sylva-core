@@ -283,14 +283,6 @@
       "datasourceTemplate": "docker"
     },
     {
-      "description": "Detect Miniserve version upgrade",
-      "customType": "regex",
-      "fileMatch": "environment-values/ci/run_http_server_for_log_collect.yaml",
-      "depNameTemplate": "svenstaro/miniserve",
-      "matchStrings": ["MINISERVE_VERSION=(?<currentValue>.*)"],
-      "datasourceTemplate": "github-releases"
-    },
-    {
       "description": "Match generic comment in values file, used to detect version change in kustomize patch",
       "customType": "regex",
       "fileMatch": "charts/sylva-units/values.yaml",
