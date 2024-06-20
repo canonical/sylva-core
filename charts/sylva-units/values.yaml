@@ -772,6 +772,8 @@ units:
           chart: harbor
           version: 1.14.2
       targetNamespace: harbor
+      upgrade:
+        force: true
       values:
         updateStrategy:
           type: '{{ eq .Values._internal.default_storage_class_access_mode_rwx "ReadWriteMany" | ternary "RollingUpdate" "Recreate" }}'
