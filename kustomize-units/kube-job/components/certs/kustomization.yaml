@@ -9,7 +9,7 @@ patches:
         value:
           name: extra-ca-certs
           secret:
-            secretName: extra-ca-certs-${JOB_TARGET_NAMESPACE:-sylva-system}${DISCRIMINATOR:-}
+            secretName: extra-ca-certs-job-${JOB_NAME}
       - op: add
         path: /spec/template/spec/containers/0/volumeMounts/-
         value:

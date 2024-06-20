@@ -1,18 +1,9 @@
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: kube-job
-  annotations:
-    kustomize.toolkit.fluxcd.io/prune: disabled
-  labels:
-    pod-security.kubernetes.io/enforce: baseline
-    pod-security.kubernetes.io/enforce-version: latest
 ---
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: ${JOB_NAME}-${JOB_TARGET_NAMESPACE:-sylva-system}${DISCRIMINATOR:-}
-  namespace: kube-job
+  name: ${JOB_NAME}
+  namespace: "${NAMESPACE:-sylva-system}"
 spec:
   backoffLimit: 5
   activeDeadlineSeconds: 1800
@@ -36,16 +27,13 @@ spec:
           privileged: false
           seccompProfile:
             type: RuntimeDefault
-        env:
-        - name: TARGET_NAMESPACE
-          value: ${JOB_TARGET_NAMESPACE:-sylva-system}
         volumeMounts:
         - mountPath: /opt/
           name: script-volume
       imagePullSecrets:
       - name: registry-secret
       restartPolicy: Never
-      serviceAccountName: ${JOB_NAME}-${JOB_TARGET_NAMESPACE:-sylva-system}-sa${DISCRIMINATOR:-}
+      serviceAccountName: ${JOB_NAME}-sa
       securityContext:
         runAsNonRoot: true
         seccompProfile:
@@ -53,20 +41,20 @@ spec:
       volumes:
       - name: script-volume
         configMap:
-          name: ${JOB_NAME}-${JOB_TARGET_NAMESPACE:-sylva-system}${DISCRIMINATOR:-}-cm
+          name: kube-job-cm
           defaultMode: 0755
 ---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: ${JOB_NAME}-${JOB_TARGET_NAMESPACE:-sylva-system}-sa${DISCRIMINATOR:-}
-  namespace: kube-job
+  name: ${JOB_NAME}-sa
+  namespace: "${NAMESPACE:-sylva-system}"
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  name: ${JOB_NAME}${DISCRIMINATOR:-}
-  namespace: ${JOB_TARGET_NAMESPACE:-sylva-system}
+  name: ${JOB_NAME}
+  namespace: "${NAMESPACE:-sylva-system}"
 rules:
 - apiGroups: ["*"]
   resources: ["*"]
@@ -75,43 +63,45 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: ${JOB_NAME}${DISCRIMINATOR:-}
-  namespace: ${JOB_TARGET_NAMESPACE:-sylva-system}
+  name: ${JOB_NAME}
+  namespace: "${NAMESPACE:-sylva-system}"
 subjects:
 - kind: ServiceAccount
-  name: ${JOB_NAME}-${JOB_TARGET_NAMESPACE:-sylva-system}-sa${DISCRIMINATOR:-}
-  namespace: kube-job
+  name: ${JOB_NAME}-sa
 roleRef:
   kind: Role
-  name: ${JOB_NAME}${DISCRIMINATOR:-}
+  name: ${JOB_NAME}
   apiGroup: rbac.authorization.k8s.io
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: ${JOB_NAME}-${JOB_TARGET_NAMESPACE:-sylva-system}${DISCRIMINATOR:-}
+  name: kube-job-${JOB_NAME}-${NAMESPACE:-sylva-system}
 rules: []
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: ${JOB_NAME}-${JOB_TARGET_NAMESPACE:-sylva-system}${DISCRIMINATOR:-}
+  name: kube-job-${JOB_NAME}-${NAMESPACE:-sylva-system}
 subjects:
 - kind: ServiceAccount
-  name: ${JOB_NAME}-${JOB_TARGET_NAMESPACE:-sylva-system}-sa${DISCRIMINATOR:-}
-  namespace: kube-job
+  name: ${JOB_NAME}-sa
+  namespace: "${NAMESPACE:-sylva-system}"
 roleRef:
   kind: ClusterRole
-  name: ${JOB_NAME}-${JOB_TARGET_NAMESPACE:-sylva-system}${DISCRIMINATOR:-}
+  name: kube-job-${JOB_NAME}-${NAMESPACE:-sylva-system}
   apiGroup: rbac.authorization.k8s.io
 ---
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: kube-job-cm
-  namespace: kube-job
+  # namespace: ${NAMESPACE}  ## we don't do this, because `kustomize.toolkit.fluxcd.io/substitute: disabled` won't let us, we patch the namespace in the unit definition instead
+  labels:
+    kube-job: script
   annotations:
     kustomize.toolkit.fluxcd.io/substitute: disabled
 data:
   kube-job.sh: |
-  #sleep 20
+    echo "noop kube-job script"
+    sleep 10

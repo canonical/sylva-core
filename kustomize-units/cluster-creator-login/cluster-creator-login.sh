@@ -16,7 +16,7 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
-CLUSTER_CREATOR_PASSWORD=$(kubectl get secrets -n flux-system cluster-creator-secret -o jsonpath='{.data.password}' | base64 -d)
+CLUSTER_CREATOR_PASSWORD=$(kubectl get secrets -n sylva-system cluster-creator-secret -o jsonpath='{.data.password}' | base64 -d)
 if [ $? -ne 0 ]; then
   echo "Could not read the password of the cluster-creator user"
   exit 1
@@ -70,8 +70,8 @@ if [ $? -ne 0 -o "$KUBECONFIG" = "null" ]; then
 fi
 echo "Obtained a kubeconfig for the cluster-creator user"
 
-if ! kubectl get secret cluster-creator-kubeconfig -n flux-system > /dev/null 2>&1; then
-  kubectl create secret generic cluster-creator-kubeconfig --from-literal=kubeconfig="$KUBECONFIG" --from-literal=USER_NAME=$USERID -n flux-system
+if ! kubectl get secret cluster-creator-kubeconfig -n sylva-system > /dev/null 2>&1; then
+  kubectl create secret generic cluster-creator-kubeconfig --from-literal=kubeconfig="$KUBECONFIG" --from-literal=USER_NAME=$USERID -n sylva-system
   echo "Creating the cluster-creator-kubeconfig secret"
   if [ $? -ne 0 ]; then
     echo "Could not save the kubeconfig in the cluster-creator-kubeconfig secret"
@@ -80,6 +80,6 @@ if ! kubectl get secret cluster-creator-kubeconfig -n flux-system > /dev/null 2>
   echo "Saved the kubeconfig in the cluster-creator-kubeconfig secret"
 else
   echo "Updating the cluster-creator-kubeconfig secret"
-  kubectl patch secret cluster-creator-kubeconfig -n flux-system --type 'merge' -p '{"data":{"USER_NAME":"'$(echo $USERID | base64)'","kubeconfig":"'$(echo "$KUBECONFIG" | base64 -w0)'"}}' -n flux-system
+  kubectl patch secret cluster-creator-kubeconfig -n sylva-system --type 'merge' -p '{"data":{"USER_NAME":"'$(echo $USERID | base64)'","kubeconfig":"'$(echo "$KUBECONFIG" | base64 -w0)'"}}' -n sylva-system
   echo "Updated the kubeconfig in the cluster-creator-kubeconfig secret"
 fi

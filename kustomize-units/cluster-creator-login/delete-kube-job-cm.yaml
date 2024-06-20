@@ -1,6 +1,0 @@
-$patch: delete
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: kube-job-cm
-  namespace: kube-job

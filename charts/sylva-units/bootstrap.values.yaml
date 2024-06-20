@@ -254,25 +254,14 @@ units:
     depends_on:
       management-cluster-flux: true
       management-namespace-defs: true
-    unit_templates: []
-    repo: sylva-core
+    unit_templates:
+    - kube-job
     kustomization_spec:
-      # FIXME: This is very hacky, we should use an ad-hoc kustomization instead of this job to re-create configmap and secrets on maangement cluster
-      path: ./kustomize-units/kube-job
-      wait: true
-      force: true
-      postBuild:
-        substitute:
-          JOB_NAME: copy-configs-job
-          JOB_CHECKSUM: '{{ .Values | toJson | sha256sum }}'
-          JOB_TARGET_NAMESPACE: sylva-system
       _patches:
       - target:
           kind: ConfigMap
+          labelSelector: kube-job=script
         patch: |
-          - op: replace
-            path: /metadata/name
-            value: copy-configs-job-sylva-system-cm
           - op: replace
             path: /data/kube-job.sh
             value: |
@@ -280,9 +269,9 @@ units:
               set -e
 
               echo "-- Retrieve target cluster kubeconfig"
-              kubectl -n $TARGET_NAMESPACE get secret {{ .Values.cluster.name }}-kubeconfig -o jsonpath='{.data.value}' | base64 -d > /tmp/management-cluster-kubeconfig
+              kubectl get secret {{ .Values.cluster.name }}-kubeconfig -o jsonpath='{.data.value}' | base64 -d > /tmp/management-cluster-kubeconfig
               echo "-- Copy secrets and configmaps from bootstrap to management cluster"
-              kubectl -n $TARGET_NAMESPACE get configmaps,secrets,gitrepository,ocirepository,helmrepository \
+              kubectl get configmaps,secrets,gitrepository,ocirepository,helmrepository \
                 -l copy-from-bootstrap-to-management= \
                 -o json \
                   | jq '.items[] | del(.metadata.labels."helm.toolkit.fluxcd.io/name")
@@ -362,16 +351,9 @@ units:
     depends_on:
       management-sylva-units: true
       cluster-machines-ready: true
-    unit_templates: []
-    repo: sylva-core
+    unit_templates:
+    - kube-job
     kustomization_spec:
-      path: ./kustomize-units/kube-job
-      wait: true
-      force: true
-      postBuild:
-        substitute:
-          JOB_NAME: pivot-job
-          JOB_TARGET_NAMESPACE: sylva-system
        # change to ClusterRole because the `pivot` unit's pivot-job-sa SA is required to access
        # the cluster-wide CRD resources in order to move CAPI objects to management cluster
       _patches:
@@ -386,10 +368,8 @@ units:
                 verbs: ["*"]
       - target:
           kind: ConfigMap
+          labelSelector: kube-job=script
         patch: |
-          - op: replace
-            path: /metadata/name
-            value: pivot-job-sylva-system-cm
           - op: replace
             path: /data/kube-job.sh
             value: |
@@ -398,26 +378,26 @@ units:
               set -e
               export HOME=/tmp
               echo "-- Signal that the pivot job has started. This is used in bootstrap.sh to prevent accidental re-runs"
-              kubectl -n $TARGET_NAMESPACE  annotate --overwrite kustomizations.kustomize.toolkit.fluxcd.io cluster pivot/started=true
+              kubectl annotate --overwrite kustomizations.kustomize.toolkit.fluxcd.io cluster pivot/started=true
 
-              kubectl -n $TARGET_NAMESPACE get secret {{ .Values.cluster.name }}-kubeconfig -o json | \
+              kubectl get secret {{ .Values.cluster.name }}-kubeconfig -o json | \
                 jq '. | del(.metadata.uid) | del(.metadata.ownerReferences) | del(.metadata.resourceVersion) | del(.metadata.creationTimestamp) | .metadata.name = "{{ .Values.cluster.name }}-kubeconfig-copy"' |\
                 kubectl apply -f -
 
               echo "-- Retrieve target cluster kubeconfig"
-              kubectl -n $TARGET_NAMESPACE get secret {{ .Values.cluster.name }}-kubeconfig -o jsonpath='{.data.value}' | base64 -d > /tmp/management-cluster-kubeconfig
+              kubectl get secret {{ .Values.cluster.name }}-kubeconfig -o jsonpath='{.data.value}' | base64 -d > /tmp/management-cluster-kubeconfig
 
               echo "-- Wait for cluster and machines to be ready as it is a required condition to move"
-              kubectl -n $TARGET_NAMESPACE wait --for condition=ControlPlaneReady --timeout 600s --all cluster
-              kubectl -n $TARGET_NAMESPACE wait --for condition=NodeHealthy --timeout 600s --all machine
+              kubectl wait --for condition=ControlPlaneReady --timeout 600s --all cluster
+              kubectl wait --for condition=NodeHealthy --timeout 600s --all machine
               echo "-- Wait for all Kustomizations related to Cluster API to be ready in management cluster"
-              kubectl -n $TARGET_NAMESPACE --kubeconfig /tmp/management-cluster-kubeconfig wait --for=condition=Ready --timeout=20m kustomization capi-providers-pivot-ready
+              kubectl --kubeconfig /tmp/management-cluster-kubeconfig wait --for=condition=Ready --timeout=20m kustomization capi-providers-pivot-ready
 
               echo "-- Suspend Kustomizations and HelmReleases in bootstrap cluster that relate to the management cluster"
-              kubectl -n $TARGET_NAMESPACE patch $(kubectl -n $TARGET_NAMESPACE get helmreleases.helm.toolkit.fluxcd.io,kustomizations.kustomize.toolkit.fluxcd.io \
+              kubectl patch $(kubectl get helmreleases.helm.toolkit.fluxcd.io,kustomizations.kustomize.toolkit.fluxcd.io \
                 -l suspend-on-pivot=yes -o name) --type=json --patch '[{"op": "replace", "path": "/spec/suspend", "value": true}]'
 
-              kubectl -n $TARGET_NAMESPACE patch helmreleases.helm.toolkit.fluxcd.io sylva-units --type=json \
+              kubectl patch helmreleases.helm.toolkit.fluxcd.io sylva-units --type=json \
                 --patch '[{"op": "replace", "path": "/spec/suspend", "value": true}]'
 
               echo "-- Move cluster definitions from source to target cluster"
@@ -435,7 +415,7 @@ units:
               - name: default-context
                 context:
                   cluster: default-cluster
-                  namespace: $TARGET_NAMESPACE
+                  namespace: {{ .Release.Namespace }}
                   user: default-user
               current-context: default-context
               users:
@@ -447,7 +427,7 @@ units:
               clusterctl move --kubeconfig $bootstrap_cluster_kubeconfig --to-kubeconfig /tmp/management-cluster-kubeconfig -v 3
 
               echo "-- Patch the mgmt cluster sylva-units HelmRelease to enable 'cluster' unit in the management cluster"
-              kubectl -n $TARGET_NAMESPACE --kubeconfig /tmp/management-cluster-kubeconfig \
+              kubectl --kubeconfig /tmp/management-cluster-kubeconfig \
                   patch helmrelease sylva-units --type=json --patch='[{"op":"remove","path":"/spec/values/units/cluster/enabled"},{"op":"remove","path":"/spec/values/units/cluster-bmh/enabled"}]'
 
               # NOTE: here we could add a reference to another valueFile that would deploy units specific to the management cluster
@@ -455,19 +435,19 @@ units:
               # and/or create a kustomization on management-cluster to manage sylva-units helmRelease from git
 
               echo "-- Freeze reconciliation of current job Kustomization in source cluster as we're done"
-              kubectl -n $TARGET_NAMESPACE annotate kustomizations pivot kustomize.toolkit.fluxcd.io/reconcile=disabled --overwrite
+              kubectl annotate kustomizations pivot kustomize.toolkit.fluxcd.io/reconcile=disabled --overwrite
 
               echo "-- Accelerate reconciliation of the sylva-units HelmRelease"
-              kubectl -n $TARGET_NAMESPACE --kubeconfig /tmp/management-cluster-kubeconfig \
+              kubectl --kubeconfig /tmp/management-cluster-kubeconfig \
                   annotate --overwrite helmrelease/sylva-units reconcile.fluxcd.io/requestedAt="$(date -uIs)"
 
               echo "-- Signal to bootstrap.sh that the pivot job has ended"
-              kubectl -n $TARGET_NAMESPACE annotate --overwrite kustomizations.kustomize.toolkit.fluxcd.io cluster pivot/started-
+              kubectl annotate --overwrite kustomizations.kustomize.toolkit.fluxcd.io cluster pivot/started-
 
               # if infra_provider is capm3 delete unused available bmh from pivot to avoid them to be managed by two operators that will compete to manage their power state
-              if kubectl -n $TARGET_NAMESPACE get kustomizations capm3 ; then
+              if kubectl get kustomizations capm3 ; then
                 echo "-- delete all unused bmh from bootstrap cluster"
-                kubectl -n $TARGET_NAMESPACE delete bmh --all
+                kubectl delete bmh --all
               fi
 
               echo "-- All done"
