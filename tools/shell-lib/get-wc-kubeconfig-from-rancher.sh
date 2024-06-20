@@ -11,7 +11,7 @@ echo >&2 "-- Retrieving kubeconfig for cluster $WORKLOAD_CLUSTER_NAME from Ranch
 
 RANCHER_URL=$(kubectl get ingress -n cattle-system rancher -o jsonpath='{ .spec.tls[].hosts[] }')
 echo >&2 "RANCHER_URL = $RANCHER_URL"
-BOOTSTRAP_PASSWORD=$(kubectl -n cattle-system get secret bootstrap-secret -o jsonpath='{.data.bootstrapPassword}' | base64 -d)
+BOOTSTRAP_PASSWORD=$(kubectl -n cattle-system get secret rancher-bootstrap-secret -o jsonpath='{.data.bootstrapPassword}' | base64 -d)
 TOKEN=$(curl --insecure -s https://$RANCHER_URL/v3-public/localProviders/local?action=login -H 'content-type: application/json' --data-binary '{"username":"admin","password":"'$BOOTSTRAP_PASSWORD'","ttl":60000}' | yq eval .token -)
 CLUSTERS=$(curl --insecure -s https://$RANCHER_URL/v3/clusters/  -H "Authorization: Bearer $TOKEN" )
 echo >&2 "Detected clusters: $(echo $CLUSTERS | yq '[.data[].name] | join(", ")')"

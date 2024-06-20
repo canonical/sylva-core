@@ -2836,7 +2836,7 @@ units:
           {{ tuple (dict
                 "apiVersion" "v1"
                 "kind" "Secret"
-                "name" "bootstrap-secret"
+                "name" "rancher-bootstrap-secret"
                 "namespace" "cattle-system"
              )
              (tuple . "rancher" | include "unit-enabled")
@@ -2935,7 +2935,7 @@ units:
           - name: CATTLE_BOOTSTRAP_PASSWORD
             valueFrom:
               secretKeyRef:
-                name: bootstrap-secret
+                name: rancher-bootstrap-secret
                 key: bootstrapPassword
       _postRenderers:
         - kustomize:
