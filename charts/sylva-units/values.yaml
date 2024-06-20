@@ -2271,6 +2271,16 @@ units:
         | include "preserve-type"
         }}
     helmrelease_spec:
+      driftDetection:
+        ignore:
+          - paths:
+            - /spec/template/spec/infrastructureRef/apiVersion
+            target:
+              kind: MachineDeployment
+          - paths:
+            - /spec/infrastructureRef/apiVersion
+            target:
+              kind: Cluster
       upgrade:
         remediation:  # don't inherit retry settings from unit_helmrelease_spec_default (we don't want to try rollback CAPI resources)
           retries: 0
