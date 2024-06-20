@@ -56,6 +56,9 @@ _internal:
     {{- $mylist = append $mylist (.Values.cluster.capo.image_key | default .Values.cluster.capm3.image_key) -}}
     {{- without $mylist nil | uniq | include "preserve-type" -}}
 
+  # value of "node-role.kubernetes.io/control-plane" node label. In bootstrap context, the label is always ""
+  cp_node_label_value: ""
+
 bootstrap_os_images_override_enabled: []
 
 unit_templates:
