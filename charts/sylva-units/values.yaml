@@ -2715,6 +2715,8 @@ units:
       calico: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpk" }}'
     helm_repo_url: https://metallb.github.io/metallb
     helmrelease_spec:
+      driftDetection:
+        mode: disabled
       chart:
         spec:
           chart: metallb
