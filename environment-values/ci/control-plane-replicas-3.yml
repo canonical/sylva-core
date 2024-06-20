@@ -1,2 +1,0 @@
-cluster:
-  control_plane_replicas: 3

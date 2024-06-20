@@ -30,6 +30,7 @@ default:
 .deployment-information:
   - |
       echo -e "[\\e[1;94mEnvironment INFO\\e[0m]"
+      echo "  Fetch CI values from ${SYLVA_CI_VALUES_REPO} using ${SYLVA_CI_VALUES_REVISION} revision"
       echo "  CAPO_TAG = $CAPO_TAG"
       echo "  OCI_TAG = ${OCI_TAG:-'N/A'}"
       echo "  ENV_NAME = $ENV_NAME"

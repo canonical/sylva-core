@@ -84,6 +84,13 @@ include:
   - !reference [.function_update_values_file]
   - !reference [.function_download_artifact]
 
+.clone_ci_values:
+  - |
+    echo -e "Cloning CI values from \\e[1;94m${SYLVA_CI_VALUES_REPO}\\e[0m to \\e[1;92m${SYLVA_CI_VALUES_FOLDER}\\e[0m"
+    git clone -q ${SYLVA_CI_VALUES_REPO} ${SYLVA_CI_VALUES_FOLDER}
+    echo -e "Using \\e[1;94m${SYLVA_CI_VALUES_REVISION}\\e[0m reference from \\e[1;92m${SYLVA_CI_VALUES_REPO}\\e[0m"
+    git -C ${SYLVA_CI_VALUES_FOLDER} checkout ${SYLVA_CI_VALUES_REVISION}
+
 .setup_docker:
   - |
     # Configure docker for bootstrap cluster
@@ -98,6 +105,7 @@ include:
   - echo -e "\e[1m\e[0Ksection_start:`date +%s`:gitlab_ci_common[collapsed=true]\r\e[0KRunning common deployment steps\e[0m"
   - !reference [.import_functions]
   - !reference [.setup_docker]
+  - !reference [.clone_ci_values]
   - download_artifact deploy-management-cluster management-cluster-kubeconfig
   - |
     if [ -n "${GIT_REVISION}" ] ; then
@@ -119,8 +127,8 @@ include:
   - values_file=$ENV_PATH/values.yaml
   - |
     # Force intialization of an http server for log collection in cluster on capm3/capo
-    if [ -f environment-values/ci/run_http_server_for_log_collect.yaml ]; then
-      DISPLAY="false" update_values_file environment-values/ci/run_http_server_for_log_collect.yaml
+    if [ -f ${SYLVA_CI_VALUES_FOLDER}/run_http_server_for_log_collect.yaml ]; then
+      DISPLAY="false" update_values_file ${SYLVA_CI_VALUES_FOLDER}/run_http_server_for_log_collect.yaml
     else
       echo "File 'run_http_server_for_log_collect.yaml' not found, skipping"
     fi
@@ -145,6 +153,7 @@ include:
     fi
   - yq -i '.cluster.name = strenv(CLUSTER_CI_NAME)' $values_file
   - yq -i '.env_type = "ci"' $values_file
+  - update_values_file ${SYLVA_CI_VALUES_FOLDER}/image-key-common.yaml
   - |
     if [ -n "${MGMT_ADDITIONAL_VALUES}" ] && [ "${CLUSTER_TYPE}" = "management" ]; then
       update_values_file ${MGMT_ADDITIONAL_VALUES}
@@ -232,6 +241,7 @@ include:
   variables:
     SPECIFIC_VALUES_FILE: $MGMT_INITIAL_ADDITIONAL_VALUES
     GIT_REVISION: $MGMT_INITIAL_REVISION
+    SYLVA_CI_VALUES_REVISION: $MGMT_INITIAL_CI_VALUES_REVISION
 
 .update-management:
   extends: .management-base
@@ -241,6 +251,7 @@ include:
   variables:
     SPECIFIC_VALUES_FILE: $MGMT_UPDATE_ADDITIONAL_VALUES
     GIT_REVISION: $MGMT_UPDATE_REVISION
+    SYLVA_CI_VALUES_REVISION: $MGMT_UPDATE_CI_VALUES_REVISION
 
 .workload-base:
   extends: .docker-service
@@ -276,6 +287,7 @@ include:
   variables:
     SPECIFIC_VALUES_FILE: $WC_INITIAL_ADDITIONAL_VALUES
     GIT_REVISION: $WC_INITIAL_REVISION
+    SYLVA_CI_VALUES_REVISION: $WC_INITIAL_CI_VALUES_REVISION
 
 .update-workload:
   extends: .workload-base
@@ -285,6 +297,7 @@ include:
   variables:
     SPECIFIC_VALUES_FILE: $WC_UPDATE_ADDITIONAL_VALUES
     GIT_REVISION: $WC_UPDATE_REVISION
+    SYLVA_CI_VALUES_REVISION: $WC_UPDATE_CI_VALUES_REVISION
 
 .delete-workload:
   extends: .workload-base
