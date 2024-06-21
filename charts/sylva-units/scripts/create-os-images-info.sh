@@ -38,7 +38,11 @@ while read os_image_key; do
     insecure=$([[ $oci_registry_insecure == "true" ]] && echo "--insecure" || true)
     manifest=$(oras manifest fetch $url $insecure)
     echo $manifest | yq '.annotations |with_entries(select(.key|contains("sylva")))' -P | sed "s|.*/|        |" >> $configmap_file
-    current_image_size=$(echo $manifest | jq '[.annotations."sylvaproject.org/diskimage/archive-size", .annotations."sylvaproject.org/diskimage/size"] | map(tonumber) | add / pow(1024;2) + 100 | ceil')
+
+    # compute the size necessary to unpack the image in get-openstack-images:
+    # twice the archive size, plus the image size
+    # plus a margin of 100MB
+    current_image_size=$(echo $manifest | jq '.annotations | ((."sylvaproject.org/diskimage/size" | tonumber) + (."sylvaproject.org/diskimage/archive-size" | tonumber) * 2) / pow(1024;2) + 100 | ceil')
     if [ $current_image_size -gt $MAX_IMAGE_SIZE ]; then
       MAX_IMAGE_SIZE=$current_image_size
     fi
