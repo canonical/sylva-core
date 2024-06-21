@@ -118,8 +118,8 @@ variables:
   # override to test rolling upgrades in scheduled pipelines
   - if: '$CI_PIPELINE_SOURCE == "schedule" && $CI_DEPLOYMENTS && $CI_JOB_NAME =~ $DEPLOYMENT_FLAVOR'
     variables:
-      MGMT_INITIAL_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/control-plane-replicas-3.yml
-      MGMT_UPDATE_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/dummy-rolling-update-trigger.yml
+      MGMT_INITIAL_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/control-plane-replicas-3.yml ${SYLVA_CI_VALUES_FOLDER}/serve-k8s-1.27-image.yml
+      MGMT_UPDATE_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/dummy-rolling-update-trigger.yml ${SYLVA_CI_VALUES_FOLDER}/serve-k8s-1.27-image.yml
       APPLY_WATCH_TIMEOUT_MIN: 60
       WC_INITIAL_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/k8s-1.27.yml
       WC_UPDATE_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/k8s-1.28.yml
@@ -132,8 +132,8 @@ variables:
   # override to test rolling upgrades in MR flagged with ci-feature::test-rolling-upgrade
   - if: $CI_MERGE_REQUEST_LABELS =~ /ci-feature::test-rolling-upgrade/
     variables:
-      MGMT_INITIAL_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/control-plane-replicas-3.yml
-      MGMT_UPDATE_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/dummy-rolling-update-trigger.yml
+      MGMT_INITIAL_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/control-plane-replicas-3.yml ${SYLVA_CI_VALUES_FOLDER}/serve-k8s-1.27-image.yml
+      MGMT_UPDATE_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/dummy-rolling-update-trigger.yml ${SYLVA_CI_VALUES_FOLDER}/serve-k8s-1.27-image.yml
       APPLY_WATCH_TIMEOUT_MIN: 60
       WC_INITIAL_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/k8s-1.27.yml
       WC_UPDATE_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/k8s-1.28.yml
