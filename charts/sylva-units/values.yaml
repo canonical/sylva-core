@@ -2345,6 +2345,13 @@ units:
             - /spec/files/9/content
             target:
               kind: RKE2ControlPlane
+          - paths:
+            - /spec/machineTemplate/infrastructureRef/apiVersion
+            - /spec/kubeadmConfigSpec/preKubeadmCommands/6
+            - /spec/kubeadmConfigSpec/files/9/content
+            target:
+              kind: KubeadmControlPlane
+
       upgrade:
         remediation:  # don't inherit retry settings from unit_helmrelease_spec_default (we don't want to try rollback CAPI resources)
           retries: 0
@@ -2690,6 +2697,13 @@ units:
     helm_repo_url: https://rke2-charts.rancher.io
     helm_chart_versions: *calico-chart-versions  # we use a YAML anchor rather than templating so that this file can be read by tools/generate_units_documentation.py
     helmrelease_spec:
+      driftDetection:
+        ignore:
+          - paths:
+            - /spec/calicoNetwork/ipPools/0/blockSize
+            - /spec/calicoNetwork/ipPools/0/nodeSelector
+            target:
+              kind: Installation
       chart:
         spec:
           chart: rke2-calico
