@@ -330,6 +330,7 @@ capo-rke2-oci-suse:
   extends: .default-trigger
   variables:
     DOCKER_HOST: ""
+    MGMT_WATCH_TIMEOUT_MIN: 35
     APPLY_WATCH_TIMEOUT_MIN: 80
     APPLY_WC_WATCH_TIMEOUT_MIN: 80
     RUNNER_PLAN: m3.large.x86
