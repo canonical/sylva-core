@@ -276,7 +276,7 @@ include:
   after_script:
     - |
       echo -e "\e[1m\e[0Ksection_start:`date +%s`:dump_machine_logs[collapsed=true]\r\e[0KDumping machines logs\e[0m"
-      .gitlab/ci/scripts/dump_machine_logs.sh management || true
+      .gitlab/ci/scripts/dump_machine_logs.sh workload || true
       echo -e "\e[0Ksection_end:`date +%s`:dump_machine_logs\r\e[0K"
 
 .deploy-workload:
