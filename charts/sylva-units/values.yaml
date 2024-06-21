@@ -2320,6 +2320,21 @@ units:
       cluster-bmh: '{{ .Values.cluster.capi_providers.infra_provider | eq "capm3" }}'
       metal3-automated-cleanup-fix: '{{ tuple . "metal3-automated-cleanup-fix" | include "unit-enabled" }}'
     kustomization_spec:
+      driftDetection:
+        ignore:
+          - paths:
+            - /spec/template/spec/infrastructureRef/apiVersion
+            target:
+              kind: MachineDeployment
+          - paths:
+            - /spec/infrastructureRef/apiVersion
+            target:
+              kind: Cluster
+          - paths:
+            - /spec/files/10/content
+            - /spec/preRKE2Commands/4
+            target:
+              kind: RKE2ControlPlane
       prune: '{{ not (eq .Release.Namespace "sylva-system") | include "preserve-type" }}'
       # we wait on all important resources built by sylva-capi-cluster,
       # *except* the MachineDeployments, since if we're using kubeadm as bootstrap
