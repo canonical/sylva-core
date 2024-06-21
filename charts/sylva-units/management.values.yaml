@@ -81,6 +81,9 @@ units:
   kubevirt:
     enabled: false
 
+  kepler:
+    enabled: false
+
   kubevirt-test-vms:
     enabled: false
 
