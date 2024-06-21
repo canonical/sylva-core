@@ -107,7 +107,8 @@ def unzip_artifact(file_path):
     with tarfile.open(file_path, 'r:gz') as tar:
         tar.extractall(path=extraction_path)
         logger.info(f"Extracted '{file_path}' to '{extraction_path}'.")
-
+    # remove raw file to save PV size
+    os.remove(file_path)
     # Initialize a variable to hold the path of a non-gzipped file, if found
     non_gz_file_path = None
 
