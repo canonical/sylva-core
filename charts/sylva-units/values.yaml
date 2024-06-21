@@ -5633,7 +5633,7 @@ units:
       targetNamespace: sylva-prometheus-rules
       chart:
         spec:
-          chart: 0.0.0drift
+          chart: .
       install:
         createNamespace: true
       values:
