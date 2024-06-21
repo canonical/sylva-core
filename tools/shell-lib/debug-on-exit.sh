@@ -146,7 +146,7 @@ function cluster_info_dump() {
   kubectl get nodes --no-headers | awk '{print $1}' | xargs -I {} sh -c 'echo {} ; kubectl describe node {} | grep Allocated -A 5 | grep -ve Event -ve Allocated -ve percent -ve -- ; echo '
 
   # list all images (name+version) used by pods containers and initContainers
-  kubectl get pods -A -o jsonpath="{.items[*].spec['containers','initContainers'][*].image}" | tr -s '[:space:]' '\n' | sort | uniq -c | awk  '{text = "- { \"count\": "$1", \"image\": \""$2"\"}";print text}' > $dump_dir/containers_images.yaml
+  (echo "images:" && kubectl get pods -A -o jsonpath="{.items[*].spec['containers','initContainers'][*].image}" | tr -s '[:space:]' '\n' | sort | uniq -c | awk  '{text = "- { \"count\": "$1", \"image\": \""$2"\"}";print text}') | yq -P > $dump_dir/containers_images.yaml
 }
 
 echo "Start debug-on-exit at: $(date -Iseconds)"
