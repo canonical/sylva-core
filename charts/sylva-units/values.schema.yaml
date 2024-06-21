@@ -1011,7 +1011,7 @@ properties:
   sylva_diskimagebuilder_images:  # -------------------------------
     type: object
     propertyNames:
-      pattern: "^[a-z0-9][a-z0-9-]{1,50}[a-z0-9]$"
+      pattern: "^([a-z0-9][a-z0-9-]{1,50}[a-z0-9]|{{ .+ }})$"
     patternProperties:
       ".*":
         type: object
