@@ -269,7 +269,7 @@ include:
       - management-cluster-units-report.xml
       - "*-timeline.html"
       - management-cluster-kubeconfig
-      - environment-values/${ENV_NAME}/values.yaml
+      - environment-values/workload-clusters/${ENV_NAME}/values.yaml
     reports:
       junit:
       - management-cluster-units-report.xml
