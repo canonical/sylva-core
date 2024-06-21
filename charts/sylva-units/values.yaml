@@ -2332,6 +2332,7 @@ units:
         ignore:
           - paths:
             - /spec/template/spec/infrastructureRef/apiVersion
+            - /spec/template/spec/bootstrap/configRef/name
             target:
               kind: MachineDeployment
           - paths:
@@ -2341,6 +2342,7 @@ units:
           - paths:
             - /spec/files/10/content
             - /spec/preRKE2Commands/4
+            - /spec/files/9/content
             target:
               kind: RKE2ControlPlane
       upgrade:
@@ -3448,6 +3450,12 @@ units:
       prometheus-resources: '{{ tuple . "prometheus-resources" | include "unit-enabled" }}'
     helm_repo_url: https://charts.rancher.io/
     helmrelease_spec:
+      driftDetection:
+        ignore:
+          - paths:
+            - /metadata/annotations/prometheus-operator-validated
+            target:
+              kind: PrometheusRule
       releaseName: rancher-monitoring
       targetNamespace: cattle-monitoring-system
       storageNamespace: cattle-monitoring-system # see https://gitlab.com/sylva-projects/sylva-core/-/issues/443
