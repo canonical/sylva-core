@@ -2290,7 +2290,7 @@ units:
           - paths:
             - /spec/online
             target:
-              kind: BareMetalHost 
+              kind: BareMetalHost
       targetNamespace: '{{ .Release.Namespace }}'
       chart:
         spec:
