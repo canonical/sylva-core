@@ -111,7 +111,7 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
     spec:
       url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-dashboards.git
       ref:
-        tag: 0.0.8
+        tag: 0.0.9
 
   minio-operator:
     kind: GitRepository
@@ -3872,7 +3872,8 @@ units:
             enabled: '{{ tuple . "longhorn" | include "unit-enabled" }}'
           flux:
             enabled: '{{ tuple . "flux-system" | include "unit-enabled" }}'
-
+          minio:
+            enabled: '{{ tuple . "minio-monitoring-tenant" | include "unit-enabled" }}'
 
   multus:
     info:
@@ -4979,7 +4980,10 @@ units:
                 seccompProfile:
                   type: RuntimeDefault
           metrics:
-            enabled: disable
+            enabled: true
+          env:
+          - name: MINIO_PROMETHEUS_AUTH_TYPE
+            value: public
           features:
             bucketDNS: false
             enableSFTP: false
