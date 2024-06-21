@@ -2320,6 +2320,19 @@ units:
       cluster-bmh: '{{ .Values.cluster.capi_providers.infra_provider | eq "capm3" }}'
       metal3-automated-cleanup-fix: '{{ tuple . "metal3-automated-cleanup-fix" | include "unit-enabled" }}'
     kustomization_spec:
+      prune: '{{ not (eq .Release.Namespace "sylva-system") | include "preserve-type" }}'
+      # we wait on all important resources built by sylva-capi-cluster,
+      # *except* the MachineDeployments, since if we're using kubeadm as bootstrap
+      # we would have a deadlock: the default CNI unit would not deploy
+      #  before the cluster unit is ready, and the cluster would not be ready until
+      #  the CNI is deployed because the MachineDeployment nodes need the CNI to become
+      #  ready (for the controlplane nodes, the kubeadm controlplane provider ignores that)
+      healthChecks: >-
+        {{
+        (include "cluster-healthchecks" (dict "ns" .Release.Namespace "cluster" .Values.cluster "includeMDs" false) | fromYaml).result
+        | include "preserve-type"
+        }}
+    helmrelease_spec:
       driftDetection:
         ignore:
           - paths:
@@ -2335,19 +2348,6 @@ units:
             - /spec/preRKE2Commands/4
             target:
               kind: RKE2ControlPlane
-      prune: '{{ not (eq .Release.Namespace "sylva-system") | include "preserve-type" }}'
-      # we wait on all important resources built by sylva-capi-cluster,
-      # *except* the MachineDeployments, since if we're using kubeadm as bootstrap
-      # we would have a deadlock: the default CNI unit would not deploy
-      #  before the cluster unit is ready, and the cluster would not be ready until
-      #  the CNI is deployed because the MachineDeployment nodes need the CNI to become
-      #  ready (for the controlplane nodes, the kubeadm controlplane provider ignores that)
-      healthChecks: >-
-        {{
-        (include "cluster-healthchecks" (dict "ns" .Release.Namespace "cluster" .Values.cluster "includeMDs" false) | fromYaml).result
-        | include "preserve-type"
-        }}
-    helmrelease_spec:
       upgrade:
         remediation:  # don't inherit retry settings from unit_helmrelease_spec_default (we don't want to try rollback CAPI resources)
           retries: 0
