@@ -1,0 +1,2 @@
+release-is-upgrade: true
+require-failure: true

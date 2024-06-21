@@ -1,6 +1,6 @@
 {{/*
 Ensure that no_proxy covers everything that we need by adding the values defined in no_proxy_base.
-(Default values will be add only if the user set at least one of no_proxy or no_proxy_additional field) 
+(Default values will be add only if the user set at least one of no_proxy or no_proxy_additional field)
 */}}
 {{- define "sylva-units.no_proxy" -}}
   {{- $envAll := index . 0 -}}
@@ -82,4 +82,48 @@ url: https://gitlab.com/sylva-projects/sylva-core.git
 branch: main
    {{- end }}
  {{- end -}}
+{{- end -}}
+
+{{/*
+Return an error if the upgrade values (positional arg $tentative_values)
+of any of the ones marked as immutable (positional arg $immutable_values)
+are not equal to previous revision (positional arg $old_values) set
+*/}}
+{{- define "check-immutable-values" -}}
+{{- $immutable_values := index . 0 -}}
+{{- $old_values := index . 1 -}}
+{{- $tentative_values := index . 2 -}}
+{{- $path := index . 3 | default list -}}
+{{- if not (kindIs "map" $immutable_values) -}}
+  {{- fail (printf "check-immutable-values: type of input parameter for immutable values at '._internal.immutable_values.%s', but %s" (join "." $path) (kindOf $immutable_values)) -}}
+{{- end -}}
+{{- range $key, $value := $immutable_values -}}
+  {{- $path := append $path $key -}}
+  {{- if kindIs "map" $value -}}
+    {{- if hasKey $value "_immutable" -}}
+      {{- if not (kindIs "bool" (index $value "_immutable")) -}}
+        {{- fail (printf "wrong type for '._internal.immutable_values.%s': %v" (join "." $path) (index $value "_immutable")) -}}
+      {{- end -}}
+      {{- if (eq (index $value "_immutable") true) -}}
+        {{- if not (deepEqual (dig $key "_dig_default_unused" $old_values) (dig $key "_dig_default_unused" $tentative_values)) -}}
+          {{- fail (printf "Attempting to change value for '.%s', which is immutable (from '%s' to '%s'). \n %s"
+                                                (join "." $path)
+                                                (dig $key "<unset>" $old_values | toJson)
+                                                (dig $key "<unset>" $tentative_values | toJson)
+                                                (index $value "_immutable_comment" | default "Unsupported.")
+                    ) -}}
+        {{- end -}}
+      {{- end -}}
+    {{- end -}}
+    {{/* if there are additional keys in $value on top of `_immutable` & `_immutable_comment` we recursively check them
+         by passing the $value without `_immutable` & `_immutable_comment` keys as the new set of $immutable_values */}}
+    {{- if (gt ((without (keys $value) "_immutable" "_immutable_comment") | len) 0) -}}
+      {{- $_ := unset $value "_immutable" -}}
+      {{- $_ := unset $value "_immutable_comment" -}}
+      {{- tuple $value (dig $key dict $old_values) (dig $key dict $tentative_values) $path | include "check-immutable-values" -}}
+    {{- end -}}
+  {{- else -}}
+    {{- fail (printf "Input '._internal.immutable_values.%s' type is not a map, but %s" (join "." $path) (kindOf $value)) -}}
+  {{- end -}}
+{{- end -}}
 {{- end -}}

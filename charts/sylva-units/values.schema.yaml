@@ -1164,6 +1164,24 @@ properties:
   _internal:  # -------------------------------
     type: object
 
+    # _internal is made to host intermediate computations which matter
+    # only internally to sylva-units built-in unit definitions and behavior
+    #
+    # since it is not user-facing we don't want over engineer things and generally
+    # don't enforce schema on its keys
+    #
+    # there are however cases where it seems relevant to enforce a schema to
+    # facilitate developers life and catch mistakes earlier
+
+    properties:
+      immutable_values: #--------------------------------
+        type: object
+        patternProperties:
+          ".*":
+            anyOf:
+              - type: object
+              - $ref: "#/$defs/gotpl"
+
   # Placeholder for external units that would need to define their own values
   third_party:  # -------------------------------
     type: object

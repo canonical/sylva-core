@@ -74,3 +74,11 @@ spec:
           release-time: "{{ $time }}"
           values-checksum: "{{ $values_checksum }}"
           additional-info: | {{ .Values.additional_sylva_units_status_info | toYaml | nindent 12 }}
+
+{{/*
+Checking that all values under ._internal.immutable_values and set with dict "_immutable: true" value will not change during Helm upgrade/rollback.
+*/}}
+{{- if .Release.IsUpgrade -}}
+{{- $previous_values := .Values._internal.previous_values -}}
+{{- tuple .Values._internal.immutable_values $previous_values .Values list | include "check-immutable-values" -}}
+{{- end -}}
