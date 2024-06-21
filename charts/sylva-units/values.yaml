@@ -3457,15 +3457,6 @@ units:
           name: prometheus-config-values # this configmap is a byproduct of the prometheus-resources unit
           optional: '{{ not (tuple . "prometheus-resources" | include "unit-enabled") | include "as-bool" }}'
       # Disable drift detection for rancher-monitoring webhooks
-      _postRenderers:
-        - kustomize:
-            patches:
-            - target:
-                kind: (ValidatingWebhookConfiguration|MutatingWebhookConfiguration|PrometheusRule)
-              patch: |
-                - op: add
-                  path: /metadata/annotations/helm.toolkit.fluxcd.io~1driftDetection
-                  value: disabled
     helm_secret_values:
       prometheus:
         extraSecret:
@@ -5557,7 +5548,7 @@ units:
       targetNamespace: sylva-prometheus-rules
       chart:
         spec:
-          chart: .
+          chart: 0.0.0drift
       install:
         createNamespace: true
       values:
