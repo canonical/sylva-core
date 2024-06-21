@@ -66,21 +66,29 @@ echo -e "\e[0Ksection_end:`date +%s`:helm_base_values\r\e[0K"
 test_dirs=$(find $chart_dir/test-values -mindepth 1 -maxdepth 1 -type d)
 if [ -d $chart_dir/test-values ] && [ -n "$test_dirs" ] ; then
   for dir in $test_dirs ; do
-    echo -e "\e[0Ksection_start:`date +%s`:helm_more_values\r\e[0K--------------- Checking values from test-values/$(basename $dir) with 'helm template' and 'yamllint' ..."
+
+    # This checks whether `helm template` should be run with .Release.IsUpgrade set instead of .Release.IsInstall
+    if [[ -f $dir/test-spec.yaml && $(yq .release-is-upgrade $dir/test-spec.yaml) == "true" ]]; then
+        HELM_FLAG=" --is-upgrade"
+    else
+        HELM_FLAG=""
+    fi
+
+    echo -e "\e[0Ksection_start:`date +%s`:helm_more_values\r\e[0K--------------- Checking values from test-values/$(basename $dir) with 'helm template ${HELM_FLAG}' and 'yamllint' ..."
 
     set +e
-    helm template ${HELM_NAME} $chart_dir $(ls $dir/*.y*ml | sort | grep -v test-spec.yaml | sed -e 's/^/--values /') \
+    helm template ${HELM_NAME}${HELM_FLAG} $chart_dir $(ls $dir/*.y*ml | sort | grep -v test-spec.yaml | sed -e 's/^/--values /') \
       | yamllint - -d "$(cat < ${BASE_DIR}/.gitlab/ci/configuration/yamllint.yaml) $(cat < ${BASE_DIR}/.gitlab/ci/configuration/yamllint-helm-template-rules)"
     exit_code=$?
     set -e
 
     if [[ -f $dir/test-spec.yaml && $(yq .require-failure $dir/test-spec.yaml) == "true" ]]; then
         expected_exit_code=1
-        error_message="This testcase is supposed to make 'helm template ..| yamllint ..' fail, but it actually succeeded."
-        success_message="This negative testcase expectedly made 'helm template ..| yamllint ..' fail."
+        error_message="This testcase is supposed to make 'helm template ..${HELM_FLAG}| yamllint ..' fail, but it actually succeeded."
+        success_message="This negative testcase expectedly made 'helm template ..${HELM_FLAG}| yamllint ..' fail."
     else
         expected_exit_code=0
-        error_message="Failure when running 'helm template ..| yamllint ..' on this test case."
+        error_message="Failure when running 'helm template ..${HELM_FLAG}| yamllint ..' on this test case."
     fi
 
     if [[ $exit_code -ne $expected_exit_code ]]; then

@@ -6342,6 +6342,22 @@ _internal:
     {{- end -}}
     {{- $result -}}
 
+  previous_values: '{{ lookup "v1" "Secret" .Release.Namespace "sylva-units-values" | dig "data" "values" "" | b64dec | fromYaml | default dict | include "preserve-type" }}'
+
+  immutable_values:
+    cluster:
+      name:
+        _immutable: true
+        _immutable_comment: "Renaming a cluster is not supported"
+      capi_providers:
+        bootstrap_provider:
+          _immutable: true
+          _immutable_comment: "K8s distribution of a running cluster can't be changed"
+        infra_provider:
+          _immutable: true
+          _immutable_comment: "Underlying infrastructure of a running cluster can't be changed"
+      _immutable: '{{ not .Values._internal.ha_cluster.is_ha | include "preserve-type" }}'
+      _immutable_comment: "Cluster values can't be changed, as they would trigger a rolling upgrade that is not supported in non-HA mode"
 
 shared_workload_clusters_values:
   ntp: '{{ .Values.ntp | include "set-if-defined" }}'

@@ -8493,7 +8493,24 @@
       }
     },
     "_internal": {
-      "type": "object"
+      "type": "object",
+      "properties": {
+        "immutable_values": {
+          "type": "object",
+          "patternProperties": {
+            ".*": {
+              "anyOf": [
+                {
+                  "type": "object"
+                },
+                {
+                  "$ref": "#/$defs/gotpl"
+                }
+              ]
+            }
+          }
+        }
+      }
     },
     "third_party": {
       "type": "object"

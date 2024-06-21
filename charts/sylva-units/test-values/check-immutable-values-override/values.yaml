@@ -1,0 +1,31 @@
+  # this is used for unit testing "check-immutable-values" named template
+  # (charts/sylva-units/templates/_values_helpers.tpl) and is expected to fail
+_internal:
+  immutable_values:
+    vsphere:
+      vsphere-cpi:
+        vsphere_conf:
+          global:
+            insecureFlag:
+              _immutable: true
+              _immutable_comment: "Dummy example restricting TLS check change for vSphere API"
+
+  old_values:
+    vsphere:
+      vsphere-cpi:
+        vsphere_conf:
+          global:
+            insecureFlag: old-flag
+
+  new_values:
+    vsphere:
+      vsphere-cpi:
+        vsphere_conf:
+          global:
+            insecureFlag: new-flag
+
+  test_check_immutable_values: '{{ tuple (index (tuple . .Values._internal.immutable_values | include "interpret-inner-gotpl" | fromJson) "result")
+                                         .Values._internal.old_values
+                                         .Values._internal.new_values
+                                         list
+                                         | include "check-immutable-values" }}'

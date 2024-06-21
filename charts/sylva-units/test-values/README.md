@@ -11,3 +11,7 @@ result with `yamllint`.
 
 A `test-spec.yaml` file can be put in any such directory. Setting `require-failure: true`
 in this file allows you to specify that a test case is a intended to fail.
+
+## Upgrade test cases
+
+Setting `release-is-upgrade: true` in `test-spec.yaml` file allows you to specify that a test case is intended to be run with `.Release.IsUpgrade` set instead of `.Release.IsInstall`.
