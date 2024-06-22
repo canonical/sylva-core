@@ -8,6 +8,8 @@ The results are summarized by the following table:
 
 | Date                      | Management Cluster CAPI Providers | Sylva-Core main commit ID        | Management cluster result                    | Workload cluster result              | Test logs (only for failed tests) |
 |---------------------------|-----------------------------------|----------------------------------|----------------------------------------------|--------------------------------------|-----------------------------------|
+|2024-06-22 02:33|rke2-capv|58d0e7a61a1abfb64af3f6d83e515f3400ae99fe|:white_check_mark:|:x:||
+|2024-06-22 02:28|kubeadm-capv|58d0e7a61a1abfb64af3f6d83e515f3400ae99fe|:white_check_mark:|:white_check_mark:||
 |2024-06-21 02:35|rke2-capv|420b796b0424820b2496c0d149adbaa7e8c4189c|:white_check_mark:|:x:||
 |2024-06-21 02:27|kubeadm-capv|420b796b0424820b2496c0d149adbaa7e8c4189c|:white_check_mark:|:white_check_mark:||
 |2024-06-20 02:41|rke2-capv|d5722e3436022bd8823709a6cf782e2e4de7435d|:white_check_mark:|:white_check_mark:|[link](https://gitlab.com/sylva-projects/sylva-core/-/wikis/uploads/d8affff7ef99498591ea81c60a94a8a1/capv-logs.gz)|
@@ -27,8 +29,6 @@ The results are summarized by the following table:
 |2024-06-13 02:58|kubeadm-capv|3666f4db51155fbb54caf1f8d53cbe5f0b676c69|:x:|N/A|[link](https://gitlab.com/sylva-projects/sylva-core/-/wikis/uploads/b685ce1880edaa82e0fbe61aa7de5b15/capv-logs.gz)|
 |2024-06-12 02:33|rke2-capv|73048a1609c0c5fe692dae75a71cdbfa3c638dfe|:white_check_mark:|:white_check_mark:||
 |2024-06-12 02:27|kubeadm-capv|73048a1609c0c5fe692dae75a71cdbfa3c638dfe|:white_check_mark:|:white_check_mark:||
-|2024-06-11 03:05|rke2-capv|e74729e5f3d69f9d8b9fc34ff87b85ef6e0ed849|:x:|N/A|[link](https://gitlab.com/sylva-projects/sylva-core/-/wikis/uploads/d603e2d09c6bafd8ca5540bb7db1e48a/capv-logs.gz)|
-|2024-06-11 02:27|kubeadm-capv|e74729e5f3d69f9d8b9fc34ff87b85ef6e0ed849|:white_check_mark:|:x:|[link](https://gitlab.com/sylva-projects/sylva-core/-/wikis/uploads/d603e2d09c6bafd8ca5540bb7db1e48a/capv-logs.gz)|
 
 Old layout table:
 
