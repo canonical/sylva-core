@@ -10,7 +10,25 @@ cluster:
     infra_provider: capm3
     bootstrap_provider: cabpr
 
-  control_plane_replicas: 1
+  control_plane_replicas: 3
+
+  machine_deployments:
+    md0:
+      replicas: 1
+
+      capm3:
+        hostSelector:
+          matchLabels:
+            cluster-role: worker
+
+        provisioning_pool_interface: ens4
+        primary_pool_interface: ens5
+
+      network_interfaces:
+        ens4:
+          type: phy
+        ens5:
+          type: phy
 
   # Add kind container address to cluster kubernetes api certificate SubjectAltNames,
   # in order to be able to reach it from the outside through kubernetes-external service created by libvirt-metal unit
@@ -31,7 +49,6 @@ cluster:
             passwd: $1$pdWEicWs$9ZWQf5.CWyXccmP8Chuu01 # sylva
 
   capm3:
-    image_key: ubuntu-jammy-plain-rke2-1-28-8
     primary_pool_network: 192.168.100.0
     primary_pool_gateway: 192.168.100.1
     primary_pool_start: 192.168.100.20
@@ -63,6 +80,9 @@ cluster:
   baremetal_host_default:
     bmh_metadata:
       annotations:
+        sylvaproject.org/snmp-auth: foo
+        sylvaproject.org/snmp-hw-type: dell_idrac
+        sylvaproject.org/snmp-endpoint: http://192.168.133.1:5432
         sylvaproject.org/default-longhorn-disks-config: >-
           [{"path":"/var/longhorn/disks/disk_by-path_pci-0000:00:0a.0", "storageReserved":0, "allowScheduling":true, "tags":[ "vhdd", "fast"] },
            {"path":"/var/longhorn/disks/disk_by-path_pci-0000:00:0b.0", "storageReserved":0, "allowScheduling":true, "tags":[ "vhdd", "fast"] }]
@@ -72,7 +92,6 @@ cluster:
       bmc:
         disableCertificateVerification: true
       bootMode: legacy
-      automatedCleaningMode: disabled
       rootDeviceHints:
         deviceName: /dev/vda
 
@@ -82,18 +101,37 @@ cluster:
         labels:
           cluster-role: control-plane
           snmp-enabled: "true"
-        annotations:
-          sylvaproject.org/snmp-auth: foo
-          sylvaproject.org/snmp-hw-type: dell_idrac
-          sylvaproject.org/snmp-endpoint: http://192.168.133.1:5432
       bmh_spec:
         bmc:
           address: redfish-virtualmedia://{{ .Values._internal.bootstrap_node_ip }}:8000/redfish/v1/Systems/c0014001-b10b-f001-c0de-feeb1e54ee15
         bootMACAddress: 52:54:00:44:44:00
-
+    management-cp-1:
+      bmh_metadata:
+        labels:
+          cluster-role: control-plane
+      bmh_spec:
+        bmc:
+          address: redfish-virtualmedia://{{ .Values._internal.bootstrap_node_ip }}:8001/redfish/v1/Systems/c0014001-b10b-f001-c0de-feeb1e54ee15
+        bootMACAddress: 52:54:00:44:44:01
+    management-cp-2:
+      bmh_metadata:
+        labels:
+          cluster-role: control-plane
+      bmh_spec:
+        bmc:
+          address: redfish-virtualmedia://{{ .Values._internal.bootstrap_node_ip }}:8002/redfish/v1/Systems/c0014001-b10b-f001-c0de-feeb1e54ee15
+        bootMACAddress: 52:54:00:44:44:02
+    management-md-0:
+      bmh_metadata:
+        labels:
+          cluster-role: worker
+      bmh_spec:
+        bmc:
+          address: redfish-virtualmedia://{{ .Values._internal.bootstrap_node_ip }}:8003/redfish/v1/Systems/c0014001-b10b-f001-c0de-feeb1e54ee15
+        bootMACAddress: 52:54:00:44:44:03
 
 units:
-  metal3-suse:
+  metal3:
     helmrelease_spec:
       values:
         global:
@@ -102,34 +140,51 @@ units:
 
   longhorn:
     # this setting can be overridden to true to enable Longhorn
-    enabled: '{{ .Values.env_type | eq "ci" }}'
+    enabled: true
     helmrelease_spec:
       values:
         persistence:
-          defaultClassReplicaCount: 1   # don't enable data replication (this is a single node setup)
+          defaultClassReplicaCount: 3   # enable data replication
 
   monitoring:
     enabled_conditions:
       - '{{ ternary true false (.Values.env_type | eq "ci") | include "preserve-type" }}'
-
-  ingress-nginx:
-    helmrelease_spec:
-      values:
-        controller:
-          image:
-            tag: nginx-1.8.1-rancher1  # fix for https://gitlab.com/sylva-projects/sylva-core/-/issues/696
 
 libvirt_metal:
   #image: registry.gitlab.com/sylva-projects/sylva-elements/container-images/libvirt-metal:0.1.4  # customize if wanted
   nodes:
     management-cp-0:
       redfishPort: 8000
-      memGB: 24
-      numCPUs: 8
+      memGB: 16
+      numCPUs: 6
+    management-cp-1:
+      redfishPort: 8001
+      memGB: 16
+      numCPUs: 6
+    management-cp-2:
+      redfishPort: 8002
+      memGB: 16
+      numCPUs: 6
+    management-md-0:
+      redfishPort: 8003
+      memGB: 16
+      numCPUs: 6
 
     workload-cp-0:
       redfishPort: 8010
-      memGB: 16 # IPA allocates half of it to tmpfs, if must be large enough to store the image.
+      memGB: 16 # IPA allocates half of it to tmpfs, if must be large enough to store the image
+      numCPUs: 4
+    workload-cp-1:
+      redfishPort: 8011
+      memGB: 16
+      numCPUs: 4
+    workload-cp-2:
+      redfishPort: 8012
+      memGB: 16
+      numCPUs: 4
+    workload-md-0:
+      redfishPort: 8013
+      memGB: 16
       numCPUs: 4
 
 # dummy configuration to allow deployment of snmp-exporter
