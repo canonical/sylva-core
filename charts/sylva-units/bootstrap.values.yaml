@@ -9,6 +9,9 @@ _internal:
                   # that #replicas values computed for units deployed in the bootstrap
                   # don't inherit from mgmt cluster settings
     checkpoint:   # prevent any verification in bootstrap
+  immutable_values:
+    cluster:
+      _immutable: false # Disable immutability checks for the bootstrap cluster as it runs in non-HA mode
   default_storage_class_unit: "bootstrap-local-path"
   libvirt_metal_networks: '[{"name": "provisioning", "namespace": "default",  "ips": ["192.168.10.123"]}, { "name": "management", "namespace": "default"}]'
   bootstrap_node_ip: |-
