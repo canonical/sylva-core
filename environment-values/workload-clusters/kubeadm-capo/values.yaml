@@ -19,7 +19,7 @@ openstack:
     type: "ceph_ssd"
 
 sylva_diskimagebuilder_images:
-  ubuntu-jammy-plain-rke2-1-28-9:
+  ubuntu-jammy-plain-rke2-1-28-8:
     default_enabled: false
   ubuntu-jammy-plain-kubeadm-1-28-9:
     enabled: true
