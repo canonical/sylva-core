@@ -630,6 +630,29 @@ units:
                       app.kubernetes.io/component: read
                   topologyKey: kubernetes.io/hostname
 
+  testsuite:
+    info:
+      description: installs testsuite framework
+      maturity: beta
+    depends_on:
+      namespace-defs: true
+      kepler-resources: true
+    unit_templates:
+    - base-deps
+    helm_repo_url: https://gitlab.com/api/v4/projects/59269292/packages/helm/stable
+    helmrelease_spec:
+      chart:
+        spec:
+          chart: test-suite-chart
+          version: 0.1.0
+      targetNamespace: test-suite
+      install:
+        createNamespace: false
+        remediation:
+          retries: -1
+      values:
+        namespace: test-suite
+
   kubevirt:
     info:
       description: installs kubevirt

@@ -78,6 +78,9 @@ units:
   os-image-server:
     enabled: '{{ tuple . "metal3" | include "unit-enabled" }}'
 
+  testsuite:
+    enabled: true
+
   kubevirt:
     enabled: false
 
