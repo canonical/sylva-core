@@ -11,6 +11,19 @@ kubectl get secrets sylva-units-values -o template="{{ .data.values }}" | base64
 
 */}}
 {{- $envAll := set . "Values" (include "interpret-values-gotpl" . | fromJson) -}}
+
+{{/*
+Checking that all values under ._internal.immutable_values and set with dict "_immutable: true" value will not change during Helm upgrade/rollback.
+*/}}
+{{- if .Release.IsUpgrade -}}
+  {{- $previous_values := .Values._internal.previous_values -}}
+  {{- tuple .Values._internal.immutable_values $previous_values .Values list | include "check-immutable-values" -}}
+{{- end -}}
+{{/* we'll dump Values in sylva-units-values, except that we need to remove _internal.previous_values or else this secret
+     will grow arbitrarily large with each new Helm release
+*/}}
+{{- $dumpValues := deepCopy $envAll.Values -}}
+{{- $_ := set $dumpValues._internal "previous_values" dict -}}
 {{/* to have a values checksum that is always the same for a given set of input values the values checksum that we compute cannot include dynamically computed things, like htpasswd */}}
 {{- $values_checksum := regexReplaceAll " passwordHash: .*" (.Values | toYaml) " passwordHash: xxxxxx" | sha256sum -}}
 apiVersion: v1
@@ -24,7 +37,7 @@ metadata:
 type: Opaque
 stringData:
   values: |
-{{ $envAll.Values | toYaml| indent 4 }}
+{{ $dumpValues | toYaml| indent 4 }}
 ---
 {{/*
 
@@ -74,11 +87,3 @@ spec:
           release-time: "{{ $time }}"
           values-checksum: "{{ $values_checksum }}"
           additional-info: | {{ .Values.additional_sylva_units_status_info | toYaml | nindent 12 }}
-
-{{/*
-Checking that all values under ._internal.immutable_values and set with dict "_immutable: true" value will not change during Helm upgrade/rollback.
-*/}}
-{{- if .Release.IsUpgrade -}}
-{{- $previous_values := .Values._internal.previous_values -}}
-{{- tuple .Values._internal.immutable_values $previous_values .Values list | include "check-immutable-values" -}}
-{{- end -}}
