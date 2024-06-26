@@ -479,11 +479,21 @@ Result:
             {{- else }}
                 {{- /* we can't merge two different kind of values, overwrite dst value with src one */}}
                 {{- /* NOTE: maybe we should have a must-merge-append variant that would fail in that case? of fail inconditionally? */}}
-                {{- $_ := set $result $key $value }}
+                {{-  if (eq (kindOf $value) "map") }}
+                  {{- /* deepCopy maps, otherwise they would be passed by reference and source could be updated by subsequent merges */}}
+                  {{- $_ := set $result $key (deepCopy $value) }}
+                {{- else }}
+                  {{- $_ := set $result $key $value}}
+                {{- end }}
             {{- end }}
         {{- else }}
             {{- /* key not in dst, merge it from src */}}
-            {{- $_ := set $result $key $value }}
+            {{-  if (eq (kindOf $value) "map") }}
+              {{- /* deepCopy maps, otherwise they would be passed by reference and source could be updated by subsequent merges */}}
+              {{- $_ := set $result $key (deepCopy $value) }}
+            {{- else }}
+              {{- $_ := set $result $key $value}}
+            {{- end }}
         {{- end }}
     {{- end }}
     {{- $dst := $result }}
