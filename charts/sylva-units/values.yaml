@@ -636,7 +636,6 @@ units:
       maturity: beta
     depends_on:
       namespace-defs: true
-      kepler-resources: true
     unit_templates:
     - base-deps
     helm_repo_url: https://gitlab.com/api/v4/projects/59269292/packages/helm/stable
