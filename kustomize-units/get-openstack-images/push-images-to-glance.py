@@ -118,6 +118,7 @@ def unzip_artifact(file_path):
             if file.endswith(".gz"):
                 gz_file = os.path.join(root, file)
                 extracted_file_path = gz_file[:-3]  # Removes the .gz extension
+                logger.info(f"Gunzipping '{gz_file}' to '{extracted_file_path}'")
                 with gzip.open(gz_file, 'rb') as f_in, open(extracted_file_path, 'wb') as f_out:
                     shutil.copyfileobj(f_in, f_out)
                     logger.info(f"Gunzipped '{gz_file}' to '{extracted_file_path}'")
@@ -174,7 +175,10 @@ def wait_for_in_progress_image(image_name, checksum):
     LOOP_INTERVAL = 10
     t0 = datetime.now(timezone.utc)
     image_active = None
+    ignored_queued_images = []
     images = [None]
+
+    # this main loop is meant to wait for images in 'saving' state
     while (datetime.now(timezone.utc) - t0 < TIMEOUT):
         images = image_exists_in_glance(
             _image_name=image_name,
@@ -192,23 +196,32 @@ def wait_for_in_progress_image(image_name, checksum):
                     logger.warning(
                         f"Stalling image {image.name} {image.id} waiting {WAIT_QUEUED_IMAGE} seconds")
                     time.sleep(WAIT_QUEUED_IMAGE)
+
                 _image = conn.image.get_image(image.id)
-                if _image.status == 'queued' and _image.owner == conn.current_project_id:
-                    # probably a stalling image, we try to remove it
-                    handle_queued_image(image)
-                else:
-                    # stalling image but we can't delete it
-                    # we can't remediate, manual action needed
-                    logger.warning(
-                        f"Can't delete image {image.name} {image.id} :"
-                        f" {conn.current_project_id} is not the owner")
-                    logger.error(
-                        f"Owner of image {image.name} {image.id} is {image.owner}"
-                    )
-                    sys.exit(1)
+                if _image.status == 'queued':
+                    if _image.owner == conn.current_project_id:
+                        # probably a stalling image, we try to remove it
+                        handle_queued_image(image)
+                    else:
+                        # stalling image but we can't delete it
+                        # we can't remediate, manual action needed
+                        logger.warning(
+                            f"Can't delete image {image.name} {image.id} :"
+                            f" {conn.current_project_id} is not the owner")
+                        logger.warning(
+                            f"Owner of image {image.name} {image.id} is {image.owner}, ignoring it for now"
+                        )
+                        # this image will not be taken into account for now
+                        # (the tenant owning it may or may not continue to work on it, but we don't want to block on it)
+                        ignored_queued_images.append(image.id)
             if image.status in ['saving', 'importing', 'uploading']:
                 logger.info(f"Waiting for image {image.name} {image.id} to be active")
-        if image_active or not images:
+
+        # we break out of the loop if:
+        # - we have found an active image
+        # - or if there is no image to wait for (we ignore the images in 'queued' state that we don't own)
+        relevant_images = [i for i in images if i.id not in ignored_queued_images]
+        if image_active or not relevant_images:
             break
         time.sleep(LOOP_INTERVAL)
     return image_active
