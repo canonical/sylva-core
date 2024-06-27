@@ -6323,8 +6323,13 @@ _internal:
 
   cluster_unit_os_images_info_configmap: os-images-info
 
-  default_calico_autodetection_method:
-    canReach: '{{ not (empty .Values.cluster.mgmt_cluster_ip) | ternary .Values.cluster.mgmt_cluster_ip .Values.cluster.cluster_virtual_ip }}'
+  default_calico_autodetection_method: >-
+    {{- if .Values.cluster.capi_providers.bootstrap_provider | eq "cabpk" }}
+      {{- dict "kubernetes" "NodeInternalIP" | include "preserve-type" -}}
+    {{- else -}}
+      {{- $ip := not (empty .Values.cluster.mgmt_cluster_ip) | ternary .Values.cluster.mgmt_cluster_ip .Values.cluster.cluster_virtual_ip }}
+      {{- dict  "canReach" $ip | include "preserve-type" -}}
+    {{- end -}}
 
   capo_need_v1alpha8_fix: >-
     {{
