@@ -198,10 +198,7 @@ func printWarnings(bootstrapProvider string, infraProvider string, deploymentNam
 	}
 
 	if infraProvider == "capd" {
-		fmt.Println(`
-	====================================
-			   CAPD WARNINGS
-	====================================`)
+		fmt.Println(`CAPD WARNINGS`)
 		fmt.Println("  - \"cluster_virtual_ip\" is not set in the values.yaml file")
 		setClusterVirtualIp(deploymentName)
 
@@ -215,6 +212,8 @@ func printWarnings(bootstrapProvider string, infraProvider string, deploymentNam
 	====================================
 			   CAPO WARNINGS			
 	====================================`)
+		fmt.Println("  - \"clouds_yaml\" is not set in the secrets.yaml file, it's necessary for a capo deployment")
+		setCloudsYaml(deploymentName)
 	} else if infraProvider == "capv" {
 		fmt.Println(`
 	====================================
@@ -273,6 +272,7 @@ func setProxies(deploymentName string) {
 
 	case 1:
 		cmd := exec.Command("bash", "-c", `echo "Setting custom proxies"`)
+		cmd.Run()
 		proxyPrompt := promptui.Prompt{
 			Label: "Enter the HTTP proxy",
 		}
@@ -310,8 +310,27 @@ func setProxies(deploymentName string) {
 			cmd := exec.Command("bash", "-c", `yq -i '.proxies.http_proxy = "`+httpProxy+`" | .proxies.https_proxy = "`+httpsProxy+`" | .proxies.no_proxy = "`+noProxy+`"' environment-values/`+deploymentName+`/values.yaml`)
 			cmd.Run()
 		}
-		cmd.Run()
 	case 2:
+		fmt.Println("Documentation: https://example.com")
+	}
+}
+
+func setCloudsYaml(deploymentName string) {
+	prompt := promptui.Select{
+		Label: "Choose an option",
+		Items: []string{"Set clouds_yaml", "Access documentation"},
+	}
+	_, result, err := prompt.Run()
+	if err != nil {
+		fmt.Printf("Prompt failed %v\n", err)
+	}
+	switch result {
+	case "Set clouds_yaml":
+		cmd := exec.Command("bash", "-c", `vim environment-values/`+deploymentName+`/secrets.yaml`)
+		cmd.Stdin = os.Stdin
+		cmd.Stdout = os.Stdout
+		cmd.Run()
+	case "Access documentation":
 		fmt.Println("Documentation: https://example.com")
 	}
 }
