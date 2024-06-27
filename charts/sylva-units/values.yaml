@@ -6082,22 +6082,22 @@ k8s_version_short: "1.28"
 
 # Renovate Bot needs additional information to detect sylva diskimage-builder version
 # renovate: depName=sylva-projects/sylva-elements/diskimage-builder
-sylva_diskimagebuilder_version: 0.2.9
+sylva_diskimagebuilder_version: 0.2.10
 
 sylva_diskimagebuilder_images:
-  ubuntu-jammy-plain-rke2-1-28-9:
+  ubuntu-jammy-plain-rke2-1-28-8:
     default_enabled: true
-  ubuntu-jammy-plain-rke2-1-27-13: {}
-  ubuntu-jammy-plain-rke2-1-26-15: {}
-  ubuntu-jammy-hardened-rke2-1-28-9: {}
-  ubuntu-jammy-hardened-rke2-1-27-13: {}
-  ubuntu-jammy-hardened-rke2-1-26-15: {}
-  opensuse-15-5-plain-rke2-1-28-9: {}
-  opensuse-15-5-plain-rke2-1-27-13: {}
-  opensuse-15-5-plain-rke2-1-26-15: {}
-  opensuse-15-5-hardened-rke2-1-28-9: {}
-  opensuse-15-5-hardened-rke2-1-27-13: {}
-  opensuse-15-5-hardened-rke2-1-26-15: {}
+  ubuntu-jammy-plain-rke2-1-27-10: {}
+  ubuntu-jammy-plain-rke2-1-26-9: {}
+  ubuntu-jammy-hardened-rke2-1-28-8: {}
+  ubuntu-jammy-hardened-rke2-1-27-10: {}
+  ubuntu-jammy-hardened-rke2-1-26-9: {}
+  opensuse-15-5-plain-rke2-1-28-8: {}
+  opensuse-15-5-plain-rke2-1-27-10: {}
+  opensuse-15-5-plain-rke2-1-26-9: {}
+  opensuse-15-5-hardened-rke2-1-28-8: {}
+  opensuse-15-5-hardened-rke2-1-27-10: {}
+  opensuse-15-5-hardened-rke2-1-26-9: {}
 
 # this dict can be enriched at deployment time to feed additional information
 # into the sylva-units-status ConfigMap
@@ -6307,9 +6307,9 @@ _internal:
   bootstrap_node_ip: '{{ lookup "v1" "ConfigMap" "sylva-system" "cluster-public-endpoint" | dig "data" "address" "not_found" | default "not_found" }}'
 
   k8s_version_map:
-    1.26: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" | ternary "v1.26.15+rke2r1" "v1.26.15" }}'
-    1.27: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" | ternary "v1.27.13+rke2r1" "v1.27.13" }}'
-    1.28: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" | ternary "v1.28.9+rke2r1" "v1.28.9" }}'
+    1.26: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" | ternary "v1.26.9+rke2r1" "v1.26.15" }}'
+    1.27: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" | ternary "v1.27.10+rke2r1" "v1.27.13" }}'
+    1.28: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" | ternary "v1.28.8+rke2r1" "v1.28.9" }}'
 
   # total number of nodes in this cluster
   node_count:
