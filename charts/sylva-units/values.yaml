@@ -4425,17 +4425,6 @@ units:
           CLUSTER_ID: '{{ printf "%s-%s" .Values.cluster.name (randAlphaNum 10) | trunc 64 }}'
           STORAGE_POLICY_NAME: '{{ .Values.cluster.capv.storagePolicyName | default "" }}'
           CONTROLLER_REPLICAS: '{{ .Values._internal.ha_cluster.is_ha | ternary 3 1 }}'
-      _patches:
-        - patch: |
-            - op: replace
-              path: /spec/template/spec/nodeSelector/node-role.kubernetes.io~1control-plane
-              value: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" | ternary "true" "" }}'
-          target:
-            group: apps
-            version: v1
-            kind: Deployment
-            name: vsphere-csi-controller
-            namespace: vmware-system-csi
     kustomization_substitute_secrets:
       USERNAME: '{{ .Values.cluster.capv.username }}'
       PASSWORD: '{{ .Values.cluster.capv.password }}'
