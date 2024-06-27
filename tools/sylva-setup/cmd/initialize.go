@@ -37,8 +37,6 @@ var (
 		Short:   "Guides user to initialize a new sylva deployment",
 		Long:    `This command will guide the user to initialize a new sylva deployment.`,
 		Run: func(cmd *cobra.Command, args []string) {
-			// fmt.Println("init called")
-
 			bootstrapprovider = chooseBootstrapProvider()
 			infraprovider = chooseInfraProvider()
 			genericName = bootstrapprovider + "-" + infraprovider
@@ -77,7 +75,7 @@ var (
 				fmt.Println("Copying deployment value for", deploymentName)
 				copyDeploymentValues(genericName, deploymentName)
 
-				printWarnings(bootstrapprovider, infraprovider)
+				printWarnings(bootstrapprovider, infraprovider, deploymentName)
 
 				// fmt.Println("Values copied successfully in /environment-values/" + deploymentName)
 			} else {
@@ -178,20 +176,20 @@ func copyDeploymentValues(genericName string, deploymentName string) {
 	}
 }
 
-func printWarnings(bootstrapProvider string, infraProvider string) {
+func printWarnings(bootstrapProvider string, infraProvider string, deploymentName string) {
 	fmt.Println(`
 	====================================
 			   General Warnings
 	====================================`)
 	fmt.Println("  - Make sure you have set the necessary proxies")
-
+	setProxies(deploymentName)
 
 	if bootstrapProvider == "kubeadm" {
 		fmt.Println(`
 	====================================
 			   KUBEADM WARNINGS
 	====================================`)
-		
+
 	} else if bootstrapProvider == "rke2" {
 		fmt.Println(`
 	====================================
@@ -204,6 +202,9 @@ func printWarnings(bootstrapProvider string, infraProvider string) {
 	====================================
 			   CAPD WARNINGS
 	====================================`)
+		fmt.Println("  - \"cluster_virtual_ip\" is not set in the values.yaml file")
+		setClusterVirtualIp(deploymentName)
+
 	} else if infraProvider == "capm3" {
 		fmt.Println(`
 	====================================
@@ -219,5 +220,98 @@ func printWarnings(bootstrapProvider string, infraProvider string) {
 	====================================
 			   CAPV WARNINGS			
 	====================================`)
+	}
+}
+
+func setClusterVirtualIp(deploymentName string) {
+	prompt := promptui.Select{
+		Label: "Choose an option",
+		Items: []string{"Set cluster_virtual_ip", "Access documentation"},
+	}
+	_, result, err := prompt.Run()
+	if err != nil {
+		fmt.Printf("Prompt failed %v\n", err)
+	}
+	switch result {
+	case "Set cluster_virtual_ip":
+		cmd := exec.Command("bash", "-c", `
+		if ! docker network inspect kind > /dev/null 2>&1; then
+		  echo "Docker network 'kind' doesn't exist. Creating the network..."
+		  docker network create kind
+		fi
+		
+		KIND_PREFIX=$(docker network inspect kind -f '{{ (index .IPAM.Config 0).Subnet }}')
+		CLUSTER_IP=$(echo $KIND_PREFIX | awk -F"." '{print $1"."$2"."$3".100"}')
+		echo $CLUSTER_IP
+		yq -i ".cluster_virtual_ip = \"$CLUSTER_IP\"" environment-values/`+deploymentName+`/values.yaml`)
+		cmd.Run()
+	case "Access documentation":
+		fmt.Println("Documentation: https://example.com")
+	}
+}
+
+func setProxies(deploymentName string) {
+	prompt := promptui.Select{
+		Label: "Choose an option",
+		Items: []string{"Use system proxies (/etc/environment)", "Set custom proxies", "Access documentation"},
+	}
+	index, _, err := prompt.Run()
+	if err != nil {
+		fmt.Printf("Prompt failed %v\n", err)
+	}
+	switch index {
+	case 0:
+		fmt.Println("Using system proxies")
+		http_proxy := os.Getenv("http_proxy")
+		https_proxy := os.Getenv("https_proxy")
+		no_proxy := os.Getenv("no_proxy")
+		fmt.Println("http_proxy:", http_proxy)
+		fmt.Println("https_proxy:", https_proxy)
+		fmt.Println("no_proxy:", no_proxy)
+		cmd := exec.Command("bash", "-c", `yq -i '.proxies.http_proxy = "`+http_proxy+`" | .proxies.https_proxy = "`+https_proxy+`" | .proxies.no_proxy = "`+no_proxy+`"' environment-values/`+deploymentName+`/values.yaml`)
+		cmd.Run()
+
+	case 1:
+		cmd := exec.Command("bash", "-c", `echo "Setting custom proxies"`)
+		proxyPrompt := promptui.Prompt{
+			Label: "Enter the HTTP proxy",
+		}
+		httpProxy, err := proxyPrompt.Run()
+		if err != nil {
+			fmt.Printf("Prompt failed %v\n", err)
+		}
+
+		proxyPrompt.Label = "Enter the HTTPS proxy"
+		httpsProxy, err := proxyPrompt.Run()
+		if err != nil {
+			fmt.Printf("Prompt failed %v\n", err)
+		}
+
+		proxyPrompt.Label = "Enter the no proxy"
+		noProxy, err := proxyPrompt.Run()
+		if err != nil {
+			fmt.Printf("Prompt failed %v\n", err)
+		}
+
+		fmt.Println("You entered the following proxies:")
+		fmt.Println("  - HTTP Proxy:", httpProxy)
+		fmt.Println("  - HTTPS Proxy:", httpsProxy)
+		fmt.Println("  - No Proxy:", noProxy)
+
+		prompt := promptui.Prompt{
+			Label:     "Would you like to proceed with these proxies? (y/n)",
+			IsConfirm: true,
+		}
+		proceed, err := prompt.Run()
+		if err != nil {
+			fmt.Printf("Prompt failed %v\n", err)
+		}
+		if proceed == "y" || proceed == "yes" {
+			cmd := exec.Command("bash", "-c", `yq -i '.proxies.http_proxy = "`+httpProxy+`" | .proxies.https_proxy = "`+httpsProxy+`" | .proxies.no_proxy = "`+noProxy+`"' environment-values/`+deploymentName+`/values.yaml`)
+			cmd.Run()
+		}
+		cmd.Run()
+	case 2:
+		fmt.Println("Documentation: https://example.com")
 	}
 }
