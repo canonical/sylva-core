@@ -18,6 +18,7 @@ flux_url=os.getenv('flux_url')
 harbor_url=os.getenv('harbor_url')
 neuvector_url=os.getenv('neuvector_url')
 grafana_url=os.getenv('grafana_url')
+gitea_url=os.getenv('gitea_url')
 mgmt_only=os.getenv('ONLY_DEPLOY_MGMT')
 workload_name=os.getenv('WORKLOAD_CLUSTER_NAME')
 download_file=os.getenv('PWD')
@@ -408,6 +409,65 @@ def grafana_sso(endpoint, username, password):
      browser.quit()
      return True
 
+def gitea_sso(endpoint, username, password):
+  if not endpoint:
+      print("---------------------------------------------")
+      print ("Gitea is not defined in this configuration")
+      return True
+  else:
+     print("--------------------------------")
+     print("Checking SSO auth Gitea")
+     browser = webdriver.Firefox(options=options)
+     url='https://' + endpoint
+     browser.get(url)
+     print(browser.current_url)
+     print(browser.title)
+     browser.implicitly_wait(10)
+     delay = 30
+     try:
+       element_present = EC.presence_of_element_located((By.XPATH, '//a[@rel="nofollow"]'))
+       WebDriverWait(browser, delay).until(element_present)
+     except TimeoutException:
+       print ("Cannot access SignIn option")
+       return None
+     browser.find_element(By.XPATH, '//a[@rel="nofollow"]').click()
+     print(browser.title)
+     try:
+       element_present = EC.presence_of_element_located((By.XPATH, '//a[@href="/user/oauth2/keycloak-sylva"]'))
+       WebDriverWait(browser, delay).until(element_present)
+     except TimeoutException:
+       print ("Cannot access SSO option")
+       return None
+     browser.find_element(By.XPATH, '//a[@href="/user/oauth2/keycloak-sylva"]').click()
+     print(browser.title)
+     print(browser.current_url)
+     browser.find_element(By.ID,"username").send_keys(username)
+     browser.find_element(By.ID,"password").send_keys(password)
+     browser.find_element(By.ID,"kc-login").click()
+     print("Waiting to be redirect towards gitea UI home page")
+     time.sleep(20)
+     print("Redirect to gitea UI home page")
+     try:
+       element_present = EC.presence_of_element_located((By.XPATH, '//button[@class="ui green button"]'))
+       WebDriverWait(browser, delay).until(element_present)
+       print("Complete account on first login")
+       browser.find_element(By.XPATH, '//button[@class="ui green button"]').click()
+     except:
+       print("Not first Login")
+     try:
+       element_present = EC.presence_of_element_located((By.XPATH, '//a[@class="item active"]'))
+       WebDriverWait(browser, delay).until(element_present)
+       print(browser.title)
+       print(Fore.GREEN + "Gitea SSO check done")
+       print(Style.RESET_ALL)
+     except TimeoutException:
+       print ("Cannot access the Gitea UI")
+       return None
+     browser.delete_all_cookies()
+     browser.quit()
+     return True
+
+
 all_tests=0
 passed_tests=0
 retry=0
@@ -444,6 +504,10 @@ if  harbor_sso( harbor_url, user, password ) == True:
 
 if  grafana_sso( grafana_url, user, password ) == True:
     test['grafana']=1
+    passed_tests += 1
+
+if  gitea_sso( gitea_url, user, password ) == True:
+    test['gitea']=1
     passed_tests += 1
 
 while ( all_tests > passed_tests):
@@ -485,6 +549,13 @@ while ( all_tests > passed_tests):
   if  test['grafana'] !=1:
       if grafana_sso( grafana_url, user, password ) == True:
         test['grafana']=1
+        passed_tests += 1
+      else:
+         retry += 1
+
+  if  test['gitea'] !=1:
+      if gitea_sso( gitea_url, user, password ) == True:
+        test['gitea']=1
         passed_tests += 1
       else:
          retry += 1

@@ -34,6 +34,7 @@
     - export harbor_url=$(kubectl --kubeconfig management-cluster-kubeconfig get ingress -n harbor harbor-ingress -o jsonpath='{ .spec.tls[].hosts[] }')
     - export grafana_url=$(kubectl --kubeconfig management-cluster-kubeconfig get ingress -n cattle-monitoring-system rancher-monitoring-grafana -o jsonpath='{ .spec.tls[].hosts[] }')
     - export neuvector_url=$(kubectl --kubeconfig management-cluster-kubeconfig get ingress -n neuvector neuvector-webui-ingress  -o jsonpath='{ .spec.tls[].hosts[] }')
+    - export gitea_url=$(kubectl --kubeconfig management-cluster-kubeconfig get ingress -n gitea gitea -o jsonpath='{ .spec.tls[].hosts[] }')
     - export USER_SSO=$(kubectl --kubeconfig ./management-cluster-kubeconfig -n keycloak get secrets/credential-sylva-sylva-admin-keycloak -o jsonpath='{.data.username}'| base64 -d)
     - export PASSWORD_SSO=$(kubectl --kubeconfig ./management-cluster-kubeconfig -n keycloak get secrets/credential-sylva-sylva-admin-keycloak -o jsonpath='{.data.password}'| base64 -d)
     - echo "Test dependencies and initialize firefox/driver"
@@ -132,6 +133,7 @@ test-login:
     - export HURL_keycloak_url=$(kubectl --kubeconfig management-cluster-kubeconfig  get ingress -n keycloak keycloak-ingress -o jsonpath='{ .spec.tls[].hosts[] }')
     - export HURL_harbor_url=$(kubectl --kubeconfig management-cluster-kubeconfig get ingress -n harbor harbor-ingress -o jsonpath='{ .spec.tls[].hosts[] }')
     - export HURL_neuvector_url=$(kubectl --kubeconfig management-cluster-kubeconfig get ingress -n neuvector neuvector-webui-ingress  -o jsonpath='{ .spec.tls[].hosts[] }')
+    - export HURL_gitea_url=$(kubectl --kubeconfig management-cluster-kubeconfig get ingress -n gitea gitea -o jsonpath='{ .spec.tls[].hosts[] }')
     - |
       if [ -n "${HURL_neuvector_url}" ]; then
           sleep 2;
@@ -143,5 +145,11 @@ test-login:
           sleep 2;
       else
           rm -rf  ./tools/login-test/harbor-admin.hurl
+      fi
+    - |
+      if [ -n "${HURL_gitea_url}" ]; then
+          sleep 2;
+      else
+          rm -rf  ./tools/login-test/gitea-admin.hurl
       fi
     - hurl -k ./tools/login-test/*.hurl --test --color --noproxy=".$domain"  --report-junit $HURL_JUNIT_REPORT --report-html ${CI_PROJECT_DIR}
