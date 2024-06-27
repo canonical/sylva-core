@@ -646,11 +646,9 @@ units:
           version: 0.1.0
       targetNamespace: test-suite
       install:
-        createNamespace: false
+        createNamespace: true
         remediation:
           retries: -1
-      values:
-        namespace: test-suite
 
   kubevirt:
     info:
