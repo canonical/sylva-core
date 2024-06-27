@@ -83,7 +83,7 @@ function check_apply_kustomizations() {
 }
 
 export CURRENT_COMMIT=$(git rev-parse HEAD)
-export SYLVA_CORE_REPO=${SYLVA_CORE_REPO:-$(git remote get-url origin | sed 's|^git@\([^:]\+\):|https://\1/|')}
+export SYLVA_CORE_REPO=${SYLVA_CORE_REPO:-$(git remote get-url origin | sed 's|^git@\([^:]\+\):|https://\1/|' | sed 's|gitlab-ci-token.*@||')}
 
 echo_b() {
   end_section
