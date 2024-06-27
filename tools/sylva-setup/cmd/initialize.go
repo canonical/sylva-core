@@ -37,10 +37,11 @@ var (
 		Short:   "Guides user to initialize a new sylva deployment",
 		Long:    `This command will guide the user to initialize a new sylva deployment.`,
 		Run: func(cmd *cobra.Command, args []string) {
+			requirementsCmd.Run(cmd, []string{""})
 			bootstrapprovider = chooseBootstrapProvider()
 			infraprovider = chooseInfraProvider()
 			genericName = bootstrapprovider + "-" + infraprovider
-			deploymentName := chooseDeploymentName("sylva-" + genericName)
+			deploymentName = chooseDeploymentName("sylva-" + genericName)
 
 			fmt.Println(`
 			====================================
@@ -87,6 +88,7 @@ var (
 
 func init() {
 	rootCmd.AddCommand(initCmd)
+	// rootCmd.Run(requirementsCmd, []string{""})
 
 	// Here you will define your flags and configuration settings.
 
