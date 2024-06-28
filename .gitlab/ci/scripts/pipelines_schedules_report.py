@@ -22,9 +22,9 @@ except ModuleNotFoundError:
 PIPELINE_HISTORY_COUNT = int(sys.argv[1])
 print(f"PIPELINE_HISTORY_COUNT={PIPELINE_HISTORY_COUNT}")
 
-gitlab_url = "https://gitlab.com"
+gitlab_url = "https://" + os.getenv("CI_SERVER_HOST", default="gitlab.com")
 gl = gitlab.Gitlab(gitlab_url, private_token=os.getenv("PRIVATE_TOKEN"))
-project_id = 42451983
+project_id = os.getenv("CI_PROJECT_ID", default="42451983")
 pipeline_schedule_name = os.getenv("PIPELINE_SCHEDULE_NAME_SELECTOR", default="Nightly")
 project = gl.projects.get(project_id)
 print("retrieving pipeline schedules")
@@ -193,7 +193,7 @@ def publish_report():
         main_report.content = report_content
         main_report.save()
 
-    print(f"The report can be found on following URL: https://gitlab.com/sylva-projects/sylva-core/-/wikis/{wiki_page}")
+    print(f"The report can be found on following URL: " + os.getenv("CI_PROJECT_URL", default="https://gitlab.com/sylva-projects/sylva-core") + "/-/wikis/{wiki_page}")
     print("Report uploaded for " + datetime.datetime.now().strftime("%Y-%m-%d"))
 
 
