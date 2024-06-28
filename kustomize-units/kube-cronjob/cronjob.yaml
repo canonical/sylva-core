@@ -46,7 +46,7 @@ spec:
           volumes:
           - name: script-volume
             configMap:
-              name: ${CRONJOB_NAME}-cm
+              name: kube-cronjob-cm
               defaultMode: 0755
 ---
 apiVersion: v1
@@ -73,7 +73,6 @@ metadata:
 subjects:
 - kind: ServiceAccount
   name: ${CRONJOB_NAME}-sa
-  namespace: ${NAMESPACE:-sylva-system}
 roleRef:
   kind: Role
   name: ${CRONJOB_NAME}
@@ -102,9 +101,12 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: kube-cronjob-cm
-  namespace: ${NAMESPACE:-sylva-system}
+  labels:
+    kube-cronjob: script
   annotations:
     kustomize.toolkit.fluxcd.io/substitute: disabled
 data:
   kube-cronjob.sh: |
-  #sleep 20
+    echo "noop kube-cronjob script"
+    sleep 5
+    exit 1

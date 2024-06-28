@@ -6,9 +6,6 @@ resources:
   - role.yaml
   - cluster-creator-global-role.yaml
 
-patches:
-  - path: delete-kube-cronjob-cm.yaml
-
 configMapGenerator:
 
 - name: kube-job-cm
@@ -18,8 +15,8 @@ configMapGenerator:
   files:
   - kube-job.sh=cluster-creator-login.sh
 
-- name: cluster-creator-renewal-cm
-  namespace: flux-system
+- name: kube-cronjob-cm
+  behavior: merge
   options:
     disableNameSuffixHash: true
   files:

@@ -104,4 +104,5 @@ metadata:
 data:
   kube-job.sh: |
     echo "noop kube-job script"
-    sleep 10
+    sleep 5
+    exit 1

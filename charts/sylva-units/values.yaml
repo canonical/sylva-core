@@ -4466,6 +4466,31 @@ units:
         substitute:
           CRONJOB_NAME: cluster-creator-renewal
       _patches:
+        # these two patches adjust the ConfigMap name
+        # (not managed by $subst because we prefer to have 'kustomize.toolkit.fluxcd.io/substitute: disabled'
+        # on configmaps containing shell scripts)
+        - target:
+            kind: ConfigMap
+            labelSelector: kube-cronjob=script
+          patch: |
+            - op: replace
+              path: /metadata/name
+              value: kube-cronjob-cluster-creator-login
+        - target:
+            kind: CronJob
+          patch: |
+            kind: CronJob
+            metadata:
+              name: _unused_
+            spec:
+              jobTemplate:
+                spec:
+                  template:
+                    volumes:
+                    - name: script-volume
+                      configMap:
+                        name: kube-cronjob-cluster-creator-login
+        # this patch adjusts the cron schedule
         - target:
             kind: CronJob
           patch: |
