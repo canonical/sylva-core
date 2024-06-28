@@ -38,7 +38,12 @@ while read os_image_key; do
     insecure=$([[ $oci_registry_insecure == "true" ]] && echo "--insecure" || true)
     manifest=$(oras manifest fetch $url $insecure)
     echo $manifest | yq '.annotations |with_entries(select(.key|contains("sylva")))' -P | sed "s|.*/|        |" >> $configmap_file
-    current_image_size=$(echo $manifest | jq '[.annotations."sylvaproject.org/diskimage/archive-size", .annotations."sylvaproject.org/diskimage/size"] | map(tonumber) | add / pow(1024;2) + 100 | ceil')
+    # we compute the size needed to process the current image as:
+    # - the size of the compressed image plus the size of the uncompressed image
+    #   (because the tools manipulating the image may need to have both on disk at the same time during decompression)
+    # - a margin of 100MB
+    # - account for the ext4 inode tables and journal overhead (with a margin): 97% usable space
+    current_image_size=$(echo $manifest | jq '([.annotations."sylvaproject.org/diskimage/archive-size", .annotations."sylvaproject.org/diskimage/size"] | map(tonumber) | add / pow(1024;2) + 100) / 0.97 | ceil')
     if [ $current_image_size -gt $MAX_IMAGE_SIZE ]; then
       MAX_IMAGE_SIZE=$current_image_size
     fi
