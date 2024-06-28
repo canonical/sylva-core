@@ -3,7 +3,7 @@
 # This script can be tested with:
 #
 #   OS_IMAGES_INFO_PATH=my-os-images.info.yaml TARGET_NAMESPACE=sylva-system OS_CLIENT_CONFIG_FILE=./cloud.yaml \
-#       OS_CLOUD=capo_cloud kustomize-units/get-openstack-images/push-images-to-glance.py
+#       OS_CLOUD=capo_cloud kustomize-units/get-openstack-images/get-openstack-images.py
 #
 # With my-os-images.info.yaml having content similar as the one produced by the os-images-info unit:
 #
@@ -39,7 +39,7 @@ logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s %(levelname)s %(name)s %(funcName)s: %(message)s')
 logger = logging.getLogger(__name__)
 sys.tracebacklimit = 0
-NAMESPACE = os.environ.get('TARGET_NAMESPACE')
+NAMESPACE = os.environ.get('NAMESPACE')
 if not NAMESPACE:
     logger.exception("NAMESPACE not set")
     sys.exit(22)

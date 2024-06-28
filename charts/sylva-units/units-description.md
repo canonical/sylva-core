@@ -91,7 +91,7 @@
 | **coredns** | configures DNS inside cluster |  | True | Kustomize | N/A |
 | **eso-secret-stores** | defines External Secrets stores |  | True | Kustomize | N/A |
 | **first-login-rancher** | configure Rancher authentication for admin |  | True | Kustomize | N/A |
-| **get-openstack-images** | Automatically push openstack images to cinder |  | True | Kustomize | N/A |
+| **get-openstack-images** | Automatically push openstack images to Glance<br/><br/>Pushes OS images to Glance, if needed, and retrieves their UUIDs for use in cluster unit |  | True | Kustomize | N/A |
 | **gitea-eso** | write secrets in gitea namespace in gitea expected format |  | True | Kustomize | N/A |
 | **gitea-keycloak-resources** | deploys Gitea OIDC client in Sylva's Keycloak realm |  | True | Kustomize | N/A |
 | **gitea-secrets** | create random secret that will be used by gitea application. secrets are sync with vault. |  | True | Kustomize | N/A |

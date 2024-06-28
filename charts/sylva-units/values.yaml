@@ -5982,7 +5982,8 @@ units:
 
   get-openstack-images:
     info:
-      description: Automatically push openstack images to cinder
+      description: Automatically push openstack images to Glance
+      details: Pushes OS images to Glance, if needed, and retrieves their UUIDs for use in cluster unit
       internal: true
     unit_templates:
     - base-deps
@@ -5998,16 +5999,15 @@ units:
       force: true
       _components:
       - '{{ tuple "./certs" (and (not .Values.oci_registry_insecure) (.Values.oci_registry_extra_ca_certs)) | include "set-only-if" }}'
+      targetNamespace: '{{ .Release.Namespace }}'
       postBuild:
         substituteFrom:
           - kind: ConfigMap
             name: os-images-info-max-size
         substitute:
-          JOB_NAME: get-openstack-images
-          JOB_TARGET_NAMESPACE: '{{ .Release.Namespace }}'
           JOB_INSECURE_CLIENT: '{{ .Values.oci_registry_insecure | quote }}'
-          JOB_CHECKSUM:
-            '{{
+          JOB_CHECKSUM: |
+            {{
             list
               .Values._internal.sylva_core_version
               (mergeOverwrite (deepCopy .Values.os_images) .Values.sylva_diskimagebuilder_images)
@@ -6015,7 +6015,7 @@ units:
               .Values.sylva_base_oci_registry
               .Values.proxies
             | toJson | sha256sum
-            }}'
+            }}
           httpProxy: '{{ .Values.proxies.https_proxy }}'
           httpsProxy: '{{ .Values.proxies.https_proxy }}'
           noProxy: '{{ include "sylva-units.no_proxy" (tuple .) }}'
