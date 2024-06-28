@@ -99,6 +99,7 @@ else
 fi
 MACHINES=$(kubectl get -n ${MACHINES_NS} machines.cluster.x-k8s.io -ojson)
 
+download_port=25888
 
 function get_download_ip {
     # Get IP address for each machine
@@ -116,10 +117,13 @@ function get_download_ip {
     # download logs using machine IP and port 25888 where miniserve should be listening
     echo ">> Machine IP = $machine_ip"
     if [[ $machine_kind == "Metal3Machine" ]]; then
+      let "download_port++"
       # In cae of capm3-virt node's machine Ip are not directly accessible
       # we are creating service in bootstrap cluster to access it
       kubectl patch endpointslices machine-dump -n default --kubeconfig=bootstrap-cluster-kubeconfig \
         --patch '{"endpoints": [{"addresses": ["'$machine_ip'"]}]}'
+      kubectl patch services machine-dump -n default --kubeconfig=bootstrap-cluster-kubeconfig \
+        --type='json' --patch '[{"op": "replace", "path": "/spec/ports/0/port", "value": '$download_port' }]'
       download_ip="${bootstrap_cluster_ip}"
     else
       download_ip="${machine_ip}"
@@ -127,9 +131,9 @@ function get_download_ip {
 }
 
 function download_files {
-    echo ">> Download_URL = http://${download_ip}:25888/"
-    timeout 10s bash -c "until curl -sSL --fail http://${download_ip}:25888/ --connect-timeout 2 &>/dev/null; do sleep 1; echo -n "."; done" \
-    && curl -sSL "http://${download_ip}:25888/?download=tar_gz" --connect-timeout 2 -o "${TARGET_LOG_DIR}/${machine_name}.tar.gz" \
+    echo ">> Download_URL = http://${download_ip}:${download_port}/"
+    timeout 10s bash -c "until curl -sSL --fail http://${download_ip}:${download_port}/ --connect-timeout 2 &>/dev/null; do sleep 1; echo -n "."; done" \
+    && curl -sSL "http://${download_ip}:${download_port}/?download=tar_gz" --connect-timeout 2 -o "${TARGET_LOG_DIR}/${machine_name}.tar.gz" \
     && echo " >>> OK" \
     || echo " >>> Fail"
     echo ""
