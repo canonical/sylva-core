@@ -8,6 +8,8 @@ The results are summarized by the following table:
 
 | Date                      | Management Cluster CAPI Providers | Sylva-Core main commit ID        | Management cluster result                    | Workload cluster result              | Test logs (only for failed tests) |
 |---------------------------|-----------------------------------|----------------------------------|----------------------------------------------|--------------------------------------|-----------------------------------|
+|2024-06-29 02:39|rke2-capv|584a0245492dc607083f9f76ca9053ef5c146a47|:white_check_mark:|:white_check_mark:||
+|2024-06-29 02:31|kubeadm-capv|584a0245492dc607083f9f76ca9053ef5c146a47|:white_check_mark:|:white_check_mark:||
 |2024-06-28 02:36|rke2-capv|1bb49c582a3b85070fa66f3a44ed21630f66a385|:white_check_mark:|:white_check_mark:||
 |2024-06-28 02:29|kubeadm-capv|1bb49c582a3b85070fa66f3a44ed21630f66a385|:white_check_mark:|:white_check_mark:||
 |2024-06-27 02:45|rke2-capv|7618d3f3b62e72b5491ddb3d9d198ee7a5dc0c2f|:white_check_mark:|:white_check_mark:|[link](https://gitlab.com/sylva-projects/sylva-core/-/wikis/uploads/9465ac2a2269c9050425708f04a31556/capv-logs.gz)|
@@ -27,8 +29,6 @@ The results are summarized by the following table:
 |2024-06-19 03:03|rke2-capv|ad7c1df2ef5441bc10d6db530b6f28ec3b4e4116|:x:|N/A|[link](https://gitlab.com/sylva-projects/sylva-core/-/wikis/uploads/1bda58833eb7131f4d588ec3c5562380/capv-logs.gz)|
 |2024-06-19 02:26|kubeadm-capv|ad7c1df2ef5441bc10d6db530b6f28ec3b4e4116|:white_check_mark:|:white_check_mark:|[link](https://gitlab.com/sylva-projects/sylva-core/-/wikis/uploads/1bda58833eb7131f4d588ec3c5562380/capv-logs.gz)|
 |2024-06-18 02:42|rke2-capv|56cc0b94ead5d747b30c2088c74aae6ff015b1d4|:white_check_mark:|:white_check_mark:||
-|2024-06-18 02:27|kubeadm-capv|56cc0b94ead5d747b30c2088c74aae6ff015b1d4|:white_check_mark:|:white_check_mark:||
-|2024-06-16 03:06|rke2-capv|bca14d15b4ac02f8de693f8d14aaf8b8f50f297f|:x:|N/A|[link](https://gitlab.com/sylva-projects/sylva-core/-/wikis/uploads/0b9bf5def961b58859c0bf22b57e3fbb/capv-logs.gz)|
 
 Old layout table:
 
