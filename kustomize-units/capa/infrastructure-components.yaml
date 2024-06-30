@@ -13397,8 +13397,8 @@ spec:
           value: http://172.20.129.49:3128
         - name: no_proxy
           value: localhost,127.0.0.1,192.168.0.0/16,172.16.0.0/12,10.0.0.0/8,172.20.18.0/24,0.0.0.0,100.73.0.0/16
-        image: registry.gitlab.com/sylva-projects/sylva-core/capa-controller-test:v1
-        #image: registry.k8s.io/cluster-api-aws/cluster-api-aws-controller:v2.3.5
+        #image: registry.gitlab.com/sylva-projects/sylva-core/capa-controller-test:v1
+        image: registry.k8s.io/cluster-api-aws/cluster-api-aws-controller:v2.3.5
         imagePullPolicy: IfNotPresent
         livenessProbe:
           failureThreshold: 3
