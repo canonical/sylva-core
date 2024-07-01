@@ -193,7 +193,7 @@ def publish_report():
         main_report.content = report_content
         main_report.save()
 
-    print(f"The report can be found on following URL: " + os.getenv("CI_PROJECT_URL", default="https://gitlab.com/sylva-projects/sylva-core") + "/-/wikis/{wiki_page}")
+    print("The report can be found on following URL: " + os.getenv("CI_PROJECT_URL", default="https://gitlab.com/sylva-projects/sylva-core") + f"/-/wikis/{wiki_page}")
     print("Report uploaded for " + datetime.datetime.now().strftime("%Y-%m-%d"))
 
 
