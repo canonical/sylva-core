@@ -36,23 +36,24 @@ if [ $USER_CREATED -eq 0 ]; then
   # Create the cluster-creator user
   USERID=$(curl -k -s -H "Authorization: Bearer $ADMINTOKEN" $RANCHER_API/users -H 'content-type: application/json' --data-binary '{"me":false,"mustChangePassword":false,"type":"user","username":"'$USERNAME'","password":"'$CLUSTER_CREATOR_PASSWORD'","name":"'$USERNAME'"}' | jq -r .id)
   echo "User $USERID created"
-
-  # Assign role
-  curl -k -s -H "Authorization: Bearer $ADMINTOKEN" $RANCHER_API/globalrolebinding -H 'content-type: application/json' --data-binary '{"type":"globalRoleBinding","globalRoleId":"'$GLOBAL_ROLE'","userId":"'$USERID'"}' > /dev/null
-  if [ $? -ne 0 ]; then
-    echo "Could not assign the $GLOBAL_ROLE role to the cluster-creator user with id $USERID"
-    exit 1
-  fi
-  echo "Role $GLOBAL_ROLE assigned to the cluster-creator user"
 else
   # The user is already created, we pick its id
   USERID=$(curl -k -s -H "Authorization: Bearer $ADMINTOKEN" $RANCHER_API/users -H 'content-type: application/json' | jq -r '.data[]|select(.username=="'$USERNAME'")|.id')
   echo "The user $USERNAME already exists with userid $USERID"
 fi
+
 if [ "$USERID" = "" ]; then
   echo "Could not obtain the user id of the $USERNAME user"
   exit 1
 fi
+
+# Assign role
+curl -k -s -H "Authorization: Bearer $ADMINTOKEN" $RANCHER_API/globalrolebinding -H 'content-type: application/json' --data-binary '{"type":"globalRoleBinding","globalRoleId":"'$GLOBAL_ROLE'","userId":"'$USERID'"}' > /dev/null
+if [ $? -ne 0 ]; then
+  echo "Could not assign the $GLOBAL_ROLE role to the cluster-creator user with id $USERID"
+  exit 1
+fi
+echo "Role $GLOBAL_ROLE assigned to the cluster-creator user"
 
 # Login token with a short time to live of 300 seconds as it is only needed to generate cluster-creator-kubeconfig
 CREATORTOKEN=$(curl -k -s $RANCHER_PUBLIC_API/localProviders/local?action=login -H 'content-type: application/json' --data-binary '{"username":"'$USERNAME'","password":"'$CLUSTER_CREATOR_PASSWORD'","ttl":300}' | jq -r .token)
