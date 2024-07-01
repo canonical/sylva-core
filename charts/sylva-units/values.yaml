@@ -2328,30 +2328,6 @@ units:
         | include "preserve-type"
         }}
     helmrelease_spec:
-      driftDetection:
-        ignore:
-          - paths:
-            - /spec/template/spec/infrastructureRef/apiVersion
-            - /spec/template/spec/bootstrap/configRef/name
-            target:
-              kind: MachineDeployment
-          - paths:
-            - /spec/infrastructureRef/apiVersion
-            target:
-              kind: Cluster
-          - paths:
-            - /spec/files/10/content
-            - /spec/preRKE2Commands/4
-            - /spec/files/9/content
-            target:
-              kind: RKE2ControlPlane
-          - paths:
-            - /spec/machineTemplate/infrastructureRef/apiVersion
-            - /spec/kubeadmConfigSpec/preKubeadmCommands/6
-            - /spec/kubeadmConfigSpec/files/9/content
-            target:
-              kind: KubeadmControlPlane
-
       upgrade:
         remediation:  # don't inherit retry settings from unit_helmrelease_spec_default (we don't want to try rollback CAPI resources)
           retries: 0
