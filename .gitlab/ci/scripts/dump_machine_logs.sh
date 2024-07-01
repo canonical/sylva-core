@@ -86,7 +86,7 @@ ports:
 endpoints:
   - addresses:
     - 1.2.3.4 # fake address, will be patched when real machine IPs will be retrieved
-  " | kubectl apply --kubeconfig=bootstrap-cluster-kubeconfig -f -
+  " | kubectl apply --kubeconfig=bootstrap-cluster-kubeconfig --force -f -
 fi
 
 
