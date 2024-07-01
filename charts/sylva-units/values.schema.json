@@ -8371,6 +8371,9 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
+        "platform_tag": {
+          "type": "string"
+        },
         "thanos_receive_url": {
           "anyOf": [
             {

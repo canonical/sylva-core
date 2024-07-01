@@ -3473,6 +3473,7 @@ units:
                       storage: '{{  has .Values.env_type (list "dev" "ci") | ternary "8Gi" "50Gi" }}'
             externalLabels:
               cluster: '{{ .Values.cluster.name }}'  # required for multi-cluster dashboards
+              platform_tag: '{{ .Values.monitoring.platform_tag }}'
             remoteWriteDashboards: true
             remoteWrite:
               - url: '{{ .Values.monitoring.thanos_receive_url }}'
@@ -5126,6 +5127,7 @@ units:
             enabled: false
           extraFlags:
           - --query.config-file=/etc/thanos/ruler-queries.yaml
+          - --label=platform_tag="{{ .Values.monitoring.platform_tag }}"
           extraVolumes:
           - name: thanos-ruler-queries-config
             secret:
@@ -6120,6 +6122,8 @@ security:
   neuvector_scanning_enabled: false # disable Neuvector scanning capability by default
 
 monitoring:
+  platform_tag: Sylva
+
   # thanos_receive_url:
   # - for mgmt cluster, the local thanos k8s service is used (the URL below)
   # - for workload clusters, this is overridden via shared_workload_clusters_values.monitoring.thanos_receive_url
