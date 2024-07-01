@@ -3107,6 +3107,19 @@
             }
           ]
         },
+        "agent_config_format": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "$ref": "#/$defs/string-with-gotpl"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
         "capi_providers": {
           "anyOf": [
             {
@@ -8315,6 +8328,13 @@
           }
         }
       }
+    },
+    "agent_config_format": {
+      "anyOf": [
+        {
+          "type": "string"
+        }
+      ]
     },
     "sylva_diskimagebuilder_version": {
       "type": "string"
