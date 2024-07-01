@@ -236,6 +236,7 @@ See usage in units.yaml and sources.yaml
 
   {{/* interpret _unit_name_ in unit template */}}
   {{- $_ := set $envAll.Values "_unit_name_" $unit_name -}}
+  {{- $_ := set $envAll.Values "_kustomization_name_" (include "kustomization-name" (tuple $envAll $unit_name $unit_def)) -}}
   {{- $unit_def := index (tuple $envAll $unit_def | include "interpret-inner-gotpl" | fromJson) "result" -}}
 
   {{/* clear _unit_name_ from Values, we don't need it anymore */}}
