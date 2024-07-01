@@ -1,0 +1,26 @@
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
+
+labels:
+- includeSelectors: true
+  pairs:
+    copy-from-bootstrap-to-management: ""
+
+configMapGenerator:
+- name: capm3-virt-ha-values
+  options:
+    disableNameSuffixHash: true
+  files:
+  - capm3-virt-ha-values=high_availability.yaml
+
+patches:
+- target:
+    kind: HelmRelease
+    name: sylva-units
+  patch: |
+    - op: add
+      path: /spec/valuesFrom/1
+      value:
+        kind: ConfigMap
+        name: capm3-virt-ha-values
+        valuesKey: capm3-virt-ha-values

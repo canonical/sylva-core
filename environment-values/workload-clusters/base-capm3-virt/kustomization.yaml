@@ -8,7 +8,6 @@ resources:
 
 configMapGenerator:
   - name: capm3-virt-values
-
     files:
       - capm3-virt-values=capm3-virt-values.yaml
     options:
