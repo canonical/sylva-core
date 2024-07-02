@@ -2992,6 +2992,7 @@ units:
     repo: sylva-core
     depends_on:
       rancher: true
+      first-login-rancher: true  # it seems safer to have 'server-url' be set before any component talks to Rancher ingress
       keycloak: true
       keycloak-resources: true
       keycloak-oidc-external-secrets: true
@@ -4128,6 +4129,7 @@ units:
     - '{{ tuple . "rancher" | include "unit-enabled" }}'
     depends_on:
       rancher: true
+      first-login-rancher: true  # the 'server-url' Rancher setting needs to be set as a pre-requisite
     repo: sylva-core
     kustomization_spec:
       path: ./kustomize-units/cluster-creator-login
