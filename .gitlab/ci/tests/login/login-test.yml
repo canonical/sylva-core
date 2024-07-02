@@ -38,7 +38,7 @@
     - export USER_SSO=$(kubectl --kubeconfig ./management-cluster-kubeconfig -n keycloak get secrets/credential-sylva-sylva-admin-keycloak -o jsonpath='{.data.username}'| base64 -d)
     - export PASSWORD_SSO=$(kubectl --kubeconfig ./management-cluster-kubeconfig -n keycloak get secrets/credential-sylva-sylva-admin-keycloak -o jsonpath='{.data.password}'| base64 -d)
     - echo "Test dependencies and initialize firefox/driver"
-    - /usr/lib/python3.11/site-packages/selenium/webdriver/common/linux/selenium-manager --browser firefox --output json --debug
+    - /usr/lib/python3.12/site-packages/selenium/webdriver/common/linux/selenium-manager --browser firefox --output json --debug
     - echo -e "\e[0Ksection_end:`date +%s`:gitlab_ci_test_loging\r\e[0K"
     - echo "-- Testing login using SSO"
     - unset https_proxy http_proxy
