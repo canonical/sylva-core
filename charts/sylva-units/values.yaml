@@ -4031,6 +4031,28 @@ units:
           CLUSTER_VIRTUAL_IP: '{{ .Values.cluster_virtual_ip }}'
           CLUSTER_DOMAIN: '{{ .Values.cluster_domain }}'
 
+  nfs-ganesha:
+    info: Install NFS Ganesha server
+      maturity: beta
+    enabled: false
+    unit_templates:
+    - base-deps
+    depends_on:
+      namespace-defs: true
+      cinder-csi: true
+    helm_repo_url: https://kubernetes-sigs.github.io/nfs-ganesha-server-and-external-provisioner/
+    helmrelease_spec:
+      targetNamespace: nfs-ganesha
+      chart:
+        spec:
+          chart: nfs-ganesha-server-and-external-provisioner
+          version: 3.0.1
+      values:
+        persistence:
+          enabled: true
+          storageClass: cinder-ceph-ssd,persistence
+        size: 200Gi
+
   ceph-csi-cephfs:
     info:
       description: Installs Ceph-CSI
