@@ -4033,7 +4033,8 @@ units:
           CLUSTER_DOMAIN: '{{ .Values.cluster_domain }}'
 
   nfs-ganesha:
-    info: Install NFS Ganesha server
+    info:
+      description: Install NFS Ganesha server
       maturity: beta
     enabled: false
     unit_templates:
