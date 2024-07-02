@@ -4128,6 +4128,7 @@ units:
     - '{{ tuple . "rancher" | include "unit-enabled" }}'
     depends_on:
       rancher: true
+      first-login-rancher: true
     repo: sylva-core
     kustomization_spec:
       path: ./kustomize-units/cluster-creator-login
