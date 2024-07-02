@@ -186,13 +186,17 @@ Example:
 
 */}}
 
-{{ define "set-if-defined" }}
-  {{- if not (eq . nil) -}}
-    {{- dict "encapsulated-result" . | toJson -}}
+{{- define "set-if-defined" -}}
+  {{- if . -}}
+    {{- if kindIs "map" . -}}
+      {{- . | toYaml | nindent 2 -}}
+    {{- else -}}
+      {{- . -}}
+    {{- end -}}
   {{- else -}}
     skip-as-set-only-if-result-was-false
   {{- end -}}
-{{ end }}
+{{- end -}}
 
 
 {{/*
