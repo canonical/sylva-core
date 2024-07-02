@@ -157,7 +157,7 @@ units:
           - name: Loki
             type: "loki"
             access: "proxy"
-            url: "https://{{ .Values.external_hostnames.loki }}"
+            url: '{{ .Values.logging.loki_url }}'
             basicAuth: true
             basicAuthUser: "loki-user"
             jsonData:

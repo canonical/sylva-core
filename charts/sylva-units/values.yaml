@@ -6165,7 +6165,7 @@ logging:
   # - for mgmt cluster, the local Loki k8s service is used
   # - for workload clusters, this is overridden via shared_workload_clusters_values.logging.loki_url
   #   to point to the mgmt cluster Loki
-  loki_url: http://loki-gateway.svc.cluster.local
+  loki_url: http://loki-gateway.loki.svc.cluster.local
 
 _internal:
 
