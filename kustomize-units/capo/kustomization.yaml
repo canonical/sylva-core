@@ -7,3 +7,11 @@ resources:
 labels:
   - pairs:
       clusterctl.cluster.x-k8s.io: ""
+
+patches:
+  - target:
+      kind: OpenStackCluster
+      name: management-cluster
+      namespace: sylva-system
+    patch: |-
+        apiVersion: infrastructure.cluster.x-k8s.io/v1alpha7
