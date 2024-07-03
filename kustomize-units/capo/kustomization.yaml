@@ -11,8 +11,6 @@ labels:
 patches:
   - target:
       kind: OpenStackCluster
-      name: management-cluster
-      namespace: sylva-system
     patch: |-
       - op: replace
         path: apiVersion
