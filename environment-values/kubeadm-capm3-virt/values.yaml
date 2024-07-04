@@ -37,6 +37,21 @@ cluster:
         ens5:
           type: phy
 
+
+  cluster_services_cidrs:
+    - 100.12.0.0/16
+    - 2001:db8:42:1::/112
+  cluster_pods_cidrs:
+    - 100.34.0.0/16
+    - 2001:db8:42:0::/56
+
+  additional_commands:
+    pre_bootstrap_commands:
+      - |
+        echo "Activate IPv6 forwarding"
+        echo "net.ipv6.conf.all.forwarding = 1" > /etc/sysctl.d/ipv6.conf
+        sysctl -f /etc/sysctl.d/ipv6.conf
+
   # Add kind container address to cluster kubernetes api certificate SubjectAltNames,
   # in order to be able to reach it from the outside through kubernetes-external service created by libvirt-metal unit
   # once pivot to management cluster will happen, this IP will be retrieved in a cluster-public-endpoint configMap created for that purpose

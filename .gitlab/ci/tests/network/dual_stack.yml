@@ -1,0 +1,57 @@
+---
+display-networking-config:
+  stage: deployment-test
+  extends:
+    - .test-tags
+  needs:
+    - deploy-management-cluster
+  image: $CI_IMAGE
+  script:
+    - !reference [.import_functions]
+    - download_artifact deploy-management-cluster management-cluster-kubeconfig
+    - !reference [.test_scripts, edit_hosts_file]
+
+    # https://kubernetes.io/docs/tasks/network/validate-dual-stack/
+    - |
+      echo ">> display node addressing"
+      export KUBECONFIG=management-cluster-kubeconfig
+      NODES=$(kubectl get nodes --no-headers -o custom-columns=":metadata.name")
+      for node in $NODES; do
+        echo "*************"
+        echo ">>> node name = $node"
+        echo "pod cidrs = "
+        kubectl get nodes $node -o go-template --template='{{range .spec.podCIDRs}}{{printf "%s\n" .}}{{end}}'
+        echo "node addresses = "
+        kubectl get nodes $node -o go-template --template='{{range .status.addresses}}{{printf "%s: %s\n" .type .address}}{{end}}'
+      done
+    - |
+      echo ">> display node addresses"
+      KUBE_SYSTEM_PODS=$(kubectl get pods -n kube-system --no-headers -o custom-columns=":metadata.name")
+      for po in $KUBE_SYSTEM_PODS; do
+        echo "*************"
+        echo ">>> pod = $po"
+        kubectl get pod $po -n kube-system -o go-template --template='{{range .status.podIPs}}{{printf "%s\n" .ip}}{{end}}'
+      done
+    - |
+      echo ">> test service"
+      echo '
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: ipv6-test
+        labels:
+          app.kubernetes.io/name: ipv6-test
+      spec:
+        ipFamilyPolicy: PreferDualStack
+        ipFamilies:
+        - IPv4
+        - IPv6
+        type: LoadBalancer
+        selector:
+          app.kubernetes.io/name: ipv6-test
+        ports:
+          - protocol: TCP
+            port: 80
+      ' | kubectl apply -f -
+    - kubectl get svc -l app.kubernetes.io/name=ipv6-test
+    - kubectl describe svc -l app.kubernetes.io/name=ipv6-test

@@ -36,14 +36,6 @@ cluster:
   cluster_api_cert_extra_SANs:
     - '{{ .Values._internal.bootstrap_node_ip }}'
 
-  cluster_services_cidrs:
-    - 100.73.0.0/16
-    - 2001:db8:42:1::/112
-  cluster_pods_cidrs:
-    - 100.72.0.0/16
-    - 2001:db8:42:0::/56
-
-
   rke2:
     additionalUserData:
       config:
