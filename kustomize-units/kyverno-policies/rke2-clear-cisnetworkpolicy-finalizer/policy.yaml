@@ -1,0 +1,42 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: rke2-clear-cisnetworkpolicy-finalizer
+  annotations:
+    kustomize.toolkit.fluxcd.io/force: Enabled
+    pod-policies.kyverno.io/autogen-controllers: none
+    policies.kyverno.io/description: >-
+      This policy deletes the "wrangler.cattle.io/cisnetworkpolicy-node" finalizer
+      that RKE2 sets on Nodes before version 1.28.9, and because it sometimes isn't
+      removed, prevents deletion of Nodes.
+spec:
+# Note: I ideally would have loved having a policy on DELETE operation
+#       but it does not seem like there is the possibility to mutate the
+#       resource during a delete operation.
+  failurePolicy: Ignore
+  background: true
+  rules:
+  - name: clear-cisnetworkpolicy-finalizer
+    match:
+      any:
+      - resources:
+          kinds:
+          - /v1/Node         # avoid colliding with Longhorn Nodes
+          - /v1/Node/status  # increase the odds of this policy being triggered by periodic node status updates
+          operations:
+          - CREATE
+          - UPDATE
+    context:
+    - name: finalizers
+      variable:
+        value: "{{ request.object.metadata.finalizers || `[]` }}"
+    preconditions:
+      all:
+      - key: "{{ length(finalizers) }}"
+        operator: GreaterThan
+        value: 0
+    mutate:
+      patchesJson6902: |-
+        - op: replace
+          path: /metadata/finalizers
+          value: {{ finalizers[?@!='wrangler.cattle.io/cisnetworkpolicy-node'] | to_string(@) }}

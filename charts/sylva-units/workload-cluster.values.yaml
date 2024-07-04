@@ -163,6 +163,9 @@ units:
     unit_templates:
     - kustomization-deployed-on-mgmt-cluster
 
+  cluster-rke2-finalizer-fix:
+    enabled: true
+
   cluster-bmh:
     enabled: true
     unit_templates:
@@ -172,6 +175,14 @@ units:
     enabled: true
     unit_templates:
     - helmrelease-deployed-on-mgmt-cluster
+    depends_on:
+      # as a pre-requisite to an upgrade, we need to have the cluster-rke2-finalizer-fix unit be
+      # applied in the workload cluster
+      cluster-rke2-finalizer-fix:
+        '{{
+        and (tuple . "cluster-rke2-finalizer-fix" | include "unit-enabled")
+            .Release.IsUpgrade
+        }}'
 
   cluster-reachable:
     enabled: true
