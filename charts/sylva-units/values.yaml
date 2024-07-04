@@ -2676,6 +2676,13 @@ units:
           chart: rke2-calico
           version: "" # will be defined by helm_chart_versions
       values:
+        tolerations:
+        - effect: NoExecute
+          key: node.kubernetes.io/not-ready
+          operator: Exists
+        - effect: NoSchedule
+          key: node.kubernetes.io/not-ready
+          operator: Exists
         global:
           clusterCIDR: '{{ first .Values.cluster.cluster_pods_cidrs }}'
           clusterCIDRv4: '{{ first .Values.cluster.cluster_pods_cidrs }}'
