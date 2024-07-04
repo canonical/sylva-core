@@ -1,0 +1,43 @@
+---
+# This test gather images reference list
+# and upload it as an artifact
+
+mngt-images-ref-report:
+  stage: deployment-test
+  extends:
+    - .test-tags
+  image:
+    name: $CI_IMAGE
+  script:
+    - !reference [.import_functions]
+    - download_artifact deploy-management-cluster management-cluster-kubeconfig
+    - apk add py3-kubernetes
+    - python3 ./.gitlab/ci/scripts/dump_images_usage.py --kubeconfig management-cluster-kubeconfig --output-dir ./dump
+  artifacts:
+    paths:
+      - ./dump/images_per_ks.yaml
+      - ./dump/kustomizations.yaml
+      - ./dump/ref_images.yaml
+    expire_in: 48 hour
+    when: always
+  allow_failure: true
+
+wkld-images-ref-report:
+  stage: deployment-test
+  extends:
+    - .test-tags
+  image:
+    name: $CI_IMAGE
+  script:
+    - !reference [.import_functions]
+    - download_artifact deploy-workload-cluster workload-cluster-kubeconfig
+    - apk add py3-kubernetes
+    - python3 ./.gitlab/ci/scripts/dump_images_usage.py --kubeconfig workload-cluster-kubeconfig --output-dir ./dump
+  artifacts:
+    paths:
+      - ./dump/images_per_ks.yaml
+      - ./dump/kustomizations.yaml
+      - ./dump/ref_images.yaml
+    expire_in: 48 hour
+    when: always
+  allow_failure: true
