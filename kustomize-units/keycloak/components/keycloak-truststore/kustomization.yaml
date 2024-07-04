@@ -6,18 +6,30 @@ patches:
     kind: Keycloak
   patch: |
     - op: add
-      path: /spec/unsupported/podTemplate/spec/containers/0/env
+      path: /spec/unsupported/podTemplate/spec/containers/0/env/-
       value:
-        - name: KC_SPI_TRUSTSTORE_FILE_FILE
-          value: /mnt/keycloak-truststore/keycloak-truststore.jks
-        - name: KC_SPI_TRUSTSTORE_FILE_HOSTNAME_VERIFICATION_POLICY
-          value: ANY
-        - name: KC_HTTPS_TRUST_STORE_FILE
-          value: /mnt/keycloak-truststore/keycloak-truststore.jks
-        - name: KC_SPI_TRUSTSTORE_FILE_PASSWORD
-          value: changeit
-        - name: KC_HTTPS_TRUST_STORE_PASSWORD
-          value: changeit
+        name: KC_SPI_TRUSTSTORE_FILE_FILE
+        value: /mnt/keycloak-truststore/keycloak-truststore.jks
+    - op: add
+      path: /spec/unsupported/podTemplate/spec/containers/0/env/-
+      value:
+        name: KC_SPI_TRUSTSTORE_FILE_HOSTNAME_VERIFICATION_POLICY
+        value: ANY
+    - op: add
+      path: /spec/unsupported/podTemplate/spec/containers/0/env/-
+      value:
+        name: KC_HTTPS_TRUST_STORE_FILE
+        value: /mnt/keycloak-truststore/keycloak-truststore.jks
+    - op: add
+      path: /spec/unsupported/podTemplate/spec/containers/0/env/-
+      value:
+        name: KC_SPI_TRUSTSTORE_FILE_PASSWORD
+        value: changeit
+    - op: add
+      path: /spec/unsupported/podTemplate/spec/containers/0/env/-
+      value:
+        name: KC_HTTPS_TRUST_STORE_PASSWORD
+        value: changeit
     - op: add
       path: /spec/unsupported/podTemplate/spec/containers/0/volumeMounts
       value:
