@@ -2191,6 +2191,13 @@ units:
                 capabilities:
                   drop:
                     - ALL
+            - op: remove
+              path: /spec/template/spec/containers/0/args
+            - op: add
+              path: /spec/template/spec/containers/0/
+              value:
+                args:
+                  - --leader-elect
         - target:
             group: apps
             version: v1
@@ -2208,6 +2215,13 @@ units:
                 capabilities:
                   drop:
                     - ALL
+            - op: remove
+              path: /spec/template/spec/containers/0/args
+            - op: add
+              path: /spec/template/spec/containers/0/
+              value:
+                args:
+                  - --leader-elect
 
   metal3-automated-cleanup-fix:
     info:
