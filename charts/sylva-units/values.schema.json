@@ -2276,6 +2276,19 @@
                 }
               ]
             },
+            "ethernets": {
+              "anyOf": [
+                {
+                  "type": "object"
+                },
+                {
+                  "$ref": "#/$defs/string-with-gotpl"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
             "ip_preallocations": {
               "anyOf": [
                 {
@@ -2284,8 +2297,36 @@
                     "primary": {
                       "anyOf": [
                         {
-                          "type": "string",
-                          "format": "ipv4"
+                          "type": "object",
+                          "properties": {
+                            "ip": {
+                              "anyOf": [
+                                {
+                                  "type": "string",
+                                  "format": "ipv4"
+                                },
+                                {
+                                  "$ref": "#/$defs/string-with-gotpl"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "prefix": {
+                              "anyOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "$ref": "#/$defs/string-with-gotpl"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            }
+                          }
                         },
                         {
                           "$ref": "#/$defs/string-with-gotpl"
@@ -2298,8 +2339,36 @@
                     "provisioning": {
                       "anyOf": [
                         {
-                          "type": "string",
-                          "format": "ipv4"
+                          "type": "object",
+                          "properties": {
+                            "ip": {
+                              "anyOf": [
+                                {
+                                  "type": "string",
+                                  "format": "ipv4"
+                                },
+                                {
+                                  "$ref": "#/$defs/string-with-gotpl"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "prefix": {
+                              "anyOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "$ref": "#/$defs/string-with-gotpl"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            }
+                          }
                         },
                         {
                           "$ref": "#/$defs/string-with-gotpl"
