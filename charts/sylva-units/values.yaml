@@ -2493,11 +2493,39 @@ units:
 
               echo "--- waiting for control plane to be Ready..."
               kubectl -n $TARGET_NAMESPACE wait $CONTROL_PLANE -l cluster.x-k8s.io/cluster-name={{ .Values.cluster.name }} --for condition=Ready --timeout $WAIT_TIMEOUT
-              MD=$(kubectl -n $TARGET_NAMESPACE get MachineDeployment -l cluster.x-k8s.io/cluster-name={{ .Values.cluster.name }}  -o json | jq '.items|length')
-              if [ $MD -gt 0 ]; then
-                echo "waiting for machinedeployments to be Ready..."
-                kubectl -n $TARGET_NAMESPACE wait MachineDeployment -l cluster.x-k8s.io/cluster-name={{ .Values.cluster.name }} --for condition=Ready --timeout $WAIT_TIMEOUT
+
+              CP_REPLICAS=$(kubectl -n $TARGET_NAMESPACE get $CONTROL_PLANE -l cluster.x-k8s.io/cluster-name={{ .Values.cluster.name }} -o jsonpath='{.items[0].spec.replicas}')
+              echo "--- waiting for controlplane replicas ..."
+              kubectl -n $TARGET_NAMESPACE wait $CONTROL_PLANE -l cluster.x-k8s.io/cluster-name={{ .Values.cluster.name }} --for=jsonpath='{.status.replicas}'=$CP_REPLICAS --timeout $WAIT_TIMEOUT
+              echo "--- waiting for controlplane updatedreplicas ..."
+              kubectl -n $TARGET_NAMESPACE wait $CONTROL_PLANE -l cluster.x-k8s.io/cluster-name={{ .Values.cluster.name }} --for=jsonpath='{.status.updatedReplicas}'=$CP_REPLICAS --timeout $WAIT_TIMEOUT
+              CP_DELETION=$(kubectl -n $TARGET_NAMESPACE get machines -l cluster.x-k8s.io/cluster-name={{ .Values.cluster.name }} -l cluster.x-k8s.io/control-plane -o=jsonpath="{range .items[?(@.metadata.deletionTimestamp)]}{.metadata.name}{'\n'}{end}")
+              if [ -n "$CP_DELETION" ]; then
+                echo "--- waiting for controlplane machines with deletionTimestamp to be deleted..."
+                for machine in $CP_DELETION; do
+                  kubectl -n $TARGET_NAMESPACE wait --for=delete machine/$machine --timeout $WAIT_TIMEOUT
+                done
               fi
+              echo "--- waiting for controlplane updatedreplicas ..."
+              kubectl -n $TARGET_NAMESPACE wait $CONTROL_PLANE -l cluster.x-k8s.io/cluster-name={{ .Values.cluster.name }} --for=jsonpath='{.status.updatedReplicas}'=$CP_REPLICAS --timeout $WAIT_TIMEOUT
+
+              for MD in $(kubectl -n $TARGET_NAMESPACE get machinedeployments -l cluster.x-k8s.io/cluster-name={{ .Values.cluster.name }} -o jsonpath='{.items[*].metadata.name}'); do
+                REPLICAS=$(kubectl -n $TARGET_NAMESPACE get machinedeployment $MD -o jsonpath='{.spec.replicas}')
+                if [ $REPLICAS -gt 0 ]; then
+                  echo "--- waiting for machinedeployment $MD to be Ready..."
+                  kubectl -n $TARGET_NAMESPACE wait machinedeployment $MD --for condition=Ready --timeout $WAIT_TIMEOUT
+                  echo "---- waiting for updatedReplicas ..."
+                  kubectl -n $TARGET_NAMESPACE wait machinedeployment $MD --for=jsonpath='{.status.updatedReplicas}='$REPLICAS --timeout $WAIT_TIMEOUT
+                  echo "---- waiting for replicas ..."
+                  kubectl -n $TARGET_NAMESPACE wait machinedeployment $MD --for=jsonpath='{.status.replicas}='$REPLICAS --timeout $WAIT_TIMEOUT
+                  echo "---- waiting for readyReplicas ..."
+                  kubectl -n $TARGET_NAMESPACE wait machinedeployment $MD --for=jsonpath='{.status.readyReplicas}='$REPLICAS --timeout $WAIT_TIMEOUT
+                  echo "---- waiting for unavailableReplicas ..."
+                  kubectl -n $TARGET_NAMESPACE wait machinedeployment $MD --for=jsonpath='{.status.unavailableReplicas}='0 --timeout $WAIT_TIMEOUT
+                  echo "---- waiting for Running phase ..."
+                  kubectl -n $TARGET_NAMESPACE wait machinedeployment $MD --for=jsonpath='{.status.phase}=Running' --timeout $WAIT_TIMEOUT
+                fi
+              done
 
               echo "--- waiting for all machines to be Ready..."
               kubectl -n $TARGET_NAMESPACE wait Machine -l cluster.x-k8s.io/cluster-name={{ .Values.cluster.name }} --for condition=Ready --timeout $WAIT_TIMEOUT
