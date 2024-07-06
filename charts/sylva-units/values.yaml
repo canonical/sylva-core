@@ -2562,7 +2562,8 @@ units:
     - dummy
     enabled: false
     depends_on:
-      cluster: true
+      # cluster-reachable depends on cluster only on first installation
+      cluster: '{{ not .Release.IsUpgrade }}'
     kustomization_spec:
       targetNamespace: default
       kubeConfig:
