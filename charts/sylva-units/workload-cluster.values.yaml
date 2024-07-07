@@ -171,6 +171,9 @@ units:
     depends_on:
       kyverno: false  # Kyverno is deployed in management cluster sylva-units release
 
+  cluster-node-provider-id-blacklist:
+    enabled: true
+
   cluster-rke2-finalizer-fix:
     enabled: true
 
@@ -189,6 +192,13 @@ units:
       cluster-rke2-finalizer-fix:
         '{{
         and (tuple . "cluster-rke2-finalizer-fix" | include "unit-enabled")
+            .Release.IsUpgrade
+        }}'
+      # as a pre-requisite to an upgrade, we need to have the cluster-node-provider-id-blacklist unit be
+      # applied in the workload cluster
+      cluster-node-provider-id-blacklist:
+        '{{
+        and (tuple . "cluster-node-provider-id-blacklist" | include "unit-enabled")
             .Release.IsUpgrade
         }}'
 

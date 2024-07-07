@@ -1,0 +1,90 @@
+apiVersion: v1
+data: {}
+kind: ConfigMap
+metadata:
+  name: cluster-node-provider-id-blacklist
+  namespace: sylva-system
+---
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: cluster-node-provider-id-blacklist
+  annotations:
+    kustomize.toolkit.fluxcd.io/force: Enabled
+    pod-policies.kyverno.io/autogen-controllers: none
+    policies.kyverno.io/description: >-
+      This policy tracks providerIDs that have been set to nodes in cluster-node-provider-id-blacklist ConfigMap
+spec:
+  background: true
+  mutateExistingOnPolicyUpdate: true
+  failurePolicy: ${FAILURE_POLICY:-Fail}
+  rules:
+  - name: cluster-node-provider-id-blacklist-list
+    skipBackgroundRequests: false
+    match:
+      any:
+      - resources:
+          kinds:
+          - /v1/Node
+          operations:
+          - CREATE
+          - UPDATE
+    context:
+    - name: providerID
+      variable:
+        value: "{{ request.object.spec.providerID || '' | split(@, '/') | [-1] }}"
+    preconditions:
+      all:
+      - key: "{{ providerID }}"
+        operator: NotEquals
+        value: ""
+    mutate:
+      targets:
+      - kind: ConfigMap
+        apiVersion: v1
+        name: cluster-node-provider-id-blacklist
+        namespace: sylva-system
+      patchStrategicMerge:
+        data:
+          "{{ providerID }}": ""
+---
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: cluster-prevent-node-provider-id-reuse
+  annotations:
+    kustomize.toolkit.fluxcd.io/force: Enabled
+    pod-policies.kyverno.io/autogen-controllers: none
+    policies.kyverno.io/description: >-
+      This policy prevents the creation of a node with a providerID that has already been used in the past
+spec:
+  background: false
+  validationFailureAction: Enforce
+  failurePolicy: ${FAILURE_POLICY:-Fail}
+  rules:
+  - name: cluster-node-provider-id-blacklist-list
+    match:
+      any:
+      - resources:
+          kinds:
+          - /v1/Node
+          operations:
+          - CREATE
+    context:
+    - name: providerID
+      variable:
+        value: "{{ request.object.spec.providerID || '' | split(@, '/') | [-1] }}"
+    - name: blacklistedIDs
+      apiCall:
+        urlPath: "/api/v1/namespaces/sylva-system/configmaps/cluster-node-provider-id-blacklist"
+        jmesPath: "data || `{}` | keys(@)"
+    validate:
+      message: Check if node providerID has already been used
+      deny:
+        conditions:
+          any:
+          - key: "{{ blacklistedIDs | contains(@, '{{providerID}}') }}"
+            operator: Equals
+            value: true
+            message: Blocking node creation as there was already a node with providerID {{ providerID }}
+
