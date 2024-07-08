@@ -62,7 +62,7 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
     spec:
       url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-capi-cluster.git
       ref:
-        tag: 0.2.24
+        tag: 0.2.25
 
   local-path-provisioner:
     kind: GitRepository
@@ -1761,6 +1761,10 @@ units:
                 resources:
                   - "sylvaunitsreleasetemplates"
                 verbs: ["get", "list", "watch", "patch", "update", "create", "delete"]
+              - apiGroups: ["cluster.x-k8s.io"]
+                resources:
+                  - machines
+                verbs: ["get", "list", "watch", "patch", "update"]
               - apiGroups: [""]
                 resources:
                   - nodes
@@ -2417,6 +2421,31 @@ units:
     # (we do it via a secret because some of the values are credentials in many scenarios)
     helm_secret_values: '{{ .Values.cluster | include "preserve-type" }}'
 
+  cluster-node-deletion-timeout-fix:
+    info:
+      description: Kyverno policy to fix CAPI nodeDeletionTimeout (temporary fix)
+      details: |
+        This policy fixes Machine definitions to force their spec.nodeDeletionTimeout.
+        This is primarily meant to set this timeout to 0 (interpreted as "do infinite retries"
+        by CAPI Machine controller), to avoid corner case issues due to a failed node
+        deletion. See https://gitlab.com/sylva-projects/sylva-core/-/issues/1431.
+      internal: true
+    unit_templates:
+    - base-deps
+    enabled_conditions:
+    - '{{ tuple . "kyverno" | include "unit-enabled" }}'
+    depends_on:
+      kyverno: true
+    repo: sylva-core
+    kustomization_spec:
+      path: ./kustomize-units/kyverno-policies/cluster-node-deletion-timeout-fix
+      wait: true
+      targetNamespace: '{{ .Release.Namespace }}'
+      postBuild:
+        substitute:
+          CLUSTER_NAME: '{{ .Values.cluster.name }}'
+          NODE_DELETION_TIMEOUT: 0s
+
   cluster:
     info:
       description: holds the Cluster API definition for the cluster
@@ -2431,6 +2460,7 @@ units:
       get-openstack-images: '{{ .Values.cluster.capi_providers.infra_provider | eq "capo" }}'
       cluster-bmh: '{{ .Values.cluster.capi_providers.infra_provider | eq "capm3" }}'
       metal3-automated-cleanup-fix: '{{ tuple . "metal3-automated-cleanup-fix" | include "unit-enabled" }}'
+      cluster-node-deletion-timeout-fix: '{{ tuple . "cluster-node-deletion-timeout-fix" | include "unit-enabled" }}'
       cluster-rke2-finalizer-fix: '{{ tuple . "cluster-rke2-finalizer-fix" | include "unit-enabled" }}'
     kustomization_spec:
       prune: '{{ not (eq .Release.Namespace "sylva-system") | include "preserve-type" }}'

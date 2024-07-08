@@ -163,6 +163,14 @@ units:
     unit_templates:
     - kustomization-deployed-on-mgmt-cluster
 
+  cluster-node-deletion-timeout-fix:
+    enabled: true
+    unit_templates:
+    - kustomization-deployed-on-mgmt-cluster
+    enabled_conditions: []  # override what is set in values.yaml
+    depends_on:
+      kyverno: false  # Kyverno is deployed in management cluster sylva-units release
+
   cluster-rke2-finalizer-fix:
     enabled: true
 
