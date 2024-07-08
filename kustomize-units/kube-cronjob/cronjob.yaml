@@ -79,6 +79,25 @@ roleRef:
   name: ${CRONJOB_NAME}
   apiGroup: rbac.authorization.k8s.io
 ---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: ${CRONJOB_NAME}-${NAMESPACE:-sylva-system}
+rules: []
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: ${CRONJOB_NAME}-${NAMESPACE:-sylva-system}
+subjects:
+- kind: ServiceAccount
+  name: ${CRONJOB_NAME}-sa
+  namespace: ${NAMESPACE:-sylva-system}
+roleRef:
+  kind: ClusterRole
+  name: ${CRONJOB_NAME}-${NAMESPACE:-sylva-system}
+  apiGroup: rbac.authorization.k8s.io
+---
 apiVersion: v1
 kind: ConfigMap
 metadata:

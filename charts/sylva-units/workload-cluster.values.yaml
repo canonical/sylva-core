@@ -188,20 +188,23 @@ units:
     unit_templates:
     - helmrelease-deployed-on-mgmt-cluster
     depends_on:
-      # as a pre-requisite to an upgrade, we need to have the cluster-rke2-finalizer-fix unit be
-      # applied in the workload cluster
+      # as a pre-requisite to an upgrade, we need to have following units be applied in the workload cluster
       cluster-rke2-finalizer-fix:
         '{{
         and (tuple . "cluster-rke2-finalizer-fix" | include "unit-enabled")
             .Release.IsUpgrade
         }}'
-      # as a pre-requisite to an upgrade, we need to have the cluster-node-provider-id-blacklist unit be
-      # applied in the workload cluster
       cluster-node-provider-id-blacklist:
         '{{
         and (tuple . "cluster-node-provider-id-blacklist" | include "unit-enabled")
             .Release.IsUpgrade
         }}'
+      longhorn-instance-manager-cleanup:
+        '{{
+        and (tuple . "longhorn-instance-manager-cleanup" | include "unit-enabled")
+            .Release.IsUpgrade
+        }}'
+
 
   cluster-reachable:
     enabled: true
@@ -339,6 +342,9 @@ units:
   longhorn:
     # can be enabled at runtime if desired
     enabled: '{{ .Values.cluster.capi_providers.infra_provider | eq "capm3" }}'
+
+  longhorn-instance-manager-cleanup:
+    enabled: true
 
   multus:
     # can be enabled at runtime if desired
