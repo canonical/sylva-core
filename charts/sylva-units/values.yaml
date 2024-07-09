@@ -4048,7 +4048,6 @@ units:
       chart:
         spec:
           chart: nfs-ganesha-server-and-external-provisioner
-          version: 3.0.1
       values:
         persistence:
           enabled: true
