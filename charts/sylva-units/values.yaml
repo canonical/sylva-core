@@ -462,6 +462,7 @@ units:
   kube-storage-version-migrator:
     info:
       description: installs kube-storage-version-migrator to assist apiVersion migrations
+      maturity: beta
     unit_templates:
     - base-deps
     repo: sylva-core
@@ -3838,6 +3839,7 @@ units:
   alertmanager-jiralert-config:
     info:
       description: generates the config for Jiralert Alertmanager webhook
+      maturity: beta
     enabled_conditions:
     - '{{ tuple . "alertmanager-jiralert" | include "unit-enabled" }}'
     unit_templates:
@@ -3856,6 +3858,7 @@ units:
   alertmanager-config:
     info:
       description: generates the config for Alertmanager
+      maturity: beta
     enabled_conditions:
     - '{{ tuple . "monitoring" | include "unit-enabled" }}'
     - '{{ .Values.units.monitoring.helmrelease_spec.values.alertmanager.alertmanagerSpec.useExistingSecret }}'
@@ -3876,6 +3879,7 @@ units:
   prometheus-pushgateway:
     info:
       description: installs Prometheus Push-gateway exporter
+      maturity: beta
     enabled_conditions:
     - '{{ tuple . "monitoring" | include "unit-enabled" }}'
     unit_templates:
@@ -4078,6 +4082,7 @@ units:
   sylva-dashboards:
     info:
       description: adds Sylva-specific Grafana dashboards
+      maturity: beta
     enabled_conditions:
       - '{{ tuple . "monitoring" | include "unit-enabled" }}'
     unit_templates:

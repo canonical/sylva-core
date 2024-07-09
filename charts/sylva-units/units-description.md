@@ -43,18 +43,23 @@
 | **vault-config-operator** | installs Vault config operator | stable |  | [Helm](https://redhat-cop.github.io/vault-config-operator) | v0.8.28 |
 | **vault-operator** | installs Vault operator | stable |  | [Helm](https://github.com/bank-vaults/vault-operator.git) | v1.22.2 |
 | **vsphere-csi-driver** | installs Vsphere CSI | stable |  | [Kustomize](https://raw.githubusercontent.com/kubernetes-sigs/vsphere-csi-driver/v3.3.0/manifests/vanilla/vsphere-csi-driver.yaml) | v3.3.0 |
+| **alertmanager-config** | generates the config for Alertmanager | beta |  | [Helm](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-alertmanager-resources.git) | 0.0.2 |
 | **alertmanager-jiralert** | installs Alertmanager webhook Jiralert<br/><br/>Jiralert is an Alertmanager wehbook that creates Jira issues | beta |  | [Helm](https://prometheus-community.github.io/helm-charts) | 1.7.1 |
+| **alertmanager-jiralert-config** | generates the config for Jiralert Alertmanager webhook | beta |  | [Helm](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-alertmanager-resources.git) | 0.0.2 |
 | **ceph-csi-cephfs** | Installs Ceph-CSI | beta |  | [Helm](https://ceph.github.io/csi-charts) | 3.10.2 |
 | **flux-webui-init** | initializes and configures flux-webui | beta | True | Kustomize | N/A |
 | **harbor** | installs Harbor | beta |  | [Helm](https://helm.goharbor.io) | 1.14.2 |
+| **kube-storage-version-migrator** | installs kube-storage-version-migrator to assist apiVersion migrations | beta |  | [Kustomize](https://github.com/kubernetes-sigs/kube-storage-version-migrator/manifests?ref=v0.0.5) | v0.0.5 |
 | **kubevirt** | installs kubevirt | beta |  | [Helm](https://suse-edge.github.io/charts) | 0.2.4 |
 | **logging** | installs Rancher Fluentbit/Fluentd logging stack, for log collecting and shipping | beta |  | [Helm](https://charts.rancher.io/) | 103.1.1+up4.4.0 |
 | **loki** | installs Loki log storage<br/><br/>installs Loki log storage in simple scalable mode | beta |  | Helm | v2.9.2 |
 | **minio-monitoring-tenant** | creates a MinIO tenant for the monitoring stack<br/><br/>Loki and Thanos will use this MinIO S3 storage | beta |  | Helm | v5.0.13 |
 | **minio-operator** | install MinIO operator<br/><br/>MinIO operator is used to manage multiple S3 tenants | beta |  | Helm | v5.0.13 |
 | **neuvector** | installs Neuvector | beta |  | [Helm](https://neuvector.github.io/neuvector-helm) | 2.6.6 |
+| **prometheus-pushgateway** | installs Prometheus Push-gateway exporter | beta |  | [Helm](https://prometheus-community.github.io/helm-charts) | 2.13.0 |
 | **rancher-init** | initializes and configures Rancher | beta | True | Kustomize | N/A |
 | **snmp-exporter** | installs SNMP exporter | beta |  | [Helm](https://prometheus-community.github.io/helm-charts) | 5.4.0 |
+| **sylva-dashboards** | adds Sylva-specific Grafana dashboards | beta |  | [Helm](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-dashboards.git) | 0.0.9 |
 | **sylva-prometheus-rules** | installs prometheus rules using external helm chart & rules git repo | beta |  | [Helm](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-prometheus-rules.git) | 0.0.11 |
 | **sylva-thanos-rules** | installs Thanos rules using external helm chart & rules git repo | beta |  | [Helm](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-thanos-rules.git) | 0.0.1 |
 | **sylva-units-operator** | installs sylva-units operator | experimental |  | [Kustomize](https://gitlab.com/sylva-projects/sylva-elements/sylva-units-operator.git/config/default?ref=0.1.1) | 0.1.1 |
@@ -62,8 +67,6 @@
 | **thanos** | installs Thanos | beta |  | [Helm](https://charts.bitnami.com/bitnami) | 15.7.10 |
 | **trivy-operator** | installs Trivy operator | beta |  | [Helm](https://aquasecurity.github.io/helm-charts/) | 0.20.6 |
 | **workload-cluster-operator** | installs Sylva operator for managing workload clusters | experimental |  | [Kustomize](https://gitlab.com/sylva-projects/sylva-elements/workload-cluster-operator.git/config/default?ref=0.1.2) | 0.1.2 |
-| **alertmanager-config** | generates the config for Alertmanager |  |  | [Helm](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-alertmanager-resources.git) | 0.0.2 |
-| **alertmanager-jiralert-config** | generates the config for Jiralert Alertmanager webhook |  |  | [Helm](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-alertmanager-resources.git) | 0.0.2 |
 | **bootstrap-local-path** | installs localpath CSI in bootstrap cluster |  | True | Kustomize | N/A |
 | **capd-metallb-config** | configures MetalLB in a capd context |  | True | Kustomize | N/A |
 | **capi-providers-pivot-ready** | checks if management cluster is ready for pivot<br/><br/>This unit only has dependencies, but does not create resources. It is here only to have a single thing to look at to determine if everything is ready for pivot (see bootstrap.values.yaml pivot unit) |  | True | Kustomize | N/A |
@@ -98,7 +101,6 @@
 | **keycloak-add-truststore** | configures Keycloak truststore<br/><br/>a job to manually add a truststore to Keycloak instance, e.h. to enable LDAPS protocol when using user federation) |  | True | Kustomize | N/A |
 | **keycloak-oidc-external-secrets** | configures OIDC secrets for Keycloak |  | True | Kustomize | N/A |
 | **keycloak-resources** | configures keycloak resources |  | True | Kustomize | N/A |
-| **kube-storage-version-migrator** | installs kube-storage-version-migrator to assist apiVersion migrations |  |  | [Kustomize](https://github.com/kubernetes-sigs/kube-storage-version-migrator/manifests?ref=v0.0.5) | v0.0.5 |
 | **kubevirt-test-vms** | deploys kubevirt VMs for testing |  | True | Kustomize | N/A |
 | **kyverno-policies** | configures Kyverno policies |  | True | Kustomize | N/A |
 | **kyverno-policy-prevent-mgmt-cluster-delete** | Kyverno policies to prevent deletion of critical resources for mgmt cluster |  | True | Kustomize | N/A |
@@ -111,7 +113,7 @@
 | **management-sylva-units** | installs sylva-units in management cluster during bootstrap |  | True | Helm | N/A |
 | **metal3-automated-cleanup-fix** | fix metal3MachineTemplates produced by sylva-capi-cluster version =< 0.2.14 in sylva release =< 1.1.0 |  | True | Kustomize | N/A |
 | **metal3-pdb** | add pdb to baremetal-operator pods |  | True | Kustomize | N/A |
-| **mgmt-cluster-ready** | (workload cluster) this unit reflects the readiness of the mgmt cluster<br/><br/>this unit acts as simple dependency lock to prevent deploying a workload cluster before the mgmt cluster is ready |  |  | Kustomize |  |
+| **mgmt-cluster-ready** | (workload cluster) this unit reflects the readiness of the mgmt cluster<br/><br/>this unit acts as simple dependency lock to prevent deploying a workload cluster before the mgmt cluster is ready |  | True | Kustomize | N/A |
 | **minio-monitoring-tenant-init** | sets up MinIO certificate for minio-monitoring-tenant<br/><br/>it generate certificate |  | True | Kustomize | N/A |
 | **minio-operator-init** | sets up MinIO certificate for minio-operator<br/><br/>it generate certificate |  | True | Kustomize | N/A |
 | **multus-ready** | checks that Multus is ready<br/><br/>This unit only has dependencies, it does not create resources. It performs healthchecks outside of the multus unit, in order to properly target workload cluster when we deploy multus in it. |  | True | Kustomize | N/A |
@@ -121,7 +123,6 @@
 | **pivot** | moves ClusterAPI objects from bootstrap cluster to management cluster |  | True | Kustomize | N/A |
 | **postgres-init** | initializes Postgresql for Keycloak |  | True | Kustomize | N/A |
 | **prometheus-flux** | Prometheus configuration for Flux controllers & resources<br/><br/>Adding podmonitors for flux controllers and custom labels to the flux resource metrics by configuring kube-state-metrics |  | True | Kustomize | N/A |
-| **prometheus-pushgateway** | installs Prometheus Push-gateway exporter |  |  | [Helm](https://prometheus-community.github.io/helm-charts) | 2.13.0 |
 | **prometheus-resources** | Creates required ConfigMaps and Kyverno policies to enable SNMP monitoring by Prometheus |  | True | Kustomize | N/A |
 | **rancher-keycloak-oidc-provider** | configures Rancher for Keycloak OIDC integration |  | True | Kustomize | N/A |
 | **rancher-monitoring-clusterid-inject** | injects Rancher cluster ID in Helm values of Rancher monitoring chart |  | True | Kustomize | N/A |
@@ -131,7 +132,6 @@
 | **single-replica-storageclass** | Create a longhorn storage class with a single replica |  | True | Kustomize | N/A |
 | **sriov-resources** | configures SRIOV resources |  | True | Helm | N/A |
 | **sylva-ca** | provides a Certificate Authority for units of the Sylva stack |  | True | Kustomize | N/A |
-| **sylva-dashboards** | adds Sylva-specific Grafana dashboards |  |  | [Helm](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-dashboards.git) | 0.0.9 |
 | **synchronize-secrets** | allows secrets from Vault to be consumed other units, relies on ExternalSecrets |  | True | Kustomize | N/A |
 | **thanos-init** | sets up thanos certificate<br/><br/>it generates a multiple CN certificate for all Thanos components |  | True | Kustomize | N/A |
 | **tigera-clusterrole** | is here to allow for upgrading Calico chart when upgrading cluster<br/><br/>For v1.25.x to v1.26.x, see https://gitlab.com/sylva-projects/sylva-core/-/issues/664 |  | True | Kustomize | N/A |
