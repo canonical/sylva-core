@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # This script can be used to:
 # * install the system on an already existing k8s cluster built in an ad-hoc way

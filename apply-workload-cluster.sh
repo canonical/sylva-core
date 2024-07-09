@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # This script can be used to install the workload clusters defined at path environment-values/workload-clusters/x using Kustomize
 #

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 if [[ $# -ne 1 || $1 == "--help" ]]; then
   echo "Usage: ./generate_csr.sh <domain name>"

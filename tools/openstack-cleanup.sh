@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Helper script used to clean management and workload clusters OpenStack resources. USE WITH CARE, AT YOU OWN RISK
 

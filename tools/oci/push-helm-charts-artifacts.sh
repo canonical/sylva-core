@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # This script will push helm charts used in sylva to registry.gitlab.com 
 # as OCI registry artifacts.

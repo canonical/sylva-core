@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Get workload cluster kubeconfig from Rancher API
 # parameter: workload cluster name

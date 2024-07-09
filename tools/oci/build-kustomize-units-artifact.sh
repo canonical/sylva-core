@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # This script will push to registry.gitlab.com an OCI registry artifact
 # containing the content of 'kustomize-units' directory, after replacing

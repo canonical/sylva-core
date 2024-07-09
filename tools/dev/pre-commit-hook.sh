@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # Hook script to verify what is about to be committed.
 # Called by "git commit" with no arguments.

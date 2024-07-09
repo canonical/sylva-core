@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Create a kind cluster with adapted configuration for sylva bootstrap:
 # - If DOCKER_IP is set, it will bind cluster API to this address to make it reachable in CI
