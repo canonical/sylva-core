@@ -110,6 +110,7 @@ units:
     info:
       description: (workload cluster) this unit reflects the readiness of the mgmt cluster
       details: this unit acts as simple dependency lock to prevent deploying a workload cluster before the mgmt cluster is ready
+      internal: true
     unit_templates:
     - dummy
     - kustomization-deployed-on-mgmt-cluster

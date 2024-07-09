@@ -245,7 +245,7 @@ def convert_to_markdown_table(units, headers, sort_function=sort_by_name):
 
 def generate_external_units_version_maturity():
     units_data = generate_units_metadata()
-    units_data_without_internals = [unit for unit in units_data if unit["internal"]]
+    units_data_without_internals = [unit for unit in units_data if not unit["internal"]]
     headers = ["name", "description", "maturity", "source", "version"]
     return convert_to_markdown_table(units_data_without_internals, headers, sort_by_maturity)
 
