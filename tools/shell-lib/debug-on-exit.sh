@@ -29,6 +29,9 @@ additional_resources="
   Services
   Ingresses
   HeatStacks
+  ClusterSecretStore
+  SecretStore
+  ClusterExternalSecret
   ExternalSecrets
   Keycloaks
   Clusters.*cluster.x-k8s.io
@@ -109,6 +112,14 @@ function cluster_info_dump() {
   local cluster=$1
   local dump_dir=$cluster-cluster-dump
 
+  if [[ $cluster == "workload" ]]; then
+    capi_cluster_namespace=$2
+    capi_cluster_name=$3
+  else  # management cluster:
+    capi_cluster_namespace=sylva-system
+    capi_cluster_name=${MANAGEMENT_CLUSTER_NAME:-management-cluster}
+  fi
+
   echo "Checking if $cluster cluster is reachable"
   if ! timeout 10s kubectl get nodes > /dev/null 2>&1 ;then
     echo "$cluster cluster is unreachable - aborting dump"
@@ -116,7 +127,9 @@ function cluster_info_dump() {
   fi
   echo "Dumping resources for $cluster cluster in $dump_dir"
 
-  kubectl cluster-info dump -A -o yaml --output-directory=$dump_dir
+  mkdir $dump_dir
+
+  kubectl cluster-info dump -A -o yaml --show-managed-fields --output-directory=$dump_dir
 
   # produce a readable ordered log of events for each namespace
   for events_yaml in $(find $dump_dir -name events.yaml); do
@@ -132,14 +145,19 @@ function cluster_info_dump() {
   kubectl get pods -o wide -A | tee $dump_dir/pods.summary.txt
 
   # dump CAPI secrets
-  kubectl get secret -A --field-selector=type=cluster.x-k8s.io/secret &&\
   kubectl get secret -A --field-selector=type=infrastructure.cluster.x-k8s.io/secret                               > $dump_dir/Secrets-capi.summary.txt
-  kubectl get secret -A --field-selector=type=cluster.x-k8s.io/secret -o yaml --show-managed-fields &&\
   kubectl get secret -A --field-selector=type=infrastructure.cluster.x-k8s.io/secret -o yaml --show-managed-fields > $dump_dir/Secrets-capi.yaml
 
   # list secrets
   kubectl get secret -A > $dump_dir/Secrets.summary.txt
-  echo "note: secrets are purposefully not dumped" > $dump_dir/Secrets-censored.yaml
+  kubectl get secret -A -o yaml --show-managed-fields | yq '.items[].data="secrets data is purposefully not dumped" | .items[].metadata.annotations="secrets data is purposefully not dumped"' > $dump_dir/Secrets-censored.yaml
+
+  # dump CAPI cluster state
+  echo "Dumping clusterctl describe..."
+  KUBECONFIG=$MGMT_KUBECONFIG clusterctl describe cluster \
+    -n $capi_cluster_namespace $capi_cluster_name \
+    --grouping=false --show-conditions all --echo \
+    > $dump_dir/clusterctl-describe.txt
 
   echo -e "\nDisplay cluster resources usage per node"
   # From https://github.com/kubernetes/kubernetes/issues/17512
@@ -201,6 +219,6 @@ if [[ -f $MGMT_KUBECONFIG ]]; then
           export KUBECONFIG=$BASE_DIR/workload-cluster-kubeconfig-rancher
         fi
 
-        cluster_info_dump workload
+        cluster_info_dump workload $workload_cluster_namespace $workload_cluster_name
     fi
 fi
