@@ -62,7 +62,7 @@ spec:
   validationFailureAction: Enforce
   failurePolicy: ${FAILURE_POLICY:-Fail}
   rules:
-  - name: cluster-node-provider-id-blacklist-list
+  - name: cluster-prevent-node-provider-id-reuse
     match:
       any:
       - resources:
@@ -70,6 +70,12 @@ spec:
           - /v1/Node
           operations:
           - CREATE
+          - UPDATE
+    preconditions:
+      all:
+      - key: "{{ request.oldObject.spec.providerID || '' }}"
+        operator: Equals
+        value: ''
     context:
     - name: providerID
       variable:
@@ -87,4 +93,3 @@ spec:
             operator: Equals
             value: true
             message: Blocking node creation as there was already a node with providerID {{ providerID }}
-
