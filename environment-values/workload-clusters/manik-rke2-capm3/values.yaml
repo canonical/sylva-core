@@ -1,0 +1,105 @@
+cluster_virtual_ip: 172.20.86.117
+
+units:
+  longhorn:
+    enabled: false
+cluster:
+  name: '{{ .Release.Namespace }}'
+  k8s_version: v1.27.6+rke2r1
+  enable_longhorn: true
+  capi_providers:
+    infra_provider: capm3
+    bootstrap_provider: cabpr
+  control_plane_replicas: 1
+  rke2:
+    additionalUserData:
+      config: # String to allows users to specify additional cloud-init configuration
+        users:
+          - name: ubuntu
+            groups: users
+            sudo: ALL=(ALL) NOPASSWD:ALL
+            shell: /bin/bash
+            lock_passwd: false
+            passwd: "dc6258591f7bc131314b9726a87b5bad57431caf363ac3e04f8dc9ee162fea201f0afb8cc4ff7051761f2e49ee0074cc6a97091473a7dd38738a3b250d198be5"
+            ssh_authorized_keys:
+              - "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDwT+m0KlqbnE+d0FIfgNcz+SCIOAkKsLDDodmu23ccX9CuUUO3HxRkxJ/1FLB2bFiL0vcG7RcL3txiQIIru7N2vAqKBvczOVmaODamp3hm/o2KE0K39kjvZE0vBmCYdeq7PtQx2PyJvIGijF/+7h6PL7k3iUUamZKXcZWMk0Fa+bDBJSQe6lEmF+CiA+2/6vVNHj/EHsGiS8QuI0MpKXGDWBfYkc0iHW2HraaSz4laL/aTvLYw+7yUjkXpbezF0m/jHGo7jiq68HZPYSWB6To7jw9Dyx+6acv3vGu7j9ExWXnhNYCgGsc/PRqOLjPNNa1s/K7Pd+x3j9rgi9V3sDlj DXMG8937@EQ-EQ6400341"
+
+  capm3:
+#    image_key: ubuntu-jammy-plain-rke2-1-27-6
+    image_key: ubuntu-jammy-plain-rke2-1-28-8
+    primary_pool_network: 172.20.86.64
+    primary_pool_gateway: 172.20.86.65
+    primary_pool_start: 172.20.86.117
+    primary_pool_end: 172.20.86.118
+    primary_pool_prefix: "26"
+    provisioning_pool_network: 172.20.86.0
+    provisioning_pool_gateway: 172.20.86.1
+    provisioning_pool_start: 172.20.86.61
+    provisioning_pool_end: 172.20.86.62
+    provisioning_pool_prefix: "26"
+    dns_servers:
+    - 10.193.21.160
+  control_plane:   # tweak network configuration as needed ...
+    capm3:
+      hostSelector:
+        matchLabels:
+          cluster-role: control-plane
+      provisioning_pool_interface: bond0
+      primary_pool_interface: bond0.16
+    network_interfaces:
+      bond0:
+        type: bond
+        interfaces:
+          - enp138s0f0
+          - enp138s0f1
+        vlans:
+          - id: 16
+      enp138s0f0:
+        type: phy
+      enp138s0f1:
+        type: phy
+#  machine_deployment_default: # tweak as needed ...
+#    capm3:
+#      provisioning_pool_interface: bond0
+#      primary_pool_interface: bond0.13
+#  machine_deployments:
+#    md0:
+#      infra_provider: capm3
+#      replicas: 3
+#      capm3:
+#        hostSelector:
+#          matchLabels:
+#            cluster-role: worker # tweak as needed must match cluster-role defined in baremetal_hosts
+#        network_interfaces:
+#          bond0:
+#            type: bond
+#            interfaces:
+#              - ens1f0
+#              - ens1f1
+#            vlans:
+#              - id: 13
+#          ens1f0:
+#            type: phy
+#          ens1f1:
+#            type: phy
+#
+  baremetal_hosts:  # corresponding credentials need to be set in secrets.yaml
+    xr11-11:
+      bmh_metadata:
+        labels:
+          cluster-role: control-plane
+        annotations:
+          sylvaproject.org/default-longhorn-disks-config: '[ { "path":"/var/longhorn/disks/disk_by_path_pci-0000:18:00.0-scsi-0:2:0:0", "storageReserved":0, "allowScheduling":true, "tags":[ "ssd", "fast" ] }, { "path":"/var/longhorn/disks/disk_by_path_pci-0000:18:00.0-scsi-0:2:1:0", "storageReserved":0, "allowScheduling":true, "tags":[ "ssd", "fast" ] } ]'
+      bmh_spec:
+        description: Downstream dev clusters
+        online: true
+        externallyProvisioned: false
+        bmc:
+          #address: redfish-virtualmedia://172.20.91.230/redfish/v1/Systems/System.Embedded.1
+          address: idrac-virtualmedia://172.20.91.232/redfish/v1/Systems/System.Embedded.1
+          disableCertificateVerification: true
+        bootMACAddress: b4:96:91:d5:e4:c4
+        bootMode: legacy
+        rootDeviceHints:
+          serialNumber: 00764c6f1d257af52d0076ff9ff0a7ce
+          #hctl: 1:0:0:0   

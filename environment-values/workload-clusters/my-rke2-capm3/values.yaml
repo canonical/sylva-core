@@ -1,0 +1,92 @@
+cluster_virtual_ip: 172.20.86.117
+
+units:
+  longhorn:
+    enabled: true
+
+cluster:      
+  capi_providers:
+    infra_provider: capm3
+    bootstrap_provider: cabpr
+  control_plane_replicas: 1
+
+  capm3:
+    image_key: ubuntu-jammy-plain-rke2-1-28-8
+    primary_pool_network: 172.20.86.64
+    primary_pool_gateway: 172.20.86.65
+    primary_pool_start: 172.20.86.110
+    primary_pool_end: 172.20.86.114
+    primary_pool_prefix: "26"
+    provisioning_pool_network: 172.20.86.0
+    provisioning_pool_gateway: 172.20.86.1
+    provisioning_pool_start: 172.20.86.56
+    provisioning_pool_end: 172.20.86.60
+    provisioning_pool_prefix: "26"
+    dns_servers:
+      - 10.193.21.160
+      - 172.20.129.142
+      - 172.20.129.37
+
+  kubelet_extra_args:
+    max-pods: "228"
+    #node-labels: "feature.node.kubernetes.io/network-sriov.capable=true" ##should be set automatically by rancher-nfd
+
+  rke2:
+    additionalUserData:
+      config:
+        #cloud-config
+        users:
+          - name: node-admin
+            groups: users
+            sudo: ALL=(ALL) NOPASSWD:ALL
+            shell: /bin/bash
+            lock_passwd: false
+            passwd: "$6$76wj/Y97d6hpfiF2$rAU/KJN02jkqVzmNMnQefgjAyfXsyon1XrsQ4YCtfbRWqEKuYjztvOl9EYeekvXRHz4..9eLHZpcjeAzlYyE41"  # (copy pasted from /etc/shadow or created with "mkpasswd --method=SHA-512 --stdin")
+            ssh_authorized_keys:
+              - "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDwT+m0KlqbnE+d0FIfgNcz+SCIOAkKsLDDodmu23ccX9CuUUO3HxRkxJ/1FLB2bFiL0vcG7RcL3txiQIIru7N2vAqKBvczOVmaODamp3hm/o2KE0K39kjvZE0vBmCYdeq7PtQx2PyJvIGijF/+7h6PL7k3iUUamZKXcZWMk0Fa+bDBJSQe6lEmF+CiA+2/6vVNHj/EHsGiS8QuI0MpKXGDWBfYkc0iHW2HraaSz4laL/aTvLYw+7yUjkXpbezF0m/jHGo7jiq68HZPYSWB6To7jw9Dyx+6acv3vGu7j9ExWXnhNYCgGsc/PRqOLjPNNa1s/K7Pd+x3j9rgi9V3sDlj DXMG8937@EQ-EQ6400341"
+
+
+  control_plane:   # tweak network configuration as needed ...
+    capm3:
+      hostSelector:
+        matchLabels:
+          cluster-role: control-plane
+      provisioning_pool_interface: bond0
+      primary_pool_interface: bond0.16
+    network_interfaces:
+      bond0:
+        type: bond
+        interfaces:
+          - enp81s0f0
+          - enp81s0f1
+        vlans:
+          - id: 16
+      enp81s0f0:
+        type: phy
+      enp81s0f1:
+        type: phy
+
+  baremetal_host_default:
+    bmh_spec:
+      online: true
+      externallyProvisioned: false
+      bmc:
+        disableCertificateVerification: true
+      bootMode: legacy
+
+  baremetal_hosts:
+    xr11-8:  # corresponding credentials need to be set in secrets.yaml
+      bmh_metadata:
+        labels:
+          cluster-role: control-plane
+        annotations:
+          sylvaproject.org/default-longhorn-disks-config: '[ { "path":"/var/longhorn/disks/disk_by-path_pci-0000:18:00.0-scsi-0:2:0:0", "storageReserved":0, "allowScheduling":true, "tags":[ "ssd", "fast" ] }]'
+          #sylvaproject.org/default-longhorn-disks-config: '[ { "path":"/var/longhorn/disks/disk_by-path_pci-0000:18:00.0-scsi-0:2:0:0", "storageReserved":0, "allowScheduling":true, "tags":[ "ssd", "fast" ] }, { "path":"/var/longhorn/disks/disk_by-path_pci-0000:18:00.0-scsi-0:2:1:0", "storageReserved":0, "allowScheduling":true, "tags":[ "ssd", "fast" ] }]'
+      bmh_spec:
+        description: Workload dev cluster CP node
+        bmc:
+          address: idrac-virtualmedia://172.20.91.229/redfish/v1/Systems/System.Embedded.1
+        bootMACAddress: b4:96:91:cd:86:4e
+        rootDeviceHints:
+          serialNumber: 00f040217049c6b72c007bcfb0f0a7ce
+

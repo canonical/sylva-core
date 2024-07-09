@@ -53,7 +53,7 @@
 | **minio-monitoring-tenant** | creates a MinIO tenant for the monitoring stack<br/><br/>Loki and Thanos will use this MinIO S3 storage | beta |  | Helm | v5.0.13 |
 | **minio-operator** | install MinIO operator<br/><br/>MinIO operator is used to manage multiple S3 tenants | beta |  | Helm | v5.0.13 |
 | **neuvector** | installs Neuvector | beta |  | [Helm](https://neuvector.github.io/neuvector-helm) | 2.6.6 |
-| **nfs-ganesha** | Install NFS Ganesha server | beta |  | [Helm](https://kubernetes-sigs.github.io/nfs-ganesha-server-and-external-provisioner/) | 3.0.1 |
+| **nfs-ganesha** | Install NFS Ganesha server | beta |  | [Helm](https://kubernetes-sigs.github.io/) | 3.0.1 |
 | **rancher-init** | initializes and configures Rancher | beta | True | Kustomize | N/A |
 | **snmp-exporter** | installs SNMP exporter | beta |  | [Helm](https://prometheus-community.github.io/helm-charts) | 5.4.0 |
 | **sylva-prometheus-rules** | installs prometheus rules using external helm chart & rules git repo | beta |  | [Helm](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-prometheus-rules.git) | 0.0.11 |
