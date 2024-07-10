@@ -178,7 +178,7 @@ Signatures are stored on the sylva-core OCI registry as artifact tags.
 
 You can vertify manually the signature of the OCI artifact by using the cosign public key `cosign.pub` available in the directory `sylva-core/tools/oci`:
 
-```json
+```shell
 $ COSIGN_REPOSITORY=registry.gitlab.com/sylva-projects/sylva-core/signatures cosign verify --key tools/oci/cosign.pub --insecure-ignore-tlog quay.io/keycloak/keycloak:21.1.2 | jq
 WARNING: Skipping tlog verification is an insecure practice that lacks of transparency and auditability verification for the signature.
 
