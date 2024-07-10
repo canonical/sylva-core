@@ -243,17 +243,40 @@ def convert_to_markdown_table(units, headers, sort_function=sort_by_name):
     return md_content
 
 
+def filter_external_units(units_data):
+    return [unit for unit in units_data if not unit["internal"]]
+
+def filter_external_sylva_units(units_data):
+    return [unit for unit in filter_external_units(units_data) if "sylva-project" in unit["source"]]
+
+def filter_external_no_sylva_units(units_data):
+    return [unit for unit in filter_external_units(units_data) if "sylva-project" not in unit["source"]]
+
+
+def generate_markdown_table(units_data, headers, filter_function=None, sort_function=None):
+    if filter_function:
+        units_data = filter_function(units_data)
+    return convert_to_markdown_table(units_data, headers, sort_function)
+
+def generate_external_sylva_units_version_maturity():
+    units_data = generate_units_metadata()
+    headers = ["name", "description", "maturity", "source", "version"]
+    return generate_markdown_table(units_data, headers, filter_external_sylva_units, sort_by_maturity)
+
+def generate_external_no_sylva_units_version_maturity():
+    units_data = generate_units_metadata()
+    headers = ["name", "description", "maturity", "source", "version"]
+    return generate_markdown_table(units_data, headers, filter_external_no_sylva_units, sort_by_maturity)
+
 def generate_external_units_version_maturity():
     units_data = generate_units_metadata()
-    units_data_without_internals = [unit for unit in units_data if not unit["internal"]]
     headers = ["name", "description", "maturity", "source", "version"]
-    return convert_to_markdown_table(units_data_without_internals, headers, sort_by_maturity)
-
+    return generate_markdown_table(units_data, headers, filter_external_units, sort_by_maturity)
 
 def generate_units_description():
     units_data = generate_units_metadata()
     headers = ["name", "description", "details"]
-    return convert_to_markdown_table(units_data, headers)
+    return generate_markdown_table(units_data, headers)
 
 
 def generate_full_md_table():
@@ -278,7 +301,7 @@ if __name__ == "__main__":
         "doc_format",
         help="Which kind of documentation to generate",
         nargs='?',
-        choices=["check", "components-versions", "units-description"],
+        choices=["check", "components-versions", "units-description", "sylva-external-versions", "external-versions"],
     )
     args = parser.parse_args()
 
@@ -299,7 +322,12 @@ if __name__ == "__main__":
             sys.exit(1)
 
     # exemples of units data formatting
+    if args.doc_format == "external-versions":
+        print(generate_external_no_sylva_units_version_maturity())
+    if args.doc_format == "sylva-external-versions":
+        print(generate_external_sylva_units_version_maturity())
     if args.doc_format == "components-versions":
         print(generate_external_units_version_maturity())
     if args.doc_format == "units-description":
         print(generate_units_description())
+

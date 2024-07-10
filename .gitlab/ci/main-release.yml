@@ -1,0 +1,44 @@
+---
+# Test
+release-prepation:
+  stage: test
+  dependencies: []
+  script:
+    - |
+       DISK_IMAGEBUILDER_VERSION=$(yq .sylva_diskimagebuilder_version charts/sylva-units/values.yaml)
+       SYLVA_CAPI_CLUSTER_VERSION=$(yq .source_templates.sylva-capi-cluster.spec.ref.tag charts/sylva-units/values.yaml)
+       echo "
+       ## Kubernetes compatibility
+
+       This release is compatible with the following Kubernetes versions:
+
+       Management cluster Kubernetes version:
+
+       - $(yq -e '.k8s_version_short' charts/sylva-units/values.yaml)
+
+       Workload cluster Kubernetes version:
+
+       $(yq -e '._internal.k8s_version_map | keys' charts/sylva-units/values.yaml)
+       " >> release.md
+
+       echo "## Sylva's components changelog" >> release.md
+
+       tools/generate_units_documentation.py sylva-external-versions >> release.md
+
+       echo "## External components changelog
+
+       <details>
+       <summary> Click to unfold </summary>
+       " >> release.md
+
+       tools/generate_units_documentation.py external-versions >> release.md
+
+       echo "</details>" >> release.md
+
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+  artifacts:
+    expire_in: 48 hour
+    when: always
+    paths:
+      - release.md
