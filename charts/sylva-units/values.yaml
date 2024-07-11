@@ -6616,7 +6616,7 @@ shared_workload_clusters_values:
   units:
     cluster-import:
       enabled: '{{ tuple . "rancher" | include "unit-enabled" }}'
-  sylva_diskimagebuilder_version: '{{ .Values.sylva_diskimagebuilder_version }}'
+
   monitoring:
     thanos_receive_url: https://{{ .Values.external_hostnames.thanos_receive }}/api/v1/receive
   logging:
