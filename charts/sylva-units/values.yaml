@@ -2484,6 +2484,7 @@ units:
       cluster-node-deletion-timeout-fix: '{{ tuple . "cluster-node-deletion-timeout-fix" | include "unit-enabled" }}'
       cluster-rke2-finalizer-fix: '{{ tuple . "cluster-rke2-finalizer-fix" | include "unit-enabled" }}'
       cluster-node-provider-id-blacklist: '{{ tuple . "cluster-node-provider-id-blacklist" | include "unit-enabled" }}'
+      longhorn-instance-manager-cleanup: '{{ tuple . "longhorn-instance-manager-cleanup" | include "unit-enabled" }}'
     kustomization_spec:
       prune: '{{ not (eq .Release.Namespace "sylva-system") | include "preserve-type" }}'
       # we wait on all important resources built by sylva-capi-cluster,
@@ -4349,6 +4350,135 @@ units:
           storageMinimalAvailablePercentage: 10
           replicaReplenishmentWaitInterval: '{{ .Values.cluster.capi_providers.infra_provider | eq "capm3" | ternary 3600 600 | include "preserve-type" }}'
           nodeDrainPolicy: block-for-eviction-if-contains-last-replica
+
+  longhorn-instance-manager-cleanup:
+    info:
+      description: cronjob to cleanup Longhorn instance-manager pods that are preventing node drain
+      internal: true
+    enabled_conditions:
+    - '{{ tuple . "longhorn" | include "unit-enabled" }}'
+    unit_templates:
+    - base-deps
+    repo: sylva-core
+    kustomization_spec:
+      path: ./kustomize-units/kube-cronjob
+      wait: true
+      force: true
+      postBuild:
+        substitute:
+          CRONJOB_NAME: longhorn-instance-manager-cleanup
+          NAMESPACE: longhorn-system
+      _patches:
+      - target:
+          kind: CronJob
+        patch: |
+          - op: replace
+            path: /spec/schedule
+            value:  "*/5 * * * *" # Every 5 minutes
+      - target:
+          kind: ClusterRole
+        patch: |
+          - op: replace
+            path: /rules
+            value:
+              - apiGroups: [""]
+                resources: [nodes]
+                verbs: [list, get, patch]
+      - target:
+          kind: ConfigMap
+        patch: |
+          - op: replace
+            path: /metadata/name
+            value: longhorn-instance-manager-cleanup-cm
+          - op: replace
+            path: /metadata/namespace
+            value: longhorn-system
+          - op: replace
+            path: /data/kube-cronjob.sh
+            value: |
+              #!/bin/bash
+
+              set -e
+              set -o pipefail
+
+              if [[ $(kubectl api-resources --api-group=longhorn.io --no-headers | wc -l)  -eq 0 ]]; then
+                  echo "=== Longhorn is not yet installed, aborting ==="
+                  exit 0
+              fi
+
+              echo "=== Checking for nodes being drained ==="
+
+              for NODE in $(kubectl get nodes -o json |
+                              jq -r '.items[] | select(.spec.taints // [] | .[] |
+                                                select(.effect == "NoSchedule") |
+                                                select(.key == "node.kubernetes.io/unschedulable")
+                                                      ) | .metadata.name'
+                  ); do
+
+                  echo "=== Node $NODE is being drained, checking if it has volumes attached ==="
+
+                  NODE_VOLUMES=$(kubectl get volume.longhorn.io -n longhorn-system -o json | jq -r --arg node $NODE '[.items[] | select(.spec.nodeID == $node) | .metadata.name] | join(", ")')
+                  if [[ -n $NODE_VOLUMES ]]; then
+                      echo "Some volumes are still attached to node $NODE: $NODE_VOLUMES"
+                      echo "Waiting for volumes to be detached"
+                      continue
+                  else
+                      echo "There are no volumes attached to node $NODE"
+                  fi
+
+
+                  # Compute the list of PVC using single-replicas storageClass
+                  SINGLE_REPLICA_VOLUMES=$(kubectl get volume.longhorn.io -n longhorn-system -o json | jq '[.items[] | select(.spec.numberOfReplicas == 1) | .metadata.name]')
+                  # Retrieve the list of replicas used by these PVC
+                  SINGLE_REPLICA_REPLICAS=$(kubectl get replicas -n longhorn-system -o json | \
+                                            jq --argjson single_replicas_pvc "$SINGLE_REPLICA_VOLUMES" \
+                                            '[.items[] | select(.spec.volumeName as $in | $single_replicas_pvc | index($in))]')
+
+                  # Filter replicas hosted on nodes being drained
+                  NODE_SINGLE_REPLICAS=$(jq -r --arg node $NODE <<< $SINGLE_REPLICA_REPLICAS '[.[] | select(.spec.nodeID == $node) | .metadata.name] | join(", ")')
+
+                  if [[ -n $NODE_SINGLE_REPLICAS ]]; then
+                      echo "Some replicas that are not duplicated elsewhere are still attached to node $NODE: $NODE_SINGLE_REPLICAS"
+                      echo "Waiting for these replicas to be moved to another node"
+                      continue
+                  else
+                      echo "There are no replicas from single-replica storageclass hosted on node $NODE"
+                  fi
+
+                  NODE_INSTANCE_MANAGER_POD=$(kubectl get pods -n longhorn-system -l longhorn.io/component=instance-manager -l longhorn.io/node=$NODE -o name)
+                  if [[ -n $NODE_INSTANCE_MANAGER_POD ]]; then
+                      echo "Instance-manager pod is still running on node $NODE with following status:"
+                      kubectl get -n longhorn-system instancemanagers.longhorn.io ${NODE_INSTANCE_MANAGER_POD#pod/} -o yaml
+                      echo "Deleting instance-manager as it has been left-over"
+                      kubectl delete -n longhorn-system $NODE_INSTANCE_MANAGER_POD
+                      # Generate an event to track that deletion
+                      kubectl apply -f - <<EOF
+                          apiVersion: v1
+                          kind: Event
+                          metadata:
+                            name: cleanup-instance-manager
+                            namespace: longhorn-system
+                          # Kubernetes expects to parse time as "2006-01-02T15:04:05.000000Z07:00" but time command in alpine does not support "%Y-%m-%dT%H:%M:%S.%6NZ" format
+                          eventTime: $(date -u +"%Y-%m-%dT%H:%M:%SZ" | sed 's/Z$/.000000Z/')
+                          type: Warning
+                          message: "Deleted instance-manager pod $NODE_INSTANCE_MANAGER_POD in node $NODE"
+                          involvedObject:
+                            apiVersion: v1
+                            kind: pod
+                            name: $NODE_INSTANCE_MANAGER_POD
+                            namespace: longhorn-system
+                          reportingComponent: cleanup-instance-manager
+                          reportingInstance: cleanup-instance-manager-cronjob
+                          action: PodDeleted
+                          reason: PodDeleted
+              EOF
+                      log_event $NODE_INSTANCE_MANAGER_POD $NODE
+                  else
+                      echo "No instance-manager pods found on node $NODE, nothing to do"
+                  fi
+              done
+
+              echo "=== All done ==="
 
   cluster-creator-login:
     info:
