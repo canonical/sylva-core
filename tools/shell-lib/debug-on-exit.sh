@@ -161,7 +161,7 @@ function cluster_info_dump() {
   kubectl get secret -A -o yaml --show-managed-fields | yq '.items[].data="secrets data is purposefully not dumped" | .items[].metadata.annotations="secrets data is purposefully not dumped"' > $dump_dir/Secrets-censored.yaml
 
   # dump RKE2 node-password secrets
-  k -n kube-system get secrets -o yaml | yq '.items=[.items[] | select(.metadata.name | contains(".node-password.rke2"))]' > $dump_dir/Secrets-rke2-node-passwords.yaml
+  kubectl -n kube-system get secrets -o yaml | yq '.items=[.items[] | select(.metadata.name | contains(".node-password.rke2"))]' > $dump_dir/Secrets-rke2-node-passwords.yaml
 
   # dump CAPI cluster state
   echo "Dumping clusterctl describe..."
