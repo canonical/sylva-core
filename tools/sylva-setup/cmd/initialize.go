@@ -16,11 +16,14 @@ limitations under the License.
 package cmd
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"os"
 	"os/exec"
 
+	"github.com/docker/docker/api/types/network"
+	"github.com/docker/docker/client"
 	"github.com/manifoldco/promptui"
 	"github.com/spf13/cobra"
 )
@@ -88,6 +91,22 @@ var (
 
 func init() {
 	rootCmd.AddCommand(initCmd)
+
+	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
+	if err != nil {
+		panic(err)
+	}
+
+	networks, err := cli.NetworkList(context.Background(), network.ListOptions{})
+	if err != nil {
+		panic(err)
+	}
+
+	for _, ctr := range networks {
+		if ctr.Name == "kind" {
+			fmt.Printf("%s %s\n", ctr.IPAM.Config[0].Subnet, ctr.Name)
+		}
+	}
 	// rootCmd.Run(requirementsCmd, []string{""})
 
 	// Here you will define your flags and configuration settings.
