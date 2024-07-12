@@ -6637,7 +6637,7 @@ _internal:
   default_storage_class_RWX_support: >-
     {{- $default_storage_class := tuple . .Values._internal.default_storage_class | include "interpret-as-string" -}}
     {{- has $default_storage_class .Values._internal.storage_class_RWX_support -}}
-  default_storage_class_access_mode_rwx: '{{ eq (tuple . .Values._internal.default_storage_class_RWX_support | include "interpret-as-string") "true" | ternary "ReadWriteMany" "ReadWriteOnce" }}'
+  default_storage_class_access_mode_rwx: ReadWriteOnce
 
   vault_replicas: >-
     {{ or (.Values.cluster.capi_providers.infra_provider | eq "capd") (and (lt (int .Values.cluster.control_plane_replicas) 3) (eq .Values._internal.default_storage_class_unit "local-path")) | ternary 1 3  }}
