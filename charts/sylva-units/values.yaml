@@ -775,7 +775,7 @@ units:
       targetNamespace: harbor
       values:
         updateStrategy:
-          type: '{{ eq .Values._internal.default_storage_class_access_mode_rwx "ReadWriteMany" | ternary "RollingUpdate" "Recreate" }}'
+          type: '{{ eq .Values._internal.harbor_storage_access_mode "ReadWriteMany" | ternary "RollingUpdate" "Recreate" }}'
         persistence:
           enabled: true
           resourcePolicy: "keep"
@@ -783,11 +783,11 @@ units:
             registry:
               storageClass: '{{ .Values._internal.default_storage_class }}'
               #size: 32Gi
-              accessMode: '{{ .Values._internal.default_storage_class_access_mode_rwx }}'
+              accessMode: '{{ .Values._internal.harbor_storage_access_mode }}'
             jobservice:
               storageClass: '{{ .Values._internal.default_storage_class }}'
               #size: 8Gi
-              accessMode: '{{ .Values._internal.default_storage_class_access_mode_rwx }}'
+              accessMode: '{{ .Values._internal.harbor_storage_access_mode }}'
             redis:
               storageClass: '{{ .Values._internal.default_storage_class }}'
               #size: 8Gi
@@ -6638,6 +6638,12 @@ _internal:
     {{- $default_storage_class := tuple . .Values._internal.default_storage_class | include "interpret-as-string" -}}
     {{- has $default_storage_class .Values._internal.storage_class_RWX_support -}}
   default_storage_class_access_mode_rwx: '{{ eq (tuple . .Values._internal.default_storage_class_RWX_support | include "interpret-as-string") "true" | ternary "ReadWriteMany" "ReadWriteOnce" }}'
+
+  # we could use rwx as default when available, if we find a way to automate a migration from rwo to rwx
+  # (see https://gitlab.com/sylva-projects/sylva-core/-/issues/1455)
+  # we could also implement a way to select RWX on fresh deployments
+  # harbor_storage_access_mode: '{{ tuple . .Values._internal.default_storage_class_access_mode_rwx | include "interpret-as-string" }}'
+  harbor_storage_access_mode: ReadWriteOnce
 
   vault_replicas: >-
     {{ or (.Values.cluster.capi_providers.infra_provider | eq "capd") (and (lt (int .Values.cluster.control_plane_replicas) 3) (eq .Values._internal.default_storage_class_unit "local-path")) | ternary 1 3  }}
