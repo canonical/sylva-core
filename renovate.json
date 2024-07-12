@@ -146,9 +146,12 @@
       "groupName": "heat-operator"
     },
     {
-      "description": "Regroup sylva-toolbox updates",
-      "matchPackagePatterns": ".*sylva-toolbox.*",
-      "groupName": "sylva-toolbox"
+      "description": "Regroup sylva-toolbox & ci-image updates",
+      "matchPackagePatterns": [
+        ".*sylva-toolbox.*",
+        ".*ci-image"
+      ],
+      "groupName": "sylva-toolbox & ci-image"
     },
     {
       "description": "Catch all changes related to values files and run generate_units_documentation script",
