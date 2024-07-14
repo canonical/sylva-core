@@ -6,9 +6,7 @@ An existing, centrally located, Ceph cluster can be integrated to allow workload
 
 Persistent volumes with different access modes, like ReadWriteOnce and ReadWriteMany, can be created as per requirements.
 
-::: Info: Ceph-csi-Cephfs doesn't support true multi-tenancy. We can create a separate filesystem for each workload cluster and can segregate the data for each workload cluster, but as per the official doc of ceph-csi-cephfs, Ceph user needs mgr read-write capabilities to create SC and PVC.
-Having such capabilities, a user can access or modify any data present on any of the Ceph file-systems.
-:::
+Ceph CSI ceph fs supports multitenancy, allowing you to segregate data for each workload cluster on separate filesystems. This segregation ensures that data access is restricted for unauthorized users, enhancing security and data isolation. It helps maintain the integrity and privacy of data within the system.
 
 ## How a management/workload cluster can consume Ceph
 
@@ -34,27 +32,27 @@ ceph -s
 ceph mds status
 ```
 
-* Create new user with below permissions, following [CephFS authentication capabilities](https://docs.ceph.com/en/reef/cephfs/client-auth/)
+* Create new user with below capabilities which is required to support multi-tenancy , following [CephFS authentication capabilities](https://docs.ceph.com/en/reef/cephfs/client-auth/)
 
 ```shell
 ceph auth get-or-create client.CEPH_USER}\
    mds 'allow rw fsname=${CEPH_FS}' \
-   mgr 'allow rw' \
+    mgr "allow command 'fs subvolume ls' with vol_name=${CEPH_FS}, allow command 'fs subvolume create' with vol_name=${CEPH_FS}, allow command 'fs subvolume rm' with vol_name=${CEPH_FS}, allow command 'fs subvolume authorize' with vol_name=${CEPH_FS}, allow command 'fs subvolume deauthorize' with vol_name=${CEPH_FS}, allow command 'fs subvolume authorized_list' with vol_name=${CEPH_FS}, allow command 'fs subvolume evict' with vol_name=${CEPH_FS}, allow command 'fs subvolume getpath' with vol_name=${CEPH_FS}, allow command 'fs subvolume info' with vol_name=${CEPH_FS}, allow command 'fs subvolume metadata set' with vol_name=${CEPH_FS}, allow command 'fs subvolume metadata get' with vol_name=${CEPH_FS}, allow command 'fs subvolume metadata ls' with vol_name=${CEPH_FS}, allow command 'fs subvolume metadata rm' with vol_name=${CEPH_FS}, allow command 'fs subvolume resize' with vol_name=${CEPH_FS}, allow command 'fs subvolumegroup ls' with vol_name=${CEPH_FS}, allow command 'fs subvolumegroup create' with vol_name=${CEPH_FS}, allow command 'fs subvolumegroup rm' with vol_name=${CEPH_FS}, allow command 'fs subvolumegroup getpath' with vol_name=${CEPH_FS}, allow command 'fs subvolumegroup pin' with vol_name=${CEPH_FS}, allow command 'fs subvolume snapshot ls' with vol_name=${CEPH_FS}, allow command 'fs subvolume snapshot create' with vol_name=${CEPH_FS}, allow command 'fs subvolume snapshot rm' with vol_name=${CEPH_FS}, allow command 'fs subvolume snapshot protect' with vol_name=${CEPH_FS}, allow command 'fs subvolume snapshot unprotect' with vol_name=${CEPH_FS}, allow command 'fs subvolume snapshot clone' with vol_name=${CEPH_FS}, allow command 'fs subvolume snapshot info' with vol_name=${CEPH_FS}, allow command 'fs subvolume snapshot metadata set' with vol_name=${CEPH_FS}, allow command 'fs subvolume snapshot metadata get' with vol_name=${CEPH_FS}, allow command 'fs subvolume snapshot metadata ls' with vol_name=${CEPH_FS}, allow command 'fs subvolume snapshot metadata rm' with vol_name=${CEPH_FS}, allow command 'fs subvolumegroup snapshot create' with vol_name=${CEPH_FS}, allow command 'fs subvolumegroup snapshot ls' with vol_name=${CEPH_FS}, allow command 'fs subvolumegroup snapshot rm' with vol_name=${CEPH_FS}" \
    mon 'allow r fsname=${CEPH_FS}' \
-   osd 'allow rw pool=cephfs.${CEPH_FS}.data, allow rw pool=cephfs.${CEPH_FS}.metadata' \
+   osd 'allow rw pool=cephfs.${CEPH_FS}.data, allow rw pool=cephfs.${CEPH_FS}.meta' \
    -o /etc/ceph/ceph.client.{CEPH_USER}.keyring
 ```
 
 * Verify the capabilities.
 
 ```shell
-ceph auth get client.foo
+ceph auth get client.test
 [client.foo]
       key = AQDFakeTokenFakeTokenFakeTokenGSoSbLkA==
-      caps mds = "allow rw fsname=cephfs_a"
-      caps mgr = "allow rw"
-      caps mon = "allow r fsname=cephfs_a"
-      caps osd = "allow rw pool=cephfs.cephfs_a.data, allow rw pool=cephfs.cephfs_a.meta"
+      caps mds = "allow rw fsname=test"
+      caps mgr = "allow command 'fs subvolume ls' with vol_name=test, allow command 'fs subvolume create' with vol_name=test, allow command 'fs subvolume rm' with vol_name=test, allow command 'fs subvolume authorize' with vol_name=test, allow command 'fs subvolume deauthorize' with vol_name=test, allow command 'fs subvolume authorized_list' with vol_name=test, allow command 'fs subvolume evict' with vol_name=test, allow command 'fs subvolume getpath' with vol_name=test, allow command 'fs subvolume info' with vol_name=test, allow command 'fs subvolume metadata set' with vol_name=test, allow command 'fs subvolume metadata get' with vol_name=test, allow command 'fs subvolume metadata ls' with vol_name=test, allow command 'fs subvolume metadata rm' with vol_name=test, allow command 'fs subvolume resize' with vol_name=test, allow command 'fs subvolumegroup ls' with vol_name=test, allow command 'fs subvolumegroup create' with vol_name=test, allow command 'fs subvolumegroup rm' with vol_name=test, allow command 'fs subvolumegroup getpath' with vol_name=test, allow command 'fs subvolumegroup pin' with vol_name=test, allow command 'fs subvolume snapshot ls' with vol_name=test, allow command 'fs subvolume snapshot create' with vol_name=test, allow command 'fs subvolume snapshot rm' with vol_name=test, allow command 'fs subvolume snapshot protect' with vol_name=test, allow command 'fs subvolume snapshot unprotect' with vol_name=test, allow command 'fs subvolume snapshot clone' with vol_name=test, allow command 'fs subvolume snapshot info' with vol_name=test, allow command 'fs subvolume snapshot metadata set' with vol_name=test, allow command 'fs subvolume snapshot metadata get' with vol_name=test, allow command 'fs subvolume snapshot metadata ls' with vol_name=test, allow command 'fs subvolume snapshot metadata rm' with vol_name=test, allow command 'fs subvolumegroup snapshot create' with vol_name=test, allow command 'fs subvolumegroup snapshot ls' with vol_name=test, allow command 'fs subvolumegroup snapshot rm' with vol_name=test"
+      caps mon = "allow r fsname=test"
+      caps osd = "allow rw pool=cephfs.test.data, allow rw pool=cephfs.test.meta"
 ```
 
 ## Consuming Cephfs for a cluster
@@ -71,7 +69,7 @@ env/values.yaml
 ceph:
   cephfs_csi:
     clusterID: "72451b38-2d3c-11ee-80a2-652991486dfa"
-    fs_name: "ceph-fs"
+    fs_name: "test"
     monitors_ips:
       - "192.168.128.45"
       - "192.168.128.46"
