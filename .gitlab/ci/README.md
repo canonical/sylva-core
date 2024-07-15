@@ -28,3 +28,26 @@ During `deployment-test` stage we run one of:
 
 - `test-sso`, that only does 1.1) from above, when we only deploy the management cluster (like in `capo-fip` or `capo-misc-units` CI variants)
 - `test-no-sso`, get Rancher Kubeconfig without SSO and create test pod into workload cluster.
+
+- `test-login`, job is designed to verify access to each component deployed in Sylva on both management and workload clusters.
+    1) Pre-requisities on CI test
+        The managment cluster and workload should be created before launching the CI test-login
+        We need to set extends to `.test-tags` corresponding  to tests jobs done though Docker executor based on runner for capo, capm3 ONLY.
+
+    2) Pre-requisities on env
+        the variable HURL_JUNIT_REPORT should be set, and corresponding to future HURL report
+
+    3) it runs the Hurl tests for accessing to
+          - grafana.sylva
+          - Rancher.sylva
+          - flux.sylva
+          - harbor.sylva
+          - keycloak.sylva
+          - minio-monitoring-tenant.sylva
+          - minio-monitoring-tenant-console.sylva
+          - minio-operator-console.sylva
+          - thanos-query.sylva
+          - thanos.sylva
+          - thanos-receive.sylva
+          - thanos-storegateway.sylva
+          - vault.sylva
