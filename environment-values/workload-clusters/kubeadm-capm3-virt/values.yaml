@@ -1,35 +1,7 @@
-cluster_virtual_ip: 192.168.100.3
-
+---
 cluster:
   capi_providers:
-    infra_provider: capm3
     bootstrap_provider: cabpk
-
-  control_plane_replicas: 3
-
-  machine_deployments:
-    md0:
-      replicas: 1
-
-      capm3:
-        hostSelector:
-          matchLabels:
-            cluster-role: worker
-
-        provisioning_pool_interface: ens4
-        primary_pool_interface: ens5
-
-      network_interfaces:
-        ens4:
-          type: phy
-        ens5:
-          type: phy
-
-  # Add kind container address to cluster kubernetes api certificate SubjectAltNames,
-  # in order to be able to reach it from the outside through kubernetes-external service created by libvirt-metal unit
-  # once pivot to management cluster will happen, this IP will be retrieved in a cluster-public-endpoint configMap created for that purpose
-  cluster_api_cert_extra_SANs:
-    - '{{ .Values._internal.bootstrap_node_ip }}'
 
   kubeadm:
     users:
@@ -40,92 +12,6 @@ cluster:
         lockPassword: false
         passwd: $1$pdWEicWs$9ZWQf5.CWyXccmP8Chuu01 # sylva
 
-  capm3:
-    image_key: ubuntu-jammy-plain-kubeadm-1-28-9
-    primary_pool_network: 192.168.100.0
-    primary_pool_gateway: 192.168.100.1
-    primary_pool_start: 192.168.100.60
-    primary_pool_end: 192.168.100.90
-    primary_pool_prefix: "24"
-    provisioning_pool_network: 192.168.10.0
-    provisioning_pool_gateway: 192.168.10.1
-    provisioning_pool_start: 192.168.10.60
-    provisioning_pool_end: 192.168.10.90
-    provisioning_pool_prefix: "24"
-
-    dns_servers: [1.1.1.1]
-
-  control_plane:  # tweak network configuration as needed
-
-    capm3:
-      hostSelector:  # criteria for matching labels on BareMetalHost objects defined by baremetal_hosts value
-        matchLabels:
-          cluster-role: control-plane
-
-      provisioning_pool_interface: ens4
-      primary_pool_interface: ens5
-
-    network_interfaces:
-      ens4:
-        type: phy
-      ens5:
-        type: phy
-
-  baremetal_host_default:
-    bmh_metadata:
-      annotations:
-        sylvaproject.org/default-longhorn-disks-config: >-
-          [{"path":"/var/longhorn/disks/disk_by-path_pci-0000:00:0a.0", "storageReserved":0, "allowScheduling":true, "tags":[ "vhdd", "fast"] },
-           {"path":"/var/longhorn/disks/disk_by-path_pci-0000:00:0b.0", "storageReserved":0, "allowScheduling":true, "tags":[ "vhdd", "fast"] }]
-    bmh_spec:
-      online: true
-      description: workload cluster node
-      bmc:
-        disableCertificateVerification: true
-      bootMode: legacy
-      rootDeviceHints:
-        deviceName: /dev/vda
-
-  baremetal_hosts:  # corresponding credentials need to be set in secrets.yaml
-    workload-cp-0:
-      bmh_metadata:
-        labels:
-          cluster-role: control-plane
-      bmh_spec:
-        bmc:
-          address: redfish-virtualmedia://{{ .Values._internal.bootstrap_node_ip }}:8010/redfish/v1/Systems/c0014001-b10b-f001-c0de-feeb1e54ee15
-        bootMACAddress: 52:54:00:44:44:04
-
-    workload-cp-1:
-      bmh_metadata:
-        labels:
-          cluster-role: control-plane
-      bmh_spec:
-        bmc:
-          address: redfish-virtualmedia://{{ .Values._internal.bootstrap_node_ip }}:8011/redfish/v1/Systems/c0014001-b10b-f001-c0de-feeb1e54ee15
-        bootMACAddress: 52:54:00:44:44:05
-
-    workload-cp-2:
-      bmh_metadata:
-        labels:
-          cluster-role: control-plane
-      bmh_spec:
-        bmc:
-          address: redfish-virtualmedia://{{ .Values._internal.bootstrap_node_ip }}:8012/redfish/v1/Systems/c0014001-b10b-f001-c0de-feeb1e54ee15
-        bootMACAddress: 52:54:00:44:44:06
-
-    workload-md-0:
-      bmh_metadata:
-        labels:
-          cluster-role: worker
-      bmh_spec:
-        bmc:
-          address: redfish-virtualmedia://{{ .Values._internal.bootstrap_node_ip }}:8013/redfish/v1/Systems/c0014001-b10b-f001-c0de-feeb1e54ee15
-        bootMACAddress: 52:54:00:44:44:07
-
-units:
-  longhorn:
-    helmrelease_spec:
-      values:
-        persistence:
-          defaultClassReplicaCount: 1
+## Expected OS image must be configured here
+  # capm3:
+  #   image_key: ubuntu-jammy-plain-kubeadm-xxxxxxx

@@ -1,0 +1,37 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - ../base
+
+labels:
+- includeSelectors: true
+  pairs:
+    copy-from-bootstrap-to-management: ""
+
+configMapGenerator:
+- name: capm3-virt-values
+  options:
+    disableNameSuffixHash: true
+  files:
+  - capm3-virt-values=capm3-virt-values.yaml
+
+secretGenerator:
+- name: sylva-units-secrets
+  behavior: merge
+  options:
+    disableNameSuffixHash: true
+  files:
+  - secrets=secrets.yaml
+
+patches:
+- target:
+    kind: HelmRelease
+    name: sylva-units
+  patch: |
+    - op: add
+      path: /spec/valuesFrom/0
+      value:
+        kind: ConfigMap
+        name: capm3-virt-values
+        valuesKey: capm3-virt-values
