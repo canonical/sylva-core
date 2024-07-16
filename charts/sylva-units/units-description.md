@@ -137,5 +137,6 @@
 | **thanos-init** | sets up thanos certificate<br/><br/>it generates a multiple CN certificate for all Thanos components |  | True | Kustomize | N/A |
 | **tigera-clusterrole** | is here to allow for upgrading Calico chart when upgrading cluster<br/><br/>For v1.25.x to v1.26.x, see https://gitlab.com/sylva-projects/sylva-core/-/issues/664 |  | True | Kustomize | N/A |
 | **vault-oidc** | configures Vault to be used with OIDC |  | True | Kustomize | N/A |
+| **vault-revoke-token** | revoke root token after vault init |  | True | Kustomize | N/A |
 | **vault-secrets** | generates random secrets in vault, configure password policy, authentication backends, etc... |  | True | Kustomize | N/A |
 | **vsphere-cpi** | configures Vsphere Cloud controller manager |  | True | Helm | N/A |

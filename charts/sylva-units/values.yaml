@@ -962,6 +962,87 @@ units:
           name: vault-configurer
           namespace: vault
 
+  vault-revoke-token:
+    info:
+      description: revoke root token after vault init
+      internal: true
+    unit_templates:
+      - base-deps
+    depends_on:
+      vault: true
+    repo: sylva-core
+    kustomization_spec:
+      path: ./kustomize-units/kube-job
+      wait: true
+      force: true
+      postBuild:
+        substitute:
+          JOB_NAME: vault-revoke-root-token-job
+          JOB_TARGET_NAMESPACE: vault
+          RUNASUSER: '10000'
+          RUNASGROUP: '10000'
+      _patches:
+        - target:
+            kind: ServiceAccount
+          patch: |
+            - op: replace
+              path: /metadata/namespace
+              value: vault
+        - target:
+            kind: RoleBinding
+          patch: |
+            - op: replace
+              path: /subjects/0/namespace
+              value: vault
+        - target:
+            kind: ClusterRoleBinding
+          patch: |
+            - op: replace
+              path: /subjects/0/namespace
+              value: vault
+        - target:
+            kind: Job
+          patch: |
+            - op: replace
+              path: /metadata/namespace
+              value: vault
+            - op: replace
+              path: /spec/template/spec/containers/0/image
+              value: vault:1.13.3
+            - op: replace
+              path: /spec/backoffLimit
+              value: 15
+            - op: add
+              path: /spec/template/spec/volumes/-
+              value:
+                name: vault-secrets
+                secret:
+                  secretName: vault-unseal-keys
+            - op: add
+              path: /spec/template/spec/containers/0/volumeMounts/-
+              value:
+                name: vault-secrets
+                subPath: vault-root
+                mountPath: /vault-secrets/vault-root
+                readOnly: true
+        - target:
+            kind: ConfigMap
+          patch: |
+            - op: replace
+              path: /metadata/name
+              value: vault-revoke-root-token-job-vault-cm
+            - op: replace
+              path: /metadata/namespace
+              value: vault
+            - op: replace
+              path: /data/kube-job.sh
+              value: |
+                #!/bin/sh
+                set -e
+
+                export VAULT_TOKEN=$(cat /vault-secrets/vault-root)
+                vault token revoke -tls-skip-verify -address="https://vault.vault.svc.cluster.local:8200" $VAULT_TOKEN
+
   vault-config-operator:
     info:
       description: installs Vault config operator
@@ -993,6 +1074,7 @@ units:
     depends_on:
       vault: true
       vault-config-operator: true
+      vault-revoke-token: true
     kustomization_spec:
       path: ./kustomize-units/vault-secrets
       wait: true
@@ -1011,6 +1093,7 @@ units:
       keycloak-resources: true
       vault: true
       vault-config-operator: true
+      vault-revoke-token: true
     repo: sylva-core
     kustomization_spec:
       path: ./kustomize-units/vault-oidc
