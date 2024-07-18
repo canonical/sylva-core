@@ -2,7 +2,7 @@
 
 .capm3-virt-kubeconfig:
   - |
-    if [[ ${ENV_NAME} == 'rke2-capm3-virt' ]]; then
+    if [[ ${ENV_NAME} == *'capm3-virt'* ]]; then
       yq -i e '.clusters[].cluster.insecure-skip-tls-verify = true' $WORKLOAD_CLUSTER_NAME-rancher.yaml
       yq -i e 'del(.clusters[].cluster.certificate-authority-data)' $WORKLOAD_CLUSTER_NAME-rancher.yaml
     fi
