@@ -1,0 +1,16 @@
+apiVersion: role.keycloak.crossplane.io/v1alpha1
+kind: Role
+metadata:
+  name: grafanaadmin-role
+  namespace: crossplane-system
+  annotations:
+    crossplane.io/external-name: ${REALM_ROLE_GRAFANAADMIN}
+spec:
+  forProvider:
+    realmId: sylva
+    name: grafanaadmin
+    description: "Admin role for Grafana"
+  providerConfigRef:
+    name: keycloak-provider-config
+  managementPolicies:
+    - "*"

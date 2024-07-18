@@ -1,0 +1,21 @@
+apiVersion: client.keycloak.crossplane.io/v1alpha1
+kind: ProtocolMapper
+metadata:
+  name: vault-group-protocol-mappers
+  annotations:
+    crossplane.io/external-name: ${MAPPER_GROUPS_MAPPER_VAULT}
+spec:
+  forProvider:
+    clientIdRef:
+      name: vault
+    config:
+      access.token.claim: "false"
+      claim.name: groups
+      id.token.claim: "false"
+      userinfo.token.claim: "true"
+    name: Groups Mapper
+    protocol: openid-connect
+    protocolMapper: oidc-group-membership-mapper
+    realmId: sylva
+  providerConfigRef:
+    name: keycloak-provider-config

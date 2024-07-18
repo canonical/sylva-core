@@ -1,0 +1,20 @@
+apiVersion: group.keycloak.crossplane.io/v1alpha1
+kind: Memberships
+metadata:
+  name: sylva-admin-group-membership
+  namespace: crossplane-system
+    #  annotations:
+    #  crossplane.io/external-name: infra-admins
+spec:
+  forProvider:
+    groupIdRef:
+      name: infra-admins
+      policy:
+        resolution: Required
+    members:
+      - sylva-admin
+    realmId: sylva
+  providerConfigRef:
+    name: keycloak-provider-config
+  managementPolicies:
+    - "*"

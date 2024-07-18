@@ -1,0 +1,19 @@
+apiVersion: openidclient.keycloak.crossplane.io/v1alpha1
+kind: ClientDefaultScopes
+metadata:
+  name: neuvector-groups-client-scope
+spec:
+  forProvider:
+    clientIdRef:
+      name: neuvector
+      policy:
+        resolution: Required
+        resolve: Always
+    defaultScopes:
+      - groups
+      - profile
+      - openid
+      - roles
+    realmId: sylva
+  providerConfigRef:
+    name: keycloak-provider-config

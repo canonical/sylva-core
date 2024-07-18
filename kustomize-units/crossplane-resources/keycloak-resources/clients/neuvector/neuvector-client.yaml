@@ -1,0 +1,32 @@
+apiVersion: openidclient.keycloak.crossplane.io/v1alpha1
+kind: Client
+metadata:
+  name: neuvector
+  namespace: crossplane-system
+  annotations:
+    crossplane.io/external-name: ${CLIENT_NEUVECTOR}
+spec:
+  forProvider:
+    accessType: CONFIDENTIAL
+    realmId: sylva
+    useRefreshTokens: false
+    clientId: neuvector
+    clientAuthenticatorType: client-secret
+    directAccessGrantsEnabled: true
+    enabled: true
+    implicitFlowEnabled: false
+    name: neuvector
+    validRedirectUris:
+      - https://${NEUVECTOR_DNS}/openId_auth
+    standardFlowEnabled: true
+    rootUrl: https://${NEUVECTOR_DNS}
+    adminUrl: https://${NEUVECTOR_DNS}
+    webOrigins:
+      - https://${NEUVECTOR_DNS}
+  providerConfigRef:
+    name: keycloak-provider-config
+  managementPolicies:
+    - "*"
+  writeConnectionSecretToRef:
+    name: keycloak-client-secret-neuvector-client
+    namespace: crossplane-system

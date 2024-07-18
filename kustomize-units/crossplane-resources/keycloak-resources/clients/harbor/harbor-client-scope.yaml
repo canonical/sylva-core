@@ -1,0 +1,19 @@
+apiVersion: openidclient.keycloak.crossplane.io/v1alpha1
+kind: ClientDefaultScopes
+metadata:
+  name: harbor-groups-client-scope
+spec:
+  forProvider:
+    clientIdRef:
+      name: harbor
+      policy:
+        resolution: Required
+        resolve: Always
+    defaultScopes:
+      - groups
+      - profile
+      - openid
+      - roles
+    realmId: sylva
+  providerConfigRef:
+    name: keycloak-provider-config

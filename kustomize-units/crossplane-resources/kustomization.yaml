@@ -1,0 +1,31 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: crossplane-system
+
+resources:
+  - keycloak-provider-config.yaml
+  - ./crossplane-extra-functions/func-deployment-runtime-config.yaml
+  - ./crossplane-extra-functions/keycloak-functions-extra-resources.yaml
+  - ./crossplane-extra-functions/sylva-xbuiltinobj.yaml
+  - ./keycloak-resources/realm/realm.yaml
+  - ./keycloak-resources/realm/roles/grafana-admin-role.yaml
+  - ./keycloak-resources/realm/roles/view-users-role-mapping.yaml
+  - ./keycloak-resources/realm/scopes/groups-client-scope.yaml
+  - ./keycloak-resources/sylva-user/sylva-user.yaml
+  - ./keycloak-resources/sylva-user/sylva-user-password.yaml
+  - ./keycloak-resources/sylva-user/sylva-group-membership.yaml
+  - ./keycloak-resources/groups/infra-admins.yaml
+  - ./keycloak-resources/groups/infra-base-users.yaml
+  - ./keycloak-resources/groups/infra-restricted-admins.yaml
+  - ./keycloak-resources/groups/infra-standard-users.yaml
+  - ./keycloak-resources/clients/flux/flux-webui-client.yaml
+  - ./keycloak-resources/clients/flux/flux-role-mappings.yaml
+  - ./keycloak-resources/clients/flux/flux-client-scope.yaml
+  - ./keycloak-resources/clients/rancher/rancher-client.yaml
+  - ./keycloak-resources/clients/rancher/rancher-client-scope.yaml
+  - ./keycloak-resources/clients/rancher/rancher-role-mappings.yaml
+  - ./keycloak-resources/clients/vault/vault-client.yaml
+  - ./keycloak-resources/clients/vault/vault-client-scope.yaml
+  - ./keycloak-resources/clients/vault/vault-role-mappings.yaml
+

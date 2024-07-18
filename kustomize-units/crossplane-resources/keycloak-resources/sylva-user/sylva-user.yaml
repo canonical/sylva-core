@@ -1,0 +1,26 @@
+apiVersion: user.keycloak.crossplane.io/v1alpha1
+kind: User
+metadata:
+  name: sylva-admin
+  namespace: crossplane-system
+  annotations:
+    crossplane.io/external-name: ${USER_SYLVA_ADMIN}
+spec:
+  forProvider:
+    realmId: sylva
+    username: sylva-admin
+    enabled: true
+    email: sylva-admin@example.com
+    firstName: sylva
+    lastName: sylva
+    emailVerified: true
+    initialPassword:
+      - valueSecretRef:
+          key: "password"
+          name: "credentials-sylva-admin"
+          namespace: crossplane-system
+        temporary: false
+  providerConfigRef:
+    name: keycloak-provider-config
+  managementPolicies:
+    - "*"

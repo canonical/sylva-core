@@ -1,0 +1,32 @@
+apiVersion: openidclient.keycloak.crossplane.io/v1alpha1
+kind: Client
+metadata:
+  name: harbor
+  namespace: crossplane-system
+  annotations:
+    crossplane.io/external-name: ${CLIENT_HARBOR}
+spec:
+  forProvider:
+    accessType: CONFIDENTIAL
+    realmId: sylva
+    useRefreshTokens: false
+    clientId: harbor
+    clientAuthenticatorType: client-secret
+    directAccessGrantsEnabled: true
+    enabled: true
+    implicitFlowEnabled: false
+    name: harbor
+    validRedirectUris:
+      - https://${HARBOR_DNS}/c/oidc/callback
+    standardFlowEnabled: true
+    rootUrl: https://${HARBOR_DNS}
+    adminUrl: https://${HARBOR_DNS}
+    webOrigins:
+      - https://${HARBOR_DNS}
+  providerConfigRef:
+    name: keycloak-provider-config
+  managementPolicies:
+    - "*"
+  writeConnectionSecretToRef:
+    name: keycloak-client-secret-harbor-client
+    namespace: crossplane-system

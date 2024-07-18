@@ -1,0 +1,32 @@
+apiVersion: openidclient.keycloak.crossplane.io/v1alpha1
+kind: Client
+metadata:
+  name: flux-webui
+  namespace: crossplane-system
+  annotations:
+    crossplane.io/external-name: ${CLIENT_FLUX_WEBUI}
+spec:
+  forProvider:
+    accessType: CONFIDENTIAL
+    realmId: sylva
+    useRefreshTokens: false
+    clientId: flux-webui
+    clientAuthenticatorType: client-secret
+    directAccessGrantsEnabled: true
+    enabled: true
+    implicitFlowEnabled: false
+    name: flux-webui
+    validRedirectUris:
+      - https://${FLUX_WEBUI_DNS}/oauth2/callback
+    standardFlowEnabled: true
+    rootUrl: https://${FLUX_WEBUI_DNS}
+    adminUrl: https://${FLUX_WEBUI_DNS}
+    webOrigins:
+      - https://${FLUX_WEBUI_DNS}
+  providerConfigRef:
+    name: keycloak-provider-config
+  managementPolicies:
+    - "*"
+  writeConnectionSecretToRef:
+    name: keycloak-client-secret-flux-webui-client
+    namespace: crossplane-system

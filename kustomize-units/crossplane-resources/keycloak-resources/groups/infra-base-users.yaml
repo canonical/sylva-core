@@ -1,0 +1,16 @@
+apiVersion: group.keycloak.crossplane.io/v1alpha1
+kind: Group
+metadata:
+  name: infra-base-users
+  namespace: crossplane-system
+  annotations:
+    crossplane.io/external-name: ${GROUPS_INFRA_BASE_USERS}
+spec:
+  forProvider:
+    name: "infra-base-users"
+    realmId: "sylva"
+  deletionPolicy: "Delete"
+  providerConfigRef:
+    name: keycloak-provider-config
+  managementPolicies:
+    - "*"

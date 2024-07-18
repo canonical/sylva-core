@@ -1,0 +1,86 @@
+apiVersion: client.keycloak.crossplane.io/v1alpha1
+kind: ProtocolMapper
+metadata:
+  name: neuvector-group-protocol-mappers
+  annotations:
+    crossplane.io/external-name: ${MAPPER_GROUPS_MAPPER_NEUVECTOR}
+spec:
+  forProvider:
+    clientIdRef:
+      name: neuvector
+    config:
+      access.token.claim: "false"
+      full.path: "false"
+      claim.name: groups
+      id.token.claim: "false"
+      userinfo.token.claim: "true"
+    name: Groups Mapper
+    protocol: openid-connect
+    protocolMapper: oidc-group-membership-mapper
+    realmId: sylva
+  providerConfigRef:
+    name: keycloak-provider-config
+---
+apiVersion: client.keycloak.crossplane.io/v1alpha1
+kind: ProtocolMapper
+metadata:
+  name: neuvector-clientaudience-protocol-mappers
+  annotations:
+    crossplane.io/external-name: ${MAPPER_CLIENT_AUDIENCE_NEUVECTOR}
+spec:
+  forProvider:
+    clientIdRef:
+      name: neuvector
+    config:
+      access.token.claim: "true"
+      included.client.audience: "neuvector"
+    name: Client Audience
+    protocol: openid-connect
+    protocolMapper: oidc-audience-mapper
+    realmId: sylva
+  providerConfigRef:
+    name: keycloak-provider-config
+---
+apiVersion: client.keycloak.crossplane.io/v1alpha1
+kind: ProtocolMapper
+metadata:
+  name: neuvector-groupmembership-protocol-mappers
+  annotations:
+    crossplane.io/external-name: ${MAPPER_GROUP_PATH_GRAFANA_NEUVECTOR}
+spec:
+  forProvider:
+    clientIdRef:
+      name: neuvector
+    config:
+      access.token.claim: "false"
+      claim.name: full_group_path
+      full.path: "true"
+      id.token.claim: "false"
+      userinfo.token.claim: "true"
+    name: Group Path
+    protocol: openid-connect
+    protocolMapper: oidc-group-membership-mapper
+    realmId: sylva
+  providerConfigRef:
+    name: keycloak-provider-config
+---
+apiVersion: client.keycloak.crossplane.io/v1alpha1
+kind: ProtocolMapper
+metadata:
+  name: neuvector-clientroles-mappers
+  annotations:
+    crossplane.io/external-name: ${MAPPER_CLIENT_ROLES_NEUVECTOR}
+spec:
+  forProvider:
+    clientIdRef:
+      name: neuvector
+    config:
+      access.token.claim: "true"
+      claim.name: resource_access.$${client_id}.roles
+      multivalued: "true"
+    name: client roles
+    protocol: openid-connect
+    protocolMapper: oidc-usermodel-realm-role-mapper
+    realmId: sylva
+  providerConfigRef:
+    name: keycloak-provider-config

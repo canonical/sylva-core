@@ -1,0 +1,86 @@
+apiVersion: client.keycloak.crossplane.io/v1alpha1
+kind: ProtocolMapper
+metadata:
+  name: rancher-group-protocol-mappers
+  annotations:
+    crossplane.io/external-name: ${MAPPER_GROUPS_MAPPER_RANCHER}
+spec:
+  forProvider:
+    clientIdRef:
+      name: rancher
+    config:
+      full.path: "false"
+      access.token.claim: "false"
+      claim.name: groups
+      id.token.claim: "false"
+      userinfo.token.claim: "true"
+    name: Groups Mapper
+    protocol: openid-connect
+    protocolMapper: oidc-group-membership-mapper
+    realmId: sylva
+  providerConfigRef:
+    name: keycloak-provider-config
+---
+apiVersion: client.keycloak.crossplane.io/v1alpha1
+kind: ProtocolMapper
+metadata:
+  name: rancher-clientaudience-protocol-mappers
+  annotations:
+    crossplane.io/external-name: ${MAPPER_CLIENT_AUDIENCE_RANCHER}
+spec:
+  forProvider:
+    clientIdRef:
+      name: rancher
+    config:
+      access.token.claim: "true"
+      included.client.audience: "rancher"
+    name: Client Audience
+    protocol: openid-connect
+    protocolMapper: oidc-audience-mapper
+    realmId: sylva
+  providerConfigRef:
+    name: keycloak-provider-config
+---
+apiVersion: client.keycloak.crossplane.io/v1alpha1
+kind: ProtocolMapper
+metadata:
+  name: rancher-groupmembership-protocol-mappers
+  annotations:
+    crossplane.io/external-name: ${MAPPER_GROUP_PATH_RANCHER}
+spec:
+  forProvider:
+    clientIdRef:
+      name: rancher
+    config:
+      access.token.claim: "false"
+      claim.name: full_group_path
+      full.path: "true"
+      id.token.claim: "false"
+      userinfo.token.claim: "true"
+    name: Group Path
+    protocol: openid-connect
+    protocolMapper: oidc-group-membership-mapper
+    realmId: sylva
+  providerConfigRef:
+    name: keycloak-provider-config
+---
+apiVersion: client.keycloak.crossplane.io/v1alpha1
+kind: ProtocolMapper
+metadata:
+  name: rancher-clientroles-mappers
+  annotations:
+    crossplane.io/external-name: ${MAPPER_CLIENT_ROLES_RANCHER}
+spec:
+  forProvider:
+    clientIdRef:
+      name: rancher
+    config:
+      access.token.claim: "true"
+      claim.name: resource_access.$${client_id}.roles
+      multivalued: "true"
+    name: client roles
+    protocol: openid-connect
+    protocolMapper: oidc-usermodel-client-role-mapper
+    realmId: sylva
+  providerConfigRef:
+    name: keycloak-provider-config

@@ -1,0 +1,25 @@
+apiVersion: group.keycloak.crossplane.io/v1alpha1
+kind: Roles
+metadata:
+  name: infra-admins-view-users-roles
+  namespace: crossplane-system
+  annotations:
+    crossplane.io/external-name: builtin-sylva-realm-management-view-users
+spec:
+  forProvider:
+    realmId: sylva
+    groupIdRef:
+      name: infra-admins
+      policy:
+        resolution: Required
+    roleIdsRefs:
+      - name: grafanaadmin-role
+        policy:
+          resolution: Required
+      - name: builtin-sylva-realm-management-view-users
+        policy:
+          resolution: Required
+  providerConfigRef:
+    name: keycloak-provider-config
+  managementPolicies:
+    - "*"
