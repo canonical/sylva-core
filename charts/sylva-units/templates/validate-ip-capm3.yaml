@@ -1,0 +1,64 @@
+{{- if include "unit-enabled" (tuple . "capm3") -}}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: ip-validation
+  labels:
+    app: ip-validation
+  annotations:
+    "helm.sh/hook": pre-install
+    "helm.sh/hook-delete-policy": hook-succeeded
+spec:
+  template:
+    spec:
+      containers:
+        - name: ip-validation
+          image: registry.gitlab.com/sylva-projects/sylva-elements/container-images/oci-tools:0.0.13
+          command:
+          - sh
+          - "-c"
+          - |
+            python3 -c "
+            import os
+            import ipaddress
+
+            cluster_virtual_ip = os.getenv('CLUSTER_VIRTUAL_IP')
+            primary_pool_network = os.getenv('PRIMARY_POOL_NETWORK')
+            primary_pool_prefix = os.getenv('PRIMARY_POOL_PREFIX')
+            primary_pool_start = os.getenv('PRIMARY_POOL_START')
+            primary_pool_end = os.getenv('PRIMARY_POOL_END')
+
+            def ip_in_network(ip, network):
+              return ipaddress.ip_address(ip) in ipaddress.ip_network(network, strict=False)
+
+            def validate_ip():
+              primary_pool_cidr = f'{primary_pool_network}/{primary_pool_prefix}'
+              if not ip_in_network(cluster_virtual_ip, primary_pool_cidr):
+                print(f'Error: cluster_virtual_ip {cluster_virtual_ip} must be part of the primary network {primary_pool_cidr}')
+                exit(1)
+              primary_pool_range = list(ipaddress.summarize_address_range(
+                ipaddress.ip_address(primary_pool_start),
+                ipaddress.ip_address(primary_pool_end)
+              ))
+              for pool in primary_pool_range:
+                if ip_in_network(cluster_virtual_ip, pool):
+                  print(f'Error: cluster_virtual_ip {cluster_virtual_ip} must not be between {primary_pool_start} and {primary_pool_end}')
+                  exit(1)
+              print('IP validation passed')
+
+            validate_ip()
+            " || (kubectl logs job/ip-validation-job -n {{ .Release.Namespace }} && exit 1)
+          env:
+            - name: CLUSTER_VIRTUAL_IP
+              value: "{{ .Values.cluster_virtual_ip }}"
+            - name: PRIMARY_POOL_NETWORK
+              value: "{{ .Values.cluster.capm3.primary_pool_network }}"
+            - name: PRIMARY_POOL_PREFIX
+              value: "{{ .Values.cluster.capm3.primary_pool_prefix }}"
+            - name: PRIMARY_POOL_START
+              value: "{{ .Values.cluster.capm3.primary_pool_start }}"
+            - name: PRIMARY_POOL_END
+              value: "{{ .Values.cluster.capm3.primary_pool_end }}"
+      restartPolicy: Never
+  backoffLimit: 1
+{{- end }}
