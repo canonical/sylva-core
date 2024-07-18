@@ -5598,6 +5598,8 @@ units:
         compactor:
           enabled: true
           logLevel: debug
+          extraFlags:
+            - --deduplication.replica-label="prometheus_replica"
           resources:
             requests:
               cpu: 0.5
