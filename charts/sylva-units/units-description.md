@@ -48,7 +48,7 @@
 | **alertmanager-jiralert-config** | generates the config for Jiralert Alertmanager webhook | beta |  | [Helm](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-alertmanager-resources.git) | 0.0.2 |
 | **ceph-csi-cephfs** | Installs Ceph-CSI | beta |  | [Helm](https://ceph.github.io/csi-charts) | 3.10.2 |
 | **flux-webui-init** | initializes and configures flux-webui | beta | True | Kustomize | N/A |
-| **harbor** | installs Harbor | beta |  | [Helm](https://helm.goharbor.io) | 1.14.2 |
+| **harbor** | installs Harbor | beta |  | [Helm](https://helm.goharbor.io) | 1.15.0 |
 | **kube-storage-version-migrator** | installs kube-storage-version-migrator to assist apiVersion migrations | beta |  | [Kustomize](https://github.com/kubernetes-sigs/kube-storage-version-migrator/manifests?ref=v0.0.5) | v0.0.5 |
 | **kubevirt** | installs kubevirt | beta |  | [Helm](https://suse-edge.github.io/charts) | 0.2.4 |
 | **logging** | installs Rancher Fluentbit/Fluentd logging stack, for log collecting and shipping | beta |  | [Helm](https://charts.rancher.io/) | 103.1.1+up4.4.0 |
