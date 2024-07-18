@@ -3724,7 +3724,7 @@ units:
           alertmanagerSpec:
             useExistingSecret: true
             configSecret: sylva-alertmanager-config # this Secret is a byproduct of the alertmanager-config unit
-            replicas: '{{ .Values._internal.ha_cluster.is_ha | ternary 2 1 | include "preserve-type" }}'
+            replicas: '{{ .Values._internal.ha_cluster.is_ha | ternary 2 1 }}'
             storage:
               volumeClaimTemplate:
                 spec:
@@ -5488,19 +5488,40 @@ units:
           - name: thanos-ruler-queries-config
             mountPath: /etc/thanos/ruler-queries.yaml
             subPath: ruler-queries.yaml
-          alertmanagers:
-          - http://rancher-monitoring-alertmanager.cattle-monitoring-system:9093
+          alertmanagersConfig: |
+            alertmanagers:
+              - scheme: http
+                api_version: v2
+                timeout: 10s
+                static_configs:
+                {{- $count_am := .Values.units.monitoring.helmrelease_spec.values.alertmanager.alertmanagerSpec.replicas -}}
+                {{- if kindIs "string" $count_am -}}
+                  {{- $count_am = tuple . $count_am | include "interpret-as-string" -}}
+                {{- end -}}
+                {{- $count_am = int $count_am -}}
+                {{- range $index_am := until $count_am }}
+                - alertmanager-rancher-monitoring-alertmanager-{{ $index_am }}.alertmanager-operated.cattle-monitoring-system:9093
+                {{- end -}}
           existingConfigmap: "sylva-thanos-rules-configmap"  # this ConfigMap is a byproduct of the sylva-thanos-rules unit
           sidecars:
-          # reload thanos-ruler when changes to rule files are detected
+          # reload thanos-ruler when changes to rule files or alertmanager
+          # list are detected
           - name: configmap-reload
             image: bitnami/configmap-reload:0.13.1
             args:
             - --volume-dir=/conf/rules/
+            - --volume-dir=/conf/alertmanagers/
             - --webhook-url=http://thanos-user:{{ .Values._internal.thanos_password }}@localhost:10902/-/reload
             volumeMounts:
+            # volume from "existingConfigmap"
             - name: ruler-config
               mountPath: /conf/rules
+            - name: alertmanagers-config
+              mountPath: /conf/alertmanagers
+            volumes:
+            - name: alertmanagers-config
+              secret:
+                secretName: thanos-ruler-alertmanagers-config
             securityContext:
               allowPrivilegeEscalation: false
               capabilities:
