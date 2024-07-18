@@ -26,25 +26,6 @@ spec:
       clone:
         name: shared-workload-clusters-settings
         namespace: sylva-system
-  - name: clone-os-images-info
-    skipBackgroundRequests: false
-    match:
-      any:
-      - resources:
-          kinds:
-          - Namespace
-          selector:
-            matchLabels:
-              sylva-project.org/shared-workload-cluster-settings: ""
-    generate:
-      kind: ConfigMap
-      apiVersion: v1
-      name: kyverno-cloned-os-images-info-capm3
-      namespace: "{{request.object.metadata.name}}"
-      synchronize: true
-      clone:
-        name: os-images-info
-        namespace: sylva-system
   - name: generate-secret
     skipBackgroundRequests: false
     match:
