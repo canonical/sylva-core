@@ -142,9 +142,6 @@ variables:
       WC_UPDATE_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/k8s-1.28.yml
     allow_failure: true
     when: manual
-  - if: $CI_MERGE_REQUEST_LABELS =~ /renovate/ && $CAPO_TAG
-    allow_failure: true
-    when: manual
   - if: $CI_MERGE_REQUEST_LABELS =~ /run-e2e-tests/ && ($E2E_JOB_MR_PARITY == "any" || ($E2E_JOB_MR_PARITY == "even" && $CI_OPEN_MERGE_REQUESTS =~ /[02468]$/) || ($E2E_JOB_MR_PARITY == "odd" && $CI_OPEN_MERGE_REQUESTS =~ /[13579]$/))
     allow_failure: true
   - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
