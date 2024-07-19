@@ -23,13 +23,13 @@ publish-kustomize-units-artifact:
   script:
     - tools/oci/build-kustomize-units-artifact.sh ${OCI_TAG}
 
-push-helm-artifacts:
-  extends: .build-base
-  script:
-    - tools/oci/push-helm-charts-artifacts.sh "oci://${CI_REGISTRY_IMAGE}"
+# push-helm-artifacts:
+#   extends: .build-base
+#   script:
+#     - tools/oci/push-helm-charts-artifacts.sh "oci://${CI_REGISTRY_IMAGE}"
 
-publish-sylva-units-artifact:
-  extends: .build-base
-  script:
-    - export HELM_CHART_VERSION=${OCI_TAG}
-    - tools/oci/build-sylva-units-artifact.py
+# publish-sylva-units-artifact:
+#   extends: .build-base
+#   script:
+#     - export HELM_CHART_VERSION=${OCI_TAG}
+#     - tools/oci/build-sylva-units-artifact.py

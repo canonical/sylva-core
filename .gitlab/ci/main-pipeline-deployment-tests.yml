@@ -188,9 +188,9 @@ variables:
   needs: []
 
 .needs-publish-jobs:
-  - job: push-helm-artifacts
+  # - job: push-helm-artifacts
   - job: publish-kustomize-units-artifact
-  - job: publish-sylva-units-artifact
+  # - job: publish-sylva-units-artifact
 
 .default-trigger-oci:
   extends: .default-trigger
@@ -377,8 +377,6 @@ capo-rke2-oci-suse:
   extends: .capm3-virt-equinix
   variables:
     ENV_NAME: kubeadm-capm3-virt
-    MGMT_INITIAL_REVISION: 1.1.1
-    MGMT_UPDATE_REVISION: main
 
 capm3-ha-rke2-virt-ubuntu:
   extends: .rke2-capm3-virt-equinix
