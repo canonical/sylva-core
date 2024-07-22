@@ -1173,7 +1173,7 @@ units:
       chart:
         spec:
           chart: core
-          version: 2.6.6
+          version: 2.7.7
       targetNamespace: neuvector
       values:
         leastPrivilege: true
@@ -1190,6 +1190,9 @@ units:
               maxUnavailable: 1
           image:
             repository: neuvector/controller
+          internal:
+            certificate:
+              secret: neuvector-internal
           pvc:
             enabled: true # setting PVC to true imposes 1 replica https://github.com/neuvector/neuvector-helm/issues/110#issuecomment-1251921734
             accessModes:
@@ -1197,10 +1200,13 @@ units:
         enforcer:
           image:
             repository: neuvector/enforcer
+          internal:
+            certificate:
+              secret: neuvector-internal
         manager:
           image:
             repository: neuvector/manager
-          runAsUser: 10000
+          runAsUser: "10000"
           ingress:
             enabled: true
             host: '{{ .Values.external_hostnames.neuvector }}'
@@ -1224,6 +1230,9 @@ units:
                   value: '{{ .Values.proxies.https_proxy }}'
                 - name: no_proxy
                   value: '{{ include "sylva-units.no_proxy" (tuple .) }}'
+            internal:
+              certificate:
+                secret: neuvector-internal
         containerd:
           enabled: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpk" | include "as-bool" }}'
           path: /var/run/containerd/containerd.sock
