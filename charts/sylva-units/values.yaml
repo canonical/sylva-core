@@ -2214,6 +2214,9 @@ units:
       wait: true
       _components:
         - '{{ tuple "components/ha" (.Values._internal.ha_cluster.is_ha) | include "set-only-if" }}'
+      postBuild:
+        substitute:
+          var_substitution_enabled: "true" # To force substitution of default controller diagnostics flags
       _patches:
         - target:
             group: apps
