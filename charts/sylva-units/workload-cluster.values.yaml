@@ -187,7 +187,6 @@ units:
   cluster-reachable:
     enabled: true
     unit_templates:
-    - kustomization-deployed-on-mgmt-cluster
     - dummy
 
   cluster-ready:
