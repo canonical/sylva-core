@@ -349,10 +349,11 @@ EOF
 
   # for bootstrap cluster, we need to inject bootstrap values
   # (for mgmt cluster, we do not so we "pipe through" with "cat")
-  _kustomize ${PREVIEW_DIR} \
+  processed_yaml=$(_kustomize ${PREVIEW_DIR} \
     | define_source \
-    | (if [[ $bootstrap == "yes" ]]; then inject_bootstrap_values ; else cat ; fi) \
-    | kubectl apply -f -
+    | (if [[ $bootstrap == "yes" ]]; then inject_bootstrap_values ; else cat ; fi))
+  echo "$processed_yaml" | capm3-ip-check
+  echo "$processed_yaml" | kubectl apply -f -
   rm -Rf ${PREVIEW_DIR}
 
   # this is just to force-refresh in a dev environment with  refreshed parameters
@@ -403,4 +404,17 @@ function display_final_messages() {
     kubectl --kubeconfig management-cluster-kubeconfig get ingress --all-namespaces
   fi
   echo_b "\U0001F389 All done"
+}
+
+function capm3-ip-check() {
+  processed_yaml=$(cat)
+  # Extract values files paths from HelmRelease
+  values_files=$(echo "$processed_yaml" | yq eval '. | select(.kind == "HelmRelease")  | .spec.chart.spec.valuesFiles[]')
+  helm_command="helm template sylva-units ${BASE_DIR}/charts/sylva-units"
+  for values_file in $values_files; do
+    helm_command+=" --values $values_file"
+  done
+
+  helm_command+=" --values ${ENV_PATH}/values.yaml --show-only templates/extras/validate-ip.yaml"
+  $helm_command | yq eval '.data.script' - | python3 -
 }

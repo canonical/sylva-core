@@ -1,0 +1,35 @@
+{{- if include "unit-enabled" (tuple . "capm3") -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: validate-capm3-ip
+data:
+  script: |
+    import os
+    import ipaddress
+
+    cluster_virtual_ip = "{{ .Values.cluster_virtual_ip }}"
+    primary_pool_network = "{{ .Values.cluster.capm3.primary_pool_network }}"
+    primary_pool_prefix = "{{ .Values.cluster.capm3.primary_pool_prefix }}"
+    primary_pool_start = "{{ .Values.cluster.capm3.primary_pool_start }}"
+    primary_pool_end = "{{ .Values.cluster.capm3.primary_pool_end }}"
+
+    def ip_in_network(ip, network):
+        return ipaddress.ip_address(ip) in ipaddress.ip_network(network, strict=False)
+
+    def validate_ip():
+        primary_pool_cidr = f"{primary_pool_network}/{primary_pool_prefix}"
+        if not ip_in_network(cluster_virtual_ip, primary_pool_cidr):
+            print(f"Error: cluster_virtual_ip {cluster_virtual_ip} must be part of the primary network {primary_pool_cidr}")
+            exit(1)
+        primary_pool_range = list(ipaddress.summarize_address_range(
+            ipaddress.ip_address(primary_pool_start),
+            ipaddress.ip_address(primary_pool_end)
+        ))
+        for pool in primary_pool_range:
+            if ip_in_network(cluster_virtual_ip, pool):
+                print(f"Error: cluster_virtual_ip {cluster_virtual_ip} must not be between {primary_pool_start} and {primary_pool_end}")
+                exit(1)
+
+    validate_ip()
+{{- end }}
