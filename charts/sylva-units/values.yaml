@@ -1897,6 +1897,41 @@ units:
       _components:
         - '{{ tuple "components/ha" (.Values._internal.ha_cluster.is_ha) | include "set-only-if" }}'
 
+  capa:
+    info:
+      description: installs capa CAPI infra provider, for aws
+      maturity: core-component
+    unit_templates:
+    - base-deps
+    repo: sylva-core
+    depends_on:
+      cert-manager: true
+    kustomization_spec:
+      path: ./kustomize-units/capa
+      wait: true
+      _patches:
+        - target:
+            kind: Deployment
+          patch: |
+            - op: add
+              path: /spec/template/spec/containers/0/env/-
+              value:
+                name: https_proxy
+                value: '{{ .Values.proxies.https_proxy }}'
+            - op: add
+              path: /spec/template/spec/containers/0/env/-
+              value:
+                name: http_proxy
+                value: '{{ .Values.proxies.http_proxy }}'
+            - op: add
+              path: /spec/template/spec/containers/0/env/-
+              value:
+                name: no_proxy
+                value: '{{ include "sylva-units.no_proxy" (tuple .) }}'
+    kustomization_substitute_secrets: 
+      CREDENTIALS: '{{ printf "%s" (trimPrefix "map[credentials:" (trimSuffix "]" (toString .Values.cluster.capa))) | b64enc }}'
+
+
   capd:
     info:
       description: installs Docker CAPI infra provider
@@ -2179,6 +2214,17 @@ units:
       wait: true
       _components:
         - '{{ tuple "components/ha" (.Values._internal.ha_cluster.is_ha) | include "set-only-if" }}'
+
+  cabpe:
+    info:
+      description: installs eks CAPI bootstrap provider
+      maturity: core-component
+    unit_templates:
+    - base-deps
+    repo: sylva-core
+    kustomization_spec:
+      path: ./kustomize-units/cabpe
+      wait: true
 
   cabpk:
     info:

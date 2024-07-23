@@ -29,6 +29,9 @@ units:
   metal3:
     enabled: '{{ tuple . "capm3" | include "unit-enabled" }}'
 
+  capa:
+    enabled: '{{ tuple . "capa" | include "unit-enabled" }}'
+
   capv:
     enabled: '{{ .Values.cluster.capi_providers.infra_provider | eq "capv" }}'
 
@@ -37,6 +40,9 @@ units:
 
   cabpr:  # RKE2
     enabled: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" }}'
+
+  cabpe:  # eks
+    enabled: '{{ tuple . "cabpe" | include "unit-enabled" }}'
 
   get-openstack-images:
     depends_on:
