@@ -3682,6 +3682,34 @@
             }
           ]
         },
+        "capa": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "image_name": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "$ref": "#/$defs/string-with-gotpl"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "$ref": "#/$defs/string-with-gotpl"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
         "capv": {
           "anyOf": [
             {
