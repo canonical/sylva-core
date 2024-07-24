@@ -637,7 +637,6 @@ units:
                 - CPUManager
                 - Snapshot
 
-
   kubevirt-test-vms:
     info:
       description: deploys kubevirt VMs for testing
@@ -652,6 +651,37 @@ units:
       path: ./kustomize-units/kubevirt-test-vms
       wait: true
       targetNamespace: kubevirt-tests
+
+  kubevirt-manager:
+    info:
+      description: deploys kubevirt-manager UI for kubevirt workloads
+      internal: true
+    unit_templates:
+    - base-deps
+    depends_on:
+      kubevirt: true
+    repo: sylva-core
+    kustomization_spec:
+      path: ./kustomize-units/kubevirt-manager
+      wait: true
+      targetNamespace: kubevirt-manager
+      _patches:
+      - target:
+          kind: Deployment
+        patch: |
+          - op: replace
+            path: /spec/template/spec/containers/0/securityContext
+            value:
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop:
+                  - ALL
+              privileged: false
+              runAsNonRoot: true
+              runAsGroup: 30000
+              runAsUser: 10000
+              seccompProfile:
+                type: RuntimeDefault
 
   harbor-init:
     info:

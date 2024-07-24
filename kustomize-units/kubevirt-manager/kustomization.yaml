@@ -1,0 +1,7 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: kubevirt-manager
+
+resources:
+- https://raw.githubusercontent.com/kubevirt-manager/kubevirt-manager/e07c994cee5c055f25ef5fada1abc7607c346806/kubernetes/bundled.yaml
