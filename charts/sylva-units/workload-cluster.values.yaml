@@ -335,6 +335,9 @@ units:
   kubevirt-test-vms:
     enabled: false
 
+  kubevirt-manager:
+    enabled: false
+
   longhorn-crd:
     enabled: true
 
