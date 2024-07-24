@@ -565,26 +565,6 @@ units:
         - '{{ tuple "components/loki" (tuple . "loki" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/kube-system" (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpr") | include "set-only-if" }}'
 
-# Postgresql deployment for keycloak
-  postgres-init:
-    info:
-      description: initializes Postgresql for Keycloak
-      internal: true
-    enabled_conditions:
-    - '{{ tuple . "postgres" | include "unit-enabled"  }}'
-    unit_templates:
-    - base-deps
-    depends_on:
-      namespace-defs: true
-      '{{ .Values._internal.default_storage_class_unit }}': true
-    repo: sylva-core
-    kustomization_spec:
-      path: ./kustomize-units/postgres-init
-      wait: true
-      postBuild:
-        substitute:
-          MAX_POD_UNAVAILABLE: '{{ .Values._internal.ha_cluster.is_ha | ternary 1 0 }}'
-
   postgres:
     info:
       description: installs Postgresql for Keycloak
@@ -595,14 +575,13 @@ units:
     - base-deps
     depends_on:
       namespace-defs: true
-      postgres-init: true
       '{{ .Values._internal.default_storage_class_unit }}': true
     helm_repo_url: https://charts.bitnami.com/bitnami
     helmrelease_spec:
       chart:
         spec:
           chart: postgresql
-          version: 14.3.3
+          version: 15.5.17
       targetNamespace: keycloak
       values:
         auth:
@@ -620,6 +599,8 @@ units:
           initdb:
             args: "--set huge_pages=off"
         readReplicas:
+          pdb:
+            maxUnavailable: '{{ .Values._internal.ha_cluster.is_ha | ternary 1 0 }}'
           extendedConfiguration: |-
             huge_pages = off
           replicaCount: '{{ .Values._internal.ha_cluster.is_ha | ternary 3 1 }}'
@@ -719,7 +700,7 @@ units:
       chart:
         spec:
           chart: postgresql
-          version: 14.3.3
+          version: 15.5.17
       targetNamespace: harbor
       values:
         auth:
