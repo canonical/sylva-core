@@ -402,12 +402,13 @@ units:
       chart:
         spec:
           chart: cert-manager
-          version: v1.14.7
+          version: v1.15.1
       targetNamespace: cert-manager
       install:
         createNamespace: true
       values:
-        installCRDs: true
+        crds:
+          enabled: true
         replicaCount: >-
           {{ .Values._internal.ha_cluster.is_ha | ternary 2 1 }}
         affinity:
