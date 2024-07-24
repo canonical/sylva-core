@@ -185,6 +185,8 @@ units:
       keycloak-add-client-scope: true
 
   harbor:
+    depends_on:
+      harbor-init: true
     helmrelease_spec:
       _postRenderers:
         - kustomize:
