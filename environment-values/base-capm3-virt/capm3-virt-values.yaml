@@ -106,7 +106,7 @@ units:
     helmrelease_spec:
       values:
         persistence:
-          defaultClassReplicaCount: 1   # enable data replication
+          defaultClassReplicaCount: 1
 
   monitoring:
     enabled_conditions:
