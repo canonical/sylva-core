@@ -9,6 +9,10 @@ labels:
   pairs:
     copy-from-bootstrap-to-management: ""
 
+# Use HA component to activate multi-nodes deployment
+# components:
+#   - ./high-availability
+
 configMapGenerator:
 - name: capm3-virt-values
   options:

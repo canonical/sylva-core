@@ -1,17 +1,14 @@
 apiVersion: kustomize.config.k8s.io/v1alpha1
 kind: Component
 
-labels:
-- includeSelectors: true
-  pairs:
-    copy-from-bootstrap-to-management: ""
+namespace: WORKLOAD_CLUSTER_NAMESPACE
 
 configMapGenerator:
 - name: capm3-virt-ha-values
   options:
     disableNameSuffixHash: true
   files:
-  - capm3-virt-ha-values=high_availability.yaml
+  - capm3-virt-ha-values=high-availability.yaml
 
 patches:
 - target:
