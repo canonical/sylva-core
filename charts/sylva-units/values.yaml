@@ -1613,7 +1613,7 @@ units:
       chart:
         spec:
           chart: kyverno
-          version: 3.1.5
+          version: 3.2.6
       targetNamespace: kyverno
       install:
         createNamespace: true
