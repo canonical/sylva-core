@@ -4980,7 +4980,7 @@ units:
       chart:
         spec:
           chart: postgresql-ha
-          version: 13.6.1
+          version: 14.2.6
       targetNamespace: gitea
       releaseName: gitea-postgres
       values:
