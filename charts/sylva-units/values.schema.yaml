@@ -795,6 +795,18 @@ properties:
             format: hostname
           - const: ''
           - $ref: "#/$defs/string-with-gotpl"
+      assisted_service:
+        anyOf:
+          - type: string
+            format: hostname
+          - const: ''
+          - $ref: "#/$defs/string-with-gotpl"
+      assisted_images:
+        anyOf:
+          - type: string
+            format: hostname
+          - const: ''
+          - $ref: "#/$defs/string-with-gotpl"
 
   external_certificates:  # -------------------------------
     type: object
@@ -1022,6 +1034,9 @@ properties:
   env_type:  # -------------------------------
     type: string
     pattern: "^(dev|ci|prod)$"
+
+  okd:  # -------------------------------
+    type: object
 
   ntp:  # -------------------------------
     type: object

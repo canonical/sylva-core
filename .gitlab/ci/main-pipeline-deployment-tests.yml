@@ -397,6 +397,7 @@ capm3-misc-rke2-virt-ubuntu:
   variables:
     MGMT_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/misc-units-in-capm3.yml
     WC_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/misc-units-in-capm3.yml
+    MGMT_INITIAL_CI_VALUES_REVISION: test-okd-units-capm3-virt # https://gitlab.com/sylva-projects/sylva-elements/ci-tooling/ci-deployment-values/-/merge_requests/59
 
 #capm3-ha-kubeadm-virt-suse:
 #  extends: .kubeadm-capm3-virt-equinix
