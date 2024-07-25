@@ -105,6 +105,10 @@ on the CAPI bootstrap provider being used.
   {{- fail (printf "sylva-units cluster-healthchecks named template would need to be extended to support CAPI bootstrap provider %s" $cluster.capi_providers.bootstrap_provider) -}}
 {{- end }}
 {{- $cp_apiVersion = include "getApiVersion" $cp_kind -}}
+{{- if $cluster.capi_providers.bootstrap_provider | eq "cabpoa" -}}
+  {{/* "AgentControlPlane" for OKD CAPI provider, needs evolution in https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-library/-/blob/main/templates/_api_versions.tpl */}}
+  {{- $cp_apiVersion = "controlplane.cluster.x-k8s.io/v1alpha1" -}}
+{{- end -}}
 {{ $result = append $result (dict
     "apiVersion" $cp_apiVersion
     "kind" $cp_kind
