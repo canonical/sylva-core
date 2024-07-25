@@ -513,6 +513,10 @@ units:
           scanJobPodTemplatePodSecurityContext:
             runAsGroup: 10000
             runAsUser: 10000
+        operator:
+          httpProxy: '{{ .Values.proxies.https_proxy }}'
+          httpsProxy: '{{ .Values.proxies.https_proxy }}'
+          noProxy: '{{ include "sylva-units.no_proxy" (tuple .) }}'
 
   sylva-ca:
     info:
