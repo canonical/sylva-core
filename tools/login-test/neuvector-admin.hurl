@@ -5,7 +5,8 @@ HTTP 200
 password_neuvector: jsonpath "$.data.data.password"
 
 POST https://{{neuvector_url}}/auth
-{"username":"admin",
+{"isRancherSSOUrl":false,
+"username":"admin",
 "password":"{{password_neuvector}}"}
 HTTP 200
 
