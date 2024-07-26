@@ -99,6 +99,9 @@ units:
       values:
         grafana:
           envFromSecret: grafana-oidc
+          sidecar:
+            datasources:
+              isDefaultDatasource: false
           grafana.ini:
             server:
               root_url: 'https://{{ .Values.external_hostnames.grafana }}'
@@ -143,7 +146,7 @@ units:
           - name: Thanos
             type: "prometheus"
             access: "proxy"
-            url: "https://{{ .Values.external_hostnames.thanos }}"
+            url: "http://thanos-query-frontend.thanos:9090"
             basicAuth: true
             basicAuthUser: "thanos-user"
             jsonData:
@@ -153,7 +156,7 @@ units:
               customQueryParameters: "deduplicate=1"
             secureJsonData:
               basicAuthPassword: '{{ .Values._internal.thanos_password }}'
-            #isDefault: true
+            isDefault: true
           - name: Loki
             type: "loki"
             access: "proxy"
