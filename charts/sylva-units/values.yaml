@@ -5844,39 +5844,17 @@ units:
       values:
         global:
           dnsService: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" | ternary "rke2-coredns-rke2-coredns" "kube-dns" }}'
-        sidecar:
-          rules:
-            enabled: false
         loki:
           containerSecurityContext:
             seccompProfile:
               type: RuntimeDefault
-          analytics:
-            reporting_enabled: false
           server:
-            http_server_idle_timeout: 600s
-            http_server_read_timeout: 600s
-            http_server_write_timeout: 600s
             grpc_server_max_recv_msg_size: 52428800
             grpc_server_max_send_msg_size: 52428800
-          # -- Limits config
           limits_config:
-            enforce_metric_name: false
             reject_old_samples: false
-            reject_old_samples_max_age: 168h
-            max_cache_freshness_per_query: 10m
-            split_queries_by_interval: 15m
-            query_timeout: 10m
-            ingestion_rate_strategy: local
-            ingestion_rate_mb: 15
-            ingestion_burst_size_mb: 20
             unordered_writes: true
-          # todo
           ingester:
-            chunk_block_size: 262144
-            chunk_idle_period: 3m
-            chunk_retain_period: 1m
-            max_transfer_retries: 0
             wal:
               enabled: true
               dir: /data/wal
@@ -5887,17 +5865,20 @@ units:
               chunks: "loki-chunks"
               ruler: "loki-ruler"
               admin: "loki-admin"
-            type: s3
             s3:
               endpoint: "minio.minio-monitoring-tenant.svc.cluster.local:443"
-              # accessKeyId and secretAccessKey are passed via helm_secret_values, see below
               s3ForcePathStyle: true
               http_config:
-                idle_conn_timeout: 90s
                 insecure_skip_verify: true
         test:
           enabled: false
         monitoring:
+          selfMonitoring:
+            enabled: false
+            grafanaAgent:
+              installOperator: false
+          lokiCanary:
+            enabled: false
           rules:
             additionalGroups:
               - name: additional-loki-rules
@@ -5908,13 +5889,6 @@ units:
                     expr: sum(rate(loki_request_duration_seconds_bucket[1m])) by (le, job, route)
                   - record: node_namespace_pod_container:container_cpu_usage_seconds_total:sum_rate
                     expr: sum(rate(container_cpu_usage_seconds_total[1m])) by (node, namespace, pod, container)
-          # todo: need GrafanaAgent
-          selfMonitoring:
-            enabled: false
-            grafanaAgent:
-              installOperator: false
-          lokiCanary:
-            enabled: false
         write:
           replicas: '{{ int .Values._internal.node_count | gt 2 | ternary 1 2 }}'
           persistence:
@@ -5945,8 +5919,6 @@ units:
         memberlist:
           service:
             publishNotReadyAddresses: true
-          join_members:
-            - loki-memberlist
         gateway:
           replicas: '{{ int .Values._internal.node_count | gt 2 | ternary 1 2 }}'
           ingress:
@@ -5966,7 +5938,6 @@ units:
                   - '{{ .Values.external_hostnames.loki }}'
           basicAuth:
             enabled: true
-            # (username and password set under helm_secret_values)
           containerSecurityContext:
             seccompProfile:
               type: RuntimeDefault
