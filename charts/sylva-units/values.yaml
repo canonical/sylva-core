@@ -1912,8 +1912,7 @@ units:
       wait: true
       postBuild:
         substitute:
-          #AWS_B64ENCODED_CREDENTIALS: '{{ printf "%s" (trimPrefix "map[credentials:" (trimSuffix "]" (toString .Values.cluster.capa))) | b64enc }}'
-          AWS_B64ENCODED_CREDENTIALS: '{{ toString .Values.cluster.capa | b64enc }}'
+          AWS_B64ENCODED_CREDENTIALS: '{{ printf "%s" (trimPrefix "map[credentials:" (trimSuffix "]" (toString .Values.cluster.capa))) | b64enc }}'
       _patches:
         - target:
             kind: Deployment
