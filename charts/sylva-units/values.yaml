@@ -1912,7 +1912,7 @@ units:
       wait: true
       postBuild:
         substitute:
-          AWS_B64ENCODED_CREDENTIALS: '{{ .Values.cluster.capa.credentials | b64enc  }}'
+          AWS_B64ENCODED_CREDENTIALS: '{{ .Values.cluster.capa | b64enc  }}'
       _patches:
         - target:
             kind: Deployment
