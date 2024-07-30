@@ -3682,6 +3682,19 @@
             }
           ]
         },
+        "capa": {
+          "anyOf": [
+            {
+              "type": "object"
+            },
+            {
+              "$ref": "#/$defs/string-with-gotpl"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
         "capv": {
           "anyOf": [
             {
