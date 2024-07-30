@@ -2,7 +2,6 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
   - https://github.com/kubernetes-sigs/cluster-api-provider-aws/releases/download/v2.3.5/infrastructure-components.yaml
-  - credentials.yaml
 # Add labels to enable clusterctl move to retrieve resources correponding to capa CRDs
 labels:
   - pairs:

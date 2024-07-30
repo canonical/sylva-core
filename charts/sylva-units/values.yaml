@@ -1910,6 +1910,9 @@ units:
     kustomization_spec:
       path: ./kustomize-units/capa
       wait: true
+      postBuild:
+        substitute:
+          AWS_B64ENCODED_CREDENTIALS: '{{ printf "%s" (trimPrefix "map[credentials:" (trimSuffix "]" (toString .Values.cluster.capa))) | b64enc }}'
       _patches:
         - target:
             kind: Deployment
@@ -1929,8 +1932,8 @@ units:
               value:
                 name: no_proxy
                 value: '{{ include "sylva-units.no_proxy" (tuple .) }}'
-    kustomization_substitute_secrets: 
-      CREDENTIALS: '{{ printf "%s" (trimPrefix "map[credentials:" (trimSuffix "]" (toString .Values.cluster.capa))) | b64enc }}'
+    #kustomization_substitute_secrets: 
+      #CREDENTIALS: '{{ printf "%s" (trimPrefix "map[credentials:" (trimSuffix "]" (toString .Values.cluster.capa))) | b64enc }}'
 
 
   capd:
