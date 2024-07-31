@@ -2025,18 +2025,6 @@ units:
       _components:
         - '{{ tuple "components/ha" (.Values._internal.ha_cluster.is_ha) | include "set-only-if" }}'
 
-  cabpe:
-    enabled: false
-    info:
-      description: installs eks CAPI bootstrap provider
-      maturity: core-component
-    unit_templates:
-    - base-deps
-    repo: sylva-core
-    kustomization_spec:
-      path: ./kustomize-units/cabpe
-      wait: true
-
   cabpr:
     info:
       description: installs RKE2 CAPI bootstrap provider

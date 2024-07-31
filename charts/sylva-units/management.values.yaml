@@ -41,9 +41,6 @@ units:
   cabpr:  # RKE2
     enabled: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" }}'
 
-  cabpe:  # EKS
-    enabled: false
-
   get-openstack-images:
     depends_on:
       '{{ .Values._internal.default_storage_class_unit }}': true

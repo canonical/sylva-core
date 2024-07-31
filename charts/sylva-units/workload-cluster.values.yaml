@@ -97,8 +97,6 @@ unit_templates:
 
 # here we select which units we want to enable for a workload cluster
 units:
-  cabpe:  # EKS
-    enabled: false
   capa:
     enabled: false
 
