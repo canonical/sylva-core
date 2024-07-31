@@ -107,7 +107,7 @@ Manifests:
     vnd.docker.reference.type:   attestation-manifest
 ```
 
-An attestation can be retrieved by using  `docker buildx imagetools` . The **SLSA provenance** and the **SBOM** can respectively be retrieved as follow:
+An attestation can be retrieved by using `docker buildx imagetools`. The **SLSA provenance** and the **SBOM** can respectively be retrieved as follow:
 
 ```shell
 docker buildx imagetools inspect [image]:[TAG] --format "{{json .Provenance.SLSA}}"
