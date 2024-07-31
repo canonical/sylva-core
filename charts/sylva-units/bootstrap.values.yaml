@@ -142,7 +142,7 @@ units:
     enabled_conditions:  # this purposefully cancels the condition set in values.yaml
       - '{{ tuple . "os-image-server" | include "unit-enabled" }}'
     depends_on:
-      calico: false
+      calico-ready: false
     helmrelease_spec:
       values:
         controller:
@@ -175,6 +175,10 @@ units:
       kubeConfig:
         secretRef:
           name: '{{ .Values.cluster.name }}-kubeconfig'
+    labels:
+      suspend-on-pivot: "yes"  # this unit must be suspended before pivot
+
+  calico-ready:
     labels:
       suspend-on-pivot: "yes"  # this unit must be suspended before pivot
 
@@ -214,7 +218,7 @@ units:
       # FIXME; Flux wait/healthcheck on management cluster does not work as expected, it becomes ready as soon as manifests are applied
       # cluster readyness will actually be ensured by the retries on installations of this kustomization for now.
       # maybe cluster CRD is not compatible with kstatus? (see https://fluxcd.io/flux/units/kustomize/kustomization/#health-assessment)
-      calico: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpk" }}'
+      calico-ready: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpk" }}'
     unit_templates: []
     repo: sylva-core
     kustomization_spec:
@@ -472,7 +476,7 @@ units:
     enabled_conditions:
     - '{{ tuple . "libvirt-metal" | include "unit-enabled" }}'
     depends_on:
-      calico: false
+      calico-ready: false
 
   libvirt-metal:
     info:
@@ -542,6 +546,7 @@ units_override_enabled:
   - kyverno-policies
   - calico-crd
   - calico
+  - calico-ready
   - tigera-clusterrole
   - management-cluster-flux
   - management-cluster-configs

@@ -72,7 +72,7 @@ unit_templates:
     depends_on:
       cluster-reachable: true
       namespace-defs: true
-      calico: '{{ tuple . "calico" | include "unit-enabled" }}'
+      calico-ready: '{{ tuple . "calico-ready" | include "unit-enabled" }}'
 
   # used for units which are deployed on mgmt cluster itself
   kustomization-deployed-on-mgmt-cluster:
@@ -229,7 +229,7 @@ units:
     depends_on:
       # some dependencies of base-deps are inherited, but don't apply here:
       namespace-defs: false
-      calico: false
+      calico-ready: false
     kustomization_spec:
       targetNamespace: null  # if we don't do this, there are errors because namespaces are a non-namespaced resource
 
@@ -239,7 +239,7 @@ units:
     - base-deps
     # some dependencies of base-deps are inherited, but don't apply here:
     depends_on:
-      calico: false
+      calico-ready: false
 
   tigera-clusterrole:
     enabled: true
@@ -247,7 +247,7 @@ units:
     - base-deps
     # some dependencies of base-deps are inherited, but don't apply here:
     depends_on:
-      calico: false
+      calico-ready: false
 
   calico:
     enabled: true
@@ -256,7 +256,10 @@ units:
     # some dependencies of base-deps are inherited, but don't apply here:
     depends_on:
       namespace-defs: false
-      calico: false
+      calico-ready: false
+
+  calico-ready:
+    enabled: true
 
   harbor-init:
     # this unit isn't relevant in workload clusters
