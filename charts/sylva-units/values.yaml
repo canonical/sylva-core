@@ -1921,7 +1921,7 @@ units:
       _components:
         - '{{ tuple "components/ha" (.Values._internal.ha_cluster.is_ha) | include "set-only-if" }}'
 
-    capa:
+  capa:
     info:
       description: installs capa CAPI infra provider, for aws
       maturity: core-component
