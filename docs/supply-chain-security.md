@@ -86,7 +86,7 @@ docker manifest inspect registry.gitlab.com/sylva-projects/sylva-elements/contai
 }
 ```
 
-You can also use  `docker buildx` to inspect  the list of image manifests:
+You can also use `docker buildx` to inspect the list of image manifests:
 
 ```shell
 $ docker buildx imagetools inspect registry.gitlab.com/sylva-projects/sylva-elements/container-images/sylva-toolbox:v0.3.14
