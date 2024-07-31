@@ -127,7 +127,7 @@ docker buildx imagetools inspect registry.gitlab.com/sylva-projects/sylva-elemen
 
 ### Sylva-Elements
 
-The signature of a sylva-element (currently only disk images are signed) is verified against the public key fetched from an environment variable or from the GitLab project hosting the cosign keypair:
+The signature of a sylva-element is verified against the public key fetched from an environment variable or from the GitLab project hosting the cosign keypair (currently only disk images are signed):
 
 ```shell
 cosign verify --key env://COSIGN_PUBLIC_KEY registry.gitlab.com/sylva-projects/sylva-elements/diskimage-builder/diskimage-builder-hardened@sha256:b4affd8071d5c30f302b50a29b524d97cc25727dddc3d1ab9a46275ac5471a3b
