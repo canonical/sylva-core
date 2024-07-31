@@ -5783,20 +5783,6 @@
             }
           ]
         },
-        "nodeDeletionTimeout": {
-          "anyOf": [
-            {
-              "type": "string",
-              "pattern": "^[0-9]+(s|m|h)$"
-            },
-            {
-              "$ref": "#/$defs/string-with-gotpl"
-            },
-            {
-              "type": "null"
-            }
-          ]
-        },
         "baremetal_host_default": {
           "anyOf": [
             {
