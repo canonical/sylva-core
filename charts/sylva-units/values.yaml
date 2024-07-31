@@ -1606,13 +1606,42 @@ units:
           FLUX_WEBUI_DNS: '{{ .Values.external_hostnames.flux }}'
       wait: false
       healthChecks:
-        - apiVersion: v1
-          kind: Secret
-          name: oidc-auth
-          namespace: flux-system
-        - '{{ tuple (dict "apiVersion" "v1" "kind" "Secret" "name" "grafana-oidc" "namespace" "cattle-monitoring-system") (tuple . "monitoring" | include "unit-enabled") | include "set-only-if" }}'  # this secret is a byproduct of the grafana monitoring resource
+        - >-
+          {{ tuple (dict
+                "apiVersion" "v1"
+                "kind" "Secret"
+                "name" "grafana-oidc"
+                "namespace" "cattle-monitoring-system"
+              )
+              (tuple . "monitoring" | include "unit-enabled")
+              | include "set-only-if"
+          }}
+        # this secret is a byproduct of the eso-grafana-oidc ExternalSecret resource
+        - >-
+          {{ tuple (dict
+                "apiVersion" "v1"
+                "kind" "Secret"
+                "name" "oidc-auth"
+                "namespace" "flux-system"
+              )
+              (tuple . "flux-webui" | include "unit-enabled")
+              | include "set-only-if"
+          }}
+        # this secret is a byproduct of the eso-flux-webui-oidc ExternalSecret resource
+        - >-
+          {{ tuple (dict
+                "apiVersion" "v1"
+                "kind" "Secret"
+                "name" "keycloakoidcconfig-clientsecret"
+                "namespace" "cattle-global-data"
+              )
+              (tuple . "rancher" | include "unit-enabled")
+              | include "set-only-if" }}
+        # this secret is a byproduct of the eso-rancher-oidc ExternalSecret resource
       _components:
         - '{{ tuple "components/grafana-oidc" (tuple . "monitoring" | include "unit-enabled") | include "set-only-if" }}'
+        - '{{ tuple "components/flux-webui-oidc" (tuple . "flux-webui" | include "unit-enabled") | include "set-only-if" }}'
+        - '{{ tuple "components/rancher-oidc" (tuple . "rancher" | include "unit-enabled") | include "set-only-if" }}'
 
   kyverno:
     info:
