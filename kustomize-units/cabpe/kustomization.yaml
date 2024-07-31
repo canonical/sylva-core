@@ -3,7 +3,7 @@ kind: Kustomization
 
 
 resources:
-  - https://github.com/kubernetes-sigs/cluster-api-provider-aws.git/config/crd
+  - https://raw.githubusercontent.com/kubernetes-sigs/cluster-api-provider-aws/6db1244a6aea9058cc0546dd7d2151fc2c624acc/config/crd/bases/bootstrap.cluster.x-k8s.io_eksconfigs.yaml
 
 # Add labels to enable clusterctl move to retrieve resources correponding to cabpr CRDs
 labels:
