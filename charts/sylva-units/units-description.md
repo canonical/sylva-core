@@ -1,7 +1,7 @@
 <!-- markdownlint-disable MD044 -->
 | name | full description | maturity | internal | source | version |
 | :----- | :----- | :----- | :----- | :----- | :----- |
-| **cabpe** | installs eks CAPI bootstrap provider | core-component |  | [Kustomize](https://github.com/kubernetes-sigs/cluster-api-provider-aws/tree/6db1244a6aea9058cc0546dd7d2151fc2c624acc/config/crd) | 6db1244a6aea9058cc0546dd7d2151fc2c624acc |
+| **cabpe** | installs eks CAPI bootstrap provider | core-component |  | [Kustomize](https://raw.githubusercontent.com/kubernetes-sigs/cluster-api-provider-aws/6db1244a6aea9058cc0546dd7d2151fc2c624acc/config/crd/bases/bootstrap.cluster.x-k8s.io_eksconfigs.yaml) | 6db1244a6aea9058cc0546dd7d2151fc2c624acc |
 | **cabpk** | installs Kubeadm CAPI bootstrap provider | core-component |  | [Kustomize](https://github.com/kubernetes-sigs/cluster-api/releases/download/v1.6.4/bootstrap-components.yaml) | v1.6.4 |
 | **cabpr** | installs RKE2 CAPI bootstrap provider | core-component |  | [Kustomize](https://github.com/rancher/cluster-api-provider-rke2/releases/download/v0.5.0/bootstrap-components.yaml) | v0.5.0 |
 | **capa** | installs capa CAPI infra provider, for aws | core-component |  | [Kustomize](https://github.com/kubernetes-sigs/cluster-api-provider-aws/releases/download/v2.3.5/infrastructure-components.yaml) | v2.3.5 |
