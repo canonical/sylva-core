@@ -6,7 +6,7 @@ This work is in progress
 
 ### Docker images
 
-Each Sylva built-in Docker image are shipped with its **SLSA provenance** (how an image was built) and **SBOM** ( list of softwares in the image, or artifacts that were used to build the image) attestations created at build-time by [BuildKit](https://docs.docker.com/build/attestations/).
+Each Sylva built-in Docker image are shipped with its **SLSA provenance** (how an image was built) and **SBOM** (list of softwares in the image, or artifacts that were used to build the image) attestations created at build-time by [BuildKit](https://docs.docker.com/build/attestations/).
 
 The purpose of attestations is to make it possible to inspect an image and see where it comes from, who created it and how, and what it contains.
 
