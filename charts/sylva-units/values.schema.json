@@ -3448,6 +3448,19 @@
             }
           ]
         },
+        "capa": {
+          "anyOf": [
+            {
+              "type": "object"
+            },
+            {
+              "$ref": "#/$defs/string-with-gotpl"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
         "capo": {
           "anyOf": [
             {
@@ -3673,19 +3686,6 @@
                   ]
                 }
               }
-            },
-            {
-              "$ref": "#/$defs/string-with-gotpl"
-            },
-            {
-              "type": "null"
-            }
-          ]
-        },
-        "capa": {
-          "anyOf": [
-            {
-              "type": "object"
             },
             {
               "$ref": "#/$defs/string-with-gotpl"
