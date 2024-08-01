@@ -6629,14 +6629,15 @@ _internal:
     # variable just used to trigger error while requested control_plane_replicas is incompatible with ha_cluster.is_ha computed during first install
     checkpoint: >-
       {{- $current_config := lookup "v1" "Secret" .Release.Namespace "sylva-units-values" | dig "data" "values" "" | b64dec | fromYaml | default dict -}}
-      {{- if dig "_internal" "ha_cluster" "is_ha" "" $current_config -}}
-        {{- if $current_config._internal.ha_cluster.is_ha -}}
-          {{- tuple . .Values._internal.ha_cluster.is_ha  "ok" "" | include "interpret-ternary" | required (print "requested control_plane_replicas=" .Values.cluster.control_plane_replicas ": can't continue, current mode is HA, requires a value >=3") -}}
+      {{- $is_ha := dig "_internal" "ha_cluster" "is_ha" "initial run" $current_config | toString -}}
+      {{- if not (eq $is_ha "initial run") -}}
+        {{- if (eq $is_ha "false") -}}
+          {{- (ge (int .Values.cluster.control_plane_replicas) 3)  | ternary "" "requested control_plane_replicas={{.Values.cluster.control_plane_replicas}} : compatible with initial non HA mode" | required (print "requested control_plane_replicas=" .Values.cluster.control_plane_replicas ": can't continue, first install happened in non-HA mode, this value should be 1") -}}
         {{- else -}}
-          {{- tuple . (not .Values._internal.ha_cluster.is_ha) "ok" "" | include "interpret-ternary" | required (print "requested control_plane_replicas=" .Values.cluster.control_plane_replicas ": can't continue, first install happened in non-HA mode, this value should be 1") -}}
+          {{- (lt (int .Values.cluster.control_plane_replicas) 3) | ternary "" "requested control_plane_replicas={{.Values.cluster.control_plane_replicas}} : compatible with initial HA mode" | required (print "requested control_plane_replicas=" .Values.cluster.control_plane_replicas ": can't continue, current mode is HA, requires a value >=3") -}}
         {{- end -}}
       {{- else -}}
-        {{- eq (int .Values.cluster.control_plane_replicas) 2  | ternary "" "install run" | required (print "requested control_plane_replicas=" .Values.cluster.control_plane_replicas ": this mode is forbidden") -}}
+        install run, requested control_plane_replicas={{.Values.cluster.control_plane_replicas}}
       {{- end -}}
 
   # variable used for the validation of .Values.os_images fields for baremetal deployments
