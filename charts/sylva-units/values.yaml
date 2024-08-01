@@ -3483,6 +3483,7 @@ units:
           config:
             worker-shutdown-timeout: 60s
             use-forwarded-headers: true
+            large-client-header-buffers: "4 16k"
           # Install controllers only on control plane nodes, otherwise it may take a while to upgrade them successively on clusters with lot of nodes
           nodeSelector:
             node-role.kubernetes.io/control-plane: '{{ .Values._internal.cp_node_label_value }}'
