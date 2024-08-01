@@ -5030,7 +5030,7 @@ units:
       chart:
         spec:
           chart: postgresql-ha
-          version: 14.2.6
+          version: 14.2.15
       targetNamespace: gitea
       releaseName: gitea-postgres
       values:
