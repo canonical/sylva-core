@@ -4,8 +4,8 @@ kind: Kustomization
 resources:
   - ../base-capm3-virt
 
-components:
-  - ../base-capm3-virt/high-availability
+# components:
+#   - ../base-capm3-virt/high-availability
 
 labels:
 - includeSelectors: true
