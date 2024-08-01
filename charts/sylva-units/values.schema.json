@@ -3111,7 +3111,8 @@
                         "capd",
                         "capo",
                         "capv",
-                        "capm3"
+                        "capm3",
+                        "capa"
                       ]
                     },
                     {
@@ -3127,7 +3128,8 @@
                     {
                       "enum": [
                         "cabpk",
-                        "cabpr"
+                        "cabpr",
+                        "cabpe"
                       ]
                     },
                     {
@@ -3437,6 +3439,19 @@
                   ]
                 }
               }
+            },
+            {
+              "$ref": "#/$defs/string-with-gotpl"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "capa": {
+          "anyOf": [
+            {
+              "type": "object"
             },
             {
               "$ref": "#/$defs/string-with-gotpl"
