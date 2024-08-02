@@ -30,9 +30,10 @@ wkld-images-ref-report:
     name: $CI_IMAGE
   script:
     - !reference [.import_functions]
-    - download_artifact deploy-workload-cluster workload-cluster-kubeconfig
+    - export KUBECONFIG=management-cluster-kubeconfig
+    - ./tools/shell-lib/get-wc-kubeconfig-from-rancher.sh $WORKLOAD_CLUSTER_NAME > $WORKLOAD_CLUSTER_NAME-rancher.yaml
     - apk add py3-kubernetes
-    - python3 ./.gitlab/ci/scripts/dump_images_usage.py --kubeconfig workload-cluster-kubeconfig --output-dir ./dump
+    - python3 ./.gitlab/ci/scripts/dump_images_usage.py --kubeconfig $WORKLOAD_CLUSTER_NAME-rancher.yaml --output-dir ./dump
   artifacts:
     paths:
       - ./dump/images_per_ks.yaml
