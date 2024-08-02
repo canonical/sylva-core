@@ -1261,14 +1261,15 @@ units:
       _postRenderers: |
         {{- $patch := `
         kustomize:
-          patchesStrategicMerge:
-            - kind: CronJob
-              apiVersion: batch/v1
-              metadata:
-                name: neuvector-updater-pod
-                namespace: neuvector
-              spec:
-                startingDeadlineSeconds: 21600
+          patches:
+            - patch: |-
+                kind: CronJob
+                apiVersion: batch/v1
+                metadata:
+                  name: neuvector-updater-pod
+                  namespace: neuvector
+                spec:
+                  startingDeadlineSeconds: 21600
         ` -}}
         {{- if .Values.security.neuvector_scanning_enabled -}}
         {{- list ($patch | fromYaml) | include "preserve-type" -}}
@@ -1822,21 +1823,23 @@ units:
                 verbs: ["get", "list", "watch", "patch", "update"]
       _postRenderers:
         - kustomize:
-            patchesStrategicMerge:
-              - kind: CronJob
-                apiVersion: batch/v1
-                metadata:
-                  name: kyverno-cleanup-cluster-admission-reports
-                  namespace: kyverno
-                spec:
-                  startingDeadlineSeconds: 180
-              - kind: CronJob
-                apiVersion: batch/v1
-                metadata:
-                  name: kyverno-cleanup-admission-reports
-                  namespace: kyverno
-                spec:
-                  startingDeadlineSeconds: 180
+            patches:
+              - patch: |-
+                  kind: CronJob
+                  apiVersion: batch/v1
+                  metadata:
+                    name: kyverno-cleanup-cluster-admission-reports
+                    namespace: kyverno
+                  spec:
+                    startingDeadlineSeconds: 180
+              - patch: |-
+                  kind: CronJob
+                  apiVersion: batch/v1
+                  metadata:
+                    name: kyverno-cleanup-admission-reports
+                    namespace: kyverno
+                  spec:
+                    startingDeadlineSeconds: 180
 
 
   kyverno-policies:
@@ -3244,30 +3247,31 @@ units:
                 key: bootstrapPassword
       _postRenderers:
         - kustomize:
-            patchesStrategicMerge:
-              - kind: Deployment
-                apiVersion: apps/v1
-                metadata:
-                  name: rancher
-                spec:
-                  template:
-                    spec:
-                      volumes:
-                        - name: tls-ca-volume
-                          secret:
-                            defaultMode: 256
-                            secretName: rancher-tls
-                            items:
-                              - key: ca.crt
-                                path: cacerts.pem
-                      # this is to avoid that the too-short default liveness probe
-                      # prevents the Rancher installation from finishing before the pod is killed:
-                      containers:
-                        - name: rancher
-                          livenessProbe:
-                            initialDelaySeconds: 120
-                            periodSeconds: 30
-                            failureThreshold: 20
+            patches:
+              - patch: |-
+                  kind: Deployment
+                  apiVersion: apps/v1
+                  metadata:
+                    name: rancher
+                  spec:
+                    template:
+                      spec:
+                        volumes:
+                          - name: tls-ca-volume
+                            secret:
+                              defaultMode: 256
+                              secretName: rancher-tls
+                              items:
+                                - key: ca.crt
+                                  path: cacerts.pem
+                        # this is to avoid that the too-short default liveness probe
+                        # prevents the Rancher installation from finishing before the pod is killed:
+                        containers:
+                          - name: rancher
+                            livenessProbe:
+                              initialDelaySeconds: 120
+                              periodSeconds: 30
+                              failureThreshold: 20
 
     kustomization_spec:
       # these healthChecks are added so that does not become ready before
@@ -3360,26 +3364,27 @@ units:
               fallthrough
       _postRenderers:
         - kustomize:
-            patchesStrategicMerge:
-              - kind: Deployment
-                apiVersion: apps/v1
-                metadata:
-                  name: k8s-gateway
-                spec:
-                  template:
-                    spec:
-                      containers:
-                      - name: k8s-gateway
-                        securityContext:
-                          allowPrivilegeEscalation: false
-                          capabilities:
-                            drop:
-                            - ALL
-                          runAsNonRoot: true
-                          runAsGroup: 1000
-                          runAsUser: 1000
-                          seccompProfile:
-                            type: RuntimeDefault
+            patches:
+              - patch: |-
+                  apiVersion: apps/v1
+                  kind: Deployment
+                  metadata:
+                    name: k8s-gateway
+                  spec:
+                    template:
+                      spec:
+                        containers:
+                        - name: k8s-gateway
+                          securityContext:
+                            allowPrivilegeEscalation: false
+                            capabilities:
+                              drop:
+                              - ALL
+                            runAsNonRoot: true
+                            runAsGroup: 1000
+                            runAsUser: 1000
+                            seccompProfile:
+                              type: RuntimeDefault
 
   capd-metallb-config:
     info:
@@ -3627,39 +3632,41 @@ units:
           create: false
       _postRenderers:
         - kustomize:
-            patchesStrategicMerge:
-              - kind: ClusterRoleBinding
-                apiVersion: rbac.authorization.k8s.io/v1
-                metadata:
-                  name: '{{ .Values.flux_webui.admin_user }}-user-read-resources-cr'
-                subjects:
-                  - apiGroup: rbac.authorization.k8s.io
-                    kind: User
-                    name: '{{ .Values.flux_webui.admin_user }}'
-                  - apiGroup: rbac.authorization.k8s.io
-                    kind: User
-                    name: sylva-admin@example.com  # add same RBAC for the SSO user, so that when flux-webui SA impersonates it has privileges; cannot use "infra-admins" group here, see https://gitlab.com/sylva-projects/sylva-core/-/issues/427
-              - kind: Deployment
-                apiVersion: apps/v1
-                metadata:
-                  name: flux-webui-weave-gitops
-                spec:
-                  template:
-                    spec:
-                      containers:
-                      - name: weave-gitops
-                        securityContext:
-                          allowPrivilegeEscalation: false
-                          capabilities:
-                            drop:
-                            - ALL
-                          privileged: false
-                          readOnlyRootFilesystem: true
-                          runAsNonRoot: true
-                          runAsGroup: 1000
-                          runAsUser: 1000
-                          seccompProfile:
-                            type: RuntimeDefault
+            patches:
+              - patch: |-
+                  kind: ClusterRoleBinding
+                  apiVersion: rbac.authorization.k8s.io/v1
+                  metadata:
+                    name: '{{ .Values.flux_webui.admin_user }}-user-read-resources-cr'
+                  subjects:
+                    - apiGroup: rbac.authorization.k8s.io
+                      kind: User
+                      name: '{{ .Values.flux_webui.admin_user }}'
+                    - apiGroup: rbac.authorization.k8s.io
+                      kind: User
+                      name: sylva-admin@example.com  # add same RBAC for the SSO user, so that when flux-webui SA impersonates it has privileges; cannot use "infra-admins" group here, see https://gitlab.com/sylva-projects/sylva-core/-/issues/427
+              - patch: |-
+                  kind: Deployment
+                  apiVersion: apps/v1
+                  metadata:
+                    name: flux-webui-weave-gitops
+                  spec:
+                    template:
+                      spec:
+                        containers:
+                        - name: weave-gitops
+                          securityContext:
+                            allowPrivilegeEscalation: false
+                            capabilities:
+                              drop:
+                              - ALL
+                            privileged: false
+                            readOnlyRootFilesystem: true
+                            runAsNonRoot: true
+                            runAsGroup: 1000
+                            runAsUser: 1000
+                            seccompProfile:
+                              type: RuntimeDefault
 
   prometheus-flux:
     info:
@@ -4079,30 +4086,31 @@ units:
               extra-ca-certs.pem: | {{ .Values.oci_registry_extra_ca_certs | default "" | nindent 4 }}
       _postRenderers:
         - kustomize:
-            patchesStrategicMerge:
-              - kind: Deployment
-                apiVersion: apps/v1
-                metadata:
-                  name: snmp-exporter
-                spec:
-                  template:
-                    spec:
-                      containers:
-                        - name: snmp-exporter
-                          volumeMounts:
-                            - mountPath: /config
-                              name: config
-                      volumes:
-                        - emptyDir: {}
-                          name: config
-                        - name: extra-ca-certs
-                          configMap:
-                            name: snmp-exporter-extra-ca-certs
+            patches:
+              - patch: |-
+                  kind: Deployment
+                  apiVersion: apps/v1
+                  metadata:
+                    name: snmp-exporter
+                  spec:
+                    template:
+                      spec:
+                        containers:
+                          - name: snmp-exporter
+                            volumeMounts:
+                              - mountPath: /config
+                                name: config
+                        volumes:
+                          - emptyDir: {}
+                            name: config
+                          - name: extra-ca-certs
+                            configMap:
+                              name: snmp-exporter-extra-ca-certs
 
     helm_secret_values:
       extraInitContainers:
         - name: config-file-create
-          image: registry.gitlab.com/sylva-projects/sylva-elements/container-images/sylva-toolbox:v0.5.3
+          image: registry.gitlab.com/sylva-projects/sylva-elements/container-images/sylva-toolbox:v0.5.4
           command: ["/bin/sh"]
           args:
             - -c
@@ -4209,23 +4217,25 @@ units:
           tolerations: []
       _postRenderers:
         - kustomize:
-            patchesStrategicMerge:
-              - kind: DaemonSet
-                apiVersion: apps/v1
-                metadata:
-                  name: multus-rke2-whereabouts
-                  namespace: kube-system
-                  labels:
-                    $patch: delete
-                    app: whereabouts
-              - kind: ServiceAccount
-                apiVersion: v1
-                metadata:
-                  name: multus-rke2-whereabouts
-                  namespace: kube-system
-                  labels:
-                    $patch: delete
-                    app: whereabouts
+            patches:
+              - patch: |-
+                  kind: DaemonSet
+                  apiVersion: apps/v1
+                  metadata:
+                    name: multus-rke2-whereabouts
+                    namespace: kube-system
+                    labels:
+                      $patch: delete
+                      app: whereabouts
+              - patch: |-
+                  kind: ServiceAccount
+                  apiVersion: v1
+                  metadata:
+                    name: multus-rke2-whereabouts
+                    namespace: kube-system
+                    labels:
+                      $patch: delete
+                      app: whereabouts
 
   multus-ready:
     info:
@@ -4831,14 +4841,15 @@ units:
           '{{ tuple . (include "k8s-version-match" (tuple . ">=1.26.0,<1.27.0")) "tlsThumbprint" "thumbprint" | include "interpret-ternary" }}': '{{ .Values.cluster.capv.tlsThumbprint }}'
       _postRenderers:
         - kustomize:
-            patchesStrategicMerge:
-              - kind: ConfigMap
-                apiVersion: v1
-                metadata:
-                  name: vsphere-cloud-config
-                  namespace: kube-system
-                data:
-                  vsphere.conf: '{{ index (index .Values.vsphere "vsphere-cpi") "vsphere_conf" | toYaml }}'
+            patches:
+              - patch: |-
+                  kind:
+                  apiVersion: v1
+                  metadata:
+                    name: vsphere-cloud-config
+                    namespace: kube-system
+                  data:
+                    vsphere.conf: '{{ index (index .Values.vsphere "vsphere-cpi") "vsphere_conf" | toYaml }}'
 
     helm_secret_values:
       config:
@@ -6491,7 +6502,7 @@ sylva_base_oci_registry:
   '{{
   regexReplaceAll
     "/sylva-core/?$"
-    (lookup "source.toolkit.fluxcd.io/v1beta2" "HelmRepository" .Release.Namespace "sylva-core" | dig "spec" "url" "")
+    (lookup "source.toolkit.fluxcd.io/v1" "HelmRepository" .Release.Namespace "sylva-core" | dig "spec" "url" "")
     ""
   | default "oci://registry.gitlab.com/sylva-projects"
   }}'
