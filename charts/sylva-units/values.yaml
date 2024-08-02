@@ -2693,7 +2693,7 @@ units:
       # for kubeadm, calico is installed by Flux and Machines don't become ready until calico is installed
       # so we need to have cluster-machines-ready depend on 'calico'
       # (this is relevant only on installation, on upgrades calico is already installed)
-      calico-ready: '{{ and (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpk") (not .Release.IsUpgrade) }}'
+      calico: '{{ and (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpk") (not .Release.IsUpgrade) }}'
       cluster: true
       cluster-ready: true  # no need to start waiting for anything until
     unit_templates: []
@@ -2980,7 +2980,11 @@ units:
     info:
       internal: true
       description: ensure Calico resources created by the Tigera operator are ready before running further steps
+      details: >
+        This unit will be enabled in bootstrap cluster to confirm management cluster CNI readiness
+        and in various workload-cluster namespaces in management cluster to do the same for workload clusters
       maturity: beta
+    enabled: false
     enabled_conditions:
     - '{{ tuple . "calico" | include "unit-enabled" }}'
     unit_templates:
@@ -3006,7 +3010,7 @@ units:
     enabled_conditions:
       - '{{ .Values.cluster.capi_providers.infra_provider | eq "capd" }}'
     depends_on:
-      calico-ready: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpk" }}'
+      calico: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpk" }}'
     helm_repo_url: https://metallb.github.io/metallb
     helmrelease_spec:
       chart:
@@ -3451,7 +3455,7 @@ units:
     - base-deps
     depends_on:
       capd-metallb-config: '{{ tuple . "capd-metallb-config" | include "unit-enabled" }}'
-      calico-ready: '{{ tuple . "calico-ready" | include "unit-enabled" }}'
+      calico: '{{ tuple . "calico" | include "unit-enabled" }}'
     helm_repo_url: https://rke2-charts.rancher.io
     helm_chart_versions:
       4.5.202: '{{ include "k8s-version-match" (tuple . "<1.26") }}'
@@ -4194,7 +4198,7 @@ units:
     unit_templates:
     - base-deps
     depends_on:
-      calico-ready: '{{ tuple . "calico-ready" | include "unit-enabled" }}'
+      calico: '{{ tuple . "calico" | include "unit-enabled" }}'
     helm_repo_url: https://rke2-charts.rancher.io/
     helmrelease_spec:
       chart:

@@ -56,6 +56,12 @@ units:
       kyverno-policies: '{{ .Values.cluster.capi_providers.infra_provider | eq "capm3" }}'
       os-image-server: '{{ .Values.cluster.capi_providers.infra_provider | eq "capm3" }}'
 
+  calico-ready:
+    enabled: '{{ .Release.IsUpgrade }}'
+    # we'll use the kustomization_spec.kubeConfig.secretRef from values.yaml definition
+    # but that's fine, since secret is present once pivot happened
+    # otherwise we'd need to nullify it here and define it also in bootstrap.values.yaml
+
   kyverno-policy-prevent-mgmt-cluster-delete:
     info:
       description: Kyverno policies to prevent deletion of critical resources for mgmt cluster
