@@ -142,7 +142,7 @@ units:
     enabled_conditions:  # this purposefully cancels the condition set in values.yaml
       - '{{ tuple . "os-image-server" | include "unit-enabled" }}'
     depends_on:
-      calico-ready: false
+      calico: false
     helmrelease_spec:
       values:
         controller:
@@ -476,7 +476,7 @@ units:
     enabled_conditions:
     - '{{ tuple . "libvirt-metal" | include "unit-enabled" }}'
     depends_on:
-      calico-ready: false
+      calico: false
 
   libvirt-metal:
     info:
