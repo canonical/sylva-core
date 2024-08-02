@@ -6,9 +6,12 @@ namespace: WORKLOAD_CLUSTER_NAMESPACE
 resources:
   - ../base
 
+# Use HA component to activate multi-nodes deployment
+# components:
+#   - ./high-availability
+
 configMapGenerator:
   - name: capm3-virt-values
-
     files:
       - capm3-virt-values=capm3-virt-values.yaml
     options:
