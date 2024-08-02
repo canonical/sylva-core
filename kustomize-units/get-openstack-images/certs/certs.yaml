@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: extra-ca-certs
+  namespace: ${JOB_TARGET_NAMESPACE}
+data:
+  extra-ca-certs.pem: ${EXTRA_CA_CERTS}
+type: Opaque

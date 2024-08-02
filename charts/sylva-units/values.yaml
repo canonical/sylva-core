@@ -6098,6 +6098,8 @@ units:
       path: ./kustomize-units/get-openstack-images
       wait: true
       force: true
+      _components:
+      - '{{ tuple "./certs" (not .Values.oci_registry_insecure) | include "set-only-if" }}'
       postBuild:
         substituteFrom:
           - kind: ConfigMap
@@ -6121,6 +6123,7 @@ units:
           noProxy: '{{ include "sylva-units.no_proxy" (tuple .) }}'
           # compute total timeout based on per-image timeout and number of images
           ACTIVE_DEADLINE_SECONDS: '{{ mul .Values.get_openstack_images_per_image_timeout_minutes 60 (include "generate-os-images" . | fromYaml | dig "os_images" dict | len) }}'
+          EXTRA_CA_CERTS: '{{ tuple (.Values.oci_registry_extra_ca_certs | default "" | b64enc) (not .Values.oci_registry_insecure) | include "set-only-if" }}'
 
 ##### stuff related to the 'cluster' unit #####
 #

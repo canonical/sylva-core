@@ -52,6 +52,10 @@ cloud_name = os.environ.get("OS_CLOUD", "capo_cloud")
 # Insecure TLS flag
 tls_verify = False if os.environ.get(
             'INSECURE_CLIENT', 'false').lower() in ['true', 't'] else True
+if not tls_verify:
+    logger.warning("TLS Verify is disabled")
+else:
+    logger.info("TLS Verify is enabled")
 
 
 class MyProvider(oras.provider.Registry):
@@ -253,7 +257,6 @@ def push_image_to_glance(file, manifest, image_name, image_format, update_only=F
                         visibility="community"
                     )
                     logger.info(f"Image UUID: {image.id}")
-
             except openstack.exceptions.HttpException:
                 logger.exception("HTTP error during image creation.")
                 raise
