@@ -196,22 +196,23 @@ units:
     helmrelease_spec:
       _postRenderers:
         - kustomize:
-            patchesStrategicMerge:
-              - kind: Deployment
-                apiVersion: apps/v1
-                metadata:
-                  name: harbor-core
-                spec:
-                  template:
-                    spec:
-                      containers:
-                        - name: core
-                          env:
-                            - name: CONFIG_OVERWRITE_JSON
-                              valueFrom:
-                                secretKeyRef:
-                                  key: CONFIG_OVERWRITE_JSON
-                                  name: "harbor-oidc"
+            patches:
+              - patch: |-
+                  kind: Deployment
+                  apiVersion: apps/v1
+                  metadata:
+                    name: harbor-core
+                  spec:
+                    template:
+                      spec:
+                        containers:
+                          - name: core
+                            env:
+                              - name: CONFIG_OVERWRITE_JSON
+                                valueFrom:
+                                  secretKeyRef:
+                                    key: CONFIG_OVERWRITE_JSON
+                                    name: "harbor-oidc"
 
   management-flag:
     info:

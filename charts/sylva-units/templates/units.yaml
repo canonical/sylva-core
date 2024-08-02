@@ -95,7 +95,7 @@ Process all units
         {{- $helmrelease_spec_overrides = dict "chart" (dict "spec" (dict "sourceRef" (dict "kind" "HelmRepository" "name" (printf "unit-%s" $unit_name)))) -}}
       {{- end }}
 ---
-apiVersion: source.toolkit.fluxcd.io/v1beta2
+apiVersion: source.toolkit.fluxcd.io/v1
 kind: HelmRepository
 metadata:
   name: unit-{{ $unit_name }}
@@ -329,7 +329,7 @@ stringData:
                 (append ($kustomization_spec.healthChecks|default list)
                   (dict
                     "namespace" ($unit_def.kustomization_spec.targetNamespace | default $envAll.Release.Namespace)
-                    "apiVersion" "helm.toolkit.fluxcd.io/v2beta2"
+                    "apiVersion" "helm.toolkit.fluxcd.io/v2"
                     "kind" "HelmRelease"
                     "name" $unit_name)
                 ) -}}
