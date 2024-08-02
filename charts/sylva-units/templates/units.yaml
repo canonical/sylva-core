@@ -112,7 +112,7 @@ spec: {{ $helm_repo_spec | toYaml | nindent 2 }}
     {{/* here, if "helmrelease_spec" is used, we define the spec of the inner HelmRelease */}}
     {{- if hasKey $unit_def "helmrelease_spec" -}}
       {{/* this is where we refer to ./kustomize-units/helmrelease-generic */}}
-      {{- $kustomization_spec_overrides = mergeOverwrite $kustomization_spec_overrides (deepCopy $envAll.Values.unit_helmrelease_kustomization_spec_default) -}}
+      {{- $_ = tuple $kustomization_spec_overrides $envAll.Values.unit_helmrelease_kustomization_spec_default | include "merge-append" -}}
 
       {{/* combine '_postRenderers' with 'postRenderers' */}}
       {{- $post_renderers := concat ($unit_def.helmrelease_spec | dig "_postRenderers" list)
@@ -292,7 +292,8 @@ stringData:
     {{- end -}}
 
     {{/* finalize the definition of the Kustomization spec by merging everything we have */}}
-    {{- $kustomization_spec = mergeOverwrite $kustomization_spec (deepCopy $envAll.Values.unit_kustomization_spec_default) ($unit_def.kustomization_spec | default dict) $dependsOn $kustomization_spec_overrides (dict "patches" $patches) (dict "components" $components) -}}
+    {{- $_ := tuple $kustomization_spec $envAll.Values.unit_kustomization_spec_default ($unit_def.kustomization_spec | default dict) | include "merge-append" -}}
+    {{- $kustomization_spec = mergeOverwrite $kustomization_spec $dependsOn $kustomization_spec_overrides (dict "patches" $patches) (dict "components" $components) -}}
 
     {{/* take unit_def.suspend into account
 

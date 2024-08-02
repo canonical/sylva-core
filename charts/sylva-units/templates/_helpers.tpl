@@ -212,20 +212,27 @@ See usage in units.yaml and sources.yaml
   {{- if not (hasKey $envAll.Values.units $unit_name) -}}
     {{- fail (printf "unit-def called on non-existing unit: %s" $unit_name) -}}
   {{- end -}}
-  {{- $unit_def := mergeOverwrite (deepCopy $envAll.Values.unit_definition_defaults) (deepCopy (index $envAll.Values.units $unit_name)) -}}
+  {{- $unit_def := deepCopy $envAll.Values.unit_definition_defaults -}}
+  {{- $_ := tuple $unit_def (index $envAll.Values.units $unit_name) | include "merge-append" -}}
 
-  {{/* inherit settings from any template specified in unit.<this unit>.unit_templates */}}
+  {{/* inherit settings from any template specified in unit.<this unit>.unit_templates and unit_definition_defaults.unit_templates*/}}
   {{- $merged_unit_templates := dict -}}
   {{ range $template_name := $unit_def.unit_templates | default list -}}
     {{- if not (hasKey $envAll.Values.unit_templates $template_name) -}}
       {{ fail (printf "unit %s has '%s' in '<unit>.unit_templates' but no such template is declared in '.Values.unit_templates'" $unit_name $template_name) -}}
     {{- end -}}
     {{/* merge the unit template with the others*/}}
-    {{- $merged_unit_templates = mergeOverwrite $merged_unit_templates (deepCopy (index $envAll.Values.unit_templates $template_name)) -}}
+    {{- $_ = tuple $merged_unit_templates (index $envAll.Values.unit_templates $template_name) | include "merge-append" -}}
   {{- end -}}
 
-  {{/* merge unit definition with unit templates */}}
-  {{- $unit_def = mergeOverwrite $merged_unit_templates $unit_def -}}
+  {{/* merge unit definition with unit templates
+       we merge from defaults again in order to have lists merged in "intuitive" order that is:
+        - values from unit_definition_defaults
+        - values from unit_templates
+        - values from unit definitions
+  */}}
+  {{ $unit_def := deepCopy $envAll.Values.unit_definition_defaults -}}
+  {{- $_ = tuple $unit_def $merged_unit_templates (index $envAll.Values.units $unit_name) | include "merge-append" -}}
 
   {{/* interpret _unit_name_ in unit template */}}
   {{- $_ := set $envAll.Values "_unit_name_" $unit_name -}}
