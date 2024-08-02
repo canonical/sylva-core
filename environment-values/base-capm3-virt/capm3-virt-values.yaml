@@ -46,16 +46,15 @@ cluster:
       ens5:
         type: phy
 
-  control_plane_replicas: 3
+  control_plane_replicas: 1
 
   machine_deployments:
     md0:
-      replicas: 1
+      replicas: 0
       capm3:
         hostSelector:
           matchLabels:
             cluster-role: worker
-
         provisioning_pool_interface: ens4
         primary_pool_interface: ens5
       network_interfaces:
@@ -92,30 +91,7 @@ cluster:
         bmc:
           address: redfish-virtualmedia://{{ .Values._internal.bootstrap_node_ip }}:8000/redfish/v1/Systems/c0014001-b10b-f001-c0de-feeb1e54ee15
         bootMACAddress: 52:54:00:44:44:00
-    management-cp-1:
-      bmh_metadata:
-        labels:
-          cluster-role: control-plane
-      bmh_spec:
-        bmc:
-          address: redfish-virtualmedia://{{ .Values._internal.bootstrap_node_ip }}:8001/redfish/v1/Systems/c0014001-b10b-f001-c0de-feeb1e54ee15
-        bootMACAddress: 52:54:00:44:44:01
-    management-cp-2:
-      bmh_metadata:
-        labels:
-          cluster-role: control-plane
-      bmh_spec:
-        bmc:
-          address: redfish-virtualmedia://{{ .Values._internal.bootstrap_node_ip }}:8002/redfish/v1/Systems/c0014001-b10b-f001-c0de-feeb1e54ee15
-        bootMACAddress: 52:54:00:44:44:02
-    management-md-0:
-      bmh_metadata:
-        labels:
-          cluster-role: worker
-      bmh_spec:
-        bmc:
-          address: redfish-virtualmedia://{{ .Values._internal.bootstrap_node_ip }}:8003/redfish/v1/Systems/c0014001-b10b-f001-c0de-feeb1e54ee15
-        bootMACAddress: 52:54:00:44:44:03
+
 
 units:
   metal3:
@@ -126,12 +102,11 @@ units:
           ironicKernelParams: 'console=ttyS0 suse.autologin=ttyS0 rootpwd="$$1$$DAhhpomu$$YqNcZc3ce5H7uswK4skCZ."'  # "secret"
 
   longhorn:
-    # this setting can be overridden to true to enable Longhorn
     enabled: true
     helmrelease_spec:
       values:
         persistence:
-          defaultClassReplicaCount: 3   # enable data replication
+          defaultClassReplicaCount: 1
 
   monitoring:
     enabled_conditions:
@@ -144,34 +119,10 @@ libvirt_metal:
       redfishPort: 8000
       memGB: 24
       numCPUs: 8
-    management-cp-1:
-      redfishPort: 8001
-      memGB: 24
-      numCPUs: 8
-    management-cp-2:
-      redfishPort: 8002
-      memGB: 24
-      numCPUs: 8
-    management-md-0:
-      redfishPort: 8003
-      memGB: 24
-      numCPUs: 8
 
     workload-cp-0:
       redfishPort: 8010
       memGB: 16 # IPA allocates half of it to tmpfs, if must be large enough to store the image
-      numCPUs: 4
-    workload-cp-1:
-      redfishPort: 8011
-      memGB: 16
-      numCPUs: 4
-    workload-cp-2:
-      redfishPort: 8012
-      memGB: 16
-      numCPUs: 4
-    workload-md-0:
-      redfishPort: 8013
-      memGB: 16
       numCPUs: 4
 
 # dummy configuration to allow deployment of snmp-exporter
