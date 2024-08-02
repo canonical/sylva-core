@@ -5015,7 +5015,7 @@ units:
       chart:
         spec:
           chart: redis-cluster
-          version: 10.2.9
+          version: 10.3.0
       targetNamespace: gitea
       releaseName: gitea-redis
       values:
