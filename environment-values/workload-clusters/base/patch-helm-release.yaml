@@ -3,6 +3,12 @@ kind: HelmRelease
 metadata:
   name: sylva-units
 spec:
+  # Increase deletion timeout for delete-hook
+  timeout: 80m
+  install:
+    timeout: 5m
+  upgrade:
+    timeout: 5m
   chart:
     spec:
       valuesFiles:
