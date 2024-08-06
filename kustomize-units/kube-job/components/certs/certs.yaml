@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Secret
 metadata:
-  name: extra-ca-certs
+  name: extra-ca-certs-${JOB_TARGET_NAMESPACE:-sylva-system}${DISCRIMINATOR:-}
   namespace: kube-job
 data:
   extra-ca-certs.pem: ${EXTRA_CA_CERTS}
