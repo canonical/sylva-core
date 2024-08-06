@@ -33,7 +33,7 @@ create-runner:
     RUNNER_AAS_TARGET_REF: main
   tags: []
   image:
-    name: registry.gitlab.com/gitlab-org/cli:v1.43.0
+    name: registry.gitlab.com/gitlab-org/cli:v1.45.0
     entrypoint: [""]
   script:
     - glab config set -g check_update false
@@ -46,7 +46,7 @@ create-runner:
       --variables "SOURCE_JWT_TOKEN:$JOB_ID_TOKEN"
       --variables "RUNNER_PLAN:$RUNNER_PLAN"
       --repo "sylva-projects/sylva-elements/ci-tooling/runner-aas-interface" | tee pipeline.json
-    - 'PIPELINE_ID=$(grep -Eo "id: \d+" pipeline.json | grep -Eo "\d+")'
+    - 'PIPELINE_ID=$(grep -Eo "ID: \d+" pipeline.json | grep -Eo "\d+")'
     - >
       while true; do
         PIPELINE=$(glab api projects/sylva-projects%2Fsylva-elements%2Fci-tooling%2Frunner-aas-interface/pipelines/$PIPELINE_ID)
