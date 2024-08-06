@@ -4739,13 +4739,13 @@ units:
         - kustomize:
             patches:
               - patch: |-
-                  kind:
+                  kind: ConfigMap
                   apiVersion: v1
                   metadata:
                     name: vsphere-cloud-config
                     namespace: kube-system
                   data:
-                    vsphere.conf: '{{ index (index .Values.vsphere "vsphere-cpi") "vsphere_conf" | toYaml }}'
+                    vsphere.conf: | {{ index (index .Values.vsphere "vsphere-cpi") "vsphere_conf" | toYaml | nindent 4 }}
 
     helm_secret_values:
       config:
