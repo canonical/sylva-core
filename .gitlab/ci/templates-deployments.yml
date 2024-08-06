@@ -216,15 +216,9 @@ include:
       - debug-on-exit.log
       - bootstrap-cluster-dump/
       - management-cluster-dump/
-      - bootstrap-cluster-units-report.xml
-      - management-cluster-units-report.xml
       - "*-timeline.html"
       - management-cluster-kubeconfig
       - environment-values/${ENV_NAME}/values.yaml
-    reports:
-      junit:
-      - bootstrap-cluster-units-report.xml
-      - management-cluster-units-report.xml
     # expose_as: $CI_JOB_NAME  # not allowed https://gitlab.com/gitlab-org/gitlab/-/issues/427149
   after_script:
     - echo -e "\e[1m\e[0Ksection_start:`date +%s`:dump_machine_logs[collapsed=true]\r\e[0KDumping machines logs\e[0m"
@@ -266,13 +260,9 @@ include:
       - debug-on-exit.log
       - management-cluster-dump/
       - workload-cluster-dump/
-      - management-cluster-units-report.xml
       - "*-timeline.html"
       - management-cluster-kubeconfig
       - environment-values/workload-clusters/${ENV_NAME}/values.yaml
-    reports:
-      junit:
-      - management-cluster-units-report.xml
   after_script:
     - |
       echo -e "\e[1m\e[0Ksection_start:`date +%s`:dump_machine_logs[collapsed=true]\r\e[0KDumping machines logs\e[0m"

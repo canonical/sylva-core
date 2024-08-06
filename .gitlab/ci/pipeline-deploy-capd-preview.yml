@@ -27,4 +27,3 @@ deploy-management-cluster:
     paths:
       - debug-on-exit.log
       - bootstrap-cluster-dump/
-    reports: null
