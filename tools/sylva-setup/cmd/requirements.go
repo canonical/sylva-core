@@ -16,9 +16,12 @@ limitations under the License.
 package cmd
 
 import (
+	"context"
 	"fmt"
 	"os/exec"
 
+	"github.com/docker/docker/api/types/network"
+	"github.com/docker/docker/client"
 	"github.com/manifoldco/promptui"
 	"github.com/spf13/cobra"
 )
@@ -35,18 +38,35 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("requirements called")
-		checkRequirements()
+		fmt.Println("Command Requirements called")
+		fmt.Print("Checking for required binaries...\n")
+		binaries := []string{"git", "yq", "vimT"}
+		for _, binary := range binaries {
+			fmt.Println(binary)
+		}
+		checkBinaries(binaries)
+
+		if contains(args, "docker") {
+			fmt.Println("Checking for kind network...")
+			checkKindNetwork()
+		}
 	},
+}
+
+func contains(slice []string, str string) bool {
+	for _, s := range slice {
+		if s == str {
+			return true
+		}
+	}
+	return false
 }
 
 func init() {
 	rootCmd.AddCommand(requirementsCmd)
-
 }
 
-func checkRequirements() {
-	binaries := []string{"git", "yq", "vimT"}
+func checkBinaries(binaries []string) {
 	for _, binary := range binaries {
 		_, err := exec.LookPath(binary)
 		if err != nil {
@@ -60,7 +80,7 @@ func checkRequirements() {
 				fmt.Printf("Failed to read user input: %s\n", err)
 				continue
 			}
-			if result == "y" {
+			if result == "y" || result == "Y" {
 				installCommand := exec.Command("apt-get", "install", "-y", binary)
 				err := installCommand.Run()
 				if err != nil {
@@ -73,4 +93,29 @@ func checkRequirements() {
 			fmt.Printf("%s is installed\n", binary)
 		}
 	}
+}
+
+func checkKindNetwork() {
+	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
+	if err != nil {
+		panic(err)
+	}
+
+	networks, err := cli.NetworkList(context.Background(), network.ListOptions{})
+	if err != nil {
+		panic(err)
+	}
+
+	for _, ctr := range networks {
+		if ctr.Name == "kind" {
+			fmt.Println("Kind network found")
+			fmt.Printf("%s %s\n", ctr.IPAM.Config[0].Subnet, ctr.Name)
+			return
+		}
+	}
+
+	fmt.Print("Kind network not found\n")
+	fmt.Print("Creating kind network...\n")
+	res, _ := cli.NetworkCreate(context.Background(), "kind", network.CreateOptions{})
+	fmt.Print(res)
 }

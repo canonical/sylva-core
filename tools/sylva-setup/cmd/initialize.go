@@ -16,14 +16,12 @@ limitations under the License.
 package cmd
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"os"
 	"os/exec"
 
-	"github.com/docker/docker/api/types/network"
-	"github.com/docker/docker/client"
+
 	"github.com/manifoldco/promptui"
 	"github.com/spf13/cobra"
 )
@@ -38,24 +36,41 @@ var (
 		Use:     "initialize",
 		Aliases: []string{"init", "i", "setup", "s", "create", "c"},
 		Short:   "Guides user to initialize a new sylva deployment",
-		Long:    `This command will guide the user to initialize a new sylva deployment.`,
+		Long:    `This command will guide the user to initialize a new sylva deployment.
+		It describes the entire workflow required to deploy a new sylva management cluster and workloads with a clean and documented UX.
+		Steps are:
+		- Requirements checking (command 'requirements')
+		- Configuration (command 'config')
+		- Troubleshooting values and potential errors (command 'troubleshoot')
+		- Deploying (command 'deploy')
+		- Status (command 'status')`,
 		Run: func(cmd *cobra.Command, args []string) {
+
+			// Multi-phases command
+
+			// 1. Requirements
+
+			requirementsCmd.Run(cmd, []string{""})
+
+			// 2. Configuration
+
+			// 3. Troubleshoot
+
+			// 4. Deploy
+
+			// 5. Status
+
+			
 			requirementsCmd.Run(cmd, []string{""})
 			bootstrapprovider = chooseBootstrapProvider()
 			infraprovider = chooseInfraProvider()
 			genericName = bootstrapprovider + "-" + infraprovider
 			deploymentName = chooseDeploymentName("sylva-" + genericName)
 
-			fmt.Println(`
-			====================================
-					   Initialization
-			====================================`)
 			fmt.Println("You choose the following options:")
 			fmt.Println("  - Bootstrap Provider:", bootstrapprovider)
 			fmt.Println("  - Infrastructure Provider:", infraprovider)
 			fmt.Println("  - Deployment Name:", deploymentName)
-			fmt.Println(`
-			====================================`)
 
 			prompt := promptui.Prompt{
 				Label:     "Would you like to proceed with the initialization? (y/n)",
@@ -91,22 +106,7 @@ var (
 
 func init() {
 	rootCmd.AddCommand(initCmd)
-
-	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
-	if err != nil {
-		panic(err)
-	}
-
-	networks, err := cli.NetworkList(context.Background(), network.ListOptions{})
-	if err != nil {
-		panic(err)
-	}
-
-	for _, ctr := range networks {
-		if ctr.Name == "kind" {
-			fmt.Printf("%s %s\n", ctr.IPAM.Config[0].Subnet, ctr.Name)
-		}
-	}
+	
 	// rootCmd.Run(requirementsCmd, []string{""})
 
 	// Here you will define your flags and configuration settings.
