@@ -35,6 +35,7 @@ default:
 variables:
   RUNNER_GENERATE_ARTIFACTS_METADATA: "true"
   OCI_TAG_FORMAT: "0.0.0-git-$CI_COMMIT_SHORT_SHA"
+  GITLAB_ADVANCED_SAST_ENABLED: 'true'
   # renovate: datasource=docker
   OPENSTACK_CLIENT_IMAGE: registry.gitlab.com/sylva-projects/sylva-elements/container-images/openstack-client:v0.0.22
   # renovate: datasource=docker

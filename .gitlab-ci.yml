@@ -35,3 +35,5 @@ include:
       - if: $CI_OPEN_MERGE_REQUESTS  # prevent branch pipeline when an MR is open (prefer MR pipeline)
         when: never
       - if: $CI_PIPELINE_SOURCE == "push"
+  - template: Jobs/SAST.latest.gitlab-ci.yml
+
