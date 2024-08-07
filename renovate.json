@@ -3,7 +3,7 @@
   "extends": [
     "gitlab>sylva-projects/sylva-elements/renovate-config:default"
   ],
-  "labels": [
+  "addLabels": [
     "run-e2e-tests",
     "renovate"
   ],
