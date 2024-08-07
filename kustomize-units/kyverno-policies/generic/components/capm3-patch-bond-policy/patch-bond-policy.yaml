@@ -7,24 +7,22 @@ metadata:
   annotations:
     kustomize.toolkit.fluxcd.io/force: Enabled
     policies.kyverno.io/title: Patch metal3 networkdata to add bond_miimon option
-    policies.kyverno.io/minversion: 1.11.0
+    policies.kyverno.io/minversion: 1.12.0
 spec:
+  webhookConfiguration:
+    matchConditions:
+    - name: is-capi-infra-secret
+      expression: "has(object.type) && object.type == 'infrastructure.cluster.x-k8s.io/secret'"
+    - name: has-networkData
+      expression: "has(object.data.networkData)"
   rules:
   - name: patch-bond-rule
     match:
       any:
-      # Unfortunately we wan't match any label as they are not present at secret creation
+      # Unfortunately we can't match any label as they are not present at secret creation
       - resources:
           kinds:
           - Secret
-    preconditions:
-      all:
-      - key: "{{ request.object.type || '' }}"
-        operator: Equals
-        value: infrastructure.cluster.x-k8s.io/secret
-      - key: "{{ request.object.data.networkData || '' }}"
-        operator: NotEquals
-        value: ''
     context:
     - name: sourceData
       variable:
