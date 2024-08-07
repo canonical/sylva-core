@@ -5599,10 +5599,10 @@ units:
           resources:
             requests:
               cpu: 0.5
-              memory: 2048Mi
+              memory: 4096Mi
             limits:
               cpu: 1
-              memory: 3072Mi
+              memory: 6144Mi
           persistence:
             enabled: false
           ingress:
