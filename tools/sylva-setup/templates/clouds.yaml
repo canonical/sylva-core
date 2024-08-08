@@ -1,0 +1,10 @@
+clouds:
+  os-cloud-name:
+    auth:
+      auth_url: http://192.168.122.10:35357/
+      project_name: demo
+      username: demo
+      password: 0penstack
+      user_domain_name: Default
+      project_domain_name: Default
+    region_name: RegionOne
