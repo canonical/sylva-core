@@ -29,7 +29,9 @@ cluster:
     provisioning_pool_end: 192.168.10.50
     provisioning_pool_prefix: "24"
 
-    dns_servers: [1.1.1.1]
+    dns_servers:
+    - 1.1.1.1
+    - 8.8.8.8
 
   control_plane:
     capm3:
