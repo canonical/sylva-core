@@ -42,22 +42,45 @@ _internal:
     # file without errors
 
 
+
   _bootstrap_os_images_override_enabled: |-
-    {{- $mylist := .Values.bootstrap_os_images_override_enabled | default list -}}
-    {{- if and .Values.cluster.control_plane .Values.cluster.control_plane.capm3 .Values.cluster.control_plane.capm3.image_key }}
-      {{- $mylist = append $mylist .Values.cluster.control_plane.capm3.image_key }}
-    {{- else if and .Values.cluster.control_plane .Values.cluster.control_plane.capo .Values.cluster.control_plane.capo.image_key }}
-      {{- $mylist = append $mylist .Values.cluster.control_plane.capo.image_key }}
+    {{- $infra_provider := .Values.cluster.capi_providers.infra_provider }}
+    {{- $k8sVersion := index (tuple . .Values.cluster.k8s_version | include "interpret-inner-gotpl" | fromJson) "result"}}
+    {{- $mylist :=  list -}}
+    {{- $cp_os := "" }} {{- /* keep trace of CP OS value for MD comparison */ -}}
+    {{- /* Control plane image */ -}}
+    {{- if and .Values.cluster.control_plane (hasKey .Values.cluster.control_plane $infra_provider)}}
+      {{- $cp_img := (include "get_image_key" (tuple (mergeOverwrite (deepCopy ( get .Values.cluster $infra_provider)) (.Values.cluster.os_image_selector | default dict) (get .Values.cluster.control_plane $infra_provider | default dict) (.Values.cluster.control_plane.os_image_selector | default dict)) $k8sVersion)) }}
+      {{- $mylist = append $mylist $cp_img }}
+      {{- $cp_os = first (regexSplit "-" $cp_img -1) }}
     {{- end }}
+    {{- /* Machine deployment default config (if exists) */ -}}
+    {{- $md_default := index (tuple . (get .Values.cluster.machine_deployment_default $infra_provider | default dict) | include "interpret-inner-gotpl" | fromJson) "result"}}
     {{- range $md, $config := .Values.cluster.machine_deployments }}
-      {{- if and $config.capo $config.capo.image_key }}
-          {{- $mylist = append $mylist $config.capo.image_key -}}
-      {{- else if and $config.capm3 $config.capm3.image_key }}
-          {{- $mylist = append $mylist $config.capm3.image_key -}}
+      {{- /* Machine Deployments images */ -}}
+      {{- $md_img_os_selector := include "get_image_key" (tuple (mergeOverwrite (deepCopy ($.Values.cluster.os_image_selector | default dict)) ($.Values.cluster.machine_deployment_default.os_image_selector | default dict) ($config.os_image_selector | default dict)) $k8sVersion )}}
+      {{- if not $md_img_os_selector }}
+        {{- /* if $md_img_os_selector is empty then fallback on previous configuration: image_key, image_name else img_os_selector takes precedence */ -}}
+        {{- if hasKey $config $infra_provider }}
+            {{- $md_img_os_selector = include "get_image_key" (tuple (mergeOverwrite (deepCopy ( get $.Values.cluster $infra_provider)) (get $config $infra_provider | default dict) $md_default ) $k8sVersion) }}
+        {{- else }}
+            {{- /* case where infra_provider is not defined under machine_deployment */ -}}
+            {{- $md_img_os_selector = include "get_image_key" (tuple (mergeOverwrite (deepCopy ( get $.Values.cluster $infra_provider)) $md_default ) $k8sVersion) }}
+        {{- end }}
+      {{- end }}
+      {{- $mylist = append $mylist $md_img_os_selector }}
+      {{- $md_os := first (regexSplit "-" $md_img_os_selector -1) }}
+      {{- if not (eq $md_os $cp_os) }}
+        {{ fail (printf "OS for MD (%s): %s is different than CP one: %s ==> deployment not supported" $md $md_os $cp_os) }}
       {{- end }}
     {{- end }}
-    {{- $mylist = append $mylist (.Values.cluster.capo.image_key | default .Values.cluster.capm3.image_key) -}}
-    {{- without $mylist nil | uniq | include "preserve-type" -}}
+    {{- if not $mylist -}}
+      {{- /* case where img_os_selector is not defined for cp and md */ -}}
+      {{- $mylist = append $mylist .Values.bootstrap_os_images_override_enabled -}}
+    {{- end }}
+    {{- $result := without $mylist nil | uniq -}}
+    {{ without $result "" | include "preserve-type" }}
+
 
   # value of "node-role.kubernetes.io/control-plane" node label. In bootstrap context, the label is always ""
   cp_node_label_value: ""

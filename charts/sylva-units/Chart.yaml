@@ -4,3 +4,9 @@ description: Chart to coordinate the installation of components common to the bo
 type: application
 version: 0.0.0-git  # never used: this is ignored in git-based workflow, and overridden by git tag in the OCI artifact
 appVersion: "0.0.0"
+dependencies:
+  - name: sylva-library
+    # version: 0.1.0
+    # repository: file://../../../sylva-projects/sylva-elements/helm-charts/sylva-library/
+    version: 0.0.0-get-image-key
+    repository: https://gitlab.com/api/v4/projects/56163211/packages/helm/base

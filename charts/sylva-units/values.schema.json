@@ -764,6 +764,67 @@
         }
       ]
     },
+    "os_image_selector": {
+      "anyOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "os",
+            "os-release",
+            "hardened"
+          ],
+          "properties": {
+            "os": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "[ubuntu|opensuse]"
+                },
+                {
+                  "$ref": "#/$defs/string-with-gotpl"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "os-release": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "$ref": "#/$defs/string-with-gotpl"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "hardened": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "$ref": "#/$defs/string-with-gotpl"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "$ref": "#/$defs/string-with-gotpl"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
     "capo-common": {
       "anyOf": [
         {
@@ -2335,6 +2396,19 @@
           "type": "object",
           "additionalProperties": false,
           "properties": {
+            "os_image_selector": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/os_image_selector"
+                },
+                {
+                  "$ref": "#/$defs/string-with-gotpl"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
             "machine_deployment_spec": {
               "anyOf": [
                 {
@@ -3027,11 +3101,37 @@
         "cluster_pods_cidrs"
       ],
       "properties": {
+        "sylva-library": {
+          "anyOf": [
+            {
+              "type": "object"
+            },
+            {
+              "$ref": "#/$defs/string-with-gotpl"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
         "name": {
           "anyOf": [
             {
               "type": "string",
               "format": "hostname"
+            },
+            {
+              "$ref": "#/$defs/string-with-gotpl"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "os_image_selector": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/os_image_selector"
             },
             {
               "$ref": "#/$defs/string-with-gotpl"
@@ -5261,6 +5361,19 @@
                     }
                   ]
                 },
+                "os_image_selector": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/os_image_selector"
+                    },
+                    {
+                      "$ref": "#/$defs/string-with-gotpl"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
                 "kubelet_extra_args": {
                   "anyOf": [
                     {
@@ -5766,35 +5879,6 @@
             }
           ]
         },
-        "apiVersions": {
-          "anyOf": [
-            {
-              "type": "object",
-              "additionalProperties": false,
-              "patternProperties": {
-                "^[A-Za-z0-9]+$": {
-                  "anyOf": [
-                    {
-                      "type": "string"
-                    },
-                    {
-                      "$ref": "#/$defs/string-with-gotpl"
-                    },
-                    {
-                      "type": "null"
-                    }
-                  ]
-                }
-              }
-            },
-            {
-              "$ref": "#/$defs/string-with-gotpl"
-            },
-            {
-              "type": "null"
-            }
-          ]
-        },
         "audit_policies": {
           "anyOf": [
             {
@@ -6095,6 +6179,20 @@
                             }
                           ]
                         },
+                        "hardened": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "pattern": "[true|false]"
+                            },
+                            {
+                              "$ref": "#/$defs/string-with-gotpl"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
                         "image-format": {
                           "anyOf": [
                             {
@@ -6362,18 +6460,6 @@
                       "network_id",
                       "clouds_yaml",
                       "resources_tag"
-                    ],
-                    "oneOf": [
-                      {
-                        "required": [
-                          "image_name"
-                        ]
-                      },
-                      {
-                        "required": [
-                          "image_key"
-                        ]
-                      }
                     ]
                   },
                   {
@@ -6490,18 +6576,6 @@
                       "provisioning_pool_start",
                       "provisioning_pool_prefix",
                       "dns_servers"
-                    ],
-                    "oneOf": [
-                      {
-                        "required": [
-                          "image_key"
-                        ]
-                      },
-                      {
-                        "required": [
-                          "machine_image_url"
-                        ]
-                      }
                     ]
                   },
                   {
@@ -6978,6 +7052,9 @@
     "registry_mirrors"
   ],
   "properties": {
+    "sylva-library": {
+      "type": "object"
+    },
     "fullnameOverride": {
       "type": "string"
     },
