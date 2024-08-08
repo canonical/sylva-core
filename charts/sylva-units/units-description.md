@@ -51,7 +51,7 @@
 | **flux-webui-init** | initializes and configures flux-webui | beta | True | Kustomize | N/A |
 | **harbor** | installs Harbor | beta |  | [Helm](https://helm.goharbor.io) | 1.15.0 |
 | **kube-storage-version-migrator** | installs kube-storage-version-migrator to assist apiVersion migrations | beta |  | [Kustomize](https://github.com/kubernetes-sigs/kube-storage-version-migrator/manifests?ref=v0.0.5) | v0.0.5 |
-| **kubevirt** | installs kubevirt | beta |  | [Helm](https://suse-edge.github.io/charts) | 0.2.4 |
+| **kubevirt** | installs kubevirt | beta |  | [Helm](https://suse-edge.github.io/charts) | 0.3.0 |
 | **logging** | installs Rancher Fluentbit/Fluentd logging stack, for log collecting and shipping | beta |  | [Helm](https://charts.rancher.io/) | 103.1.1+up4.4.0 |
 | **loki** | installs Loki log storage<br/><br/>installs Loki log storage in simple scalable mode | beta |  | Helm | v2.9.2 |
 | **minio-monitoring-tenant** | creates a MinIO tenant for the monitoring stack<br/><br/>Loki and Thanos will use this MinIO S3 storage | beta |  | Helm | v5.0.13 |
