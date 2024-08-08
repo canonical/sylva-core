@@ -37,7 +37,6 @@ var readyCmd = &cobra.Command{
 	Long: `This command sets up your development environment by installing necessary packages and
 cloning Sylva Git repository.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		hello_world()
 		setupDevEnv()
 		// if err := setupDevEnv(); err != nil {
 		// 	mt.Printf("Error: %v\n", err)
@@ -59,10 +58,6 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// readyCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-}
-
-func hello_world() {
-	fmt.Println("Hello world.")
 }
 
 type Package struct {
@@ -200,6 +195,7 @@ func setupDevEnv() error {
 	} else {
 		fmt.Println("Please source your shell configuration file to complete the setup of your development environment.")
 	}
+	fmt.Println("Check the documentation: https://sylva-projects.gitlab.io/dev-zone/ 😉")
 	return nil
 }
 
