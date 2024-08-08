@@ -28,6 +28,8 @@ Process all units
 
     {{/* inherit settings from any template specified in unit.<this unit>.unit_templates */}}
     {{- $unit_def := include "unit-def" (tuple $envAll $unit_name) | fromJson -}}
+    {{- $deps := include "all-unit-dependencies" (tuple $envAll $unit_name (list)) | fromJson -}}
+    {{- $unitDeps := $deps.result -}}
 
     {{- if not (or (hasKey $unit_def "kustomization_spec") (hasKey $unit_def "helmrelease_spec")) -}}
       {{- fail (printf "unit %s has neither kustomization_spec or helmrelease_spec:\n%s" $unit_name ($unit_def | toYaml)) -}}
