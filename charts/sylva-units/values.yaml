@@ -6235,8 +6235,6 @@ vsphere:
       vcenter:
         '{{ .Values.cluster.capv.server }}':
           server: '{{ .Values.cluster.capv.server }}'
-          user: '{{ .Values.cluster.capv.username }}'
-          password: '{{ .Values.cluster.capv.password }}'
           datacenters:
             - '{{ .Values.cluster.capv.dataCenter }}'
 
