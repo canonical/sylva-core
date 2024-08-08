@@ -236,6 +236,8 @@ keycloak:
 
 cluster:
   prevent_deletion: true
+  capo:
+    flavor_name: m1.xlarge
 
 _internal:
   mgmt_cluster: true
