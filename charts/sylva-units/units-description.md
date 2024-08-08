@@ -1,10 +1,10 @@
 <!-- markdownlint-disable MD044 -->
 | name | full description | maturity | internal | source | version |
 | :----- | :----- | :----- | :----- | :----- | :----- |
-| **cabpk** | installs Kubeadm CAPI bootstrap provider | core-component |  | [Kustomize](https://github.com/kubernetes-sigs/cluster-api/releases/download/v1.6.4/bootstrap-components.yaml) | v1.6.4 |
+| **cabpk** | installs Kubeadm CAPI bootstrap provider | core-component |  | [Kustomize](https://github.com/kubernetes-sigs/cluster-api/releases/download/v1.7.4/bootstrap-components.yaml) | v1.7.4 |
 | **cabpr** | installs RKE2 CAPI bootstrap provider | core-component |  | [Kustomize](https://github.com/rancher/cluster-api-provider-rke2/releases/download/v0.5.0/bootstrap-components.yaml) | v0.5.0 |
-| **capd** | installs Docker CAPI infra provider | core-component |  | [Kustomize](https://github.com/kubernetes-sigs/cluster-api//test/infrastructure/docker/config/default/?ref=v1.6.4) | v1.6.4 |
-| **capi** | installs Cluster API core operator | core-component |  | [Kustomize](https://github.com/kubernetes-sigs/cluster-api/releases/download/v1.6.4/core-components.yaml) | v1.6.4 |
+| **capd** | installs Docker CAPI infra provider | core-component |  | [Kustomize](https://github.com/kubernetes-sigs/cluster-api//test/infrastructure/docker/config/default/?ref=v1.7.4) | v1.7.4 |
+| **capi** | installs Cluster API core operator | core-component |  | [Kustomize](https://github.com/kubernetes-sigs/cluster-api/releases/download/v1.7.4/core-components.yaml) | v1.7.4 |
 | **capm3** | installs Metal3 CAPI infra provider, for baremetal | core-component |  | [Kustomize](https://github.com/metal3-io/cluster-api-provider-metal3/releases/download/v1.7.1/infrastructure-components.yaml) | v1.7.1 |
 | **capo** | installs OpenStack CAPI infra provider | core-component |  | [Kustomize](https://github.com/kubernetes-sigs/cluster-api-provider-openstack/releases/download/v0.10.4/infrastructure-components.yaml) | v0.10.4 |
 | **capv** | installs vSphere CAPI infra provider | core-component |  | [Kustomize](https://github.com/kubernetes-sigs/cluster-api-provider-vsphere/releases/download/v1.10.2/infrastructure-components.yaml) | v1.10.2 |

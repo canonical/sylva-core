@@ -24,7 +24,7 @@ spec:
           serviceAccountName: cluster-garbage-collector-sa
           containers:
             - name: xtemplate-cleaner
-              image: registry.gitlab.com/sylva-projects/sylva-elements/container-images/kube-job:v1.0.11
+              image: registry.gitlab.com/sylva-projects/sylva-elements/container-images/kube-job:v1.0.15
               imagePullPolicy: IfNotPresent
               volumeMounts:
               - mountPath: /opt/
