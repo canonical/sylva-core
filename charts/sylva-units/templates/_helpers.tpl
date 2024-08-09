@@ -302,11 +302,9 @@ or exclude a unit from being considered during computation)
       {{- $debug = printf "%s:inactive-dep" $debug -}}
       {{- continue }}
     {{- end -}}
-    {{/*
     {{- if $result | has $dep_name -}}
-      {{- fail (printf "Dependency loop detected: %s depends on %s" $unit_name $dep_name) -}}
+      {{- fail (printf "Dependency loop detected: %s depends on %s and %s , %s " $unit_name $dep_name $result $debug) -}}
     {{- end -}}
-    */}}
     {{- $result = append $result $dep_name -}}
 
     {{/* examine the dependency, recursing if needed */}}
