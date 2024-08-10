@@ -3027,6 +3027,19 @@
         "cluster_pods_cidrs"
       ],
       "properties": {
+        "sylva-library": {
+          "anyOf": [
+            {
+              "type": "object"
+            },
+            {
+              "$ref": "#/$defs/string-with-gotpl"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
         "name": {
           "anyOf": [
             {
@@ -5747,35 +5760,6 @@
                           }
                         }
                       ]
-                    },
-                    {
-                      "$ref": "#/$defs/string-with-gotpl"
-                    },
-                    {
-                      "type": "null"
-                    }
-                  ]
-                }
-              }
-            },
-            {
-              "$ref": "#/$defs/string-with-gotpl"
-            },
-            {
-              "type": "null"
-            }
-          ]
-        },
-        "apiVersions": {
-          "anyOf": [
-            {
-              "type": "object",
-              "additionalProperties": false,
-              "patternProperties": {
-                "^[A-Za-z0-9]+$": {
-                  "anyOf": [
-                    {
-                      "type": "string"
                     },
                     {
                       "$ref": "#/$defs/string-with-gotpl"
