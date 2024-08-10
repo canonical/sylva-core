@@ -9,7 +9,7 @@ sylva_diskimagebuilder_images:
 os_images_oci_registries:
   kiwi-imagebuilder:
     url: oci://registry.gitlab.com/sylva-projects/sylva-elements/kiwi-imagebuilder/snapshots
-    tag: v0.9
+    tag: v1.23
 
 cluster:
   air_gapped: false
