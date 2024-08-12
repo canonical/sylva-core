@@ -37,12 +37,10 @@ patches:
     - op: add
       path: /spec/chart/spec/valuesFiles/-
       value: use-oci-artifacts.values.yaml
-    - op: remove
-      path: /spec/values/source_templates/sylva-core
 
 - target:
     kind: GitRepository
-    name: sylva-core
+    name: sylva-units
   patch: |
     kind: GitRepository
     metadata:

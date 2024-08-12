@@ -7068,24 +7068,31 @@
               ]
             },
             "spec": {
-              "type": "object",
-              "required": [
-                "url",
-                "ref"
-              ],
-              "properties": {
-                "url": {
-                  "anyOf": [
-                    {
-                      "type": "string",
-                      "format": "uri"
-                    },
-                    {
-                      "$ref": "#/$defs/string-with-gotpl"
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/gotpl"
+                },
+                {
+                  "type": "object",
+                  "required": [
+                    "url",
+                    "ref"
+                  ],
+                  "properties": {
+                    "url": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "format": "uri"
+                        },
+                        {
+                          "$ref": "#/$defs/string-with-gotpl"
+                        }
+                      ]
                     }
-                  ]
+                  }
                 }
-              }
+              ]
             }
           },
           "allOf": [
@@ -7114,35 +7121,42 @@
               "then": {
                 "properties": {
                   "spec": {
-                    "type": "object",
-                    "properties": {
-                      "ref": {
+                    "anyOf": [
+                      {
+                        "$ref": "#/$defs/gotpl"
+                      },
+                      {
                         "type": "object",
-                        "additionalProperties": false,
-                        "anyOf": [
-                          {
-                            "required": [
-                              "branch"
-                            ]
-                          },
-                          {
-                            "required": [
-                              "tag"
-                            ]
-                          },
-                          {
-                            "required": [
-                              "commit"
-                            ]
-                          }
-                        ],
-                        "patternProperties": {
-                          "(branch|tag|commit)": {
-                            "type": "string"
+                        "properties": {
+                          "ref": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "anyOf": [
+                              {
+                                "required": [
+                                  "branch"
+                                ]
+                              },
+                              {
+                                "required": [
+                                  "tag"
+                                ]
+                              },
+                              {
+                                "required": [
+                                  "commit"
+                                ]
+                              }
+                            ],
+                            "patternProperties": {
+                              "(branch|tag|commit)": {
+                                "type": "string"
+                              }
+                            }
                           }
                         }
                       }
-                    }
+                    ]
                   }
                 }
               }
@@ -7158,38 +7172,45 @@
               "then": {
                 "properties": {
                   "spec": {
-                    "type": "object",
-                    "properties": {
-                      "ref": {
+                    "anyOf": [
+                      {
+                        "$ref": "#/$defs/gotpl"
+                      },
+                      {
                         "type": "object",
-                        "additionalProperties": false,
-                        "anyOf": [
-                          {
-                            "required": [
-                              "digest"
-                            ]
-                          },
-                          {
-                            "required": [
-                              "semver"
-                            ]
-                          },
-                          {
-                            "required": [
-                              "tag"
-                            ]
-                          }
-                        ],
-                        "patternProperties": {
-                          "(digest|semver|tag)": {
-                            "type": "string"
-                          },
-                          "branch": {
-                            "const": "{{ tuple \"(unused)\" false | include \"set-only-if\" }}"
+                        "properties": {
+                          "ref": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "anyOf": [
+                              {
+                                "required": [
+                                  "digest"
+                                ]
+                              },
+                              {
+                                "required": [
+                                  "semver"
+                                ]
+                              },
+                              {
+                                "required": [
+                                  "tag"
+                                ]
+                              }
+                            ],
+                            "patternProperties": {
+                              "(digest|semver|tag)": {
+                                "type": "string"
+                              },
+                              "branch": {
+                                "const": "{{ tuple \"(unused)\" false | include \"set-only-if\" }}"
+                              }
+                            }
                           }
                         }
                       }
-                    }
+                    ]
                   }
                 }
               }

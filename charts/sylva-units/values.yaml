@@ -33,15 +33,11 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
   #     kind: GitRepository or OCIRepository
 
   sylva-core:
+    # Reuse the same source definition as sylva-units for kustomize-based units,
+    # but do that in a distinct source to ensure that this source is updated in a
+    # controlled way, after sylva-units HelmRelease has been updated.
     kind: GitRepository
-    spec:
-      url: https://gitlab.com/sylva-projects/sylva-core.git
-      ref:
-        # this is provided only for reference
-        # in practice the sylva-core framework will always override this ref so that the
-        # currently checked out commit of sylva-core is used by sylva-units
-        # (you can grep the code for "CURRENT_COMMIT" to find out why)
-        branch: main
+    spec: '{{ lookup "source.toolkit.fluxcd.io/v1beta2" "GitRepository" .Release.Namespace "sylva-units" | dig "spec" dict | include "preserve-type" }}'
 
   capi-rancher-import:
     kind: GitRepository
@@ -215,7 +211,7 @@ units_enabled_default: false
 #   a unit can inherit from multiple of those
 unit_templates:
   sylva-units:
-    repo: sylva-core
+    repo: sylva-units
     kustomization_spec:
       path: ./kustomize-units/
 
