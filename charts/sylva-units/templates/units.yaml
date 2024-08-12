@@ -53,14 +53,8 @@ Process all units
       {{- $repo_def := index $envAll.Values.source_templates $repo_name -}}
 
       {{- $sourceRef := dict -}}
-      {{- if get $repo_def "existing_source" -}}
-        {{- $_ = set $sourceRef "name" $repo_def.existing_source.name -}}
-        {{- $_ = set $sourceRef "kind" $repo_def.existing_source.kind -}}
-        {{- $_ = set $sourceRef "namespace" (get $repo_def.existing_source "namespace" | default $envAll.Release.Namespace) -}}
-      {{- else -}}
-        {{- $_ = set $sourceRef "name" $repo_name -}}
-        {{- $_ = set $sourceRef "kind" $repo_def.kind -}}
-      {{- end -}}
+      {{- $_ = set $sourceRef "name" $repo_name -}}
+      {{- $_ = set $sourceRef "kind" $repo_def.kind -}}
 
       {{ if hasKey $unit_def "helmrelease_spec" -}}
         {{ if eq $repo_def.kind "OCIRepository" }}

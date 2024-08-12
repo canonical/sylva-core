@@ -80,7 +80,6 @@ _internal:
 source_templates:
 
   sylva-core:
-    existing_source: null
     kind: OCIRepository
     spec:
       url: '{{ .Values.sylva_core_oci_registry }}/kustomize-units'

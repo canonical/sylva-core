@@ -202,34 +202,10 @@ properties:
       "^[a-z0-9][a-z0-9.-]*[a-z0-9]$":  # -------------------------------
         type: object
         additionalProperties: false
-        anyOf:
-          - required:
-            - spec
-            - kind
-          - required:
-            - existing_source
+        required:
+          - spec
+          - kind
         properties:
-
-          existing_source:  # -------------------------------
-            anyOf:
-            - type: "null"
-            - type: object
-              # (fields from a spec of a Flux resource)
-              required:
-                - name
-                - kind
-              additionalProperties: false
-              properties:
-
-                name:  # -------------------------------
-                  type: string
-
-                kind: # -------------------------------
-                  type: string
-                  enum: ["GitRepository", "OCIRepository"]
-
-                namespace:  # -------------------------------
-                  type: string
 
           auth:  # -------------------------------
             $ref: "#/$defs/username-password"

@@ -24,27 +24,24 @@
   {{- end -}}
   {{- $repo_def := deepCopy (index $envAll.Values.source_templates $repo_name) -}}
 
-  {{- if (get $repo_def "existing_source") }}
-    {{/* no need to generate a source */}}
-  {{- else }}
-    {{- if ($repo_def.kind | eq "GitRepository") }}
+  {{- if ($repo_def.kind | eq "GitRepository") }}
 apiVersion: source.toolkit.fluxcd.io/v1
-    {{- else }}
+  {{- else }}
 apiVersion: source.toolkit.fluxcd.io/v1beta2
-    {{- end }}
+  {{- end }}
 kind: {{ $repo_def.kind }}
 metadata:
   name: {{ $repo_name }}
   labels: {{ include "sylva-units.labels" $envAll | nindent 4 }}
 spec:
-    {{- $secret_ref := dict -}}
-    {{- if hasKey $repo_def "auth" -}}
-      {{- $secret_ref = dict "secretRef" (dict "name" (printf "source-repo-auth-%s" $repo_name)) -}}
-    {{- end -}}
-    {{- $spec := dict -}}
-    {{- $spec = mergeOverwrite $spec (deepCopy ($repo_def.kind | eq "GitRepository" | ternary $envAll.Values.git_repo_spec_default $envAll.Values.oci_repo_spec_default)) (deepCopy $repo_def.spec) (deepCopy $secret_ref) -}}
+  {{- $secret_ref := dict -}}
+  {{- if hasKey $repo_def "auth" -}}
+    {{- $secret_ref = dict "secretRef" (dict "name" (printf "source-repo-auth-%s" $repo_name)) -}}
+  {{- end -}}
+  {{- $spec := dict -}}
+  {{- $spec = mergeOverwrite $spec (deepCopy ($repo_def.kind | eq "GitRepository" | ternary $envAll.Values.git_repo_spec_default $envAll.Values.oci_repo_spec_default)) (deepCopy $repo_def.spec) (deepCopy $secret_ref) -}}
 {{ $spec | toYaml | nindent 2 }}
-    {{- if hasKey $repo_def "auth" }}
+  {{- if hasKey $repo_def "auth" }}
 ---
 apiVersion: v1
 kind: Secret
@@ -53,9 +50,9 @@ metadata:
   labels:
     sylva-units.repo: {{ $repo_name }}
 {{ include "sylva-units.labels" $envAll | indent 4 }}
-      {{ if $repo_def.kind | eq "GitRepository" }}
+    {{ if $repo_def.kind | eq "GitRepository" }}
 stringData: {{ $repo_def.auth | toYaml | nindent 2 }}
-      {{ else if $repo_def.kind | eq "OCIRepository" }}
+    {{ else if $repo_def.kind | eq "OCIRepository" }}
 type: kubernetes.io/dockerconfigjson
 data:
   .dockerconfigjson: |
@@ -66,8 +63,7 @@ data:
                                       "auth" (printf "%s:%s" $repo_def.auth.username $repo_def.auth.password | b64enc)))
         }}
 {{ $auths | toJson | b64enc | indent 4 -}}
-      {{ end -}}
-    {{- end }}
+    {{ end -}}
+  {{- end }}
 ---
-  {{ end -}}
 {{- end -}}
