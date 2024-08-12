@@ -125,14 +125,16 @@ variables:
       APPLY_WC_WATCH_TIMEOUT_MIN: 80
       WC_INITIAL_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/k8s-1.27.yml
       WC_UPDATE_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/k8s-1.28.yml
-  # For capd no ha capm3 MR pipelines we don't want to test rolling upgrades in MR flagged with ci-feature::test-rolling-upgrade
+  # For capd & non-ha capm3 MR pipelines we don't want to test rolling upgrades in MR flagged with ci-feature::test-rolling-upgrade
+  # For capd & non-ha capm3 MR pipelines we don't want to test 1.1.1 to main upgrades in MR flagged with ci-feature::test-upgrade-from-1.1.1
   # As it's not supported for single node deployments
-  - if: $CI_MERGE_REQUEST_LABELS =~ /ci-feature::test-rolling-upgrade/ && $CI_JOB_NAME =~ /capd.*|capm3.*/ && $CI_JOB_NAME !~ /capm3-ha-.*/
+  - if: $CI_MERGE_REQUEST_LABELS =~ /ci-feature::test-rolling-upgrade|ci-feature::test-upgrade-from-1.1.1/ && $CI_JOB_NAME =~ /capd.*|capm3.*/ && $CI_JOB_NAME !~ /capm3-ha-.*/
     allow_failure: true
     when: manual
   # override to test rolling upgrades in MR flagged with ci-feature::test-rolling-upgrade
   - if: $CI_MERGE_REQUEST_LABELS =~ /ci-feature::test-rolling-upgrade/
     variables:
+      EXTRA_DESCRIPTION: "\\e[1;31m \\u26A0 This pipeline was triggered with label ci-feature::test-rolling-upgrade \n  pipeline will perform a real rolling upgrade instead of a dummy update \\e[0m"
       MGMT_INITIAL_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/control-plane-replicas-3.yml ${SYLVA_CI_VALUES_FOLDER}/serve-k8s-1.27-image.yml
       MGMT_UPDATE_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/dummy-rolling-update-trigger.yml ${SYLVA_CI_VALUES_FOLDER}/serve-k8s-1.27-image.yml
       MGMT_WATCH_TIMEOUT_MIN: 45
@@ -140,6 +142,29 @@ variables:
       APPLY_WC_WATCH_TIMEOUT_MIN: 80
       WC_INITIAL_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/k8s-1.27.yml
       WC_UPDATE_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/k8s-1.28.yml
+    allow_failure: true
+    when: manual
+  # override to test dev branch to main upgrade in MR flagged with ci-feature::test-upgrade-from-1.1.1
+  - if: $CI_MERGE_REQUEST_LABELS =~ /ci-feature::test-upgrade-from-1.1.1/
+    variables:
+      EXTRA_DESCRIPTION: "\\e[1;31m \\u26A0 This pipeline was triggered with label ci-feature::test-upgrade-from-1.1.1 \n  pipeline will test upgrade from 1.1.1 version \\e[0m"
+      # Need to be HA in case of rolling upgrade triggered by the upgrade
+      MGMT_INITIAL_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/control-plane-replicas-3.yml
+      MGMT_UPDATE_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/control-plane-replicas-3.yml
+      WC_INITIAL_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/control-plane-replicas-3.yml
+      WC_UPDATE_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/control-plane-replicas-3.yml
+      # Set initial revision to 1.1.1
+      MGMT_INITIAL_REVISION: 1.1.1
+      WC_INITIAL_REVISION: 1.1.1
+      # Use 1.1.1 CI values
+      MGMT_INITIAL_CI_VALUES_REVISION: stable/1.1.1
+      MGMT_UPDATE_CI_VALUES_REVISION: main
+      WC_INITIAL_CI_VALUES_REVISION: stable/1.1.1
+      WC_UPDATE_CI_VALUES_REVISION: main
+      # Increase default timers due to rolling upgrade
+      MGMT_WATCH_TIMEOUT_MIN: 45
+      APPLY_WATCH_TIMEOUT_MIN: 80
+      APPLY_WC_WATCH_TIMEOUT_MIN: 80
     allow_failure: true
     when: manual
   - if: $CI_MERGE_REQUEST_LABELS =~ /renovate/ && $CAPO_TAG
