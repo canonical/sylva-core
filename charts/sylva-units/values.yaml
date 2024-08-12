@@ -171,13 +171,6 @@ unit_kustomization_spec_default: # default .spec for a Kustomization
 # generated a unit with a "helmrelease_spec" field
 unit_helmrelease_spec_default:  # default for the .spec of a HelmRelease
   interval: 15m
-  install:
-    remediation:
-      retries: 2
-      remediateLastFailure: false
-  upgrade:
-    remediation:
-      retries: 3
   # Following ConfigMap won't add any value to the chart, it is used to prevent periodic reconciliation during the upgrades:
   # As root-dependency-check-<n>-cm will be pruned when root-dependency-<n+1> will be reconciled, HelmRelease reconciliation
   # for a unit X will be blocked until the Kustomization controlling X reconciles and updates the valuesFrom
@@ -2364,9 +2357,6 @@ units:
       values:
         resource_groups:
           - baremetal-hosts
-      upgrade:
-        remediation:  # don't inherit retry settings from unit_helmrelease_spec_default (we don't want to try rollback CAPI resources)
-          retries: 0
     # we pass everything that is under `cluster` to this unit that uses sylva-capi-cluster chart
     # (we do it via a secret because some of the values are credentials in many scenarios)
     helm_secret_values: '{{ .Values.cluster | include "preserve-type" }}'
@@ -2448,9 +2438,6 @@ units:
         | include "preserve-type"
         }}
     helmrelease_spec:
-      upgrade:
-        remediation:  # don't inherit retry settings from unit_helmrelease_spec_default (we don't want to try rollback CAPI resources)
-          retries: 0
       uninstall:
         timeout: '{{ mul .Values.cluster.timeouts.cluster_delete_hook_job_timeout 1.2 }}s'
       targetNamespace: '{{ .Release.Namespace }}'
