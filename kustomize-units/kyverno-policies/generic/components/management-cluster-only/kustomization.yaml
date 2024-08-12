@@ -3,3 +3,4 @@ kind: Component
 
 resources:
   - default-namespace.yaml
+  - force-reconcile-helmreleases.yaml

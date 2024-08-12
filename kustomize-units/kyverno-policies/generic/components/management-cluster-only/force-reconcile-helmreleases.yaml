@@ -1,0 +1,81 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: force-reconcile-helmreleases
+  annotations:
+    kustomize.toolkit.fluxcd.io/force: Enabled
+    policies.kyverno.io/title: Force-reconcile HelmReleases
+    policies.kyverno.io/category: Other
+    kyverno.io/kyverno-version: 1.9.0
+    kyverno.io/kubernetes-version: "1.24"
+    policies.kyverno.io/subject: HelmReleases
+    policies.kyverno.io/description: >-
+      When a flux HelmRelease fails to install or upgrade, the only remediation solution options
+      consists in uninstalling or rolling back to previous state. In such cases, in order to retry
+      an installation of the helmrelease, we annotate it to trigger a forced reconciliation.
+spec:
+  validationFailureAction: Enforce
+  # Will be needed for >= 1.12
+  #skipBackgroundRequests: false
+  background: true
+  rules:
+  - name: patch-failed-helmreleases
+    match:
+      any:
+      - resources:
+          kinds:
+          - helm.toolkit.fluxcd.io/*/HelmRelease
+          - helm.toolkit.fluxcd.io/*/HelmRelease/status
+    context:
+    - name: reconcileDate
+      variable:
+        value: "{{ time_now_utc() }}"
+    - name: currentHelmReleaseVersion
+      variable:
+        value: "{{ request.object.status.lastAttemptedRevision || '' }}-{{ request.object.status.lastAttemptedGeneration || '' }}-{{ request.object.status.lastAttemptedConfigDigest || '' }}"
+    - name: reconciledHelmReleaseVersion
+      variable:
+        value: "{{ request.object.metadata.annotations.\"sylva/force-reconcile-version\" || '0' }}"
+    - name: hasReconciledCurrentVersion
+      variable:
+        value: "{{ reconciledHelmReleaseVersion == currentHelmReleaseVersion }}"
+    - name: reconcileRequestsCount
+      variable:
+        value: "{{ hasReconciledCurrentVersion && (request.object.metadata.annotations.\"sylva/force-reconcile-count\" || '0') | to_number(@) || `0` }}"
+    - name: reconcileRequestedAt
+      variable:
+        # NOTE: we need to truncate 2h to ensure that reconcileRequestedAt will be at least 1h
+        # before time_now_utc() if sylva/force-reconcile-at has not yet been set
+        # because time_truncate('2023-01-12T17:37:00Z','1h') results in 2023-01-12T17:00:00Z
+        # and time_truncate('2023-01-12T17:30:10Z','30m') results in 2023-01-12T17:30:00Z...
+        value: "{{ request.object.metadata.annotations.\"sylva/force-reconcile-at\" || time_truncate(time_now_utc(), '2h') }}"
+    preconditions:
+      all:
+      # Install or upgrade has failed
+      - key: "{{ request.object.status.conditions || '[]' | [?type == 'Ready'].reason | [0] || 'NotFound' }}"
+        operator: AnyIn
+        value:
+        - InstallFailed
+        - UpgradeFailed
+      # Request reconciliation once flux is not reconciling any more
+      - key: "{{ request.object.status.conditions || '[]' | [?type == 'Reconciling'] | length(@) }}"
+        operator: Equals
+        value: 0
+      # Reconciliation should not be requested more than 3 times for a given release
+      - key: "{{ reconcileRequestsCount }}"
+        operator: LessThan
+        value: 3
+      # Reconciliation has not been requested in last minute, to ensure
+      # that controller had enough time to handle previous reconcile request, if any
+      - key: "{{ time_diff(reconcileRequestedAt, time_now_utc()) }}"
+        operator: GreaterThan
+        value: 1m
+    mutate:
+      patchStrategicMerge:
+        metadata:
+          annotations:
+            sylva/force-reconcile-version: "{{ currentHelmReleaseVersion }}"
+            sylva/force-reconcile-count: "{{ add(reconcileRequestsCount, `1`) | to_string(@) }}"
+            sylva/force-reconcile-at: "{{ reconcileDate }}"
+            reconcile.fluxcd.io/forceAt: "{{ reconcileDate }}"
+            reconcile.fluxcd.io/requestedAt: "{{ reconcileDate }}"
