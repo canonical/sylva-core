@@ -239,3 +239,5 @@ cluster:
 
 _internal:
   mgmt_cluster: true
+
+  calico_readiness_unit: '{{ .Release.IsUpgrade | ternary "calico-ready" "calico" }}'
