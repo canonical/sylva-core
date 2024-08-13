@@ -17,7 +17,7 @@ patches:
         spec:
           sourceRef:
             kind: HelmRepository
-            name: sylva-core
+            name: sylva-units
           chart: sylva-units
           reconcileStrategy: ChartVersion
           version: TBD  # this needs to be overridden at runtime (see README.md)
