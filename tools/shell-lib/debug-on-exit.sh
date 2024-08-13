@@ -130,14 +130,21 @@ function cluster_info_dump() {
     capi_cluster_name=${MANAGEMENT_CLUSTER_NAME:-management-cluster}
   fi
 
+  mkdir $dump_dir
+
+  # dump CAPI cluster state
+  echo "Dumping clusterctl describe..."
+  KUBECONFIG=$MGMT_KUBECONFIG clusterctl describe cluster \
+    -n $capi_cluster_namespace $capi_cluster_name \
+    --grouping=false --show-conditions all --echo \
+    > $dump_dir/clusterctl-describe.txt
+
   echo "Checking if $cluster cluster is reachable"
   if ! timeout 10s kubectl get nodes > /dev/null 2>&1 ;then
     echo "$cluster cluster is unreachable - aborting dump"
     return 0
   fi
   echo "Dumping resources for $cluster cluster in $dump_dir"
-
-  mkdir $dump_dir
 
   kubectl cluster-info dump -A -o yaml --show-managed-fields --output-directory=$dump_dir
 
@@ -164,13 +171,6 @@ function cluster_info_dump() {
 
   # dump RKE2 node-password secrets
   kubectl -n kube-system get secrets -o yaml | yq '.items=[.items[] | select(.metadata.name | contains(".node-password.rke2"))]' > $dump_dir/Secrets-rke2-node-passwords.yaml
-
-  # dump CAPI cluster state
-  echo "Dumping clusterctl describe..."
-  KUBECONFIG=$MGMT_KUBECONFIG clusterctl describe cluster \
-    -n $capi_cluster_namespace $capi_cluster_name \
-    --grouping=false --show-conditions all --echo \
-    > $dump_dir/clusterctl-describe.txt
 
   echo -e "\nDisplay cluster resources usage per node"
   # From https://github.com/kubernetes/kubernetes/issues/17512
