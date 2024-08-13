@@ -15,7 +15,7 @@ spec:
       name: postgres
       key: postgres-password
   hostname:
-    hostname: ${KEYCLOAK_DNS}
+    hostname: https://${KEYCLOAK_DNS}
   http:
     tlsSecret: keycloak-internal-tls
   ingress:
@@ -24,6 +24,7 @@ spec:
   unsupported:
     podTemplate:
       spec:
+        serviceAccountName: keycloak
         containers:
           - securityContext:
               allowPrivilegeEscalation: false
