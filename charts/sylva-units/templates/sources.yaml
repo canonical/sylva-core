@@ -9,6 +9,7 @@
   {{- $unit_def := include "unit-def" (tuple $envAll $unit_name) | fromJson -}}
 
   {{- if and (include "unit-enabled" (tuple $envAll $unit_name))
+             (hasKey $unit_def "repo")
              (not (hasKey $unit_def "helm_repo_url"))            -}}
     {{- $repo_name := $unit_def.repo -}}
     {{- if not (hasKey $envAll.Values.source_templates $repo_name) -}}

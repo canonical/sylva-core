@@ -203,10 +203,7 @@ units_enabled_default: false
 # unit_template define unit settings
 #   a unit can inherit from multiple of those
 unit_templates:
-  sylva-units:
-    repo: sylva-units
-    kustomization_spec:
-      path: ./kustomize-units/
+  sylva-units: {} # Empty template that will be overwritten in use-oci-artifacts.values.yaml
 
   # dummy unit template is used to have a Kustomization
   # to add dependencies

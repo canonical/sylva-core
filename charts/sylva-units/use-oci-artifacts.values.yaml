@@ -103,7 +103,6 @@ source_templates:
 
 unit_templates:
   sylva-units:  # this applies to any unit having "unit_templates: ... - sylva-units"
-    repo: null
     helm_repo_url: '{{ .Values.sylva_core_oci_registry }}'
     helmrelease_spec:
       chart:
