@@ -2815,16 +2815,11 @@ units:
       namespace-defs: true
     helm_repo_url: https://rke2-charts.rancher.io
     helm_chart_versions: &calico-chart-versions
-      v3.25.001: '{{ include "k8s-version-match" (tuple . "<1.26") }}'
-      v3.26.101: '{{ include "k8s-version-match" (tuple . ">=1.26.6,<1.26.15") }}'
-      v3.26.300: '{{ include "k8s-version-match" (tuple . ">=1.27.10,<1.27.13") }}'
       v3.27.200: >-
-        {{ or       (include "k8s-version-match" (tuple . ">=1.26.15,<1.27.0"))
-                    (include "k8s-version-match" (tuple . ">=1.28.0,<1.28.8"))
-        }}
+        {{ include "k8s-version-match" (tuple . "=1.26.15") }}
       v3.27.300: >-
         {{ or       (include "k8s-version-match" (tuple . ">=1.27.13,<1.28.0"))
-                    (include "k8s-version-match" (tuple . ">=1.28.9"))
+                    (include "k8s-version-match" (tuple . ">=1.28.12"))
         }}
 
     helmrelease_spec:
@@ -3376,10 +3371,8 @@ units:
       '{{ .Values._internal.calico_readiness_unit }}': '{{ tuple . "calico" | include "unit-enabled" }}'
     helm_repo_url: https://rke2-charts.rancher.io
     helm_chart_versions:
-      4.5.202: '{{ include "k8s-version-match" (tuple . "<1.26") }}'
-      4.6.101: '{{ include "k8s-version-match" (tuple . ">=1.26,<=1.27.6") }}'
-      4.8.200: '{{ include "k8s-version-match" (tuple . ">=1.27.10,<1.28.9") }}'
-      4.9.100: '{{ include "k8s-version-match" (tuple . ">=1.28.9") }}'
+      4.8.200: '{{ include "k8s-version-match" (tuple . "=1.26.15") }}'
+      4.10.102: '{{ include "k8s-version-match" (tuple . ">=1.28.12") }}'  # also 1.27.16
     helmrelease_spec:
       releaseName: rke2-ingress-nginx
       targetNamespace: kube-system
@@ -6505,22 +6498,22 @@ k8s_version_short: "1.28"
 
 # Renovate Bot needs additional information to detect sylva diskimage-builder version
 # renovate: depName=sylva-projects/sylva-elements/diskimage-builder
-sylva_diskimagebuilder_version: 0.2.10
+sylva_diskimagebuilder_version: 0.2.11
 
 sylva_diskimagebuilder_images:
-  ubuntu-jammy-hardened-rke2-1-28-8:
+  ubuntu-jammy-hardened-rke2-1-28-12:
     default_enabled: true
-  ubuntu-jammy-plain-rke2-1-28-8: {}
-  ubuntu-jammy-plain-rke2-1-27-10: {}
-  ubuntu-jammy-plain-rke2-1-26-9: {}
-  ubuntu-jammy-hardened-rke2-1-27-10: {}
-  ubuntu-jammy-hardened-rke2-1-26-9: {}
-  opensuse-15-5-plain-rke2-1-28-8: {}
-  opensuse-15-5-plain-rke2-1-27-10: {}
-  opensuse-15-5-plain-rke2-1-26-9: {}
-  opensuse-15-5-hardened-rke2-1-28-8: {}
-  opensuse-15-5-hardened-rke2-1-27-10: {}
-  opensuse-15-5-hardened-rke2-1-26-9: {}
+  ubuntu-jammy-plain-rke2-1-28-12: {}
+  ubuntu-jammy-plain-rke2-1-27-16: {}
+  ubuntu-jammy-plain-rke2-1-26-15: {}
+  ubuntu-jammy-hardened-rke2-1-27-16: {}
+  ubuntu-jammy-hardened-rke2-1-26-15: {}
+  opensuse-15-5-plain-rke2-1-28-12: {}
+  opensuse-15-5-plain-rke2-1-27-16: {}
+  opensuse-15-5-plain-rke2-1-26-15: {}
+  opensuse-15-5-hardened-rke2-1-28-12: {}
+  opensuse-15-5-hardened-rke2-1-27-16: {}
+  opensuse-15-5-hardened-rke2-1-26-15: {}
 
 # this dict can be enriched at deployment time to feed additional information
 # into the sylva-units-status ConfigMap
@@ -6741,9 +6734,9 @@ _internal:
   bootstrap_node_ip: '{{ lookup "v1" "ConfigMap" "sylva-system" "cluster-public-endpoint" | dig "data" "address" "not_found" | default "not_found" }}'
 
   k8s_version_map:
-    1.26: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" | ternary "v1.26.9+rke2r1" "v1.26.15" }}'
-    1.27: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" | ternary "v1.27.10+rke2r1" "v1.27.13" }}'
-    1.28: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" | ternary "v1.28.8+rke2r1" "v1.28.9" }}'
+    1.26: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" | ternary "v1.26.15+rke2r1" "v1.26.15" }}'
+    1.27: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" | ternary "v1.27.16+rke2r1" "v1.27.16" }}'
+    1.28: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" | ternary "v1.28.12+rke2r1" "v1.28.12" }}'
 
   # total number of nodes in this cluster
   node_count:
