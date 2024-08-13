@@ -653,11 +653,19 @@ units:
     - base-deps
     depends_on:
       kubevirt: true
+      ingress-nginx: '{{ tuple . "ingress-nginx" | include "unit-enabled" }}'
     repo: sylva-core
+    kustomization_substitute_secrets:
+      ADMIN_CREDENTIAL: '{{ (htpasswd .Values._internal.kubevirt_admin_user .Values._internal.kubevirt_admin_password) | b64enc | quote }}'
+    annotations:
+      sylvactl/readyMessage: "Kubevirt manager UI can be reached at https://{{ .Values.external_hostnames.kubevirt_manager }} ({{ .Values.external_hostnames.kubevirt_manager }} must resolve to {{ .Values.display_external_ip }})"
     kustomization_spec:
       path: ./kustomize-units/kubevirt-manager
       wait: true
       targetNamespace: kubevirt-manager
+      postBuild:
+        substitute:
+          KUBEVIRT_MANAGER_DNS: '{{ .Values.external_hostnames.kubevirt_manager }}'
       _patches:
       - target:
           kind: Deployment
@@ -1832,6 +1840,7 @@ units:
       postBuild:
         substitute:
           force_var_substitution_enabled: "true"  # dummy value to ensure substitution of defaults
+          EXP_CLUSTER_RESOURCE_SET: "true"
       wait: true
       _components:
         - '{{ tuple "components/ha" (.Values._internal.ha_cluster.is_ha) | include "set-only-if" }}'
@@ -6256,6 +6265,7 @@ external_hostnames:
   thanos_query: 'thanos-query.{{ .Values.cluster_domain }}'
   loki: 'loki.{{ .Values.cluster_domain }}'
   grafana: 'grafana.{{ .Values.cluster_domain }}'
+  kubevirt_manager: 'kubevirt-manager.{{ .Values.cluster_domain }}'
 
 external_certificates:
   rancher: {}
@@ -6271,6 +6281,7 @@ external_certificates:
   thanos: {}
   loki: {}
   grafana: {}
+  kubevirt_manager: {}
 
 audit_log:
   level: 0
@@ -6568,6 +6579,10 @@ _internal:
 
   # Grafana password
   grafana_admin_password: '{{ include "internalPersistentRandomPasswd" (tuple . "grafana_admin_password") }}'
+
+  # kubevirt admin user and password
+  kubevirt_admin_user: 'admin'
+  kubevirt_admin_password: '{{ include "internalPersistentRandomPasswd" (tuple . "kubevirt_admin_password") }}'
 
   default_password: '{{ include "internalPersistentRandomPasswd" (tuple . "default_password") }}'
 

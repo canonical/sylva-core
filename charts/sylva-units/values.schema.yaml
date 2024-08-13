@@ -804,6 +804,12 @@ properties:
             format: hostname
           - const: ''
           - $ref: "#/$defs/string-with-gotpl"
+      kubevirt_manager:
+        anyOf:
+          - type: string
+            format: hostname
+          - const: ''
+          - $ref: "#/$defs/string-with-gotpl"
 
   external_certificates:  # -------------------------------
     type: object
@@ -836,6 +842,8 @@ properties:
       loki:  # -------------------------------
         $ref: "#/$defs/cert-and-key"
       grafana:  # -------------------------------
+        $ref: "#/$defs/cert-and-key"
+      kubevirt_manager:  # -------------------------------
         $ref: "#/$defs/cert-and-key"
 
   keycloak: # -------------------------------
