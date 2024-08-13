@@ -5006,7 +5006,7 @@ units:
           {{ 1 | include "preserve-type" }}
           {{- end -}}
         strategy:
-          type: "{{ .Values._internal.rwx_update_strategy }}"
+          type: '{{ eq (tuple . .Values._internal.default_storage_class_RWX_support | include "interpret-as-string") "true" | ternary "RollingUpdate" "Recreate" }}'
         gitea:
           admin:
             existingSecret: gitea-admin
