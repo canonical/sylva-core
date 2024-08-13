@@ -89,6 +89,7 @@ if [ -d $chart_dir/test-values ] && [ -n "$test_dirs" ] ; then
     else
         expected_exit_code=0
         error_message="Failure when running 'helm template ..${HELM_FLAG}| yamllint ..' on this test case."
+        success_message=""
     fi
 
     if [[ $exit_code -ne $expected_exit_code ]]; then
