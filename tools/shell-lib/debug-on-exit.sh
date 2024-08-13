@@ -34,6 +34,7 @@ additional_resources="
   ClusterExternalSecret
   ExternalSecrets
   Keycloaks
+  KeycloakClients
   Clusters.*cluster.x-k8s.io
   MachineDeployments
   Machines
