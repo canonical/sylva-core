@@ -1,0 +1,29 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "30"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "1800"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "1800"
+  labels:
+    app: kubevirt-manager
+    kubevirt-manager.io/version: 1.4.0
+  name: kubevirt-manager
+  namespace: kubevirt-manager
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: ${KUBEVIRT_MANAGER_DNS}
+    http:
+      paths:
+      - backend:
+          service:
+            name: kubevirt-manager
+            port:
+              number: 8080
+        path: /
+        pathType: ImplementationSpecific
+  tls:
+  - hosts:
+    - ${KUBEVIRT_MANAGER_DNS}
+    secretName: kubevirt-manager-tls
