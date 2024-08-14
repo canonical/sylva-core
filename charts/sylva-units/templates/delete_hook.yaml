@@ -29,6 +29,48 @@ spec:
                 kubectl -n $NS $@
             }
 
+            function log_event {
+                reason=$1
+                message=$2
+                if [[ -n $3 ]]; then
+                  related_resource_kind=${3%/*}
+                  related_resource_name=${3#*/}
+                  related_resource_console="/ $3 "
+                else
+                  related_resource_kind=HelmRelease
+                  related_resource_name=$NAME
+                  related_resource_console=""
+                fi
+
+                echo "=== ($reason) $related_resource_console/ $message"
+
+                kubectl apply -f - <<EOF
+            apiVersion: v1
+            kind: Event
+            metadata:
+              name: slyva-units.delete.$NAME.$(printf "%0000x%0000x" $RANDOM $RANDOM)
+              namespace: $NS
+            type: Normal
+            reportingComponent: sylva-units-delete-hook
+            reportingInstance: "$NAME"
+            message: "$message"
+            reason: "$reason"
+            firstTimestamp: $(date -Iseconds -u | sed 's/+00:00/Z/')
+            involvedObject:
+              #apiVersion: $TEMPLATE_RESOURCE_API_VERSION
+              kind: $related_resource_kind
+              name: $related_resource_name
+              namespace: $NS
+            #action: delete
+            source:
+              component: sylva-units-delete-hook
+              host: $HOSTNAME
+            EOF
+
+            }
+
+            log_event Start "Start of pre-delete-hook"
+
             echo "=== Disabling the pruning of kustomizations installed on workload cluster ==="
             for KUST in $(
                   _kubectl get kustomization -l app.kubernetes.io/instance=$NAME -o json |
@@ -38,7 +80,7 @@ spec:
                       .metadata.name
                     '
                 ); do
-                echo "Disable pruning in kustomization $KUST"
+                log_event PrepareForDeletion "Disable pruning" Kustomization/$KUST
                 _kubectl patch kustomization $KUST --type=merge --patch='{"spec":{"prune":false}}' >/dev/null
             done
 
@@ -51,8 +93,8 @@ spec:
                     .metadata.name
                     '
                 ); do
-                echo "Suspending helmreleases $RELEASE"
-                _kubectl patch helmreleases $RELEASE --type=merge --patch='{"spec":{"suspend":true}}' >/dev/null
+                log_event PrepareForDeletion "Suspending helmrelease" HelmRelease/$RELEASE
+                _kubectl patch helmrelease $RELEASE --type=merge --patch='{"spec":{"suspend":true}}' >/dev/null
             done
 
             ALL_KS=$(_kubectl get kustomizations -l app.kubernetes.io/instance=$NAME -o json)
@@ -63,7 +105,7 @@ spec:
                 REMAINING_KS=$(jq -r --argjson cleaned "$CLEANED_KS" <<< $ALL_KS '[.items[] | select(.metadata.name as $in | $cleaned | index($in) | not)]')
 
                 if jq -e <<< $REMAINING_KS '. | length == 0' >/dev/null; then
-                    echo "=== All kustomizations have been deleted ==="
+                    log_event Done "All kustomizations have been deleted"
                     exit 0
                 fi
 
@@ -76,7 +118,7 @@ spec:
                      | unique | join(" ")')
 
                 for KUST in $KS_LIST; do
-                    echo "=== Deleting kustomization $KUST ==="
+                    log_event Deletion "Has to delete" Kustomization/$KUST
                     _kubectl delete kustomization $KUST 2>/dev/null || true
 
                     KUST_JSON=$(jq --arg kust $KUST <<< $ALL_KS '.items[] | select(.metadata.name == $kust)')
@@ -93,7 +135,8 @@ spec:
                           (.spec.prune == false) or
                           (.spec.suspend // false)
                         ' >/dev/null; then
-                        
+
+                        log_event Deletion "Deletion done" Kustomization/$KUST
                         CLEANED_KS=$(jq --arg kust $KUST <<< $CLEANED_KS '. + [$kust]')
 
                     # Wait for kustomization's resources to be pruned from API, as kustomize controller is not (yet?) doing it
@@ -113,6 +156,7 @@ spec:
 
                         # Mark kustomization as deleted if all resources have been deleted and if the Kustomization does not exist anymore
                         if [[ $REMAINING_RES -eq 0 ]] && ! _kubectl get kustomization $KUST 2>/dev/null; then
+                            log_event Deletion "Done" Kustomization/$KUST
                             CLEANED_KS=$(jq --arg kust $KUST <<< $CLEANED_KS '. + [$kust]')
                         fi
                     fi
@@ -189,6 +233,9 @@ rules:
 - apiGroups: ["*"]
   resources: ["*"]
   verbs: ["get", "list", "watch"]
+- apiGroups: [""]
+  resources: ["events"]
+  verbs: ["get", "list", "create", "patch"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
