@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: minio-monitoring-console-init-unit
+  namespace: minio-monitoring
+data:
+  unit: minio-monitoring-console-init

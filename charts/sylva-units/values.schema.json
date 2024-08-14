@@ -8188,6 +8188,9 @@
         "minio_logging": {
           "$ref": "#/$defs/cert-and-key"
         },
+        "minio_monitoring_console": {
+          "$ref": "#/$defs/cert-and-key"
+        },
         "thanos": {
           "$ref": "#/$defs/cert-and-key"
         },
