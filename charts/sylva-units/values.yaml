@@ -6696,7 +6696,7 @@ _internal:
     {{- end -}}
     {{- $result -}}
 
-  previous_values: '{{ lookup "v1" "Secret" .Release.Namespace "sylva-units-values" | dig "data" "values" "" | b64dec | fromYaml | default dict | include "preserve-type" }}'
+  previous_values: '{{ omit (lookup "v1" "Secret" .Release.Namespace "sylva-units-values" | dig "data" "values" "" | b64dec | fromYaml | default dict) "unit_templates" | include "preserve-type" }}'
 
   immutable_values:
     cluster:
