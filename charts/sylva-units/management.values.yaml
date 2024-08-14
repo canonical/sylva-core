@@ -231,6 +231,19 @@ units:
     unit_templates:
     - dummy
 
+  sylva-ca:
+    depends_on:
+      external-secrets-operator: true
+    kustomization_spec:
+      postBuild:
+        substitute:
+          CA_NAME: 'sylva-selfsigned-ca'
+          CA_COMMON_NAME: 'Sylva CA'
+          CA_O_NAME: 'Sylva'
+      _components:
+        - components/eso
+
+
 keycloak:
   keycloak_expire_password_days: 30
 

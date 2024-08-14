@@ -515,7 +515,6 @@ units:
     - base-deps
     depends_on:
       cert-manager: true
-      external-secrets-operator: true
     repo: sylva-core
     kustomization_spec:
       path: ./kustomize-units/sylva-ca
@@ -523,7 +522,9 @@ units:
       postBuild:
         substitute:
           CACERT: '{{ .Values.external_certificates.cacert | default "" | b64enc }}'
-
+          CA_NAME: 'default-selfsigned-ca'
+          CA_COMMON_NAME: 'default CA'
+          CA_O_NAME: 'default'
 
   namespace-defs:
     info:
