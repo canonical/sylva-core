@@ -101,6 +101,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: kube-cronjob-cm
+  # namespace: ${NAMESPACE}  ## we don't do this, because `kustomize.toolkit.fluxcd.io/substitute: disabled` won't let us, instead we patch the namespace in the unit definition
   labels:
     kube-cronjob: script
   annotations:

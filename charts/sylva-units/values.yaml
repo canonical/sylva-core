@@ -270,6 +270,47 @@ unit_templates:
                     configMap:
                       name: kube-job-{{ .Values._kustomization_name_ }}
 
+  kube-cronjob:
+    repo: sylva-core
+    kustomization_spec:
+      path: ./kustomize-units/kube-cronjob
+      wait: true
+      force: true
+      postBuild:
+        substitute:
+          CRONJOB_NAME: '{{ .Values._kustomization_name_ }}'
+          NAMESPACE: '{{ .Release.Namespace }}'
+          JOB_CHECKSUM: '{{ list .Values .Values._internal.sylva_core_version | toJson | sha256sum }}'  # can be overriden to use something more specific
+      _patches:
+      # the transformations below are necessary to change the ConfigMap name/namespace
+      # _because_ to avoid interferences between shell syntax and envsubst, we explicitely
+      # disable envsubst substitution in this resource (kustomize.toolkit.fluxcd.io/substitute: disabled)
+      - target:
+          kind: ConfigMap
+          labelSelector: kube-cronjob=script
+        patch: |
+          - op: replace
+            path: /metadata/namespace
+            value: {{ .Values.units | dig .Values._unit_name_ "kustomization_spec" "postBuild" "substitute" "NAMESPACE" .Release.Namespace }}
+          - op: replace
+            path: /metadata/name
+            value: kube-cronjob-{{ .Values._kustomization_name_ }}
+      - target:
+          kind: CronJob
+        patch: |
+          kind: CronJob
+          metadata:
+            name: _unused_
+          spec:
+            jobTemplate:
+              spec:
+                template:
+                  spec:
+                    volumes:
+                    - name: script-volume
+                      configMap:
+                        name: kube-cronjob-{{ .Values._kustomization_name_ }}
+
 
 # unit_definition_defaults is merged with each "units.x" before
 # it inherits from unit templates
@@ -4327,14 +4368,10 @@ units:
     - '{{ tuple . "longhorn" | include "unit-enabled" }}'
     unit_templates:
     - base-deps
-    repo: sylva-core
+    - kube-cronjob
     kustomization_spec:
-      path: ./kustomize-units/kube-cronjob
-      wait: true
-      force: true
       postBuild:
         substitute:
-          CRONJOB_NAME: longhorn-instance-manager-cleanup
           NAMESPACE: longhorn-system
       _patches:
       - target:
@@ -4354,13 +4391,8 @@ units:
                 verbs: [list, get, patch]
       - target:
           kind: ConfigMap
+          labelSelector: kube-cronjob=script
         patch: |
-          - op: replace
-            path: /metadata/name
-            value: longhorn-instance-manager-cleanup-cm
-          - op: replace
-            path: /metadata/namespace
-            value: longhorn-system
           - op: replace
             path: /data/kube-cronjob.sh
             value: |
@@ -4455,6 +4487,7 @@ units:
     unit_templates:
     - base-deps
     - kube-job
+    - kube-cronjob
     enabled_conditions:
     - '{{ tuple . "rancher" | include "unit-enabled" }}'
     depends_on:
@@ -4466,30 +4499,6 @@ units:
         substitute:
           CRONJOB_NAME: cluster-creator-renewal
       _patches:
-        # these two patches adjust the ConfigMap name
-        # (not managed by $subst because we prefer to have 'kustomize.toolkit.fluxcd.io/substitute: disabled'
-        # on configmaps containing shell scripts)
-        - target:
-            kind: ConfigMap
-            labelSelector: kube-cronjob=script
-          patch: |
-            - op: replace
-              path: /metadata/name
-              value: kube-cronjob-cluster-creator-login
-        - target:
-            kind: CronJob
-          patch: |
-            kind: CronJob
-            metadata:
-              name: _unused_
-            spec:
-              jobTemplate:
-                spec:
-                  template:
-                    volumes:
-                    - name: script-volume
-                      configMap:
-                        name: kube-cronjob-cluster-creator-login
         # this patch adjusts the cron schedule
         - target:
             kind: CronJob

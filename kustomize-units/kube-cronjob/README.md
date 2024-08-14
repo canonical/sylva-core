@@ -11,7 +11,7 @@ apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   name: podinfo
-  namespace: flux-system
+  namespace: foo
 spec:
   path: ./kustomize-units/kube-cronjob
   # ...ommitted for brevity
@@ -21,6 +21,7 @@ spec:
         kind: ConfigMap
         metadata:
           name: _unused_
+          namespace: sylva-system
         data:
           kube-cronjob.sh: |
             #!/bin/sh
@@ -29,3 +30,5 @@ spec:
         kind: ConfigMap
         name: kube-cronjob-cm
 ```
+
+In practice this kustomization is used in sylva-units unit definitions, relying on the `kube-cronjob` unit template.
