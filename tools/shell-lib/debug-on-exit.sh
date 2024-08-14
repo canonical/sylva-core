@@ -28,6 +28,7 @@ additional_resources="
   Nodes
   Services
   Ingresses
+  IngressClasses
   HeatStacks
   ClusterSecretStore
   SecretStore
