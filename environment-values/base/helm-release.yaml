@@ -2,7 +2,7 @@
 apiVersion: source.toolkit.fluxcd.io/v1
 kind: GitRepository
 metadata:
-  name: sylva-core
+  name: sylva-units
   labels:
     copy-from-bootstrap-to-management: ""
 spec:
@@ -20,7 +20,7 @@ spec:
     spec:
       sourceRef:
         kind: GitRepository
-        name: sylva-core
+        name: sylva-units
       chart: charts/sylva-units
       reconcileStrategy: Revision
       valuesFiles:
@@ -51,9 +51,3 @@ spec:
     valuesKey: endpoint
     targetPath: cluster_public_endpoint
     optional: true
-  values:
-    source_templates:
-      sylva-core:
-        existing_source:
-          name: sylva-core
-          kind: GitRepository

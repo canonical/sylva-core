@@ -14,7 +14,7 @@ patches:
         value: workload-cluster.values.yaml
   - target:
       kind: HelmRepository
-      name: sylva-core
+      name: sylva-units
     patch: |
       - op: replace
         path: /metadata/namespace

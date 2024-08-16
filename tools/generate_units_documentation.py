@@ -71,7 +71,7 @@ def get_version_and_source(values, unit_name, unit):
     version = ""
 
     repo = get_or_empty(unit, "repo")
-    if repo:
+    if repo and repo != "sylva-core":
         url = get_or_empty(values, "source_templates", repo, "spec", "url")
         ref = get_or_empty(values, "source_templates", repo, "spec", "ref")
         if not ref:

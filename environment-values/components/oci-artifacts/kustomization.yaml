@@ -17,7 +17,7 @@ patches:
         spec:
           sourceRef:
             kind: HelmRepository
-            name: sylva-core
+            name: sylva-units
           chart: sylva-units
           reconcileStrategy: ChartVersion
           version: TBD  # this needs to be overridden at runtime (see README.md)
@@ -37,12 +37,10 @@ patches:
     - op: add
       path: /spec/chart/spec/valuesFiles/-
       value: use-oci-artifacts.values.yaml
-    - op: remove
-      path: /spec/values/source_templates/sylva-core
 
 - target:
     kind: GitRepository
-    name: sylva-core
+    name: sylva-units
   patch: |
     kind: GitRepository
     metadata:

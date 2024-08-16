@@ -202,34 +202,10 @@ properties:
       "^[a-z0-9][a-z0-9.-]*[a-z0-9]$":  # -------------------------------
         type: object
         additionalProperties: false
-        anyOf:
-          - required:
-            - spec
-            - kind
-          - required:
-            - existing_source
+        required:
+          - spec
+          - kind
         properties:
-
-          existing_source:  # -------------------------------
-            anyOf:
-            - type: "null"
-            - type: object
-              # (fields from a spec of a Flux resource)
-              required:
-                - name
-                - kind
-              additionalProperties: false
-              properties:
-
-                name:  # -------------------------------
-                  type: string
-
-                kind: # -------------------------------
-                  type: string
-                  enum: ["GitRepository", "OCIRepository"]
-
-                namespace:  # -------------------------------
-                  type: string
 
           auth:  # -------------------------------
             $ref: "#/$defs/username-password"
@@ -239,18 +215,20 @@ properties:
             enum: ["GitRepository", "OCIRepository"]
 
           spec:  # -------------------------------
-            type: object
-            # (fields from a spec of a Flux resource)
-            required:
-              - url
-              - ref
-            properties:
+            anyOf:
+            - $ref: "#/$defs/gotpl"
+            - type: object
+              # (fields from a spec of a Flux resource)
+              required:
+                - url
+                - ref
+              properties:
 
-              url:  # -------------------------------
-                anyOf:
-                  - type: string
-                    format: uri
-                  - $ref: "#/$defs/string-with-gotpl"
+                url:  # -------------------------------
+                  anyOf:
+                    - type: string
+                      format: uri
+                    - $ref: "#/$defs/string-with-gotpl"
 
         allOf:
         - not:
@@ -269,22 +247,24 @@ properties:
           then:
             properties:
               spec:  # -------------------------------
-                type: object
-                properties:
+                anyOf:
+                - $ref: "#/$defs/gotpl"
+                - type: object
+                  properties:
 
-                  ref:  # -------------------------------
-                    type: object
-                    additionalProperties: false
-                    anyOf:
-                      - required:
-                        - branch
-                      - required:
-                        - tag
-                      - required:
-                        - commit
-                    patternProperties:
-                      '(branch|tag|commit)':  # -------------------------------
-                        type: string
+                    ref:  # -------------------------------
+                      type: object
+                      additionalProperties: false
+                      anyOf:
+                        - required:
+                          - branch
+                        - required:
+                          - tag
+                        - required:
+                          - commit
+                      patternProperties:
+                        '(branch|tag|commit)':  # -------------------------------
+                          type: string
 
         - if:
             properties:
@@ -293,24 +273,26 @@ properties:
           then:
             properties:
               spec:  # -------------------------------
-                type: object
-                properties:
+                anyOf:
+                - $ref: "#/$defs/gotpl"
+                - type: object
+                  properties:
 
-                  ref:  # -------------------------------
-                    type: object
-                    additionalProperties: false
-                    anyOf:
-                      - required:
-                        - digest
-                      - required:
-                        - semver
-                      - required:
-                        - tag
-                    patternProperties:
-                      '(digest|semver|tag)':  # -------------------------------
-                        type: string
-                      branch:  # -------------------------------
-                        const: '{{ tuple "(unused)" false | include "set-only-if" }}'  # particular case to allow key deletion (see use-oci-artifacts.values.yaml)
+                    ref:  # -------------------------------
+                      type: object
+                      additionalProperties: false
+                      anyOf:
+                        - required:
+                          - digest
+                        - required:
+                          - semver
+                        - required:
+                          - tag
+                      patternProperties:
+                        '(digest|semver|tag)':  # -------------------------------
+                          type: string
+                        branch:  # -------------------------------
+                          const: '{{ tuple "(unused)" false | include "set-only-if" }}'  # particular case to allow key deletion (see use-oci-artifacts.values.yaml)
 
   helm_repo_spec_default:  # -------------------------------
     type: object
