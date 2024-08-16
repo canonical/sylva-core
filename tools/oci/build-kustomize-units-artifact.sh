@@ -15,7 +15,7 @@
 # a 'docker login registry.gitlab.com' with suitable credentials.
 #
 # Requirements:
-# - kubectl (for 'kubectl kustomize')
+# - kustomize (for 'kustomize build')
 # - flux (used to push the artifact)
 
 set -eu
@@ -45,7 +45,7 @@ EOF
     yq '{"resources": .resources}' $kustomization.orig >> $kustomization
 
     echo -n "  locally rendering remote resources..."
-    kubectl kustomize $kdir -o $kdir/local-resources.yaml
+    kustomize build $kdir -o $kdir/local-resources.yaml
     echo "OK"
 
     mv $kustomization.orig $kustomization
