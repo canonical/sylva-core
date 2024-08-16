@@ -5988,7 +5988,7 @@ units:
       wait: true
       force: true
       _components:
-      - '{{ tuple "./certs" (not .Values.oci_registry_insecure) | include "set-only-if" }}'
+      - '{{ tuple "./certs" (and (not .Values.oci_registry_insecure) (.Values.oci_registry_extra_ca_certs)) | include "set-only-if" }}'
       postBuild:
         substituteFrom:
           - kind: ConfigMap
