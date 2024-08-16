@@ -86,11 +86,11 @@ kustomize-lint:
         if yq -e '.kind=="Component"' ${kustomization}/kustomization.yaml 2>stderr 1>/dev/null; then
           continue # Skip components as they may not be buildable
         fi
-        echo -e "\e[1m\e[0Ksection_start:`date +%s`:$count[collapsed=true]\r\e[0KRun kubectl kustomize for $kustomization\e[0m"
-        if kubectl kustomize $kustomization 2>stderr 1>/dev/null; then
-          echo "kubectl kustomize suceed for $kustomization"
+        echo -e "\e[1m\e[0Ksection_start:`date +%s`:$count[collapsed=true]\r\e[0KRun kustomize build for $kustomization\e[0m"
+        if kustomize build $kustomization 2>stderr 1>/dev/null; then
+          echo "kustomize build suceed for $kustomization"
         else
-          echo "kubectl kustomize failed for $kustomization with the following error:" >> error_log
+          echo "kustomize build failed for $kustomization with the following error:" >> error_log
           cat stderr >> error_log
           echo >> error_log
         fi
