@@ -261,6 +261,25 @@ function define_source() {
     sed "s,SYLVA_BASE_OCI_REGISTRY,${SYLVA_BASE_OCI_REGISTRY},g" "$@"
 }
 
+
+function fix_sylva_units_existing_source {
+  # This function is necessary only to transition from past Sylva release where
+  # sylva-units Helm release value was using "source_templates.sylva-core.existing_source"
+  # to newer versions where this setting does not exist any longer.
+  #
+  # TODO: future cleanup after Sylva 1.2 Gitlab issue: https://gitlab.com/sylva-projects/sylva-core/-/issues/1530
+  ns=${1:-sylva-system}
+
+  # check if HelmRelease exists and needs to be patched
+  if [[ -n $(kubectl -n $ns get helmreleases.helm.toolkit.fluxcd.io sylva-units -o 'jsonpath={.spec.values.source_templates.sylva-core.existing_source}' 2>/dev/null || true) ]]; then
+    echo "Patching sylva-units HelmRelease to stop using old existing_source setting..."
+
+    kubectl -n $ns patch helmreleases.helm.toolkit.fluxcd.io sylva-units --type=merge \
+        --patch='{"spec":{"values":{"source_templates":{"sylva-core":{"existing_source":null}}}}}'
+  fi
+}
+
+
 function inject_bootstrap_values() {
   # this function transforms the output of '_kustomize ${ENV_PATH}'
   # to add bootstrap.values.yaml into the valuesFiles field of the HelmRelease
