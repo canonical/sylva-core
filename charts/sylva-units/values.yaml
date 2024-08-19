@@ -1720,7 +1720,6 @@ units:
                   spec:
                     startingDeadlineSeconds: 180
 
-
   kyverno-policies:
     info:
       description: configures Kyverno policies
@@ -1741,6 +1740,29 @@ units:
       _components:
         - '{{ tuple "components/management-cluster-only" .Values._internal.mgmt_cluster | include "set-only-if" }}'
         - '{{ tuple "components/capm3-patch-bond-policy" (tuple . "capm3" | include "unit-enabled") | include "set-only-if" }}'
+
+  kyverno-update-namespace-and-psa:
+    info:
+      description: grants to Kyverno the permission to update namespaces using the "updatepsa" verb (Rancher-specific)
+      internal: true
+      details: >
+        This unit allows Kyverno to define namespaces with specific PodSecurityAdmission levels.
+        It is useful for situations where namespaces need to be mutated (with PSA labels)
+        in order to accomodate privileged pods (for which PSA level restricted at cluster level is not enough),
+        when namespace creation is not controlled
+    unit_templates:
+    - base-deps
+    enabled_conditions:
+    - '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" }}'
+    - '{{ tuple . "kyverno" | include "unit-enabled" }}'
+    - '{{ tuple . "rancher" | include "unit-enabled" }}'
+    depends_on:
+      kyverno: true
+      rancher: true   # updatepsa verb for projects resources in management.cattle.io apiGroup permission is Rancher specific
+    repo: sylva-core
+    kustomization_spec:
+      path: ./kustomize-units/kyverno-psa
+      wait: true
 
   rancher-monitoring-clusterid-inject:
     info:
