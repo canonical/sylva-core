@@ -3411,6 +3411,8 @@ units:
               metallb.universe.tf/allow-shared-ip: cluster-external-ip
           publishService:
             enabled: true
+          ingressClassResource:
+            default: true
     kustomization_spec:
       healthChecks:
         - apiVersion: apps/v1
