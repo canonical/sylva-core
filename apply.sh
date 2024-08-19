@@ -30,8 +30,10 @@ check_management_kubeconfig
 
 ensure_flux
 
-
 echo_b "\U0001F4DC Update sylva-units Helm release and associated resources"
+
+fix_sylva_units_existing_source
+
 _kustomize ${ENV_PATH} | define_source | kubectl apply -f -
 
 echo_b "\U0001F3AF Trigger reconciliation of units"

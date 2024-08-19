@@ -37,6 +37,9 @@ fi
 
 
 echo_b "\U0001F4DC Install a sylva-units Helm release for workload cluster $wc_namespace"
+
+fix_sylva_units_existing_source $wc_namespace
+
 _kustomize ${ENV_PATH} | define_source | set_wc_namespace | kubectl apply -f -
 
 echo_b "\U0001F3AF Trigger reconciliation of units"
