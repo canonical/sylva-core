@@ -6,6 +6,10 @@ metadata:
   namespace: cattle-logging-system
 spec:
   loki:
+    buffer:
+      chunk_limit_size: 4MB
+      timekey: 5m
+      timekey_wait: 30s
     configure_kubernetes_labels: true
     extra_labels:
       job: ${CLUSTER_NAME}-job
