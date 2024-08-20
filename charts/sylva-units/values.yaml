@@ -55,7 +55,8 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
     spec:
       url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-capi-cluster.git
       ref:
-        tag: 0.2.31
+#        tag: 0.2.28
+        branch: bn-agentconfig-test
 
   local-path-provisioner:
     kind: GitRepository

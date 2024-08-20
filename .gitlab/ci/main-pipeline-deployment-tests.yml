@@ -354,6 +354,12 @@ capo-rke2-oci-suse:
     MGMT_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/suse-os.yml
     WC_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/suse-os.yml
 
+capo-rke2-leap-micro:
+  extends: capo-rke2-ubuntu
+  variables:
+    MGMT_ADDITIONAL_VALUES: environment-values/ci/leap-micro-rke2.yml
+    WC_ADDITIONAL_VALUES: environment-values/ci/leap-micro-rke2.yml
+
 .capm3-virt-equinix:
   extends: .default-trigger
   variables:

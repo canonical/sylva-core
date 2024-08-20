@@ -1,0 +1,22 @@
+---
+sylva_diskimagebuilder_images:
+  ubuntu-jammy-plain-rke2-1-28-9:
+    default_enabled: false
+  opensuse-5-5-leapmicro-rke2-1-28-8:
+    os_images_oci_registry: kiwi-imagebuilder
+    enabled: true
+
+os_images_oci_registries:
+  kiwi-imagebuilder:
+    url: oci://registry.gitlab.com/sylva-projects/sylva-elements/kiwi-imagebuilder/snapshots
+    tag: v1.23
+
+cluster:
+  air_gapped: false
+  cis_profile: ""
+  agent_config_format: ignition
+  # following are needed to override the Ubuntu based image for capm3-rke2-virt CIs
+  capm3:
+    image_key: opensuse-5-5-leapmicro-rke2-1-28-8
+  capo:
+    image_key: opensuse-5-5-leapmicro-rke2-1-28-8

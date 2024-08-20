@@ -2276,6 +2276,19 @@
                 }
               ]
             },
+            "ethernets": {
+              "anyOf": [
+                {
+                  "type": "object"
+                },
+                {
+                  "$ref": "#/$defs/string-with-gotpl"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
             "ip_preallocations": {
               "anyOf": [
                 {
@@ -2284,8 +2297,36 @@
                     "primary": {
                       "anyOf": [
                         {
-                          "type": "string",
-                          "format": "ipv4"
+                          "type": "object",
+                          "properties": {
+                            "ip": {
+                              "anyOf": [
+                                {
+                                  "type": "string",
+                                  "format": "ipv4"
+                                },
+                                {
+                                  "$ref": "#/$defs/string-with-gotpl"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "prefix": {
+                              "anyOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "$ref": "#/$defs/string-with-gotpl"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            }
+                          }
                         },
                         {
                           "$ref": "#/$defs/string-with-gotpl"
@@ -2298,8 +2339,36 @@
                     "provisioning": {
                       "anyOf": [
                         {
-                          "type": "string",
-                          "format": "ipv4"
+                          "type": "object",
+                          "properties": {
+                            "ip": {
+                              "anyOf": [
+                                {
+                                  "type": "string",
+                                  "format": "ipv4"
+                                },
+                                {
+                                  "$ref": "#/$defs/string-with-gotpl"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "prefix": {
+                              "anyOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "$ref": "#/$defs/string-with-gotpl"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            }
+                          }
                         },
                         {
                           "$ref": "#/$defs/string-with-gotpl"
@@ -3098,6 +3167,19 @@
                 "cis-1.6",
                 "cis-1.23"
               ]
+            },
+            {
+              "$ref": "#/$defs/string-with-gotpl"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "agent_config_format": {
+          "anyOf": [
+            {
+              "type": "string"
             },
             {
               "$ref": "#/$defs/string-with-gotpl"
@@ -5692,20 +5774,6 @@
                   ]
                 }
               }
-            },
-            {
-              "$ref": "#/$defs/string-with-gotpl"
-            },
-            {
-              "type": "null"
-            }
-          ]
-        },
-        "nodeDeletionTimeout": {
-          "anyOf": [
-            {
-              "type": "string",
-              "pattern": "^[0-9]+(s|m|h)$"
             },
             {
               "$ref": "#/$defs/string-with-gotpl"
@@ -8315,6 +8383,13 @@
           }
         }
       }
+    },
+    "agent_config_format": {
+      "anyOf": [
+        {
+          "type": "string"
+        }
+      ]
     },
     "sylva_diskimagebuilder_version": {
       "type": "string"
