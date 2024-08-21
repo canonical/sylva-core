@@ -1,8 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: ${JOB_NAME}
-  namespace: ${JOB_TARGET_NAMESPACE}
+  name: get-openstack-images
 spec:
   backoffLimit: 5
   activeDeadlineSeconds: ${ACTIVE_DEADLINE_SECONDS:-1800}
@@ -13,19 +12,21 @@ spec:
         checksum: s${JOB_CHECKSUM}  # s prefix to avoid this turning into a number if we're unlucky
     spec:
       restartPolicy: Never
-      serviceAccountName: ${JOB_NAME}-${JOB_TARGET_NAMESPACE:-sylva-system}-sa
+      serviceAccountName: get-openstack-images-sa
       securityContext:
         runAsUser: 1001
         fsGroup: 1001
       containers:
       - name: oci-tools-container
         image: registry.gitlab.com/sylva-projects/sylva-elements/container-images/oci-tools:0.0.13
-        command: ["/bin/sh","-c", "/opt/scripts/push-images-to-glance.py"]
+        command: ["/bin/sh","-c", "/opt/scripts/get-openstack-images.py"]
         env:
           - name: OS_CLIENT_CONFIG_FILE
             value: "/etc/openstack/clouds.yaml"
-          - name: TARGET_NAMESPACE
-            value: ${JOB_TARGET_NAMESPACE}
+          - name: NAMESPACE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
           - name: INSECURE_CLIENT
             value: ${JOB_INSECURE_CLIENT}
           - name: http_proxy
@@ -46,9 +47,8 @@ spec:
         - name: openstack-config
           mountPath: /etc/openstack
           readOnly: true
-        - name: push-script
-          mountPath: /opt/scripts/push-images-to-glance.py
-          subPath: push-images-to-glance.py
+        - name: get-openstack-images-script
+          mountPath: /opt/scripts
           readOnly: true
         - name: os-images-info
           mountPath: /opt/config
@@ -58,13 +58,13 @@ spec:
       - name: openstack-config
         secret:
           secretName: cluster-cloud-config
-      - name: push-script
+      - name: get-openstack-images-script
         configMap:
-          name: oci-images-cm
+          name: get-openstack-images-script
           defaultMode: 0777
           items:
-          - key: script.py
-            path: push-images-to-glance.py
+          - key: get-openstack-images.py
+            path: get-openstack-images.py
       - name: os-images-info
         configMap:
           name: os-images-info
@@ -83,14 +83,12 @@ spec:
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: ${JOB_NAME}-${JOB_TARGET_NAMESPACE:-sylva-system}-sa
-  namespace: ${JOB_TARGET_NAMESPACE}
+  name: get-openstack-images-sa
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  name: ${JOB_NAME}
-  namespace: ${JOB_TARGET_NAMESPACE}
+  name: get-openstack-images
 rules:
 - apiGroups: ["*"]
   resources: ["*"]
@@ -99,13 +97,11 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: ${JOB_NAME}
-  namespace: ${JOB_TARGET_NAMESPACE}
+  name: get-openstack-images
 subjects:
 - kind: ServiceAccount
-  name: ${JOB_NAME}-${JOB_TARGET_NAMESPACE:-sylva-system}-sa
-  namespace: ${JOB_TARGET_NAMESPACE}
+  name: get-openstack-images-sa
 roleRef:
   kind: Role
-  name: ${JOB_NAME}
+  name: get-openstack-images
   apiGroup: rbac.authorization.k8s.io

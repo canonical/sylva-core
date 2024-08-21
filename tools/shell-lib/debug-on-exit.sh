@@ -106,6 +106,7 @@ function format_and_sort_events() {
   yq "[.items[] |
        [.firstTimestamp // .eventTime,
         .lastTimestamp // .series.lastObservedTime // .firstTimestamp // .eventTime,
+	      .reportingComponent + \"-\" + .reportingInstance,
         .involvedObject.kind,
         $include_ns
         .involvedObject.name,

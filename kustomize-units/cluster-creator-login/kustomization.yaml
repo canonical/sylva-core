@@ -6,19 +6,17 @@ resources:
   - role.yaml
   - cluster-creator-global-role.yaml
 
-patches:
-  - path: delete-kube-job-cm.yaml
-  - path: delete-kube-cronjob-cm.yaml
-
 configMapGenerator:
-- name: '${JOB_NAME}-${JOB_TARGET_NAMESPACE:-sylva-system}-cm'
-  namespace: kube-job
+
+- name: kube-job-cm
+  behavior: merge
   options:
     disableNameSuffixHash: true
   files:
   - kube-job.sh=cluster-creator-login.sh
-- name: cluster-creator-renewal-cm
-  namespace: flux-system
+
+- name: kube-cronjob-cm
+  behavior: merge
   options:
     disableNameSuffixHash: true
   files:

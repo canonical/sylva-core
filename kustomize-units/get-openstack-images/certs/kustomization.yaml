@@ -14,7 +14,7 @@ patches:
         value:
           name: extra-ca-certs
           secret:
-            secretName: extra-ca-certs
+            secretName: extra-ca-certs-job-get-openstack-images
       - op: add
         path: /spec/template/spec/containers/0/volumeMounts/-
         value:

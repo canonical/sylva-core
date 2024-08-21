@@ -12,7 +12,6 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: os-images-info
-  namespace: ${TARGET_NAMESPACE}
   labels:
     sylva.os-images-info: ""
 data:
@@ -60,7 +59,6 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: os-images-info-max-size
-  namespace: ${TARGET_NAMESPACE}
 data:
   MAX_IMAGE_SIZE: ${MAX_IMAGE_SIZE}Mi
 EOF

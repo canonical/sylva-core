@@ -24,3 +24,5 @@ spec:
             #!/bin/sh
             kubectl get pods
 ```
+
+In practice this kustomization is used in sylva-units unit definitions, relying on the `kube-job` unit template.

@@ -165,14 +165,14 @@ unit_kustomization_spec_default: # default .spec for a Kustomization
 unit_helmrelease_spec_default:  # default for the .spec of a HelmRelease
   interval: 15m
   # Following ConfigMap won't add any value to the chart, it is used to prevent periodic reconciliation during the upgrades:
-  # As root-dependency-check-<n>-cm will be pruned when root-dependency-<n+1> will be reconciled, HelmRelease reconciliation
+  # As root-dependency-<n>-cm will be pruned when root-dependency-<n+1> will be reconciled, HelmRelease reconciliation
   # for a unit X will be blocked until the Kustomization controlling X reconciles and updates the valuesFrom
-  # to use root-dependency-check-<n+1>-cm ConfigMap
+  # to use root-dependency-<n+1>-cm ConfigMap
   valuesFrom:
   - >-
     {{ tuple (dict
           "kind" "ConfigMap"
-          "name" (print "root-dependency-check-" .Release.Revision "-cm")
+          "name" (print "root-dependency-" .Release.Revision "-cm")
           "valuesKey" "empty-value"
           "optional" false
        )
@@ -228,6 +228,89 @@ unit_templates:
         and (tuple . "cluster-machines-ready" | include "unit-enabled")
             (not (.Values._internal.cluster_machines_ready_unit_deps | has .Values._unit_name_))
         }}
+
+  # this unit template is used to define a unit inheriting from
+  # kustomize-units/kube-job
+  kube-job:
+    repo: sylva-core
+    kustomization_spec:
+      path: ./kustomize-units/kube-job
+      wait: true
+      force: true
+      postBuild:
+        substitute:
+          JOB_NAME: '{{ .Values._kustomization_name_ }}'
+          NAMESPACE: '{{ .Release.Namespace }}'
+          JOB_CHECKSUM: '{{ list .Values .Values._internal.sylva_core_version | toJson | sha256sum }}'  # can be overriden to use something more specific
+      _patches:
+      # the transformations below are necessary to change the ConfigMap name/namespace
+      # _because_ to avoid interferences between shell syntax and envsubst, we explicitely
+      # disable envsubst substitution in this resource (kustomize.toolkit.fluxcd.io/substitute: disabled)
+      - target:
+          kind: ConfigMap
+          labelSelector: kube-job=script
+        patch: |
+          - op: replace
+            path: /metadata/namespace
+            value: {{ .Values.units | dig .Values._unit_name_ "kustomization_spec" "postBuild" "substitute" "NAMESPACE" .Release.Namespace }}
+          - op: replace
+            path: /metadata/name
+            value: kube-job-{{ .Values._kustomization_name_ }}
+      - target:
+          kind: Job
+        patch: |
+          kind: Job
+          metadata:
+            name: _unused_
+          spec:
+            template:
+              spec:
+                volumes:
+                  - name: script-volume
+                    configMap:
+                      name: kube-job-{{ .Values._kustomization_name_ }}
+
+  kube-cronjob:
+    repo: sylva-core
+    kustomization_spec:
+      path: ./kustomize-units/kube-cronjob
+      wait: true
+      force: true
+      postBuild:
+        substitute:
+          CRONJOB_NAME: '{{ .Values._kustomization_name_ }}'
+          NAMESPACE: '{{ .Release.Namespace }}'
+          JOB_CHECKSUM: '{{ list .Values .Values._internal.sylva_core_version | toJson | sha256sum }}'  # can be overriden to use something more specific
+      _patches:
+      # the transformations below are necessary to change the ConfigMap name/namespace
+      # _because_ to avoid interferences between shell syntax and envsubst, we explicitely
+      # disable envsubst substitution in this resource (kustomize.toolkit.fluxcd.io/substitute: disabled)
+      - target:
+          kind: ConfigMap
+          labelSelector: kube-cronjob=script
+        patch: |
+          - op: replace
+            path: /metadata/namespace
+            value: {{ .Values.units | dig .Values._unit_name_ "kustomization_spec" "postBuild" "substitute" "NAMESPACE" .Release.Namespace }}
+          - op: replace
+            path: /metadata/name
+            value: kube-cronjob-{{ .Values._kustomization_name_ }}
+      - target:
+          kind: CronJob
+        patch: |
+          kind: CronJob
+          metadata:
+            name: _unused_
+          spec:
+            jobTemplate:
+              spec:
+                template:
+                  spec:
+                    volumes:
+                    - name: script-volume
+                      configMap:
+                        name: kube-cronjob-{{ .Values._kustomization_name_ }}
+
 
 # unit_definition_defaults is merged with each "units.x" before
 # it inherits from unit templates
@@ -301,25 +384,19 @@ units:
         ready before all other Kustomizations have been updated. All this ensures in a race-free way
         that during an update, units will be reconciled in an order matching dependency declarations.
       internal: true
+    unit_templates:
+    - kube-job
     # Note:
     # for this unit, the names of all resources produced must include .Release.Revision
     # or another string that is guaranteed to change for each new sylva-units
     # Helm release revision (or else the old and new Kustomization will control the same resource,
-    # which hence might get deleted when the old Kustomization is deleted), see DISCRIMINATOR below
-    repo: sylva-core
-    unit_templates: []
+    # which hence might get deleted when the old Kustomization is deleted), see use of .Values._kustomization_name_ below
     kustomization_name: root-dependency-{{ .Release.Revision }}
     labels:
       sylva-units/root-dependency-wait: null  # cancel the label set in unit_definition_defaults, because the root-dependency wait job should _not_ wait for this unit
     kustomization_spec:
-      path: ./kustomize-units/kube-job
-      wait: true
-      force: true
       postBuild:
         substitute:
-          JOB_NAME: root-dependency-check
-          DISCRIMINATOR: '-{{ .Release.Revision }}'  # needed to ensure that resources are distinct between root-dependency-<n> and root-dependency-<n+1>
-          JOB_TARGET_NAMESPACE: '{{ .Release.Namespace }}'
           JOB_CHECKSUM: '{{ .Release.Revision }}'
           RUNASUSER: '10000'
           RUNASGROUP: '10000'
@@ -330,17 +407,14 @@ units:
           kind: Job
         patch: |
           - op: add
-            path: /spec/template/spec/containers/0/env/-
+            path: /spec/template/spec/containers/0/env
             value:
-              name: HELM_REVISION
-              value: '{{ .Release.Revision }}'
+              - name: HELM_REVISION
+                value: '{{ .Release.Revision }}'
       - target:
           kind: ConfigMap
-          name: kube-job-cm
+          labelSelector: kube-job=script
         patch: |
-          - op: replace
-            path: /metadata/name
-            value: root-dependency-check-{{ .Release.Namespace }}-{{ .Release.Revision }}-cm
           - op: replace
             path: /data/kube-job.sh
             value: |
@@ -1446,21 +1520,17 @@ units:
       internal: true
     unit_templates:
     - base-deps
+    - kube-job
     enabled_conditions:
     - '{{ tuple . "flux-webui" | include "unit-enabled" }}'
     - '{{ tuple . "keycloak" | include "unit-enabled" }}'
-    repo: sylva-core
     depends_on:
       keycloak-resources: true
       keycloak: true  # defines the keycloak-initial-admin Secret used by the script
     kustomization_spec:
-      path: ./kustomize-units/kube-job
-      wait: true
-      force: true
+      targetNamespace: keycloak
       postBuild:
         substitute:
-          JOB_NAME: keycloak-add-client-scope-job
-          JOB_TARGET_NAMESPACE: keycloak
           RUNASUSER: '10000'
           RUNASGROUP: '10000'
       _patches:
@@ -1472,10 +1542,8 @@ units:
             value: 15
       - target:
           kind: ConfigMap
+          labelSelector: kube-job=script
         patch: |
-          - op: replace
-            path: /metadata/name
-            value: keycloak-add-client-scope-job-keycloak-cm
           - op: replace
             path: /data/kube-job.sh
             value: |
@@ -1491,20 +1559,16 @@ units:
       internal: true
     unit_templates:
     - base-deps
+    - kube-job
     enabled_conditions:
     - '{{ tuple . "keycloak" | include "unit-enabled" }}'
-    repo: sylva-core
     depends_on:
       keycloak-resources: true
       keycloak: true  # defines the keycloak-initial-admin Secret used by the script
     kustomization_spec:
-      path: ./kustomize-units/kube-job
-      wait: true
-      force: true
       postBuild:
         substitute:
-          JOB_NAME: keycloak-add-realm-role-job
-          JOB_TARGET_NAMESPACE: keycloak
+          NAMESPACE: keycloak
           RUNASUSER: '10000'
           RUNASGROUP: '10000'
       _patches:
@@ -1516,10 +1580,8 @@ units:
             value: 15
       - target:
           kind: ConfigMap
+          labelSelector: kube-job=script
         patch: |
-          - op: replace
-            path: /metadata/name
-            value: keycloak-add-realm-role-job-keycloak-cm
           - op: replace
             path: /data/kube-job.sh
             value: |
@@ -1533,21 +1595,17 @@ units:
       internal: true
     unit_templates:
     - base-deps
+    - kube-job
     enabled_conditions:
     - '{{ tuple . "keycloak" | include "unit-enabled" }}'
     - '{{ hasKey .Values.external_certificates "cacert" }}'
     depends_on:
       vault: true
       namespace-defs: true
-    repo: sylva-core
     kustomization_spec:
-      path: ./kustomize-units/kube-job
-      wait: true
-      force: true
       postBuild:
         substitute:
-          JOB_NAME: keycloak-add-truststore-job
-          JOB_TARGET_NAMESPACE: keycloak
+          NAMESPACE: keycloak
           CERTIFICATE_NAMESPACE: keycloak
       _components:
         - "../tls-components/sylva-ca"
@@ -1563,15 +1621,12 @@ units:
             value: 15
       - target:
           kind: ConfigMap
+          labelSelector: kube-job=script
         patch: |
-          - op: replace
-            path: /metadata/name
-            value: keycloak-add-truststore-job-keycloak-cm
           - op: replace
             path: /data/kube-job.sh
             value: |
           {{ .Files.Get "scripts/keycloak-add-truststore.sh" | indent 4 }}
-
 
   keycloak-oidc-external-secrets:
     info:
@@ -1901,18 +1956,10 @@ units:
       internal: true
     unit_templates:
     - base-deps
+    - kube-job
     enabled_conditions:
     - '{{ .Values._internal.capo_need_v1alpha8_fix }}'
-    repo: sylva-core
     kustomization_spec:
-      path: ./kustomize-units/kube-job
-      wait: true
-      force: true
-      postBuild:
-        substitute:
-          JOB_NAME: v1alpha8-crd-fix
-          JOB_TARGET_NAMESPACE: '{{ .Release.Namespace }}'
-          JOB_CHECKSUM: '{{ .Values | toJson | sha256sum }}'
       _patches:
       - target:
           kind: ClusterRole
@@ -1925,10 +1972,8 @@ units:
                 verbs: [list, get, patch]
       - target:
           kind: ConfigMap
+          labelSelector: kube-job=script
         patch: |
-          - op: replace
-            path: /metadata/name
-            value: v1alpha8-crd-fix-{{ .Release.Namespace }}-cm
           - op: replace
             path: /data/kube-job.sh
             value: |
@@ -1988,21 +2033,13 @@ units:
       internal: true
     unit_templates:
     - base-deps
+    - kube-job
     enabled_conditions:
     - '{{ .Values._internal.capo_need_v1alpha8_fix }}'
     depends_on:
       capo-v1alpha8-fix-resources: true
       kube-storage-version-migrator: true
-    repo: sylva-core
     kustomization_spec:
-      path: ./kustomize-units/kube-job
-      wait: true
-      force: true
-      postBuild:
-        substitute:
-          JOB_NAME: v1alpha8-clear
-          JOB_TARGET_NAMESPACE: '{{ .Release.Namespace }}'
-          JOB_CHECKSUM: '{{ .Values | toJson | sha256sum }}'
       _patches:
       - target:
           kind: ClusterRole
@@ -2018,10 +2055,8 @@ units:
                 verbs: [list, get, watch]
       - target:
           kind: ConfigMap
+          labelSelector: kube-job=script
         patch: |
-          - op: replace
-            path: /metadata/name
-            value: v1alpha8-clear-{{ .Release.Namespace }}-cm
           - op: replace
             path: /data/kube-job.sh
             value: |
@@ -2213,40 +2248,30 @@ units:
       internal: true
     unit_templates:
     - base-deps
+    - kube-job
     enabled_conditions:
     - '{{ .Values.cluster.capi_providers.infra_provider | eq "capm3" }}'
     - '{{ tuple . "longhorn" | include "unit-enabled" }}'
     - '{{ .Values._internal.metal3_need_automated_cleanup_fix }}'
-    repo: sylva-core
     kustomization_spec:
-      path: ./kustomize-units/kube-job
-      wait: true
-      force: true
-      postBuild:
-        substitute:
-          JOB_NAME: metal3-automated-cleanup-fix
-          JOB_TARGET_NAMESPACE: '{{ .Release.Namespace }}'
-          JOB_CHECKSUM: '{{ .Values | toJson | sha256sum }}'
       _patches:
       - target:
           kind: ConfigMap
+          labelSelector: kube-job=script
         patch: |
-          - op: replace
-            path: /metadata/name
-            value: metal3-automated-cleanup-fix-{{ .Release.Namespace }}-cm
           - op: replace
             path: /data/kube-job.sh
             value: |
               #!/bin/bash
               set -e
 
-              for Metal3MachineTemplate in $(kubectl get -n $TARGET_NAMESPACE metal3machinetemplates.infrastructure.cluster.x-k8s.io -o name); do
+              for Metal3MachineTemplate in $(kubectl get metal3machinetemplates.infrastructure.cluster.x-k8s.io -o name); do
                 echo "-- Setting automatedCleaningMode disabled in Metal3MachineTemplate $Metal3MachineTemplate"
-                kubectl patch -n $TARGET_NAMESPACE $Metal3MachineTemplate --type=json --patch '[{"op": "replace", "path": "/spec/template/spec/automatedCleaningMode", "value": "disabled"}]'
+                kubectl patch  $Metal3MachineTemplate --type=json --patch '[{"op": "replace", "path": "/spec/template/spec/automatedCleaningMode", "value": "disabled"}]'
               done
 
               echo "-- Waiting for all Metal3Machines to have automatedCleaningMode set to disabled"
-              kubectl wait -n $TARGET_NAMESPACE metal3Machine --all --timeout 300s --for='jsonpath={.spec.automatedCleaningMode}="disabled"'
+              kubectl wait metal3Machine --all --timeout 300s --for='jsonpath={.spec.automatedCleaningMode}="disabled"'
 
               echo "-- Sucessfully updated Metal3Machines automatedCleaningMode"
 
@@ -2594,37 +2619,24 @@ units:
       '{{ .Values._internal.calico_readiness_unit }}': '{{ and (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpk") (not .Release.IsUpgrade) }}'
       cluster: true
       cluster-ready: true  # no need to start waiting for anything until
-    unit_templates: []
-    repo: sylva-core
+    unit_templates:
+    - kube-job
     kustomization_spec:
-      path: ./kustomize-units/kube-job
-      wait: true
-      force: true
-      postBuild:
-        substitute:
-          JOB_NAME: cluster-machines-ready
-          JOB_TARGET_NAMESPACE: '{{ .Release.Namespace }}'
-          JOB_CHECKSUM: '{{ .Values | toJson | sha256sum }}'
       _patches:
       - target:
           kind: Job
         patch: |
           - op: add
-            path: /spec/template/spec/containers/0/env/-
+            path: /spec/template/spec/containers/0/env
             value:
-              name: WAIT_TIMEOUT
-              value: {{ .Values.cluster_machines_ready.wait_timeout }}
-          - op: add
-            path: /spec/template/spec/containers/0/env/-
-            value:
-              name: CONTROL_PLANE
-              value: {{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpk" | ternary "KubeadmControlPlane" "RKE2ControlPlane" }}
+              - name: WAIT_TIMEOUT
+                value: {{ .Values.cluster_machines_ready.wait_timeout }}
+              - name: CONTROL_PLANE
+                value: {{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpk" | ternary "KubeadmControlPlane" "RKE2ControlPlane" }}
       - target:
           kind: ConfigMap
+          labelSelector: kube-job=script
         patch: |
-          - op: replace
-            path: /metadata/name
-            value: cluster-machines-ready-{{ .Release.Namespace }}-cm
           - op: replace
             path: /data/kube-job.sh
             value: |
@@ -2633,55 +2645,55 @@ units:
 
               function exit_trap() {
                 echo "--- summary of resources"
-                kubectl -n $TARGET_NAMESPACE get $CONTROL_PLANE -l cluster.x-k8s.io/cluster-name={{ .Values.cluster.name }}
-                kubectl -n $TARGET_NAMESPACE get Machines -l cluster.x-k8s.io/cluster-name={{ .Values.cluster.name }}
+                kubectl get $CONTROL_PLANE -l cluster.x-k8s.io/cluster-name={{ .Values.cluster.name }}
+                kubectl get Machines -l cluster.x-k8s.io/cluster-name={{ .Values.cluster.name }}
               }
               trap exit_trap EXIT
 
               echo "--- waiting for control plane to be Ready..."
-              kubectl -n $TARGET_NAMESPACE wait $CONTROL_PLANE -l cluster.x-k8s.io/cluster-name={{ .Values.cluster.name }} --for condition=Ready --timeout $WAIT_TIMEOUT
+              kubectl wait $CONTROL_PLANE -l cluster.x-k8s.io/cluster-name={{ .Values.cluster.name }} --for condition=Ready --timeout $WAIT_TIMEOUT
 
-              CP_REPLICAS=$(kubectl -n $TARGET_NAMESPACE get $CONTROL_PLANE -l cluster.x-k8s.io/cluster-name={{ .Values.cluster.name }} -o jsonpath='{.items[0].spec.replicas}')
+              CP_REPLICAS=$(kubectl get $CONTROL_PLANE -l cluster.x-k8s.io/cluster-name={{ .Values.cluster.name }} -o jsonpath='{.items[0].spec.replicas}')
               echo "--- waiting for controlplane replicas ..."
-              kubectl -n $TARGET_NAMESPACE wait $CONTROL_PLANE -l cluster.x-k8s.io/cluster-name={{ .Values.cluster.name }} --for=jsonpath='{.status.replicas}'=$CP_REPLICAS --timeout $WAIT_TIMEOUT
+              kubectl wait $CONTROL_PLANE -l cluster.x-k8s.io/cluster-name={{ .Values.cluster.name }} --for=jsonpath='{.status.replicas}'=$CP_REPLICAS --timeout $WAIT_TIMEOUT
               echo "--- waiting for controlplane updatedreplicas ..."
-              kubectl -n $TARGET_NAMESPACE wait $CONTROL_PLANE -l cluster.x-k8s.io/cluster-name={{ .Values.cluster.name }} --for=jsonpath='{.status.updatedReplicas}'=$CP_REPLICAS --timeout $WAIT_TIMEOUT
-              CP_DELETION=$(kubectl -n $TARGET_NAMESPACE get machines -l cluster.x-k8s.io/cluster-name={{ .Values.cluster.name }} -l cluster.x-k8s.io/control-plane -o=jsonpath="{range .items[?(@.metadata.deletionTimestamp)]}{.metadata.name}{'\n'}{end}")
+              kubectl wait $CONTROL_PLANE -l cluster.x-k8s.io/cluster-name={{ .Values.cluster.name }} --for=jsonpath='{.status.updatedReplicas}'=$CP_REPLICAS --timeout $WAIT_TIMEOUT
+              CP_DELETION=$(kubectl get machines -l cluster.x-k8s.io/cluster-name={{ .Values.cluster.name }} -l cluster.x-k8s.io/control-plane -o=jsonpath="{range .items[?(@.metadata.deletionTimestamp)]}{.metadata.name}{'\n'}{end}")
               if [ -n "$CP_DELETION" ]; then
                 echo "--- waiting for controlplane machines with deletionTimestamp to be deleted..."
                 for machine in $CP_DELETION; do
-                  kubectl -n $TARGET_NAMESPACE wait --for=delete machine/$machine --timeout $WAIT_TIMEOUT
+                  kubectl wait --for=delete machine/$machine --timeout $WAIT_TIMEOUT
                 done
               fi
               echo "--- waiting for controlplane updatedreplicas ..."
-              kubectl -n $TARGET_NAMESPACE wait $CONTROL_PLANE -l cluster.x-k8s.io/cluster-name={{ .Values.cluster.name }} --for=jsonpath='{.status.updatedReplicas}'=$CP_REPLICAS --timeout $WAIT_TIMEOUT
+              kubectl wait $CONTROL_PLANE -l cluster.x-k8s.io/cluster-name={{ .Values.cluster.name }} --for=jsonpath='{.status.updatedReplicas}'=$CP_REPLICAS --timeout $WAIT_TIMEOUT
 
-              for MD in $(kubectl -n $TARGET_NAMESPACE get machinedeployments -l cluster.x-k8s.io/cluster-name={{ .Values.cluster.name }} -o jsonpath='{.items[*].metadata.name}'); do
-                REPLICAS=$(kubectl -n $TARGET_NAMESPACE get machinedeployment $MD -o jsonpath='{.spec.replicas}')
+              for MD in $(kubectl get machinedeployments -l cluster.x-k8s.io/cluster-name={{ .Values.cluster.name }} -o jsonpath='{.items[*].metadata.name}'); do
+                REPLICAS=$(kubectl get machinedeployment $MD -o jsonpath='{.spec.replicas}')
                 if [ $REPLICAS -gt 0 ]; then
                   echo "--- waiting for machinedeployment $MD to be Ready..."
-                  kubectl -n $TARGET_NAMESPACE wait machinedeployment $MD --for condition=Ready --timeout $WAIT_TIMEOUT
+                  kubectl wait machinedeployment $MD --for condition=Ready --timeout $WAIT_TIMEOUT
                   echo "---- waiting for updatedReplicas ..."
-                  kubectl -n $TARGET_NAMESPACE wait machinedeployment $MD --for=jsonpath='{.status.updatedReplicas}='$REPLICAS --timeout $WAIT_TIMEOUT
+                  kubectl wait machinedeployment $MD --for=jsonpath='{.status.updatedReplicas}='$REPLICAS --timeout $WAIT_TIMEOUT
                   echo "---- waiting for replicas ..."
-                  kubectl -n $TARGET_NAMESPACE wait machinedeployment $MD --for=jsonpath='{.status.replicas}='$REPLICAS --timeout $WAIT_TIMEOUT
+                  kubectl wait machinedeployment $MD --for=jsonpath='{.status.replicas}='$REPLICAS --timeout $WAIT_TIMEOUT
                   echo "---- waiting for readyReplicas ..."
-                  kubectl -n $TARGET_NAMESPACE wait machinedeployment $MD --for=jsonpath='{.status.readyReplicas}='$REPLICAS --timeout $WAIT_TIMEOUT
+                  kubectl wait machinedeployment $MD --for=jsonpath='{.status.readyReplicas}='$REPLICAS --timeout $WAIT_TIMEOUT
                   echo "---- waiting for unavailableReplicas ..."
-                  kubectl -n $TARGET_NAMESPACE wait machinedeployment $MD --for=jsonpath='{.status.unavailableReplicas}='0 --timeout $WAIT_TIMEOUT
+                  kubectl wait machinedeployment $MD --for=jsonpath='{.status.unavailableReplicas}='0 --timeout $WAIT_TIMEOUT
                   echo "---- waiting for Running phase ..."
-                  kubectl -n $TARGET_NAMESPACE wait machinedeployment $MD --for=jsonpath='{.status.phase}=Running' --timeout $WAIT_TIMEOUT
+                  kubectl wait machinedeployment $MD --for=jsonpath='{.status.phase}=Running' --timeout $WAIT_TIMEOUT
                 fi
               done
 
               echo "--- waiting for all machines to be Ready..."
-              kubectl -n $TARGET_NAMESPACE wait Machine -l cluster.x-k8s.io/cluster-name={{ .Values.cluster.name }} --for condition=Ready --timeout $WAIT_TIMEOUT
+              kubectl wait Machine -l cluster.x-k8s.io/cluster-name={{ .Values.cluster.name }} --for condition=Ready --timeout $WAIT_TIMEOUT
 
               echo "--- waiting for all machines to have a provider id (unset if the Node has not joined the cluster)..."
-              kubectl -n $TARGET_NAMESPACE wait Machine -l cluster.x-k8s.io/cluster-name={{ .Values.cluster.name }} --for=jsonpath='{.spec.providerID}' --timeout $WAIT_TIMEOUT
+              kubectl wait Machine -l cluster.x-k8s.io/cluster-name={{ .Values.cluster.name }} --for=jsonpath='{.spec.providerID}' --timeout $WAIT_TIMEOUT
 
               echo "--- waiting for all machines to have a nodeRef (reflects the fact that the Node has joined the cluster)..."
-              kubectl -n $TARGET_NAMESPACE wait Machine -l cluster.x-k8s.io/cluster-name={{ .Values.cluster.name }} --for=jsonpath='{.status.nodeRef.name}' --timeout $WAIT_TIMEOUT
+              kubectl wait Machine -l cluster.x-k8s.io/cluster-name={{ .Values.cluster.name }} --for=jsonpath='{.status.nodeRef.name}' --timeout $WAIT_TIMEOUT
 
   heat-operator:
     info:
@@ -3038,7 +3050,7 @@ units:
         - apiVersion: v1
           kind: Secret
           name: cluster-creator-secret
-          namespace: flux-system
+          namespace: sylva-system
         - >-
           {{ tuple (dict
                 "apiVersion" "v1"
@@ -4355,14 +4367,10 @@ units:
     - '{{ tuple . "longhorn" | include "unit-enabled" }}'
     unit_templates:
     - base-deps
-    repo: sylva-core
+    - kube-cronjob
     kustomization_spec:
-      path: ./kustomize-units/kube-cronjob
-      wait: true
-      force: true
       postBuild:
         substitute:
-          CRONJOB_NAME: longhorn-instance-manager-cleanup
           NAMESPACE: longhorn-system
       _patches:
       - target:
@@ -4382,13 +4390,8 @@ units:
                 verbs: [list, get, patch]
       - target:
           kind: ConfigMap
+          labelSelector: kube-cronjob=script
         patch: |
-          - op: replace
-            path: /metadata/name
-            value: longhorn-instance-manager-cleanup-cm
-          - op: replace
-            path: /metadata/namespace
-            value: longhorn-system
           - op: replace
             path: /data/kube-cronjob.sh
             value: |
@@ -4482,43 +4485,40 @@ units:
       internal: true
     unit_templates:
     - base-deps
+    - kube-job
+    - kube-cronjob
     enabled_conditions:
     - '{{ tuple . "rancher" | include "unit-enabled" }}'
     depends_on:
       rancher: true
       first-login-rancher: true
-    repo: sylva-core
     kustomization_spec:
-      path: ./kustomize-units/cluster-creator-login
-      wait: false
-      force: true
+      path: ./kustomize-units/cluster-creator-login  # inherits from kustomize-units/kube-job and kustomize-units/kube-cronjob
       postBuild:
         substitute:
-          JOB_NAME: cluster-creator-login
           CRONJOB_NAME: cluster-creator-renewal
-          JOB_TARGET_NAMESPACE: flux-system
-          NAMESPACE: flux-system
-          JOB_CHECKSUM: '{{ .Values | toJson | sha256sum }}'
       _patches:
+        # this patch adjusts the cron schedule
         - target:
             kind: CronJob
           patch: |
             - op: replace
               path: /spec/schedule
               value: "24 4 */10 * *" # this cron needs to be adjusted if kubeconfig-default-token-ttl-minutes Rancher setting changes from the default (43200 minutes)
+      wait: false
       healthChecks:
         - apiVersion: v1
           kind: Secret
           name: cluster-creator-kubeconfig
-          namespace: flux-system
+          namespace: '{{ .Release.Namespace }}'
         - apiVersion: batch/v1
           kind: Job
-          name: cluster-creator-login-flux-system
-          namespace: kube-job
+          name: cluster-creator-login
+          namespace: '{{ .Release.Namespace }}'
         - apiVersion: batch/v1
           kind: CronJob
           name: cluster-creator-renewal
-          namespace: flux-system
+          namespace: '{{ .Release.Namespace }}'
 
   cluster-creator-policy:
     info:
@@ -4548,22 +4548,18 @@ units:
         This unit creates a configmap containing the os images (and their details in the case of Sylva diskimage-builder ones)
         to be further served by os-image-server
       internal: true
-    repo: sylva-core
     enabled_conditions:
       - '{{ or (tuple . "capm3" | include "unit-enabled") (.Values.cluster.capi_providers.infra_provider | eq "capo") }}'
     unit_templates:
     - base-deps
+    - kube-job
     kustomization_spec:
-      path: ./kustomize-units/kube-job
-      force: true
       _components:
       - '{{ tuple "./components/certs" (not .Values.oci_registry_insecure) | include "set-only-if" }}'
       postBuild:
         substitute:
-          JOB_NAME: create-image-info
-          JOB_TARGET_NAMESPACE: '{{ .Release.Namespace }}'
-          JOB_CHECKSUM: >-
-            '{{
+          JOB_CHECKSUM: |
+            {{
             list
               .Values._internal.sylva_core_version
               (include "generate-os-images" .)
@@ -4571,7 +4567,7 @@ units:
               (index (tuple . .Values.no_proxy_additional | include "interpret-inner-gotpl" | fromJson) "result")
               .Values.oci_registry_insecure
             | toJson | sha256sum | trunc 8
-            }}'
+            }}
           EXTRA_CA_CERTS: '{{ tuple (.Values.oci_registry_extra_ca_certs | default "" | b64enc) (not .Values.oci_registry_insecure) | include "set-only-if" }}'
       _patches:
         - target:
@@ -4582,42 +4578,32 @@ units:
               # renovate: datasource=docker
               value: registry.gitlab.com/sylva-projects/sylva-elements/container-images/oci-tools:0.0.13
             - op: add
-              path: /spec/template/spec/containers/0/env/-
+              path: /spec/template/spec/containers/0/env
               value:
-                name: https_proxy
+              - name: https_proxy
                 value: '{{ .Values.proxies.https_proxy }}'
-            - op: add
-              path: /spec/template/spec/containers/0/env/-
-              value:
-                name: no_proxy
+              - name: no_proxy
                 value: '{{ include "sylva-units.no_proxy" (tuple .) }}'
-            - op: add
-              path: /spec/template/spec/containers/0/env/-
-              value:
-                name: oci_registry_insecure
+              - name: oci_registry_insecure
                 value: '{{ .Values.oci_registry_insecure }}'
         - target:
             kind: ConfigMap
-          patch: >-
-            - op: replace
-              path: /metadata/name
-              value: create-image-info-{{ .Release.Namespace }}-cm
+            labelSelector: kube-job=script
+          patch: |
             - op: replace
               path: /data/kube-job.sh
               value: |
             {{ .Files.Get "scripts/create-os-images-info.sh" | indent 4 }}
-        - target:
-            kind: ConfigMap
-          patch: >-
             - op: add
               path: /data/images.yaml
               value: |
             {{ include "generate-os-images" . | indent 4}}
+      wait: false
       healthChecks:
         - apiVersion: batch/v1
           kind: Job
-          name: create-image-info-{{ .Release.Namespace }}
-          namespace: kube-job
+          name: os-images-info
+          namespace: '{{ .Release.Namespace }}'
         - apiVersion: v1
           kind: ConfigMap
           name: os-images-info
@@ -6018,7 +6004,8 @@ units:
 
   get-openstack-images:
     info:
-      description: Automatically push openstack images to cinder
+      description: Automatically push openstack images to Glance
+      details: Pushes OS images to Glance, if needed, and retrieves their UUIDs for use in cluster unit
       internal: true
     unit_templates:
     - base-deps
@@ -6034,16 +6021,15 @@ units:
       force: true
       _components:
       - '{{ tuple "./certs" (and (not .Values.oci_registry_insecure) (.Values.oci_registry_extra_ca_certs)) | include "set-only-if" }}'
+      targetNamespace: '{{ .Release.Namespace }}'
       postBuild:
         substituteFrom:
           - kind: ConfigMap
             name: os-images-info-max-size
         substitute:
-          JOB_NAME: get-openstack-images
-          JOB_TARGET_NAMESPACE: '{{ .Release.Namespace }}'
           JOB_INSECURE_CLIENT: '{{ .Values.oci_registry_insecure | quote }}'
-          JOB_CHECKSUM:
-            '{{
+          JOB_CHECKSUM: |
+            {{
             list
               .Values._internal.sylva_core_version
               (mergeOverwrite (deepCopy .Values.os_images) .Values.sylva_diskimagebuilder_images)
@@ -6051,7 +6037,7 @@ units:
               .Values.sylva_base_oci_registry
               .Values.proxies
             | toJson | sha256sum
-            }}'
+            }}
           httpProxy: '{{ .Values.proxies.https_proxy }}'
           httpsProxy: '{{ .Values.proxies.https_proxy }}'
           noProxy: '{{ include "sylva-units.no_proxy" (tuple .) }}'
@@ -6723,7 +6709,7 @@ _internal:
     {{- end -}}
     {{- $result -}}
 
-  previous_values: '{{ lookup "v1" "Secret" .Release.Namespace "sylva-units-values" | dig "data" "values" "" | b64dec | fromYaml | default dict | include "preserve-type" }}'
+  previous_values: '{{ omit (lookup "v1" "Secret" .Release.Namespace "sylva-units-values" | dig "data" "values" "" | b64dec | fromYaml | default dict) "unit_templates" | include "preserve-type" }}'
 
   immutable_values:
     cluster:

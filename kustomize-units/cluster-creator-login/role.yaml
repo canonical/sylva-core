@@ -2,7 +2,7 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  name: ${JOB_NAME}-job
+  name: cluster-creator-login-rancher-secret
   namespace: cattle-system
 rules:
 - apiGroups: [""]
@@ -13,38 +13,27 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: ${JOB_NAME}-job-binding
+  name: cluster-creator-login-rancher-secret-job
   namespace: cattle-system
 subjects:
 - kind: ServiceAccount
-  name: ${JOB_NAME}-${JOB_TARGET_NAMESPACE:-sylva-system}-sa
-  namespace: kube-job
+  name: ${JOB_NAME}-sa
+  namespace: sylva-system
 roleRef:
   kind: Role
-  name: ${JOB_NAME}-job
+  name: cluster-creator-login-rancher-secret
   apiGroup: rbac.authorization.k8s.io
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
-metadata:
-  name: ${CRONJOB_NAME}-cronjob
-  namespace: cattle-system
-rules:
-- apiGroups: [""]
-  resources: ["secrets"]
-  resourceNames: ["rancher-bootstrap-secret"]
-  verbs: ["get"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: ${CRONJOB_NAME}-cronjob
+  name: cluster-creator-login-rancher-secret-cronjob
   namespace: cattle-system
 subjects:
 - kind: ServiceAccount
   name: ${CRONJOB_NAME}-sa
-  namespace: flux-system
+  namespace: sylva-system
 roleRef:
   kind: Role
-  name: ${CRONJOB_NAME}-cronjob
+  name: cluster-creator-login-rancher-secret
   apiGroup: rbac.authorization.k8s.io

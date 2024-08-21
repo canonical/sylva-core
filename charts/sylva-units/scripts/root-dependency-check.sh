@@ -2,7 +2,7 @@
 #
 # See 'root-dependency' unit for context about what this script does.
 #
-# This script checks that all Kustomizations in $TARGET_NAMESPACE have been
+# This script checks that all Kustomizations have been
 # freshly updated for the current revision of the Helm release of sylva-units
 # and are waiting on their dependency on the corresponding 'root-dependency-<n>'
 # Kustomization to be ready.
@@ -26,11 +26,11 @@ WAIT_TIMEOUT=${WAIT_TIMEOUT:-60s}
 # if one of the 'kubectl wait' fails
 function error_trap() {
     echo "--- summary of resources"
-    kubectl -n $TARGET_NAMESPACE get Kustomizations -l sylva-units/root-dependency-wait
+    kubectl get Kustomizations -l sylva-units/root-dependency-wait
 }
 trap error_trap ERR
 
 echo "--- waiting for Kustomizations to be labeled with sylva-units-helm-revision=$HELM_REVISION"
 
-kubectl -n $TARGET_NAMESPACE wait Kustomization -l sylva-units/root-dependency-wait --timeout $WAIT_TIMEOUT \
+kubectl wait Kustomization -l sylva-units/root-dependency-wait --timeout $WAIT_TIMEOUT \
   --for=jsonpath="{.metadata.annotations.sylva-units-helm-revision}=$HELM_REVISION"

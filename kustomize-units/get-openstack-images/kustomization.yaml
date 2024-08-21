@@ -3,10 +3,11 @@ kind: Kustomization
 resources:
   - job.yaml
 configMapGenerator:
-  - name: oci-images-cm
-    namespace: ${JOB_TARGET_NAMESPACE}
+  - name: get-openstack-images-script
     behavior: create
     files:
-      - script.py=./push-images-to-glance.py
+      - get-openstack-images.py=./get-openstack-images.py
     options:
       disableNameSuffixHash: true
+      annotations:
+        kustomize.toolkit.fluxcd.io/substitute: disabled
