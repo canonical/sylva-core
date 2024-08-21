@@ -916,6 +916,32 @@
                   "type": "null"
                 }
               ]
+            },
+            "additionalBlockDevices": {
+              "anyOf": [
+                {
+                  "type": "array"
+                },
+                {
+                  "$ref": "#/$defs/string-with-gotpl"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "default_longhorn_disks_config": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "$ref": "#/$defs/string-with-gotpl"
+                },
+                {
+                  "type": "null"
+                }
+              ]
             }
           }
         },
@@ -2785,6 +2811,32 @@
                         }
                       ]
                     },
+                    "additionalBlockDevices": {
+                      "anyOf": [
+                        {
+                          "type": "array"
+                        },
+                        {
+                          "$ref": "#/$defs/string-with-gotpl"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "default_longhorn_disks_config": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "$ref": "#/$defs/string-with-gotpl"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
                     "failure_domain": {
                       "anyOf": [
                         {
@@ -3666,6 +3718,32 @@
                     }
                   ]
                 },
+                "additionalBlockDevices": {
+                  "anyOf": [
+                    {
+                      "type": "array"
+                    },
+                    {
+                      "$ref": "#/$defs/string-with-gotpl"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "default_longhorn_disks_config": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "$ref": "#/$defs/string-with-gotpl"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
                 "control_plane_az": {
                   "anyOf": [
                     {
@@ -3739,6 +3817,19 @@
                   "anyOf": [
                     {
                       "type": "string"
+                    },
+                    {
+                      "$ref": "#/$defs/string-with-gotpl"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "enable_longhorn": {
+                  "anyOf": [
+                    {
+                      "type": "boolean"
                     },
                     {
                       "$ref": "#/$defs/string-with-gotpl"
@@ -5744,6 +5835,32 @@
                                   ]
                                 }
                               }
+                            },
+                            {
+                              "$ref": "#/$defs/string-with-gotpl"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "additionalBlockDevices": {
+                          "anyOf": [
+                            {
+                              "type": "array"
+                            },
+                            {
+                              "$ref": "#/$defs/string-with-gotpl"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "default_longhorn_disks_config": {
+                          "anyOf": [
+                            {
+                              "type": "string"
                             },
                             {
                               "$ref": "#/$defs/string-with-gotpl"
