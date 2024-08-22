@@ -7,7 +7,8 @@ include:
   - local: .gitlab/ci/templates-deployments.yml
 
 variables:
-  CAPO_PLATFORM_TAG: capo-ci
+  CAPO_PLATFORM_TAG: capo-infra-rocket
+  PRIVATE_RUNNER_CONTEXT: rocket
   # if a deploy job sets this to "even" (resp. "odd"), the job will automatically trigger
   # for any MR having an even MR number and the run-e2e-tests label
   E2E_JOB_MR_PARITY: any
@@ -338,6 +339,8 @@ capo-fip-kubeadm-oci-ubuntu:
     WC_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/capo-fip.yml
     MGMT_WATCH_TIMEOUT_MIN: 20
     E2E_JOB_MR_PARITY: none
+    CAPO_PLATFORM_TAG: capo-infra-falcon
+    PRIVATE_RUNNER_CONTEXT: falcon
   trigger:
     include: .gitlab/ci/pipeline-deploy-capo.yml
     strategy: depend
