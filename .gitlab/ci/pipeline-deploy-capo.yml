@@ -21,10 +21,9 @@ default:
     yq -i '.cluster.capo.resources_tag = strenv(CAPO_TAG)' $values_file
     # The PRIVATE variables below are set in the gitlab runner configuration
     # and allow to enable extra values needed in the context of the platform on which this test actually runs
-    PRIVATE_RUNNER_CONTEXT=falcon   # Temporary: to be set at runner level
     echo "Applying private $PRIVATE_RUNNER_CONTEXT values"
     PRIVATE_RUNNER_VALUES_PATH=${CI_PROJECT_DIR}/${SYLVA_CI_VALUES_FOLDER}/private/${PRIVATE_RUNNER_CONTEXT}-base
-    # decypher falcon secret and apply them with values into extra kustomize component
+    # decypher runner secret and apply them with values into extra kustomize component
     sops -d ${PRIVATE_RUNNER_VALUES_PATH}/secrets.enc.yaml > ${PRIVATE_RUNNER_VALUES_PATH}/secrets.yaml
     export EXTRA_COMPONENT="$(realpath ${PRIVATE_RUNNER_VALUES_PATH} --relative-to $ENV_PATH)"
     echo EXTRA_COMPONENT=$EXTRA_COMPONENT
