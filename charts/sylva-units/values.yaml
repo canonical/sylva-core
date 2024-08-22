@@ -4920,7 +4920,7 @@ units:
       chart:
         spec:
           chart: redis-cluster
-          version: 11.0.2
+          version: 11.0.3
       targetNamespace: gitea
       releaseName: gitea-redis
       values:
