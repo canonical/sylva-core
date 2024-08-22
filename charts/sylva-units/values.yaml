@@ -5315,6 +5315,29 @@ units:
                 runAsNonRoot: true
                 seccompProfile:
                   type: RuntimeDefault
+            - servers: 4
+              name: pool-monitoring
+              volumesPerserver: 4
+              size: 10Gi
+              storageClassName: '{{ tuple . (tuple . "single-replica-storageclass" | include "unit-enabled") "single-replica-storageclass" .Values._internal.default_storage_class | include "interpret-ternary" }}'
+              containerSecurityContext:
+                runAsUser: 1000
+                runAsGroup: 1000
+                runAsNonRoot: true
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop:
+                    - ALL
+                seccompProfile:
+                  type: RuntimeDefault
+              securityContext:
+                runAsUser: 1000
+                runAsGroup: 1000
+                fsGroup: 1000
+                fsGroupChangePolicy: "OnRootMismatch"
+                runAsNonRoot: true
+                seccompProfile:
+                  type: RuntimeDefault
           metrics:
             enabled: true
           env:
