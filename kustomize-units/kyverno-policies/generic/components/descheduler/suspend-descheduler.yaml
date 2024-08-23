@@ -1,0 +1,38 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: disable-descheduler
+  annotations:
+    kustomize.toolkit.fluxcd.io/force: Enabled
+spec:
+  mutateExistingOnPolicyUpdate: true
+  rules:
+  - name: suspend-descheduler-cronjob
+    match:
+      any:
+      - resources:
+          kinds:
+          - Kustomization
+          names:
+          - cluster-machines-ready
+          namespaces:
+          - sylva-system
+    preconditions:
+      all:
+      - key: "{{ request.object.metadata.generation }}"
+        operator: NotEquals
+        value: "{{ request.object.status.observedGeneration }}"
+    mutate:
+      targets:
+        - apiVersion: batch/v1
+          kind: CronJob
+          name: descheduler
+          namespace: kube-system
+        - apiVersion: batch/v1
+          kind: Job
+          name: "descheduler-*"
+          namespace: kube-system
+      patchStrategicMerge:
+        spec:
+          suspend: true
+

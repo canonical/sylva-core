@@ -1688,6 +1688,11 @@ units:
           rbac:
             clusterRole:
               extraResources:
+              - apiGroups: ["batch"]
+                resources:
+                  - "cronjobs"
+                  - "jobs"
+                verbs: ["get", "list", "patch", "update", "watch"]
               - apiGroups: ["apps"]
                 resources:
                   - "deployments"
@@ -1753,6 +1758,7 @@ units:
       _components:
         - '{{ tuple "components/management-cluster-only" .Values._internal.mgmt_cluster | include "set-only-if" }}'
         - '{{ tuple "components/capm3-patch-bond-policy" (tuple . "capm3" | include "unit-enabled") | include "set-only-if" }}'
+        - '{{ tuple "components/descheduler" (tuple . "descheduler" | include "unit-enabled") | include "set-only-if" }}'
 
   rancher-monitoring-clusterid-inject:
     info:
@@ -6030,6 +6036,52 @@ units:
           # compute total timeout based on per-image timeout and number of images
           ACTIVE_DEADLINE_SECONDS: '{{ mul .Values.get_openstack_images_per_image_timeout_minutes 60 (include "generate-os-images" . | fromYaml | dig "os_images" dict | len) }}'
           EXTRA_CA_CERTS: '{{ tuple (.Values.oci_registry_extra_ca_certs | default "" | b64enc) (not .Values.oci_registry_insecure) | include "set-only-if" }}'
+
+  descheduler:
+    info:
+      description: install descheduler
+    enabled: false
+    unit_templates:
+    - base-deps
+    helm_repo_url: https://kubernetes-sigs.github.io/descheduler/
+    helmrelease_spec:
+      releaseName: descheduler
+      targetNamespace: kube-system
+      chart:
+        spec:
+          chart: descheduler
+          version: 0.30.0
+      values:
+        kind: CronJob
+        schedule: "*/10 * * * *"
+        deschedulerPolicy:
+          profiles:
+            - name: sylva
+              pluginConfig:
+                - name: RemoveDuplicates
+                - name: RemovePodsHavingTooManyRestarts
+                  args:
+                    podRestartThreshold: 100
+                    includingInitContainers: true
+                - name: LowNodeUtilization
+                  args:
+                    useDeviationThresholds: true
+                    thresholds:
+                      cpu: 20
+                      memory: 20
+                      pods: 20
+                    targetThresholds:
+                      cpu: 60
+                      memory: 60
+                      pods: 50
+              plugins:
+                balance:
+                  enabled:
+                    - RemoveDuplicates
+                    - LowNodeUtilization
+                  deschedule:
+                    enabled:
+                      - RemovePodsHavingTooManyRestarts
 
 ##### stuff related to the 'cluster' unit #####
 #
