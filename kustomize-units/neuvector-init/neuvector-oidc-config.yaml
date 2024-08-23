@@ -6,7 +6,7 @@ metadata:
    namespace: neuvector
 spec:
    secretStoreRef:
-      name: eso-store-k8s-keycloak
+      name: eso-store-k8s-crossplane
       kind: ClusterSecretStore
    target:
       creationPolicy: Orphan
@@ -30,4 +30,4 @@ spec:
    - secretKey: clientSecret
      remoteRef:
         key: keycloak-client-secret-neuvector-client
-        property: CLIENT_SECRET
+        property: attribute.client_secret

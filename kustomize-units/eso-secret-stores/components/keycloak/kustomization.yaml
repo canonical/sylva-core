@@ -3,3 +3,4 @@ kind: Component
 
 resources:
   - kubernetes-keycloak-ns-secretstore.yaml
+  - kubernetes-crossplane-ns-secretstore.yaml

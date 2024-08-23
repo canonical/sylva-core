@@ -7,11 +7,11 @@ spec:
   refreshInterval: 1h
   secretStoreRef:
     kind: ClusterSecretStore
-    name: eso-store-k8s-keycloak
+    name: eso-store-k8s-crossplane
   target:
     name: keycloakoidcconfig-clientsecret # name of the k8s Secret to be created in the same namespace as ExternalSecret
   data:
   - secretKey: clientSecret
     remoteRef:
       key: keycloak-client-secret-rancher-client # this secret is a byproduct of the rancher-client KeycloakClient resource
-      property: CLIENT_SECRET
+      property: attribute.client_secret

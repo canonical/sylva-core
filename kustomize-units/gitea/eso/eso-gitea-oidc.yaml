@@ -11,20 +11,16 @@ spec:
   refreshInterval: 1h
   secretStoreRef:
     kind: ClusterSecretStore
-    name: eso-store-k8s-keycloak
+    name: eso-store-k8s-crossplane
   target:
     name: gitea-keycloak-oidc-auth # name of the k8s Secret to be created in the same namespace as ExternalSecret
     template:
       engineVersion: v2
       data:
         secret: "{{ .clientSecret }}"
-        key: "{{ .clientID }}"
+        key: gitea
   data:
     - secretKey: clientSecret
       remoteRef:
         key: keycloak-client-secret-gitea-client # this secret is a byproduct of the gitea-client KeycloakClient resource
-        property: CLIENT_SECRET
-    - secretKey: clientID
-      remoteRef:
-        key: keycloak-client-secret-gitea-client
-        property: CLIENT_ID
+        property: attribute.client_secret

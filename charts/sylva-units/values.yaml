@@ -1089,7 +1089,7 @@ units:
     unit_templates:
     - base-deps
     depends_on:
-      keycloak-resources: true
+      crossplane-resources: true
       vault: true
       vault-config-operator: true
     repo: sylva-core
@@ -1207,7 +1207,7 @@ units:
       vault: true
       vault-config-operator: true
       kyverno: true
-      keycloak-add-client-scope: true
+      #keycloak-add-client-scope: true
       keycloak-oidc-external-secrets: true
     repo: sylva-core
     kustomization_substitute_secrets:
@@ -1356,6 +1356,35 @@ units:
           name: neuvector-controller-pod
           namespace: neuvector
 
+  crossplane-external-secrets:
+    info:
+      description: configures external secrets for Crossplane resources
+      internal: true
+    unit_templates:
+    - base-deps
+    enabled_conditions:
+    - '{{ tuple . "keycloak" | include "unit-enabled" }}'
+    depends_on:
+      keycloak: true
+      eso-secret-stores: true
+    repo: sylva-core
+    kustomization_spec:
+      path: ./kustomize-units/crossplane-external-secrets
+      wait: false
+      healthChecks:
+        - apiVersion: v1
+          kind: Secret
+          name: keycloak-internal-tls
+          namespace: crossplane-system
+        - apiVersion: v1
+          kind: Secret
+          name: keycloak-provider-secret
+          namespace: crossplane-system
+       - apiVersion: v1
+          kind: Secret
+          name: keycloak-initial-admin
+          namespace: sylva-system
+
   crossplane:
     info:
       description: Installs Crossplane with RBAC Manager
@@ -1365,7 +1394,7 @@ units:
     depends_on:
       namespace-defs: true
       keycloak: true
-      keycloak-oidc-external-secrets: true
+      crossplane-external-secrets: true
     helm_repo_url: https://charts.crossplane.io/stable
     helmrelease_spec:
       releaseName: crossplane
@@ -1446,8 +1475,7 @@ units:
     - base-deps
     depends_on:
       keycloak: true
-      keycloak-resources: true
-      keycloak-oidc-external-secrets: true
+      crossplane-external-secrets: true
     enabled_conditions:
       - '{{ tuple . "crossplane" | include "unit-enabled" }}'
     repo: sylva-core
@@ -1510,6 +1538,7 @@ units:
     depends_on:
       crossplane-init: true
       crossplane: true
+      crossplane-external-secrets: true
     repo: sylva-core
     kustomization_substitute_secrets:
       SSO_PASSWORD: '{{ .Values.admin_password }}'
@@ -1677,7 +1706,7 @@ units:
     - '{{ tuple . "keycloak" | include "unit-enabled" }}'
     depends_on:
       keycloak: true
-      keycloak-legacy-operator: true
+        #keycloak-legacy-operator: true
     repo: sylva-core
     kustomization_substitute_secrets:
       SSO_PASSWORD: '{{ .Values.admin_password }}'
@@ -1729,7 +1758,7 @@ units:
     - '{{ tuple . "flux-webui" | include "unit-enabled" }}'
     - '{{ tuple . "keycloak" | include "unit-enabled" }}'
     depends_on:
-      keycloak-resources: true
+      crossplane-resources: true
       keycloak: true  # defines the keycloak-initial-admin Secret used by the script
     kustomization_spec:
       targetNamespace: keycloak
@@ -1767,7 +1796,7 @@ units:
     enabled_conditions:
     - '{{ tuple . "keycloak" | include "unit-enabled" }}'
     depends_on:
-      keycloak-resources: true
+      crossplane-resources: true
       keycloak: true  # defines the keycloak-initial-admin Secret used by the script
     kustomization_spec:
       postBuild:
@@ -1842,8 +1871,8 @@ units:
     - '{{ tuple . "keycloak" | include "unit-enabled" }}'
     depends_on:
       keycloak: true
-      keycloak-legacy-operator: true
-      keycloak-resources: true
+        #keycloak-legacy-operator: true
+      crossplane-resources: true
       eso-secret-stores: true
     repo: sylva-core
     kustomization_spec:
@@ -3445,7 +3474,7 @@ units:
     depends_on:
       rancher: true
       keycloak: true
-      keycloak-resources: true
+      crossplane-resources: true
       keycloak-oidc-external-secrets: true
     kustomization_spec:
       path: ./kustomize-units/rancher-keycloak-oidc-provider
@@ -3712,7 +3741,7 @@ units:
       flux-system: true
       ingress-nginx: '{{ tuple . "ingress-nginx" | include "unit-enabled" }}'
       coredns: '{{ tuple . "keycloak" | include "unit-enabled" }}' # see https://gitlab.com/sylva-projects/sylva-core/-/merge_requests/1023#note_1694289969
-      keycloak-add-client-scope: '{{ tuple . "keycloak" | include "unit-enabled" }}'
+        #keycloak-add-client-scope: '{{ tuple . "keycloak" | include "unit-enabled" }}'
       keycloak-oidc-external-secrets: '{{ tuple . "keycloak" | include "unit-enabled" }}'
       flux-webui-init: true
     annotations:
@@ -5146,8 +5175,8 @@ units:
     - base-deps
     depends_on:
       keycloak: true
-      keycloak-legacy-operator: true
-      keycloak-resources: true
+        #keycloak-legacy-operator: true
+      crossplane-resources: true
     repo: sylva-core
     kustomization_spec:
       path: ./kustomize-units/gitea/keycloak-resources
