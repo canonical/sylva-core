@@ -1207,7 +1207,6 @@ units:
       vault: true
       vault-config-operator: true
       kyverno: true
-      #keycloak-add-client-scope: true
       keycloak-oidc-external-secrets: true
     repo: sylva-core
     kustomization_substitute_secrets:
@@ -1492,6 +1491,7 @@ units:
         substitute:
           JOB_NAME: get-keycloak-resource-uuids
           JOB_TARGET_NAMESPACE: '{{ .Release.Namespace }}'
+          JOB_CHECKSUM: '{{ .Values | toJson | sha256sum }}'
 
   crossplane-init:
     info:
@@ -1542,7 +1542,8 @@ units:
       crossplane-external-secrets: true
     repo: sylva-core
     kustomization_substitute_secrets:
-      SSO_PASSWORD: '{{ .Values.admin_password }}'
+      #SSO_PASSWORD: '{{ .Values._internal.default_password | b64enc }}'
+      SSO_PASSWORD: '{{ tpl .Values.admin_password . | b64enc }}'
     kustomization_spec:
       path: ./kustomize-units/crossplane-resources
       targetNamespace: crossplane-system
@@ -1658,170 +1659,6 @@ units:
             kind: Deployment
             name: keycloak-operator
 
-  keycloak-legacy-operator:
-    info:
-      description: installs Keycloak "legacy" operator
-      maturity: stable
-    unit_templates:
-    - base-deps
-    enabled_conditions:
-    - '{{ tuple . "keycloak" | include "unit-enabled" }}'
-    depends_on:
-      vault-secrets: true  # the credential-external-keycloak Secret use by the legacy operator is generated from ES/Vault secret/data/keycloak
-      keycloak: true
-    repo: sylva-core
-    kustomization_spec:
-      path: ./kustomize-units/keycloak-legacy-operator
-      targetNamespace: keycloak
-      wait: true
-      _patches:
-        - patch: |
-            apiVersion: apps/v1
-            kind: Deployment
-            metadata:
-              name: keycloak-realm-operator
-            spec:
-              template:
-                spec:
-                  containers:
-                    - name: keycloak-realm-operator
-                      securityContext:
-                        runAsUser: 10000
-                        allowPrivilegeEscalation: false
-                        capabilities:
-                          drop:
-                            - ALL
-                        runAsNonRoot: true
-                        seccompProfile:
-                          type: RuntimeDefault
-          target:
-            kind: Deployment
-            name: keycloak-realm-operator
-
-  keycloak-resources:
-    info:
-      description: configures keycloak resources
-      internal: true
-    unit_templates:
-    - base-deps
-    enabled_conditions:
-    - '{{ tuple . "keycloak" | include "unit-enabled" }}'
-    depends_on:
-      keycloak: true
-        #keycloak-legacy-operator: true
-    repo: sylva-core
-    kustomization_substitute_secrets:
-      SSO_PASSWORD: '{{ .Values.admin_password }}'
-    kustomization_spec:
-      path: ./kustomize-units/keycloak-resources
-      targetNamespace: keycloak
-      _components:
-        - '{{ tuple "components/neuvector" (tuple . "neuvector" | include "unit-enabled") | include "set-only-if" }}'
-        - '{{ tuple "components/harbor" (tuple . "harbor" | include "unit-enabled") | include "set-only-if" }}'
-        - '{{ tuple "components/grafana" (tuple . "monitoring" | include "unit-enabled") | include "set-only-if" }}'
-      postBuild:
-        substitute:
-          GRAFANA_DNS: '{{ .Values.external_hostnames.grafana }}'
-          RANCHER_DNS: '{{ .Values.external_hostnames.rancher }}'
-          FLUX_WEBUI_DNS: '{{ .Values.external_hostnames.flux }}'
-          HARBOR_DNS: '{{ .Values.external_hostnames.harbor }}'
-          NEUVECTOR_DNS: '{{ tuple .Values.external_hostnames.neuvector (tuple . "neuvector" | include "unit-enabled") | include "set-only-if" }}'
-          VAULT_DNS: '{{ .Values.external_hostnames.vault }}'
-          EXPIRE_PASSWORD_DAYS: '{{ int .Values.keycloak.keycloak_expire_password_days }}'
-      healthChecks:  #  cannot use __wait: true__ here, see https://gitlab.com/sylva-projects/sylva-core/-/issues/144
-        - apiVersion: legacy.k8s.keycloak.org/v1alpha1
-          kind: KeycloakRealm
-          name: sylva
-          namespace: keycloak
-        - apiVersion: v1
-          kind: Secret
-          name: keycloak-client-secret-rancher-client  # this secret is a byproduct of the rancher-client KeycloakClient resource
-          namespace: keycloak
-        - apiVersion: v1
-          kind: Secret
-          name: keycloak-client-secret-flux-webui-client  # this secret is a byproduct of the flux-webui-client KeycloakClient resource
-          namespace: keycloak
-        - '{{ tuple (dict "apiVersion" "v1" "kind" "Secret" "name" "keycloak-client-secret-neuvector-client" "namespace" "keycloak") (tuple . "neuvector" | include "unit-enabled") | include "set-only-if" }}'  # # this secret is a byproduct of the neuvector client KeycloakClient resource
-        - '{{ tuple (dict "apiVersion" "v1" "kind" "Secret" "name" "keycloak-client-secret-harbor-client" "namespace" "keycloak") (tuple . "harbor" | include "unit-enabled") | include "set-only-if" }}'  # # this secret is a byproduct of the harbor client KeycloakClient resource
-        - '{{ tuple (dict "apiVersion" "v1" "kind" "Secret" "name" "keycloak-client-secret-grafana-client" "namespace" "keycloak") (tuple . "monitoring" | include "unit-enabled") | include "set-only-if" }}'  # # this secret is a byproduct of the grafana client KeycloakClient resource
-
-
-  keycloak-add-client-scope:
-    info:
-      description: configures Keycloak client-scope
-      details: >
-        a job to manually add a custom client-scope to sylva realm (on top of default ones)
-        while CRD option does not yet provide good results (overrides defaults)
-      internal: true
-    unit_templates:
-    - base-deps
-    - kube-job
-    enabled_conditions:
-    - '{{ tuple . "flux-webui" | include "unit-enabled" }}'
-    - '{{ tuple . "keycloak" | include "unit-enabled" }}'
-    depends_on:
-      crossplane-resources: true
-      keycloak: true  # defines the keycloak-initial-admin Secret used by the script
-    kustomization_spec:
-      targetNamespace: keycloak
-      postBuild:
-        substitute:
-          RUNASUSER: '10000'
-          RUNASGROUP: '10000'
-      _patches:
-      - target:
-          kind: Job
-        patch: |
-          - op: replace
-            path: /spec/backoffLimit
-            value: 15
-      - target:
-          kind: ConfigMap
-          labelSelector: kube-job=script
-        patch: |
-          - op: replace
-            path: /data/kube-job.sh
-            value: |
-          {{ .Files.Get "scripts/keycloak-add-client-scope.sh" | indent 4 }}
-
-# Workaround for realm role creation
-  keycloak-add-realm-role:
-    info:
-      description: Creates Keycloak realm role
-      details: >
-        a job to manually create a custom realm role to sylva realm (on top of default ones) and assigns it to sylva-admin
-        while CRD option does not allow updates.
-      internal: true
-    unit_templates:
-    - base-deps
-    - kube-job
-    enabled_conditions:
-    - '{{ tuple . "keycloak" | include "unit-enabled" }}'
-    depends_on:
-      crossplane-resources: true
-      keycloak: true  # defines the keycloak-initial-admin Secret used by the script
-    kustomization_spec:
-      postBuild:
-        substitute:
-          NAMESPACE: keycloak
-          RUNASUSER: '10000'
-          RUNASGROUP: '10000'
-      _patches:
-      - target:
-          kind: Job
-        patch: |
-          - op: replace
-            path: /spec/backoffLimit
-            value: 15
-      - target:
-          kind: ConfigMap
-          labelSelector: kube-job=script
-        patch: |
-          - op: replace
-            path: /data/kube-job.sh
-            value: |
-          {{ .Files.Get "scripts/keycloak-add-realm-role.sh" | indent 4 }}
-
   keycloak-add-truststore:
     info:
       description: configures Keycloak truststore
@@ -1873,7 +1710,6 @@ units:
     - '{{ tuple . "keycloak" | include "unit-enabled" }}'
     depends_on:
       keycloak: true
-        #keycloak-legacy-operator: true
       crossplane-resources: true
       eso-secret-stores: true
     repo: sylva-core
@@ -3743,7 +3579,6 @@ units:
       flux-system: true
       ingress-nginx: '{{ tuple . "ingress-nginx" | include "unit-enabled" }}'
       coredns: '{{ tuple . "keycloak" | include "unit-enabled" }}' # see https://gitlab.com/sylva-projects/sylva-core/-/merge_requests/1023#note_1694289969
-        #keycloak-add-client-scope: '{{ tuple . "keycloak" | include "unit-enabled" }}'
       keycloak-oidc-external-secrets: '{{ tuple . "keycloak" | include "unit-enabled" }}'
       flux-webui-init: true
     annotations:
@@ -5177,7 +5012,6 @@ units:
     - base-deps
     depends_on:
       keycloak: true
-        #keycloak-legacy-operator: true
       crossplane-resources: true
     repo: sylva-core
     kustomization_spec:

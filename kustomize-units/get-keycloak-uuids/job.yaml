@@ -8,6 +8,8 @@ spec:
   template:
     metadata:
       name: get-keycloak-resources
+      annotations:
+        checksum: s${JOB_CHECKSUM}  # s prefix to avoid this turning into a number if we're unlucky
     spec:
       restartPolicy: Never
       serviceAccountName: ${JOB_NAME}-${JOB_TARGET_NAMESPACE:-sylva-system}-sa

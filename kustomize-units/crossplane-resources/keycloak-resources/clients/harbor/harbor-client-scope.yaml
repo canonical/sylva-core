@@ -2,6 +2,8 @@ apiVersion: openidclient.keycloak.crossplane.io/v1alpha1
 kind: ClientDefaultScopes
 metadata:
   name: harbor-groups-client-scope
+  annotations:
+    crossplane.io/external-name: builtin-sylva-realm-role-offline-access
 spec:
   forProvider:
     clientIdRef:
@@ -12,8 +14,8 @@ spec:
     defaultScopes:
       - groups
       - profile
-      - openid
-      - roles
+      - offline-access
+      - email
     realmId: sylva
   providerConfigRef:
     name: keycloak-provider-config

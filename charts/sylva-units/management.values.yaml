@@ -101,7 +101,6 @@ units:
   monitoring:
     depends_on:
       keycloak-oidc-external-secrets: true
-        #keycloak-add-realm-role: true
       grafana-init: true
     annotations:
       sylvactl/readyMessage: "Grafana UI can be reached at https://{{ .Values.external_hostnames.grafana }} ({{ .Values.external_hostnames.grafana }} must resolve to {{ .Values.display_external_ip }})"
@@ -188,12 +187,10 @@ units:
   harbor-init:
     depends_on:
       sylva-ca: true
-        #    keycloak-resources: true
       kyverno: true
       vault: true
       vault-config-operator: true
       eso-secret-stores: true
-        #    keycloak-add-client-scope: true
 
   harbor:
     depends_on:

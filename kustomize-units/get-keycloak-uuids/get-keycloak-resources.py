@@ -127,15 +127,6 @@ def get_client_scopes():
     return client_scope_uuids
 
 
-client_uuids = get_client_and_mappers_uuids()
-group_uuids = get_groups_ids()
-user_uuids = get_user_ids()
-realm_roles_uuids = get_realm_roles()
-client_scope_uuids = get_client_scopes()
-
-result_uuids = {**client_uuids, **group_uuids, **user_uuids, **realm_roles_uuids, **client_scope_uuids}
-
-
 def create_k8s_configmap(uuid_data):
     config_map = client.V1ConfigMap(
     metadata=client.V1ObjectMeta(name=CONFIGMAP_NAME, namespace=CONFIGMAP_NAMESPACE),
@@ -149,8 +140,22 @@ def create_k8s_configmap(uuid_data):
         if e.status == 409: # if configmap exists, update it.
             logging.info(f"Configmap {CONFIGMAP_NAME} already exists, will update it...")
             v1.replace_namespaced_config_map(name=CONFIGMAP_NAME, namespace=CONFIGMAP_NAMESPACE, body=config_map)
-            logging.info("ConfigMap updated successfully.")
+            logging.info("ConfigMap updated successfully.")                                                                                                                                                 
         else:
             logging.error(f"An error occurred: {e}")
 
-create_k8s_configmap(result_uuids)
+
+realms = keycloak_admin.get_realms()
+
+if len(realms) == 1 and realms[0]['realm'] == 'master':
+    logging.info("This is a fresh install with only the master realm.")
+else:
+    logging.info("This Keycloak instance has additional realms, proceeding to get resource UUIDS")
+    client_uuids = get_client_and_mappers_uuids()
+    group_uuids = get_groups_ids()
+    user_uuids = get_user_ids()
+    realm_roles_uuids = get_realm_roles()
+    client_scope_uuids = get_client_scopes()
+
+    result_uuids = {**client_uuids, **group_uuids, **user_uuids, **realm_roles_uuids, **client_scope_uuids}
+    create_k8s_configmap(result_uuids)

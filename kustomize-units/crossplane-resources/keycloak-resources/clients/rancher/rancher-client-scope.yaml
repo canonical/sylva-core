@@ -10,10 +10,8 @@ spec:
         resolution: Required
         resolve: Always
     defaultScopes:
-      - groups
       - profile
-      - openid
-      - roles
+      - email
     realmId: sylva
   providerConfigRef:
     name: keycloak-provider-config
