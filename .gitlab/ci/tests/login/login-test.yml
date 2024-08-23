@@ -22,7 +22,7 @@
   test_no_sso:
     - unset https_proxy http_proxy
     - export KUBECONFIG=management-cluster-kubeconfig
-    - ./tools/shell-lib/get-wc-kubeconfig-from-rancher.sh $WORKLOAD_CLUSTER_NAME > $WORKLOAD_CLUSTER_NAME-rancher.yaml
+    - ./tools/shell-lib/get-wc-kubeconfig-from-rancher.sh $WORKLOAD_CLUSTER_NAME $WORKLOAD_CLUSTER_NAME-rancher.yaml
     # For capm3 job we need to modify the $WORKLOAD_CLUSTER_NAME-rancher.yaml to remove the certificate and use an insecure option
     - !reference [.capm3-virt-kubeconfig]
 
