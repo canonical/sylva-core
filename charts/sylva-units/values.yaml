@@ -1537,6 +1537,7 @@ units:
     - '{{ tuple . "crossplane" | include "unit-enabled" }}'
     depends_on:
       crossplane-init: true
+      get-keycloak-uuids: '{{ .Release.IsUpgrade }}'
       crossplane: true
       crossplane-external-secrets: true
     repo: sylva-core
@@ -1581,6 +1582,7 @@ units:
         substituteFrom:
           - kind: ConfigMap
             name: keycloak-uuid-resources
+            optional: true
 
   keycloak:
     info:

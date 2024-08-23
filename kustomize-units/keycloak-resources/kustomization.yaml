@@ -4,8 +4,8 @@ kind: Kustomization
 namespace: keycloak
 
 resources:
-- keycloak-realm.yaml
+  #- keycloak-realm.yaml
 - rancher-client.yaml
 - flux-webui-client.yaml
 - vault-client.yaml
-- keycloak-user.yaml
+  #- keycloak-user.yaml
