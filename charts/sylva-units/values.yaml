@@ -3372,7 +3372,7 @@ units:
     helm_repo_url: https://rke2-charts.rancher.io
     helm_chart_versions:
       4.8.200: '{{ include "k8s-version-match" (tuple . "=1.26.15") }}'
-      4.10.102: '{{ include "k8s-version-match" (tuple . ">=1.28.12") }}'  # also 1.27.16
+      4.10.102: '{{ include "k8s-version-match" (tuple . ">=1.27.16") }}'  # also for 1.28.12
     helmrelease_spec:
       releaseName: rke2-ingress-nginx
       targetNamespace: kube-system
