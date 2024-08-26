@@ -436,11 +436,17 @@ units:
 
   logging:
     enabled: false
-
+         
   logging-config:
     enabled: true
     kustomization_spec:
       targetNamespace: "cattle-logging-system"
+
+  coredns:
+    enabled: true
+    unit_templates:
+    - kustomization-deployed-on-mgmt-cluster
+
 
   sylva-prometheus-rules:
     enabled: true
