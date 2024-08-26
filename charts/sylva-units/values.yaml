@@ -55,7 +55,7 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
     spec:
       url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-capi-cluster.git
       ref:
-        tag: 0.2.32
+        tag: 0.2.33
 
   local-path-provisioner:
     kind: GitRepository
@@ -90,7 +90,7 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
     spec:
       url: https://gitlab.com/sylva-projects/sylva-elements/container-images/libvirt-metal.git
       ref:
-        tag: 0.1.15
+        tag: 0.1.16
 
   vault-operator:
     kind: GitRepository
