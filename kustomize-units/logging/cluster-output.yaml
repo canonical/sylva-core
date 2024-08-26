@@ -7,7 +7,7 @@ metadata:
 spec:
   loki:
     buffer:
-      chunk_limit_size: 1MB
+      chunk_limit_size: 4MB
       timekey: 5m
       timekey_wait: 30s
     configure_kubernetes_labels: true
