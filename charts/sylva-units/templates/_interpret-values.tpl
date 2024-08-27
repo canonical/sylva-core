@@ -526,3 +526,26 @@ depending on whether $data is true or false after interpretation.
       {{- $false_value -}}
     {{- end -}}
 {{- end -}}
+
+
+
+{{/*
+
+interpret-and-hash
+
+Usage:
+
+  tuple $envAll $data  | include "interpret-and-hash"
+
+This function inteprets $data and then computes the sha256sum of the JSON rendering of the result.
+
+This was initially meant to be a helper for computing JOB_CHECKSUM.
+
+*/}}
+{{- define "interpret-and-hash" -}}
+  {{- $envAll := index . 0 -}}
+  {{- $data := index . 1 -}}
+  {{- $interpreted := index (tuple $envAll $data | include "interpret-inner-gotpl" | fromJson) "result" -}}
+  {{/* produce result: */}}
+  {{- $interpreted | toJson | sha256sum -}}
+{{- end -}}
