@@ -5293,7 +5293,7 @@ units:
           users:
             - name: minio-monitoring-user
           pools:
-            - servers: 2
+            - servers: '{{ .Values._internal.ha_cluster.is_ha | ternary 2 1 }}'
               name: pool-0
               volumesPerserver: 4
               size: 3Gi
@@ -5308,6 +5308,16 @@ units:
                     - ALL
                 seccompProfile:
                   type: RuntimeDefault
+              affinity:
+                podAntiAffinity:
+                  requiredDuringSchedulingIgnoredDuringExecution:
+                    - labelSelector:
+                        matchExpressions:
+                          - key: app
+                            operator: In
+                            values:
+                              - minio
+                      topologyKey: "kubernetes.io/hostname"
               securityContext:
                 runAsUser: 1000
                 runAsGroup: 1000
@@ -5316,7 +5326,7 @@ units:
                 runAsNonRoot: true
                 seccompProfile:
                   type: RuntimeDefault
-            - servers: 4
+            - servers: '{{ .Values._internal.ha_cluster.is_ha | ternary 4 1 }}'
               name: pool-monitoring
               volumesPerserver: 4
               size: 10Gi
@@ -5339,6 +5349,16 @@ units:
                 runAsNonRoot: true
                 seccompProfile:
                   type: RuntimeDefault
+              affinity:
+                podAntiAffinity:
+                  requiredDuringSchedulingIgnoredDuringExecution:
+                    - labelSelector:
+                        matchExpressions:
+                          - key: app
+                            operator: In
+                            values:
+                              - minio
+                      topologyKey: "kubernetes.io/hostname"
           metrics:
             enabled: true
           env:
