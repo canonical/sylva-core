@@ -6809,6 +6809,19 @@
             }
           ]
         },
+        "enableDHCP": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "$ref": "#/$defs/string-with-gotpl"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
         "nodes": {
           "anyOf": [
             {
@@ -6868,6 +6881,19 @@
                           "anyOf": [
                             {
                               "$ref": "#/$defs/port"
+                            },
+                            {
+                              "$ref": "#/$defs/string-with-gotpl"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "enableDHCP": {
+                          "anyOf": [
+                            {
+                              "type": "boolean"
                             },
                             {
                               "$ref": "#/$defs/string-with-gotpl"
