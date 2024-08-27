@@ -4559,15 +4559,15 @@ units:
       - '{{ tuple "./components/certs" (not .Values.oci_registry_insecure) | include "set-only-if" }}'
       postBuild:
         substitute:
-          JOB_CHECKSUM: |
+          JOB_CHECKSUM: |-
             {{
-            list
+            tuple . (list
               .Values._internal.sylva_core_version
               (include "generate-os-images" .)
               .Values.proxies
               (index (tuple . .Values.no_proxy_additional | include "interpret-inner-gotpl" | fromJson) "result")
               .Values.oci_registry_insecure
-            | toJson | sha256sum | trunc 8
+            ) | include "interpret-and-hash"
             }}
           EXTRA_CA_CERTS: '{{ tuple (.Values.oci_registry_extra_ca_certs | default "" | b64enc) (not .Values.oci_registry_insecure) | include "set-only-if" }}'
       _patches:
@@ -6072,15 +6072,15 @@ units:
             name: os-images-info-max-size
         substitute:
           JOB_INSECURE_CLIENT: '{{ .Values.oci_registry_insecure | quote }}'
-          JOB_CHECKSUM: |
+          JOB_CHECKSUM: |-
             {{
-            list
+            tuple . (list
               .Values._internal.sylva_core_version
               (mergeOverwrite (deepCopy .Values.os_images) .Values.sylva_diskimagebuilder_images)
               .Values.sylva_diskimagebuilder_version
               .Values.sylva_base_oci_registry
               .Values.proxies
-            | toJson | sha256sum
+            ) | include "interpret-and-hash"
             }}
           httpProxy: '{{ .Values.proxies.https_proxy }}'
           httpsProxy: '{{ .Values.proxies.https_proxy }}'
