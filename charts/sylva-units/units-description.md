@@ -49,7 +49,7 @@
 | **calico-ready** | ensure Calico resources created by the Tigera operator are ready before running further steps<br/><br/>This unit will be enabled in bootstrap cluster to confirm management cluster CNI readiness and in various workload-cluster namespaces in management cluster to do the same for workload clusters | beta | True | Kustomize | N/A |
 | **ceph-csi-cephfs** | Installs Ceph-CSI | beta |  | [Helm](https://ceph.github.io/csi-charts) | 3.12.1 |
 | **flux-webui-init** | initializes and configures flux-webui | beta | True | Kustomize | N/A |
-| **harbor** | installs Harbor | beta |  | [Helm](https://helm.goharbor.io) | 1.15.0 |
+| **harbor** | installs Harbor | beta |  | [Helm](https://helm.goharbor.io) | 1.15.1 |
 | **kube-storage-version-migrator** | installs kube-storage-version-migrator to assist apiVersion migrations | beta |  | [Kustomize](https://github.com/kubernetes-sigs/kube-storage-version-migrator/manifests?ref=v0.0.5) | v0.0.5 |
 | **kubevirt** | installs kubevirt | beta |  | [Helm](https://suse-edge.github.io/charts) | 0.3.1 |
 | **logging** | installs Rancher Fluentbit/Fluentd logging stack, for log collecting and shipping | beta |  | [Helm](https://charts.rancher.io/) | 103.1.2+up4.4.0 |
