@@ -2536,6 +2536,7 @@ units:
       internal: true
     unit_templates:
     - base-deps
+    - kube-cronjob
     depends_on:
       cluster: false # we can't depend directly on 'cluster' unit, since it's being disabled in 'management-sylva-units' and re-enabled by 'pivot'
       capi: true
@@ -2543,10 +2544,8 @@ units:
       capv: '{{ tuple . "capv" | include "unit-enabled" }}'
       capo: '{{ tuple . "capo" | include "unit-enabled" }}'
       capm3: '{{ tuple . "capm3" | include "unit-enabled" }}'
-    repo: sylva-core
     kustomization_spec:
       path: ./kustomize-units/cluster-garbage-collector
-      wait: true
       _components:
         - '{{ tuple "components/dev-ci-cronjob-schedule" (list "dev" "ci" | has .Values.env_type) | include "set-only-if" }}'
 
