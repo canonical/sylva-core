@@ -2723,6 +2723,7 @@ units:
     info:
       description: installs sylva-units operator
       maturity: experimental
+      internal: true
     unit_templates:
     - base-deps
     repo: sylva-core
