@@ -27,9 +27,11 @@ additional_resources="
   ConfigMaps
   Nodes
   Services
+  Endpoints
   Ingresses
   IngressClasses
   StorageClasses
+  PodDisruptionBudgets
   HeatStacks
   ClusterSecretStore
   SecretStore
@@ -161,7 +163,7 @@ function cluster_info_dump() {
   dump_additional_resources $dump_dir $additional_resources
 
   # dump pods
-  kubectl get pods -o wide -A | tee $dump_dir/pods.summary.txt
+  kubectl get pods -o wide -A > $dump_dir/pods.summary.txt
 
   # dump CAPI secrets
   kubectl get secret -A --field-selector=type=infrastructure.cluster.x-k8s.io/secret                               > $dump_dir/Secrets-capi.summary.txt
