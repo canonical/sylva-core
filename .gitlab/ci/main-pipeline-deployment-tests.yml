@@ -364,8 +364,6 @@ capo-rke2-oci-suse:
     MGMT_WATCH_TIMEOUT_MIN: 35
     APPLY_WATCH_TIMEOUT_MIN: 80
     APPLY_WC_WATCH_TIMEOUT_MIN: 80
-    MGMT_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/enable-kubevirt.yml
-    WC_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/enable-kubevirt.yml
     RUNNER_PLAN: m3.large.x86
   trigger:
     include: .gitlab/ci/pipeline-deploy-capm3-virt-equinix.yml
@@ -386,6 +384,12 @@ capm3-ha-rke2-virt-ubuntu:
 
 capm3-ha-kubeadm-virt-ubuntu:
   extends: .kubeadm-capm3-virt-equinix
+
+capm3-misc-rke2-virt-ubuntu:
+  extends: .rke2-capm3-virt-equinix
+  variables:
+    MGMT_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/misc-units-in-capm3.yml
+    WC_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/misc-units-in-capm3.yml
 
 #capm3-ha-kubeadm-virt-suse:
 #  extends: .kubeadm-capm3-virt-equinix
