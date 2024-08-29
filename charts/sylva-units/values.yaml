@@ -1105,7 +1105,7 @@ units:
       chart:
         spec:
           chart: external-secrets
-          version: 0.10.1
+          version: 0.10.2
       targetNamespace: external-secrets
       install:
         createNamespace: true
