@@ -429,7 +429,7 @@ function display_final_messages() {
 
   if [[ $CALLER_SCRIPT_NAME == *"bootstrap.sh"* ]]; then
     echo_b "\U0001F331 You can access following WebUIs/APIs"
-    echo "Accessible Avaliable UIs:"
+    echo "Accessible Available UIs:"
     kubectl --kubeconfig management-cluster-kubeconfig get ingress --all-namespaces -o wide | grep -E 'rancher|flux|harbor|keycloak|vault|minio-monitoring-tenant-console|minio-operator-console'
 
     echo ""
