@@ -35,7 +35,7 @@ variables:
     value: "20"
     description: "apply.sh timeout"
   MGMT_WATCH_TIMEOUT_MIN:
-    value: "45"
+    value: "30"
     description: "bootstrap.sh timeout"
   BOOTSTRAP_WATCH_TIMEOUT_MIN:
     value: "45"
@@ -254,7 +254,7 @@ capd-rke2-ubuntu:
 capd-kubeadm-oci-ubuntu:
   extends: .default-trigger-oci
   variables:
-    CAPD_RUNNER_TAG: saas-linux-medium-amd64
+    CAPD_RUNNER_TAG: gitlab-org-docker
     E2E_JOB_MR_PARITY: odd
     ENV_NAME: kubeadm-capd
     ONLY_DEPLOY_MGMT: "true"
@@ -337,7 +337,7 @@ capo-fip-kubeadm-oci-ubuntu:
     CAPO_TAG: "${ENV_TAG_OCI}-fip"
     MGMT_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/capo-fip.yml
     WC_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/capo-fip.yml
-    MGMT_WATCH_TIMEOUT_MIN: 22
+    MGMT_WATCH_TIMEOUT_MIN: 20
     E2E_JOB_MR_PARITY: none
     CAPO_PLATFORM_TAG: capo-infra-falcon
     PRIVATE_RUNNER_CONTEXT: falcon
