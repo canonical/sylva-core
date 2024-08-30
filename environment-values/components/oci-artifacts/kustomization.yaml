@@ -39,6 +39,15 @@ patches:
       value: use-oci-artifacts.values.yaml
 
 - target:
+    kind: HelmRelease
+    name: sylva-units
+  # this patch removes the CURRENT_COMMIT setting set fromm environment-values/base
+  # which is not what we need for a deployment based on OCI artifcacts
+  patch: |
+    - op: remove
+      path: /spec/values/source_templates/sylva-core/spec
+
+- target:
     kind: GitRepository
     name: sylva-units
   patch: |
