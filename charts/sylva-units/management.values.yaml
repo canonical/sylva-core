@@ -11,9 +11,10 @@ unit_templates:
       # Flux, because starting unit reconciliation while Flux is
       #       reinstalling itself proved fragile in the past
       flux-system: true
-      # Kyverno, because we're introducing Kyverno policies that manage pod
+      # Kyverno and kyverno-policies, because we're introducing Kyverno policies that manage pod
       #          security settings that need to be in place before things can start up
-      #kyverno: true
+      kyverno: true
+      kyverno-policies: true
 
 units:
 
