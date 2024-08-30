@@ -29,6 +29,20 @@ options.set_preference("browser.download.folderList", 2)
 options.set_preference("browser.download.manager.useWindow", False)
 options.add_argument("-headless")
 
+def login_to_sso(browser, username, password, delay):
+  try:
+    element_present = EC.presence_of_element_located((By.ID,"username"))
+    WebDriverWait(browser, delay).until(element_present)
+  except TimeoutException:
+    print ("Cannot access SSO Sign In page")
+    return None
+  print(browser.title)
+  print(browser.current_url)
+  browser.find_element(By.ID,"username").send_keys(username)
+  browser.find_element(By.ID,"password").send_keys(password)
+  browser.find_element(By.ID,"kc-login").click()
+  print(browser.current_url)
+
 
 def rancher_sso(endpoint, username, password, workload_name):
   print("--------------------------------")
@@ -49,19 +63,7 @@ def rancher_sso(endpoint, username, password, workload_name):
     return None
   browser.find_element(By.XPATH, '//button[@class="btn bg-primary"]').click()
   print("Redirect to SSO")
-  try:
-    element_present = EC.presence_of_element_located((By.ID,"username"))
-    WebDriverWait(browser, delay).until(element_present)
-  except TimeoutException:
-    print ("Cannot access SSO Sign In page")
-    return None
-  print(browser.title)
-  print(browser.current_url)
-  browser.implicitly_wait(10)
-  browser.find_element(By.ID,"username").send_keys(username)
-  browser.find_element(By.ID,"password").send_keys(password)
-  browser.find_element(By.ID,"kc-login").click()
-  print(browser.current_url)
+  login_to_sso(browser, username, password, delay)
   retry = 0
   while(retry < 7):
     try:
@@ -155,17 +157,7 @@ def vault_sso(endpoint, username, password):
   print("Redirect to SSO")
   delay = 30
   browser.switch_to.window(sso)
-  try:
-    element_present = EC.presence_of_element_located((By.ID,"username"))
-    WebDriverWait(browser, delay).until(element_present)
-  except TimeoutException:
-    print ("Cannot access SSO Sign In page")
-    return None
-  print(browser.title)
-  print(browser.current_url)
-  browser.find_element(By.ID,"username").send_keys(username)
-  browser.find_element(By.ID,"password").send_keys(password)
-  browser.find_element(By.ID,"kc-login").click()
+  login_to_sso(browser, username, password, delay)
   print("Waiting to be redirect towards vault UI home page")
   time.sleep(10)
   print("Redirect to vault UI home")
@@ -210,17 +202,7 @@ def flux_sso(endpoint, username, password):
     except:
        browser.get(url)
   print("Redirect to SSO")
-  try:
-    element_present = EC.presence_of_element_located((By.ID,"username"))
-    WebDriverWait(browser, delay).until(element_present)
-  except TimeoutException:
-    print ("Cannot access SSO Sign In page")
-    return None
-  print(browser.title)
-  print(browser.current_url)
-  browser.find_element(By.ID,"username").send_keys(username)
-  browser.find_element(By.ID,"password").send_keys(password)
-  browser.find_element(By.ID,"kc-login").click()
+  login_to_sso(browser, username, password, delay)
   print(browser.current_url)
   print("Waiting to be redirect towards flux UI home page")
   time.sleep(25)
@@ -268,17 +250,7 @@ def neuvector_sso(endpoint, username, password):
         return None
       browser.find_element(By.XPATH, '//button[normalize-space()="Login with OpenID"]').click()
       print("Redirect to SSO")
-      try:
-        element_present = EC.presence_of_element_located((By.ID,"username"))
-        WebDriverWait(browser, delay).until(element_present)
-      except TimeoutException:
-        print ("Cannot access SSO Sign In page")
-        return None
-      print(browser.title)
-      print(browser.current_url)
-      browser.find_element(By.ID,"username").send_keys(username)
-      browser.find_element(By.ID,"password").send_keys(password)
-      browser.find_element(By.ID,"kc-login").click()
+      login_to_sso(browser, username, password, delay)
       print("Waiting to be redirect toward neuvector UI home page")
       time.sleep(50)
       print("Redirected to neuvector home page")
@@ -319,18 +291,7 @@ def harbor_sso(endpoint, username, password):
        return None
      browser.find_element(By.XPATH, '//button[@id="log_oidc"]').click()
      print("Redirect to SSO")
-     try:
-       element_present = EC.presence_of_element_located((By.ID,"username"))
-       WebDriverWait(browser, delay).until(element_present)
-     except TimeoutException:
-       print ("Cannot access SSO Sign In page")
-       return None
-     print(browser.title)
-     print(browser.current_url)
-     browser.find_element(By.ID,"username").send_keys(username)
-     browser.find_element(By.ID,"password").send_keys(password)
-     browser.find_element(By.ID,"kc-login").click()
-     print(browser.current_url)
+     login_to_sso(browser, username, password, delay)
      print("Waiting to be redirect towards harbor UI home page")
      time.sleep(25)
      print("Redirect to harbor UI home page")
@@ -370,18 +331,7 @@ def grafana_sso(endpoint, username, password):
        return None
      browser.find_element(By.XPATH, '//a[@href="login/generic_oauth"]').click()
      print("Redirect to SSO")
-     try:
-       element_present = EC.presence_of_element_located((By.ID,"username"))
-       WebDriverWait(browser, delay).until(element_present)
-     except TimeoutException:
-       print ("Cannot access SSO Sign In page")
-       return None
-     #print(browser.title)
-     print(browser.current_url)
-     browser.find_element(By.ID,"username").send_keys(username)
-     browser.find_element(By.ID,"password").send_keys(password)
-     browser.find_element(By.ID,"kc-login").click()
-     print(browser.current_url)
+     login_to_sso(browser, username, password, delay)
      print("Waiting to be redirect towards grafana UI home page")
      time.sleep(25)
      print("Redirect to grafana UI home page")
@@ -439,11 +389,7 @@ def gitea_sso(endpoint, username, password):
        print ("Cannot access SSO option")
        return None
      browser.find_element(By.XPATH, '//a[@href="/user/oauth2/keycloak-sylva"]').click()
-     print(browser.title)
-     print(browser.current_url)
-     browser.find_element(By.ID,"username").send_keys(username)
-     browser.find_element(By.ID,"password").send_keys(password)
-     browser.find_element(By.ID,"kc-login").click()
+     login_to_sso(browser, username, password, delay)
      print("Waiting to be redirect towards gitea UI home page")
      time.sleep(20)
      print("Redirect to gitea UI home page")
