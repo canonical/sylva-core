@@ -144,8 +144,13 @@ units:
 cluster:
   # we need metallb installation done from RKE2 manifests specified in RKE2ControlPlane
   # to use an OCI artifact as well:
-  metallb_helm_oci_url: '{{ .Values.sylva_base_oci_registry }}/sylva-core/metallb'
-  metallb_helm_extra_ca_certs: '{{ .Values.oci_registry_extra_ca_certs | include "set-if-defined" }}'
+  helm_oci_url:
+    metallb: '{{ .Values.sylva_base_oci_registry }}/sylva-core/metallb'
+    calico-crd: '{{ .Values.sylva_base_oci_registry }}/sylva-core/rke2-calico-crd'
+    calico: '{{ .Values.sylva_base_oci_registry }}/sylva-core/rke2-calico'
+  helm_extra_ca_certs:
+    default: '{{ .Values.oci_registry_extra_ca_certs | include "set-if-defined" }}'
+
 ###########################################################################################################
 #### actual content produced at OCI-artifact buildind time by tools/oci/build-sylva-units-artifact.sh  ####
 ###########################################################################################################
