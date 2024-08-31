@@ -176,7 +176,7 @@ The payload is actually a [Hashed Rekord](https://github.com/sigstore/rekor/blob
 
 Signatures are stored on the sylva-core OCI registry as artifact tags.
 
-You can vertify manually the signature of the OCI artifact by using the cosign public key `cosign.pub` available in the directory `sylva-core/tools/oci`:
+You can verify manually the signature of the OCI artifact by using the cosign public key `cosign.pub` available in the directory `sylva-core/tools/oci`:
 
 ```shell
 $ COSIGN_REPOSITORY=registry.gitlab.com/sylva-projects/sylva-core/signatures cosign verify --key tools/oci/cosign.pub --insecure-ignore-tlog quay.io/keycloak/keycloak:21.1.2 | jq
