@@ -3720,7 +3720,7 @@ units:
                     topologyKey: "kubernetes.io/hostname"
           podDisruptionBudget:
             enabled: true
-            minAvailable: '{{ .Values._internal.ha_cluster.is_ha | ternary 1 0 | include "preserve-type" }}'
+            minAvailable: '{{ .Values._internal.ha_cluster.is_ha | ternary 1 0 }}'
       valuesFrom:
         - kind: ConfigMap
           name: flux-custom-resource-state-config # this configmap is a byproduct of the prometheus-flux unit
