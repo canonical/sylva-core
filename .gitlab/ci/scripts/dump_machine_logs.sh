@@ -132,8 +132,8 @@ function get_download_ip {
 
 function download_files {
     echo ">> Download_URL = http://${download_ip}:${download_port}/"
-    timeout 10s bash -c "until curl -sSL --fail http://${download_ip}:${download_port}/ --connect-timeout 2 &>/dev/null; do sleep 1; echo -n "."; done" \
-    && curl -sSL "http://${download_ip}:${download_port}/?download=tar_gz" --connect-timeout 2 -o "${TARGET_LOG_DIR}/${machine_name}.tar.gz" \
+    curl -sSL --fail-with-body --retry 10 --retry-max-time 10 --retry-connrefused http://${download_ip}:${download_port}/ --connect-timeout 2 -o /dev/null \
+    && curl -sSL --fail-with-body "http://${download_ip}:${download_port}/?download=tar_gz" --connect-timeout 2 -o "${TARGET_LOG_DIR}/${machine_name}.tar.gz" \
     && echo " >>> OK" \
     || echo " >>> Fail"
     echo ""
