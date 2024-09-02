@@ -1,0 +1,13 @@
+apiVersion: infra.contrib.fluxcd.io/v1alpha2
+kind: Terraform
+metadata:
+  name: keycloak-resources
+  namespace: flux-system
+spec:
+  interval: 1h
+  path: "./keycloak-resources"  # This path contains the Keycloak resources
+  sourceRef:
+    kind: GitRepository
+    name: terraform-resources
+    namespace: sylva-system
+

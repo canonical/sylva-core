@@ -1,0 +1,22 @@
+apiVersion: infra.contrib.fluxcd.io/v1alpha2
+kind: Terraform
+metadata:
+  name: keycloak-provider
+  namespace: flux-system
+spec:
+  interval: 1h
+  path: "./terraform-resources/keycloak-resources"
+  sourceRef:
+    kind: GitRepository
+    name: sylva-units
+    namespace: sylva-system
+  approvePlan: auto
+  varsFrom:
+  - kind: Secret
+    name: keycloak-initial-admin
+    varsKeys:
+    - username:KEYCLOAK_USERNAME
+    - password:KEYCLOAK_PASSWORD
+  vars:
+  - name: KEYCLOAK_URL
+    value: "https://keycloak-service.keycloak.svc.cluster.local:8443"

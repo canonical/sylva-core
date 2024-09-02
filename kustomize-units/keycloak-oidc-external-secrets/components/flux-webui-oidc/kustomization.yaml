@@ -3,3 +3,4 @@ kind: Component
 
 resources:
   - eso-flux-webui-oidc.yaml
+  - eso-keycloak-initial-admin.yaml
