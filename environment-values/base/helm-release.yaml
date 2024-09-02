@@ -51,3 +51,11 @@ spec:
     valuesKey: endpoint
     targetPath: cluster_public_endpoint
     optional: true
+
+  values:
+    source_templates:
+      sylva-core:
+        spec:
+          url: SYLVA_CORE_REPO
+          ref:
+            commit: CURRENT_COMMIT

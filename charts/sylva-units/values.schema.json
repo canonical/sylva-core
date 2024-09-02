@@ -7256,7 +7256,7 @@
                               "(digest|semver|tag)": {
                                 "type": "string"
                               },
-                              "branch": {
+                              "commit": {
                                 "const": "{{ tuple \"(unused)\" false | include \"set-only-if\" }}"
                               }
                             }
