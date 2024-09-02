@@ -16,6 +16,7 @@ metadata:
       specifies a tag and that it is not called `latest` or 'main'.
 spec:
   validationFailureAction: Enforce
+  background: false # validation is moved from Kyverno policy engine to kube-api server
   webhookConfiguration:
     matchConditions:
     - name: 'is-create-or-update'
