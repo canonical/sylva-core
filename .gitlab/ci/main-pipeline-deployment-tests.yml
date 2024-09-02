@@ -229,7 +229,7 @@ capd-preview-oci-deploy:
 capd-kubeadm-ubuntu:
   extends: .default-trigger
   variables:
-    CAPD_RUNNER_TAG: gitlab-org-docker
+    CAPD_RUNNER_TAG: saas-linux-medium-amd64
     E2E_JOB_MR_PARITY: even
     ENV_NAME: kubeadm-capd
     ONLY_DEPLOY_MGMT: "true"
