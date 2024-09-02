@@ -93,14 +93,8 @@ variables:
   # Repo used to store CI values
   SYLVA_CI_VALUES_REPO: https://gitlab.com/sylva-projects/sylva-elements/ci-tooling/ci-deployment-values.git
   SYLVA_CI_VALUES_FOLDER: environment-values/sylva-core-ci-values
-  # Reference to checkout for CI values, by default we use the same for all stages but it can be overriden
-  # eg: if we have a breaking change during an upgrade we could use a different branch for the deployment and update
+  # Reference to checkout for CI values
   CI_VALUES_REVISION: 0.1.0
-  MGMT_INITIAL_CI_VALUES_REVISION: ${CI_VALUES_REVISION}
-  MGMT_UPDATE_CI_VALUES_REVISION: ${MGMT_INITIAL_CI_VALUES_REVISION}
-  WC_INITIAL_CI_VALUES_REVISION: ${CI_VALUES_REVISION}
-  WC_UPDATE_CI_VALUES_REVISION: ${CI_VALUES_REVISION}
-
 
 .deployment_rules:
   - if: '$CI_COMMIT_TAG'
@@ -158,11 +152,6 @@ variables:
       # Set initial revision to 1.1.1
       MGMT_INITIAL_REVISION: 1.1.1
       WC_INITIAL_REVISION: 1.1.1
-      # Use 1.1.1 CI values
-      MGMT_INITIAL_CI_VALUES_REVISION: stable/1.1.1
-      MGMT_UPDATE_CI_VALUES_REVISION: ${CI_VALUES_REVISION}
-      WC_INITIAL_CI_VALUES_REVISION: stable/1.1.1
-      WC_UPDATE_CI_VALUES_REVISION: ${CI_VALUES_REVISION}
       # Increase default timers due to rolling upgrade
       MGMT_WATCH_TIMEOUT_MIN: 45
       APPLY_WATCH_TIMEOUT_MIN: 80

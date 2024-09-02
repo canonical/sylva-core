@@ -88,8 +88,8 @@ include:
   - |
     echo -e "Cloning CI values from \\e[1;94m${SYLVA_CI_VALUES_REPO}\\e[0m to \\e[1;92m${SYLVA_CI_VALUES_FOLDER}\\e[0m"
     git clone -q ${SYLVA_CI_VALUES_REPO} ${SYLVA_CI_VALUES_FOLDER}
-    echo -e "Using \\e[1;94m${SYLVA_CI_VALUES_REVISION}\\e[0m reference from \\e[1;92m${SYLVA_CI_VALUES_REPO}\\e[0m"
-    git -C ${SYLVA_CI_VALUES_FOLDER} checkout ${SYLVA_CI_VALUES_REVISION}
+    echo -e "Using \\e[1;94m${CI_VALUES_REVISION}\\e[0m reference from \\e[1;92m${SYLVA_CI_VALUES_REPO}\\e[0m"
+    git -C ${SYLVA_CI_VALUES_FOLDER} checkout ${CI_VALUES_REVISION}
 
 .setup_docker:
   - |
@@ -235,7 +235,6 @@ include:
   variables:
     SPECIFIC_VALUES_FILE: $MGMT_INITIAL_ADDITIONAL_VALUES
     GIT_REVISION: $MGMT_INITIAL_REVISION
-    SYLVA_CI_VALUES_REVISION: $MGMT_INITIAL_CI_VALUES_REVISION
 
 .update-management:
   extends: .management-base
@@ -245,7 +244,6 @@ include:
   variables:
     SPECIFIC_VALUES_FILE: $MGMT_UPDATE_ADDITIONAL_VALUES
     GIT_REVISION: $MGMT_UPDATE_REVISION
-    SYLVA_CI_VALUES_REVISION: $MGMT_UPDATE_CI_VALUES_REVISION
 
 .workload-base:
   extends: .docker-service
@@ -277,7 +275,6 @@ include:
   variables:
     SPECIFIC_VALUES_FILE: $WC_INITIAL_ADDITIONAL_VALUES
     GIT_REVISION: $WC_INITIAL_REVISION
-    SYLVA_CI_VALUES_REVISION: $WC_INITIAL_CI_VALUES_REVISION
 
 .update-workload:
   extends: .workload-base
@@ -287,7 +284,6 @@ include:
   variables:
     SPECIFIC_VALUES_FILE: $WC_UPDATE_ADDITIONAL_VALUES
     GIT_REVISION: $WC_UPDATE_REVISION
-    SYLVA_CI_VALUES_REVISION: $WC_UPDATE_CI_VALUES_REVISION
 
 .delete-workload:
   extends: .workload-base
