@@ -159,7 +159,7 @@ variables:
       MGMT_INITIAL_REVISION: 1.1.1
       WC_INITIAL_REVISION: 1.1.1
       # Use 1.1.1 CI values
-      MGMT_INITIAL_CI_VALUES_REVISION: stable/1.1.1
+      MGMT_INITIAL_CI_VALUES_REVISION: stable-use-bond
       MGMT_UPDATE_CI_VALUES_REVISION: ${CI_VALUES_REVISION}
       WC_INITIAL_CI_VALUES_REVISION: stable/1.1.1
       WC_UPDATE_CI_VALUES_REVISION: ${CI_VALUES_REVISION}
@@ -169,6 +169,11 @@ variables:
       APPLY_WC_WATCH_TIMEOUT_MIN: 80
     allow_failure: true
     when: manual
+  # Temporary fix for capm3 upgrades from 1.1.1, can be removed after next release
+  # see https://gitlab.com/sylva-projects/sylva-core/-/issues/1581
+  - if: $CI_MERGE_REQUEST_LABELS =~ /ci-feature::test-upgrade-from-1.1.1/ && $CI_JOB_NAME =~ /capm3-ha-.*/
+    variables:
+      MGMT_INITIAL_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/use-bonded-libvirt-metal.yaml
   - if: $CI_MERGE_REQUEST_LABELS =~ /renovate/ && $CAPO_TAG
     allow_failure: true
     when: manual
