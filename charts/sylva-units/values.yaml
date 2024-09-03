@@ -809,6 +809,8 @@ units:
           create: true
           name: postgresql
         primary:
+          pdb:
+            create: false  # this is non-HA and single replica, so a PDB does not make sense
           extendedConfiguration: |-
             huge_pages = off
           initdb:
