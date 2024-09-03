@@ -1,4 +1,4 @@
-GET https://{{vault_url}}/v1/secret/data/rancher
+GET https://{{vault_url}}/v1/secret/data/{{cluster_name}}/rancher
 X-Vault-Token: {{token}}
 HTTP 200
 [Captures]

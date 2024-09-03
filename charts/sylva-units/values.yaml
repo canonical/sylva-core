@@ -848,6 +848,7 @@ units:
           CERTIFICATE_NAMESPACE: harbor
           CERT: '{{ .Values.external_certificates.harbor.cert | default "" | b64enc }}'
           CACERT: '{{ .Values.external_certificates.cacert | default "" | b64enc }}'
+          CLUSTER_NAME: '{{ .Values.cluster.name }}'
       _components:
         - '{{ ternary "../tls-components/tls-secret" "../tls-components/tls-certificate" (hasKey .Values.external_certificates.harbor "cert") }}'
         - "../tls-components/sylva-ca"
@@ -1195,6 +1196,9 @@ units:
     kustomization_spec:
       path: ./kustomize-units/vault-secrets
       wait: true
+      postBuild:
+        substitute:
+          CLUSTER_NAME: '{{ .Values.cluster.name }}'
       _components:
         - '{{ tuple "components/keycloak" (tuple . "keycloak" | include "unit-enabled") | include "set-only-if" }}'
 
@@ -1350,6 +1354,7 @@ units:
           CERTIFICATE_NAMESPACE: neuvector
           CERT: '{{ .Values.external_certificates.neuvector.cert | default "" | b64enc }}'
           CACERT: '{{ .Values.external_certificates.cacert | default "" | b64enc }}'
+          CLUSTER_NAME: '{{ .Values.cluster.name }}'
       _components:
         - '{{ ternary "../tls-components/tls-secret" "../tls-components/tls-certificate" (hasKey .Values.external_certificates.neuvector "cert") }}'
         - "../tls-components/sylva-ca"
@@ -1557,13 +1562,16 @@ units:
     enabled_conditions:
     - '{{ tuple . "keycloak" | include "unit-enabled" }}'
     depends_on:
-      vault-secrets: true  # the credential-external-keycloak Secret use by the legacy operator is generated from ES/Vault secret/data/keycloak
+      vault-secrets: true  # the credential-external-keycloak Secret use by the legacy operator is generated from ES/Vault secret/data/${CLUSTER_NAME:management-cluster}/keycloak
       keycloak: true
     repo: sylva-core
     kustomization_spec:
       path: ./kustomize-units/keycloak-legacy-operator
       targetNamespace: keycloak
       wait: true
+      postBuild:
+        substitute:
+          CLUSTER_NAME: '{{ .Values.cluster.name }}'
       _patches:
         - patch: |
             apiVersion: apps/v1
@@ -3398,6 +3406,7 @@ units:
       postBuild:
         substitute:
           FLUX_ADMIN_USERNAME: '{{ .Values.flux_webui.admin_user }}'
+          CLUSTER_NAME: '{{ .Values.cluster.name }}'
       healthChecks:
         - apiVersion: v1
           kind: Secret
@@ -5341,6 +5350,9 @@ units:
     kustomization_spec:
       path: ./kustomize-units/gitea/secrets
       wait: true
+      postBuild:
+        substitute:
+          CLUSTER_NAME: '{{ .Values.cluster.name }}'
 
   gitea-eso:
     info:
@@ -5389,6 +5401,7 @@ units:
           SERVICE_DNS: '{{ .Values.external_hostnames.gitea }}'
           CERT: '{{ .Values.external_certificates.gitea.cert | default "" | b64enc }}'
           CACERT: '{{ .Values.external_certificates.cacert | default "" | b64enc }}'
+          CLUSTER_NAME: '{{ .Values.cluster.name }}'
       _components:
         - '{{ ternary "../../tls-components/tls-secret" "../../tls-components/tls-certificate" (hasKey .Values.external_certificates.gitea "cert") }}'
         - "../../tls-components/sylva-ca"
@@ -5836,6 +5849,7 @@ units:
           CERTIFICATE_NAMESPACE: minio-logging
           CERT: '{{ .Values.external_certificates.minio_logging.cert | default "" | b64enc }}'
           CACERT: '{{ .Values.external_certificates.cacert | default "" | b64enc }}'
+          CLUSTER_NAME: '{{ .Values.cluster.name }}'
       _components:
         - '{{ ternary "../tls-components/tls-secret" "../tls-components/tls-certificate" (hasKey .Values.external_certificates.minio_logging "cert") }}'
         - "../tls-components/sylva-ca"
@@ -6160,6 +6174,7 @@ units:
           THANOS_RECEIVE_DNS: '{{ .Values.external_hostnames.thanos_receive }}'
           THANOS_STOREGATEWAY_DNS: '{{ .Values.external_hostnames.thanos_storegateway }}'
           THANOS_QUERY_DNS: '{{ .Values.external_hostnames.thanos_query }}'
+          CLUSTER_NAME: '{{ .Values.cluster.name }}'
 
   thanos-credentials-secret:
     info:
@@ -6640,6 +6655,7 @@ units:
           CERTIFICATE_NAMESPACE: loki
           CERT: '{{ .Values.external_certificates.loki.cert | default "" | b64enc }}'
           CACERT: '{{ .Values.external_certificates.cacert | default "" | b64enc }}'
+          CLUSTER_NAME: '{{ .Values.cluster.name }}'
       _components:
         - '{{ ternary "../tls-components/tls-secret" "../tls-components/tls-certificate" (hasKey .Values.external_certificates.loki "cert") }}'
         - "../tls-components/sylva-ca"

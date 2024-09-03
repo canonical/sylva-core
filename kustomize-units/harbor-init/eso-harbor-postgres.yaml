@@ -15,13 +15,13 @@ spec:
    data:
    - secretKey: admin-password
      remoteRef:
-        key: secret/data/harbor-postgres-admin
+        key: secret/data/${CLUSTER_NAME:management-cluster}/harbor-postgres-admin
         property: password
    - secretKey: password
      remoteRef:
-        key: secret/data/harbor-postgres-user
+        key: secret/data/${CLUSTER_NAME:management-cluster}/harbor-postgres-user
         property: password
    - secretKey: replication-password
      remoteRef:
-        key: secret/data/harbor-postgres-replication
+        key: secret/data/${CLUSTER_NAME:management-cluster}/harbor-postgres-replication
         property: password

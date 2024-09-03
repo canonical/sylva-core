@@ -1,4 +1,4 @@
-GET https://{{vault_url}}/v1/secret/data/neuvector
+GET https://{{vault_url}}/v1/secret/data/{{cluster_name}}/neuvector
 X-Vault-Token: {{token}}
 HTTP 200
 [Captures]

@@ -1,4 +1,4 @@
-GET https://{{vault_url}}/v1/secret/data/keycloak
+GET https://{{vault_url}}/v1/secret/data/{{cluster_name}}/keycloak
 X-Vault-Token: {{token}}
 HTTP 200
 [Captures]

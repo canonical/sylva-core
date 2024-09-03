@@ -151,6 +151,7 @@ test-login-management-cluster:
     - export HURL_harbor_url=$(kubectl --kubeconfig management-cluster-kubeconfig get ingress -n harbor harbor-ingress -o jsonpath='{ .spec.tls[].hosts[] }')
     - export HURL_neuvector_url=$(kubectl --kubeconfig management-cluster-kubeconfig get ingress -n neuvector neuvector-webui-ingress  -o jsonpath='{ .spec.tls[].hosts[] }')
     - export HURL_gitea_url=$(kubectl --kubeconfig management-cluster-kubeconfig get ingress -n gitea gitea -o jsonpath='{ .spec.tls[].hosts[] }')
+    - export HURL_cluster_name=$MANAGEMENT_CLUSTER_NAME
     - |
       if [ -n "${HURL_neuvector_url}" ]; then
           sleep 2;

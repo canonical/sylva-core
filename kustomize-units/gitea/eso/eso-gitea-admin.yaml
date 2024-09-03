@@ -18,5 +18,5 @@ spec:
    data:
    - secretKey: password
      remoteRef:
-        key: secret/data/gitea-admin-user
+        key: secret/data/${CLUSTER_NAME:management-cluster}/gitea-admin-user
         property: password

@@ -1,4 +1,4 @@
-GET https://{{vault_url}}/v1/secret/data/gitea-admin-user
+GET https://{{vault_url}}/v1/secret/data/{{cluster_name}}/gitea-admin-user
 X-Vault-Token: {{token}}
 HTTP 200
 [Captures]
