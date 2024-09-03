@@ -95,7 +95,7 @@ variables:
   SYLVA_CI_VALUES_FOLDER: environment-values/sylva-core-ci-values
   # Reference to checkout for CI values, by default we use the same for all stages but it can be overriden
   # eg: if we have a breaking change during an upgrade we could use a different branch for the deployment and update
-  CI_VALUES_REVISION: 0.1.0
+  CI_VALUES_REVISION: 0.2.1
   MGMT_INITIAL_CI_VALUES_REVISION: ${CI_VALUES_REVISION}
   MGMT_UPDATE_CI_VALUES_REVISION: ${MGMT_INITIAL_CI_VALUES_REVISION}
   WC_INITIAL_CI_VALUES_REVISION: ${CI_VALUES_REVISION}
@@ -152,9 +152,11 @@ variables:
       EXTRA_DESCRIPTION: "\\e[1;31m \\u26A0 This pipeline was triggered with label ci-feature::test-upgrade-from-1.1.1 \n  pipeline will test upgrade from 1.1.1 version \\e[0m"
       # Need to be HA in case of rolling upgrade triggered by the upgrade
       MGMT_INITIAL_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/control-plane-replicas-3.yml
-      MGMT_UPDATE_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/control-plane-replicas-3.yml
+      # libvirt-metal-no-bond.yaml file is added to updates values as a temporary fix for capm3 upgrades from 1.1.1,
+      # it can be removed after next release, see https://gitlab.com/sylva-projects/sylva-core/-/issues/1581
+      MGMT_UPDATE_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/control-plane-replicas-3.yml ${SYLVA_CI_VALUES_FOLDER}/libvirt-metal-no-bond.yaml
       WC_INITIAL_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/control-plane-replicas-3.yml
-      WC_UPDATE_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/control-plane-replicas-3.yml
+      WC_UPDATE_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/control-plane-replicas-3.yml ${SYLVA_CI_VALUES_FOLDER}/libvirt-metal-no-bond.yaml
       # Set initial revision to 1.1.1
       MGMT_INITIAL_REVISION: 1.1.1
       WC_INITIAL_REVISION: 1.1.1
