@@ -1723,6 +1723,13 @@ units:
               memory: 1024Mi
         cleanupController:
           replicas: '{{ .Values._internal.default_replicas | include "preserve-type" }}'
+          rbac:
+            clusterRole:
+              extraResources:
+              - apiGroups: [""]
+                resources:
+                  - nodes
+                verbs: ["get", "list", "watch", "patch", "update", "delete"]
         reportsController:
           replicas: '{{ .Values._internal.default_replicas | include "preserve-type" }}'
         backgroundController:
