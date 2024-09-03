@@ -69,14 +69,14 @@ additional_resources="
   Settings.*longhorn.io
   Engines.*longhorn.io
   InstanceManagers.*longhorn.io
-  CleanupPolicy.*kyverno.io
-  ClusterCleanupPolicy.*kyverno.io
-  ClusterPolicy.*kyverno.io
-  Policy.*kyverno.io
-  PolicyException.*kyverno.io
-  UpdateRequest.*kyverno.io
-  PolicyReport.*wgpolicyk8s.io
-  ClusterPolicyReport.*wgpolicyk8s.io
+  CleanupPolicies.*kyverno.io
+  ClusterCleanupPolicies.*kyverno.io
+  ClusterPolicies.*kyverno.io
+  Policies.*kyverno.io
+  PolicyExceptions.*kyverno.io
+  UpdateRequests.*kyverno.io
+  PolicyReports.*wgpolicyk8s.io
+  ClusterPolicyReports.*wgpolicyk8s.io
 "
 
 function dump_additional_resources() {
