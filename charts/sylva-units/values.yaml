@@ -2833,8 +2833,8 @@ units:
         }}
 
     helmrelease_spec:
-      releaseName: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpk" | ternary "calico-crd" "rke2-calico-crd" }}'
-      targetNamespace: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpk" | ternary "calico-system" "kube-system" }}'
+      releaseName: rke2-calico-crd
+      targetNamespace: kube-system
       chart:
         spec:
           chart: rke2-calico-crd
@@ -2867,8 +2867,8 @@ units:
     helm_repo_url: https://rke2-charts.rancher.io
     helm_chart_versions: *calico-chart-versions  # we use a YAML anchor rather than templating so that this file can be read by tools/generate_units_documentation.py
     helmrelease_spec:
-      releaseName: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpk" | ternary "calico" "rke2-calico" }}'
-      targetNamespace: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpk" | ternary "calico-system" "kube-system" }}'
+      releaseName: rke2-calico
+      targetNamespace: kube-system
       chart:
         spec:
           chart: rke2-calico
