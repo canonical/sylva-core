@@ -6,7 +6,7 @@
 # CAPO_CLEANUP_GITLAB_AUTH_TOKEN variable can be used
 # to authenticate against gitlab pipeline API
 
-scheduled-cleanup-capo:
+.scheduled-cleanup-capo:
   stage: cleanup
   image:
     name: $OPENSTACK_CLIENT_IMAGE
@@ -64,11 +64,11 @@ scheduled-cleanup-capo:
     - $CAPO_PLATFORM_TAG
 
 scheduled-cleanup-capo-falcon:
-  extends: scheduled-cleanup-capo
+  extends: .scheduled-cleanup-capo
   variables:
     CAPO_PLATFORM_TAG: capo-ci
 
 scheduled-cleanup-capo-rocket:
-  extends: scheduled-cleanup-capo
+  extends: .scheduled-cleanup-capo
   variables:
     CAPO_PLATFORM_TAG: capo-infra-rocket
