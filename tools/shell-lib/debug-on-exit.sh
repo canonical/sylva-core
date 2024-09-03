@@ -82,6 +82,7 @@ additional_resources="
 function dump_additional_resources() {
     local cluster_dir=$1
     shift
+    kubectl api-resources > $cluster_dir/api-resources.txt
     for cr in $@; do
       echo "Dumping resources $cr in the whole cluster"
       if kubectl api-resources | grep -qi $cr ; then
