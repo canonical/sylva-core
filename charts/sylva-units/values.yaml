@@ -5325,10 +5325,14 @@ units:
                   requiredDuringSchedulingIgnoredDuringExecution:
                     - labelSelector:
                         matchExpressions:
-                          - key: app
+                          - key: v1.min.io/pool
                             operator: In
                             values:
-                              - minio
+                              - pool-0
+                          - key: v1.min.io/tenant
+                            operator: In
+                            values:
+                              - monitoring
                       topologyKey: "kubernetes.io/hostname"
               securityContext:
                 runAsUser: 1000
@@ -5338,7 +5342,7 @@ units:
                 runAsNonRoot: true
                 seccompProfile:
                   type: RuntimeDefault
-            - servers: '{{ .Values._internal.ha_cluster.is_ha | ternary 4 1 }}'
+            - servers: '{{ min .Values._internal.node_count 4 }}'
               name: pool-monitoring
               volumesPerserver: 4
               size: 10Gi
@@ -5366,10 +5370,14 @@ units:
                   requiredDuringSchedulingIgnoredDuringExecution:
                     - labelSelector:
                         matchExpressions:
-                          - key: app
+                          - key: v1.min.io/pool
                             operator: In
                             values:
-                              - minio
+                              - pool-monitoring
+                          - key: v1.min.io/tenant
+                            operator: In
+                            values:
+                              - monitoring
                       topologyKey: "kubernetes.io/hostname"
           metrics:
             enabled: true
