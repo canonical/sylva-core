@@ -239,7 +239,7 @@
       "matchStringsStrategy": "recursive",
       "matchStrings": [
         "source_templates:[\\w\\W]*[ ]+",
-        "\\n\\s+url:\\s(?<depName>.*)\\n[\\w\\W]*?(branch:|tag:) (?<currentValue>.*)\\n"
+        "\\n\\s+url:\\s(?<depName>.*)\\n[\\w\\W]*?(branch:|tag:|commit:) (?<currentValue>.*)\\n"
       ],
       "datasourceTemplate": "git-tags"
     },
