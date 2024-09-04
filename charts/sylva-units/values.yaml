@@ -2532,6 +2532,22 @@ units:
         - kind: ConfigMap
           name: openstack-images-uuids  ## this ConfigMap is a byproduct of the get-openstack-images job
           optional: '{{ not (.Values.cluster.capi_providers.infra_provider | eq "capo") | include "as-bool" }}'
+        # For Calico nodeAddressAutodetection, for RKE2 on CAPO, we need to pass the cluster VIP in calico values
+        # as installation.calicoNetwork.nodeAddressAutodetectionV4.canReach (via sylva-capi-cluster 'cni.calico.helm_values')
+        #
+        # this address is read from the ConfigMap produced by capo-cluster-resources unit
+        # which allocates the VIP
+        - |
+          {{-
+          tuple
+            (dict "kind" "ConfigMap"
+                  "name" "capo-cluster-resources"
+                  "valuesKey" "allocated_ip"
+                  "targetPath" "cni.calico.helm_values.installation.calicoNetwork.nodeAddressAutodetectionV4.canReach"
+            )
+            .Values.capo_calico_autodetection_method_use_canReach_vip
+          | include "set-only-if"
+          -}}
         - kind: ConfigMap
           # this configmap is a byproduct of the os-images-info unit, a different configmap is used for capm3 workload clusters
           # see workload-cluster.values.yaml
@@ -2875,7 +2891,62 @@ units:
         spec:
           chart: rke2-calico
           version: "" # will be defined by helm_chart_versions
-      values: '{{ .Values.calico_helm_values | include "preserve-type" }}'
+      values:
+        tolerations:
+        - effect: NoExecute
+          key: node.kubernetes.io/not-ready
+          operator: Exists
+        - effect: NoSchedule
+          key: node.kubernetes.io/not-ready
+          operator: Exists
+        - effect: NoSchedule
+          key: node.cloudprovider.kubernetes.io/uninitialized
+          operator: Exists
+        - effect: NoSchedule
+          key: node.kubernetes.io/network-unavailable
+          operator: Exists
+        global:
+          clusterCIDR: '{{ .Values._internal.calico.clusterCIDR }}'
+          clusterCIDRv4: '{{ .Values._internal.calico.clusterCIDRv4 }}'
+          clusterDNS: '{{ .Values._internal.calico.clusterDNS }}'
+          clusterDomain: '{{ .Values._internal.calico.clusterDomain }}'
+          serviceCIDR: '{{ .Values._internal.calico.serviceCIDR }}'
+        installation:
+          calicoNetwork:
+            bgp: Enabled
+            mtu: '{{ tuple .Values.cluster.capm3.network_interfaces.mtu (and (.Values.cluster.capi_providers.infra_provider | eq "capm3") .Values.cluster.capm3.network_interfaces.mtu) | include "set-only-if" }}'
+            nodeAddressAutodetectionV4: |
+              {{
+              tuple
+                .Values._internal.default_calico_autodetection_method
+                (not .Values._internal.capo_calico_autodetection_method_use_canReach_vip)
+              | include "set-only-if"
+              }}
+          registry: UseDefault
+        felixConfiguration:
+          wireguardEnabled: '{{ .Values.security.calico_wireguard_enabled | include "preserve-type" }}'
+      valuesFrom:
+        # For Calico nodeAddressAutodetection, for RKE2 on CAPO, we need to pass the cluster VIP in calico values
+        # as installation.calicoNetwork.nodeAddressAutodetectionV4.canReach
+        #
+        # this address is read from the ConfigMap produced by capo-cluster-resources unit
+        # which allocates the VIP
+        - |
+          {{-
+          tuple
+            (dict "kind" "ConfigMap"
+                  "name" "capo-cluster-resources"
+                  "valuesKey" "allocated_ip"
+                  "targetPath" "installation.calicoNetwork.nodeAddressAutodetectionV4.canReach"
+            )
+            .Values.capo_calico_autodetection_method_use_canReach_vip
+          | include "set-only-if"
+          -}}
+
+  #   {{- else -}}
+  #     {{- dict | include "preserve-type" -}}
+  #   {{- end -}}
+
 
   calico-ready:
     info:
@@ -6236,7 +6307,7 @@ cluster:
     - 100.72.0.0/16
   cni:
     calico:
-      helm_values: '{{ .Values.calico_helm_values | include "preserve-type" }}'
+      helm_values: '{{ .Values.units.calico.helmrelease_spec.values | include "preserve-type" }}'
 
   use_custom_rancher_dns_resolver: false
   ntp: '{{ .Values.ntp | include "preserve-type" }}'
@@ -6631,35 +6702,6 @@ logging:
   #   to point to the mgmt cluster Loki
   loki_url: http://loki-gateway.loki.svc.cluster.local
 
-calico_helm_values:
-  tolerations:
-  - effect: NoExecute
-    key: node.kubernetes.io/not-ready
-    operator: Exists
-  - effect: NoSchedule
-    key: node.kubernetes.io/not-ready
-    operator: Exists
-  - effect: NoSchedule
-    key: node.cloudprovider.kubernetes.io/uninitialized
-    operator: Exists
-  - effect: NoSchedule
-    key: node.kubernetes.io/network-unavailable
-    operator: Exists
-  global:
-    clusterCIDR: '{{ .Values._internal.calico.clusterCIDR }}'
-    clusterCIDRv4: '{{ .Values._internal.calico.clusterCIDRv4 }}'
-    clusterDNS: '{{ .Values._internal.calico.clusterDNS }}'
-    clusterDomain: '{{ .Values._internal.calico.clusterDomain }}'
-    serviceCIDR: '{{ .Values._internal.calico.serviceCIDR }}'
-  installation:
-    calicoNetwork:
-      bgp: Enabled
-      mtu: '{{ tuple .Values.cluster.capm3.network_interfaces.mtu (and (.Values.cluster.capi_providers.infra_provider | eq "capm3") .Values.cluster.capm3.network_interfaces.mtu) | include "set-only-if" }}'
-      nodeAddressAutodetectionV4: '{{ .Values._internal.default_calico_autodetection_method | include "preserve-type" }}'
-    registry: UseDefault
-  felixConfiguration:
-    wireguardEnabled: '{{ .Values.security.calico_wireguard_enabled | include "preserve-type" }}'
-
 _internal:
 
   mgmt_cluster: false
@@ -6814,16 +6856,20 @@ _internal:
 
   cluster_unit_os_images_info_configmap: os-images-info
 
-  # default value for cabpr is computed in s-c-c due to https://gitlab.com/sylva-projects/sylva-core/-/issues/1477
-  # canReach: not (empty .Values.cluster.mgmt_cluster_ip) | ternary .Values.cluster.mgmt_cluster_ip .Values.cluster.cluster_virtual_ip
-  default_calico_autodetection_method: >-
-    {{- if .Values.cluster.capi_providers.bootstrap_provider | eq "cabpk" }}
-      {{- dict "kubernetes" "NodeInternalIP" | include "preserve-type" -}}
-    {{- else -}}
-      {{- dict | include "preserve-type" -}}
-    {{- end -}}
+  default_calico_autodetection_method:
+    kubernetes: NodeInternalIP
 
-  calico_readiness_unit: "calico"
+  # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  # TO BE DISCUSSED: I added (empty .Values.mgmt_cluster_ip) to reflect what sylva-capi-cluster was doing before this MR
+  #                  BUT: I'm not sure this is necessary/wise... I think that the Calico on the workload cluster should
+  #                       behave independently of whether or not the mgmt cluster is reachable or not
+  # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  capo_calico_autodetection_method_use_canReach_vip: |
+    {{
+      and (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpr")
+          (.Values.cluster.capi_providers.infra_provider | eq "capo")
+          (empty .Values.mgmt_cluster_ip)
+    }}
 
   capo_need_v1alpha8_fix: >-
     {{
