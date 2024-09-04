@@ -3120,7 +3120,7 @@ units:
       interval: 10m0s
       values:
         auditLog:
-          level: '{{ .Values.audit_log.level }}'
+          level: '{{ .Values.audit_log.level | include "preserve-type" }}'
         privateCA: true
         useBundledSystemChart: true
         hostname: '{{ .Values.external_hostnames.rancher }}'
@@ -5748,6 +5748,10 @@ units:
         additionalLoggingSources:
           rke2:
             enabled: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" | include "as-bool" }}'
+          kubeAudit:
+            # autdit log is currently only supported for rke2 see issue https://gitlab.com/sylva-projects/sylva-core/-/issues/1226
+            auditFilename: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" | ternary "/var/lib/rancher/rke2/server/logs/audit.log" "" }}'
+            enabled: '{{ and (gt (int .Values.audit_log.level) 0) (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" ) | include "as-bool" }}'
         securityContext:
           allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
