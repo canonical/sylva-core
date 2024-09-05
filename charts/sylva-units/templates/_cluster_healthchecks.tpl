@@ -53,7 +53,7 @@ Wait for infra provider Cluster
 {{- $cluster_apiVersion := "" -}}
 {{- if $cluster.capi_providers.infra_provider | eq "capo" -}}
   {{- $cluster_kind = "OpenStackCluster" -}}
-  {{- $cluster_apiVersion = "infrastructure.cluster.x-k8s.io/v1alpha6" -}}
+  {{- $cluster_apiVersion = "infrastructure.cluster.x-k8s.io/v1beta1" -}}
 {{- else if $cluster.capi_providers.infra_provider | eq "capv" -}}
   {{- $cluster_kind = "VSphereCluster" -}}
   {{- $cluster_apiVersion = "infrastructure.cluster.x-k8s.io/v1beta1" -}}
