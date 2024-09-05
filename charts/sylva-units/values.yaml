@@ -3390,7 +3390,7 @@ units:
           cattle_agent_kustomize_source_ref:
             kind: GitRepository
             name: capi-rancher-import
-            namespace: sylva-system
+            namespace: '{{ .Release.Namespace }}'
           cattle_agent_kustomize_path: ./cattle-kustomize
 
   ingress-nginx:
