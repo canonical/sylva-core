@@ -22,27 +22,33 @@ whitelist_secret = {
   "keycloak-client-secret-harbor-client": ["CLIENT_ID"],
   "keycloak-client-secret-grafana-client": ["CLIENT_ID"],
   "keycloak-client-secret-flux-webui-client": ["CLIENT_ID"],
-  "credential-sylva-sylva-admin-keycloak": ["username"],
+  #https://gitlab.com/sylva-projects/sylva-core/-/issues/1480
+  # for password key
+  "credential-sylva-sylva-admin-keycloak": ["username","password"],
   "credential-external-keycloak": ["ADMIN_USERNAME"],
   "oidc-auth": ["redirectURL", "issuerURL", "clientID"],
   "cluster-user-auth": ["username"],
   "cluster-creator-kubeconfig": ["USER_NAME"],
   "local-kubeconfig": ["apiServerURL"],
-  "fleet-agent": ["deploymentNamespace", "clusterNamespace", "clusterName"],
   "thanos-minio-root":  ["MINIO_ROOT_USER"],
   "loki-minio-user": ["CONSOLE_ACCESS_KEY"],
   "minio-monitoring-user": ["CONSOLE_ACCESS_KEY"],
-  "chart-values-metallb": ["ca-file.pem"],
+  "ca-key-pair": ["tls.crt"],
   # https://gitlab.com/sylva-projects/sylva-core/-/issues/1451
   # for password key
   "sso-account": ["login", "password"],
-  "extra-ca-certs": ["extra-ca-certs.pem"],
   # https://gitlab.com/sylva-projects/sylva-core/-/issues/1335
   # for password key
   "thanos-basic-auth": ["username", "password"],
   # https://gitlab.com/sylva-projects/sylva-core/-/issues/1334
   # for admin-password key
-  "rancher-monitoring-grafana": ["admin-user", "admin-password"]
+  "rancher-monitoring-grafana": ["admin-user", "admin-password"],
+  # https://gitlab.com/sylva-projects/sylva-core/-/issues/1332
+  # for REGISTRY_CREDENTIAL_PASSWORD key
+  "harbor-jobservice": ["REGISTRY_CREDENTIAL_PASSWORD"],
+  # https://gitlab.com/sylva-projects/sylva-core/-/issues/1332
+  # for secretKey and REGISTRY_CREDENTIAL_PASSWORD keys
+  "harbor-core": ["secretKey", "REGISTRY_CREDENTIAL_PASSWORD"]
 }
 
 whitelist_secret_without_suffix = {
@@ -60,7 +66,10 @@ whitelist_key = [
     "clusterNamespace",
     "clusterName",
     "namespace",
-    "format"
+    "format",
+    "ca.crt",
+    "extra-ca-certs.pem",
+    "ca-file.pem"
     ]
 
 ci_project_dir = os.getenv("CI_PROJECT_DIR", ".")
@@ -99,13 +108,10 @@ def build_secret_regex(secrets_dict, secret_list, secret_id_list, encoded):
                 if is_whitelist_secret(secret_name, key):
                     continue  # secret in white list skip
                 value_secret = secrets_dict[secret_name][key]
-                if encoded:
-                    value_secret = base64.b64decode(value_secret)
-                    try:
-                        value_secret = value_secret.decode('utf-8')
-                    except:
-                        continue
                 if value_secret:
+                    if encoded:
+                        value_secret = repr(base64.b64decode(value_secret))[2:-1]
+
                     value_secret = value_secret.strip()
                     value_secret_re = value_secret
                     # escape special characteres
@@ -117,8 +123,8 @@ def build_secret_regex(secrets_dict, secret_list, secret_id_list, encoded):
                     value_secret_re = ".{1,2}".join(value_secret_re.split(r"\\"))
                     value_secret_re = ".".join(value_secret_re.split("\\"))
                     secret_list.append(value_secret_re)
-                    secret_id_list[value_secret_re] = {"secret": secret,
-                                                       "key": key}
+                    secret_id_list[value_secret] = {"secret": secret_name,
+                                                    "key": key}
 
 
 def validate_secret_regex(secrets_dict, secrets_regex, encoded):
@@ -128,37 +134,35 @@ def validate_secret_regex(secrets_dict, secrets_regex, encoded):
                 if is_whitelist_secret(secret_name, key):
                     continue  # secret in white list skip
                 value_secret = secrets_dict[secret_name][key]
-                if encoded:
-                    value_secret = base64.b64decode(value_secret)
-                    try:
-                        value_secret = value_secret.decode('utf-8')
-                    except:
-                        continue
                 if value_secret:
-                    log_leak = re.findall(secrets_regex, value_secret)
-                    if not log_leak:
-                        print(f"ERROR : secret {secret_name} does not match regex")
-                        sys.exit(1)
+                    if encoded:
+                        value_secret = repr(base64.b64decode(value_secret))[2:-1]
+                    if value_secret:
+                        log_leak = re.findall(secrets_regex, value_secret)
+                        if not log_leak:
+                            print(f"ERROR : secret {secret_name} key {key} does not match regex")
+                            sys.exit(1)
 
 
 def check_leaks(log_string, leaks_output, target_pod, secrets_regex, secret_id_list):
     log_string = f"{log_string}"
     log_string = log_string.rstrip('\r')
-    for leak_found in re.finditer(secrets_regex, log_string):
-        if leak_found.group() in secret_id_list:
+    for leak_found in re.findall(secrets_regex, log_string):
+        leak_found = leak_found.strip()
+        if leak_found in secret_id_list:
             leaks_output.append({"pod": target_pod.metadata.name,
                                  "namespace": target_pod.metadata.namespace,
-                                 "leak": secret_id_list[leak_found.group()],
-                                 "log": log_string[leak_found.start()-20:leak_found.end()+20]})
+                                 "leak": secret_id_list[leak_found],
+                                 "secret": leak_found})
         else:
             leaks_output.append({"pod": target_pod.metadata.name,
                                  "namespace": target_pod.metadata.namespace,
-                                 "log": log_string[leak_found.start()-20:leak_found.end()+20]})
+                                 "leak_found": leak_found})
 
 # get kubernetes secrets
 secrets = v1.list_secret_for_all_namespaces(watch=False).items
 kubernetes_secrets = {}
-secret_lst = []
+
 for secret in secrets:
     kubernetes_secrets[secret.metadata.name] = secret.data
 
@@ -184,6 +188,7 @@ pods = v1.list_pod_for_all_namespaces(watch=False).items
 
 leaks = []
 
+secret_lst = []
 secret_id_lst = {}
 # build kubernetes secret regex
 build_secret_regex(kubernetes_secrets, secret_lst, secret_id_lst, True)
@@ -193,7 +198,8 @@ build_secret_regex(vault_secrets, secret_lst, secret_id_lst, False)
 secrets_re = ""
 secrets_re = r"(?=("+'|'.join(secret_lst)+r"))"
 
-check_leaks
+# validate the regex on all kubernetes secret
+validate_secret_regex(kubernetes_secrets, secrets_re, True)
 # validate the regex on all vault secret
 validate_secret_regex(vault_secrets, secrets_re, False)
 
@@ -229,4 +235,3 @@ if len(leaks) > 0:
     sys.exit(1)
 else:
     print("[OK] No leak found")
-
