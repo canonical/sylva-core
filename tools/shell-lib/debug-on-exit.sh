@@ -13,6 +13,7 @@ additional_resources="
   ClusterRoles
   ClusterRoleBindings
   ServiceAccounts
+  CustomResourceDefinitions
   HelmReleases
   HelmRepositories
   HelmCharts
