@@ -1,14 +1,8 @@
----
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: cluster-garbage-collector
-  namespace: sylva-system
-  labels:
-    app: cluster-garbage-collector
+  name: _unused_
 spec:
-   # executed by default every 3 hours, on the 37th minute of every third hour, on all days of the month, all months, and all days of the week
-   # if not overriden from sylva-units through the Kustomize Component patch in kustomize-units/cluster-garbage-collector/kustomization.yaml
   schedule: "37 */3 * * *"
   concurrencyPolicy: Replace
   successfulJobsHistoryLimit: 5
@@ -16,33 +10,3 @@ spec:
   jobTemplate:
     spec:
       activeDeadlineSeconds: 120
-      template:
-        metadata:
-          labels:
-            app: cluster-garbage-collector
-        spec:
-          serviceAccountName: cluster-garbage-collector-sa
-          containers:
-            - name: xtemplate-cleaner
-              image: registry.gitlab.com/sylva-projects/sylva-elements/container-images/kube-job:v1.0.15
-              imagePullPolicy: IfNotPresent
-              volumeMounts:
-              - mountPath: /opt/
-                name: script-volume
-              command: ["/bin/sh", "-c", "/opt/capi-garbage-cleanup.sh"]
-              securityContext:
-                allowPrivilegeEscalation: false
-                capabilities:
-                  drop:
-                    - ALL
-                runAsNonRoot: true
-                runAsUser: 1000
-                privileged: false
-                seccompProfile:
-                  type: RuntimeDefault
-          restartPolicy: Never
-          volumes:
-          - name: script-volume
-            configMap:
-              name: cluster-garbage-collector-cm
-              defaultMode: 0755
