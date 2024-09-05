@@ -31,18 +31,19 @@ thanos-alert-check:
       if [ ${thanos_url=$(kubectl --kubeconfig management-cluster-kubeconfig get ingress -n thanos thanos-query -o jsonpath='{ .spec.tls[0].hosts[0] }' )} ]; then
          echo "Thanos URL - $thanos_url"
          thanos_token=$(kubectl --kubeconfig management-cluster-kubeconfig get secrets sylva-units-values -o yaml | yq .data.values | base64 -d | yq ._internal.thanos_password)
+         thanos_user=$(kubectl --kubeconfig management-cluster-kubeconfig get secrets sylva-units-values -o yaml | yq .data.values | base64 -d | yq ._internal.thanos_user)
          unset https_proxy http_proxy
          echo "Checking if service is available"
-         response_code=$(curl  --silent --output /dev/null --write-out "%{http_code}"  -k https://$thanos_url:443 -u thanos-user:$thanos_token)
+         response_code=$(curl  --silent --output /dev/null --write-out "%{http_code}"  -k https://$thanos_url:443 -u $thanos_user:$thanos_token)
          if [[ "$response_code" -eq 200 ]]; then
             echo "Checking Thanos alerts"
-            curl -k -s -G https://$thanos_url:443/api/v1/query -u thanos-user:$thanos_token \
+            curl -k -s -G https://$thanos_url:443/api/v1/query -u $thanos_user:$thanos_token \
             --data-urlencode "$ALERT_QUERY" | yq -r .data.result[].metric | jtbl -H > ${CI_PROJECT_DIR}/thanos-alert.html
-            critical_alerts=$(curl -k -s -G https://$thanos_url:443/api/v1/query -u thanos-user:$thanos_token \
+            critical_alerts=$(curl -k -s -G https://$thanos_url:443/api/v1/query -u $thanos_user:$thanos_token \
             --data-urlencode "$ALERT_QUERY" | yq -r '.data.result[] | select(.metric.severity=="critical")' | wc -l)
             if [ $critical_alerts -gt 0 ] ; then
               echo "Critical alerts found:"
-              curl -k -s -G https://$thanos_url:443/api/v1/query -u thanos-user:$thanos_token \
+              curl -k -s -G https://$thanos_url:443/api/v1/query -u $thanos_user:$thanos_token \
               --data-urlencode "$ALERT_QUERY" | yq -r '.data.result[] | select(.metric.severity=="critical") | { "alertname": .metric.alertname, "cluster": .metric.cluster}'
               exit 1
             fi
