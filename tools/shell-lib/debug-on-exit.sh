@@ -33,9 +33,9 @@ additional_resources="
   StorageClasses
   PodDisruptionBudgets
   HeatStacks
-  ClusterSecretStore
-  SecretStore
-  ClusterExternalSecret
+  ClusterSecretStores
+  SecretStores
+  ClusterExternalSecrets
   ExternalSecrets
   Keycloaks
   KeycloakClients
@@ -69,14 +69,14 @@ additional_resources="
   Settings.*longhorn.io
   Engines.*longhorn.io
   InstanceManagers.*longhorn.io
-  CleanupPolicy.*kyverno.io
-  ClusterCleanupPolicy.*kyverno.io
-  ClusterPolicy.*kyverno.io
-  Policy.*kyverno.io
-  PolicyException.*kyverno.io
-  UpdateRequest.*kyverno.io
-  PolicyReport.*wgpolicyk8s.io
-  ClusterPolicyReport.*wgpolicyk8s.io
+  CleanupPolicies.*kyverno.io
+  ClusterCleanupPolicies.*kyverno.io
+  ClusterPolicies.*kyverno.io
+  Policies.*kyverno.io
+  PolicyExceptions.*kyverno.io
+  UpdateRequests.*kyverno.io
+  PolicyReports.*wgpolicyk8s.io
+  ClusterPolicyReports.*wgpolicyk8s.io
 "
 
 function dump_additional_resources() {
@@ -84,6 +84,16 @@ function dump_additional_resources() {
     shift
     kubectl api-resources > $cluster_dir/api-resources.txt
     for cr in $@; do
+      if ! [[  ${cr} =~ ^[A-Z][A-Za-z0-9]*s($|\.\*.*) ]]; then
+          echo '${cr} does not match the expected pattern, you should provide the capiatalised (plural) NAME of the resource, not the KIND'
+          echo 'For example, provided following results:'
+          echo '$ k api-resources | grep "NAME\|clusterpolicies"'
+          echo 'NAME                                         SHORTNAMES              APIVERSION                                   NAMESPACED   KIND'
+          echo 'clusterpolicies                              cpol                    kyverno.io/v1                                false        ClusterPolicy'
+          echo
+          echo 'You should use "ClusterPolicies.*kyverno.io" or "ClusterPolicies", not "ClusterPolicy"'
+          exit 1
+      fi
       echo "Dumping resources $cr in the whole cluster"
       if kubectl api-resources | grep -qi $cr ; then
         kind=${cr/\*/}  # transform the .* used for matching kubectl api-resource, into a plain '.'

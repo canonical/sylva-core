@@ -334,6 +334,15 @@ units:
           name: '{{ .Values.cluster.name }}-capi-monitoring-info'  # this configmap is produced by a kyverno policy defined by the "rancher-monitoring-clusterid-inject" mgmt unit
           optional: false
 
+  thanos-credentials-secret:
+    enabled: true
+    depends_on:
+      kyverno-policies-ready: false
+    unit_templates:
+    - kustomization-deployed-on-mgmt-cluster
+    kustomization_spec:
+      healthChecks: null # Remove healthChecks targeting sylva-system namespace
+
   kubevirt:
     # can be enabled at runtime if desired
     enabled: false
@@ -444,6 +453,15 @@ units:
     enabled: true
     kustomization_spec:
       targetNamespace: "cattle-logging-system"
+
+  loki-credentials-secret:
+    enabled: true
+    depends_on:
+      kyverno-policies-ready: false
+    unit_templates:
+    - kustomization-deployed-on-mgmt-cluster
+    kustomization_spec:
+      healthChecks: null # Remove healthChecks targeting sylva-system namespace
 
   sylva-prometheus-rules:
     enabled: true
