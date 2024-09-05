@@ -18,9 +18,9 @@ import yaml
 # - dict value defines the relative path of values.schema.json in corresponding project
 # the schema will be appended to $def.[unit-name]-values schema key in sylva-units
 SYLVA_UNITS_CHARTS_SCHEMAS = {
-        "sylva-capi-cluster": "",
-        "libvirt-metal": "charts/libvirt-metal",
-    }
+    "sylva-capi-cluster": "",
+    "libvirt-metal": "charts/libvirt-metal",
+}
 SCRIPT_DIR = os.path.dirname(os.path.abspath(sys.argv[0]))
 CHART_DIR = os.path.abspath(f"{SCRIPT_DIR}/../charts/sylva-units")
 SYLVA_UNITS_VALUES_FILE = f"{CHART_DIR}/values.yaml"
@@ -96,7 +96,8 @@ def _allow_additional_format_for_all(property_definition, format):
     if "anyOf" in property_definition:
         for index, case in enumerate(property_definition['anyOf']):
             if "type" in case and case['type'] == "object":
-                property_definition['anyOf'][index] = allow_additional_format_for_all_schema_properties(property_definition['anyOf'][index], format)
+                property_definition['anyOf'][index] = allow_additional_format_for_all_schema_properties(
+                    property_definition['anyOf'][index], format)
         property_definition['anyOf'].append(format)
     else:
         if "properties" in property_definition or "patternProperties" in property_definition:
@@ -136,9 +137,12 @@ if __name__ == "__main__":
         description="Sylva-units schema generator",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
-    parser.add_argument("-i", "--input", metavar="input", required=False, default=SYLVA_UNITS_YAML_SCHEMA, help="sylva-units schema in yaml format")
-    parser.add_argument("-o", "--output", metavar="output", required=False, default=SYLVA_UNITS_JSON_SCHEMA, help="sylva-units schema in json format")
-    parser.add_argument("-v", "--values", metavar="values", required=False, default=SYLVA_UNITS_VALUES_FILE, help="sylva-units values file")
+    parser.add_argument("-i", "--input", metavar="input", required=False, default=SYLVA_UNITS_YAML_SCHEMA,
+                        help="sylva-units schema in yaml format")
+    parser.add_argument("-o", "--output", metavar="output", required=False, default=SYLVA_UNITS_JSON_SCHEMA,
+                        help="sylva-units schema in json format")
+    parser.add_argument("-v", "--values", metavar="values", required=False, default=SYLVA_UNITS_VALUES_FILE,
+                        help="sylva-units values file")
     args = parser.parse_args()
 
     sylva_unit_schema = load_sylva_units_schema(args.input)

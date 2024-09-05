@@ -116,6 +116,13 @@ kustomize-lint:
 # Generic lint
 # ==========================================
 
+pylama:
+  extends: .lint-base
+  image: python:3.9.19-slim
+  script:
+    - pip install pylama
+    - pylama .
+
 yamllint:
   extends: .lint-base
   script:
