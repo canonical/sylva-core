@@ -5442,7 +5442,11 @@ units:
       healthChecks:
         - apiVersion: apps/v1
           kind: StatefulSet
-          name: monitoring-pool-0  # concatenation from .tenant chart values .name & .pools[*].name
+          name: monitoring-pool-0  # concatenation from .tenant chart values .name & .pools[0].name
+          namespace: minio-monitoring-tenant
+        - apiVersion: apps/v1
+          kind: StatefulSet
+          name: monitoring-pool-monitoring  # concatenation from .tenant chart values .name & .pools[1].name
           namespace: minio-monitoring-tenant
         - apiVersion: v1
           kind: Secret
