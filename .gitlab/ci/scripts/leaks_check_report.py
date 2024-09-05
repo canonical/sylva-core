@@ -2,7 +2,6 @@
 
 import os
 import re
-import urllib
 import base64
 import sys
 import urllib3
@@ -15,49 +14,49 @@ urllib3.disable_warnings(category=urllib3.exceptions.InsecureRequestWarning)
 
 # white list of secrets to ignore
 whitelist_secret = {
-  "keycloak-initial-admin": ["username"],
-  "keycloak-db-secret": ["username"],
-  "keycloak-client-secret-vault-client": ["CLIENT_ID"],
-  "keycloak-client-secret-rancher-client": ["CLIENT_ID"],
-  "keycloak-client-secret-harbor-client": ["CLIENT_ID"],
-  "keycloak-client-secret-grafana-client": ["CLIENT_ID"],
-  "keycloak-client-secret-flux-webui-client": ["CLIENT_ID"],
-  #https://gitlab.com/sylva-projects/sylva-core/-/issues/1480
-  # for password key
-  "credential-sylva-sylva-admin-keycloak": ["username","password"],
-  "credential-external-keycloak": ["ADMIN_USERNAME"],
-  "oidc-auth": ["redirectURL", "issuerURL", "clientID"],
-  "cluster-user-auth": ["username"],
-  "cluster-creator-kubeconfig": ["USER_NAME"],
-  "local-kubeconfig": ["apiServerURL"],
-  "thanos-minio-root":  ["MINIO_ROOT_USER"],
-  "loki-minio-user": ["CONSOLE_ACCESS_KEY"],
-  "minio-monitoring-user": ["CONSOLE_ACCESS_KEY"],
-  "ca-key-pair": ["tls.crt"],
-  # https://gitlab.com/sylva-projects/sylva-core/-/issues/1451
-  # for password key
-  "sso-account": ["login", "password"],
-  # https://gitlab.com/sylva-projects/sylva-core/-/issues/1335
-  # for password key
-  "thanos-basic-auth": ["username", "password"],
-  # https://gitlab.com/sylva-projects/sylva-core/-/issues/1334
-  # for admin-password key
-  "rancher-monitoring-grafana": ["admin-user", "admin-password"],
-  # https://gitlab.com/sylva-projects/sylva-core/-/issues/1332
-  # for REGISTRY_CREDENTIAL_PASSWORD key
-  "harbor-jobservice": ["REGISTRY_CREDENTIAL_PASSWORD"],
-  # https://gitlab.com/sylva-projects/sylva-core/-/issues/1332
-  # for secretKey and REGISTRY_CREDENTIAL_PASSWORD keys
-  "harbor-core": ["secretKey", "REGISTRY_CREDENTIAL_PASSWORD"]
+    "keycloak-initial-admin": ["username"],
+    "keycloak-db-secret": ["username"],
+    "keycloak-client-secret-vault-client": ["CLIENT_ID"],
+    "keycloak-client-secret-rancher-client": ["CLIENT_ID"],
+    "keycloak-client-secret-harbor-client": ["CLIENT_ID"],
+    "keycloak-client-secret-grafana-client": ["CLIENT_ID"],
+    "keycloak-client-secret-flux-webui-client": ["CLIENT_ID"],
+    # https://gitlab.com/sylva-projects/sylva-core/-/issues/1480
+    # for password key
+    "credential-sylva-sylva-admin-keycloak": ["username", "password"],
+    "credential-external-keycloak": ["ADMIN_USERNAME"],
+    "oidc-auth": ["redirectURL", "issuerURL", "clientID"],
+    "cluster-user-auth": ["username"],
+    "cluster-creator-kubeconfig": ["USER_NAME"],
+    "local-kubeconfig": ["apiServerURL"],
+    "thanos-minio-root":  ["MINIO_ROOT_USER"],
+    "loki-minio-user": ["CONSOLE_ACCESS_KEY"],
+    "minio-monitoring-user": ["CONSOLE_ACCESS_KEY"],
+    "ca-key-pair": ["tls.crt"],
+    # https://gitlab.com/sylva-projects/sylva-core/-/issues/1451
+    # for password key
+    "sso-account": ["login", "password"],
+    # https://gitlab.com/sylva-projects/sylva-core/-/issues/1335
+    # for password key
+    "thanos-basic-auth": ["username", "password"],
+    # https://gitlab.com/sylva-projects/sylva-core/-/issues/1334
+    # for admin-password key
+    "rancher-monitoring-grafana": ["admin-user", "admin-password"],
+    # https://gitlab.com/sylva-projects/sylva-core/-/issues/1332
+    # for REGISTRY_CREDENTIAL_PASSWORD key
+    "harbor-jobservice": ["REGISTRY_CREDENTIAL_PASSWORD"],
+    # https://gitlab.com/sylva-projects/sylva-core/-/issues/1332
+    # for secretKey and REGISTRY_CREDENTIAL_PASSWORD keys
+    "harbor-core": ["secretKey", "REGISTRY_CREDENTIAL_PASSWORD"]
 }
 
 whitelist_secret_without_suffix = {
-  # https://gitlab.com/sylva-projects/sylva-core/-/issues/1479
-  # for ADMIN_PASSWORD key
-  "kustomization-unit-substitute-vault": ["ADMIN_PASSWORD"],
-  # https://gitlab.com/sylva-projects/sylva-core/-/issues/1480
-  # for SSO_PASSWORD key
-  "kustomization-unit-substitute-keycloak-resources": ["SSO_PASSWORD"]
+    # https://gitlab.com/sylva-projects/sylva-core/-/issues/1479
+    # for ADMIN_PASSWORD key
+    "kustomization-unit-substitute-vault": ["ADMIN_PASSWORD"],
+    # https://gitlab.com/sylva-projects/sylva-core/-/issues/1480
+    # for SSO_PASSWORD key
+    "kustomization-unit-substitute-keycloak-resources": ["SSO_PASSWORD"]
 }
 
 whitelist_key = [
@@ -70,7 +69,7 @@ whitelist_key = [
     "ca.crt",
     "extra-ca-certs.pem",
     "ca-file.pem"
-    ]
+]
 
 ci_project_dir = os.getenv("CI_PROJECT_DIR", ".")
 
@@ -159,6 +158,7 @@ def check_leaks(log_string, leaks_output, target_pod, secrets_regex, secret_id_l
                                  "namespace": target_pod.metadata.namespace,
                                  "leak_found": leak_found})
 
+
 # get kubernetes secrets
 secrets = v1.list_secret_for_all_namespaces(watch=False).items
 kubernetes_secrets = {}
@@ -178,9 +178,7 @@ vault_secrets = {}
 list_folders = list_response['data']['keys']
 for folder in list_folders:
     path = f"/{folder}"
-    read_response = vault_client.secrets.kv.v2.read_secret(
-          path=path,
-    )
+    read_response = vault_client.secrets.kv.v2.read_secret(path=path,)
     vault_secrets[folder] = read_response['data']['data']
 
 # get list of all pods
@@ -196,7 +194,7 @@ build_secret_regex(kubernetes_secrets, secret_lst, secret_id_lst, True)
 build_secret_regex(vault_secrets, secret_lst, secret_id_lst, False)
 
 secrets_re = ""
-secrets_re = r"(?=("+'|'.join(secret_lst)+r"))"
+secrets_re = r"(?=("+'|'.join(secret_lst) + r"))" # noqa E226
 
 # validate the regex on all kubernetes secret
 validate_secret_regex(kubernetes_secrets, secrets_re, True)

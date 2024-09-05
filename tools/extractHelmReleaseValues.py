@@ -9,6 +9,7 @@ import base64
 from optparse import OptionParser
 from yamlMerge import recursive_dict_combine
 
+
 # Extract HelmRelease/sylva-units values from different paths based on values_path
 def extract_helm_release_values_from(helm_release_manifest, values_path):
     resources = []
@@ -27,8 +28,10 @@ def extract_helm_release_values_from(helm_release_manifest, values_path):
         resources = ({"valuesFiles": values_files})
     return resources
 
+
 def do_nothing(*args, **xargs):
     pass
+
 
 def main(values_path):
     # Load the YAML documents from standard input
@@ -47,19 +50,24 @@ def main(values_path):
                 secrets_configmaps_data = []  # Initialize list to store YAML contents of Secrets and ConfigMaps
                 helm_release_values_from = extract_helm_release_values_from(helm_release_manifest_doc, values_path)
                 if helm_release_values_from:
-                    # Very importantly, we get the contents of resources found in HelmRelease.spec.valuesFrom and merge in the order they were found
+                    # Very importantly, we get the contents of resources found in HelmRelease.spec.valuesFrom
+                    # and merge in the order they were found
                     for item in helm_release_values_from:
                         values_key = item.get("valuesKey", "values")
                         for yaml_doc in kustomize_yaml:
-                            if yaml_doc.get("kind") == item["kind"] and yaml_doc.get("metadata", {}).get("name") == item["name"]:
+                            if (
+                                yaml_doc.get("kind") == item["kind"] and
+                                yaml_doc.get("metadata", {}).get("name") == item["name"]
+                            ):
                                 data = yaml_doc.get("data", {}).get(values_key, "")
                                 if item["kind"] == "Secret":
                                     data = base64.b64decode(data).decode("utf-8")
                                 parsed_data = yaml.safe_load(data)
-                                if parsed_data == None:
-                                    continue # Ignore empty files
+                                if parsed_data is None:
+                                    continue  # Ignore empty files
                                 elif not isinstance(parsed_data, dict):
-                                    print(f'Errror: data provided for {item["kind"]}/{item["name"]} is not a dict (data: {parsed_data})')
+                                    print(f'Error: data provided for {item["kind"]}/{item["name"]}'
+                                          f'is not a dict (data: {parsed_data})')
                                     sys.exit(1)
                                 else:
                                     secrets_configmaps_data.append(parsed_data)
@@ -81,7 +89,8 @@ if __name__ == "__main__":
 %prog [options]
 
 Program reads manifests from stdin and attempts to return sylva-units values, based on the --values-path option for:
- - HelmRelease.spec.valuesFrom, gets the contents of objects from this list (if referenced objects are present in provided stdin manifests) and merges them (emulating Helm behavior when merging values), then outputs that
+ - HelmRelease.spec.valuesFrom, gets the contents of objects from this list (if referenced objects are present in \
+   provided stdin manifests) and merges them (emulating Helm behavior when merging values), then outputs that
  - HelmRelease.spec.values, outputs the dictionary of values
  - HelmRelease.spec.chart.spec.valuesFiles, outputs the list of files
     """)

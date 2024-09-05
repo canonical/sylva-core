@@ -83,7 +83,7 @@ def pipeline_summary(pipeline):
             continue
 
         if job not in test_jobs:
-            job_text = f"{job.name.replace('-','‑')}: {get_status_icon(job.status)}"
+            job_text = f"{job.name.replace('-', '‑')}: {get_status_icon(job.status)}"
             job_md = f"[{job_text}]({job.web_url})<br>"
             summary += job_md
         else:
@@ -96,7 +96,7 @@ def pipeline_summary(pipeline):
                 summary += test_combined_md
 
     # dumy line for padding to avoid ugly line breaks
-    summary += "&#160;"*60
+    summary += "&#160;" * 60
 
     return summary
 
@@ -116,8 +116,8 @@ def create_report():
         for pipeline_schedule in pipeline_schedules:
 
             if not pipeline_schedule.active:
-               print(pipeline_schedule.description + "is not active, skipping")
-               continue
+                print(pipeline_schedule.description + "is not active, skipping")
+                continue
 
             if pipeline_schedule_name not in pipeline_schedule.description:
                 continue
@@ -159,8 +159,10 @@ def create_report():
                     if pipeline.id not in child_pipelines_reports[child_pipeline_name]:
                         child_pipelines_reports[child_pipeline_name][pipeline.id] = ""
 
-                    rows_as_dict.setdefault(child_pipeline_name, [child_pipeline_name.replace("-deploy", "").replace("-", "‑")])
-                    rows_as_dict[child_pipeline_name].append(child_pipelines_reports[child_pipeline_name][pipeline.id])
+                    rows_as_dict.setdefault(child_pipeline_name,
+                                            [child_pipeline_name.replace("-deploy", "").replace("-", "‑")])
+                    rows_as_dict[child_pipeline_name].append(
+                        child_pipelines_reports[child_pipeline_name][pipeline.id])
 
             report_rows = list(rows_as_dict.values())
             print_report(tabulate(report_rows, headers=headers, tablefmt="pipe"))
@@ -193,7 +195,8 @@ def publish_report():
         main_report.content = report_content
         main_report.save()
 
-    print("The report can be found on following URL: " + os.getenv("CI_PROJECT_URL", default="https://gitlab.com/sylva-projects/sylva-core") + f"/-/wikis/{wiki_page}")
+    print("The report can be found on following URL: "
+          f"https://gitlab.com/sylva-projects/sylva-core/-/wikis/{WIKI_REPORT_PAGE}/{date}")
     print("Report uploaded for " + datetime.datetime.now().strftime("%Y-%m-%d"))
 
 

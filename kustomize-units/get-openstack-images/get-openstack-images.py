@@ -51,7 +51,7 @@ if not os.path.exists(os_images_info_path) or not os.path.isfile(os_images_info_
 cloud_name = os.environ.get("OS_CLOUD", "capo_cloud")
 # Insecure TLS flag
 tls_verify = False if os.environ.get(
-            'INSECURE_CLIENT', 'false').lower() in ['true', 't'] else True
+    'INSECURE_CLIENT', 'false').lower() in ['true', 't'] else True
 if not tls_verify:
     logger.warning("TLS Verify is disabled")
 else:

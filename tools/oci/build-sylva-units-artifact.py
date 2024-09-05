@@ -31,8 +31,6 @@ import atexit
 # yaml = YAML()
 # data = yaml.load(file) instead of safe_load
 
-
-
 # Set up environment and variables
 script_dir = Path(__file__).parent
 base_dir = script_dir.parent.parent
@@ -41,49 +39,58 @@ base_dir = script_dir.parent.parent
 # - $OCI_REGISTRY if defined
 # - the gitlab CI registry, $CI_REGISTRY (if applicable)
 # - default value is oci://registry.gitlab.com/sylva-projects/sylva-core
-oci_registry = os.getenv('OCI_REGISTRY', 'oci://registry.gitlab.com/sylva-projects/sylva-core')
+oci_registry = os.getenv(
+    "OCI_REGISTRY", "oci://registry.gitlab.com/sylva-projects/sylva-core"
+)
 # Cosign use registry URI not oci endpoint so we remove oci prefix
-registry_uri = re.sub("oci:\/\/", "", oci_registry)
-helm_chart_version = os.getenv('HELM_CHART_VERSION', f"0.0.0-git-{subprocess.check_output(['git', 'rev-parse', 'HEAD']).decode().strip()[0:8]}")
-print('helm_chart_version: ', helm_chart_version)
+registry_uri = re.sub(r"oci:\/\/", "", oci_registry)
+helm_chart_version = os.getenv(
+    "HELM_CHART_VERSION",
+    f"0.0.0-git-{subprocess.check_output(['git', 'rev-parse', 'HEAD']).decode().strip()[0:8]}",
+)
+print("helm_chart_version: ", helm_chart_version)
 
 # Create a temporary directory for the artifacts
-artifact_dir = Path(tempfile.mkdtemp(prefix='sylva-units-'))
-pull_artifact_dir = Path(tempfile.mkdtemp(prefix='sylva-units-pull-'))
-tgz_artifact_dir = Path(tempfile.mkdtemp(prefix='tgz-'))
+artifact_dir = Path(tempfile.mkdtemp(prefix="sylva-units-"))
+pull_artifact_dir = Path(tempfile.mkdtemp(prefix="sylva-units-pull-"))
+tgz_artifact_dir = Path(tempfile.mkdtemp(prefix="tgz-"))
 print(f"(working in {artifact_dir})")
 
 # Copy the chart directory to the artifact directory and change into it
-chart_source_dir = base_dir / 'charts' / 'sylva-units'
-chart_dest_dir = artifact_dir / 'sylva-units'
+chart_source_dir = base_dir / "charts" / "sylva-units"
+chart_dest_dir = artifact_dir / "sylva-units"
 shutil.copytree(chart_source_dir, chart_dest_dir)
 os.chdir(chart_dest_dir)
 
-values_yaml_path = chart_dest_dir / 'values.yaml'
-oci_values_yaml_path = chart_dest_dir / 'use-oci-artifacts.values.yaml'
+values_yaml_path = chart_dest_dir / "values.yaml"
+oci_values_yaml_path = chart_dest_dir / "use-oci-artifacts.values.yaml"
 
 # Create a backup of the use-oci-artifacts.values.yaml file
 backup_file_path = str(oci_values_yaml_path) + ".orig"
 
-with open(oci_values_yaml_path, 'r') as original_file:
+with open(oci_values_yaml_path, "r") as original_file:
     content = original_file.read()
-with open(backup_file_path, 'w') as backup_file:
+with open(backup_file_path, "w") as backup_file:
     backup_file.write(content)
+
 
 # Function to load YAML data from a file
 def load_yaml(file_path):
-    with open(file_path, 'r') as file:
+    with open(file_path, "r") as file:
         return yaml.safe_load(file)
+
 
 # Function to save YAML data to a file
 def save_yaml(data, file_path):
-    with open(file_path, 'w') as file:
+    with open(file_path, "w") as file:
         yaml.dump(data, file)
+
 
 def modify_chart_yaml(chart_yaml_path, version):
     chart_data = load_yaml(chart_yaml_path)
-    chart_data['version'] = version
+    chart_data["version"] = version
     save_yaml(chart_data, chart_yaml_path)
+
 
 def merge_dictionaries(original, to_merge):
     for key, value in to_merge.items():
@@ -96,13 +103,23 @@ def merge_dictionaries(original, to_merge):
             original[key] = value
 
 
-def fail_if_existing_artifact_differs(artifact_name, artifact_version, artifact_url, tgz_file):
+def fail_if_existing_artifact_differs(
+    artifact_name, artifact_version, artifact_url, tgz_file
+):
     print(
         f"Checking the integrity of the existing artifact {artifact_name}:{artifact_version} :: "
-        f"{artifact_url}")
+        f"{artifact_url}"
+    )
     subprocess.run(["tar", "-xzf", tgz_file, "-C", tgz_artifact_dir])
-    subprocess.run(["tar", "-xzf", f"{pull_artifact_dir}/{artifact_name}-{artifact_version}.tgz", "-C",
-                    pull_artifact_dir])
+    subprocess.run(
+        [
+            "tar",
+            "-xzf",
+            f"{pull_artifact_dir}/{artifact_name}-{artifact_version}.tgz",
+            "-C",
+            pull_artifact_dir,
+        ]
+    )
 
     print("---------- make a diff --------------")
     for root, dirs, files in os.walk(tgz_artifact_dir, topdown=False):
@@ -112,12 +129,23 @@ def fail_if_existing_artifact_differs(artifact_name, artifact_version, artifact_
         for name in dirs:
             if name == ".git":
                 shutil.rmtree(os.path.join(root, name))
-    if subprocess.run(["diff", "-qr", f"{tgz_artifact_dir}/sylva-units",
-                           f"{pull_artifact_dir}/sylva-units"]).returncode == 0:
+    if (
+        subprocess.run(
+            [
+                "diff",
+                "-qr",
+                f"{tgz_artifact_dir}/sylva-units",
+                f"{pull_artifact_dir}/sylva-units",
+            ]
+        ).returncode
+        == 0
+    ):
         print("Integrity check: ok")
         return True
     else:
-        raise Exception("\n[ERROR] Sylva-units content differs from the content of the already existing OCI artifact")
+        raise Exception(
+            "\n[ERROR] Sylva-units content differs from the content of the already existing OCI artifact"
+        )
 
 
 # Ensure the temporary directory is cleaned up
@@ -125,6 +153,8 @@ def cleanup():
     shutil.rmtree(artifact_dir)
     shutil.rmtree(pull_artifact_dir)
     shutil.rmtree(tgz_artifact_dir)
+
+
 atexit.register(cleanup)
 
 
@@ -132,55 +162,83 @@ def push_and_sign():
     print("\nPushing sylva-units artifact to OCI registry...")
 
     # if we run in a gitlab CI job, then we use the credentials provided by gitlab job environment
-    ci_registry = os.getenv('CI_REGISTRY')
+    ci_registry = os.getenv("CI_REGISTRY")
     if ci_registry:
-        ci_registry_user = os.getenv('CI_REGISTRY_USER')
-        ci_registry_password = os.getenv('CI_REGISTRY_PASSWORD')
+        ci_registry_user = os.getenv("CI_REGISTRY_USER")
+        ci_registry_password = os.getenv("CI_REGISTRY_PASSWORD")
         subprocess.run(
             f"echo '{ci_registry_password}' | helm registry login -u '{ci_registry_user}' '{ci_registry}' "
-            f"--password-stdin",
-            shell=True)
+            "--password-stdin",
+            shell=True,
+        )
     # push the artifact to registry
-    result = subprocess.run(['helm', 'push', f'sylva-units-{helm_chart_version}.tgz', oci_registry], check=True,
-                            stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    result = subprocess.run(
+        ["helm", "push", f"sylva-units-{helm_chart_version}.tgz", oci_registry],
+        check=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+    )
 
     # sign the artifact to registry
-    cosign_priv_key = os.getenv('COSIGN_PRIVATE_KEY')
-    cosign_password = os.getenv('COSIGN_PASSWORD')
+    cosign_priv_key = os.getenv("COSIGN_PRIVATE_KEY")
+    cosign_password = os.getenv("COSIGN_PASSWORD")
     if cosign_priv_key:
         if cosign_password:
             print("\nSigning sylva-units artifact to OCI registry...")
-            digest = re.search('.*Digest:\s+(.*)', result.stdout.decode('utf-8'), flags=re.M).group(1)
+            digest = re.search(r".*Digest:\s+(.*)",
+                               result.stdout.decode("utf-8"), flags=re.M).group(1)
             subprocess.run(
-                f"cosign sign -y --tlog-upload=false --key  env://COSIGN_PRIVATE_KEY {registry_uri}/sylva-units@{digest}", shell=True)
+                f"cosign sign -y --tlog-upload=false --key env://COSIGN_PRIVATE_KEY {registry_uri}/sylva-units@{digest}", # noqa E501
+                shell=True
+            )
         else:
-            print("\n[WARNING] Unable to sign the sylva-units, the private key password is not available")
+            print(
+                "\n[WARNING] Unable to sign the sylva-units, the private key password is not available"
+            )
     else:
         print("\n[WARNING] Unable to sign the sylva-units, the private key is not set")
 
 
 def artifact_exists(artifact_name, artifact_version, artifact_url):
-    print(f"Checking if OCI artifact exists: {artifact_name}:{artifact_version} :: {artifact_url}")
-    print(f"helm pull {artifact_url} --version {artifact_version} -d {pull_artifact_dir}")
-    result = subprocess.run(["helm", "pull", artifact_url, "--version", artifact_version, "-d", pull_artifact_dir], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    print(
+        f"Checking if OCI artifact exists: {artifact_name}:{artifact_version} :: {artifact_url}"
+    )
+    print(
+        f"helm pull {artifact_url} --version {artifact_version} -d {pull_artifact_dir}"
+    )
+    result = subprocess.run(
+        [
+            "helm",
+            "pull",
+            artifact_url,
+            "--version",
+            artifact_version,
+            "-d",
+            pull_artifact_dir,
+        ],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+    )
     if result.returncode == 0:
         global artifact_digest
-        artifact_digest = re.search('.*Digest:\s+(.*)', result.stdout.decode('utf-8'), flags=re.M).group(1)
+        artifact_digest = re.search(r'.*Digest:\s+(.*)',
+                                    result.stdout.decode("utf-8"), flags=re.M).group(1)
         return True
     return False
 
-############################### package charts/sylva-units #########################################################
+
+# ############################## package charts/sylva-units #########################################################
 # Modify Chart.yaml
 print("Preparing chart...")
-chart_yaml_path = chart_dest_dir / 'Chart.yaml'
+chart_yaml_path = chart_dest_dir / "Chart.yaml"
 modify_chart_yaml(chart_yaml_path, helm_chart_version)
 
 default_values_data = load_yaml(values_yaml_path)
 oci_values_data = load_yaml(oci_values_yaml_path)
 
-default_values_units = default_values_data['units']
+default_values_units = default_values_data["units"]
 
-############################### sylva-units overrides to consume Helm charts from OCI artifacts ####################
+# ############################## sylva-units overrides to consume Helm charts from OCI artifacts ####################
 
 print("Preparing use-oci-artifacts.values.yaml values override file...")
 
@@ -218,8 +276,10 @@ print("Preparing use-oci-artifacts.values.yaml values override file...")
 
 helm_repo_url_overriden_units = {}
 for unit in default_values_units:
-    if 'helm_repo_url' in default_values_units[unit].keys():
-        helm_repo_url_overriden_units.update({unit: {'helm_repo_url': "{{ .Values.sylva_core_oci_registry }}"}})
+    if "helm_repo_url" in default_values_units[unit].keys():
+        helm_repo_url_overriden_units.update(
+            {unit: {"helm_repo_url": "{{ .Values.sylva_core_oci_registry }}"}}
+        )
 
 
 # Implement a workaround for issue: https://gitlab.com/sylva-projects/sylva-core/-/issues/253
@@ -234,22 +294,50 @@ sub_pattern = r"(.?[0-9]+)\.([0-9]+)\.(0[0-9]+)([\+\-].*)?"
 replacement_pattern = r"\1.\2.9\3\4+\1.\2.\3\4"
 
 for unit in default_values_units:
-    if 'helm_repo_url' in default_values_units[unit]:
+    if "helm_repo_url" in default_values_units[unit]:
         # Extract the version string
-        version = default_values_units[unit].get('helmrelease_spec', {}).get('chart', {}).get('spec', {}).get('version', '')
+        version = (
+            default_values_units[unit]
+            .get("helmrelease_spec", {})
+            .get("chart", {})
+            .get("spec", {})
+            .get("version", "")
+        )  # noqa: E501
         # Check if the version matches the pattern
         if re.search(version_pattern, version):
             new_version = re.sub(sub_pattern, replacement_pattern, version)
-            regexp_overrides.update({unit: {'helm_repo_url': '{{ .Values.sylva_core_oci_registry }}', 'helmrelease_spec':{'chart':{'spec':{'version': new_version}}}}})
-        if 'helm_chart_versions' in default_values_units[unit]:
+            regexp_overrides.update(
+                {
+                    unit: {
+                        "helm_repo_url": "{{ .Values.sylva_core_oci_registry }}",
+                        "helmrelease_spec": {
+                            "chart": {"spec": {"version": new_version}}
+                        },
+                    }
+                }
+            )
+        if "helm_chart_versions" in default_values_units[unit]:
             new_chart_versions = {}
-            for version_key, version_value in default_values_units[unit]['helm_chart_versions'].items():
+            for version_key, version_value in default_values_units[unit][
+                "helm_chart_versions"
+            ].items():
                 if re.search(version_pattern, version_key):
                     new_version = re.sub(sub_pattern, replacement_pattern, version_key)
-                    new_chart_versions.update({new_version: version_value, version_key: None}) # We hardcode the old version to null to avoid being parsed and failed by the rules in templates/units.yaml
+                    new_chart_versions.update(
+                        {new_version: version_value, version_key: None}
+                    )
+                    # We hardcode the old version to null to avoid being parsed
+                    # and failed by the rules in templates/units.yaml
                 else:
                     new_chart_versions.update({version_key: version_value})
-            regexp_overrides.update({unit: {'helm_repo_url': '{{ .Values.sylva_core_oci_registry }}', 'helm_chart_versions': new_chart_versions}})
+            regexp_overrides.update(
+                {
+                    unit: {
+                        "helm_repo_url": "{{ .Values.sylva_core_oci_registry }}",
+                        "helm_chart_versions": new_chart_versions,
+                    }
+                }
+            )
 
 # ********* Helm-based units relying on 'repo' *********
 
@@ -293,54 +381,86 @@ for unit in default_values_units:
 #           version: v0.0.23
 
 
-default_values_source_templates = default_values_data['source_templates']
+default_values_source_templates = default_values_data["source_templates"]
 repo_overrides = {}
 for unit in default_values_units:
-    if 'repo' in default_values_units[unit] and 'helmrelease_spec' in default_values_units[unit]:
-        repo_overrides.update({unit: {'repo': None, 'helm_repo_url': "{{ .Values.sylva_core_oci_registry }}", 'helmrelease_spec':{'chart': {'spec': {'version':default_values_source_templates[default_values_units[unit]['repo']]['spec']['ref']['tag']}}} }})
+    if (
+        "repo" in default_values_units[unit]
+        and "helmrelease_spec" in default_values_units[unit]
+    ):
+        repo_overrides.update(
+            {
+                unit: {
+                    "repo": None,
+                    "helm_repo_url": "{{ .Values.sylva_core_oci_registry }}",
+                    "helmrelease_spec": {
+                        "chart": {
+                            "spec": {
+                                "version": default_values_source_templates[
+                                    default_values_units[unit]["repo"]
+                                ]["spec"]["ref"]["tag"]
+                            }
+                        }
+                    },
+                }
+            }
+        )
 
 
-###################### update oci_values_data and write changes to file #############################
-merge_dictionaries(oci_values_data['units'], helm_repo_url_overriden_units)
-merge_dictionaries(oci_values_data['units'], regexp_overrides)
-merge_dictionaries(oci_values_data['units'], repo_overrides)
+# ##################### update oci_values_data and write changes to file #############################
+merge_dictionaries(oci_values_data["units"], helm_repo_url_overriden_units)
+merge_dictionaries(oci_values_data["units"], regexp_overrides)
+merge_dictionaries(oci_values_data["units"], repo_overrides)
 
 save_yaml(oci_values_data, oci_values_yaml_path)
 
 # Remove test values directory
-test_values_dir = chart_dest_dir / 'test-values'
+test_values_dir = chart_dest_dir / "test-values"
 if test_values_dir.exists():
     shutil.rmtree(test_values_dir)
 
-############################### wrap up Helm packaging  #######################################
+# ############################## wrap up Helm packaging  #######################################
 os.chdir(chart_dest_dir)  # Ensure we are in the correct directory
-subprocess.run(['helm', 'dependency', 'update'], check=True)
-subprocess.run(['helm', 'package', '--version', helm_chart_version, str(chart_dest_dir)], check=True)
+subprocess.run(["helm", "dependency", "update"], check=True)
+subprocess.run(
+    ["helm", "package", "--version", helm_chart_version, str(chart_dest_dir)],
+    check=True,
+)
 
-############################### pushing the artifact to registry ###################################################
-tgz_file = f'sylva-units-{helm_chart_version}.tgz'
-artifact_name = 'sylva-units'
+# ############################## pushing the artifact to registry ###################################################
+tgz_file = f"sylva-units-{helm_chart_version}.tgz"
+artifact_name = "sylva-units"
 artifact_version = helm_chart_version
 artifact_url = f"{oci_registry}/{artifact_name}"
 artifact_digest = None
 
 if artifact_exists(artifact_name, artifact_version, artifact_url):
 
-    fail_if_existing_artifact_differs(artifact_name, artifact_version, artifact_url, tgz_file)
+    fail_if_existing_artifact_differs(
+        artifact_name, artifact_version, artifact_url, tgz_file
+    )
 
     # artifact content hasn't changed, but we may want to sign it
-    if 'COSIGN_PUBLIC_KEY' in os.environ:
+    if "COSIGN_PUBLIC_KEY" in os.environ:
         print(f"Check if artifact {artifact_url} is signed with the correct key")
 
-        if subprocess.run(
+        if (
+            subprocess.run(
                 f"cosign verify --insecure-ignore-tlog=true --insecure-ignore-sct=true --key env://COSIGN_PUBLIC_KEY "
                 f"{registry_uri}/sylva-units@{artifact_digest}",
-                shell=True).returncode == 0:
-            print(f"[INFO] Artifact {artifact_url} exists and is already signed with the correct key")
+                shell=True,
+            ).returncode
+            == 0
+        ):
+            print(
+                f"[INFO] Artifact {artifact_url} exists and is already signed with the correct key"
+            )
         else:
             print(f"Artifact {artifact_url} exists and needs to be signed")
             push_and_sign()
     else:
-        print("\n[WARNING] Unable to verify the signature of the sylva-units, signing material is not set")
+        print(
+            "\n[WARNING] Unable to verify the signature of the sylva-units, signing material is not set"
+        )
 else:
     push_and_sign()
