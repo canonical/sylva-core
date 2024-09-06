@@ -26,27 +26,16 @@ cluster:
 
     dns_servers: [1.1.1.1]
 
-    network_interfaces:
-      bondXmitHashPolicy: "layer2"
-      bond_mode: "active-backup"
-
   control_plane:  # tweak network configuration as needed
     capm3:
       hostSelector:  # criteria for matching labels on BareMetalHost objects defined by baremetal_hosts value
         matchLabels:
           cluster-role: control-plane
 
-      provisioning_pool_interface: bond0
-      primary_pool_interface: bond0.100
+      provisioning_pool_interface: ens4
+      primary_pool_interface: ens5
 
     network_interfaces:
-      bond0:
-        type: bond
-        interfaces:
-          - nic1
-          - nic2
-        vlans:
-          - id: 100  # VLAN ID is fixed, per libvirt-metal internals
       nic1:
         type: phy
       nic2:
@@ -62,17 +51,10 @@ cluster:
           matchLabels:
             cluster-role: worker
 
-        provisioning_pool_interface: bond0
-        primary_pool_interface: bond0.100
+        provisioning_pool_interface: ens4
+        primary_pool_interface: ens5
 
       network_interfaces:
-        bond0:
-          type: bond
-          interfaces:
-            - ens4
-            - ens5
-          vlans:
-            - id: 100  # VLAN ID is fixed, per libvirt-metal internals
         ens4:
           type: phy
         ens5:
