@@ -7,6 +7,10 @@ resources:
 labels:
   - pairs:
       clusterctl.cluster.x-k8s.io: ""
+
+components:
+  - ../common-kustomize-components/crd-remove-caBundle
+
 patches:
   - target:
       group: rbac.authorization.k8s.io
