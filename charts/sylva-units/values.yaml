@@ -6219,10 +6219,6 @@ units:
             - name: sylva
               pluginConfig:
                 - name: RemoveDuplicates
-                - name: RemovePodsHavingTooManyRestarts
-                  args:
-                    podRestartThreshold: 100
-                    includingInitContainers: true
                 - name: LowNodeUtilization
                   args:
                     useDeviationThresholds: true
@@ -6239,9 +6235,6 @@ units:
                   enabled:
                     - RemoveDuplicates
                     - LowNodeUtilization
-                  deschedule:
-                    enabled:
-                      - RemovePodsHavingTooManyRestarts
 
 ##### stuff related to the 'cluster' unit #####
 #
