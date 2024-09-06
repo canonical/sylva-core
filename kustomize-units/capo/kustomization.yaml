@@ -7,3 +7,22 @@ resources:
 labels:
   - pairs:
       clusterctl.cluster.x-k8s.io: ""
+
+patches:
+# we can't use ../common-kustomize-components/crd-remove-caBundle because
+# we need to make an exception for the openstackfloatingippools.infrastructure.cluster.x-k8s.io CRD
+- target:
+    group: apiextensions.k8s.io
+    version: v1
+    kind: CustomResourceDefinition
+    annotationSelector: cert-manager.io/inject-ca-from
+    name: openstack[^f].*  # carve an exception to not try this patch on openstackfloatingippools.infrastructure.cluster.x-k8s.io CRD, for which it does not apply cleanly
+  patch: |-
+    kind: CustomResourceDefinition
+    metadata:
+      name: _unused_
+    spec:
+      conversion:
+        webhook:
+          clientConfig:
+            caBundle: null
