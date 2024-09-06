@@ -457,6 +457,7 @@ if [[ -f $MGMT_KUBECONFIG ]]; then
     kubectl --request-timeout=3s get nodes
 
     cluster_info_dump management
+    kubectl get crd -v=6
 
     workload_cluster_name=$(kubectl --request-timeout=3s get cluster.cluster -A -o jsonpath='{ $.items[?(@.metadata.namespace != "sylva-system")].metadata.name }')
     if [[ -z "$workload_cluster_name" ]]; then
@@ -481,6 +482,7 @@ if [[ -f $MGMT_KUBECONFIG ]]; then
         crust_gather_collect workload &
 
         cluster_info_dump workload $workload_cluster_namespace $workload_cluster_name
+        kubectl get crd -v=6
     fi
 
   wait
