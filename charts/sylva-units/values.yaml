@@ -4342,6 +4342,47 @@ units:
         adminID: '{{ .Values.ceph.cephfs_csi.adminID }}'
         adminKey: '{{ .Values.ceph.cephfs_csi.adminKey }}'
 
+  hpe-storage:
+    info:
+      description: Installs HPE Primera
+      maturity: beta
+    enabled: false
+    unit_templates:
+    - base-deps
+    depends_on:
+      namespace-defs: true
+    helm_repo_url: https://hpe-storage.github.io/co-deployments/
+    helmrelease_spec:
+      targetNamespace: hpe-storage
+      chart:
+        spec:
+          chart: hpe-csi-driver
+          version: 2.5.1
+
+
+  hpe-csi-driver: # TBU 
+    info:
+      description: installs Vsphere CSI
+      maturity: stable
+    unit_templates:
+    - base-deps
+    enabled_conditions:
+      - '{{ eq .Values.cluster.capi_providers.infra_provider "capv" }}'
+    repo: sylva-core
+    kustomization_spec:
+      path: kustomize-units/vsphere-csi-driver
+      targetNamespace: vmware-system-csi
+      wait: true
+      postBuild:
+        substitute:
+          SERVER: '{{ .Values.cluster.capv.server }}'
+          DATACENTER: '{{ .Values.cluster.capv.dataCenter }}'
+          CLUSTER_ID: '{{ printf "%s-%s" .Values.cluster.name (randAlphaNum 10) | trunc 64 }}'
+          STORAGE_POLICY_NAME: '{{ .Values.cluster.capv.storagePolicyName | default "" }}'
+          CONTROLLER_REPLICAS: '{{ .Values._internal.ha_cluster.is_ha | ternary 3 1 }}'
+    kustomization_substitute_secrets:
+      USERNAME: '{{ .Values.cluster.capv.username }}'
+      PASSWORD: '{{ .Values.cluster.capv.password }}'
   longhorn-crd:
     info:
       description: installs Longhorn CRDs
