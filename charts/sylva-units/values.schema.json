@@ -6933,6 +6933,19 @@
             }
           ]
         },
+        "useBond": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "$ref": "#/$defs/string-with-gotpl"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
         "enableDHCP": {
           "anyOf": [
             {
@@ -7005,6 +7018,19 @@
                           "anyOf": [
                             {
                               "$ref": "#/$defs/port"
+                            },
+                            {
+                              "$ref": "#/$defs/string-with-gotpl"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "useBond": {
+                          "anyOf": [
+                            {
+                              "type": "boolean"
                             },
                             {
                               "$ref": "#/$defs/string-with-gotpl"
