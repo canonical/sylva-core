@@ -5553,7 +5553,7 @@ units:
       chart:
         spec:
           chart: thanos
-          version: 15.7.24
+          version: 15.7.25
       values:
         fullnameOverride: "thanos"
         metrics:
