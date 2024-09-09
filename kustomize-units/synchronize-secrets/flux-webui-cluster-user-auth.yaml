@@ -4,6 +4,8 @@ kind: ExternalSecret
 metadata:
    name: cluster-user-auth
    namespace: flux-system
+   annotations:
+      kustomize.toolkit.fluxcd.io/force: Enabled
 spec:
    secretStoreRef:
       name: vault

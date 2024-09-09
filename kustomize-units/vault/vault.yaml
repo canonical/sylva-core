@@ -197,6 +197,11 @@ spec:
           capabilities = ["create", "read", "update", "delete", "list", "sudo"]
          }
 
+         path "secret/metadata/*" {
+            capabilities = [ "delete" ]
+         }
+
+
          # Enable and manage authentication methods broadly across Vault
 
          path "auth/*" {

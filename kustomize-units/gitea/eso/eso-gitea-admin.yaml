@@ -3,6 +3,8 @@ apiVersion: external-secrets.io/v1beta1
 kind: ExternalSecret
 metadata:
    name: gitea-admin
+   annotations:
+      kustomize.toolkit.fluxcd.io/force: Enabled
 spec:
    secretStoreRef:
       name: vault
@@ -18,5 +20,5 @@ spec:
    data:
    - secretKey: password
      remoteRef:
-        key: secret/data/${CLUSTER_NAME:management-cluster}/gitea-admin-user
+        key: secret/data/${CLUSTER_NAME:management-cluster}/gitea-admin-user-passwd
         property: password

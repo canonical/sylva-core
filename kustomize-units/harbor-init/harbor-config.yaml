@@ -4,6 +4,8 @@ kind: ExternalSecret
 metadata:
    name: harbor-init
    namespace: harbor
+   annotations:
+      kustomize.toolkit.fluxcd.io/force: Enabled
 spec:
    secretStoreRef:
       name: vault
@@ -18,5 +20,5 @@ spec:
    data:
    - secretKey: password
      remoteRef:
-        key: secret/data/${CLUSTER_NAME:management-cluster}/harbor
+        key: secret/data/${CLUSTER_NAME:management-cluster}/harbor-passwd
         property: password

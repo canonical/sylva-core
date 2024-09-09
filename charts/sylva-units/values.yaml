@@ -268,6 +268,11 @@ unit_templates:
     # - then units on which the 'cluster' unit does not depend on, directly or indirectly, will
     #   reconcile after the "cluster-machines-ready" unit is ready
     depends_on:
+      vault-migrate-secret: >-
+        {{
+        and ( tuple . "vault-migrate-secret" | include "unit-enabled")
+            (not (.Values._internal.cluster_machines_ready_unit_deps | has .Values._unit_name_))
+        }}
       cluster-machines-ready: >-
         {{
         and (tuple . "cluster-machines-ready" | include "unit-enabled")
@@ -839,6 +844,7 @@ units:
     kustomization_spec:
       path: ./kustomize-units/harbor-init
       wait: true
+      force: true
       postBuild:
         substitute:
           HARBOR_DNS: '{{ .Values.external_hostnames.harbor }}'
@@ -1059,6 +1065,47 @@ units:
           repository: ghcr.io/bank-vaults/vault-operator
           tag: '{{ .Values.source_templates | dig "vault-operator" "spec" "ref" "tag" "" | required "source_templates.vault-operator.spec.ref.tag is unset" }}'
 
+  vault-migrate-secret:
+    info:
+      description: migrate vault secret of the management cluster from secret/data to secret/data/${CLUSTER_NAME:management-cluster}
+      internal: true
+    unit_templates:
+    - kube-job
+    kustomization_spec:
+      targetNamespace: vault
+      _patches:
+      - target:
+          kind: Job
+        patch: |
+          - op: replace
+            path: /spec/template/spec/containers/0/image
+            value: registry.gitlab.com/sylva-projects/sylva-elements/container-images/hvac-client:0.0.0-test
+          - op: replace
+            path: /spec/backoffLimit
+            value: 15
+      - target:
+          kind: ConfigMap
+          labelSelector: kube-job=script
+        patch: |
+          - op: replace
+            path: /data/kube-job.sh
+            value: |
+              #!/bin/bash
+              set -e
+              echo "start migrate secret"
+              # set env
+              export VAULT_API_TOKEN=$(kubectl -n vault get secrets/vault-unseal-keys -o jsonpath='{.data.vault-root}' | base64 -d)
+              export VAULT_URL=$(kubectl get ingress -n vault vault -o jsonpath='{ .spec.tls[].hosts[] }')
+              export NEW_PATH={{ .Values.cluster.name }}
+              echo "migration"
+              # run migration script
+              python3 /opt/migrate_vault_secret.py
+              echo "migrate secret done"
+          - op: add
+            path: /data/migrate_vault_secret.py
+            value: |
+          {{ .Files.Get "scripts/migrate_vault_secret.py" | indent 4 }}
+
   vault:
     info:
       description: installs Vault
@@ -1196,6 +1243,7 @@ units:
     kustomization_spec:
       path: ./kustomize-units/vault-secrets
       wait: true
+      force: true
       postBuild:
         substitute:
           CLUSTER_NAME: '{{ .Values.cluster.name }}'
@@ -1336,6 +1384,7 @@ units:
       KEY: '{{ .Values.external_certificates.neuvector.key | default "" | b64enc }}'
     kustomization_spec:
       path: ./kustomize-units/neuvector-init
+      force: true
       healthChecks:
         - apiVersion: v1
           kind: Secret
@@ -3400,6 +3449,7 @@ units:
     repo: sylva-core
     kustomization_spec:
       path: ./kustomize-units/synchronize-secrets
+      force: true
       _components:
         - '{{ tuple "components/keycloak" (tuple . "keycloak" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/rancher" (tuple . "rancher" | include "unit-enabled") | include "set-only-if" }}'
@@ -3414,7 +3464,7 @@ units:
           namespace: flux-system
         - apiVersion: v1
           kind: Secret
-          name: cluster-creator-secret
+          name: cluster-creator-secret-passwd
           namespace: sylva-system
         - >-
           {{ tuple (dict
@@ -3457,6 +3507,7 @@ units:
       path: ./kustomize-units/rancher-init
       targetNamespace: cattle-system
       wait: true
+      force: true
       postBuild:
         substitute:
           SERVICE: rancher
@@ -5350,6 +5401,7 @@ units:
     kustomization_spec:
       path: ./kustomize-units/gitea/secrets
       wait: true
+      force: true
       postBuild:
         substitute:
           CLUSTER_NAME: '{{ .Values.cluster.name }}'
@@ -5374,6 +5426,7 @@ units:
     kustomization_spec:
       path: ./kustomize-units/gitea/eso
       wait: false
+      force: true
       healthChecks:
         - apiVersion: v1
           kind: Secret
@@ -5841,6 +5894,7 @@ units:
     kustomization_spec:
       path: ./kustomize-units/minio-tenant-init
       wait: true
+      force: true
       postBuild:
         substitute:
           TENANT_NAME: minio-logging
@@ -6048,12 +6102,12 @@ units:
         createNamespace: false
       values:
         secrets:
-          existingSecret: minio-monitoring-root
+          existingSecret: minio-monitoring-root-passwd
         tenant:
           name: monitoring
           # The Kubernetes secret name that contains MinIO environment variable configurations:
           configuration:
-            name: minio-monitoring-root
+            name: minio-monitoring-root-passwd
           # Array of Kubernetes secrets from which the Operator generates MinIO users during tenant provisioning:
           users:
             - name: minio-monitoring-user
@@ -6147,7 +6201,7 @@ units:
           namespace: minio-monitoring
         - apiVersion: v1
           kind: Secret
-          name: monitoring-tls
+          name: minio-monitoring-tls
           namespace: minio-monitoring
 
   thanos-init:
@@ -6167,6 +6221,7 @@ units:
     kustomization_spec:
       path: ./kustomize-units/thanos-init
       wait: true
+      force: true
       postBuild:
         substitute:
           SERVICE: thanos
@@ -6648,6 +6703,7 @@ units:
     kustomization_spec:
       path: ./kustomize-units/loki-init
       wait: true
+      force: true
       postBuild:
         substitute:
           SERVICE: loki

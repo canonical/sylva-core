@@ -4,6 +4,8 @@ kind: ExternalSecret
 metadata:
    name: harbor-postgres-secrets
    namespace: harbor
+   annotations:
+      kustomize.toolkit.fluxcd.io/force: Enabled
 spec:
    secretStoreRef:
       name: vault
@@ -15,13 +17,13 @@ spec:
    data:
    - secretKey: admin-password
      remoteRef:
-        key: secret/data/${CLUSTER_NAME:management-cluster}/harbor-postgres-admin
+        key: secret/data/${CLUSTER_NAME:management-cluster}/harbor-postgres-admin-passwd
         property: password
    - secretKey: password
      remoteRef:
-        key: secret/data/${CLUSTER_NAME:management-cluster}/harbor-postgres-user
+        key: secret/data/${CLUSTER_NAME:management-cluster}/harbor-postgres-user-passwd
         property: password
    - secretKey: replication-password
      remoteRef:
-        key: secret/data/${CLUSTER_NAME:management-cluster}/harbor-postgres-replication
+        key: secret/data/${CLUSTER_NAME:management-cluster}/harbor-postgres-replication-passwd
         property: password

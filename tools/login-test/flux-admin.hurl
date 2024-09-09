@@ -1,4 +1,4 @@
-GET https://{{vault_url}}/v1/secret/data/{{cluster_name}}/flux-webui
+GET https://{{vault_url}}/v1/secret/data/{{cluster_name}}/flux-webui-passwd
 X-Vault-Token: {{token}}
 HTTP 200
 [Captures]

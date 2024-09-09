@@ -1,8 +1,10 @@
 apiVersion: redhatcop.redhat.io/v1alpha1
 kind: RandomSecret
 metadata:
-  name: harbor-postgres-user
+  name: harbor-postgres-user-passwd
   namespace: vault
+  annotations:
+    kustomize.toolkit.fluxcd.io/force: Enabled
 spec:
   connection:
     tLSConfig:
