@@ -4322,7 +4322,7 @@ units:
       chart:
         spec:
           chart: ceph-csi-cephfs
-          version: 3.12.1
+          version: 3.12.2
       values:
         provisioner:
           replicaCount: '{{ .Values.cluster.control_plane_replicas }}'
