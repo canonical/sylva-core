@@ -418,14 +418,13 @@ function cluster_info_dump() {
 }
 
 function collect_kubectl_get_data() {
-  local output_dir=$1
   local timestamp=$(date +%Y%m%d-%H%M%S)
 
   echo "Collecting kubectl get data with fixed verbosity -v=6..."
 
   for cr in $additional_resources; do
     local kind=${cr/\*/}
-    kubectl get "$kind" -A -v=6 > "${output_dir}/kubectl-get-${timestamp}-${kind}.log" 2>&1 && \
+    kubectl get "$kind" -A -v=6 > "${output_dir}-$dump_dir/kubectl-get-${timestamp}-${kind}.log" 2>&1 && \
     echo "Collected data for resource: $kind" || \
     echo "Failed to collect data for resource: $kind"
   done
@@ -499,7 +498,7 @@ if [[ -f $MGMT_KUBECONFIG ]]; then
         crust_gather_collect workload &
 
         cluster_info_dump workload $workload_cluster_namespace $workload_cluster_name
-        collect_kubectl_get_data workloads
+        collect_kubectl_get_data workload
     fi
 
   wait
