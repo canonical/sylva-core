@@ -11,3 +11,9 @@ components:
 labels:
   - pairs:
       clusterctl.cluster.x-k8s.io: ""
+
+images:
+- name: ghcr.io/rancher/cluster-api-provider-rke2-controlplane:v0.6.0
+  newName: registry.gitlab.com/sylva-projects/sylva-elements/container-images/sandbox-registry/cluster-api-provider-rke2-controlplane-amd64
+  newTag: 0.6.0-keep-etcd-member-with-logs
+
