@@ -184,10 +184,16 @@ spec:
           capabilities = ["read", "sudo"]
          }
 
-         # Create and manage system policies broadly across vault
+         # Create and manage system policies broadly across vault using policy api endpoint
+         path "sys/policy/*" {
+          capabilities = ["create", "read", "update", "delete", "list", "sudo"]
+         }
+
+         # Create and manage system policies broadly across vault using policies api endpoint
          path "sys/policies/*" {
           capabilities = ["create", "read", "update", "delete", "list", "sudo"]
          }
+
          # Enable and manage authentication methods broadly across Vault
 
          path "auth/*" {
