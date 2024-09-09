@@ -43,17 +43,10 @@ cluster:
         matchLabels:
           cluster-role: control-plane
 
-      provisioning_pool_interface: bond0
-      primary_pool_interface: bond0.100
+      provisioning_pool_interface: ens4
+      primary_pool_interface: ens5
 
     network_interfaces:
-      bond0:
-        type: bond
-        interfaces:
-          - ens4
-          - ens5
-        vlans:
-          - id: 100  # VLAN ID is fixed, per libvirt-metal internals
       ens4:
         type: phy
       ens5:
@@ -69,17 +62,10 @@ cluster:
           matchLabels:
             cluster-role: worker
 
-        provisioning_pool_interface: bond0
-        primary_pool_interface: bond0.100
+        provisioning_pool_interface: ens4
+        primary_pool_interface: ens5
 
       network_interfaces:
-        bond0:
-          type: bond
-          interfaces:
-            - ens4
-            - ens5
-          vlans:
-            - id: 100  # VLAN ID is fixed, per libvirt-metal internals
         ens4:
           type: phy
         ens5:
@@ -141,6 +127,7 @@ libvirt_metal:
       redfishPort: 8000
       memGB: 24
       numCPUs: 8
+      useBond: false
 
     workload-cp-0:
       redfishPort: 8010
