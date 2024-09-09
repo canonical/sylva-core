@@ -417,6 +417,23 @@ function cluster_info_dump() {
   kubectl get nodes --no-headers | awk '{print $1}' | xargs -I {} sh -c 'echo {} ; kubectl describe node {} | grep Allocated -A 5 | grep -ve Event -ve Allocated -ve percent -ve -- ; echo '
 }
 
+function collect_kubectl_get_data() {
+  local output_dir=$1
+  local timestamp=$(date +%Y%m%d-%H%M%S)
+
+  echo "Collecting kubectl get data with fixed verbosity -v=6..."
+
+  for cr in $additional_resources; do
+    local kind=${cr/\*/}
+    kubectl get "$kind" -A -v=6 > "${output_dir}/kubectl-get-${timestamp}-${kind}.log" 2>&1 && \
+    echo "Collected data for resource: $kind" || \
+    echo "Failed to collect data for resource: $kind"
+  done
+
+  echo "Data collection completed. Files saved in $output_dir."
+}
+
+
 echo "Start debug-on-exit at: $(date -Iseconds)"
 
 echo -e "\nDocker containers"
@@ -457,7 +474,7 @@ if [[ -f $MGMT_KUBECONFIG ]]; then
     kubectl --request-timeout=3s get nodes
 
     cluster_info_dump management
-    kubectl get crd -v=6
+    collect_kubectl_get_data management
 
     workload_cluster_name=$(kubectl --request-timeout=3s get cluster.cluster -A -o jsonpath='{ $.items[?(@.metadata.namespace != "sylva-system")].metadata.name }')
     if [[ -z "$workload_cluster_name" ]]; then
@@ -482,7 +499,7 @@ if [[ -f $MGMT_KUBECONFIG ]]; then
         crust_gather_collect workload &
 
         cluster_info_dump workload $workload_cluster_namespace $workload_cluster_name
-        kubectl get crd -v=6
+        collect_kubectl_get_data workloads
     fi
 
   wait
