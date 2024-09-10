@@ -6107,7 +6107,7 @@ units:
             metadata:
               name: _unused_
             parameters:
-              numberOfReplicas: "1"
+              numberOfReplicas: "2"
 
   sylva-prometheus-rules:
     info:
