@@ -419,18 +419,19 @@ function cluster_info_dump() {
 
 function collect_kubectl_get_data() {
   local output_dir=$1
+  local data_dir=${output_dir}-apidata
   local timestamp=$(date +%Y%m%d-%H%M%S)
-  mkdir ${output_dir}-data
+  mkdir ${data_dir}
   echo "Collecting kubectl get data with fixed verbosity -v=6..."
 
   for cr in $additional_resources; do
     local kind=${cr/\*/}
-    kubectl get "$kind" -A -v=6 > "${output_dir}-data/kubectl-get-${timestamp}-${kind}.log" 2>&1 && \
+    kubectl get "$kind" -A -v=6 > "${data_dir}/kubectl-get-${timestamp}-${kind}.log" 2>&1 && \
     echo "Collected data for resource: $kind" || \
     echo "Failed to collect data for resource: $kind"
   done
 
-  echo "Data collection completed. Files saved in $output_dir."
+  echo "Data collection completed. Files saved in $data_dir."
 }
 
 
