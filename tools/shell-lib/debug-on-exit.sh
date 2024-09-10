@@ -420,7 +420,7 @@ function cluster_info_dump() {
 function collect_kubectl_get_data() {
   local output_dir=$1
   local timestamp=$(date +%Y%m%d-%H%M%S)
-
+  mkdir ${output_dir}-data
   echo "Collecting kubectl get data with fixed verbosity -v=6..."
 
   for cr in $additional_resources; do
