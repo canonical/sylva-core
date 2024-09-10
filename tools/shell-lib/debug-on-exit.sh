@@ -425,7 +425,7 @@ function collect_kubectl_get_data() {
 
   for cr in $additional_resources; do
     local kind=${cr/\*/}
-    kubectl get "$kind" -A -v=6 > "${output_dir}-$dump_dir/kubectl-get-${timestamp}-${kind}.log" 2>&1 && \
+    kubectl get "$kind" -A -v=6 > "${output_dir}-data/kubectl-get-${timestamp}-${kind}.log" 2>&1 && \
     echo "Collected data for resource: $kind" || \
     echo "Failed to collect data for resource: $kind"
   done
