@@ -424,11 +424,9 @@ function collect_kubectl_get_data() {
   mkdir ${data_dir}
   echo "Collecting kubectl get data with fixed verbosity -v=6..."
 
-  for cr in $additional_resources; do
-    local kind=${cr/\*/}
-    kubectl get "$kind" -A -v=6 > "${data_dir}/kubectl-get-${timestamp}-${kind}.log" 2>&1 && \
-    echo "Collected data for resource: $kind" || \
-    echo "Failed to collect data for resource: $kind"
+  kubectl get crd -A -v=6 > "${data_dir}/kubectl-api-response-${timestamp}.log" 2>&1 && \
+    echo "Collected api response data"  || \
+    echo "Failed to collect data"
   done
 
   echo "Data collection completed. Files saved in $data_dir."
