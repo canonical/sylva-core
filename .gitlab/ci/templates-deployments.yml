@@ -258,6 +258,7 @@ include:
     when: always
     paths:
       - debug-on-exit.log
+      - bootstrap-cluster-dump/default/
       - management-cluster-dump/
       - workload-cluster-dump/
       - "*-timeline.html"
