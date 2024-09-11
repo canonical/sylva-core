@@ -16,6 +16,12 @@ stages:
   - delete
   - cleanup
 
+variables:
+  DEPLOY_MGMT_CLUSTER: "true"       # Controls whether management cluster deploys
+  DEPLOY_WORKLOAD_CLUSTER: "true"   # Controls whether workload cluster deploys
+  UPDATE_MGMT_CLUSTER: "true"       # Controls whether management cluster updates
+  UPDATE_WORKLOAD_CLUSTER: "true"   # Controls whether workload cluster updates
+
 default:
   tags:
     - gitlab-org-docker
@@ -23,7 +29,7 @@ default:
   before_script:
     - !reference [.deployment-information]
   cache:
-    - key: toolbox  # cache share by all jobs
+    - key: toolbox  # cache shared by all jobs
       paths:
         - ./bin/
 
@@ -69,15 +75,18 @@ default:
     - gitlab-org-docker
   dependencies: []
 
-.rules:skip-if-only-deploy-mgmt:
-  rules:
-    - if: $ONLY_DEPLOY_MGMT
-      when: never
-    - when: on_success
+# ----------------------------------------------------------
 
-.rules:run-if-only-deploy-mgmt:
+# Rules reusable in tests definition
+.rules:need-management-cluster:
   rules:
-    - if: $ONLY_DEPLOY_MGMT
+    - if: $DEPLOY_MGMT_CLUSTER == "true"
+      when: on_success
+
+.rules:need-workload-cluster:
+  rules:
+    - if: $DEPLOY_WORKLOAD_CLUSTER == "true"
+      when: on_success
 
 # ----------------------------------------------------------
 
@@ -87,6 +96,9 @@ deploy-management-cluster:
       optional: true
   extends:
     - .deploy-management
+  rules:
+    - if: $DEPLOY_MGMT_CLUSTER == "true"
+      when: always
 
 # ----------------------------------------------------------
 
@@ -94,9 +106,12 @@ deploy-workload-cluster:
   needs:
     - job: deploy-management-cluster
       artifacts: false
+      optional: true
   extends:
     - .deploy-workload
-    - .rules:skip-if-only-deploy-mgmt
+  rules:
+    - if: $DEPLOY_WORKLOAD_CLUSTER == "true"
+      when: on_success
 
 # ----------------------------------------------------------
 
@@ -106,9 +121,12 @@ update-management-cluster:
       artifacts: false
     - job: deploy-workload-cluster
       artifacts: false
+      optional: true
   extends:
     - .update-management
-    - .rules:skip-if-only-deploy-mgmt
+  rules:
+    - if: $DEPLOY_MGMT_CLUSTER == "true" && $UPDATE_MGMT_CLUSTER == "true"
+      when: on_success
 
 # ----------------------------------------------------------
 
@@ -118,9 +136,12 @@ update-workload-cluster:
       artifacts: false
     - job: update-management-cluster
       artifacts: false
+      optional: true
   extends:
     - .update-workload
-    - .rules:skip-if-only-deploy-mgmt
+  rules:
+    - if: $DEPLOY_WORKLOAD_CLUSTER == "true" && $UPDATE_WORKLOAD_CLUSTER == "true"
+      when: on_success
 
 # ----------------------------------------------------------
 
@@ -129,6 +150,5 @@ delete-workload-cluster:
   extends:
     - .delete-workload
   rules:
-    - if: $ONLY_DEPLOY_MGMT
-      when: never
-    - when: always
+    - if: $DEPLOY_WORKLOAD_CLUSTER == "true"
+      when: always

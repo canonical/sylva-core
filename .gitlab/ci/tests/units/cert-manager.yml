@@ -68,6 +68,7 @@ test_cert_manager_management_cluster:
     KUBE_CONFIG_FILE: "management-cluster-kubeconfig"
   extends:
     - .test-tags
+    - .rules:need-management-cluster
   script:
     - !reference [.import_functions]
     - download_artifact deploy-management-cluster management-cluster-kubeconfig
@@ -79,6 +80,7 @@ test_cert_manager_workload_cluster:
     KUBE_CONFIG_FILE: "$WORKLOAD_CLUSTER_NAME-rancher.yaml"
   extends:
     - .test-tags
+    - .rules:need-workload-cluster
   script:
     - !reference [.import_functions]
     - download_artifact deploy-management-cluster management-cluster-kubeconfig

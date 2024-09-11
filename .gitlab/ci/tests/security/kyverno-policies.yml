@@ -7,6 +7,7 @@
   stage: deployment-test
   extends:
     - .test-tags
+    - .rules:need-management-cluster
   script:
     - echo -e "\e[1m\e[0Ksection_start:`date +%s`:kyverno[collapsed=true]\r\e[0KChecking Kyverno ${RESOURCE}s\e[0m"
     - !reference [.import_functions]

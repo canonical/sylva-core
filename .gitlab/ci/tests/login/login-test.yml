@@ -50,7 +50,7 @@ test-sso+workload-kubeconfig:
   stage: deployment-test
   extends:
     - .test-tags
-    - .rules:skip-if-only-deploy-mgmt
+    - .rules:need-workload-cluster
   retry:
     max: 2
   script:
@@ -74,7 +74,6 @@ test-sso:
   stage: deployment-test
   extends:
     - .test-tags
-    - .rules:run-if-only-deploy-mgmt
   retry:
     max: 2
   script:
@@ -82,12 +81,15 @@ test-sso:
     - download_artifact deploy-management-cluster management-cluster-kubeconfig
     - !reference [.test_scripts, edit_hosts_file]
     - !reference [.test_scripts, test_sso]
+  rules:
+    - if: $DEPLOY_WORKLOAD_CLUSTER != "true"
+      when: never
 
 test-no-sso+workload-kubeconfig:
   stage: deployment-test
   extends:
     - .test-tags
-    - .rules:skip-if-only-deploy-mgmt
+    - .rules:need-workload-cluster
   script:
     - !reference [.import_functions]
     - download_artifact deploy-management-cluster management-cluster-kubeconfig
@@ -109,6 +111,7 @@ test-login:
   stage: deployment-test
   extends:
     - .test-tags
+    - .rules:need-management-cluster
   variables:
     HURL_JUNIT_REPORT: ${CI_PROJECT_DIR}/login_junit_report.xml
   artifacts:

@@ -210,7 +210,9 @@ capd-preview-deploy:
   variables:
     CAPD_RUNNER_TAG: gitlab-org-docker
     ENV_NAME: kubeadm-capd
-    ONLY_DEPLOY_MGMT: "true"
+    DEPLOY_MGMT_CLUSTER: "true"
+    UPDATE_MGMT_CLUSTER: "false"
+    DEPLOY_WORKLOAD_CLUSTER: "false"
     SKIP_TESTS: "true"
   trigger:
     include: .gitlab/ci/pipeline-deploy-capd-preview.yml
@@ -234,7 +236,8 @@ capd-kubeadm-ubuntu:
     CAPD_RUNNER_TAG: saas-linux-medium-amd64
     E2E_JOB_MR_PARITY: even
     ENV_NAME: kubeadm-capd
-    ONLY_DEPLOY_MGMT: "true"
+    UPDATE_MGMT_CLUSTER: "false"
+    DEPLOY_WORKLOAD_CLUSTER: "false"
     SKIP_TESTS: "true"
     MGMT_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/lightweight-disable-some-units.yml
   trigger:
@@ -247,7 +250,8 @@ capd-rke2-ubuntu:
     CAPD_RUNNER_TAG: saas-linux-medium-amd64
     E2E_JOB_MR_PARITY: even
     ENV_NAME: rke2-capd
-    ONLY_DEPLOY_MGMT: "true"
+    UPDATE_MGMT_CLUSTER: "false"
+    DEPLOY_WORKLOAD_CLUSTER: "false"
     SKIP_TESTS: "true"
     MGMT_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/lightweight-disable-some-units.yml
   trigger:
@@ -260,7 +264,8 @@ capd-kubeadm-oci-ubuntu:
     CAPD_RUNNER_TAG: saas-linux-medium-amd64
     E2E_JOB_MR_PARITY: odd
     ENV_NAME: kubeadm-capd
-    ONLY_DEPLOY_MGMT: "true"
+    UPDATE_MGMT_CLUSTER: "false"
+    DEPLOY_WORKLOAD_CLUSTER: "false"
     SKIP_TESTS: "true"
     MGMT_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/lightweight-disable-some-units.yml
   trigger:
@@ -273,7 +278,8 @@ capd-rke2-oci-ubuntu:
     CAPD_RUNNER_TAG: saas-linux-medium-amd64
     E2E_JOB_MR_PARITY: odd
     ENV_NAME: rke2-capd
-    ONLY_DEPLOY_MGMT: "true"
+    UPDATE_MGMT_CLUSTER: "false"
+    DEPLOY_WORKLOAD_CLUSTER: "false"
     SKIP_TESTS: "true"
     MGMT_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/lightweight-disable-some-units.yml
   trigger:
