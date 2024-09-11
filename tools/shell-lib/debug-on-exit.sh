@@ -78,6 +78,7 @@ additional_resources="
   UpdateRequests.*kyverno.io
   PolicyReports.*wgpolicyk8s.io
   ClusterPolicyReports.*wgpolicyk8s.io
+  Tenants.*minio.min.io
 "
 
 function dump_additional_resources() {
