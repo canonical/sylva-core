@@ -1,6 +1,7 @@
 cluster_virtual_ip: 192.168.100.3
 
 cluster:
+  cis_profile: cis-1.23
   capi_providers:
     infra_provider: capm3
     # bootstrap_provider: cabpr
