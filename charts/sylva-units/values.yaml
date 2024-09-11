@@ -6952,6 +6952,7 @@ shared_workload_clusters_values:
     loki_url: "https://{{ .Values.external_hostnames.loki }}"
 
   _internal:
+    workload_clusters_cluster_subdomain: wclusters.{{ .Values.cluster_domain }}  # workload clusters cluster_domain will all be under wclusters.<cluster_domain>
     sylva_system_default_storage_class_unit: '{{ .Values._internal.default_storage_class_unit }}'
     sylva_mgmt_enabled_units: >-
       {{- $units := dict -}}
