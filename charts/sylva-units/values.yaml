@@ -1427,7 +1427,14 @@ units:
           target:
             kind: Deployment
             name: keycloak-operator
-
+        - patch: |
+            - op: add
+              path: /metadata/labels/service-type
+              value: "gui"
+          target:
+            kind: Ingress
+            name: keycloak-ingress
+            
   keycloak-legacy-operator:
     info:
       description: installs Keycloak "legacy" operator
