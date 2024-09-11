@@ -1429,7 +1429,8 @@ units:
             name: keycloak-operator
         - patch: |
             - op: add
-              path: /metadata/labels/service-type
+              path: /metadata/labels
+              name: service-type
               value: "gui"
           target:
             kind: Ingress
