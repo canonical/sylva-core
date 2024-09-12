@@ -58,7 +58,7 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
     spec:
       url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-capi-cluster.git
       ref:
-        branch: cm-ignition
+        tag: 0.0.0-ignition
 
   devnull:
     kind: GitRepository
@@ -7581,12 +7581,17 @@ os_images_oci_registries:
     url: '{{ .Values.sylva_base_oci_registry }}/sylva-elements/diskimage-builder'
     tag: '{{ .Values.sylva_diskimagebuilder_version }}'
     cosign_publickey: '{{ .Values.security.os_images.cosign_public_key }}'
+  kiwi-imagebuilder:
+    url: '{{ .Values.sylva_base_oci_registry }}/sylva-elements/kiwi-imagebuilder/snapshots'
+    tag: '{{ .Values.sylva_kiwi_imagebuilder_version }}'
 
 k8s_version_short: "1.29"
 
 # Renovate Bot needs additional information to detect sylva diskimage-builder version
 # renovate: depName=sylva-projects/sylva-elements/diskimage-builder
 sylva_diskimagebuilder_version: 0.3.3
+
+sylva_kiwi_imagebuilder_version: v1.37
 
 sylva_diskimagebuilder_images:
   ubuntu-jammy-hardened-rke2-1-29-9:
@@ -7601,6 +7606,9 @@ sylva_diskimagebuilder_images:
   opensuse-15-6-hardened-rke2-1-29-9: {}
   opensuse-15-6-hardened-rke2-1-28-14: {}
   opensuse-15-6-hardened-rke2-1-27-16: {}
+  opensuse-5-5-leapmicro-rke2-1-28-12:
+    os_images_oci_registry: kiwi-imagebuilder
+    enabled: false
 
 # this dict can be enriched at deployment time to feed additional information
 # into the sylva-units-status ConfigMap
