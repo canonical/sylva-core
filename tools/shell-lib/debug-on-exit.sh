@@ -79,6 +79,7 @@ additional_resources="
   PolicyReports.*wgpolicyk8s.io
   ClusterPolicyReports.*wgpolicyk8s.io
   Tenants.*minio.min.io
+  Leases
 "
 
 function dump_additional_resources() {
