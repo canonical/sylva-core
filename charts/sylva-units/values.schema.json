@@ -1972,6 +1972,71 @@
           "type": "object",
           "additionalProperties": false,
           "properties": {
+            "longhorn_disk_config": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "diskDriver": {
+                        "enum": [
+                          "",
+                          "auto",
+                          "aio"
+                        ],
+                        "type": "string"
+                      },
+                      "diskType": {
+                        "enum": [
+                          "filesystem",
+                          "block"
+                        ],
+                        "type": "string"
+                      },
+                      "evictionRequested": {
+                        "type": "boolean"
+                      },
+                      "path": {
+                        "type": "string",
+                        "if": {
+                          "pattern": ".*/disk.*by.*"
+                        },
+                        "then": {
+                          "pattern": "/var/longhorn/disks/disk_by-(uuid_|path_pci-).*"
+                        },
+                        "else": {
+                          "pattern": "/var/longhorn/disks/((sd|vd)[a-z]|nvme[0-9]n[0-9])"
+                        }
+                      },
+                      "storageReserved": {
+                        "type": "integer",
+                        "minimum": 0
+                      },
+                      "allowScheduling": {
+                        "type": "boolean"
+                      },
+                      "tags": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "required": [
+                      "path"
+                    ]
+                  }
+                },
+                {
+                  "$ref": "#/$defs/string-with-gotpl"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
             "credentials": {
               "anyOf": [
                 {
@@ -2345,12 +2410,42 @@
               "anyOf": [
                 {
                   "type": "object",
+                  "additionalProperties": false,
                   "properties": {
                     "primary": {
                       "anyOf": [
                         {
-                          "type": "string",
-                          "format": "ipv4"
+                          "type": "object",
+                          "additionalProperties": false,
+                          "properties": {
+                            "ip": {
+                              "anyOf": [
+                                {
+                                  "type": "string",
+                                  "format": "ipv4"
+                                },
+                                {
+                                  "$ref": "#/$defs/string-with-gotpl"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "mac_address": {
+                              "anyOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "$ref": "#/$defs/string-with-gotpl"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            }
+                          }
                         },
                         {
                           "$ref": "#/$defs/string-with-gotpl"
@@ -2363,8 +2458,37 @@
                     "provisioning": {
                       "anyOf": [
                         {
-                          "type": "string",
-                          "format": "ipv4"
+                          "type": "object",
+                          "additionalProperties": false,
+                          "properties": {
+                            "ip": {
+                              "anyOf": [
+                                {
+                                  "type": "string",
+                                  "format": "ipv4"
+                                },
+                                {
+                                  "$ref": "#/$defs/string-with-gotpl"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "mac_address": {
+                              "anyOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "$ref": "#/$defs/string-with-gotpl"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            }
+                          }
                         },
                         {
                           "$ref": "#/$defs/string-with-gotpl"
