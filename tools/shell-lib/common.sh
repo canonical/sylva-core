@@ -53,7 +53,7 @@ function _kustomize {
 export -f _kustomize
 
 function set_wc_namespace() {
-  local WORKLOAD_CLUSTER_NAMESPACE=$(basename ${ENV_PATH})
+  local WORKLOAD_CLUSTER_NAMESPACE=${WKLD_NAMESPACE:-(basename ${ENV_PATH})}
   sed "s/WORKLOAD_CLUSTER_NAMESPACE/${WORKLOAD_CLUSTER_NAMESPACE}/g"
 }
 
