@@ -10,8 +10,7 @@ BASE_DIR=$(realpath $(dirname $0)/../../)
 
 # Check if the required arguments are passed
 if [ -z "$1" ] || [ -z "$2" ]; then
-  echo "Usage: $0 <chart-directory> <option-script> "
-  echo "option-script is schema-validation or yamllint"
+  echo "Usage: $0 <chart-directory> ( schema-validation | yamllint )"
   exit 1
 fi
 
