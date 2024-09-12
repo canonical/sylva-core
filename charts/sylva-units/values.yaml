@@ -151,6 +151,13 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
       ref:
         tag: 0.0.2
 
+  syslog-ng:
+    kind: GitRepository
+    spec:
+      url: https://github.com/syslog-ng/syslog-ng.git
+      ref:
+        tag: syslog-ng-4.8.0
+
 helm_repo_spec_default:
   interval: 60m0s
 
@@ -621,6 +628,7 @@ units:
         - '{{ tuple "components/thanos" (tuple . "thanos" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/loki" (tuple . "loki" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/kube-system" (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpr") | include "set-only-if" }}'
+        - '{{ tuple "components/syslog-ng" (tuple . "syslog-ng" | include "unit-enabled") | include "set-only-if" }}'
 
   postgres:
     info:
@@ -6150,6 +6158,74 @@ units:
         spec:
           chart: .
 
+  syslog-ng:
+    info:
+      description: deploy a syslog server for
+      maturity: beta
+    unit_templates:
+    - base-deps
+    depends_on:
+      namespace-defs: true
+    repo: syslog-ng
+    helmrelease_spec:
+      targetNamespace: syslog-ng
+      chart:
+        spec:
+          chart: contrib/syslog-ng-helm-chart
+      install:
+        createNamespace: false
+      values:
+        resources:
+          limits:
+            cpu: 400m
+            memory: 2792Mi
+          requests:
+            cpu: 100m
+            memory: 2280Mi
+        config: |
+           #############################################################################
+           # Default syslog-ng.conf file which collects all local logs into a
+           # single file called /var/log/messages tailored to container usage.
+           #
+           # The changes from the stock, default syslog-ng.conf file is that we've
+           # dropped the system() source that is not needed and that we enabled network
+           # connections using default-network-drivers(). Customize as needed and
+           # override using the -v option to docker, such as:
+           #
+           #  docker run ...  -v "$PWD/syslog-ng.conf":/etc/syslog-ng/syslog-ng.conf
+           #
+
+           @version: 4.7
+           @include "scl.conf"
+
+           source s_local {
+             internal();
+           };
+
+           source s_network {
+             default-network-drivers(
+                     # NOTE: TLS support
+                     #
+                     # the default-network-drivers() source driver opens the TLS
+                     # enabled ports as well, however without an actual key/cert
+                     # pair they will not operate and syslog-ng would display a
+                     # warning at startup.
+                     #
+                     #tls(key-file("/path/to/ssl-private-key") cert-file("/path/to/ssl-cert"))
+             );
+           };
+
+           destination d_local {
+                   file("/var/log/messages");
+                   file("/var/log/messages-kv.log" template("$ISODATE $HOST $(format-welf --scope all-nv-pairs)\n") frac-digits(3));
+           };
+
+           log {
+                   source(s_local);
+                   source(s_network);
+                   destination(d_local);
+           };
+
   get-openstack-images:
     info:
       description: Automatically push openstack images to Glance
@@ -6458,6 +6534,7 @@ external_hostnames:
   keycloak: 'keycloak.{{ .Values.cluster_domain }}'
   flux: 'flux.{{ .Values.cluster_domain }}'
   neuvector: 'neuvector.{{ .Values.cluster_domain }}'
+  syslog_ng: 'syslog-ng.{{ .Values.cluster_domain }}'
   harbor: 'harbor.{{ .Values.cluster_domain }}'
   os_image_server: ''
   gitea: 'gitea.{{ .Values.cluster_domain }}'

@@ -65,6 +65,7 @@
 | **sylva-thanos-rules** | installs Thanos rules using external helm chart & rules git repo | beta |  | [Helm](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-thanos-rules.git) | 0.0.1 |
 | **sylva-units-operator** | installs sylva-units operator | experimental |  | [Kustomize](https://gitlab.com/sylva-projects/sylva-elements/sylva-units-operator.git/config/default?ref=0.1.3) | 0.1.3 |
 | **sylva-units-release-template** | create the default sylva-units-release-template used by workload-cluster CR | experimental | True | Kustomize | N/A |
+| **syslog-ng** | deploy a syslog server for | beta |  | [Helm](https://github.com/syslog-ng/syslog-ng.git) | syslog-ng-4.8.0 |
 | **thanos** | installs Thanos | beta |  | [Helm](https://charts.bitnami.com/bitnami) | 15.7.25 |
 | **trivy-operator** | installs Trivy operator | beta |  | [Helm](https://aquasecurity.github.io/helm-charts/) | 0.24.1 |
 | **workload-cluster-operator** | installs Sylva operator for managing workload clusters | experimental |  | [Kustomize](https://gitlab.com/sylva-projects/sylva-elements/workload-cluster-operator.git/config/default?ref=0.1.2) | 0.1.2 |
