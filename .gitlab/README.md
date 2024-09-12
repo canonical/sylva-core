@@ -67,6 +67,7 @@ Each pipeline entry should adhere to this format:
 
 #### Scenario description
 
+* `capo-on-loic-cluster`: No description
 * `no-wkld`: Deploy the management cluster without any updates.
 
 * `simple-update`: Deploy both management and workload clusters, and perform a values update.

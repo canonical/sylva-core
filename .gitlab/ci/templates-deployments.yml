@@ -183,10 +183,29 @@ include:
     fi
     }
 
+.function_retrieve_management_cluster_kubeconfig:
+  - |
+    function retrieve_management_cluster_kubeconfig() {
+    if [ -n "${EXTERNAL_MANAGEMENT_KUBECONFIG}" ] ; then
+      if [ ! -d ${SYLVA_CI_VALUES_FOLDER} ]; then
+        echo -e "Cloning CI values from \\e[1;94m${SYLVA_CI_VALUES_REPO}\\e[0m to \\e[1;92m${SYLVA_CI_VALUES_FOLDER}\\e[0m"
+        git clone -q ${SYLVA_CI_VALUES_REPO} ${SYLVA_CI_VALUES_FOLDER}
+        echo -e "Using \\e[1;94m${SYLVA_CI_VALUES_REVISION}\\e[0m reference from \\e[1;92m${SYLVA_CI_VALUES_REPO}\\e[0m"
+        git -C ${SYLVA_CI_VALUES_FOLDER} checkout ${SYLVA_CI_VALUES_REVISION}
+      fi
+      echo -e "Using ${EXTERNAL_MANAGEMENT_KUBECONFIG} file as management-cluster-kubeconfig from ${SYLVA_CI_VALUES_REPO} ref: ${SYLVA_CI_VALUES_REVISION}"
+      sops -d ${SYLVA_CI_VALUES_FOLDER}/${EXTERNAL_MANAGEMENT_KUBECONFIG} > management-cluster-kubeconfig
+    else
+      download_artifact deploy-management-cluster management-cluster-kubeconfig
+    fi
+    }
+
+
 .import_functions:
   - !reference [.function_change_git_revision]
   - !reference [.function_update_values_file]
   - !reference [.function_download_artifact]
+  - !reference [.function_retrieve_management_cluster_kubeconfig]
 
 .clone_ci_values:
   - |
@@ -219,9 +238,10 @@ include:
 
     export ENV_NAME="${DEPLOYMENT_BOOTSTRAP_PROV}-${DEPLOYMENT_INFRA_PROV}"
     export ENV_TAG="${CI_PIPELINE_ID}-${ENV_NAME}"
+    export WKLD_NAMESPACE="${ENV_TAG}"
     if [[ "$DEPLOYMENT_INFRA_PROV" == "capo" ]]; then export CAPO_TAG=$ENV_TAG; fi
     export KIND_CLUSTER_NAME="bootstrap-${ENV_TAG}"
-    export MANAGEMENT_CLUSTER_NAME="mgmt-${ENV_TAG}"
+    export MANAGEMENT_CLUSTER_NAME="${MANAGEMENT_CLUSTER_NAME:-mgmt-${ENV_TAG}}"
     export WORKLOAD_CLUSTER_NAME="wc-${ENV_TAG}"
     export OCI_TAG="$OCI_TAG_FORMAT"
 
@@ -260,6 +280,7 @@ include:
       echo "  APPLY_WATCH_TIMEOUT_MIN = ${APPLY_WATCH_TIMEOUT_MIN}"
       echo -e "[\\e[1;94mWorkload cluster INFO\\e[0m]"
       echo "  WORKLOAD_CLUSTER_NAME = $WORKLOAD_CLUSTER_NAME"
+      echo "  WKLD_NAMESPACE = $WKLD_NAMESPACE"
       echo "  WC_ADDITIONAL_VALUES = ${WC_ADDITIONAL_VALUES:-'N/A'}"
       echo "  WC_INITIAL_ADDITIONAL_VALUES = ${WC_INITIAL_ADDITIONAL_VALUES:-'N/A'}"
       echo "  WC_UPDATE_ADDITIONAL_VALUES = ${WC_UPDATE_ADDITIONAL_VALUES:-'N/A'}"
@@ -274,9 +295,10 @@ include:
   - !reference [.import_functions]
   - !reference [.setup_docker]
   - !reference [.clone_ci_values]
+  - retrieve_management_cluster_kubeconfig
   - |
     if [[ $CI_JOB_NAME != preview-management-cluster ]]; then
-      download_artifact deploy-management-cluster management-cluster-kubeconfig
+      retrieve_management_cluster_kubeconfig
     fi
   - |
     # configure Git revision
@@ -518,24 +540,24 @@ include:
   extends: .workload-base
   stage: delete
   script:
-    - !reference [.function_download_artifact]
-    - download_artifact deploy-management-cluster management-cluster-kubeconfig
+    - !reference [.import_functions]
+    - retrieve_management_cluster_kubeconfig
     - . bin/env
-    - kubectl --kubeconfig management-cluster-kubeconfig delete -n ${ENV_NAME} hr sylva-units --timeout 30m
+    - kubectl --kubeconfig management-cluster-kubeconfig delete -n ${WKLD_NAMESPACE} hr sylva-units --timeout 30m
     - |
       # Check if we have some remaining resources that should have been deleted
       # and fail before attempting to delete the namespace in order to ease troubleshooting
       for KIND in "kustomizations -l app.kubernetes.io/instance=sylva-units" "helmreleases -l app.kubernetes.io/instance=sylva-units" heatstacks; do
-        if kubectl --kubeconfig management-cluster-kubeconfig get -n ${ENV_NAME} $KIND -o yaml | yq -e '.items | length > 0' &>/dev/null; then
+        if kubectl --kubeconfig management-cluster-kubeconfig get -n ${WKLD_NAMESPACE} $KIND -o yaml | yq -e '.items | length > 0' &>/dev/null; then
           echo "there remains $(echo $KIND | awk '{print $1}') resources, can't delete namespace"
           exit 1
         fi
       done
-    - kubectl --kubeconfig management-cluster-kubeconfig delete ns ${ENV_NAME} --timeout 2m || true
+    - kubectl --kubeconfig management-cluster-kubeconfig delete ns ${WKLD_NAMESPACE} --timeout 2m || true
     - |
-      if (kubectl --kubeconfig management-cluster-kubeconfig get ns ${ENV_NAME} 2>/dev/null); then
-        echo "Namespace '${ENV_NAME}' deletion did not complete (.status below)"
-        kubectl --kubeconfig management-cluster-kubeconfig get ns ${ENV_NAME} -o yaml | yq .status
+      if (kubectl --kubeconfig management-cluster-kubeconfig get ns ${WKLD_NAMESPACE} 2>/dev/null); then
+        echo "Namespace '${WKLD_NAMESPACE}' deletion did not complete (.status below)"
+        kubectl --kubeconfig management-cluster-kubeconfig get ns ${WKLD_NAMESPACE} -o yaml | yq .status
         exit 1
       fi
   after_script:

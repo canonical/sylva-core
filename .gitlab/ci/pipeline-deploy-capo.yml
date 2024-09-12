@@ -51,12 +51,12 @@ default:
   script:
     - !reference [.os_cloud]
     - !reference [.import_functions]
-    - download_artifact deploy-management-cluster management-cluster-kubeconfig
+    - retrieve_management_cluster_kubeconfig
     - echo -e "\e[1m\e[0Ksection_start:`date +%s`:capo_cleanup[collapsed=true]\r\e[0KRunning capo cleanup\e[0m"
     - |
       if [[ ${DELAY_CAPO_CLEANUP} == 'true' ]]; then
         echo "This MR was flagged with delay-capo-ci-cleanup-on-failure label. The CAPO cleanup will be delayed for 12h."
-        for ns in sylva-system $ENV_NAME; do
+        for ns in sylva-system $WKLD_NAMESPACE; do
           # Try to suspend the capo-cluster-resources kustomiozation or the operator will remove the tag during the next reconciliation
           kubectl --kubeconfig management-cluster-kubeconfig -n $ns patch Kustomization capo-cloud-config --type=merge -p '{"spec":{"suspend":true}}' || true
           kubectl --kubeconfig management-cluster-kubeconfig -n $ns delete secret cluster-cloud-config || true

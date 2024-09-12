@@ -9,7 +9,7 @@
     - .test-tags
   script:
     - !reference [.import_functions]
-    - download_artifact deploy-management-cluster management-cluster-kubeconfig
+    - retrieve_management_cluster_kubeconfig
     - echo "Checking if all test-units have properly reconciled"
     - |
       if [[ -n $CHECK_WORKLOAD_CLUSTER ]]; then
