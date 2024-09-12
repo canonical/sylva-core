@@ -21,11 +21,14 @@ The assisted installer has two service endpoints: assisted-service and assisted-
 Because the assised-installer is running on the management cluster, the DNS entries for the assisted installer external URL just need to point to the VIP of the management cluster. The dns entries are static nature and can be provided by the management cluster via the Sylva k8s-gateway unit, or an external dns service provided outside of Sylva stack.
 
 OKD or OpenShift cluster k8s api URLs are name based, and they are:
-api.<cluster-name>.<domain-name>
-api-int.<cluster-name>.<domain-name>
-*.apps.<cluster-name>.<domain-name>
 
-In a multi-cluster architecrure, a management cluster will install and manage multiple workload clusters. Each OKD workload cluster will need to have the above three DNS entries corresponding to its cluster. In production, we expect an external dns service outside of Sylva stack will fullfil the DNS requirements with pre-populated DNS entries for all workload clusters. An alternative to the external dns service approach is to enhance the Sylva k8s-gateway unit so it will be able to add the cluster DNS entries when a cluster is created, and removed the cluster DNS entries when a cluster is deleted. This alternative work is being tracked by: https://gitlab.com/sylva-projects/sylva-core/-/issues/1573
+- `api.<cluster-name>.<domain-name>`
+
+- `api-int.<cluster-name>.<domain-name>`
+
+- `*.apps.<cluster-name>.<domain-name>`
+
+In a multi-cluster architecrure, a management cluster will install and manage multiple workload clusters. Each OKD workload cluster will need to have the above three DNS entries corresponding to its cluster. In production, we expect an external dns service outside of Sylva stack will fullfil the DNS requirements with pre-populated DNS entries for all workload clusters. An alternative to the external dns service approach is to enhance the Sylva k8s-gateway unit so it will be able to add the cluster DNS entries when a cluster is created, and remove the cluster DNS entries when a cluster is deleted. This alternative work is being tracked by: https://gitlab.com/sylva-projects/sylva-core/-/issues/1573
 
 ## How to Specify cluster_virtual_ip for Single Node Cluster
 
@@ -129,9 +132,9 @@ address=/vm-image-service.example.com/192.168.222.100
 
 Note: the above dnsmasq sample setting containers the DNS entries for the assisted installer. These entries are static DNS entries and point to the management cluster. Since an external dnsmasq is used here with pre-popualted DNS entries for the workload clusters, so the static DNS entries are provided by the same dnsmasq. The k8s-gateway unit mentioned earlier is not used to provide the static DNS entries for the assisted installer.
 
-### RKE2 Management Cluster Configurations
+### Management Cluster Configuration
 
-Here is a sample RKE2 manager cluster configurations (with the irrelevant parts removed),
+Here is a sample of management cluster (the rke2-capm3 is the only tested variant) values needed for deploying an OKD workload cluster on baremetal infra:
 
 ```
 cluster:
@@ -156,15 +159,15 @@ okd:
     imageHostname: vm-image-service.example.com
 ```
 
-Note: the DNS entries for okd.serviceHostname and okd.imageHostname are served by the dnsmasq illustrated in the DNS settings section. The management cluster gets the dnsmasq server address via cluster.capm3.dns_servers, so that it can resolve the static DNS entries for the assisted installer and the per workload cluster k8s API DNS entries mentioned earlier.
+Note: the DNS entries for okd.serviceHostname and okd.imageHostname are served by the dnsmasq illustrated in the DNS settings section. The management cluster gets the dnsmasq server address via `.cluster.capm3.dns_servers`, so that it can resolve the static DNS entries for the assisted installer and the per workload cluster k8s API DNS entries mentioned earlier.
 
-The DNS server IP address can also be aquired through DHCP. So in the next section where DHCP is used for by the OKD workload cluster configuration, there is no setting for capm3.dns_servers.
+The DNS server IP address can also be acquired through DHCP. So in the next section where DHCP is used for the OKD workload cluster configuration, there is no setting for `.cluster.capm3.dns_servers`.
 
 The assisted installer has not been tested to work with longhorn so the longhorn unit is disabled here.
 
-### OKD Workload CLuster Configurations
+### OKD Workload Cluster Configuration
 
-Here is a sample OKD workload cluster configurations (with the irrelevant parts removed),
+Here is a sample of OKD CAPM3 workload cluster values:
 
 ```
 cluster:
@@ -175,11 +178,11 @@ cluster:
     bootstrap_provider: cabpob
   control_plane_replicas: 1
   capm3:
-    # For OKD, the following items are space filler except machine_image_format
-    machine_image_checksum: https://abcde
+    # For OKD, the only capm3-image spec required is `machine_image_format: live-iso`, rest are dummy values
+    machine_image_checksum: https://foo/bar.sha256sum
     machine_image_checksum_type: sha256
     machine_image_format: live-iso
-    machine_image_url: https://abcde
+    machine_image_url: https://foo/bar
   okd:
     version: v4.14.0
     releaseImage: quay.io/okd/scos-release:4.14.0-0.okd-scos-2024-01-30-032525
@@ -224,7 +227,7 @@ url: {{ $def.machine_image_url }}
   {{- end -}}
 ```
 
-For OKD the `image_key` is not used so the  machine_image_* are required otherwise the template will fail.
+For OKD the `image_key` is not used so the `machine_image_*` values are required, otherwise the [`sylva-capi-cluster` chart](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-capi-cluster) templating will fail.
 
 The okd.pullSecret is required but can be a dummy value, one can create the base64 value like:
 
