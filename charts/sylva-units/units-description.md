@@ -63,7 +63,7 @@
 | **snmp-exporter** | installs SNMP exporter | beta |  | [Helm](https://prometheus-community.github.io/helm-charts) | 5.5.0 |
 | **sylva-dashboards** | adds Sylva-specific Grafana dashboards | beta |  | [Helm](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-dashboards.git) | 0.0.11 |
 | **sylva-prometheus-rules** | installs prometheus rules using external helm chart & rules git repo | beta |  | [Helm](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-prometheus-rules.git) | 0.0.13 |
-| **sylva-thanos-ruler-helper-clusters** | generates Prometheus rules using external helm chart | beta |  | [Helm](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-monitoring-helpers.git) | 0.0.1-pre |
+| **sylva-thanos-ruler-helper** | generates Prometheus rules using external helm chart | beta |  | [Helm](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-monitoring-helpers.git) | 0.0.2-pre |
 | **sylva-thanos-rules** | installs Thanos rules using external helm chart & rules git repo | beta |  | [Helm](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-thanos-rules.git) | 0.0.2-pre |
 | **sylva-units-operator** | installs sylva-units operator | experimental |  | [Kustomize](https://gitlab.com/sylva-projects/sylva-elements/sylva-units-operator.git/config/default?ref=0.1.3) | 0.1.3 |
 | **sylva-units-release-template** | create the default sylva-units-release-template used by workload-cluster CR | experimental | True | Kustomize | N/A |

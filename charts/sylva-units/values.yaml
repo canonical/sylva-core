@@ -156,7 +156,7 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
     spec:
       url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-monitoring-helpers.git
       ref:
-        tag: 0.0.1-pre
+        tag: 0.0.2-pre
 
 helm_repo_spec_default:
   interval: 60m0s
@@ -6200,7 +6200,7 @@ units:
         spec:
           chart: .
 
-  sylva-thanos-ruler-helper-clusters:
+  sylva-thanos-ruler-helper:
     info:
       description: generates Prometheus rules using external helm chart
       maturity: beta
@@ -6213,13 +6213,14 @@ units:
     repo: sylva-monitoring-helpers
     helm_chart_artifact_name: sylva-monitoring-helpers
     helmrelease_spec:
-      releaseName: sylva-monitoring-helpers-clusters
+      releaseName: sylva-monitoring-helpers
       targetNamespace: thanos
       chart:
         spec:
           chart: .
       values:
-        script_name: "k8s-clusters-list"
+        script_names:
+        - k8s-clusters-list
 
   get-openstack-images:
     info:
