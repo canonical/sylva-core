@@ -3299,8 +3299,8 @@
               "type": "string",
               "enum": [
                 "",
-                "cis-1.23",
-                "cis"
+                "cis-1.6",
+                "cis-1.23"
               ]
             },
             {
@@ -6626,11 +6626,6 @@
                       "primary_pool_end",
                       "primary_pool_start",
                       "primary_pool_prefix",
-                      "provisioning_pool_network",
-                      "provisioning_pool_gateway",
-                      "provisioning_pool_end",
-                      "provisioning_pool_start",
-                      "provisioning_pool_prefix",
                       "dns_servers"
                     ],
                     "oneOf": [

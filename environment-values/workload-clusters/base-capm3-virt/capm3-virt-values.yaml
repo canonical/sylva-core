@@ -1,6 +1,7 @@
 cluster_virtual_ip: 192.168.100.3
 
 cluster:
+  cis_profile: cis-1.23
   capi_providers:
     infra_provider: capm3
     # bootstrap_provider: cabpr
@@ -18,11 +19,6 @@ cluster:
     primary_pool_start: 192.168.100.60
     primary_pool_end: 192.168.100.90
     primary_pool_prefix: "24"
-    provisioning_pool_network: 192.168.10.0
-    provisioning_pool_gateway: 192.168.10.1
-    provisioning_pool_start: 192.168.10.60
-    provisioning_pool_end: 192.168.10.90
-    provisioning_pool_prefix: "24"
 
     dns_servers: [1.1.1.1]
 
@@ -36,7 +32,6 @@ cluster:
         matchLabels:
           cluster-role: control-plane
 
-      provisioning_pool_interface: bond0
       primary_pool_interface: bond0.100
 
     network_interfaces:
@@ -62,7 +57,6 @@ cluster:
           matchLabels:
             cluster-role: worker
 
-        provisioning_pool_interface: bond0
         primary_pool_interface: bond0.100
 
       network_interfaces:
