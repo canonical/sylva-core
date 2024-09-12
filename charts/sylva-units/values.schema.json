@@ -10171,6 +10171,9 @@
         }
       ]
     },
+    "sylva_kiwi_imagebuilder_version": {
+      "type": "string"
+    },
     "sylva_diskimagebuilder_version": {
       "type": "string"
     },
