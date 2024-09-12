@@ -47,7 +47,7 @@ fi
 
 echo -e "\e[0Ksection_start:`date +%s`:helm_dependency_build\r\e[0K--------------- helm dependency build"
 
-helm dependency build $chart_dir
+helm dependency update $chart_dir
 
 echo -e "\e[0Ksection_end:`date +%s`:helm_dependency_build\r\e[0K"
 
