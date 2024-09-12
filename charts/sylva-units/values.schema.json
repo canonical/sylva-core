@@ -10137,6 +10137,13 @@
         }
       }
     },
+    "agent_config_format": {
+      "anyOf": [
+        {
+          "type": "string"
+        }
+      ]
+    },
     "sylva_diskimagebuilder_version": {
       "type": "string"
     },
