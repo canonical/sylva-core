@@ -1175,6 +1175,10 @@ properties:
             - type: string
               format: hostname
 
+  agent_config_format:  # -------------------------------
+    anyOf:
+      - type: string
+
   sylva_diskimagebuilder_version:  # -------------------------------
     type: string
 
