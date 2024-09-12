@@ -2847,8 +2847,6 @@ units:
       namespace-defs: true
     helm_repo_url: https://rke2-charts.rancher.io
     helm_chart_versions: &calico-chart-versions
-      v3.27.200: >-
-        {{ include "k8s-version-match" (tuple . "=1.26.15") }}
       v3.27.300: >-
         {{ or       (include "k8s-version-match" (tuple . ">=1.27.13,<1.28.0"))
                     (include "k8s-version-match" (tuple . ">=1.28.12"))
@@ -3403,7 +3401,6 @@ units:
       '{{ .Values._internal.calico_readiness_unit }}': '{{ tuple . "calico" | include "unit-enabled" }}'
     helm_repo_url: https://rke2-charts.rancher.io
     helm_chart_versions:
-      4.8.200: '{{ include "k8s-version-match" (tuple . "=1.26.15") }}'
       4.10.102: '{{ include "k8s-version-match" (tuple . ">=1.27.16") }}'  # also for 1.28.12
     helmrelease_spec:
       releaseName: rke2-ingress-nginx
@@ -4750,7 +4747,6 @@ units:
       - '{{ eq .Values.cluster.capi_providers.infra_provider "capv" }}'
     helm_repo_url: https://kubernetes.github.io/cloud-provider-vsphere
     helm_chart_versions:
-      1.26.0: '{{ include "k8s-version-match" (tuple . ">=1.26.0,<1.27.0") }}'
       1.27.0: '{{ include "k8s-version-match" (tuple . ">=1.27.0,<1.28.0") }}'
       1.28.0: '{{ include "k8s-version-match" (tuple . ">=1.28.0") }}'
     helmrelease_spec:
@@ -4769,7 +4765,7 @@ units:
           enabled: true
           vcenter: '{{ .Values.cluster.capv.server }}'
           datacenter: '{{ .Values.cluster.capv.dataCenter }}'
-          '{{ tuple . (include "k8s-version-match" (tuple . ">=1.26.0,<1.27.0")) "tlsThumbprint" "thumbprint" | include "interpret-ternary" }}': '{{ .Values.cluster.capv.tlsThumbprint }}'
+          thumbprint: '{{ .Values.cluster.capv.tlsThumbprint }}'
       _postRenderers:
         - kustomize:
             patches:
@@ -6628,15 +6624,11 @@ sylva_diskimagebuilder_images:
     default_enabled: true
   ubuntu-jammy-plain-rke2-1-28-12: {}
   ubuntu-jammy-plain-rke2-1-27-16: {}
-  ubuntu-jammy-plain-rke2-1-26-15: {}
   ubuntu-jammy-hardened-rke2-1-27-16: {}
-  ubuntu-jammy-hardened-rke2-1-26-15: {}
   opensuse-15-5-plain-rke2-1-28-12: {}
   opensuse-15-5-plain-rke2-1-27-16: {}
-  opensuse-15-5-plain-rke2-1-26-15: {}
   opensuse-15-5-hardened-rke2-1-28-12: {}
   opensuse-15-5-hardened-rke2-1-27-16: {}
-  opensuse-15-5-hardened-rke2-1-26-15: {}
 
 # this dict can be enriched at deployment time to feed additional information
 # into the sylva-units-status ConfigMap
@@ -6859,7 +6851,6 @@ _internal:
   bootstrap_node_ip: '{{ lookup "v1" "ConfigMap" "sylva-system" "cluster-public-endpoint" | dig "data" "address" "not_found" | default "not_found" }}'
 
   k8s_version_map:
-    1.26: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" | ternary "v1.26.15+rke2r1" "v1.26.15" }}'
     1.27: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" | ternary "v1.27.16+rke2r1" "v1.27.16" }}'
     1.28: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" | ternary "v1.28.12+rke2r1" "v1.28.12" }}'
 
