@@ -38,7 +38,7 @@ Wait for Cluster resource:
 
 */}}
 {{- $result = append $result (dict
-    "apiVersion" "cluster.x-k8s.io/v1beta1"
+    "apiVersion" (include "getApiVersion" "Cluster")
     "kind" "Cluster"
     "name" $cluster.name
     "namespace" $ns
@@ -53,20 +53,16 @@ Wait for infra provider Cluster
 {{- $cluster_apiVersion := "" -}}
 {{- if $cluster.capi_providers.infra_provider | eq "capo" -}}
   {{- $cluster_kind = "OpenStackCluster" -}}
-  {{- $cluster_apiVersion = "infrastructure.cluster.x-k8s.io/v1beta1" -}}
 {{- else if $cluster.capi_providers.infra_provider | eq "capv" -}}
   {{- $cluster_kind = "VSphereCluster" -}}
-  {{- $cluster_apiVersion = "infrastructure.cluster.x-k8s.io/v1beta1" -}}
 {{- else if $cluster.capi_providers.infra_provider | eq "capm3" -}}
   {{- $cluster_kind = "Metal3Cluster" -}}
-  {{- $cluster_apiVersion = "infrastructure.cluster.x-k8s.io/v1beta1" -}}
 {{- else if $cluster.capi_providers.infra_provider | eq "capd" -}}
   {{- $cluster_kind = "DockerCluster" -}}
-  {{- $cluster_apiVersion = "infrastructure.cluster.x-k8s.io/v1beta1" -}}
 {{- else -}}
   {{- fail (printf "sylva-units cluster-healthchecks named template would need to be extended to support CAPI infra provider %s" $cluster.capi_providers.infra_provider) -}}
 {{- end }}
-
+{{- $cluster_apiVersion = include "getApiVersion" $cluster_kind -}}
 {{- $result = append $result (dict
     "apiVersion" $cluster_apiVersion
     "kind" $cluster_kind
@@ -89,13 +85,12 @@ on the CAPI bootstrap provider being used.
 {{- $cp_apiVersion := "" -}}
 {{- if $cluster.capi_providers.bootstrap_provider | eq "cabpk" -}}
   {{- $cp_kind = "KubeadmControlPlane" -}}
-  {{- $cp_apiVersion = "controlplane.cluster.x-k8s.io/v1beta1" -}}
 {{- else if $cluster.capi_providers.bootstrap_provider | eq "cabpr" -}}
   {{- $cp_kind = "RKE2ControlPlane" -}}
-  {{- $cp_apiVersion = "controlplane.cluster.x-k8s.io/v1alpha1" -}}
 {{- else -}}
   {{- fail (printf "sylva-units cluster-healthchecks named template would need to be extended to support CAPI bootstrap provider %s" $cluster.capi_providers.bootstrap_provider) -}}
 {{- end }}
+{{- $cp_apiVersion = include "getApiVersion" $cp_kind -}}
 {{ $result = append $result (dict
     "apiVersion" $cp_apiVersion
     "kind" $cp_kind
@@ -111,7 +106,7 @@ If $includeMDs was specified, we include all the MachineDeployments in the healt
 {{ if $includeMDs -}}
     {{- range $md_name,$_ := $cluster.machine_deployments }}
         {{- $result = append $result (dict
-    "apiVersion" "cluster.x-k8s.io/v1beta1"
+    "apiVersion" (include "getApiVersion" "MachineDeployment")
     "kind" "MachineDeployment"
     "name" (printf "%s-%s" $cluster.name $md_name)
     "namespace" $ns

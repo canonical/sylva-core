@@ -7146,6 +7146,9 @@
     "registry_mirrors"
   ],
   "properties": {
+    "sylva-library": {
+      "type": "object"
+    },
     "fullnameOverride": {
       "type": "string"
     },

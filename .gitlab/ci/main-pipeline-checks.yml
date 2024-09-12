@@ -35,6 +35,7 @@ sylva-units:helm-lint:
   stage: test
   extends: .helm-lint
   script:
+    - helm dependency update charts/sylva-units
     - helm lint charts/sylva-units
 
 sylva-units:helm-yamllint:
@@ -211,3 +212,29 @@ check_unit_documentation:
   extends: [.lint-base]
   script:
     - ./tools/generate_units_documentation.py check
+
+check-sylva-unit-dependencies:
+  extends: [.lint-base]
+  script:
+    - set -e
+    - helm dependency update charts/sylva-units
+    - |
+      if [[ -n $(git status charts/sylva-units/Chart.lock charts/sylva-units/charts -s --porcelain) ]]; then
+          echo -e "\033[0;31m[ERROR] sylva-units chart dependencies need to be updated with 'helm dependency update charts/sylva-units'\033[0m"
+          echo
+          echo "The following actions are needed to make the update:"
+          echo "  - cd charts/sylva-units"
+          echo "  - helm dependency update"
+          echo "  - git rm charts/<old sylva-library>"
+          echo "  - git add charts/<new sylva-library>"
+          echo "  - (and then commit)"
+          echo
+          echo "This is the difference we currently get:"
+          echo
+          git diff charts/sylva-units/Chart.lock charts/sylva-units/charts
+          echo
+          echo "Git status:"
+          echo
+          git status charts/sylva-units/Chart.lock charts/sylva-units/charts -s --porcelain
+          exit 1
+      fi
