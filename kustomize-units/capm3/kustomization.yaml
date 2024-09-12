@@ -3,10 +3,28 @@ kind: Kustomization
 resources:
 - https://github.com/metal3-io/cluster-api-provider-metal3/releases/download/v1.8.2/infrastructure-components.yaml
 
-components:
-  - ../common-kustomize-components/crd-remove-caBundle
-
 patches:
+  # we can't use ../common-kustomize-components/crd-remove-caBundle because
+  # we need to make an exception for the metal3clustertemplates CRD
+  #
+  # once https://gitlab.com/sylva-projects/sylva-core/-/issues/1597 is fully addressed, with a Kyverno policy
+  # to prevents caBundle from being set, we'll be able to simplify this without risking subtle issues if
+  # an upstream kustomization ever slips and ships a CRD def with caBundle set
+  - target:
+      group: apiextensions.k8s.io
+      version: v1
+      kind: CustomResourceDefinition
+      annotationSelector: cert-manager.io/inject-ca-from
+      name: 'metal3machine.*|metal3clusters.*|metal3data.*|metal3remediations.*|ip.*'  # large match, but avoiding metal3clustertemplates which has no conversion webhook
+    patch: |-
+      kind: CustomResourceDefinition
+      metadata:
+        name: _unused_
+      spec:
+        conversion:
+          webhook:
+            clientConfig:
+              caBundle: null
   - target:
       version: v1
       kind: Namespace
@@ -14,6 +32,7 @@ patches:
       - op: replace
         path: /metadata/labels/pod-security.kubernetes.io~1enforce
         value: baseline
+
 # Add labels to enable clusterctl move to retrieve resources correponding to capm3 CRDs
 labels:
   - pairs:
