@@ -37,6 +37,7 @@ WIKI_REPORT_PAGE = os.getenv("WIKI_REPORT_PAGE", "Scheduled-pipelines-report")
 status_icon = {
     "failed": "❌",
     "success": "✔",
+    "allowed_to_fail": "⚠️",
     "canceled": "🛇",
     "skipped": "⏩",
     "running": "🔄",
@@ -49,8 +50,13 @@ status_icon = {
 }
 
 
-def get_status_icon(status):
-    return status_icon.get(status, status)
+def get_status_icon(job):
+    allow_failure = getattr(job, 'allow_failure', False)
+    if job.status == "failed" and allow_failure is True:
+        status = "allowed_to_fail"
+    else:
+        status = job.status
+    return status_icon.get(status)
 
 
 def pipeline_summary(pipeline):
@@ -83,13 +89,13 @@ def pipeline_summary(pipeline):
             continue
 
         if job not in test_jobs:
-            job_text = f"{job.name.replace('-', '‑')}: {get_status_icon(job.status)}"
+            job_text = f"{job.name.replace('-', '‑')}: {get_status_icon(job)}"
             job_md = f"[{job_text}]({job.web_url})<br>"
             summary += job_md
         else:
             if test_combined_md == "":
                 test_combined_statuses = " ".join(
-                    [get_status_icon(j.status) for j in test_jobs]
+                    [get_status_icon(j) for j in test_jobs]
                 )
                 test_text = f"tests: {test_combined_statuses}"
                 test_combined_md = f"[{test_text}]({pipeline.web_url})<br>"
@@ -139,7 +145,7 @@ def create_report():
                 if child.duration:
                     duration_text = f"{child.duration/60.0:.0f}min"
                 ds_pipeline_summary = pipeline_summary(child.downstream_pipeline)
-                return f"[{duration_text} {get_status_icon(child.status)}]({child.web_url})<br>{ds_pipeline_summary}"
+                return f"[{duration_text} {get_status_icon(child)}]({child.web_url})<br>{ds_pipeline_summary}"
 
             child_pipelines_reports = dict()
             for pipeline in newest_pipelines:
@@ -152,7 +158,7 @@ def create_report():
             headers = ["name"]
             rows_as_dict = dict()
             for pipeline in newest_pipelines:
-                time_status = f"[{pipeline.created_at[:16]} {get_status_icon(pipeline.status)}]({pipeline.web_url})"
+                time_status = f"[{pipeline.created_at[:16]} {get_status_icon(pipeline)}]({pipeline.web_url})"
                 headers.append(time_status)
                 # add empty cell in table if any child pipeline type doesn't exit at a given date
                 for child_pipeline_name in child_pipelines_reports.keys():
