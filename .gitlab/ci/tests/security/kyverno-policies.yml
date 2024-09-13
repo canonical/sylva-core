@@ -13,11 +13,11 @@
     - download_artifact deploy-management-cluster management-cluster-kubeconfig
     - |
       error=0
-      kubectl --kubeconfig management-cluster-kubeconfig get $RESOURCE -A -o yaml | yq '.items[] | select(.summary.fail > 0 or .summary.warn > 0 or .summary.error > 0) | (.metadata.namespace // "None") + " " + .metadata.name' | while read -r NAMESPACE NAME; do
+      while read -r NAMESPACE NAME; do
         echo -e "$RESOURCE \\e[1;91m$NAME\\e[0m $(if [ $NAMESPACE != "None" ]; then echo "in \\e[1;94m$NAMESPACE\\e[0m namespace "; fi)was in \\e[31mFAIL/WARN/ERROR\\e[0m" | tee -a ${CI_PROJECT_DIR}/$RESOURCE.log
-        kubectl --kubeconfig management-cluster-kubeconfig -n $NAMESPACE get $RESOURCE $NAME -o yaml | yq '.results[] | select(.result|test("pass|skip")|not)' | tee -a ${CI_PROJECT_DIR}/$RESOURCE.log
+        kubectl --kubeconfig management-cluster-kubeconfig -n $NAMESPACE get $RESOURCE $NAME -o yaml | yq '{"scope": .scope, "results": .results | filter(.result|test("pass|skip")|not)} | select(.results[] | length > 0)' | tee -a ${CI_PROJECT_DIR}/$RESOURCE.log
         error=1
-      done
+      done < <(kubectl --kubeconfig management-cluster-kubeconfig get $RESOURCE -A -o yaml | yq '.items[] | select(.summary.fail > 0 or .summary.warn > 0 or .summary.error > 0) | (.metadata.namespace // "None") + " " + .metadata.name')
       echo -e "\e[0Ksection_end:`date +%s`:kyverno\r\e[0K"
       exit $error
   artifacts:
