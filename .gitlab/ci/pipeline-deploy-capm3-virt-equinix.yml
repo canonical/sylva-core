@@ -1,6 +1,10 @@
 ---
 include:
   - local: .gitlab/ci/deployment-pipeline.yml
+  - project: 'sylva-projects/sylva-elements/ci-tooling/runner-aas'
+    ref: 1.0.0
+    file:
+      - ci-templates/equinix-runner-request-template.yml
 
 # Default tag will be used for all deployments/updates jobs
 default:
@@ -15,53 +19,3 @@ default:
     - $CI_PIPELINE_IID
     - equinix
     - docker
-
-#----------------------------------------------------------
-
-create-runner:
-  stage: deploy
-  timeout: 15min
-  id_tokens:
-    JOB_ID_TOKEN:
-      aud: runner-aas
-  variables:
-    REQUEST: create
-    RUNNER_HOSTNAME: syla-core-$CI_PIPELINE_ID
-    RUNNER_TAG: $CI_PIPELINE_IID
-    RUNNER_PROJECT_ID: $CI_PROJECT_ID
-    RUNNER_PLAN: m3.small.x86
-    RUNNER_AAS_TARGET_REF: main
-  tags: []
-  image:
-    name: registry.gitlab.com/gitlab-org/cli:v1.46.1
-    entrypoint: [""]
-  script:
-    - glab config set -g check_update false
-    - >
-      glab ci run-trig
-      --token="$RUNNER_AAS_TOKEN"
-      --branch "main"
-      --variables "TARGET_REF:$RUNNER_AAS_TARGET_REF"
-      --variables "REQUEST:$REQUEST"
-      --variables "SOURCE_JWT_TOKEN:$JOB_ID_TOKEN"
-      --variables "RUNNER_PLAN:$RUNNER_PLAN"
-      --repo "sylva-projects/sylva-elements/ci-tooling/runner-aas-interface" | tee pipeline.json
-    - 'PIPELINE_ID=$(grep -Eo "ID: \d+" pipeline.json | grep -Eo "\d+")'
-    - >
-      while true; do
-        PIPELINE=$(glab api projects/sylva-projects%2Fsylva-elements%2Fci-tooling%2Frunner-aas-interface/pipelines/$PIPELINE_ID)
-        PIPELINE_STATUS=$(echo $PIPELINE | python3 -c 'import json, sys; obj = json.load(sys.stdin); print(obj["status"]) if "status" in obj else print("Unknown")')
-        echo "PIPELINE_STATUS = $PIPELINE_STATUS"
-        [[ $PIPELINE_STATUS == "" ]] && exit 1
-        [[ $PIPELINE_STATUS == "failed" ]] && exit 1
-        [[ $PIPELINE_STATUS == "success" ]] && break
-        sleep 5
-      done
-
-clean-runner:
-  stage: cleanup
-  extends: create-runner
-  dependencies: []
-  variables:
-    REQUEST: delete
-  when: always
