@@ -361,8 +361,14 @@ capo-rke2-oci-suse:
 capo-rke2-leap-micro:
   extends: capo-rke2-ubuntu
   variables:
-    MGMT_ADDITIONAL_VALUES: environment-values/ci-leap-micro/values.yaml
-    WC_ADDITIONAL_VALUES: environment-values/ci-leap-micro/values.yaml
+    MGMT_ADDITIONAL_VALUES: environment-values/ci-leap-micro/management-values.yaml
+    WC_ADDITIONAL_VALUES: environment-values/ci-leap-micro/workload-values.yaml
+
+capm3-ha-rke2-virt-leap-micro:
+  extends: .rke2-capm3-virt-equinix
+  variables:
+    MGMT_ADDITIONAL_VALUES: environment-values/ci-leap-micro/management-values.yaml
+    WC_ADDITIONAL_VALUES: environment-values/ci-leap-micro/workload-values.yaml
 
 .capm3-virt-equinix:
   extends: .default-trigger
