@@ -425,10 +425,7 @@ function collect_kubectl_get_data() {
   echo "Collecting kubectl get data with fixed verbosity -v=6..."
 
   kubectl get crd -A -v=6 > "${data_dir}/kubectl-api-response-${timestamp}.log" 2>&1 && \
-    echo "Collected api response data"  || \
-    echo "Failed to collect data"
-  done
-
+  echo "Collected api response data"  || \
   echo "Data collection completed. Files saved in $data_dir."
 }
 
