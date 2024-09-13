@@ -5,6 +5,7 @@
 
 generate-report:
   stage: report
+  needs: []
   image:
     name: python:alpine3.19
   rules:
