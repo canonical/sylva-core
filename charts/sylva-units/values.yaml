@@ -620,6 +620,7 @@ units:
         - '{{ tuple "components/minio-monitoring-tenant" (tuple . "minio-monitoring-tenant" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/thanos" (tuple . "thanos" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/loki" (tuple . "loki" | include "unit-enabled") | include "set-only-if" }}'
+        - '{{ tuple "components/kepler" (tuple . "kepler" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/kube-system" (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpr") | include "set-only-if" }}'
 
   postgres:
@@ -3988,6 +3989,36 @@ units:
               seccompProfile:
                 type: RuntimeDefault
 
+  kepler:
+    info:
+      description: installs Kepler (Kubernetes-based Efficient Power Level Exporter) exporter for Prometheus
+      maturity: stable
+    enabled: false
+    unit_templates:
+    - base-deps
+    depends_on:
+      monitoring-crd: true
+    helm_repo_url: https://sustainable-computing-io.github.io/kepler-helm-chart
+    helmrelease_spec:
+      releaseName: kepler
+      targetNamespace: kepler
+      chart:
+        spec:
+          chart: kepler
+          version: 0.5.9
+      install:
+        createNamespace: false
+      values:
+        extraEnvVars:
+          # set the Prometheus scrape interval for the kepler ServiceMonitor
+          PROMETHEUS_SCRAPE_INTERVAL: 30s
+        serviceMonitor:
+          enabled: true
+          labels:
+            release: rancher-monitoring
+        redfish:
+          enabled: false
+
   snmp-exporter:
     info:
       description: installs SNMP exporter
@@ -4146,6 +4177,8 @@ units:
             enabled: '{{ tuple . "minio-monitoring-tenant" | include "unit-enabled" }}'
           loki:
             enabled: '{{ tuple . "loki" | include "unit-enabled" }}'
+          kepler:
+            enabled: '{{ tuple . "kepler" | include "unit-enabled" }}'
 
   multus:
     info:
