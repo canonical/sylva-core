@@ -3,6 +3,7 @@
 import sys
 import datetime
 import os
+from multiprocessing.pool import job_counter
 
 try:
     import gitlab
