@@ -22,6 +22,7 @@ thanos-alert-check:
   stage: deployment-test
   extends:
     - .test-tags
+    - .rules:need-management-cluster
   script:
     - pip install jtbl --break-system-packages
     - !reference [.import_functions]

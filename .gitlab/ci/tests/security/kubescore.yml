@@ -67,14 +67,18 @@ variables:
       - ${DUMP_FOLDER}-kube-score-results
 
 kube-score-management-cluster:
-  extends: .kube-score-base
+  extends:
+    - .kube-score-base
+    - .rules:need-management-cluster
   needs:
     - deploy-management-cluster
   variables:
     DUMP_FOLDER: management-cluster-dump
 
 kube-score-workload-cluster:
-  extends: .kube-score-base
+  extends:
+    - .kube-score-base
+    - .rules:need-workload-cluster
   needs:
     - deploy-workload-cluster
   variables:
