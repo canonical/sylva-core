@@ -1,0 +1,10 @@
+sylva_diskimagebuilder_images:
+  leapmicro-6-0-0-plain-rke2-1-30-5:
+    enabled: true
+
+cluster:
+  agent_config_format: ignition
+  capm3:
+    image_key: leapmicro-6-0-0-plain-rke2-1-30-5
+  capo:
+    image_key: leapmicro-6-0-0-plain-rke2-1-30-5
