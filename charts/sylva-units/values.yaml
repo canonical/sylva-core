@@ -2334,6 +2334,26 @@ units:
         spec:
           chart: metal3
           version: 0.8.1
+      postRenderers:
+      - kustomize:
+          patches:
+            - target:
+                version: v1
+                kind: Deployment
+                name: metal3-metal3-mariadb
+              patch: |
+                - op: add
+                  path: /spec/template/spec/affinity
+                  value:
+                    podAffinity:
+                      preferredDuringSchedulingIgnoredDuringExecution:
+                      - weight: 1
+                        podAffinityTerm:
+                          labelSelector:
+                            matchLabels:
+                              app.kubernetes.io/instance: metal3
+                              app.kubernetes.io/component: ironic
+                          topologyKey: "kubernetes.io/hostname"
       timeout: 30m
       targetNamespace: metal3-system
       values:
@@ -2341,6 +2361,16 @@ units:
           ironicIP: '{{ .Values.display_external_ip }}'
           provisioningInterface: eth0
         metal3-ironic:
+          affinity:
+            podAffinity:
+              preferredDuringSchedulingIgnoredDuringExecution:
+              - weight: 1
+                podAffinityTerm:
+                  labelSelector:
+                    matchLabels:
+                      app.kubernetes.io/instance: metal3
+                      app.kubernetes.io/component: mariadb
+                  topologyKey: "kubernetes.io/hostname"
           service:
             type: LoadBalancer
             externalIPs:
