@@ -955,16 +955,14 @@ units:
                       capabilities:
                         drop:
                           - ALL
-                patch: |-
+              - target:
                   kind: Ingress
-                  apiVersion: networking.k8s.io/v1
-                  metadata:
-                    name: harbor-ingress
-                    namespace: harbor
-                    labels:
-                      $patch: replace
+                  name: harbor-ingress
+                patch: |-
+                  - op: add
+                    path: /spec/template/metadata/labels
+                    value:
                       service-type: gui
-  
       install:
         createNamespace: true
 
