@@ -7,13 +7,14 @@ generate-report:
   stage: report
   needs: []
   image:
-    name: python:alpine3.19
+    name: registry.gitlab.com/python-gitlab/python-gitlab:v4.10.0-alpine
+    entrypoint: [""]
   rules:
     - if: '$CI_PIPELINE_SOURCE == "schedule" && $CI_REPORT'
   variables:
     PRIVATE_TOKEN: ${PIPELINE_REPORT_GENERATION_TOKEN}
   script:
-    - pip install --upgrade python-gitlab tabulate
+    - pip install --upgrade tabulate
 
     # generate 10 days report => https://gitlab.com/sylva-projects/sylva-core/-/wikis/Scheduled-pipelines-report
     - python3 ./.gitlab/ci/scripts/pipelines_schedules_report.py 10
