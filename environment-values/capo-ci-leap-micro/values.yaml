@@ -5,8 +5,6 @@ sylva_diskimagebuilder_images:
     default_enabled: false
 
 cluster:
-  air_gapped: false
-  cis_profile: ""
   agent_config_format: ignition
   capm3:
     image_key: opensuse-5-5-leapmicro-rke2-1-28-12
