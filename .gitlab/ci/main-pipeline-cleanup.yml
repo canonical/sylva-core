@@ -63,10 +63,11 @@
   tags:
     - $CAPO_PLATFORM_TAG
 
-scheduled-cleanup-capo-falcon:
-  extends: .scheduled-cleanup-capo
-  variables:
-    CAPO_PLATFORM_TAG: capo-ci
+# Falcon platform is not used anymore
+# scheduled-cleanup-capo-falcon:
+#   extends: .scheduled-cleanup-capo
+#   variables:
+#     CAPO_PLATFORM_TAG: capo-ci
 
 scheduled-cleanup-capo-rocket:
   extends: .scheduled-cleanup-capo
