@@ -8017,6 +8017,17 @@ units:
         job:
           # compute total timeout based on per-image timeout and number of images
           activeDeadlineSeconds: '{{ mul .Values.get_openstack_images_per_image_timeout_minutes 60 (include "generate-os-images" . | fromYaml | dig "os_images" dict | len) }}'
+          checksum: |-
+            {{
+            tuple . (list
+              .Values._internal.sylva_core_version
+              (mergeOverwrite (deepCopy .Values.os_images) .Values.sylva_diskimagebuilder_images)
+              .Values.sylva_diskimagebuilder_version
+              .Values.sylva_kiwi_imagebuilder_version
+              .Values.sylva_base_oci_registry
+              .Values.proxies
+            ) | include "interpret-and-hash"
+            }}
         os_image_selectors: >-
           {{- tuple . "cluster" | include "interpret" -}}
           {{ tuple .Values.cluster | include "find-cluster-image-selectors" | fromJsonArray | include "preserve-type" }}
@@ -8732,6 +8743,8 @@ os_images_oci_registries:
   kiwi-imagebuilder:
     url: '{{ .Values.sylva_base_oci_registry }}/sylva-elements/kiwi-imagebuilder/snapshots'
     tag: '{{ .Values.sylva_kiwi_imagebuilder_version }}'
+    cosign_publickey: '{{ .Values.security.kiwi_image_builder_cosign_public_key }}'
+
 
 k8s_version_short: "1.31"
 
@@ -8740,7 +8753,6 @@ k8s_version_short: "1.31"
 sylva_diskimagebuilder_version: 0.4.12
 
 sylva_kiwi_imagebuilder_version: '0.9'
-
 # 'sylva_diskimagebuilder_images' determines which images will be available for CAPO and CAPM3
 # via 'os_image_selector' or 'image_keys'
 #
@@ -8827,6 +8839,11 @@ security:
     -----BEGIN PUBLIC KEY-----
     MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEcuuLszwy0u7y394KY6GW1BgjfaU6
     aK7e95MV+ikZnRfR5EHtqEk1tScNhMqQJMpuFs3QH1TVBr6TIWVLx5cUtg==
+    -----END PUBLIC KEY-----
+  kiwi_image_builder_cosign_public_key: |
+    -----BEGIN PUBLIC KEY-----
+    MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEf/H8Nl7IOJSwQ3fonpdoKqZWJsgt
+    +zI1cV172PHY/C/5YhVnMJkgcvOzSkdVxjAjOBoOLReYqF6O7GKRY6dOFw==
     -----END PUBLIC KEY-----
   upstream_images_signature:
     verify: false # verify the signature of the upstream images
