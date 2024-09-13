@@ -133,7 +133,9 @@ def fail_if_existing_artifact_differs(
         subprocess.run(
             [
                 "diff",
-                "-qr",
+                "-r",
+                "--exclude",
+                "Chart.lock",
                 f"{tgz_artifact_dir}/sylva-units",
                 f"{pull_artifact_dir}/sylva-units",
             ]
