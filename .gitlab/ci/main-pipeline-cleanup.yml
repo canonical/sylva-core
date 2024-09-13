@@ -8,6 +8,7 @@
 
 .scheduled-cleanup-capo:
   stage: cleanup
+  needs: []
   image:
     name: $OPENSTACK_CLIENT_IMAGE
   script:
