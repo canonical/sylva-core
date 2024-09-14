@@ -36,7 +36,7 @@
 | **metallb** | installs MetalLB operator | stable |  | [Helm](https://metallb.github.io/metallb) | 0.14.8 |
 | **monitoring** | installs monitoring stack | stable |  | [Helm](https://charts.rancher.io/) | 103.1.1+up45.31.1 |
 | **multus** | installs Multus | stable |  | [Helm](https://rke2-charts.rancher.io/) | v4.1.001 |
-| **os-image-server** | Deploys a web server on management cluster which serves OS images for baremetal clusters. | stable |  | [Helm](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/os-image-server.git) | 2.1.0 |
+| **os-image-server** | Deploys a web server on management cluster which serves OS images for baremetal clusters. | stable |  | [Helm](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/os-image-server.git) | 2.1.1 |
 | **postgres** | installs Postgresql for Keycloak | stable |  | [Helm](https://charts.bitnami.com/bitnami) | 15.5.29 |
 | **rancher** | installs Rancher | stable |  | [Helm](https://releases.rancher.com/server-charts/latest) | 2.8.3 |
 | **sriov** | installs SRIOV operator | stable |  | [Helm](https://charts.rancher.io/) | 103.0.0+up0.1.0 |
