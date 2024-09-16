@@ -1438,8 +1438,13 @@ units:
         - patch: |
             - op: add
               path: /metadata/labels
-              name: service-type
-              value: "gui"
+              value:
+                apiVersion: networking.k8s.io/v1
+                kind: Ingress
+                metadata:
+                 name: keycloak-ingress
+                 labels:
+                   service-type: gui
           target:
             kind: Ingress
             name: keycloak-ingress
