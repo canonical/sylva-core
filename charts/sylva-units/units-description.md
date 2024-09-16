@@ -56,7 +56,7 @@
 | **loki** | installs Loki log storage<br/><br/>installs Loki log storage in simple scalable mode | beta |  | Helm | v2.9.2 |
 | **minio-monitoring-tenant** | creates a MinIO tenant for the monitoring stack<br/><br/>Loki and Thanos will use this MinIO S3 storage | beta |  | Helm | v5.0.13 |
 | **minio-operator** | install MinIO operator<br/><br/>MinIO operator is used to manage multiple S3 tenants | beta |  | Helm | v5.0.13 |
-| **neuvector** | installs Neuvector | beta |  | [Helm](https://neuvector.github.io/neuvector-helm) | 2.7.8 |
+| **neuvector** | installs Neuvector | beta |  | [Helm](https://neuvector.github.io/neuvector-helm) | 2.7.9 |
 | **prometheus-pushgateway** | installs Prometheus Push-gateway exporter | beta |  | [Helm](https://prometheus-community.github.io/helm-charts) | 2.14.0 |
 | **rancher-init** | initializes and configures Rancher | beta | True | Kustomize | N/A |
 | **snmp-exporter** | installs SNMP exporter | beta |  | [Helm](https://prometheus-community.github.io/helm-charts) | 5.5.0 |
