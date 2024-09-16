@@ -1,0 +1,13 @@
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: syslog
+  namespace: "cattle-logging-system"
+  annotations:
+    volume.beta.kubernetes.io/storage-class: "${STORAGECLASS_NAME}"
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: ${STORAGE}

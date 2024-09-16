@@ -795,7 +795,7 @@ properties:
             format: hostname
           - const: ''
           - $ref: "#/$defs/string-with-gotpl"
-      rsyslog:
+      syslog:
         anyOf:
           - type: string
             format: hostname
@@ -835,6 +835,8 @@ properties:
       grafana:  # -------------------------------
         $ref: "#/$defs/cert-and-key"
       kubevirt_manager:  # -------------------------------
+        $ref: "#/$defs/cert-and-key"
+      syslog:  # -------------------------------
         $ref: "#/$defs/cert-and-key"
 
   keycloak: # -------------------------------

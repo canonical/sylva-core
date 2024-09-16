@@ -1,0 +1,120 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: syslog-deployment
+  namespace: cattle-logging-system
+  labels:
+    app: syslog
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: syslog
+  template:
+    metadata:
+      labels:
+        app: syslog
+    spec:
+      containers:
+      - name: syslog
+        image: balabit/syslog-ng:4.7.1
+        command: ["/usr/sbin/syslog-ng"]
+        args: ["-F", "--no-caps"]
+        ports:
+        - name: tcp-port-601
+          containerPort: 601
+          protocol: TCP
+        - name: tcp-port-514
+          containerPort: 514
+          protocol: TCP
+        - name: tcp-port-6514
+          containerPort: 6514
+          protocol: TCP
+        - name: udp-port-514
+          containerPort: 514
+          protocol: UDP
+        resources:
+          requests:
+            cpu: 250m
+            memory: 524Mi
+        volumeMounts:
+          - name: syslog
+            mountPath: "/var/log/remotelogs/"
+          - name: syslog-tls         # mount the keycloak root ca cerftificate to verify the oidc_discovery_url
+            mountPath: /etc/syslog-ng/cert.d/
+          - name: config-volume
+            mountPath: /etc/syslog-ng/
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30
+      volumes:
+        - name: syslog
+          persistentVolumeClaim:
+            claimName: syslog
+        - name: config-volume
+          configMap:
+            name: syslog-d
+        - name: syslog-opt
+          configMap:
+            name: syslog-opt
+        - name: syslog-tls
+          secret:
+            secretName: syslog-tls
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: syslog-d
+  labels:
+    app: syslog
+  annotations:
+    kustomize.toolkit.fluxcd.io/substitute: disabled
+data:
+  syslog-ng.conf: |
+    @version: 3.35
+    @include "scl.conf"
+
+    source s_local {
+      system();
+      internal();
+    };
+
+    source s_network {
+
+      network(
+        port(6514)
+        transport("tls")
+        flags(syslog-protocol)
+        tls(
+          key-file("/etc/syslog-ng/cert.d/tls.key")
+          cert-file("/etc/syslog-ng/cert.d//tls.crt")
+          peer-verify(optional-untrusted)
+        )
+        keep-alive(yes)
+        so_keepalive(yes)
+      );
+    };
+
+    destination d_local {
+            file("/var/log/messages");
+    };
+    destination d_remote {
+            file("/var/log/remotelogs/${HOST}/${PROGRAM}.log");
+    };
+
+    log {
+            source(s_local);
+            destination(d_local);
+    };
+    log {
+            source(s_network);
+            destination(d_remote);
+    };
+    options {
+            create_dirs(yes);
+            owner(root);
+            group(root);
+            perm(0644);
+            dir_owner(root);
+            dir_group(root);
+            dir_perm(0755);
+    };

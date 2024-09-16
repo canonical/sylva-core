@@ -1,0 +1,30 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: "syslog"
+  namespace: "cattle-logging-system"
+  annotations:
+    metallb.universe.tf/allow-shared-ip: cluster-external-ip
+spec:
+  ports:
+    - name: tcp-port-514
+      port: 514
+      targetPort: 514
+      protocol: TCP
+    - name: tcp-port-601
+      port: 601
+      targetPort: 601
+      protocol: TCP
+    - name: tcp-port-6514
+      port: 6514
+      targetPort: 6514
+      protocol: TCP
+    - name: udp-port-514
+      port: 514
+      targetPort: 514
+      protocol: UDP
+  type: LoadBalancer
+  selector:
+    app: "syslog"
+  externalIPs:
+    - ${CLUSTER_EXTERNAL_IP}
