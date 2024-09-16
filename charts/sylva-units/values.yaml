@@ -7237,7 +7237,7 @@ cluster:
     metallb: ""
     calico: ""
 
-  set_lb_class: false  # set default loadBalancerClass on the lb controller and Sylva services
+  set_lb_class: '{{ eq (lookup "v1" "Service" "kube-system" "kubernetes-vip" | dig "spec" "loadBalancerClass" "") .Values.cluster.loadBalancerClass | include "preserve-type" }}'
   loadBalancerClass: '{{ tuple (.Values._internal.loadBalancerClass ) (and .Values.cluster.set_lb_class (not (eq .Values.cluster.capi_providers.infra_provider "capd"))) | include "set-only-if" }}'
 
   capv:
