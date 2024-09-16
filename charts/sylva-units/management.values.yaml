@@ -242,7 +242,6 @@ units:
       _components:
         - components/eso
 
-
 keycloak:
   keycloak_expire_password_days: 30
 

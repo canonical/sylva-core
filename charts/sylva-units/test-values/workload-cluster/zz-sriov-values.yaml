@@ -10,3 +10,11 @@ sriov:
         pfNames:
           - enp216s0f0
           - enp216s0f1
+
+units:
+  multus:
+    enabled: true
+  # sriov:
+  #   enabled: true
+  sriov-network-operator:
+    enabled: true
