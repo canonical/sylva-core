@@ -479,6 +479,7 @@ units:
           name: '{{ .Values.cluster.name }}-kubeconfig'
 
 cluster:
+  set_lb_class: true
   capm3:
     use_os_image_server_service_urls: '{{ not (.Values.libvirt_metal.nodes | empty) | include "preserve-type" }}'
 
