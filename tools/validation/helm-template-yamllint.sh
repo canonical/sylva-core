@@ -30,9 +30,9 @@ chart_dir=${BASE_DIR}/charts/${HELM_NAME}
 # for sylva-units, specifically we want to ensure that
 # 'values.yaml' should not have any units.x.enabled fields, unless set to false
 if [[ $HELM_NAME == "sylva-units" ]]; then
-  units_default_enabled=$(yq '[.units | ... comments="" | to_entries | .[] | select((.value.enabled != null) and (.value.enabled != false) and (.value.enabled != "no"))] | map(.key)' $chart_dir/values.yaml)
+  units_default_enabled=$(yq '[.units | ... comments="" | to_entries | .[] | select((.value.enabled != null) and (.value.enabled == true or .value.enabled == "yes"))] | map(.key)' $chart_dir/values.yaml)
   if [[ $units_default_enabled != '[]' ]]; then
-    echo -e "The following units have .enabled defined in 'values.yaml' with a value which isn't 'no' or 'false':\n$units_default_enabled\n\n"
+    echo -e "The following units have .enabled defined to 'true' in 'values.yaml':\n$units_default_enabled\n\n"
     echo "This is not allowed in sylva-units 'values.yaml':"
     echo "  - in 'values.yaml' all units are disabled by default, and we don't set 'units.xxx.enabled: true' there anymore"
     echo "  - when there is some conditionality to decide to enable a unit or not:"

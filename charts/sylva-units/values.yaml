@@ -610,7 +610,7 @@ units:
         - '{{ tuple "components/harbor" (tuple . "harbor" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/vault" (tuple . "vault" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/rancher" (tuple . "rancher" | include "unit-enabled") | include "set-only-if" }}'
-        - '{{ tuple "components/sriov" (tuple . "sriov" | include "unit-enabled") | include "set-only-if" }}'
+        - '{{ tuple "components/sriov" (tuple . "sriov-network-operator" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/cattle-monitoring" (tuple . "monitoring" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/cattle-fleet" (.Values._internal | dig "sylva_mgmt_enabled_units" "rancher" false) | include "set-only-if" }}'  # effective only in workload clusters
         - '{{ tuple "components/ceph-csi-cephfs" (tuple . "ceph-csi-cephfs" | include "unit-enabled") | include "set-only-if" }}'
@@ -4252,17 +4252,17 @@ units:
 
   sriov-crd:
     info:
-      description: installs SRIOV CRDs
+      description: installs CRDs for SR-IOV Network operator
       maturity: stable
       hidden: true
     unit_templates:
     - base-deps
     enabled_conditions:
-    - '{{ tuple . "sriov" | include "unit-enabled" }}'
+    - '{{ tuple . "sriov-network-operator" | include "unit-enabled" }}'
     depends_on:
       namespace-defs: true
       multus-ready: true
-    helm_repo_url: https://charts.rancher.io/
+    helm_repo_url: https://suse-edge.github.io/charts/
     helmrelease_spec:
       releaseName: sriov-crd
       targetNamespace: cattle-sriov-system
@@ -4271,39 +4271,49 @@ units:
       chart:
         spec:
           chart: sriov-crd
-          version: 103.0.0+up0.1.0
+          version: 1.2.4+up0.1.0
 
-  sriov:
+  sriov-network-operator:
     info:
-      description: installs SRIOV operator
+      description: installs SR-IOV operator
       maturity: stable
-    enabled: false
     unit_templates:
     - base-deps
+    enabled: '{{ tuple . "sriov" | include "unit-enabled" }}' # for backward compatibility
     depends_on:
       namespace-defs: true
       sriov-crd: true
-    helm_repo_url: https://charts.rancher.io/
+    helm_repo_url: https://suse-edge.github.io/charts/
     helmrelease_spec:
       releaseName: sriov
       targetNamespace: cattle-sriov-system
       chart:
         spec:
-          chart: sriov
-          version: 103.0.0+up0.1.0
+          chart: sriov-network-operator
+          version: 1.2.4+up0.1.0
       values:
         cert_manager: true
+
+  sriov:
+    info:
+      description: obsolete - replaced by sriov-network-operator
+      details: dummy unit which only enables sriov-network-operator for backwark compatibility
+      internal: true
+    enabled: false
+    unit_templates:
+    - dummy
 
   sriov-resources:
     info:
       description: configures SRIOV resources
       internal: true
-    enabled: false
+    enabled_conditions:
+    - '{{ not (empty .Values.sriov.node_policies) }}'
     unit_templates:
     - base-deps
     depends_on:
       namespace-defs: true
-      sriov: true
+      sriov-network-operator: true
     repo: sriov-resources
     helm_chart_artifact_name: sriov-resources
     helmrelease_spec:

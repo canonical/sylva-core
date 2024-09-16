@@ -93,7 +93,7 @@
     {
       "description": "Regroup sriov updates",
       "matchPackageNames": [
-        "sriov",
+        "sriov-network-operator",
         "sriov-crd"
       ],
       "groupName": "sriov"
@@ -123,8 +123,6 @@
         "rancher-logging-crd",
         "rancher-monitoring-crd",
         "rancher-monitoring",
-        "sriov-crd",
-        "sriov",
         "longhorn-crd",
         "longhorn"
       ],

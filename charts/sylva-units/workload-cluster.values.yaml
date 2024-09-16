@@ -370,16 +370,15 @@ units:
   multus-ready:
     enabled: true
 
-  sriov:
-    # can be enabled at runtime if desired
-    enabled: false
+  # sriov-network-operator:
+  #   # can be enabled at runtime if desired
+  #   enabled: false
 
   sriov-crd:
-    enabled: yes
+    enabled: true  # enabled with sriov-network-operator unit
 
   sriov-resources:
-    # can be enabled at runtime if desired
-    enabled: false
+    enabled: true  # enabled based on content of .sriov.node_policies
 
   cinder-csi:
     enabled: true
