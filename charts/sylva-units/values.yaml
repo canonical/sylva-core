@@ -2619,14 +2619,15 @@ units:
             storageClass: '{{ .Values._internal.default_storage_class }}'
       _postRenderers:
         - kustomize:
-            patchesStrategicMerge:
-              - kind: Service
-                apiVersion: v1
-                metadata:
-                  name: metal3-ironic
-                spec:
-                  type: LoadBalancer
-                  loadBalancerClass: '{{ .Values.cluster.loadBalancerClass | include "set-if-defined" }}'
+            patches:
+              - pathc:
+                  kind: Service
+                  apiVersion: v1
+                  metadata:
+                    name: metal3-ironic
+                  spec:
+                    type: LoadBalancer
+                    loadBalancerClass: '{{ .Values.cluster.loadBalancerClass | include "set-if-defined" }}'
 
   metal3-pdb:
     info:
@@ -3731,33 +3732,35 @@ units:
               fallthrough
       _postRenderers:
         - kustomize:
-            patchesStrategicMerge:
-              - kind: Service
-                apiVersion: v1
-                metadata:
-                  name: k8s-gateway
-                spec:
-                  type: LoadBalancer
-                  loadBalancerClass: '{{ .Values.cluster.loadBalancerClass | include "set-if-defined" }}'
-              - kind: Deployment
-                apiVersion: apps/v1
-                metadata:
-                  name: k8s-gateway
-                spec:
-                  template:
-                    spec:
-                      containers:
-                      - name: k8s-gateway
-                        securityContext:
-                          allowPrivilegeEscalation: false
-                          capabilities:
-                            drop:
-                            - ALL
-                          runAsNonRoot: true
-                          runAsGroup: 1000
-                          runAsUser: 1000
-                          seccompProfile:
-                            type: RuntimeDefault
+            patches:
+              - patch: |-
+                  kind: Service
+                  apiVersion: v1
+                  metadata:
+                    name: k8s-gateway
+                  spec:
+                    type: LoadBalancer
+                    loadBalancerClass: '{{ .Values.cluster.loadBalancerClass | include "set-if-defined" }}'
+              - patch: |-
+                  kind: Deployment
+                  apiVersion: apps/v1
+                  metadata:
+                    name: k8s-gateway
+                  spec:
+                    template:
+                      spec:
+                        containers:
+                        - name: k8s-gateway
+                          securityContext:
+                            allowPrivilegeEscalation: false
+                            capabilities:
+                              drop:
+                              - ALL
+                            runAsNonRoot: true
+                            runAsGroup: 1000
+                            runAsUser: 1000
+                            seccompProfile:
+                              type: RuntimeDefault
 
   cluster-vip:
     info:
