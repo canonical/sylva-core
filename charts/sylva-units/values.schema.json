@@ -8174,7 +8174,7 @@
             }
           ]
         },
-        "rsyslog": {
+        "syslog": {
           "anyOf": [
             {
               "type": "string",
@@ -8237,6 +8237,9 @@
           "$ref": "#/$defs/cert-and-key"
         },
         "kubevirt_manager": {
+          "$ref": "#/$defs/cert-and-key"
+        },
+        "syslog": {
           "$ref": "#/$defs/cert-and-key"
         }
       }
