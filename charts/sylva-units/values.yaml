@@ -622,6 +622,26 @@ units:
         - '{{ tuple "components/loki" (tuple . "loki" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/kepler" (tuple . "kepler" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/kube-system" (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpr") | include "set-only-if" }}'
+        - '{{ tuple "components/rsyslog" (tuple . "rsyslog" | include "unit-enabled") | include "set-only-if" }}'
+
+  rsyslog:
+    info:
+      description: deploy a rsyslog server for CI
+      internal: true
+    unit_templates:
+    - base-deps
+    depends_on:
+     namespace-defs: true
+    repo: sylva-core
+    kustomization_spec:
+      path: ./kustomize-units/rsyslog
+      wait: true
+      postBuild:
+        substitute:
+          STORAGECLASS_NAME: '{{ .Values._internal.default_storage_class }}'
+          ACCESS_MODE: '{{ .Values._internal.harbor_storage_access_mode }}'
+          STORAGE: "50Gi"
+
 
   postgres:
     info:

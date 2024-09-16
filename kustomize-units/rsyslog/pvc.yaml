@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: rsyslog
+  namespace: "rsyslog"
+spec:
+  capacity:
+    storage: ${STORAGE}
+  volumeMode: Filesystem
+  accessModes: ${ACCESS_MODE}
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: "${STORAGECLASS_NAME}"
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: rsyslog
+  namespace: "rsyslog"
+  annotations:
+    volume.beta.kubernetes.io/storage-class: "${STORAGECLASS_NAME}"
+spec:
+  accessModes: ${ACCESS_MODE}
+  resources:
+    requests:
+      storage: ${STORAGE}
+---
