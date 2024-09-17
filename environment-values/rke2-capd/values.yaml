@@ -16,7 +16,7 @@ units:
     enabled: false
   harbor:
     enabled: false
-  minio-monitoring-tenant:
+  minio-monitoring:
     enabled: false
 
 cluster:

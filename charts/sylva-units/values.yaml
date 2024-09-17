@@ -617,7 +617,7 @@ units:
         - '{{ tuple "components/cattle-logging" (tuple . "logging" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/gitea" (tuple . "gitea" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/minio-operator" (tuple . "minio-operator" | include "unit-enabled") | include "set-only-if" }}'
-        - '{{ tuple "components/minio-monitoring-tenant" (tuple . "minio-monitoring-tenant" | include "unit-enabled") | include "set-only-if" }}'
+        - '{{ tuple "components/minio-monitoring" (tuple . "minio-monitoring" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/thanos" (tuple . "thanos" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/loki" (tuple . "loki" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/kepler" (tuple . "kepler" | include "unit-enabled") | include "set-only-if" }}'
@@ -3738,7 +3738,7 @@ units:
             storageSpec:
               volumeClaimTemplate:
                 spec:
-                  storageClassName: '{{ tuple . (tuple . "single-replica-storageclass" | include "unit-enabled") "single-replica-storageclass" .Values._internal.default_storage_class | include "interpret-ternary" }}'
+                  storageClassName: '{{ tuple . (tuple . "two-replicas-storageclass" | include "unit-enabled") "two-replicas-storageclass" .Values._internal.default_storage_class | include "interpret-ternary" }}'
                   accessModes: ["ReadWriteOnce"]
                   resources:
                     requests:
@@ -3772,7 +3772,7 @@ units:
             storage:
               volumeClaimTemplate:
                 spec:
-                  storageClassName: '{{ tuple . (tuple . "single-replica-storageclass" | include "unit-enabled") "single-replica-storageclass" .Values._internal.default_storage_class | include "interpret-ternary" }}'
+                  storageClassName: '{{ tuple . (tuple . "two-replicas-storageclass" | include "unit-enabled") "two-replicas-storageclass" .Values._internal.default_storage_class | include "interpret-ternary" }}'
                   accessModes: ["ReadWriteOnce"]
                   resources:
                     requests:
@@ -4192,7 +4192,7 @@ units:
           flux:
             enabled: '{{ tuple . "flux-system" | include "unit-enabled" }}'
           minio:
-            enabled: '{{ tuple . "minio-monitoring-tenant" | include "unit-enabled" }}'
+            enabled: '{{ tuple . "minio-monitoring" | include "unit-enabled" }}'
           loki:
             enabled: '{{ tuple . "loki" | include "unit-enabled" }}'
           kepler:
@@ -5226,7 +5226,7 @@ units:
     unit_templates:
     - base-deps
     enabled_conditions:
-      - '{{ tuple . "minio-monitoring-tenant" | include "unit-enabled" }}'
+      - '{{ tuple . "minio-monitoring" | include "unit-enabled" }}'
     depends_on:
       namespace-defs: true
       minio-operator-init: true
@@ -5312,15 +5312,14 @@ units:
           name: sts-tls
           namespace: minio-operator
 
-  minio-monitoring-tenant-init:
+  minio-monitoring-init:
     info:
-      description: sets up MinIO certificate for minio-monitoring-tenant
-      details: it generate certificate
+      description: sets up secrets and certificates for minio-monitoring
       internal: true
     unit_templates:
     - base-deps
     enabled_conditions:
-      - '{{ tuple . "minio-monitoring-tenant" | include "unit-enabled" }}'
+      - '{{ tuple . "minio-monitoring" | include "unit-enabled" }}'
     depends_on:
       namespace-defs: true
       sylva-ca: true
@@ -5329,25 +5328,25 @@ units:
       eso-secret-stores: true
     repo: sylva-core
     kustomization_substitute_secrets:
-      KEY: '{{ .Values.external_certificates.minio_monitoring_tenant.key | default "" | b64enc }}'
+      KEY: '{{ .Values.external_certificates.minio_monitoring.key | default "" | b64enc }}'
     kustomization_spec:
-      path: ./kustomize-units/minio-monitoring-tenant-init
+      path: ./kustomize-units/minio-tenant-init
       wait: true
       postBuild:
         substitute:
-          SERVICE: minio-monitoring-tenant
-          SERVICE_DNS: '{{ .Values.external_hostnames.minio_monitoring_tenant }}'
-          CERTIFICATE_NAMESPACE: minio-monitoring-tenant
-          CERT: '{{ .Values.external_certificates.minio_monitoring_tenant.cert | default "" | b64enc }}'
+          TENANT_NAME: minio-monitoring
+          SERVICE: minio-monitoring
+          SERVICE_DNS: '{{ .Values.external_hostnames.minio_monitoring }}'
+          CERTIFICATE_NAMESPACE: minio-monitoring
+          CERT: '{{ .Values.external_certificates.minio_monitoring.cert | default "" | b64enc }}'
           CACERT: '{{ .Values.external_certificates.cacert | default "" | b64enc }}'
       _components:
-        - '{{ ternary "../tls-components/tls-secret" "../tls-components/tls-certificate" (hasKey .Values.external_certificates.minio_monitoring_tenant "cert") }}'
+        - '{{ ternary "../tls-components/tls-secret" "../tls-components/tls-certificate" (hasKey .Values.external_certificates.minio_monitoring "cert") }}'
         - "../tls-components/sylva-ca"
 
-  minio-monitoring-tenant:
+  minio-monitoring:
     info:
-      description: creates a MinIO tenant for the monitoring stack
-      details: Loki and Thanos will use this MinIO S3 storage
+      description: creates a MinIO tenant for the monitoring stack, used as S3 storage by Thanos
       maturity: beta
     unit_templates:
     - base-deps
@@ -5356,15 +5355,15 @@ units:
     depends_on:
       namespace-defs: true
       minio-operator: true
-      minio-monitoring-tenant-init: true
+      minio-monitoring-init: true
       ingress-nginx: '{{ tuple . "ingress-nginx" | include "unit-enabled" }}'
-      single-replica-storageclass: '{{ tuple . "single-replica-storageclass" | include "unit-enabled" }}'
-      '{{ .Values._internal.default_storage_class_unit }}': '{{ not (tuple . "single-replica-storageclass" | include "unit-enabled") }}'
+      two-replicas-storageclass: '{{ tuple . "two-replicas-storageclass" | include "unit-enabled" }}'
+      '{{ .Values._internal.default_storage_class_unit }}': '{{ not (tuple . "two-replicas-storageclass" | include "unit-enabled") }}'
     annotations:
-      sylvactl/readyMessage: MinIO monitoring tenant console can be reached at https://{{ .Values.external_hostnames.minio_monitoring_tenant_console }} ({{ .Values.external_hostnames.minio_monitoring_tenant_console }} must resolve to {{ .Values.display_external_ip }})
+      sylvactl/readyMessage: MinIO monitoring tenant console can be reached at https://{{ .Values.external_hostnames.minio_monitoring_console }} ({{ .Values.external_hostnames.minio_monitoring_console }} must resolve to {{ .Values.display_external_ip }})
     repo: minio-operator
     helmrelease_spec:
-      targetNamespace: minio-monitoring-tenant
+      targetNamespace: minio-monitoring
       chart:
         spec:
           chart: helm/tenant
@@ -5382,11 +5381,11 @@ units:
           users:
             - name: minio-monitoring-user
           pools:
-            - servers: '{{ .Values._internal.ha_cluster.is_ha | ternary 2 1 }}'
+            - servers: '{{ min .Values._internal.node_count 4 }}'
               name: pool-0
               volumesPerserver: 4
-              size: 3Gi
-              storageClassName: '{{ tuple . (tuple . "single-replica-storageclass" | include "unit-enabled") "single-replica-storageclass" .Values._internal.default_storage_class | include "interpret-ternary" }}'
+              size: 10Gi
+              storageClassName: '{{ tuple . (tuple . "two-replicas-storageclass" | include "unit-enabled") "two-replicas-storageclass" .Values._internal.default_storage_class | include "interpret-ternary" }}'
               containerSecurityContext:
                 runAsUser: 1000
                 runAsGroup: 1000
@@ -5395,6 +5394,14 @@ units:
                 capabilities:
                   drop:
                     - ALL
+                seccompProfile:
+                  type: RuntimeDefault
+              securityContext:
+                runAsUser: 1000
+                runAsGroup: 1000
+                fsGroup: 1000
+                fsGroupChangePolicy: "OnRootMismatch"
+                runAsNonRoot: true
                 seccompProfile:
                   type: RuntimeDefault
               affinity:
@@ -5406,51 +5413,6 @@ units:
                             operator: In
                             values:
                               - pool-0
-                          - key: v1.min.io/tenant
-                            operator: In
-                            values:
-                              - monitoring
-                      topologyKey: "kubernetes.io/hostname"
-              securityContext:
-                runAsUser: 1000
-                runAsGroup: 1000
-                fsGroup: 1000
-                fsGroupChangePolicy: "OnRootMismatch"
-                runAsNonRoot: true
-                seccompProfile:
-                  type: RuntimeDefault
-            - servers: '{{ min .Values._internal.node_count 4 }}'
-              name: pool-monitoring
-              volumesPerserver: 4
-              size: 10Gi
-              storageClassName: '{{ tuple . (tuple . "single-replica-storageclass" | include "unit-enabled") "single-replica-storageclass" .Values._internal.default_storage_class | include "interpret-ternary" }}'
-              containerSecurityContext:
-                runAsUser: 1000
-                runAsGroup: 1000
-                runAsNonRoot: true
-                allowPrivilegeEscalation: false
-                capabilities:
-                  drop:
-                    - ALL
-                seccompProfile:
-                  type: RuntimeDefault
-              securityContext:
-                runAsUser: 1000
-                runAsGroup: 1000
-                fsGroup: 1000
-                fsGroupChangePolicy: "OnRootMismatch"
-                runAsNonRoot: true
-                seccompProfile:
-                  type: RuntimeDefault
-              affinity:
-                podAntiAffinity:
-                  requiredDuringSchedulingIgnoredDuringExecution:
-                    - labelSelector:
-                        matchExpressions:
-                          - key: v1.min.io/pool
-                            operator: In
-                            values:
-                              - pool-monitoring
                           - key: v1.min.io/tenant
                             operator: In
                             values:
@@ -5468,9 +5430,6 @@ units:
             - name: "thanos"
               region: "monitoring-cluster"
               objectLock: false
-            - name: "loki"
-              region: "monitoring-cluster"
-              objectLock: false
             - name: "loki-chunks"
               region: "monitoring-cluster"
               objectLock: false
@@ -5478,9 +5437,6 @@ units:
               region: "monitoring-cluster"
               objectLock: false
             - name: "loki-admin"
-              region: "monitoring-cluster"
-              objectLock: false
-            - name: "testbucket"
               region: "monitoring-cluster"
               objectLock: false
           prometheusOperator: false    # Prometheus Operator's Service Monitor for MinIO Tenant Pods
@@ -5494,25 +5450,25 @@ units:
             ingressClassName: nginx
             annotations:
               nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
-            host: '{{ .Values.external_hostnames.minio_monitoring_tenant }}'
+            host: '{{ .Values.external_hostnames.minio_monitoring }}'
             path: /
             pathType: Prefix
             tls:
               - hosts:
-                  - '{{ .Values.external_hostnames.minio_monitoring_tenant }}'
-                secretName: minio-monitoring-tenant-tls
+                  - '{{ .Values.external_hostnames.minio_monitoring }}'
+                secretName: minio-monitoring-tls
           console:
             enabled: true
             ingressClassName: nginx
             annotations:
               nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
-            host: '{{ .Values.external_hostnames.minio_monitoring_tenant_console }}'
+            host: '{{ .Values.external_hostnames.minio_monitoring_console }}'
             path: /
             pathType: Prefix
             tls:
               - hosts:
-                  - '{{ .Values.external_hostnames.minio_monitoring_tenant_console }}'
-                secretName: minio-monitoring-tenant-tls
+                  - '{{ .Values.external_hostnames.minio_monitoring_console }}'
+                secretName: minio-monitoring-tls
     kustomization_spec:
       # these healthChecks are added so that MinIO backend setup
       # for tenant.minio.min.io/monitoring created by this unit is ready
@@ -5520,15 +5476,11 @@ units:
         - apiVersion: apps/v1
           kind: StatefulSet
           name: monitoring-pool-0  # concatenation from .tenant chart values .name & .pools[0].name
-          namespace: minio-monitoring-tenant
-        - apiVersion: apps/v1
-          kind: StatefulSet
-          name: monitoring-pool-monitoring  # concatenation from .tenant chart values .name & .pools[1].name
-          namespace: minio-monitoring-tenant
+          namespace: minio-monitoring
         - apiVersion: v1
           kind: Secret
           name: monitoring-tls
-          namespace: minio-monitoring-tenant
+          namespace: minio-monitoring
 
   thanos-init:
     info:
@@ -5595,7 +5547,7 @@ units:
       namespace-defs: true
       thanos-init: true
       thanos-credentials-secret: true
-      minio-monitoring-tenant: true
+      minio-monitoring: true
       '{{ .Values._internal.default_storage_class_unit }}': true
       ingress-nginx: '{{ tuple . "ingress-nginx" | include "unit-enabled" }}'
     annotations:
@@ -5697,7 +5649,7 @@ units:
                 cpu: "250m"
           persistence:
             enabled: true
-            storageClass: '{{ tuple . (tuple . "single-replica-storageclass" | include "unit-enabled") "single-replica-storageclass" .Values._internal.default_storage_class | include "interpret-ternary" }}'
+            storageClass: '{{ tuple . (tuple . "two-replicas-storageclass" | include "unit-enabled") "two-replicas-storageclass" .Values._internal.default_storage_class | include "interpret-ternary" }}'
             accessModes: ["ReadWriteOnce"]
             size: '{{  has .Values.env_type (list "dev" "ci") | ternary "2Gi" "4Gi" }}'
           evalInterval: 1m
@@ -5834,13 +5786,15 @@ units:
         type: "S3"
         config:
           bucket: "thanos"
-          endpoint: minio.minio-monitoring-tenant.svc.cluster.local
+          endpoint: minio.minio-monitoring.svc.cluster.local
           insecure: false
           http_config:
             tls_config:
               insecure_skip_verify: true
             insecure_skip_verify: true
-
+          # Use reduced reduncancy storage class (EC:1) as we are using two replicas in longhorn
+          put_user_metadata:
+            X-Amz-Storage-Class: REDUCED_REDUNDANCY
   logging-crd:
     info:
       description: install rancher-logging CRD
@@ -5992,7 +5946,7 @@ units:
       namespace-defs: true
       loki-init: true
       loki-credentials-secret: true
-      minio-monitoring-tenant: true
+      minio-monitoring: true
     enabled_conditions:
       - '{{ tuple . "logging" | include "unit-enabled" }}'
     annotations:
@@ -6051,7 +6005,7 @@ units:
               ruler: "loki-ruler"
               admin: "loki-admin"
             s3:
-              endpoint: "minio.minio-monitoring-tenant.svc.cluster.local:443"
+              endpoint: "minio.minio-monitoring.svc.cluster.local:443"
               s3ForcePathStyle: true
               http_config:
                 insecure_skip_verify: true
@@ -6144,7 +6098,11 @@ units:
 
   single-replica-storageclass:
     info:
-      description: Create a longhorn storage class with a single replica
+      description: DEPRECATED longhorn storage class with a single replica
+      details: |
+        This unit is preserved for migration purposes, it will be removed after sylva 1.2 release
+        Single replicas PVC were causing data replication churn during rolling updates of nodes
+        See https://gitlab.com/sylva-projects/sylva-core/-/issues/1648
       internal: true
     repo: sylva-core
     unit_templates:
@@ -6152,7 +6110,7 @@ units:
     depends_on:
       longhorn: true
     enabled_conditions:
-      - '{{ tuple . "minio-monitoring-tenant" | include "unit-enabled" }}'
+      - '{{ tuple . "minio-monitoring" | include "unit-enabled" }}'
       - '{{ tuple . "longhorn" | include "unit-enabled" }}'
     kustomization_spec:
       path: ./kustomize-units/longhorn-storageclass
@@ -6169,6 +6127,34 @@ units:
               name: _unused_
             parameters:
               numberOfReplicas: "1"
+
+  two-replicas-storageclass:
+    info:
+      description: Create a longhorn storage class with a two replicas
+      internal: true
+    repo: sylva-core
+    unit_templates:
+    - base-deps
+    depends_on:
+      longhorn: true
+    enabled_conditions:
+      - '{{ or (tuple . "minio-monitoring" | include "unit-enabled") (tuple . "minio-logging" | include "unit-enabled") }}'
+      - '{{ tuple . "longhorn" | include "unit-enabled" }}'
+    kustomization_spec:
+      path: ./kustomize-units/longhorn-storageclass
+      wait: true
+      postBuild:
+        substitute:
+          CLASS_NAME: two-replicas-storageclass
+      _patches:
+        - target:
+            kind: StorageClass
+          patch: |
+            kind: _unused_
+            metadata:
+              name: _unused_
+            parameters:
+              numberOfReplicas: "2"
 
   sylva-prometheus-rules:
     info:
@@ -6526,8 +6512,8 @@ external_hostnames:
   os_image_server: ''
   gitea: 'gitea.{{ .Values.cluster_domain }}'
   minio_operator_console: 'minio-operator-console.{{ .Values.cluster_domain }}'
-  minio_monitoring_tenant: 'minio-monitoring-tenant.{{ .Values.cluster_domain }}'
-  minio_monitoring_tenant_console: 'minio-monitoring-tenant-console.{{ .Values.cluster_domain }}'
+  minio_monitoring: 'minio-monitoring.{{ .Values.cluster_domain }}'
+  minio_monitoring_console: 'minio-monitoring-console.{{ .Values.cluster_domain }}'
   thanos: 'thanos.{{ .Values.cluster_domain }}'
   thanos_storegateway: 'thanos-storegateway.{{ .Values.cluster_domain }}'
   thanos_receive: 'thanos-receive.{{ .Values.cluster_domain }}'
@@ -6546,7 +6532,7 @@ external_certificates:
   os_image_server: {}
   gitea: {}
   minio_operator: {}
-  minio_monitoring_tenant: {}
+  minio_monitoring: {}
   thanos: {}
   loki: {}
   grafana: {}

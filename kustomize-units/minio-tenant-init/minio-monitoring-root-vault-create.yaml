@@ -1,7 +1,7 @@
 apiVersion: redhatcop.redhat.io/v1alpha1
 kind: RandomSecret
 metadata:
-  name: minio-monitoring-root
+  name: ${TENANT_NAME}-root
   namespace: vault
 spec:
   connection:
