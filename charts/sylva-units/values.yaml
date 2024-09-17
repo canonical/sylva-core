@@ -2620,14 +2620,14 @@ units:
       _postRenderers:
         - kustomize:
             patches:
-              - pathc:
+              - patch: |
                   kind: Service
                   apiVersion: v1
                   metadata:
                     name: metal3-ironic
                   spec:
                     type: LoadBalancer
-                    loadBalancerClass: '{{ .Values.cluster.loadBalancerClass | include "set-if-defined" }}'
+                    loadBalancerClass: '{{ tuple . .Values.cluster.loadBalancerClass | include "interpret-as-string" }}'
 
   metal3-pdb:
     info:
@@ -3733,15 +3733,15 @@ units:
       _postRenderers:
         - kustomize:
             patches:
-              - patch: |-
+              - patch: |
                   kind: Service
                   apiVersion: v1
                   metadata:
                     name: k8s-gateway
                   spec:
                     type: LoadBalancer
-                    loadBalancerClass: '{{ .Values.cluster.loadBalancerClass | include "set-if-defined" }}'
-              - patch: |-
+                    loadBalancerClass: '{{ tuple . .Values.cluster.loadBalancerClass | include "interpret-as-string" }}'
+              - patch: |
                   kind: Deployment
                   apiVersion: apps/v1
                   metadata:
@@ -3883,7 +3883,7 @@ units:
             node-role.kubernetes.io/control-plane: '{{ .Values._internal.cp_node_label_value }}'
           kind: DaemonSet
           service:
-            loadBalancerClass: '{{ .Values.cluster.loadBalancerClass | include "set-if-defined" }}'
+            loadBalancerClass: '{{ tuple . .Values.cluster.loadBalancerClass | include "interpret-as-string" }}'
             enabled: true
             externalIPs:
             - '{{ .Values.cluster_virtual_ip }}'
@@ -7240,8 +7240,9 @@ cluster:
     metallb: ""
     calico: ""
 
-  set_lb_class: '{{ eq (lookup "v1" "Service" "kube-system" "kubernetes-vip" | dig "spec" "loadBalancerClass" "") .Values.cluster.loadBalancerClass | include "preserve-type" }}'
-  loadBalancerClass: '{{ tuple (.Values._internal.loadBalancerClass ) (and .Values.cluster.set_lb_class (not (eq .Values.cluster.capi_providers.infra_provider "capd"))) | include "set-only-if" }}'
+  set_lb_class: '{{ and (eq (lookup "v1" "Service" "kube-system" "kubernetes-vip" | dig "spec" "loadBalancerClass" "") .Values.cluster.loadBalancerClass ) (ne .Values.cluster.capi_providers.infra_provider "capd") }}'
+  # loadBalancerClass to be used in order to limit the services served by metallb/kube-vip and allow multiple lb to run in parallel
+  loadBalancerClass: '{{ tuple .Values._internal.loadBalancerClass (tuple . .Values.cluster.set_lb_class | include "interpret-for-test") | include "set-only-if" }}'
 
   capv:
     # image_name: # vSphere image name
@@ -8028,6 +8029,8 @@ _internal:
               (tuple . "metallb" | include "unit-enabled"))
       | include "set-only-if"
     }}'
+
+  loadBalancerClass: '{{ tuple . (eq .Values.cluster.capi_providers.bootstrap_provider "cabpr") "sylva.org/metallb-class" "kube-vip.io/kube-vip-class" | include "interpret-ternary" }}'
 
   previous_values: '{{ omit (lookup "v1" "Secret" .Release.Namespace "sylva-units-values" | dig "data" "values" "" | b64dec | fromYaml | default dict) "unit_templates" | include "preserve-type" }}'
 
