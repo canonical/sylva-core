@@ -878,6 +878,8 @@ units:
         expose:
           ingress:
             enabled: true
+            labels: 
+              service-type: gui
             hosts:
               core: '{{ .Values.external_hostnames.harbor }}'
           tls:
