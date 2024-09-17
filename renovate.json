@@ -175,8 +175,7 @@
       "matchPackageNames": "sylva-library",
       "postUpgradeTasks": {
         "commands": [
-          "cd charts/sylva-units",
-          "helm dependency update",
+          "helm dependency update charts/sylva-units"
         ],
         "fileFilters": [
           "charts/sylva-units/charts/sylva-library-*"
