@@ -1429,19 +1429,6 @@ units:
           target:
             kind: Deployment
             name: keycloak-operator
-        - patch: |
-            - op: add
-              path: /metadata/labels
-              value:
-                apiVersion: networking.k8s.io/v1
-                kind: Ingress
-                metadata:
-                 name: keycloak-ingress
-                 labels:
-                   service-type: gui
-          target:
-            kind: Ingress
-            name: keycloak-ingress
             
   keycloak-legacy-operator:
     info:
@@ -3184,6 +3171,8 @@ units:
         ingress:
           enabled: true
           ingressClassName: nginx
+          labels:
+           service-type: gui
           tls:
             source: secret
             secretName: rancher-tls
@@ -5241,6 +5230,8 @@ units:
           ingress:
             enabled: true
             ingressClassName: nginx
+            labels:
+              service-type: gui
             host: '{{ .Values.external_hostnames.minio_operator_console }}'
             path: /
             pathType: Prefix
@@ -5452,6 +5443,8 @@ units:
           api:
             enabled: true
             ingressClassName: nginx
+            labels:
+              service-type: gui
             annotations:
               nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
             host: '{{ .Values.external_hostnames.minio_monitoring_tenant }}'
@@ -5676,6 +5669,8 @@ units:
           ingress:
             enabled: true
             ingressClassName: "nginx"
+            labels:
+              service-type: api
             hostname: '{{ .Values.external_hostnames.thanos_query }}'
             extraTls:
               - hosts:
@@ -5694,6 +5689,8 @@ units:
           ingress:
             enabled: true
             ingressClassName: "nginx"
+            labels:
+              service-type: api
             hostname: '{{ .Values.external_hostnames.thanos }}'
             extraTls:
               - hosts:
@@ -5708,6 +5705,8 @@ units:
             enabled: true
             hostname: '{{ .Values.external_hostnames.thanos_storegateway }}'
             ingressClassName: "nginx"
+            labels:
+              service-type: api
             extraTls:
               - hosts:
                   - '{{ .Values.external_hostnames.thanos_storegateway }}'
@@ -5742,6 +5741,8 @@ units:
           ingress:
             enabled: true
             ingressClassName: "nginx"
+            labels:
+              service-type: api
             annotations:
               nginx.ingress.kubernetes.io/client-body-buffer-size: 1m
             hostname: '{{ .Values.external_hostnames.thanos_receive }}'
