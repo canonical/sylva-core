@@ -24,6 +24,7 @@ patches:
     labelSelector: app.kubernetes.io/component
   patch: |-
     $patch: add
+    kind: _unused_
     metadata:
       annotations:
           "helm.sh/resource-policy": "keep"
