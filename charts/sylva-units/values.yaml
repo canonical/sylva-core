@@ -1082,6 +1082,8 @@ units:
             className: nginx
             hosts:
               core: '{{ .Values.external_hostnames.harbor }}'
+            labels:
+              service-type: gui
           tls:
             enabled: true
             certSource: secret
@@ -3490,6 +3492,8 @@ units:
         ingress:
           enabled: true
           ingressClassName: nginx
+          labels:
+            service-type: gui
           tls:
             source: secret
             secretName: rancher-tls
@@ -5749,6 +5753,8 @@ units:
           ingress:
             enabled: true
             ingressClassName: nginx
+            labels:
+              service-type: gui
             host: '{{ .Values.external_hostnames.minio_operator_console }}'
             path: /
             pathType: Prefix
@@ -5922,6 +5928,8 @@ units:
           api:
             enabled: true
             ingressClassName: nginx
+            labels:
+              service-type: gui
             annotations:
               nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
             host: '{{ .Values.external_hostnames.minio_logging }}'
@@ -6313,6 +6321,8 @@ units:
           ingress:
             enabled: true
             ingressClassName: "nginx"
+            labels:
+              service-type: api
             hostname: '{{ .Values.external_hostnames.thanos_query }}'
             extraTls:
               - hosts:
@@ -6331,6 +6341,8 @@ units:
           ingress:
             enabled: true
             ingressClassName: "nginx"
+            labels:
+              service-type: api
             hostname: '{{ .Values.external_hostnames.thanos }}'
             extraTls:
               - hosts:
@@ -6345,6 +6357,8 @@ units:
             enabled: true
             hostname: '{{ .Values.external_hostnames.thanos_storegateway }}'
             ingressClassName: "nginx"
+            labels:
+              service-type: api
             extraTls:
               - hosts:
                   - '{{ .Values.external_hostnames.thanos_storegateway }}'
