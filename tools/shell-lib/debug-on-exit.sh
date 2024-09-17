@@ -64,7 +64,7 @@ additional_resources="
   Metal3DataTemplates
   IPAddresses.*ipam.metal3.io
   IPClaims.*ipam.metal3.io
-  IPPool.*ipam.metal3.io
+  IPPools.*ipam.metal3.io
   BaremetalHosts
   IPAddressPools.*metallb.io
   L2Advertisements.*metallb.io
