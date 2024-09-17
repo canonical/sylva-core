@@ -2,21 +2,26 @@
 include:
   - local: .gitlab/ci/deployment-pipeline.yml
 
+variables:
+  CAPO_RUNNER_PLATFORM_TAG: capo-infra-rocket
+  PRIVATE_RUNNER_CONTEXT: rocket
+
 # Default tag will be used for all deployments/updates jobs
 default:
   tags:
-    - $CAPO_PLATFORM_TAG
+    - $CAPO_RUNNER_PLATFORM_TAG
 
 # test-tags will be used to run the tests jobs in a docker executor based runner
 .test-tags:
   tags:
-    - $CAPO_PLATFORM_TAG
+    - $CAPO_RUNNER_PLATFORM_TAG
 
 # This configuration is specific to capo deployments
 .flavored-pre-deployment-configuration:
   - echo -e "\e[1m\e[0Ksection_start:`date +%s`:gitlab_ci_capo[collapsed=true]\r\e[0KApplying specific capo configuration\e[0m"
   - !reference [.os_cloud]
   - |
+    # Apply private values
     yq -i eval-all 'select(fileIndex==0).cluster.capo.clouds_yaml = select(fileIndex==1) | select(fileIndex==0)' $ENV_PATH/secrets.yaml ~/.config/openstack/clouds.yml
     yq -i '.cluster.capo.resources_tag = strenv(CAPO_TAG)' $values_file
     # The PRIVATE variables below are set in the gitlab runner configuration

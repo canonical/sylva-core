@@ -123,7 +123,7 @@ include:
         export OCI_COMPONENT_PATH="../components/oci-artifacts"
         export CLUSTER_CI_NAME=${MANAGEMENT_CLUSTER_NAME}
     fi
-  - export ENV_PATH=${ENV_SUB_PATH}/${ENV_NAME}
+    export ENV_PATH=${ENV_SUB_PATH}/${ENV_NAME}
   - values_file=$ENV_PATH/values.yaml
   - |
     # Force intialization of an http server for log collection in cluster on capm3/capo
@@ -133,6 +133,7 @@ include:
       echo "File 'run_http_server_for_log_collect.yaml' not found, skipping"
     fi
   - |
+    # configure OCI artifacts if needed
     if [ ${OCI_TAG} ]; then
       echo -e "Applying OCI configuration for tag: ${OCI_TAG}"
       if [ $(yq '.components | length' $ENV_PATH/kustomization.yaml) -eq "0" ]; then
