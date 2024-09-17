@@ -878,10 +878,10 @@ units:
         expose:
           ingress:
             enabled: true
-            labels: 
-              service-type: gui
             hosts:
               core: '{{ .Values.external_hostnames.harbor }}'
+            labels: 
+              service-type: gui
           tls:
             enabled: true
             certSource: secret
@@ -957,14 +957,6 @@ units:
                       capabilities:
                         drop:
                           - ALL
-              - target:
-                  kind: Ingress
-                  name: harbor-ingress
-                patch: |-
-                  - op: add
-                    path: /spec/template/metadata/labels
-                    value:
-                      service-type: gui
       install:
         createNamespace: true
 
