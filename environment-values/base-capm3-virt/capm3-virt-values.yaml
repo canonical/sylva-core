@@ -146,8 +146,7 @@ units:
           defaultClassReplicaCount: 1
 
   monitoring:
-    enabled_conditions:
-      - '{{ ternary true false (.Values.env_type | eq "ci") | include "preserve-type" }}'
+    enabled: false
 
 libvirt_metal:
   #image: registry.gitlab.com/sylva-projects/sylva-elements/container-images/libvirt-metal:0.1.4  # customize if wanted
