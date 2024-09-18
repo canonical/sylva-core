@@ -44,7 +44,6 @@ reconcile_sylva_units
 echo_b "\U000023F3 Wait for units to be ready"
 
 sylvactl watch \
-  --kubeconfig management-cluster-kubeconfig \
   --reconcile \
   --timeout $(ci_remaining_minutes_and_at_most ${APPLY_WATCH_TIMEOUT_MIN:-20}) \
   ${SYLVACTL_SAVE:+--save apply-management-cluster-timeline.html} \

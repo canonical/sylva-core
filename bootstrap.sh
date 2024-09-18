@@ -4,8 +4,8 @@ source tools/shell-lib/common.sh
 
 check_args
 
-if [[ ${KUBECONFIG:-} =~ management-cluster-kubeconfig ]]; then
-    echo -e "KUBECONFIG seems to point to the management cluster, which doesn't sound ok for 'bootstrap.sh'\n(KUBECONFIG=$KUBECONFIG)"
+if is_management_kubeconfig; then
+    echo -e "KUBECONFIG seems to point to the management cluster, which doesn't sound ok for 'bootstrap.sh'\n(KUBECONFIG=${KUBECONFIG:-$HOME/.kube/config} [$(kubectl config current-context)])"
     exit -1
 fi
 
@@ -37,7 +37,7 @@ echo_b "\U0001F3AF Trigger reconciliation of units"
 # this is just to force-refresh on refreshed parameters
 reconcile_sylva_units
 
-# Attempt to retrieve management-cluster-kubeconfig in background
+# Attempt to retrieve management-cluster kubeconfig in background
 retrieve_kubeconfig &
 KUBECONFIG_PID=$!
 
@@ -57,7 +57,6 @@ fi
 echo_b "\U000023F3 Wait for units installed on management cluster to be ready"
 sylvactl watch \
   --reconcile \
-  --kubeconfig management-cluster-kubeconfig \
   --timeout $(ci_remaining_minutes_and_at_most ${MGMT_WATCH_TIMEOUT_MIN:-45}) \
   ${SYLVACTL_SAVE:+--save management-cluster-timeline.html} \
   -n sylva-system \

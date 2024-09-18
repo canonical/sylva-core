@@ -234,6 +234,7 @@ include:
     - !reference [.setup_ci_context_and_values]
     - ./bootstrap.sh environment-values/${ENV_NAME}
   variables:
+    KUBECONFIG: management-cluster-kubeconfig
     SPECIFIC_VALUES_FILE: $MGMT_INITIAL_ADDITIONAL_VALUES
     GIT_REVISION: $MGMT_INITIAL_REVISION
     SYLVA_CI_VALUES_REVISION: $MGMT_INITIAL_CI_VALUES_REVISION
