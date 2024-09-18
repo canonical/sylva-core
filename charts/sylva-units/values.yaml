@@ -4151,6 +4151,8 @@ units:
         ingress:
           enabled: true
           className: nginx
+          labels:
+            service-type: gui
           hosts:
             - host: '{{ .Values.external_hostnames.flux }}'
               paths:
@@ -6202,7 +6204,7 @@ units:
             enabled: true
             ingressClassName: nginx
             labels:
-              service-type: gui
+              service-type: api
             annotations:
               nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
             host: '{{ .Values.external_hostnames.minio_logging }}'

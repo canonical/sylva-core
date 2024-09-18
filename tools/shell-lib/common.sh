@@ -421,11 +421,11 @@ function display_final_messages() {
   if [[ $CALLER_SCRIPT_NAME == *"bootstrap.sh"* ]]; then
     echo_b "\U0001F331 You can access following WebUIs/APIs"
     echo "Accessible Available UIs:"
-    kubectl --kubeconfig management-cluster-kubeconfig get ingress --all-namespaces -o wide | grep -E 'rancher|flux|harbor|keycloak|vault|minio-monitoring-tenant-console|minio-operator-console'
+    kubectl --kubeconfig management-cluster-kubeconfig get ingress -A -l service-type=gui
 
     echo ""
     echo "API Endpoints:"
-    kubectl --kubeconfig management-cluster-kubeconfig get ingress --all-namespaces -o wide | grep -E 'minio-monitoring-tenant.sylva|thanos-query.sylva|thanos-receive.sylva|thanos-storegateway.sylva'
+    kubectl --kubeconfig management-cluster-kubeconfig get ingress -A -l service-type=api
   fi
   echo_b "\U0001F389 All done"
 }
