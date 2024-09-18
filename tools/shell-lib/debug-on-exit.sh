@@ -62,7 +62,15 @@ additional_resources="
   Metal3MachineTemplates
   Metal3Machines
   Metal3DataTemplates
+  Metal3Datas
+  Metal3DataClaims
+  IPAddresses.*ipam.metal3.io
+  IPClaims.*ipam.metal3.io
+  IPPools.*ipam.metal3.io
   BaremetalHosts
+  IPAddressPools.*metallb.io
+  L2Advertisements.*metallb.io
+  ServiceL2Statuses.*metallb.io
   Nodes.*longhorn.io
   Replicas.*longhorn.io
   Volumes.*longhorn.io
