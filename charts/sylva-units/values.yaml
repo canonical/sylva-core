@@ -58,7 +58,8 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
     spec:
       url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-capi-cluster.git
       ref:
-        tag: 0.2.41
+        #tag: 0.2.41
+        branch: helm-m3dt-keep  # https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-capi-cluster/-/merge_requests/459
 
   local-path-provisioner:
     kind: GitRepository
@@ -2188,7 +2189,7 @@ units:
       postBuild:
         substitute:
           force_var_substitution_enabled: "true"  # dummy value to ensure substitution of defaults
-          ENABLE_BMH_NAME_BASED_PREALLOCATION: "true"
+          enableBMHNameBasedPreallocation: "true"
       wait: true
       _components:
         - '{{ tuple "components/ha" (.Values._internal.ha_cluster.is_ha) | include "set-only-if" }}'
