@@ -3109,6 +3109,8 @@ units:
       description: initializes and configures Rancher
       maturity: beta
       internal: true
+    enabled_conditions:
+    - '{{ tuple . "rancher" | include "unit-enabled" }}'
     unit_templates:
     - base-deps
     depends_on:
