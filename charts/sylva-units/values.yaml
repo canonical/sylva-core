@@ -2672,6 +2672,10 @@ units:
                 value: {{ .Values.cluster_machines_ready.wait_timeout }}
               - name: CONTROL_PLANE
                 value: {{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpk" | ternary "KubeadmControlPlane" "RKE2ControlPlane" }}
+          - op: replace
+            path: /spec/backoffLimit
+            value: 8
+
       - target:
           kind: ConfigMap
           labelSelector: kube-job=script
