@@ -1429,6 +1429,14 @@ units:
           target:
             kind: Deployment
             name: keycloak-operator
+        - patch: |   
+            - op: add
+              path: /spec/template/metadata/labels
+              value:
+                service-type: gui
+            target:
+              kind: Ingress
+              name: keycloak-ingres
             
   keycloak-legacy-operator:
     info:
