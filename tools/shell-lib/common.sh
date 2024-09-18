@@ -127,20 +127,48 @@ function validate_input_values {
 function retrieve_kubeconfig {
     orig_umask=$(umask)
     umask og-rw
-    until kubectl get secret $(kubectl get cluster.cluster.x-k8s.io -o jsonpath='{ $.items[*].metadata.name}' 2>/dev/null)-kubeconfig -o jsonpath='{.data.value}' 2>/dev/null | base64 -d > management-cluster-kubeconfig; do
+    kubeconfig=$(mktemp)
+    until kubectl get secret $(kubectl get cluster.cluster.x-k8s.io -o jsonpath='{ $.items[*].metadata.name}' 2>/dev/null)-kubeconfig -o jsonpath='{.data.value}' 2>/dev/null | base64 -d > $kubeconfig; do
         sleep 2
     done
     # Check if there is an alternative public endpoint declared in values, in which case we modify kubeconfig to use it
     if kubectl get secret sylva-units-values -o template='{{ .data.values }}' | base64 -d | yq -e .cluster_public_endpoint &> /dev/null; then
         CLUSTER_PUBLIC_ENDPOINT=$(kubectl get secret sylva-units-values -o template='{{ .data.values }}' | base64 -d | yq -e .cluster_public_endpoint)
-        yq -i ".clusters[0].cluster.server=\"${CLUSTER_PUBLIC_ENDPOINT}\"" management-cluster-kubeconfig
+        yq -i ".clusters[0].cluster.server=\"${CLUSTER_PUBLIC_ENDPOINT}\"" $kubeconfig
     fi
-    kubectl --kubeconfig=management-cluster-kubeconfig config set-context --current --namespace=sylva-system
+
+    kubectl --kubeconfig=$kubeconfig config set-context --current --namespace=sylva-system
+
+    merge_kubeconfig $kubeconfig
+    rm $kubeconfig
+
     umask $orig_umask
 }
 
+function merge_kubeconfig() {
+  from=$1
+
+  orig_KUBECONFIG=${KUBECONFIG:-""}
+  KUBECONFIG_FILE=$(echo ${KUBECONFIG:-"$HOME/.kube/config"} | cut -d":" -f1)
+  [ -f "${KUBECONFIG_FILE}" ] && cp ${KUBECONFIG_FILE}{,.bak}
+  
+  # The order is important there as the first configuration will override the second configuration, moving the current context to the new one
+  export KUBECONFIG="${from}:${KUBECONFIG_FILE}"
+  new_file=$(mktemp)
+  kubectl config view --flatten > ${new_file}
+  
+  mv ${new_file} ${KUBECONFIG_FILE}
+
+  export KUBECONFIG="${orig_KUBECONFIG}"
+}
+
+function is_management_kubeconfig() {
+  kubectl get -n sylva-system configmap dummy-deps-management-flag &>/dev/null
+  return $?
+}
+
 function check_management_kubeconfig() {
-    if ! kubectl get -n sylva-system configmap dummy-deps-management-flag &>/dev/null; then
+    if ! is_management_kubeconfig; then
         echo_b "\U000026A0 Provided kubeconfig ($KUBECONFIG) does not seem to target management cluster, aborting."
         exit 1
     fi
@@ -395,12 +423,12 @@ function display_final_messages() {
   if [[ $CALLER_SCRIPT_NAME != *"apply-workload-cluster.sh"* ]]; then
     echo_b "\U00002714 Sylva is ready, everything deployed in management cluster"
     echo "   Management cluster nodes:"
-    kubectl --kubeconfig management-cluster-kubeconfig get nodes
+    kubectl get nodes
   fi
 
   if [[ $CALLER_SCRIPT_NAME == *"bootstrap.sh"* ]]; then
     echo_b "\U0001F331 You can access following UIs"
-    kubectl --kubeconfig management-cluster-kubeconfig get ingress --all-namespaces
+    kubectl get ingress --all-namespaces
   fi
   echo_b "\U0001F389 All done"
 }

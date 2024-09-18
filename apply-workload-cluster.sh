@@ -2,8 +2,8 @@
 #
 # This script can be used to install the workload clusters defined at path environment-values/workload-clusters/x using Kustomize
 #
-# This script will act on the kubectl context of a Sylva management cluster,
-# if the 'management-cluster-kubeconfig' file is found, in which case it will use it, otherwise exit.
+# This script will act on the kubectl current context if it's a Sylva management cluster, unless
+# the 'management-cluster-kubeconfig' file is found, in which case it will use it.
 
 source $(dirname $0)/tools/shell-lib/common.sh
 
@@ -17,9 +17,6 @@ check_apply_kustomizations
 
 if [[ -f management-cluster-kubeconfig ]]; then
     export KUBECONFIG=${KUBECONFIG:-management-cluster-kubeconfig}
-else
-    echo_b "management-cluster-kubeconfig file is not present in ${PWD}"
-    exit -1
 fi
 
 if ! (kubectl get nodes > /dev/null); then
@@ -49,7 +46,6 @@ reconcile_sylva_units $wc_namespace
 
 echo_b "\U000023F3 Wait for units to be ready"
 sylvactl watch \
-  --kubeconfig management-cluster-kubeconfig \
   --reconcile \
   --timeout $(ci_remaining_minutes_and_at_most ${APPLY_WC_WATCH_TIMEOUT_MIN:-30}) \
   ${SYLVACTL_SAVE:+--save apply-workload-cluster-timeline.html} \

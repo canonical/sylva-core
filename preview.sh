@@ -12,11 +12,14 @@ fi
 validate_input_values
 
 if [[ -f management-cluster-kubeconfig ]]; then
-    echo_b "\U0001F503 Reusing management cluster"
     export KUBECONFIG=${KUBECONFIG:-management-cluster-kubeconfig}
-else
+fi
+
+if ! is_management_kubeconfig; then
     echo_b "\U0001F503 Preparing bootstrap cluster"
     tools/kind/bootstrap-cluster.sh
+else
+    echo_b "\U0001F503 Reusing management cluster"
 fi
 
 ensure_flux
