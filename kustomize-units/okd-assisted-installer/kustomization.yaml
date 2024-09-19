@@ -5,6 +5,7 @@ resources:
   - https://raw.githubusercontent.com/openshift/assisted-service/v2.33.0/hack/crds/hive.openshift.io_clusterimagesets.yaml
   - https://github.com/openshift/assisted-service/config/default?ref=v2.33.0
   - agentconfig.yaml
+  - root-fsGroup-assisted-installer.yaml # test workaround for https://gitlab.com/sylva-projects/sylva-core/-/merge_requests/2654#note_2114765991
 
 # 07/24/24 build
 images:

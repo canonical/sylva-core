@@ -2308,7 +2308,8 @@ units:
     depends_on:
       cert-manager: true
       metal3: true
-      local-path-provisioner: true
+      kyverno: true # test workaround for https://gitlab.com/sylva-projects/sylva-core/-/merge_requests/2654#note_2114765991
+      '{{ .Values._internal.default_storage_class_unit }}': true
     enabled_conditions:
     - '{{ tuple . "cabpob" | include "unit-enabled" }}'
     - '{{ tuple . "capm3" | include "unit-enabled" }}'
