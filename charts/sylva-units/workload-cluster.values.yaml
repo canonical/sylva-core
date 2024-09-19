@@ -218,8 +218,6 @@ units:
     unit_templates:
     - kustomization-deployed-on-mgmt-cluster
     - dummy
-    kustomization_spec:
-      targetNamespace: '{{ .Release.Namespace }}'
 
   cluster-machines-ready:
     enabled: true

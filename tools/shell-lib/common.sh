@@ -140,7 +140,7 @@ function retrieve_kubeconfig {
 }
 
 function check_management_kubeconfig() {
-    if ! kubectl get -n sylva-system configmap dummy-deps-management-flag &>/dev/null; then
+    if ! kubectl get -n sylva-system kustomization management-flag &>/dev/null; then
         echo_b "\U000026A0 Provided kubeconfig ($KUBECONFIG) does not seem to target management cluster, aborting."
         exit 1
     fi
