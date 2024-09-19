@@ -22,6 +22,14 @@
   },
   "packageRules": [
     {
+      "description": "Regroup CAPI and capd-manager updates",
+      "matchPackageNames": [
+        "gcr.io/k8s-staging-cluster-api/capd-manager",
+        "kubernetes-sigs/cluster-api"
+      ],
+      "groupName": "cluster-api & capd-manager"
+    },
+    {
       "description": "Regroup vsphere-cloud-controller-manager updates",
       "matchFileNames": ["kustomize-units/vsphere-cloud-controller-manager/**"],
       "matchPackagePrefixes": [
