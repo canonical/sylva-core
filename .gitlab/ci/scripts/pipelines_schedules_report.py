@@ -145,7 +145,10 @@ def create_report():
                 if child.duration:
                     duration_text = f"{child.duration/60.0:.0f}min"
                 ds_pipeline_summary = pipeline_summary(child.downstream_pipeline)
-                return f"[{duration_text} {get_status_icon(child)}]({child.web_url})<br>{ds_pipeline_summary}"
+                return (
+                    f"[{duration_text} {get_status_icon(child)}]({child.web_url})<br/>{ds_pipeline_summary}"
+                    f"<br/>\\[[🕵️notes](https://gitlab.com/sylva-projects/sylva-core/-/wikis/sched-pipelines-notes/{child.id})\\]"
+                )
 
             child_pipelines_reports = dict()
             for pipeline in newest_pipelines:
