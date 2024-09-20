@@ -451,9 +451,12 @@ units:
               kubectl annotate --overwrite kustomizations.kustomize.toolkit.fluxcd.io cluster pivot/started-
 
               # if infra_provider is capm3 delete unused available bmh from pivot to avoid them to be managed by two operators that will compete to manage their power state
+              # Also delete metal3 deployments as they sometimes still try to control the baremetal hosts event if the custom resources are gone
               if kubectl get kustomizations capm3 ; then
                 echo "-- delete all unused bmh from bootstrap cluster"
                 kubectl delete bmh --all
+                echo "-- delete metal3 deployments"
+                kubectl delete deployment --all --namespace=metal3-system
               fi
 
               echo "-- All done"
