@@ -62,6 +62,8 @@ additional_resources="
   Metal3MachineTemplates
   Metal3Machines
   Metal3DataTemplates
+  Metal3Datas
+  Metal3DataClaims
   IPAddresses.*ipam.metal3.io
   IPClaims.*ipam.metal3.io
   IPPools.*ipam.metal3.io
