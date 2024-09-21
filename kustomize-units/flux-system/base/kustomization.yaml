@@ -23,7 +23,6 @@ patches:
 - target:
     labelSelector: app.kubernetes.io/component
   patch: |-
-    $patch: add
     kind: _unused_
     metadata:
       annotations:
