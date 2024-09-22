@@ -372,6 +372,12 @@ capo-rke2-oci-suse:
     APPLY_WATCH_TIMEOUT_MIN: 80
     APPLY_WC_WATCH_TIMEOUT_MIN: 80
     RUNNER_PLAN: m3.large.x86
+  after_script:
+    - |
+      if [[ $MGMT_INITIAL_REVISION == "1.1.1" ]]; then
+        echo "Deleting Ironic/Metal3 in bootstrap cluster (like for https://gitlab.com/sylva-projects/sylva-core/-/merge_requests/2948 but for 1.1.1)"
+        kubectl delete deployment --all --namespace=metal3-system
+      fi
   trigger:
     include: .gitlab/ci/pipeline-deploy-capm3-virt-equinix.yml
     strategy: depend
