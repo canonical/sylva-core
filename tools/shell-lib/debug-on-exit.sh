@@ -427,6 +427,9 @@ function collect_kubectl_get_data() {
   kubectl get crd -A -v=6 > "${data_dir}/kubectl-api-response-${timestamp}.log" 2>&1 && \
   echo "Collected api response data"  || \
   echo "Data collection completed. Files saved in $data_dir."
+
+  echo "Printing the first and second lines of the collected data:"
+  head -n 2 "${data_dir}/kubectl-api-response-${timestamp}.log"
 }
 
 
