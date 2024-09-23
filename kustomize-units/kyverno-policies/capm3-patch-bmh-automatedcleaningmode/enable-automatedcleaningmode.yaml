@@ -1,0 +1,32 @@
+---
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: enable-bmh-automatedcleaningmode
+  namespace: sylva-system
+  annotations:
+    kustomize.toolkit.fluxcd.io/force: Enabled
+    policies.kyverno.io/title: Enable BMH automatedCleaningMode
+    policies.kyverno.io/minversion: 1.12.0
+spec:
+  background: true
+  webhookConfiguration:
+    matchConditions:
+    - name: has-provision-end
+      expression: "has(object.status) && object.status.operationHistory.provision.end != null"
+    - name: has-automatedCleaningMode-deactivated
+      expression: "has(object.spec.automatedCleaningMode) && object.spec.automatedCleaningMode == 'deactivated'"
+  rules:
+  - name: patch-automatedCleanedMode
+    match:
+      any:
+      - resources:
+          kinds:
+          - metal3.io/*/BareMetalHost
+          operations:
+          - DELETE
+    mutate:
+      patchStrategicMerge:
+        spec:
+          automatedCleaningMode: "metadata"
+
