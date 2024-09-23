@@ -112,12 +112,11 @@ variables:
   - if: '$CI_PIPELINE_SOURCE == "web"'
     allow_failure: true
     when: manual
-  # Scheduled pipelines are trigerring rolling upgrades and test k8s version upgrade for the workload cluster
-  # This require different values files for rke2 & kubeadm (due to different image_key)
-  # For capd no ha capm3 scheduled pipelines we don't want to test rolling upgrades
+  # Scheduled pipelines are trigerring rolling updates and test k8s version upgrade for the workload cluster
+  # For capd no ha capm3 scheduled pipelines we don't want to test rolling updates
   # As it's not supported for single node deployments
   - if: '$CI_PIPELINE_SOURCE == "schedule" && $CI_DEPLOYMENTS && $CI_JOB_NAME =~ $DEPLOYMENT_FLAVOR && $CI_JOB_NAME =~ /capd.*|capm3.*/ && $CI_JOB_NAME !~ /capm3-ha-.*/'
-  # override to test rolling upgrades in scheduled pipelines
+  # override to test rolling updates in scheduled pipelines
   - if: '$CI_PIPELINE_SOURCE == "schedule" && $CI_DEPLOYMENTS && $CI_JOB_NAME =~ $DEPLOYMENT_FLAVOR'
     variables:
       MGMT_INITIAL_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/control-plane-replicas-3.yml ${SYLVA_CI_VALUES_FOLDER}/serve-k8s-1.27-image.yml
@@ -127,16 +126,16 @@ variables:
       APPLY_WC_WATCH_TIMEOUT_MIN: 80
       WC_INITIAL_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/k8s-1.27.yml
       WC_UPDATE_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/k8s-1.28.yml
-  # For capd & non-ha capm3 MR pipelines we don't want to test rolling upgrades in MR flagged with ci-feature::test-rolling-upgrade
+  # For capd & non-ha capm3 MR pipelines we don't want to test rolling updates in MR flagged with ci-feature::test-rolling-update
   # For capd & non-ha capm3 MR pipelines we don't want to test 1.1.1 to main upgrades in MR flagged with ci-feature::test-upgrade-from-1.1.1
   # As it's not supported for single node deployments
-  - if: $CI_MERGE_REQUEST_LABELS =~ /ci-feature::test-rolling-upgrade|ci-feature::test-upgrade-from-1.1.1/ && $CI_JOB_NAME =~ /capd.*|capm3.*/ && $CI_JOB_NAME !~ /capm3-ha-.*/
+  - if: $CI_MERGE_REQUEST_LABELS =~ /ci-feature::test-rolling-update|ci-feature::test-upgrade-from-1.1.1/ && $CI_JOB_NAME =~ /capd.*|capm3.*/ && $CI_JOB_NAME !~ /capm3-ha-.*/
     allow_failure: true
     when: manual
-  # override to test rolling upgrades in MR flagged with ci-feature::test-rolling-upgrade
-  - if: $CI_MERGE_REQUEST_LABELS =~ /ci-feature::test-rolling-upgrade/
+  # override to test rolling updates in MR flagged with ci-feature::test-rolling-update
+  - if: $CI_MERGE_REQUEST_LABELS =~ /ci-feature::test-rolling-update/
     variables:
-      EXTRA_DESCRIPTION: "\\e[1;31m \\u26A0 This pipeline was triggered with label ci-feature::test-rolling-upgrade \n  pipeline will perform a real rolling upgrade instead of a dummy update \\e[0m"
+      EXTRA_DESCRIPTION: "\\e[1;31m \\u26A0 This pipeline was triggered with label ci-feature::test-rolling-update \n  pipeline will perform a rolling update *with k8s upgrade* instead of a dummy rolling update \\e[0m"
       MGMT_INITIAL_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/control-plane-replicas-3.yml ${SYLVA_CI_VALUES_FOLDER}/serve-k8s-1.27-image.yml
       MGMT_UPDATE_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/dummy-rolling-update-trigger.yml ${SYLVA_CI_VALUES_FOLDER}/serve-k8s-1.27-image.yml
       MGMT_WATCH_TIMEOUT_MIN: 45
@@ -150,7 +149,7 @@ variables:
   - if: $CI_MERGE_REQUEST_LABELS =~ /ci-feature::test-upgrade-from-1.1.1/
     variables:
       EXTRA_DESCRIPTION: "\\e[1;31m \\u26A0 This pipeline was triggered with label ci-feature::test-upgrade-from-1.1.1 \n  pipeline will test upgrade from 1.1.1 version \\e[0m"
-      # Need to be HA in case of rolling upgrade triggered by the upgrade
+      # Need to be HA in case of rolling update triggered by the upgrade
       MGMT_INITIAL_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/control-plane-replicas-3.yml
       # libvirt-metal-no-bond.yaml file is added to updates values as a temporary fix for capm3 upgrades from 1.1.1,
       # it can be removed after next release, see https://gitlab.com/sylva-projects/sylva-core/-/issues/1581
@@ -165,7 +164,7 @@ variables:
       MGMT_UPDATE_CI_VALUES_REVISION: ${CI_VALUES_REVISION}
       WC_INITIAL_CI_VALUES_REVISION: stable/1.1.1
       WC_UPDATE_CI_VALUES_REVISION: ${CI_VALUES_REVISION}
-      # Increase default timers due to rolling upgrade
+      # Increase default timers due to rolling update
       MGMT_WATCH_TIMEOUT_MIN: 45
       APPLY_WATCH_TIMEOUT_MIN: 80
       APPLY_WC_WATCH_TIMEOUT_MIN: 80
