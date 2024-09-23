@@ -12,6 +12,11 @@
       "\\.gitlab/ci/.*.yml"
     ]
   },
+  "gitlabci-include": {
+    "fileMatch": [
+      "\\.gitlab/ci/.*.yml"
+    ]
+  },
   "kubernetes": {
     "fileMatch": [
       "kustomize-units/.+\\.yaml"
