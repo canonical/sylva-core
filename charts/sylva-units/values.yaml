@@ -1808,7 +1808,7 @@ units:
         substitute:
           CLUSTER_NAME: '{{ .Values.cluster.name }}'
       _components:
-        - '{{ tuple "components/management-cluster-only" .Values._internal.mgmt_cluster | include "set-only-if" }}'
+        - '{{ tuple "components/management-cluster-only" (tuple . "capm3" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/capm3-patch-bond-policy" (tuple . "capm3" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/descheduler" (tuple . "descheduler" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/loki-aggregated-secrets" (tuple . "loki" | include "unit-enabled") | include "set-only-if" }}'
