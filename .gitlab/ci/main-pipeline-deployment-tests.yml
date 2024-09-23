@@ -157,8 +157,8 @@ variables:
       WC_INITIAL_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/control-plane-replicas-3.yml
       WC_UPDATE_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/control-plane-replicas-3.yml ${SYLVA_CI_VALUES_FOLDER}/libvirt-metal-no-bond.yaml
       # Set initial revision to 1.1.1
-      MGMT_INITIAL_REVISION: 1.1.1
-      WC_INITIAL_REVISION: 1.1.1
+      MGMT_INITIAL_REVISION: 1.1.1-ci-tweaks
+      WC_INITIAL_REVISION: 1.1.1-ci-tweaks
       # Use 1.1.1 CI values
       MGMT_INITIAL_CI_VALUES_REVISION: stable/1.1.1
       MGMT_UPDATE_CI_VALUES_REVISION: ${CI_VALUES_REVISION}
