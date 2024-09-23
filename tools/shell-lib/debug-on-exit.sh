@@ -99,6 +99,7 @@ additional_resources="
   Tenants.*minio.min.io
   HelmCharts.*helm.cattle.io
 "
+dump_dir=""
 
 function dump_additional_resources() {
     local cluster_dir=$1
@@ -297,7 +298,7 @@ function _openstack() {
 
 function cluster_info_dump() {
   local cluster=$1
-  local dump_dir=$cluster-cluster-dump
+  dump_dir=$cluster-cluster-dump
 
   if [[ $cluster == "workload" ]]; then
     capi_cluster_namespace=$2
@@ -418,18 +419,15 @@ function cluster_info_dump() {
 }
 
 function collect_kubectl_get_data() {
-  local output_dir=$1
-  local data_dir=${output_dir}-apidata
   local timestamp=$(date +%Y%m%d-%H%M%S)
-  mkdir ${data_dir}
   echo "Collecting kubectl get data with fixed verbosity -v=6..."
 
-  kubectl get crd -A -v=6 > "${data_dir}/kubectl-api-response-${timestamp}.log" 2>&1 && \
+  kubectl get crd -A -v=6 > "${dump_dir}/kubectl-api-response-${timestamp}.log" 2>&1 && \
   echo "Collected api response data"  || \
-  echo "Data collection completed. Files saved in $data_dir."
+  echo "Data collection completed. Files saved in $dump_dir."
 
   echo "Printing the first and second lines of the collected data:"
-  head -n 2 "${data_dir}/kubectl-api-response-${timestamp}.log"
+  head -n 2 "${dump_dir}/kubectl-api-response-${timestamp}.log"
 }
 
 
