@@ -469,6 +469,17 @@ units:
   cert-manager:
     enabled: true
 
+  coredns:
+    enabled: true
+    kustomization_spec:
+      targetNamespace: kube-system
+      postBuild:
+        substitute:
+          MGMT_CLUSTER_VIRTUAL_IP: '{{ .Values.cluster.mgmt_cluster_ip }}'
+          EXTERNAL_HOSTNAMES: '{{ .Values._internal.mgmt_cluster_service_names }}'
+      _components:
+        - components/workload
+
   sylva-ca:
     enabled: true
     kustomization_spec:
