@@ -5548,7 +5548,7 @@ units:
     unit_templates:
     - base-deps
     enabled_conditions:
-      - '{{ tuple . "monitoring" | include "unit-enabled" }}'
+      - '{{ tuple . "thanos" | include "unit-enabled" }}'
     depends_on:
       kyverno-policies-ready: true
     repo: sylva-core

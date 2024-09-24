@@ -334,6 +334,9 @@ units:
 
   thanos-credentials-secret:
     enabled: true
+    enabled_conditions:
+      - '{{ tuple . "monitoring" | include "unit-enabled" }}'
+      - '{{ .Values._internal.sylva_mgmt_enabled_units.thanos }}'
     depends_on:
       kyverno-policies-ready: false
     unit_templates:
