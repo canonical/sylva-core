@@ -40,6 +40,7 @@ include:
         else
           echo "Failed to retrieve: oci://registry.gitlab.com/sylva-projects/sylva-core/sylva-units:$OCI_TAG"
           echo "Ensure you are targeting a branch with an open MR and check if that OCI artifact was not removed by cleanup job"
+          exit 1
         fi
       fi
       git fetch origin $GIT_REVISION
