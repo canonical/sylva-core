@@ -507,65 +507,55 @@ properties:
             - required:  # we relax this check if 'unit_templates' is used
               - unit_templates
 
-          - anyOf:
-            # for a unit which is explicitly disabled, we don't mandate anything else
-            - properties:
-                enabled:
-                  const: false
+          # prevent having both 'repo' fully specified (not null) and 'helm_repo_url':
+          - not:
+              required:
+                - repo
+                - helm_repo_url
+              properties:  # to allow 'helm_repo_url' when 'repo' is null (fail validation of this sub-schema only if repo is a string)
+                repo:
+                  type: string
 
-            # ... for a unit which is explicitly enabled or conditionally enabled we enforce
-            # the following:
-            - allOf:
-
-              # prevent having both 'repo' fully specified (not null) and 'helm_repo_url':
-              - not:
-                  required:
-                    - repo
-                    - helm_repo_url
-                  properties:  # to allow 'helm_repo_url' when 'repo' is null (fail validation of this sub-schema only if repo is a string)
-                    repo:
-                      type: string
-
-              # there are some things we need on kustomization_spec
-              # but that aren't needed in the case where we specify helmrelease_spec,
-              # (see example where we need that under bootstrap.values.yaml:units.sylva-units)
-              # or in the case where unit_templates is used
-              #
-              # (note that we have a check for the presence of 'path' in the final resource in templates/units.yaml
-              #  to ensure it's presence when unit_templates is used)
-              - if:
+          # there are some things we need on kustomization_spec
+          # but that aren't needed in the case where we specify helmrelease_spec,
+          # (see example where we need that under bootstrap.values.yaml:units.sylva-units)
+          # or in the case where unit_templates is used
+          #
+          # (note that we have a check for the presence of 'path' in the final resource in templates/units.yaml
+          #  to ensure it's presence when unit_templates is used)
+          - if:
+              allOf:
+                - not:
+                    required:
+                      - helmrelease_spec
+                - not:
+                    required:
+                      - unit_templates
+            then:
+              properties:
+                kustomization_spec:
                   allOf:
-                    - not:
-                        required:
-                          - helmrelease_spec
-                    - not:
-                        required:
-                          - unit_templates
-                then:
-                  properties:
-                    kustomization_spec:
-                      allOf:
-                        - required:
-                          - path
-                        - anyOf:  # force having either 'wait' or 'healthChecks'
-                          - required:
-                              - wait
-                          - required:
-                              - healthChecks
+                    - required:
+                      - path
+                    - anyOf:  # force having either 'wait' or 'healthChecks'
+                      - required:
+                          - wait
+                      - required:
+                          - healthChecks
 
-              # if helmrelease_spec is used then, kustomization_spec.path cannot be set
-              - if:
-                  required:
-                    - helmrelease_spec
-                then:
-                  anyOf:
-                    - not:
-                        required: [kustomization_spec]
-                    - not:
-                        properties:
-                          kustomization_spec:
-                            required:
-                              - path
+          # if helmrelease_spec is used then, kustomization_spec.path cannot be set
+          - if:
+              required:
+                - helmrelease_spec
+            then:
+              anyOf:
+                - not:
+                    required: [kustomization_spec]
+                - not:
+                    properties:
+                      kustomization_spec:
+                        required:
+                          - path
 
   cluster:  # -------------------------------
     # the values are values of the sylva-capi-cluster chart
