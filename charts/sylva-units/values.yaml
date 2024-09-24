@@ -1813,7 +1813,7 @@ units:
         - '{{ tuple "components/capm3-patch-bond-policy" (tuple . "capm3" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/descheduler" (tuple . "descheduler" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/loki-aggregated-secrets" (tuple . "loki" | include "unit-enabled") | include "set-only-if" }}'
-        - '{{ tuple "components/thanos-aggregated-secrets" (tuple . "thanos" | include "unit-enabled") | include "set-only-if" }}'
+        - '{{ tuple "components/thanos" (tuple . "thanos" | include "unit-enabled") | include "set-only-if" }}'
 
   kyverno-policies-ready:
     info:
