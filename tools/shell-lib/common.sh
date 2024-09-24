@@ -225,7 +225,7 @@ function cleanup_bootstrap_cluster() {
 
   # if caller script is bootstrap.sh or apply.sh and if current bootstrap-cluster contains sylva bootstrap-cluster - then delete it
   if [[ $CALLER_SCRIPT_NAME =~ "bootstrap.sh"|"apply.sh" && ${kind_clusters} =~ $KIND_CLUSTER_NAME ]]; then
-    libvirt_metal_ks=`KUBECONFIG= kubectl get ks -l sylva-units.unit=libvirt-metal -o yaml | yq '.items|length'`
+    libvirt_metal_ks=`kubectl --context kind-${KIND_CLUSTER_NAME} get ks -l sylva-units.unit=libvirt-metal -o yaml | yq '.items|length'`
     if [[ $CLEANUP_BOOTSTRAP_CLUSTER == 'yes' && $libvirt_metal_ks == "0" ]]; then
       echo_b "\U0001F5D1 Delete bootstrap cluster"
       kind delete cluster -n $KIND_CLUSTER_NAME
