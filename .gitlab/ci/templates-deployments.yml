@@ -308,7 +308,13 @@ include:
           exit 1
         fi
       done
-    - kubectl --kubeconfig management-cluster-kubeconfig delete ns ${ENV_NAME} --timeout 2m
+    - kubectl --kubeconfig management-cluster-kubeconfig delete ns ${ENV_NAME} --timeout 2m || true
+    - |
+      if (kubectl --kubeconfig management-cluster-kubeconfig get ns ${ENV_NAME} 2>/dev/null); then
+        echo "Namespace '${ENV_NAME}' deletion did not complete (.status below)"
+        kubectl --kubeconfig management-cluster-kubeconfig get ns ${ENV_NAME} -o yaml | yq .status
+        exit 1
+      fi
   after_script:
     - echo -e "\e[1m\e[0Ksection_start:`date +%s`:debug_exit[collapsed=true]\r\e[0Kgathering debugging logs in debug-on-exit.log file\e[0m"
     - . bin/env
