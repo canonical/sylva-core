@@ -1,3 +1,5 @@
+#!/bin/bash
+
 set -eu
 set -o pipefail
 
@@ -89,14 +91,14 @@ echo_b() {
   end_section
 
   current_section_number=$(( ${current_section_number:-0} + 1))
-  echo -e "\e[1m\e[0Ksection_start:`date +%s`:section_$current_section_number[collapsed=true]\r\e[0K$@\e[0m"
+  echo -e "\e[1m\e[0Ksection_start:`date +%s`:section_${current_section_number}[collapsed=true]\r\e[0K$*\e[0m"
 }
 
 end_section() {
   # this is also called from EXIT trap to ensure that we always close the last section
 
   if (( ${current_section_number:-0} > 0 )) ; then
-    echo -e "\e[0Ksection_end:`date +%s`:section_$current_section_number\r\e[0K"
+    echo -e "\e[0Ksection_end:`date +%s`:section_${current_section_number}\r\e[0K"
   fi
 }
 

@@ -19,20 +19,20 @@ if [[ -f management-cluster-kubeconfig ]]; then
     export KUBECONFIG=${KUBECONFIG:-management-cluster-kubeconfig}
 else
     echo_b "management-cluster-kubeconfig file is not present in ${PWD}"
-    exit -1
+    exit 1
 fi
 
 if ! (kubectl get nodes > /dev/null); then
     echo_b "Cannot access cluster, 'kubectl get nodes' gives:"
     kubectl get nodes
-    exit -1
+    exit 1
 fi
 
 check_management_kubeconfig
 
 if ! (kubectl -n sylva-system get cm sylva-units-status > /dev/null); then
    echo_b "The sylva-units-status configmap doesn't exist. Please check the status of the management-cluster"
-   exit -1
+   exit 1
 fi
 
 

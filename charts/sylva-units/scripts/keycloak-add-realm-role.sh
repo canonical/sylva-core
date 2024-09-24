@@ -12,7 +12,7 @@ function cleanup {
 trap cleanup EXIT
 
 echo "-- Wait for Keycloak realm resource to be ready and created by keycloak operators"
-kubectl wait --for=condition=Done --timeout=15s -n keycloak keycloakrealmimport.k8s.keycloak.org/sylva || (echo "timed out waiting for sylva keycloakrealmimport to become ready" && exit -1)
+kubectl wait --for=condition=Done --timeout=15s -n keycloak keycloakrealmimport.k8s.keycloak.org/sylva || (echo "timed out waiting for sylva keycloakrealmimport to become ready" && exit 1)
 
 KEYCLOAK_BASE_URL="https://keycloak-service.keycloak.svc.cluster.local:8443"
 KEYCLOAK_INITIAL_USERNAME="admin"

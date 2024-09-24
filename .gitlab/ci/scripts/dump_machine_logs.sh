@@ -34,7 +34,7 @@ if [[ $(kind get clusters) =~ ${KIND_CLUSTER_NAME:-sylva} ]]; then
 
   if [[ $TARGET_CLUSTER == "management" ]]; then
     MACHINE_COUNT_IN_BOOTSTRAP=$(kubectl get -n sylva-system machines.cluster.x-k8s.io -ojson | yq '.items | length')
-    if [[ $MACHINE_COUNT_IN_BOOTSTRAP > 0 ]]; then
+    if [[ $MACHINE_COUNT_IN_BOOTSTRAP -gt 0 ]]; then
       echo "Machine ressources found in Bootstrap cluster, assuming pivot is not done"
     else
       echo "No machine ressources found in Bootstrap cluster, assuming pivot is done"
