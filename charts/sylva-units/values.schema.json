@@ -4897,47 +4897,6 @@
             }
           ]
         },
-        "use_custom_rancher_dns_resolver": {
-          "anyOf": [
-            {
-              "type": "boolean"
-            },
-            {
-              "$ref": "#/$defs/string-with-gotpl"
-            },
-            {
-              "type": "null"
-            }
-          ]
-        },
-        "rancher_dns_resolver": {
-          "anyOf": [
-            {
-              "type": "string",
-              "format": "hostname"
-            },
-            {
-              "$ref": "#/$defs/string-with-gotpl"
-            },
-            {
-              "type": "null"
-            }
-          ]
-        },
-        "rancher_domain": {
-          "anyOf": [
-            {
-              "type": "string",
-              "format": "hostname"
-            },
-            {
-              "$ref": "#/$defs/string-with-gotpl"
-            },
-            {
-              "type": "null"
-            }
-          ]
-        },
         "ntp": {
           "anyOf": [
             {
@@ -6523,21 +6482,6 @@
         }
       },
       "allOf": [
-        {
-          "if": {
-            "properties": {
-              "use_custom_rancher_dns_resolver": {
-                "const": true
-              }
-            }
-          },
-          "then": {
-            "required": [
-              "mgmt_cluster_ip",
-              "rancher_domain"
-            ]
-          }
-        },
         {
           "if": {
             "properties": {
