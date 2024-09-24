@@ -1,0 +1,34 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: suspend-thanos-compactor
+  annotations:
+    kustomize.toolkit.fluxcd.io/force: Enabled
+spec:
+  mutateExistingOnPolicyUpdate: true
+  rules:
+  - name: suspend-thanos-compactor
+    match:
+      any:
+      - resources:
+          kinds:
+          - Kustomization
+          names:
+          - cluster-machines-ready
+          namespaces:
+          - sylva-system
+    preconditions:
+      all:
+      - key: "{{ request.object.metadata.generation }}"
+        operator: NotEquals
+        value: "{{ request.object.status.observedGeneration }}"
+    mutate:
+      targets:
+        - apiVersion: apps/v1
+          kind: Deployment
+          name: thanos-compactor
+          namespace: thanos
+      patchStrategicMerge:
+        spec:
+          replicas: 0
+
