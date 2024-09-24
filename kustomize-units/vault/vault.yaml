@@ -169,9 +169,12 @@ spec:
           }
       - name: secret-writer
         rules: |
-         # create secrets
          path "secret/data/*" {
             capabilities = [ "create", "update", "delete" ]
+         }
+
+         path "secret/metadata/*" {
+            capabilities = [ "delete" ]
          }
 
          path "/sys/policies/password/+/generate" {
