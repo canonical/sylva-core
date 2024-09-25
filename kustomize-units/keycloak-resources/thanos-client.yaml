@@ -1,0 +1,67 @@
+apiVersion: legacy.k8s.keycloak.org/v1alpha1
+kind: KeycloakClient
+metadata:
+  labels:
+    realm1: sylva
+  name: thanos-client
+  namespace: keycloak
+spec:
+  client:
+    attributes:
+      use.refresh.tokens: "false"
+    clientAuthenticatorType: client-secret
+    clientId: thanos
+    defaultClientScopes:
+      - "profile"
+      - "email"
+    directAccessGrantsEnabled: true
+    enabled: true
+    implicitFlowEnabled: false
+    name: thanos
+    optionalClientScopes:
+      - "phone"
+      - "address"
+    protocol: openid-connect
+    protocolMappers:
+      - name: Groups Mapper
+        protocol: openid-connect
+        protocolMapper: oidc-group-membership-mapper
+        config:
+          full.path: "false"
+          id.token.claim: "false"
+          access.token.claim: "false"
+          userinfo.token.claim: "true"
+          claim.name: groups
+      - name: Client Audience
+        protocol: openid-connect
+        protocolMapper: oidc-audience-mapper
+        config:
+          included.client.audience: thanos
+          access.token.claim: "true"
+      - name: Group Path
+        protocol: openid-connect
+        protocolMapper: oidc-group-membership-mapper
+        config:
+          full.path: "true"
+          id.token.claim: "false"
+          access.token.claim: "false"
+          userinfo.token.claim: "true"
+          claim.name: full_group_path
+      - name: client roles
+        protocol: openid-connect
+        protocolMapper: oidc-usermodel-client-role-mapper
+        config:
+          access.token.claim: "true"
+          claim.name: resource_access.$${client_id}.roles
+          multivalued: "true"
+    publicClient: false
+    redirectUris:
+      - "https://${THANOS_DNS}/oauth2/callback"
+    standardFlowEnabled: true
+    rootUrl: "https://${THANOS_DNS}"
+    adminUrl: "https://${THANOS_DNS}"
+    webOrigins:
+      - "https://${THANOS_DNS}"
+  realmSelector:
+    matchLabels:
+      realm1: sylva

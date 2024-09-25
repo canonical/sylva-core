@@ -36,6 +36,7 @@
 | **metallb** | installs MetalLB operator | stable |  | [Helm](https://metallb.github.io/metallb) | 0.14.8 |
 | **monitoring** | installs monitoring stack | stable |  | [Helm](https://charts.rancher.io/) | 103.1.1+up45.31.1 |
 | **multus** | installs Multus | stable |  | [Helm](https://rke2-charts.rancher.io/) | v4.1.001 |
+| **oauth2-proxy** | installs OAuth2-Proxy for OIDC authentication | stable |  | [Helm](https://oauth2-proxy.github.io/manifests) | 7.7.1 |
 | **os-image-server** | Deploys a web server on management cluster which serves OS images for baremetal clusters. | stable |  | [Helm](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/os-image-server.git) | 2.1.1 |
 | **postgres** | installs Postgresql for Keycloak | stable |  | [Helm](https://charts.bitnami.com/bitnami) | 15.5.34 |
 | **rancher** | installs Rancher | stable |  | [Helm](https://releases.rancher.com/server-charts/latest) | 2.9.2 |
@@ -50,15 +51,13 @@
 | **calico-ready** | ensure Calico resources created by the Tigera operator are ready before running further steps<br/><br/>This unit will be enabled in bootstrap cluster to confirm management cluster CNI readiness and in various workload-cluster namespaces in management cluster to do the same for workload clusters | beta | True | Kustomize | N/A |
 | **ceph-csi-cephfs** | Installs Ceph-CSI | beta |  | [Helm](https://ceph.github.io/csi-charts) | 3.12.2 |
 | **flux-webui-init** | initializes and configures flux-webui | beta | True | Kustomize | N/A |
-| **harbor** | installs Harbor | beta |  | [Helm](https://helm.goharbor.io) | 1.15.1 |
-| **kube-storage-version-migrator** | installs kube-storage-version-migrator to assist apiVersion migrations | beta |  | [Kustomize](https://github.com/kubernetes-sigs/kube-storage-version-migrator/manifests?ref=v0.0.5) | v0.0.5 |
-| **kubevirt** | installs kubevirt | beta |  | [Helm](https://suse-edge.github.io/charts) | 0.4.0 |
-| **logging** | installs Rancher Fluentbit/Fluentd logging stack, for log collecting and shipping | beta |  | [Helm](https://charts.rancher.io/) | 103.1.2+up4.4.0 |
-| **loki** | installs Loki log storage<br/><br/>installs Loki log storage in simple scalable mode | beta |  | [Helm](https://github.com/grafana/loki.git) | v3.1.1 |
-| **minio-monitoring-tenant** | creates a MinIO tenant for the monitoring stack<br/><br/>Loki and Thanos will use this MinIO S3 storage | beta |  | [Helm](https://github.com/minio/operator.git) | v5.0.16 |
-| **minio-operator** | install MinIO operator<br/><br/>MinIO operator is used to manage multiple S3 tenants | beta |  | [Helm](https://github.com/minio/operator.git) | v5.0.16 |
-| **neuvector** | installs Neuvector | beta |  | [Helm](https://neuvector.github.io/neuvector-helm) | 2.7.9 |
-| **prometheus-pushgateway** | installs Prometheus Push-gateway exporter | beta |  | [Helm](https://prometheus-community.github.io/helm-charts) | 2.14.0 |
+| **harbor** | installs Harbor | beta |  | [Helm](https://helm.goharbor.io) | 1.14.2 |
+| **kubevirt** | installs kubevirt | beta |  | [Helm](https://suse-edge.github.io/charts) | 0.2.4 |
+| **logging** | installs Rancher Fluentbit/Fluentd logging stack, for log collecting and shipping | beta |  | [Helm](https://charts.rancher.io/) | 103.1.1+up4.4.0 |
+| **loki** | installs Loki log storage<br/><br/>installs Loki log storage in simple scalable mode | beta |  | Helm | v2.9.2 |
+| **minio-monitoring-tenant** | creates a MinIO tenant for the monitoring stack<br/><br/>Loki and Thanos will use this MinIO S3 storage | beta |  | Helm | v5.0.13 |
+| **minio-operator** | install MinIO operator<br/><br/>MinIO operator is used to manage multiple S3 tenants | beta |  | Helm | v5.0.13 |
+| **neuvector** | installs Neuvector | beta |  | [Helm](https://neuvector.github.io/neuvector-helm) | 2.6.6 |
 | **rancher-init** | initializes and configures Rancher | beta | True | Kustomize | N/A |
 | **snmp-exporter** | installs SNMP exporter | beta |  | [Helm](https://prometheus-community.github.io/helm-charts) | 5.5.0 |
 | **sylva-dashboards** | adds Sylva-specific Grafana dashboards | beta |  | [Helm](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-dashboards.git) | 0.0.11 |

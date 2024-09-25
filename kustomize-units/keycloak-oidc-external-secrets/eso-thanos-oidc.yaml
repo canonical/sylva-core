@@ -1,0 +1,22 @@
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  name: eso-thanos-oidc
+  namespace: oauth2-proxy
+spec:
+  refreshInterval: 1h
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: eso-store-k8s-keycloak
+  target:
+    name: thanos-oidc
+    template:
+      data:
+        client-id: thanos
+        client-secret: "{{ .clientSecret }}"
+        cookie-secret: ${THANOS_COOKIE_SECRET}
+  data:
+    - secretKey: clientSecret
+      remoteRef:
+        key: keycloak-client-secret-thanos-client  # this secret is a byproduct of the thanos-client KeycloakClient resource
+        property: CLIENT_SECRET

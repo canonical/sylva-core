@@ -4,3 +4,4 @@ kind: Kustomization
 resources:
   - thanos-certificate.yaml
   - thanos-secret.yaml
+  - thanos-sso-certificate.yaml

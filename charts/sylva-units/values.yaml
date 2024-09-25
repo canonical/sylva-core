@@ -622,6 +622,7 @@ units:
         - '{{ tuple "components/loki" (tuple . "loki" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/kepler" (tuple . "kepler" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/kube-system" (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpr") | include "set-only-if" }}'
+        - '{{ tuple "components/oauth2-proxy" (tuple . "oauth2-proxy" | include "unit-enabled") | include "set-only-if" }}'
 
   postgres:
     info:
@@ -1492,6 +1493,8 @@ units:
         - '{{ tuple "components/grafana" (tuple . "monitoring" | include "unit-enabled") | include "set-only-if" }}'
       postBuild:
         substitute:
+          OAUTH_PROXY_DNS: '{{ .Values.external_hostnames.oauth2_proxy  }}'
+          THANOS_DNS: '{{ .Values.external_hostnames.thanos }}' # ADD HEALTHCHECK FOR THE SECRET
           GRAFANA_DNS: '{{ .Values.external_hostnames.grafana }}'
           RANCHER_DNS: '{{ .Values.external_hostnames.rancher }}'
           FLUX_WEBUI_DNS: '{{ .Values.external_hostnames.flux }}'
@@ -1511,6 +1514,10 @@ units:
         - apiVersion: v1
           kind: Secret
           name: keycloak-client-secret-flux-webui-client  # this secret is a byproduct of the flux-webui-client KeycloakClient resource
+          namespace: keycloak
+        - apiVersion: v1
+          kind: Secret
+          name: keycloak-client-secret-thanos-client  # this secret is a byproduct of the thanos-client KeycloakClient resource
           namespace: keycloak
         - '{{ tuple (dict "apiVersion" "v1" "kind" "Secret" "name" "keycloak-client-secret-neuvector-client" "namespace" "keycloak") (tuple . "neuvector" | include "unit-enabled") | include "set-only-if" }}'  # # this secret is a byproduct of the neuvector client KeycloakClient resource
         - '{{ tuple (dict "apiVersion" "v1" "kind" "Secret" "name" "keycloak-client-secret-harbor-client" "namespace" "keycloak") (tuple . "harbor" | include "unit-enabled") | include "set-only-if" }}'  # # this secret is a byproduct of the harbor client KeycloakClient resource
@@ -1647,6 +1654,7 @@ units:
       keycloak-legacy-operator: true
       keycloak-resources: true
       eso-secret-stores: true
+      namespace-defs: true
     repo: sylva-core
     kustomization_spec:
       path: ./kustomize-units/keycloak-oidc-external-secrets
@@ -1654,6 +1662,7 @@ units:
         substitute:
           KEYCLOAK_DNS: '{{ .Values.external_hostnames.keycloak }}'
           FLUX_WEBUI_DNS: '{{ .Values.external_hostnames.flux }}'
+          THANOS_COOKIE_SECRET: '{{ .Values._internal.thanos_client_secret }}'
       wait: false
       healthChecks:
         - >-
@@ -5599,14 +5608,8 @@ units:
           enabled: true
           serviceMonitor:
             enabled: true
-            extraParameters:
-              basicAuth:
-                password:
-                  name: thanos-basic-auth
-                  key: password
-                username:
-                  name: thanos-basic-auth
-                  key: username
+            # Remove basicAuth section
+            extraParameters: {}
         ruler:
           enabled: true
           resources:
@@ -5716,7 +5719,7 @@ units:
               max_size_items: 0
               validity: 0s
           ingress:
-            enabled: true
+            enabled: false
             ingressClassName: "nginx"
             hostname: '{{ .Values.external_hostnames.thanos }}'
             extraTls:
@@ -5796,7 +5799,7 @@ units:
           name: thanos-basic-auth
         type: Opaque
         data:
-          username: '{{ .Values._internal.thanos_user | b64enc }}'
+          username: '{{ "thanos-user" | b64enc }}'
           password: '{{ .Values._internal.thanos_password | b64enc }}'
       - apiVersion: v1
         kind: Secret
@@ -5814,6 +5817,9 @@ units:
                   insecure_skip_verify: true
               static_configs: ["thanos-query-frontend:9090"]
               scheme: http
+      auth:
+        basicAuthUsers:
+          thanos-user: '{{ .Values._internal.thanos_password }}'
       objstoreConfig:
         type: "S3"
         config:
@@ -5824,6 +5830,100 @@ units:
             tls_config:
               insecure_skip_verify: true
             insecure_skip_verify: true
+
+  oauth2-init:
+    info:
+      description: initializes and configures oauth2-proxy
+      maturity: beta
+      internal: true
+    unit_templates:
+    - base-deps
+    depends_on:
+      sylva-ca: true
+      namespace-defs: true
+      ingress-nginx: '{{ tuple . "ingress-nginx" | include "unit-enabled" }}'
+    repo: sylva-core
+#    kustomization_substitute_secrets:
+#      KEY: '{{ .Values.external_certificates.flux.key | default "" | b64enc }}'
+    kustomization_spec:
+      path: ./kustomize-units/oauth2-init
+      targetNamespace: oauth2-proxy
+      postBuild:
+        substitute:
+          SERVICE: oauth2-proxy
+          THANOS_DNS: '{{ .Values.external_hostnames.thanos }}'
+          SERVICE_DNS: '{{ .Values.external_hostnames.oauth2_proxy }}'
+          CERT: '{{ .Values.external_certificates.oauth2_proxy.cert | default "" | b64enc }}'
+          CACERT: '{{ .Values.external_certificates.cacert | default "" | b64enc }}'
+      _components:
+        - '{{ ternary "../tls-components/tls-secret" "../tls-components/tls-certificate" (hasKey .Values.external_certificates.oauth2_proxy "cert") }}'
+        - "../tls-components/sylva-ca"
+      healthChecks:
+        - apiVersion: v1
+          kind: Secret
+          name: oauth2-proxy-tls
+          namespace: oauth2-proxy
+
+  oauth2-proxy:
+  # Todo: disable thanos auth and make ingress in kustomization so it points to oauth2 svc endpoint
+  # mount sylva certs so oauth2 trusts them
+  # the values.config doesn't seem to properly work
+    info:
+      description: installs OAuth2-Proxy for OIDC authentication
+      maturity: stable
+    unit_templates:
+    - base-deps
+    annotations:
+      sylvactl/readyMessage: "OAuth2-Proxy can be reached at https://{{ .Values.external_hostnames.oauth2_proxy }} ({{ .Values.external_hostnames.oauth2_proxy }} must resolve to {{ .Values.display_external_ip }})"
+    depends_on:
+      thanos: true
+      namespace-defs: true
+      keycloak-resources: true
+    helm_repo_url: https://oauth2-proxy.github.io/manifests
+    helmrelease_spec:
+      releaseName: oauth2-proxy
+      targetNamespace: oauth2-proxy
+      install:
+        createNamespace: false
+      chart:
+        spec:
+          chart: oauth2-proxy
+          version: 7.7.1
+      values:
+        ingress:
+          enabled: true
+          hosts:
+            - '{{ .Values.external_hostnames.oauth2_proxy }}' #createcerts
+          tls:
+            - secretName: oauth2-proxy-tls
+              hosts:
+                - '{{ .Values.external_hostnames.oauth2_proxy }}'
+        service:
+          type: ClusterIP
+          portNumber: 80
+          appProtocol: http
+          annotations: {}
+        config:
+          clientID: thanos
+          existingSecret: thanos-oidc
+          configFile: |-
+            oidc_groups_claim = 'infra-admins'
+            client_id = 'thanos'
+            cookie_csrf_per_request = 'true'
+            cookie_csrf_expire = '5m'
+            provider = 'keycloak-oidc'
+            oidc_issuer_url = 'https://{{ .Values.external_hostnames.keycloak }}/realms/sylva'
+            redirect_url = 'https://{{ .Values.external_hostnames.thanos }}/oauth2/callback'
+            email_domains = [ "*" ]
+            upstreams = [ 'http://thanos-query-frontend.thanos.svc.cluster.local:9090' ]
+        extraVolumes:
+          - name: oauth2-proxy-tls
+            secret:
+              secretName: thanos-tls
+        extraVolumeMounts:
+          - mountPath: /etc/ssl/certs
+            name: oauth2-proxy-tls
+
 
   logging-crd:
     info:
@@ -6511,7 +6611,6 @@ external_hostnames:
   thanos_query: 'thanos-query.{{ .Values.cluster_domain }}'
   loki: 'loki.{{ .Values.cluster_domain }}'
   grafana: 'grafana.{{ .Values.cluster_domain }}'
-  kubevirt_manager: 'kubevirt-manager.{{ .Values.cluster_domain }}'
 
 external_certificates:
   rancher: {}
@@ -6527,7 +6626,6 @@ external_certificates:
   thanos: {}
   loki: {}
   grafana: {}
-  kubevirt_manager: {}
 
 audit_log:
   level: 0
@@ -6824,10 +6922,6 @@ _internal:
   # Grafana password
   grafana_admin_password: '{{ include "internalPersistentRandomPasswd" (tuple . "grafana_admin_password") }}'
 
-  # kubevirt admin user and password
-  kubevirt_admin_user: 'admin'
-  kubevirt_admin_password: '{{ include "internalPersistentRandomPasswd" (tuple . "kubevirt_admin_password") }}'
-
   default_password: '{{ include "internalPersistentRandomPasswd" (tuple . "default_password") }}'
 
   default_storage_class: >-
@@ -6923,33 +7017,6 @@ _internal:
     .Capabilities.APIVersions | has "infrastructure.cluster.x-k8s.io/v1alpha8/OpenStackCluster" | include "preserve-type"
     }}
 
-  metal3_need_automated_cleanup_fix: >
-    {{- $result := "false" -}}
-    {{- if .Capabilities.APIVersions | has "infrastructure.cluster.x-k8s.io/v1beta1/Metal3MachineTemplate" -}}
-      {{- range (lookup "infrastructure.cluster.x-k8s.io/v1beta1" "Metal3MachineTemplate" .Release.Namespace "" | dig "items" list) -}}
-        {{- if eq "metadata" (dig "spec" "template" "spec" "automatedCleaningMode" "disabled" .) -}}
-          {{- $result = "true" -}}
-        {{- end -}}
-      {{- end -}}
-    {{- end -}}
-    {{- $result -}}
-
-  previous_values: '{{ omit (lookup "v1" "Secret" .Release.Namespace "sylva-units-values" | dig "data" "values" "" | b64dec | fromYaml | default dict) "unit_templates" | include "preserve-type" }}'
-
-  immutable_values:
-    cluster:
-      name:
-        _immutable: true
-        _immutable_comment: "Renaming a cluster is not supported"
-      capi_providers:
-        bootstrap_provider:
-          _immutable: true
-          _immutable_comment: "K8s distribution of a running cluster can't be changed"
-        infra_provider:
-          _immutable: true
-          _immutable_comment: "Underlying infrastructure of a running cluster can't be changed"
-      _immutable: '{{ not .Values._internal.ha_cluster.is_ha | include "preserve-type" }}'
-      _immutable_comment: "Cluster values can't be changed, as they would trigger a rolling upgrade that is not supported in non-HA mode"
 
 shared_workload_clusters_values:
   ntp: '{{ .Values.ntp | include "set-if-defined" }}'
