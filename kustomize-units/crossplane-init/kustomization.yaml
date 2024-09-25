@@ -3,4 +3,4 @@ kind: Kustomization
 
 resources:
   - crossplane-ns.yaml
-  - crossplane-network-policy.yaml
+#  - crossplane-network-policy.yaml
