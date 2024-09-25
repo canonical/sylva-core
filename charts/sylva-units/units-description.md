@@ -18,6 +18,7 @@
 | **capo-contrail-bgpaas** | installs CAPO Contrail BGPaaS controller | stable |  | [Helm](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/capo-contrail-bgpaas.git) | 1.0.4 |
 | **cinder-csi** | installs OpenStack Cinder CSI | stable |  | [Helm](https://kubernetes.github.io/cloud-provider-openstack) | 2.31.1 |
 | **cis-operator** | install CIS operator | stable |  | [Helm](https://charts.rancher.io) | 6.2.0 |
+| **crossplane** | Installs Crossplane with RBAC Manager | stable |  | [Helm](https://charts.crossplane.io/stable) | 1.17.1 |
 | **external-secrets-operator** | installs the External Secrets operator | stable |  | [Helm](https://charts.external-secrets.io) | 0.10.4 |
 | **flux-webui** | installs Weave GitOps Flux web GUI | stable |  | [Helm](https://github.com/weaveworks/weave-gitops.git) | v0.38.0 |
 | **gitea** | installs Gitea | stable |  | [Helm](https://dl.gitea.com/charts/) | 10.4.1 |
@@ -93,6 +94,7 @@
 | **cluster-ready** | unit to check readiness of cluster CAPI objects<br/><br/>the healthChecks on this unit complements the one done in the 'cluster' unit, which in some cases can't cover all CAPI resources |  | True | Kustomize | N/A |
 | **cluster-rke2-finalizer-fix** | Kyverno policy to clean a stray finalizer left by RKE2 on Nodes<br/><br/>Kyverno policy to delete the "wrangler.cattle.io/cisnetworkpolicy-node" finalizer<br/>that RKE2 sets on Nodes before version 1.28.9, and because it sometimes isn't<br/>removed, prevents deletion of Nodes. |  | True | Kustomize | N/A |
 | **coredns** | configures DNS inside cluster |  | True | Kustomize | N/A |
+| **crossplane-external-secrets** | configures external secrets for Crossplane resources |  | True | Kustomize | N/A |
 | **descheduler** | install descheduler |  |  | [Helm](https://kubernetes-sigs.github.io/descheduler/) | 0.31.0 |
 | **eso-secret-stores** | defines External Secrets stores |  | True | Kustomize | N/A |
 | **first-login-rancher** | configure Rancher authentication for admin |  | True | Kustomize | N/A |
