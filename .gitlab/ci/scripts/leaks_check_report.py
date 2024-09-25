@@ -29,9 +29,8 @@ whitelist_secret = {
     "cluster-user-auth": ["username"],
     "cluster-creator-kubeconfig": ["USER_NAME"],
     "local-kubeconfig": ["apiServerURL"],
-    "thanos-minio-root":  ["MINIO_ROOT_USER"],
+    "thanos-minio-user":  ["CONSOLE_ACCESS_KEY"],
     "loki-minio-user": ["CONSOLE_ACCESS_KEY"],
-    "minio-monitoring-user": ["CONSOLE_ACCESS_KEY"],
     "ca-key-pair": ["tls.crt"],
     # https://gitlab.com/sylva-projects/sylva-core/-/issues/1451
     # for password key

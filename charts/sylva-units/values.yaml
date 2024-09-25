@@ -5743,13 +5743,13 @@ units:
                 secretName: thanos-tls
       valuesFrom:
         - kind: Secret
-          name: thanos-minio-root
-          valuesKey: MINIO_ROOT_USER
+          name: thanos-minio-user
+          valuesKey: CONSOLE_ACCESS_KEY
           targetPath: objstoreConfig.config.access_key
           optional: false
         - kind: Secret
-          name: thanos-minio-root
-          valuesKey: MINIO_ROOT_PASSWORD
+          name: thanos-minio-user
+          valuesKey: CONSOLE_SECRET_KEY
           targetPath: objstoreConfig.config.secret_key
           optional: false
         # Use tenant list built by kyverno policy thanos-aggregated-secret to fill auth.basicAuthUsers object
