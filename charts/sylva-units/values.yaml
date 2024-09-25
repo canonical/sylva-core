@@ -3150,7 +3150,7 @@ units:
       synchronize-secrets: true
     annotations:
       sylvactl/readyMessage: "Rancher UI can be reached at https://{{ .Values.external_hostnames.rancher }} ({{ .Values.external_hostnames.rancher }} must resolve to {{ .Values.display_external_ip }})"
-    helm_repo_url: https://releases.rancher.com/server-charts/latest
+    helm_repo_url: https://releases.rancher.com/server-charts/stable
     helmrelease_spec:
       chart:
         spec:
