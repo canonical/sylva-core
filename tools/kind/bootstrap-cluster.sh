@@ -20,9 +20,6 @@ for BINARY in kubectl kind helm yq; do
     fi
 done
 
-# unset KUBECONFIG in case it would refer to management-cluster-kubeconfig,
-# otherwise kind kubeconfig would be saved in this file (which may be overwritten by bootstrap.sh...)
-[[ "${KUBECONFIG:-}" =~ management-cluster-kubeconfig$ ]] && unset KUBECONFIG
 # Check if there is already a functional kind cluster
 if kind get clusters 2>/dev/null | grep -q "^$KIND_CLUSTER_NAME\$"; then
     if ! kubectl --kubeconfig=<(kind get kubeconfig --name $KIND_CLUSTER_NAME 2>/dev/null) get nodes &>/dev/null; then
