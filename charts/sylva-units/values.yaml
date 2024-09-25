@@ -736,6 +736,7 @@ units:
         - '{{ tuple "components/loki" (tuple . "loki" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/kepler" (tuple . "kepler" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/kube-system" (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpr") | include "set-only-if" }}'
+        - '{{ tuple "components/crossplane" (tuple . "crossplane" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/neuvector" (tuple . "neuvector" | include "unit-enabled") | include "set-only-if" }}'
 
   cnpg-operator:
@@ -1614,6 +1615,109 @@ units:
           kind: Deployment
           name: neuvector-controller-pod
           namespace: neuvector
+
+  crossplane-external-secrets:
+    info:
+      description: configures external secrets for Crossplane resources
+      internal: true
+    unit_templates:
+    - base-deps
+    enabled_conditions:
+    - '{{ tuple . "keycloak" | include "unit-enabled" }}'
+    - '{{ tuple . "crossplane" | include "unit-enabled" }}'
+    depends_on:
+      keycloak: true
+      eso-secret-stores: true
+    repo: sylva-core
+    kustomization_spec:
+      path: ./kustomize-units/crossplane-external-secrets
+      wait: false
+      healthChecks:
+        - apiVersion: v1
+          kind: Secret
+          name: keycloak-internal-tls
+          namespace: crossplane-system
+
+  crossplane:
+    info:
+      description: Installs Crossplane with RBAC Manager
+      maturity: stable
+    unit_templates:
+      - base-deps
+    depends_on:
+      namespace-defs: true
+      keycloak: true
+      crossplane-external-secrets: true
+    helm_repo_url: https://charts.crossplane.io/stable
+    helmrelease_spec:
+      releaseName: crossplane
+      targetNamespace: crossplane-system
+      chart:
+        spec:
+          chart: crossplane
+          version: 1.17.1
+      install:
+        createNamespace: false
+      values:
+        extraVolumesCrossplane:
+          - name: keycloak-tls
+            secret:
+              secretName: keycloak-internal-tls
+        extraVolumeMountsCrossplane:
+          - name: keycloak-tls
+            mountPath: /etc/ssl/certs/keycloak-ca.crt
+            subPath: ca.crt
+          - name: keycloak-tls
+            mountPath: /etc/ssl/certs/keycloak-tls.crt
+            subPath: tls.crt
+          - name: keycloak-tls
+            mountPath: /etc/ssl/certs/keycloak-tls.key
+            subPath: tls.key
+        extraEnvVarsCrossplane:
+          HTTP_PROXY: '{{ .Values.proxies.http_proxy | default "" }}'
+          HTTPS_PROXY: '{{ .Values.proxies.https_proxy | default "" }}'
+          NO_PROXY: '{{ include "sylva-units.no_proxy" (tuple .) }}'
+        rbacManager:
+          deploy: true
+          skipAggregatedClusterRoles: false
+          replicas: 1
+          leaderElection: true
+        securityContextCrossplane:
+          runAsUser: 65532
+          runAsNonRoot: true
+          runAsGroup: 65532
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+              - ALL
+          seccompProfile:
+            type: RuntimeDefault
+        securityContextRBACManager:
+          runAsNonRoot: true
+          runAsUser: 65532
+          runAsGroup: 65532
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+              - ALL
+          seccompProfile:
+            type: RuntimeDefault
+        metrics:
+          enabled: false
+        podSecurityContextCrossplane:
+          runAsNonRoot: true
+          runAsUser: 65532
+          fsGroup: 65532
+          seccompProfile:
+            type: RuntimeDefault
+        podSecurityContextRBACManager:
+          runAsNonRoot: true
+          runAsUser: 65532
+          fsGroup: 65532
+          seccompProfile:
+            type: RuntimeDefault
 
   keycloak:
     info:
