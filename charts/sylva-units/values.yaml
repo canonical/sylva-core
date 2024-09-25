@@ -5987,7 +5987,6 @@ units:
       chart:
         spec:
           chart: production/helm/loki
-          version: v2.9.2
       install:
         createNamespace: false
       values:
