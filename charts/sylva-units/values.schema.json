@@ -8020,6 +8020,34 @@
             }
           ]
         },
+        "minio_logging": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "hostname"
+            },
+            {
+              "const": ""
+            },
+            {
+              "$ref": "#/$defs/string-with-gotpl"
+            }
+          ]
+        },
+        "minio_logging_console": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "hostname"
+            },
+            {
+              "const": ""
+            },
+            {
+              "$ref": "#/$defs/string-with-gotpl"
+            }
+          ]
+        },
         "thanos": {
           "anyOf": [
             {
@@ -8155,6 +8183,9 @@
           "$ref": "#/$defs/cert-and-key"
         },
         "minio_monitoring": {
+          "$ref": "#/$defs/cert-and-key"
+        },
+        "minio_logging": {
           "$ref": "#/$defs/cert-and-key"
         },
         "thanos": {

@@ -618,6 +618,7 @@ units:
         - '{{ tuple "components/gitea" (tuple . "gitea" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/minio-operator" (tuple . "minio-operator" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/minio-monitoring" (tuple . "minio-monitoring" | include "unit-enabled") | include "set-only-if" }}'
+        - '{{ tuple "components/minio-logging" (tuple . "minio-logging" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/thanos" (tuple . "thanos" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/loki" (tuple . "loki" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/kepler" (tuple . "kepler" | include "unit-enabled") | include "set-only-if" }}'
@@ -4192,7 +4193,7 @@ units:
           flux:
             enabled: '{{ tuple . "flux-system" | include "unit-enabled" }}'
           minio:
-            enabled: '{{ tuple . "minio-monitoring" | include "unit-enabled" }}'
+            enabled: '{{ tuple . "minio-operator" | include "unit-enabled" }}'
           loki:
             enabled: '{{ tuple . "loki" | include "unit-enabled" }}'
           kepler:
@@ -5226,7 +5227,7 @@ units:
     unit_templates:
     - base-deps
     enabled_conditions:
-      - '{{ tuple . "minio-monitoring" | include "unit-enabled" }}'
+      - '{{ or (tuple . "minio-monitoring" | include "unit-enabled") (tuple . "minio-logging" | include "unit-enabled") }}'
     depends_on:
       namespace-defs: true
       minio-operator-init: true
@@ -5312,6 +5313,174 @@ units:
           name: sts-tls
           namespace: minio-operator
 
+  minio-logging-init:
+    info:
+      description: sets up secrets and certificates for minio-logging
+      internal: true
+    unit_templates:
+    - base-deps
+    enabled_conditions:
+      - '{{ tuple . "minio-logging" | include "unit-enabled" }}'
+    depends_on:
+      namespace-defs: true
+      sylva-ca: true
+      vault: true
+      vault-config-operator: true
+      eso-secret-stores: true
+    repo: sylva-core
+    kustomization_substitute_secrets:
+      KEY: '{{ .Values.external_certificates.minio_logging.key | default "" | b64enc }}'
+    kustomization_spec:
+      path: ./kustomize-units/minio-tenant-init
+      wait: true
+      postBuild:
+        substitute:
+          TENANT_NAME: minio-logging
+          SERVICE: minio-logging
+          SERVICE_DNS: '{{ .Values.external_hostnames.minio_logging }}'
+          CERTIFICATE_NAMESPACE: minio-logging
+          CERT: '{{ .Values.external_certificates.minio_logging.cert | default "" | b64enc }}'
+          CACERT: '{{ .Values.external_certificates.cacert | default "" | b64enc }}'
+      _components:
+        - '{{ ternary "../tls-components/tls-secret" "../tls-components/tls-certificate" (hasKey .Values.external_certificates.minio_logging "cert") }}'
+        - "../tls-components/sylva-ca"
+
+  minio-logging:
+    info:
+      description: creates a MinIO tenant for the logging stack, used as S3 storage by Loki
+      maturity: beta
+    unit_templates:
+    - base-deps
+    enabled_conditions:
+      - '{{ tuple . "loki" | include "unit-enabled" }}'
+    depends_on:
+      namespace-defs: true
+      minio-operator: true
+      minio-logging-init: true
+      ingress-nginx: '{{ tuple . "ingress-nginx" | include "unit-enabled" }}'
+      two-replicas-storageclass: '{{ tuple . "two-replicas-storageclass" | include "unit-enabled" }}'
+      '{{ .Values._internal.default_storage_class_unit }}': '{{ not (tuple . "two-replicas-storageclass" | include "unit-enabled") }}'
+    annotations:
+      sylvactl/readyMessage: MinIO logging tenant console can be reached at https://{{ .Values.external_hostnames.minio_logging_console }} ({{ .Values.external_hostnames.minio_logging_console }} must resolve to {{ .Values.display_external_ip }})
+    repo: minio-operator
+    helmrelease_spec:
+      targetNamespace: minio-logging
+      chart:
+        spec:
+          chart: helm/tenant
+          version: v5.0.13
+      install:
+        createNamespace: false
+      values:
+        secrets:
+          existingSecret: minio-logging-root
+        tenant:
+          name: logging
+          # The Kubernetes secret name that contains MinIO environment variable configurations:
+          configuration:
+            name: minio-logging-root
+          # Array of Kubernetes secrets from which the Operator generates MinIO users during tenant provisioning:
+          users:
+            - name: minio-logging-user
+          pools:
+            - servers: '{{ min .Values._internal.node_count 4 }}'
+              name: pool-0
+              volumesPerserver: 4
+              size: 3Gi
+              storageClassName: '{{ tuple . (tuple . "two-replicas-storageclass" | include "unit-enabled") "two-replicas-storageclass" .Values._internal.default_storage_class | include "interpret-ternary" }}'
+              containerSecurityContext:
+                runAsUser: 1000
+                runAsGroup: 1000
+                runAsNonRoot: true
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop:
+                    - ALL
+                seccompProfile:
+                  type: RuntimeDefault
+              securityContext:
+                runAsUser: 1000
+                runAsGroup: 1000
+                fsGroup: 1000
+                fsGroupChangePolicy: "OnRootMismatch"
+                runAsNonRoot: true
+                seccompProfile:
+                  type: RuntimeDefault
+              affinity:
+                podAntiAffinity:
+                  requiredDuringSchedulingIgnoredDuringExecution:
+                    - labelSelector:
+                        matchExpressions:
+                          - key: v1.min.io/pool
+                            operator: In
+                            values:
+                              - pool-0
+                          - key: v1.min.io/tenant
+                            operator: In
+                            values:
+                              - logging
+                      topologyKey: "kubernetes.io/hostname"
+          metrics:
+            enabled: true
+          env:
+          - name: MINIO_PROMETHEUS_AUTH_TYPE
+            value: public
+          features:
+            bucketDNS: false
+            enableSFTP: false
+          buckets:
+            - name: "loki-chunks"
+              region: "logging-cluster"
+              objectLock: false
+            - name: "loki-ruler"
+              region: "monitoring-cluster"
+              objectLock: false
+            - name: "loki-admin"
+              region: "monitoring-cluster"
+              objectLock: false
+          prometheusOperator: false    # Prometheus Operator's Service Monitor for MinIO Tenant Pods
+          logging:
+            anonymous: true
+            json: true
+            quiet: true
+        ingress:
+          api:
+            enabled: true
+            ingressClassName: nginx
+            annotations:
+              nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+            host: '{{ .Values.external_hostnames.minio_logging }}'
+            path: /
+            pathType: Prefix
+            tls:
+              - hosts:
+                  - '{{ .Values.external_hostnames.minio_logging }}'
+                secretName: minio-logging-tls
+          console:
+            enabled: true
+            ingressClassName: nginx
+            annotations:
+              nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+            host: '{{ .Values.external_hostnames.minio_logging_console }}'
+            path: /
+            pathType: Prefix
+            tls:
+              - hosts:
+                  - '{{ .Values.external_hostnames.minio_logging_console }}'
+                secretName: minio-logging-tls
+    kustomization_spec:
+      # these healthChecks are added so that MinIO backend setup
+      # for tenant.minio.min.io/logging created by this unit is ready
+      healthChecks:
+        - apiVersion: apps/v1
+          kind: StatefulSet
+          name: logging-pool-0  # concatenation from .tenant chart values .name & .pools[0].name
+          namespace: minio-logging
+        - apiVersion: v1
+          kind: Secret
+          name: logging-tls
+          namespace: minio-logging
+
   minio-monitoring-init:
     info:
       description: sets up secrets and certificates for minio-monitoring
@@ -5351,7 +5520,7 @@ units:
     unit_templates:
     - base-deps
     enabled_conditions:
-      - '{{ or (tuple . "thanos" | include "unit-enabled") ( tuple . "loki" | include "unit-enabled") }}'
+      - '{{ tuple . "thanos" | include "unit-enabled" }}'
     depends_on:
       namespace-defs: true
       minio-operator: true
@@ -5428,15 +5597,6 @@ units:
             enableSFTP: false
           buckets:
             - name: "thanos"
-              region: "monitoring-cluster"
-              objectLock: false
-            - name: "loki-chunks"
-              region: "monitoring-cluster"
-              objectLock: false
-            - name: "loki-ruler"
-              region: "monitoring-cluster"
-              objectLock: false
-            - name: "loki-admin"
               region: "monitoring-cluster"
               objectLock: false
           prometheusOperator: false    # Prometheus Operator's Service Monitor for MinIO Tenant Pods
@@ -5946,7 +6106,7 @@ units:
       namespace-defs: true
       loki-init: true
       loki-credentials-secret: true
-      minio-monitoring: true
+      minio-logging: true
     enabled_conditions:
       - '{{ tuple . "logging" | include "unit-enabled" }}'
     annotations:
@@ -6005,10 +6165,11 @@ units:
               ruler: "loki-ruler"
               admin: "loki-admin"
             s3:
-              endpoint: "minio.minio-monitoring.svc.cluster.local:443"
+              endpoint: "minio.minio-logging.svc.cluster.local:443"
               s3ForcePathStyle: true
               http_config:
                 insecure_skip_verify: true
+              storage_class: REDUCED_REDUNDANCY
         test:
           enabled: false
         lokiCanary:
@@ -6514,6 +6675,8 @@ external_hostnames:
   minio_operator_console: 'minio-operator-console.{{ .Values.cluster_domain }}'
   minio_monitoring: 'minio-monitoring.{{ .Values.cluster_domain }}'
   minio_monitoring_console: 'minio-monitoring-console.{{ .Values.cluster_domain }}'
+  minio_logging: 'minio-logging.{{ .Values.cluster_domain }}'
+  minio_logging_console: 'minio-logging-console.{{ .Values.cluster_domain }}'
   thanos: 'thanos.{{ .Values.cluster_domain }}'
   thanos_storegateway: 'thanos-storegateway.{{ .Values.cluster_domain }}'
   thanos_receive: 'thanos-receive.{{ .Values.cluster_domain }}'
@@ -6533,6 +6696,7 @@ external_certificates:
   gitea: {}
   minio_operator: {}
   minio_monitoring: {}
+  minio_logging: {}
   thanos: {}
   loki: {}
   grafana: {}
