@@ -5223,7 +5223,6 @@ units:
       chart:
         spec:
           chart: helm/operator
-          version: v5.0.13
       install:
         createNamespace: false
       values:
@@ -5353,7 +5352,6 @@ units:
       chart:
         spec:
           chart: helm/tenant
-          version: v5.0.13
       install:
         createNamespace: false
       values:
