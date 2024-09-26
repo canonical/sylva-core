@@ -5,6 +5,7 @@ metadata:
   namespace: kube-system
 data:
   Corefile: |
+    import /etc/coredns/coredns-custom*
     ${CLUSTER_DOMAIN}:53 {
         errors
         forward ${CLUSTER_DOMAIN} ${CLUSTER_VIRTUAL_IP}
