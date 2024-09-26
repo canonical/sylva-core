@@ -93,6 +93,7 @@
 | **cluster-ready** | unit to check readiness of cluster CAPI objects<br/><br/>the healthChecks on this unit complements the one done in the 'cluster' unit, which in some cases can't cover all CAPI resources |  | True | Kustomize | N/A |
 | **cluster-rke2-finalizer-fix** | Kyverno policy to clean a stray finalizer left by RKE2 on Nodes<br/><br/>Kyverno policy to delete the "wrangler.cattle.io/cisnetworkpolicy-node" finalizer<br/>that RKE2 sets on Nodes before version 1.28.9, and because it sometimes isn't<br/>removed, prevents deletion of Nodes. |  | True | Kustomize | N/A |
 | **coredns** | configures DNS inside cluster |  | True | Kustomize | N/A |
+| **coredns-custom-hosts-import** | create a ConfigMap containing OKD workload cluster's DNS A records in [CoreDNS hosts plugin](https://coredns.io/plugins/hosts/) |  | True | Kustomize | N/A |
 | **descheduler** | install descheduler |  |  | [Helm](https://kubernetes-sigs.github.io/descheduler/) | 0.31.0 |
 | **eso-secret-stores** | defines External Secrets stores |  | True | Kustomize | N/A |
 | **first-login-rancher** | configure Rancher authentication for admin |  | True | Kustomize | N/A |
