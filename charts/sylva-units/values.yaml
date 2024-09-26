@@ -128,7 +128,7 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
     spec:
       url: https://github.com/grafana/loki.git
       ref:
-        tag: v3.1.1
+        tag: v3.2.0
 
   sylva-prometheus-rules:
     kind: GitRepository
