@@ -130,7 +130,7 @@
       "allowedVersions": "<1.14"
     },
     {
-      "description": "Prevent helm rancher update to over 103 for compatibility with rancher 2.8",
+      "description": "Prevent helm rancher update to over 104 for compatibility with rancher 2.9",
       "matchPackageNames": [
         "rancher-logging",
         "rancher-logging-crd",
@@ -139,7 +139,7 @@
         "longhorn-crd",
         "longhorn"
       ],
-      "allowedVersions": "<104"
+      "allowedVersions": "<105"
     },
     {
       "description": "Regroup workload-cluster-operator updates",
