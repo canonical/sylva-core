@@ -2056,7 +2056,10 @@ units:
         createNamespace: true
       values:
         config:
+          webhooks:
+            - namespaceSelector: {}
           resourceFiltersExclude:
+          - "[*/*,kube-system,*]"
           - "[Node,*,*]"
           - "[Node/*,*,*]"
               # #####  how we exclude kube-system from Kyverno webhooks (but not completely)  ###########################
@@ -2259,6 +2262,8 @@ units:
           DIGEST: '{{ .Values.security.upstream_images_signature.policy_action | eq "Enforce" }}'
           COSIGN_PUBLIC_KEY: '{{ .Values.security.upstream_images_signature.cosign_public_key | quote }}'
           IMAGE_LIST: '{{ .Values.security.upstream_images_signature.images_list | toJson }}'
+          COREDNS_DEPLOYMENT_NAME: '{{ tuple (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpk" | ternary "coredns" "rke2-coredns-rke2-coredns") (tuple . "cabpoa" | include "unit-enabled") | include "set-only-if" }}'
+          COREDNS_CONFIGMAP_NAME: '{{ tuple (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpk" | ternary "coredns" "rke2-coredns-rke2-coredns") (tuple . "cabpoa" | include "unit-enabled") | include "set-only-if" }}'
       _components:
         - '{{ tuple "components/bootstrap-cluster-only" .Values._internal.bstrp_cluster | include "set-only-if" }}'
         - '{{ tuple "components/management-cluster-only" .Values._internal.mgmt_cluster | include "set-only-if" }}'
@@ -2270,6 +2275,7 @@ units:
         - '{{ tuple "components/neuvector-policies" (tuple . "neuvector" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/deny-cabundle-changes" (tuple . "cert-manager" | include "unit-enabled") | include "set-only-if" }}'
         - ../exclude-kube-system  # needs to be last (needed for components above that use sylva.org/kyverno-exclude-kube-system annotation)
+        - '{{ tuple "components/coredns-custom-hosts-import" (tuple . "cabpoa" | include "unit-enabled") | include "set-only-if" }}'
 
   kyverno-policies-ready:
     info:
@@ -7429,6 +7435,26 @@ units:
         managed_clusters_settings: '{{ tuple . "shared_workload_clusters_values" | include "interpret" }}{{ .Values.shared_workload_clusters_values | include "preserve-type" }}'
         workload_cluster_sylva_source: '{{ .Values.workload_clusters.sylva_source | include "preserve-type" }}'
 
+  coredns-custom-hosts-import:
+    enabled: false
+    info:
+      description: create a ConfigMap containing OKD workload cluster's DNS A records in [CoreDNS hosts plugin](https://coredns.io/plugins/hosts/)
+      internal: true
+    unit_templates:
+    - base-deps
+    enabled_conditions:
+      - '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpoa" }}'
+    repo: sylva-core
+    kustomization_spec:
+      path: ./kustomize-units/coredns-custom-hosts-import
+      postBuild:
+        substitute:
+          NAMESPACE: '{{ .Release.Namespace }}'
+          CLUSTER_NAME: '{{ .Values.cluster.name }}'
+          CLUSTER_VIRTUAL_IP: '{{ .Values.cluster_virtual_ip }}'
+          CLUSTER_OKD_BASE_DOMAIN: '{{ .Values.openshift.baseDomain }}'
+
+
 ##### stuff related to the 'cluster' unit #####
 #
 # all these values under 'cluster' are passed as values to sylva-capi-cluster chart
@@ -7580,6 +7606,9 @@ cluster:
         -}}
 
   enable_longhorn: '{{ tuple . "longhorn" | include "unit-enabled" | include "as-bool" }}'
+
+  openshift:
+    baseDomain: '{{ .Values.cluster_domain }}'
 
   timeouts:
     cluster_delete_hook_job_timeout: 300

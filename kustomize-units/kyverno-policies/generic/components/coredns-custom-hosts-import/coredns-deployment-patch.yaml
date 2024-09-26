@@ -1,0 +1,153 @@
+---
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: update-coredns-custom-hosts
+  namespace: sylva-system
+  annotations:
+    kustomize.toolkit.fluxcd.io/force: Enabled
+    policies.kyverno.io/minversion: 1.12.0
+spec:
+  admission: true
+  background: true
+  mutateExistingOnPolicyUpdate: true
+  rules:
+  - context:
+    - apiCall:
+        method: GET
+        urlPath: /api/v1/configmaps?labelSelector=sylva.org/coredns-custom-hosts-import=true
+      name: configmaps
+    - apiCall:
+        jmesPath: data
+        method: GET
+        urlPath: /api/v1/namespaces/kube-system/configmaps/rke2-coredns-rke2-coredns
+      name: currentConfig
+    - name: corefile
+      variable:
+        value: '{{ currentConfig.Corefile }}'
+    match:
+      any:
+      - resources:
+          kinds:
+          - ConfigMap
+          operations:
+          - DELETE
+          selector:
+            matchLabels:
+              sylva.org/coredns-custom-hosts-import: "true"
+    mutate:
+      patchStrategicMerge:
+        data:
+          '{{request.object.metadata.name}}': ""
+      targets:
+      - apiVersion: v1
+        kind: ConfigMap
+        name: ${COREDNS_CONFIGMAP_NAME:-coredns}
+        namespace: kube-system
+    name: remove-coredns-custom-hosts
+    skipBackgroundRequests: true
+  - context:
+    - apiCall:
+        method: GET
+        urlPath: /api/v1/configmaps?labelSelector=sylva.org/coredns-custom-hosts-import=true
+      name: configmaps
+    match:
+      any:
+      - resources:
+          kinds:
+          - ConfigMap
+          selector:
+            matchLabels:
+              sylva.org/coredns-custom-hosts-import: "true"
+      - resources:
+          kinds:
+          - ConfigMap
+          names:
+          - ${COREDNS_CONFIGMAP_NAME:-coredns}
+          namespaces:
+          - kube-system
+    mutate:
+      foreach:
+      - list: configmaps.items[]
+        patchStrategicMerge:
+          data:
+            '{{element.metadata.name}}': '{{element.data.hosts}}'
+      targets:
+      - apiVersion: v1
+        kind: ConfigMap
+        name: ${COREDNS_CONFIGMAP_NAME:-coredns}
+        namespace: kube-system
+    name: update-coredns-custom-hosts
+    skipBackgroundRequests: true
+  validationFailureAction: Audit
+---
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: reload-coredns
+  namespace: sylva-system
+  annotations:
+    kustomize.toolkit.fluxcd.io/force: Enabled
+    policies.kyverno.io/minversion: 1.12.0
+spec:
+  admission: true
+  background: true
+  mutateExistingOnPolicyUpdate: true
+  rules:
+  - name: reload-deployment-on-configmap-update
+    match:
+      any:
+      - resources:
+          kinds:
+          - ConfigMap
+          names:
+          - ${COREDNS_CONFIGMAP_NAME:-coredns}
+          namespaces:
+          - kube-system
+    mutate:
+      targets:
+      - apiVersion: apps/v1
+        kind: Deployment
+        name: ${COREDNS_DEPLOYMENT_NAME:-coredns}
+        namespace: kube-system
+      patchStrategicMerge:
+        spec:
+          template:
+            metadata:
+              annotations:
+                sylva.org/triggerrestaart: "{{request.object.metadata.resourceVersion}}"
+    skipBackgroundRequests: false
+  validationFailureAction: Audit
+---
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: coredns-load-full-configmap
+  namespace: sylva-system
+  annotations:
+    kustomize.toolkit.fluxcd.io/force: Enabled
+    policies.kyverno.io/minversion: 1.12.0
+spec:
+  admission: true
+  background: true
+  mutateExistingOnPolicyUpdate: true
+  rules:
+  - name: remove-configmapp-items
+    match:
+      any:
+      - resources:
+          kinds:
+          - Deployment
+          names:
+          - ${COREDNS_DEPLOYMENT_NAME:-coredns}
+          namespaces:
+          - kube-system
+    mutate:
+      patchesJson6902: |-
+          - path: "/spec/template/spec/volumes/0/configMap/items"
+            op: remove
+      targets:
+      - apiVersion: apps/v1
+        kind: Deployment
+        name: ${COREDNS_DEPLOYMENT_NAME:-coredns}
+        namespace: kube-system
