@@ -879,6 +879,7 @@ units:
         expose:
           ingress:
             enabled: true
+            className: nginx
             hosts:
               core: '{{ .Values.external_hostnames.harbor }}'
           tls:
