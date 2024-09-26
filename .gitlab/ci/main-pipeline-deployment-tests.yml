@@ -113,9 +113,9 @@ variables:
     allow_failure: true
     when: manual
   # Scheduled pipelines are trigerring rolling updates and test k8s version upgrade for the workload cluster
-  # For capd no ha capm3 scheduled pipelines we don't want to test rolling updates
+  # For capd scheduled pipelines we don't want to test rolling updates
   # As it's not supported for single node deployments
-  - if: '$CI_PIPELINE_SOURCE == "schedule" && $CI_DEPLOYMENTS && $CI_JOB_NAME =~ $DEPLOYMENT_FLAVOR && $CI_JOB_NAME =~ /capd.*|capm3.*/ && $CI_JOB_NAME !~ /capm3-ha-.*/'
+  - if: '$CI_PIPELINE_SOURCE == "schedule" && $CI_DEPLOYMENTS && $CI_JOB_NAME =~ $DEPLOYMENT_FLAVOR && $CI_JOB_NAME =~ /capd.*/'
   # override to test rolling updates in scheduled pipelines
   - if: '$CI_PIPELINE_SOURCE == "schedule" && $CI_DEPLOYMENTS && $CI_JOB_NAME =~ $DEPLOYMENT_FLAVOR'
     variables:
@@ -126,10 +126,10 @@ variables:
       APPLY_WC_WATCH_TIMEOUT_MIN: 80
       WC_INITIAL_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/k8s-1.27.yml
       WC_UPDATE_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/k8s-1.28.yml
-  # For capd & non-ha capm3 MR pipelines we don't want to test rolling updates in MR flagged with ci-feature::test-rolling-update
-  # For capd & non-ha capm3 MR pipelines we don't want to test 1.1.1 to main upgrades in MR flagged with ci-feature::test-upgrade-from-1.1.1
+  # For capd MR pipelines we don't want to test rolling updates in MR flagged with ci-feature::test-rolling-update
+  # For capd MR pipelines we don't want to test 1.1.1 to main upgrades in MR flagged with ci-feature::test-upgrade-from-1.1.1
   # As it's not supported for single node deployments
-  - if: $CI_MERGE_REQUEST_LABELS =~ /ci-feature::test-rolling-update|ci-feature::test-upgrade-from-1.1.1/ && $CI_JOB_NAME =~ /capd.*|capm3.*/ && $CI_JOB_NAME !~ /capm3-ha-.*/
+  - if: $CI_MERGE_REQUEST_LABELS =~ /ci-feature::test-rolling-update|ci-feature::test-upgrade-from-1.1.1/ && $CI_JOB_NAME =~ /capd.*/
     allow_failure: true
     when: manual
   # override to test rolling updates in MR flagged with ci-feature::test-rolling-update
