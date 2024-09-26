@@ -139,6 +139,7 @@ units:
               secretName: grafana-general-tls
           ingress:
             enabled: true
+            ingressClassName: nginx
             hosts:
               - '{{ .Values.external_hostnames.grafana }}'
             tls:
