@@ -7,7 +7,7 @@ spec:
   refreshInterval: 1h
   secretStoreRef:
     kind: ClusterSecretStore
-    name: eso-store-k8s-keycloak
+    name: eso-store-k8s-crossplane
   target:
     name: grafana-oidc
     template:
@@ -19,4 +19,4 @@ spec:
     - secretKey: clientSecret
       remoteRef:
         key: keycloak-client-secret-grafana-client  # this secret is a byproduct of the grafana-client KeycloakClient resource
-        property: CLIENT_SECRET
+        property: attribute.client_secret

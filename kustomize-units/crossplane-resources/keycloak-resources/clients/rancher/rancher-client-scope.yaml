@@ -1,0 +1,17 @@
+apiVersion: openidclient.keycloak.crossplane.io/v1alpha1
+kind: ClientDefaultScopes
+metadata:
+  name: rancher-groups-client-scope
+spec:
+  forProvider:
+    clientIdRef:
+      name: rancher
+      policy:
+        resolution: Required
+        resolve: Always
+    defaultScopes:
+      - profile
+      - email
+    realmId: sylva
+  providerConfigRef:
+    name: keycloak-provider-config

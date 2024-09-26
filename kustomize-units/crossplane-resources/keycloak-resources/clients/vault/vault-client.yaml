@@ -1,0 +1,33 @@
+apiVersion: openidclient.keycloak.crossplane.io/v1alpha1
+kind: Client
+metadata:
+  name: vault
+  namespace: crossplane-system
+  annotations:
+    crossplane.io/external-name: ${CLIENT_VAULT}
+spec:
+  forProvider:
+    accessType: CONFIDENTIAL
+    realmId: sylva
+    useRefreshTokens: false
+    clientId: vault
+    clientAuthenticatorType: client-secret
+    directAccessGrantsEnabled: true
+    enabled: true
+    implicitFlowEnabled: false
+    name: vault
+    validRedirectUris:
+      - https://${VAULT_DNS}/v1/auth/oidc/oidc/callback
+      - https://${VAULT_DNS}/ui/vault/auth/oidc/oidc/callback
+    standardFlowEnabled: true
+    rootUrl: https://${VAULT_DNS}
+    adminUrl: https://${VAULT_DNS}
+    webOrigins:
+      - https://${VAULT_DNS}
+  providerConfigRef:
+    name: keycloak-provider-config
+  managementPolicies:
+    - "*"
+  writeConnectionSecretToRef:
+    name: keycloak-client-secret-vault-client
+    namespace: crossplane-system

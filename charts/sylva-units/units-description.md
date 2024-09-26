@@ -18,6 +18,7 @@
 | **capo-contrail-bgpaas** | installs CAPO Contrail BGPaaS controller | stable |  | [Helm](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/capo-contrail-bgpaas.git) | 1.0.4 |
 | **cinder-csi** | installs OpenStack Cinder CSI | stable |  | [Helm](https://kubernetes.github.io/cloud-provider-openstack) | 2.31.1 |
 | **cis-operator** | install CIS operator | stable |  | [Helm](https://charts.rancher.io) | 6.2.0 |
+| **crossplane** | Installs Crossplane with RBAC Manager | stable |  | [Helm](https://charts.crossplane.io/stable) | 1.16.0 |
 | **external-secrets-operator** | installs the External Secrets operator | stable |  | [Helm](https://charts.external-secrets.io) | 0.10.3 |
 | **flux-webui** | installs Weave GitOps Flux web GUI | stable |  | [Helm](https://github.com/weaveworks/weave-gitops.git) | v0.38.0 |
 | **gitea** | installs Gitea | stable |  | [Helm](https://dl.gitea.com/charts/) | 10.4.1 |
@@ -28,7 +29,6 @@
 | **k8s-gateway** | installs k8s gateway (coredns + plugin to resolve external service names to ingress IPs)<br/><br/>is here only to allow for DNS resolution of Ingress hosts (FQDNs), used for importing workload clusters into Rancher and for flux-webui to use Keycloak SSO | stable |  | [Helm](https://ori-edge.github.io/k8s_gateway/) | 2.4.0 |
 | **kepler** | installs Kepler (Kubernetes-based Efficient Power Level Exporter) exporter for Prometheus | stable |  | [Helm](https://sustainable-computing-io.github.io/kepler-helm-chart) | 0.5.9 |
 | **keycloak** | initializes and configures Keycloak | stable |  | [Kustomize](https://raw.githubusercontent.com/keycloak/keycloak-k8s-resources/25.0.6/kubernetes/keycloaks.k8s.keycloak.org-v1.yml) | 25.0.6 |
-| **keycloak-legacy-operator** | installs Keycloak "legacy" operator | stable |  | [Kustomize](https://raw.githubusercontent.com/keycloak/keycloak-realm-operator/1.0.0/deploy/crds/legacy.k8s.keycloak.org_externalkeycloaks_crd.yaml) | 1.0.0 |
 | **libvirt-metal** | installs libvirt for baremetal emulation<br/><br/>this unit is used in bootstrap cluster for baremetal testing | stable |  | [Helm](https://gitlab.com/sylva-projects/sylva-elements/container-images/libvirt-metal.git) | 0.1.19 |
 | **local-path-provisioner** | installs local-path CSI | stable |  | [Helm](https://github.com/rancher/local-path-provisioner.git) | v0.0.29 |
 | **longhorn** | installs Longhorn CSI | stable |  | [Helm](https://charts.rancher.io/) | 103.3.1+up1.6.2 |
@@ -90,21 +90,19 @@
 | **cluster-ready** | unit to check readiness of cluster CAPI objects<br/><br/>the healthChecks on this unit complements the one done in the 'cluster' unit, which in some cases can't cover all CAPI resources |  | True | Kustomize | N/A |
 | **cluster-rke2-finalizer-fix** | Kyverno policy to clean a stray finalizer left by RKE2 on Nodes<br/><br/>Kyverno policy to delete the "wrangler.cattle.io/cisnetworkpolicy-node" finalizer<br/>that RKE2 sets on Nodes before version 1.28.9, and because it sometimes isn't<br/>removed, prevents deletion of Nodes. |  | True | Kustomize | N/A |
 | **coredns** | configures DNS inside cluster |  | True | Kustomize | N/A |
-| **descheduler** | install descheduler |  |  | [Helm](https://kubernetes-sigs.github.io/descheduler/) | 0.31.0 |
+| **crossplane-init** | Create resources for crossplane functions |  | True | Kustomize | N/A |
+| **crossplane-resources** | install and configure crossplane providers |  | True | Kustomize | N/A |
 | **eso-secret-stores** | defines External Secrets stores |  | True | Kustomize | N/A |
 | **first-login-rancher** | configure Rancher authentication for admin |  | True | Kustomize | N/A |
-| **get-openstack-images** | Automatically push openstack images to Glance<br/><br/>Pushes OS images to Glance, if needed, and retrieves their UUIDs for use in cluster unit |  | True | Kustomize | N/A |
+| **get-openstack-images** | Automatically push openstack images to cinder |  | True | Kustomize | N/A |
 | **gitea-eso** | write secrets in gitea namespace in gitea expected format |  | True | Kustomize | N/A |
 | **gitea-keycloak-resources** | deploys Gitea OIDC client in Sylva's Keycloak realm |  | True | Kustomize | N/A |
 | **gitea-secrets** | create random secret that will be used by gitea application. secrets are sync with vault. |  | True | Kustomize | N/A |
 | **grafana-init** | sets up Grafana certificate for Keycloak OIDC integration |  | True | Kustomize | N/A |
 | **harbor-init** | sets up Harbor prerequisites<br/><br/>it generates namespace, certificate, admin password, OIDC configuration |  | True | Kustomize | N/A |
-| **keycloak-add-client-scope** | configures Keycloak client-scope<br/><br/>a job to manually add a custom client-scope to sylva realm (on top of default ones) while CRD option does not yet provide good results (overrides defaults) |  | True | Kustomize | N/A |
-| **keycloak-add-realm-role** | Creates Keycloak realm role<br/><br/>a job to manually create a custom realm role to sylva realm (on top of default ones) and assigns it to sylva-admin while CRD option does not allow updates. |  | True | Kustomize | N/A |
 | **keycloak-add-truststore** | configures Keycloak truststore<br/><br/>a job to manually add a truststore to Keycloak instance, e.h. to enable LDAPS protocol when using user federation) |  | True | Kustomize | N/A |
 | **keycloak-oidc-external-secrets** | configures OIDC secrets for Keycloak |  | True | Kustomize | N/A |
 | **keycloak-resources** | configures keycloak resources |  | True | Kustomize | N/A |
-| **kubevirt-manager** | deploys kubevirt-manager UI for kubevirt workloads |  | True | Kustomize | N/A |
 | **kubevirt-test-vms** | deploys kubevirt VMs for testing |  | True | Kustomize | N/A |
 | **kyverno-policies** | configures Kyverno policies |  | True | Kustomize | N/A |
 | **kyverno-policies-ready** | additional delay to ensure that kyverno webhooks are properly installed in api-server |  | True | Kustomize | N/A |

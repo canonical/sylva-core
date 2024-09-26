@@ -1,0 +1,17 @@
+apiVersion: openidclient.keycloak.crossplane.io/v1alpha1
+kind: ClientDefaultScopes
+metadata:
+  name: vault-groups-client-scope
+spec:
+  forProvider:
+    clientIdRef:
+      name: vault
+      policy:
+        resolution: Required
+        resolve: Always
+    defaultScopes:
+      - email
+      - profile
+    realmId: sylva
+  providerConfigRef:
+    name: keycloak-provider-config

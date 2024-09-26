@@ -1,0 +1,89 @@
+apiVersion: client.keycloak.crossplane.io/v1alpha1
+kind: ProtocolMapper
+metadata:
+  name: grafana-group-protocol-mappers
+  annotations:
+    crossplane.io/external-name: ${MAPPER_GROUPS_MAPPER_GRAFANA}
+spec:
+  forProvider:
+    clientIdRef:
+      name: grafana
+    config:
+      access.token.claim: "false"
+      claim.name: groups
+      id.token.claim: "false"
+      userinfo.token.claim: "true"
+    name: Groups Mapper
+    protocol: openid-connect
+    protocolMapper: oidc-group-membership-mapper
+    realmId: sylva
+  providerConfigRef:
+    name: keycloak-provider-config
+---
+apiVersion: client.keycloak.crossplane.io/v1alpha1
+kind: ProtocolMapper
+metadata:
+  name: grafana-clientaudience-protocol-mappers
+  annotations:
+    crossplane.io/external-name: ${MAPPER_CLIENT_AUDIENCE_GRAFANA}
+spec:
+  forProvider:
+    clientIdRef:
+      name: grafana
+    config:
+      access.token.claim: "true"
+      included.client.audience: "grafana"
+    name: Client Audience
+    protocol: openid-connect
+    protocolMapper: oidc-audience-mapper
+    realmId: sylva
+  providerConfigRef:
+    name: keycloak-provider-config
+---
+apiVersion: client.keycloak.crossplane.io/v1alpha1
+kind: ProtocolMapper
+metadata:
+  name: grafana-groupmembership-protocol-mappers
+  annotations:
+    crossplane.io/external-name: ${MAPPER_GROUP_PATH_GRAFANA}
+spec:
+  forProvider:
+    clientIdRef:
+      name: grafana
+    config:
+      access.token.claim: "false"
+      claim.name: full_group_path
+      full.path: "true"
+      id.token.claim: "false"
+      userinfo.token.claim: "true"
+    name: Group Path
+    protocol: openid-connect
+    protocolMapper: oidc-group-membership-mapper
+    realmId: sylva
+  providerConfigRef:
+    name: keycloak-provider-config
+---
+apiVersion: client.keycloak.crossplane.io/v1alpha1
+kind: ProtocolMapper
+metadata:
+  name: grafana-rolelist-mappers
+  annotations:
+    crossplane.io/external-name: ${MAPPER_ROLE_LIST_GRAFANA}
+spec:
+  forProvider:
+    clientIdRef:
+      name: grafana
+    config:
+      access.token.claim: "true"
+      claim.name: "roles"
+      id.token.claim: "true"
+      jsonType.label: "String"
+      multivalued: "true"
+      user.attribute: "realm_access.roles"
+      userinfo.token.claim: "true"
+    name: Role List
+    protocol: openid-connect
+    protocolMapper: oidc-usermodel-realm-role-mapper
+    realmId: sylva
+  providerConfigRef:
+    name: keycloak-provider-config

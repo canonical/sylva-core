@@ -622,6 +622,7 @@ units:
         - '{{ tuple "components/loki" (tuple . "loki" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/kepler" (tuple . "kepler" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/kube-system" (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpr") | include "set-only-if" }}'
+        - '{{ tuple "components/crossplane" (tuple . "crossplane" | include "unit-enabled") | include "set-only-if" }}'
 
   postgres:
     info:
@@ -1089,7 +1090,7 @@ units:
     unit_templates:
     - base-deps
     depends_on:
-      keycloak-resources: true
+      crossplane-resources: true
       vault: true
       vault-config-operator: true
     repo: sylva-core
@@ -1207,7 +1208,6 @@ units:
       vault: true
       vault-config-operator: true
       kyverno: true
-      keycloak-add-client-scope: true
       keycloak-oidc-external-secrets: true
     repo: sylva-core
     kustomization_substitute_secrets:
@@ -1356,6 +1356,236 @@ units:
           name: neuvector-controller-pod
           namespace: neuvector
 
+  crossplane-external-secrets:
+    info:
+      description: configures external secrets for Crossplane resources
+      internal: true
+    unit_templates:
+    - base-deps
+    enabled_conditions:
+    - '{{ tuple . "keycloak" | include "unit-enabled" }}'
+    depends_on:
+      keycloak: true
+      eso-secret-stores: true
+    repo: sylva-core
+    kustomization_spec:
+      path: ./kustomize-units/crossplane-external-secrets
+      wait: false
+      healthChecks:
+        - apiVersion: v1
+          kind: Secret
+          name: keycloak-internal-tls
+          namespace: crossplane-system
+        - apiVersion: v1
+          kind: Secret
+          name: keycloak-provider-secret
+          namespace: crossplane-system
+        - apiVersion: v1
+          kind: Secret
+          name: keycloak-initial-admin
+          namespace: sylva-system
+
+  crossplane:
+    info:
+      description: Installs Crossplane with RBAC Manager
+      maturity: stable
+    unit_templates:
+      - base-deps
+    depends_on:
+      namespace-defs: true
+      keycloak: true
+      crossplane-external-secrets: true
+    helm_repo_url: https://charts.crossplane.io/stable
+    helmrelease_spec:
+      releaseName: crossplane
+      targetNamespace: crossplane-system
+      chart:
+        spec:
+          chart: crossplane
+          version: 1.16.0
+      install:
+        createNamespace: false
+      values:
+        extraVolumesCrossplane:
+          - name: keycloak-tls
+            secret:
+              secretName: keycloak-internal-tls
+        extraVolumeMountsCrossplane:
+          - name: keycloak-tls
+            mountPath: /etc/ssl/certs/keycloak-ca.crt
+            subPath: ca.crt
+          - name: keycloak-tls
+            mountPath: /etc/ssl/certs/keycloak-tls.crt
+            subPath: tls.crt
+          - name: keycloak-tls
+            mountPath: /etc/ssl/certs/keycloak-tls.key
+            subPath: tls.key
+        extraEnvVarsCrossplane:
+          HTTP_PROXY: '{{ .Values.proxies.http_proxy | default "" }}'
+          HTTPS_PROXY: '{{ .Values.proxies.https_proxy | default "" }}'
+          NO_PROXY: '{{ include "sylva-units.no_proxy" (tuple .) }}'
+        rbacManager:
+          deploy: true
+          skipAggregatedClusterRoles: false
+          replicas: 1
+          leaderElection: true
+        securityContextCrossplane:
+          runAsUser: 65532
+          runAsNonRoot: true
+          runAsGroup: 65532
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+              - ALL
+          seccompProfile:
+            type: RuntimeDefault
+        securityContextRBACManager:
+          runAsNonRoot: true
+          runAsUser: 65532
+          runAsGroup: 65532
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+              - ALL
+          seccompProfile:
+            type: RuntimeDefault
+        metrics:
+          enabled: false
+        podSecurityContextCrossplane:
+          runAsNonRoot: true
+          runAsUser: 65532
+          fsGroup: 65532
+          seccompProfile:
+            type: RuntimeDefault
+        podSecurityContextRBACManager:
+          runAsNonRoot: true
+          runAsUser: 65532
+          fsGroup: 65532
+          seccompProfile:
+            type: RuntimeDefault
+
+
+  get-keycloak-uuids:
+    info:
+      description: Get keycloak resource uuids
+      internal: true
+    unit_templates:
+    - base-deps
+    depends_on:
+      keycloak: true
+      crossplane-external-secrets: true
+    enabled_conditions:
+      - '{{ tuple . "crossplane" | include "unit-enabled" }}'
+    repo: sylva-core
+    kustomization_spec:
+      path: ./kustomize-units/get-keycloak-uuids
+      wait: true
+      force: true
+      postBuild:
+        healthChecks:
+          - apiVersion: v1
+            kind: Configmap
+            name: keycloak-uuid-resources
+            namespace: sylva-system
+        substitute:
+          JOB_NAME: get-keycloak-resource-uuids
+          JOB_TARGET_NAMESPACE: '{{ .Release.Namespace }}'
+          JOB_CHECKSUM: '{{ .Values | toJson | sha256sum }}'
+
+  crossplane-init:
+    info:
+      description: Create resources for crossplane functions
+      internal: true
+    unit_templates:
+    - base-deps
+    enabled_conditions:
+    - '{{ tuple . "crossplane" | include "unit-enabled" }}'
+    depends_on:
+      crossplane: true
+      cert-manager: true
+      namespace-defs: true
+    repo: sylva-core
+    kustomization_spec:
+      path: ./kustomize-units/crossplane-init
+      targetNamespace: crossplane-system
+      postBuild:
+        healthChecks:
+          - apiVersion: apiextensions.crossplane.io/v1
+            kind: CompositeResourceDefinition
+            name: xbuiltinobjects.keycloak.crossplane.io
+            namespace: crossplane-system
+          - apiVersion: pkg.crossplane.io/v1
+            kind: Provider
+            name: provider-keycloak
+            namespace: crossplane-system
+          - apiVersion: pkg.crossplane.io/v1
+            kind: DeploymentRuntimeConfig
+            name: provider-runtime-config
+            namespace: crossplane-system
+        substitute:
+          JOB_NAME: get-keycloak-resource-uuids
+          JOB_TARGET_NAMESPACE: sylva-system
+
+  crossplane-resources:
+    info:
+      description: install and configure crossplane providers
+      internal: true
+    unit_templates:
+    - base-deps
+    enabled_conditions:
+    - '{{ tuple . "crossplane" | include "unit-enabled" }}'
+    depends_on:
+      crossplane-init: true
+      get-keycloak-uuids: '{{ .Release.IsUpgrade }}'
+      crossplane: true
+      crossplane-external-secrets: true
+    repo: sylva-core
+    kustomization_substitute_secrets:
+      #SSO_PASSWORD: '{{ .Values._internal.default_password | b64enc }}'
+      SSO_PASSWORD: '{{ tpl .Values.admin_password . | b64enc }}'
+    kustomization_spec:
+      path: ./kustomize-units/crossplane-resources
+      targetNamespace: crossplane-system
+      _components:
+        - '{{ tuple "keycloak-resources/clients/neuvector" (tuple . "neuvector" | include "unit-enabled") | include "set-only-if" }}'
+        - '{{ tuple "keycloak-resources/clients/harbor" (tuple . "harbor" | include "unit-enabled") | include "set-only-if" }}'
+        - '{{ tuple "keycloak-resources/clients/grafana" (tuple . "monitoring" | include "unit-enabled") | include "set-only-if" }}'
+      postBuild:
+        healthChecks:
+          - apiVersion: keycloak.crossplane.io/v1alpha1
+            kind: XBuiltinObjects
+            name: keycloak-builtin-clients-sylva
+            namespace: crossplane-system
+          - apiVersion: v1
+            kind: Secret
+            name: keycloak-client-secret-rancher-client
+            namespace: crossplane-system
+          - apiVersion: v1
+            kind: Secret
+            name: keycloak-client-secret-flux-webui-client
+            namespace: crossplane-system
+          - apiVersion: v1
+            kind: Secret
+            name: keycloak-client-secret-vault-client
+            namespace: crossplane-system
+          - '{{ tuple (dict "apiVersion" "v1" "kind" "Secret" "name" "keycloak-client-secret-neuvector-client" "namespace" "crossplane-system") (tuple . "neuvector" | include "unit-enabled") | include "set-only-if" }}'
+          - '{{ tuple (dict "apiVersion" "v1" "kind" "Secret" "name" "keycloak-client-secret-harbor-client" "namespace" "crossplane-system") (tuple . "harbor" | include "unit-enabled") | include "set-only-if" }}'
+          - '{{ tuple (dict "apiVersion" "v1" "kind" "Secret" "name" "keycloak-client-secret-grafana-client" "namespace" "crossplane-system") (tuple . "monitoring" | include "unit-enabled") | include "set-only-if" }}'
+        substitute:
+          GRAFANA_DNS: '{{ .Values.external_hostnames.grafana }}'
+          RANCHER_DNS: '{{ .Values.external_hostnames.rancher }}'
+          FLUX_WEBUI_DNS: '{{ .Values.external_hostnames.flux }}'
+          HARBOR_DNS: '{{ .Values.external_hostnames.harbor }}'
+          NEUVECTOR_DNS: '{{ tuple .Values.external_hostnames.neuvector (tuple . "neuvector" | include "unit-enabled") | include "set-only-if" }}'
+          VAULT_DNS: '{{ .Values.external_hostnames.vault }}'
+          EXPIRE_PASSWORD_DAYS: '{{ int .Values.keycloak.keycloak_expire_password_days }}'
+        substituteFrom:
+          - kind: ConfigMap
+            name: keycloak-uuid-resources
+            optional: true
+
   keycloak:
     info:
       description: initializes and configures Keycloak
@@ -1430,170 +1660,6 @@ units:
             kind: Deployment
             name: keycloak-operator
 
-  keycloak-legacy-operator:
-    info:
-      description: installs Keycloak "legacy" operator
-      maturity: stable
-    unit_templates:
-    - base-deps
-    enabled_conditions:
-    - '{{ tuple . "keycloak" | include "unit-enabled" }}'
-    depends_on:
-      vault-secrets: true  # the credential-external-keycloak Secret use by the legacy operator is generated from ES/Vault secret/data/keycloak
-      keycloak: true
-    repo: sylva-core
-    kustomization_spec:
-      path: ./kustomize-units/keycloak-legacy-operator
-      targetNamespace: keycloak
-      wait: true
-      _patches:
-        - patch: |
-            apiVersion: apps/v1
-            kind: Deployment
-            metadata:
-              name: keycloak-realm-operator
-            spec:
-              template:
-                spec:
-                  containers:
-                    - name: keycloak-realm-operator
-                      securityContext:
-                        runAsUser: 10000
-                        allowPrivilegeEscalation: false
-                        capabilities:
-                          drop:
-                            - ALL
-                        runAsNonRoot: true
-                        seccompProfile:
-                          type: RuntimeDefault
-          target:
-            kind: Deployment
-            name: keycloak-realm-operator
-
-  keycloak-resources:
-    info:
-      description: configures keycloak resources
-      internal: true
-    unit_templates:
-    - base-deps
-    enabled_conditions:
-    - '{{ tuple . "keycloak" | include "unit-enabled" }}'
-    depends_on:
-      keycloak: true
-      keycloak-legacy-operator: true
-    repo: sylva-core
-    kustomization_substitute_secrets:
-      SSO_PASSWORD: '{{ .Values.admin_password }}'
-    kustomization_spec:
-      path: ./kustomize-units/keycloak-resources
-      targetNamespace: keycloak
-      _components:
-        - '{{ tuple "components/neuvector" (tuple . "neuvector" | include "unit-enabled") | include "set-only-if" }}'
-        - '{{ tuple "components/harbor" (tuple . "harbor" | include "unit-enabled") | include "set-only-if" }}'
-        - '{{ tuple "components/grafana" (tuple . "monitoring" | include "unit-enabled") | include "set-only-if" }}'
-      postBuild:
-        substitute:
-          GRAFANA_DNS: '{{ .Values.external_hostnames.grafana }}'
-          RANCHER_DNS: '{{ .Values.external_hostnames.rancher }}'
-          FLUX_WEBUI_DNS: '{{ .Values.external_hostnames.flux }}'
-          HARBOR_DNS: '{{ .Values.external_hostnames.harbor }}'
-          NEUVECTOR_DNS: '{{ tuple .Values.external_hostnames.neuvector (tuple . "neuvector" | include "unit-enabled") | include "set-only-if" }}'
-          VAULT_DNS: '{{ .Values.external_hostnames.vault }}'
-          EXPIRE_PASSWORD_DAYS: '{{ int .Values.keycloak.keycloak_expire_password_days }}'
-      healthChecks:  #  cannot use __wait: true__ here, see https://gitlab.com/sylva-projects/sylva-core/-/issues/144
-        - apiVersion: legacy.k8s.keycloak.org/v1alpha1
-          kind: KeycloakRealm
-          name: sylva
-          namespace: keycloak
-        - apiVersion: v1
-          kind: Secret
-          name: keycloak-client-secret-rancher-client  # this secret is a byproduct of the rancher-client KeycloakClient resource
-          namespace: keycloak
-        - apiVersion: v1
-          kind: Secret
-          name: keycloak-client-secret-flux-webui-client  # this secret is a byproduct of the flux-webui-client KeycloakClient resource
-          namespace: keycloak
-        - '{{ tuple (dict "apiVersion" "v1" "kind" "Secret" "name" "keycloak-client-secret-neuvector-client" "namespace" "keycloak") (tuple . "neuvector" | include "unit-enabled") | include "set-only-if" }}'  # # this secret is a byproduct of the neuvector client KeycloakClient resource
-        - '{{ tuple (dict "apiVersion" "v1" "kind" "Secret" "name" "keycloak-client-secret-harbor-client" "namespace" "keycloak") (tuple . "harbor" | include "unit-enabled") | include "set-only-if" }}'  # # this secret is a byproduct of the harbor client KeycloakClient resource
-        - '{{ tuple (dict "apiVersion" "v1" "kind" "Secret" "name" "keycloak-client-secret-grafana-client" "namespace" "keycloak") (tuple . "monitoring" | include "unit-enabled") | include "set-only-if" }}'  # # this secret is a byproduct of the grafana client KeycloakClient resource
-
-
-  keycloak-add-client-scope:
-    info:
-      description: configures Keycloak client-scope
-      details: >
-        a job to manually add a custom client-scope to sylva realm (on top of default ones)
-        while CRD option does not yet provide good results (overrides defaults)
-      internal: true
-    unit_templates:
-    - base-deps
-    - kube-job
-    enabled_conditions:
-    - '{{ tuple . "flux-webui" | include "unit-enabled" }}'
-    - '{{ tuple . "keycloak" | include "unit-enabled" }}'
-    depends_on:
-      keycloak-resources: true
-      keycloak: true  # defines the keycloak-initial-admin Secret used by the script
-    kustomization_spec:
-      targetNamespace: keycloak
-      postBuild:
-        substitute:
-          RUNASUSER: '10000'
-          RUNASGROUP: '10000'
-      _patches:
-      - target:
-          kind: Job
-        patch: |
-          - op: replace
-            path: /spec/backoffLimit
-            value: 15
-      - target:
-          kind: ConfigMap
-          labelSelector: kube-job=script
-        patch: |
-          - op: replace
-            path: /data/kube-job.sh
-            value: |
-          {{ .Files.Get "scripts/keycloak-add-client-scope.sh" | indent 4 }}
-
-# Workaround for realm role creation
-  keycloak-add-realm-role:
-    info:
-      description: Creates Keycloak realm role
-      details: >
-        a job to manually create a custom realm role to sylva realm (on top of default ones) and assigns it to sylva-admin
-        while CRD option does not allow updates.
-      internal: true
-    unit_templates:
-    - base-deps
-    - kube-job
-    enabled_conditions:
-    - '{{ tuple . "keycloak" | include "unit-enabled" }}'
-    depends_on:
-      keycloak-resources: true
-      keycloak: true  # defines the keycloak-initial-admin Secret used by the script
-    kustomization_spec:
-      postBuild:
-        substitute:
-          NAMESPACE: keycloak
-          RUNASUSER: '10000'
-          RUNASGROUP: '10000'
-      _patches:
-      - target:
-          kind: Job
-        patch: |
-          - op: replace
-            path: /spec/backoffLimit
-            value: 15
-      - target:
-          kind: ConfigMap
-          labelSelector: kube-job=script
-        patch: |
-          - op: replace
-            path: /data/kube-job.sh
-            value: |
-          {{ .Files.Get "scripts/keycloak-add-realm-role.sh" | indent 4 }}
-
   keycloak-add-truststore:
     info:
       description: configures Keycloak truststore
@@ -1645,8 +1711,7 @@ units:
     - '{{ tuple . "keycloak" | include "unit-enabled" }}'
     depends_on:
       keycloak: true
-      keycloak-legacy-operator: true
-      keycloak-resources: true
+      crossplane-resources: true
       eso-secret-stores: true
     repo: sylva-core
     kustomization_spec:
@@ -3248,7 +3313,7 @@ units:
     depends_on:
       rancher: true
       keycloak: true
-      keycloak-resources: true
+      crossplane-resources: true
       keycloak-oidc-external-secrets: true
     kustomization_spec:
       path: ./kustomize-units/rancher-keycloak-oidc-provider
@@ -3515,7 +3580,6 @@ units:
       flux-system: true
       ingress-nginx: '{{ tuple . "ingress-nginx" | include "unit-enabled" }}'
       coredns: '{{ tuple . "keycloak" | include "unit-enabled" }}' # see https://gitlab.com/sylva-projects/sylva-core/-/merge_requests/1023#note_1694289969
-      keycloak-add-client-scope: '{{ tuple . "keycloak" | include "unit-enabled" }}'
       keycloak-oidc-external-secrets: '{{ tuple . "keycloak" | include "unit-enabled" }}'
       flux-webui-init: true
     annotations:
@@ -4949,8 +5013,7 @@ units:
     - base-deps
     depends_on:
       keycloak: true
-      keycloak-legacy-operator: true
-      keycloak-resources: true
+      crossplane-resources: true
     repo: sylva-core
     kustomization_spec:
       path: ./kustomize-units/gitea/keycloak-resources

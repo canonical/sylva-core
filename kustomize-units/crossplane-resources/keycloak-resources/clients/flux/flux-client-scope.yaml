@@ -1,0 +1,21 @@
+apiVersion: openidclient.keycloak.crossplane.io/v1alpha1
+kind: ClientDefaultScopes
+metadata:
+  name: flux-groups-client-scope
+  annotations:
+    crossplane.io/external-name: builtin-sylva-realm-role-offline-access
+spec:
+  forProvider:
+    clientIdRef:
+      name: flux-webui
+      policy:
+        resolution: Required
+        resolve: Always
+    defaultScopes:
+      - groups
+      - profile
+        #- offline_access
+      - email
+    realmId: sylva
+  providerConfigRef:
+    name: keycloak-provider-config

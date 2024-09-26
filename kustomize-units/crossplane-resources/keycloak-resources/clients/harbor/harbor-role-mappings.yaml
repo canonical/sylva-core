@@ -1,0 +1,65 @@
+apiVersion: client.keycloak.crossplane.io/v1alpha1
+kind: ProtocolMapper
+metadata:
+  name: harbor-group-protocol-mappers
+  annotations:
+    crossplane.io/external-name: ${MAPPER_GROUPS_MAPPER_HARBOR}
+spec:
+  forProvider:
+    clientIdRef:
+      name: harbor
+    config:
+      access.token.claim: "false"
+      claim.name: groups
+      full.path: "false"
+      id.token.claim: "false"
+      userinfo.token.claim: "true"
+    name: Groups Mapper
+    protocol: openid-connect
+    protocolMapper: oidc-group-membership-mapper
+    realmId: sylva
+  providerConfigRef:
+    name: keycloak-provider-config
+---
+apiVersion: client.keycloak.crossplane.io/v1alpha1
+kind: ProtocolMapper
+metadata:
+  name: harbor-clientaudience-protocol-mappers
+  annotations:
+    crossplane.io/external-name: ${MAPPER_CLIENT_AUDIENCE_HARBOR}
+spec:
+  forProvider:
+    clientIdRef:
+      name: harbor
+    config:
+      access.token.claim: "true"
+      included.client.audience: "harbor"
+    name: Client Audience
+    protocol: openid-connect
+    protocolMapper: oidc-audience-mapper
+    realmId: sylva
+  providerConfigRef:
+    name: keycloak-provider-config
+---
+apiVersion: client.keycloak.crossplane.io/v1alpha1
+kind: ProtocolMapper
+metadata:
+  name: harbor-groupmembership-protocol-mappers
+  annotations:
+    crossplane.io/external-name: ${MAPPER_GROUP_PATH_HARBOR}
+spec:
+  forProvider:
+    clientIdRef:
+      name: harbor
+    config:
+      access.token.claim: "false"
+      claim.name: full_group_path
+      full.path: "true"
+      id.token.claim: "false"
+      userinfo.token.claim: "true"
+    name: Group Path
+    protocol: openid-connect
+    protocolMapper: oidc-group-membership-mapper
+    realmId: sylva
+  providerConfigRef:
+    name: keycloak-provider-config

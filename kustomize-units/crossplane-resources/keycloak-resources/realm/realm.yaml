@@ -1,0 +1,19 @@
+apiVersion: realm.keycloak.crossplane.io/v1alpha1
+kind: Realm
+metadata:
+  name: sylva-realm
+  namespace: crossplane-system
+  annotations:
+    crossplane.io/external-name: sylva
+spec:
+  forProvider:
+    realm: sylva
+    displayName: Sylva
+    adminTheme: "keycloak.v2"
+    accountTheme: "keycloak.v2"
+    passwordPolicy: length(12) and upperCase(1) and lowerCase(1) and digits(1) and forceExpiredPasswordChange(${EXPIRE_PASSWORD_DAYS})
+  providerConfigRef:
+    name: keycloak-provider-config
+  managementPolicies:
+    - "*"
+

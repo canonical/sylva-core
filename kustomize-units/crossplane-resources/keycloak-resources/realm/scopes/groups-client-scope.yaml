@@ -1,0 +1,18 @@
+apiVersion: openidclient.keycloak.crossplane.io/v1alpha1
+kind: ClientScope
+metadata:
+  name: groups-client-scope
+  namespace: crossplane-system
+  annotations:
+    crossplane.io/external-name: ${CLIENT_SCOPE_GROUPS}
+spec:
+  forProvider:
+    realmId: "sylva"
+    description: When requested, this scope will map a user's group membership
+    guiOrder: 1
+    includeInTokenScope: true
+    name: groups
+  providerConfigRef:
+    name: keycloak-provider-config
+  managementPolicies:
+    - "*"

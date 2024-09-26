@@ -1,0 +1,47 @@
+apiVersion: pkg.crossplane.io/v1beta1
+kind: DeploymentRuntimeConfig
+metadata:
+  name: provider-functions-runtime-config
+spec:
+  deploymentTemplate:
+    spec:
+      replicas: 1
+      selector: {}
+      template:
+        metadata:
+          labels:
+            app: crossplane-provider
+        spec:
+          containers:
+          - args:
+            - --debug
+              #            env:
+              #            - name: HTTP_PROXY
+              #              value: http://172.20.73.196:3128
+              #            - name: HTTPS_PROXY
+              #              value: http://172.20.73.196:3128
+              #            - name: NO_PROXY
+              #              value: 100.72.0.0/16,100.73.0.0/16,100.0.0.0/8,127.0.0.0/8,localhost,10.0.0.0/8,172.18.0.0/12,172.16.0.0/12,192.168.0.0/16,.sylva,.cluster.local
+            name: package-runtime
+            volumeMounts:
+              - name: truststore
+                mountPath: /etc/ssl/certs
+                readOnly: true
+            securityContext:
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop:
+                - ALL
+              seccompProfile:
+                type: RuntimeDefault
+          volumes:
+            - name: truststore
+              secret:
+                defaultMode: 420
+                secretName: keycloak-internal-tls
+          securityContext:
+            fsGroup: 65532
+            runAsNonRoot: true
+            runAsUser: 65532
+            seccompProfile:
+              type: RuntimeDefault

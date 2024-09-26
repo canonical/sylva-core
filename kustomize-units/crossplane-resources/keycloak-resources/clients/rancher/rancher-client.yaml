@@ -1,0 +1,32 @@
+apiVersion: openidclient.keycloak.crossplane.io/v1alpha1
+kind: Client
+metadata:
+  name: rancher
+  namespace: crossplane-system
+  annotations:
+    crossplane.io/external-name: ${CLIENT_RANCHER}
+spec:
+  forProvider:
+    accessType: CONFIDENTIAL
+    realmId: sylva
+    useRefreshTokens: false
+    clientId: rancher
+    clientAuthenticatorType: client-secret
+    directAccessGrantsEnabled: true
+    enabled: true
+    implicitFlowEnabled: false
+    name: rancher
+    validRedirectUris:
+      - https://${RANCHER_DNS}/verify-auth
+    standardFlowEnabled: true
+    rootUrl: https://${RANCHER_DNS}
+    adminUrl: https://${RANCHER_DNS}
+    webOrigins:
+      - https://${RANCHER_DNS}
+  providerConfigRef:
+    name: keycloak-provider-config
+  managementPolicies:
+    - "*"
+  writeConnectionSecretToRef:
+    name: keycloak-client-secret-rancher-client
+    namespace: crossplane-system

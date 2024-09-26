@@ -1,0 +1,38 @@
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  name: eso-keycloak-provider-secret
+  namespace: crossplane-system
+spec:
+  refreshInterval: 1h
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: eso-store-k8s-keycloak
+  target:
+    name: keycloak-provider-secret
+    template:
+      metadata:
+        labels:
+          type: provider-credentials
+      type: Opaque
+      data:
+        credentials: |
+          {
+            "client_id": "admin-cli",
+            "username": "{{ .username }}",
+            "password": "{{ .password }}",
+            "url": "https://keycloak-service.keycloak.svc.cluster.local:8443",
+            "realm": "master",
+            "tls_insecure_skip_verify": "false",
+            "base_path": "/"
+          }
+  data:
+    - secretKey: username
+      remoteRef:
+        key: keycloak-initial-admin
+        property: username
+    - secretKey: password
+      remoteRef:
+        key: keycloak-initial-admin
+        property: password
+

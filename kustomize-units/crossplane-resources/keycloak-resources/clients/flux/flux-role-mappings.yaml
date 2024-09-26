@@ -1,0 +1,65 @@
+apiVersion: client.keycloak.crossplane.io/v1alpha1
+kind: ProtocolMapper
+metadata:
+  name: flux-group-protocol-mappers
+  annotations:
+    crossplane.io/external-name: ${MAPPER_GROUPS_MAPPER_FLUX_WEBUI}
+spec:
+  forProvider:
+    clientIdRef:
+      name: flux-webui
+    config:
+      access.token.claim: "false"
+      claim.name: groups
+      id.token.claim: "false"
+      userinfo.token.claim: "true"
+      full.path: "false"
+    name: Groups Mapper
+    protocol: openid-connect
+    protocolMapper: oidc-group-membership-mapper
+    realmId: sylva
+  providerConfigRef:
+    name: keycloak-provider-config
+---
+apiVersion: client.keycloak.crossplane.io/v1alpha1
+kind: ProtocolMapper
+metadata:
+  name: flux-clientaudience-protocol-mappers
+  annotations:
+    crossplane.io/external-name: ${MAPPER_CLIENT_AUDIENCE_FLUX_WEBUI}
+spec:
+  forProvider:
+    clientIdRef:
+      name: flux-webui
+    config:
+      access.token.claim: "true"
+      included.client.audience: "flux"
+    name: Client Audience
+    protocol: openid-connect
+    protocolMapper: oidc-audience-mapper
+    realmId: sylva
+  providerConfigRef:
+    name: keycloak-provider-config
+---
+apiVersion: client.keycloak.crossplane.io/v1alpha1
+kind: ProtocolMapper
+metadata:
+  name: flux-groupmembership-protocol-mappers
+  annotations:
+    crossplane.io/external-name: ${MAPPER_GROUP_PATH_FLUX_WEBUI}
+spec:
+  forProvider:
+    clientIdRef:
+      name: flux-webui
+    config:
+      access.token.claim: "false"
+      claim.name: full_group_path
+      full.path: "true"
+      id.token.claim: "false"
+      userinfo.token.claim: "true"
+    name: Group Path
+    protocol: openid-connect
+    protocolMapper: oidc-group-membership-mapper
+    realmId: sylva
+  providerConfigRef:
+    name: keycloak-provider-config

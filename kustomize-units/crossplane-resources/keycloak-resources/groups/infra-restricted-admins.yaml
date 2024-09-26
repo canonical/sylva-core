@@ -1,0 +1,16 @@
+apiVersion: group.keycloak.crossplane.io/v1alpha1
+kind: Group
+metadata:
+  name: infra-restricted-admins
+  namespace: crossplane-system
+  annotations:
+    crossplane.io/external-name: ${GROUPS_INFRA_RESTRICTED_ADMINS}
+spec:
+  forProvider:
+    name: "infra-restricted-admins"
+    realmId: "sylva"
+  deletionPolicy: "Delete"
+  providerConfigRef:
+    name: keycloak-provider-config
+  managementPolicies:
+    - "*"
