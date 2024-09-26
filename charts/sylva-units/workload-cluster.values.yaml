@@ -490,6 +490,11 @@ units:
           CA_COMMON_NAME: '{{ .Values.cluster.name }} CA'
           CA_O_NAME: '{{ .Values.cluster.name }}'
 
+  coredns-custom-hosts-import:
+    enabled: true
+    unit_templates:
+    - kustomization-deployed-on-mgmt-cluster
+
 cluster_domain: '{{ .Values.cluster.name }}.{{ .Values._internal.workload_clusters_cluster_subdomain }}'
 
 _internal:

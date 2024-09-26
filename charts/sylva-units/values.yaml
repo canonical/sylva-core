@@ -58,7 +58,7 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
     spec:
       url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-capi-cluster.git
       ref:
-        tag: 0.0.0-cm-okd-dns
+        tag: 0.0.0-cm-okd
 
   local-path-provisioner:
     kind: GitRepository
@@ -1709,9 +1709,12 @@ units:
         createNamespace: true
       values:
         config:
+          webhooks:
+            - namespaceSelector: {}
           ### see https://gitlab.com/sylva-projects/sylva-core/-/issues/1425
           # this can be removed once we upgrade to RKE2 > 1.28.8
           resourceFiltersExclude:
+          - "[*/*,kube-system,*]"
           - "[Node,*,*]"
           - "[Node/*,*,*]"
         webhooksCleanup:
@@ -1808,12 +1811,15 @@ units:
       postBuild:
         substitute:
           CLUSTER_NAME: '{{ .Values.cluster.name }}'
+          COREDNS_DEPLOYMENT_NAME: '{{ tuple (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpk" | ternary "coredns" "rke2-coredns-rke2-coredns") (tuple . "cabpoa" | include "unit-enabled") | include "set-only-if" }}'
+          COREDNS_CONFIGMAP_NAME: '{{ tuple (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpk" | ternary "coredns" "rke2-coredns-rke2-coredns") (tuple . "cabpoa" | include "unit-enabled") | include "set-only-if" }}'
       _components:
         - '{{ tuple "components/management-cluster-only" .Values._internal.mgmt_cluster | include "set-only-if" }}'
         - '{{ tuple "components/capm3-patch-bond-policy" (tuple . "capm3" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/descheduler" (tuple . "descheduler" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/loki-aggregated-secrets" (tuple . "loki" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/thanos" (tuple . "thanos" | include "unit-enabled") | include "set-only-if" }}'
+        - '{{ tuple "components/coredns-custom-hosts-import" (tuple . "cabpoa" | include "unit-enabled") | include "set-only-if" }}'
 
   kyverno-policies-ready:
     info:
@@ -4409,6 +4415,12 @@ units:
             - op: replace
               path: /metadata/name
               value: '{{ (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpk") | ternary "coredns" "rke2-coredns-rke2-coredns" }}'
+        - target:
+            kind: Deployment
+            name: '{{ (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpk") | ternary "coredns" "rke2-coredns-rke2-coredns" }}'
+          patch: |
+            - op: remove
+              path: /spec/templates/spec/volumes/0/items 
       postBuild:
         substitute:
           CLUSTER_VIRTUAL_IP: '{{ .Values.cluster_virtual_ip }}'
@@ -6342,6 +6354,26 @@ units:
                     - RemoveDuplicates
                     - LowNodeUtilization
 
+  coredns-custom-hosts-import:
+    enabled: false
+    info:
+      description: create a ConfigMap containing OKD workload cluster's DNS A records in [CoreDNS hosts plugin](https://coredns.io/plugins/hosts/)
+      internal: true
+    unit_templates:
+    - base-deps
+    enabled_conditions:
+      - '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpoa" }}'
+    repo: sylva-core
+    kustomization_spec:
+      path: ./kustomize-units/coredns-custom-hosts-import
+      postBuild:
+        substitute:
+          NAMESPACE: '{{ .Release.Namespace }}'
+          CLUSTER_NAME: '{{ .Values.cluster.name }}'
+          CLUSTER_VIRTUAL_IP: '{{ .Values.cluster_virtual_ip }}'
+          CLUSTER_OKD_BASE_DOMAIN: '{{ .Values.openshift.baseDomain }}'
+
+
 ##### stuff related to the 'cluster' unit #####
 #
 # all these values under 'cluster' are passed as values to sylva-capi-cluster chart
@@ -6486,6 +6518,9 @@ cluster:
         -}}
 
   enable_longhorn: '{{ or (tuple . "longhorn" | include "unit-enabled") (tuple . .Values.units.longhorn.enabled | include "interpret-for-test") | include "as-bool" }}'
+
+  openshift:
+    baseDomain: '{{ .Values.cluster_domain }}'
 
   timeouts:
     cluster_delete_hook_job_timeout: 300

@@ -1,0 +1,20 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: coredns-custom-${CLUSTER_NAME}
+  namespace: "${NAMESPACE:-kube-system}"
+  labels:
+    sylva.org/coredns-custom-hosts-import: "true"
+data:
+  hosts: |
+    ${CLUSTER_NAME}.hosts ${CLUSTER_NAME}.${CLUSTER_OKD_BASE_DOMAIN} {
+        hosts {
+            ${CLUSTER_VIRTUAL_IP} api.${CLUSTER_NAME}.${CLUSTER_OKD_BASE_DOMAIN}
+            ${CLUSTER_VIRTUAL_IP} api-int.${CLUSTER_NAME}.${CLUSTER_OKD_BASE_DOMAIN}
+            ${CLUSTER_VIRTUAL_IP} apps.${CLUSTER_NAME}.${CLUSTER_OKD_BASE_DOMAIN}
+            fallthrough
+        }
+        whoami
+    }
+
