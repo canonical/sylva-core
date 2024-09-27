@@ -23,7 +23,7 @@
 | **gitea** | installs Gitea | stable |  | [Helm](https://dl.gitea.com/charts/) | 10.4.1 |
 | **gitea-postgresql-ha** | installs PostgreSQL HA cluster for Gitea | stable |  | [Helm](https://charts.bitnami.com/bitnami) | 14.2.30 |
 | **gitea-redis** | installs Redis cluster for Gitea | stable |  | [Helm](https://charts.bitnami.com/bitnami) | 11.0.3 |
-| **harbor-postgres** | installs Postgresql for Harbor | stable |  | [Helm](https://charts.bitnami.com/bitnami) | 15.5.34 |
+| **harbor-postgres** | installs Postgresql for Harbor | stable |  | [Helm](https://charts.bitnami.com/bitnami) | 15.5.36 |
 | **ingress-nginx** | installs Nginx ingress controller | stable |  | [Helm](https://rke2-charts.rancher.io) | 4.10.102 |
 | **k8s-gateway** | installs k8s gateway (coredns + plugin to resolve external service names to ingress IPs)<br/><br/>is here only to allow for DNS resolution of Ingress hosts (FQDNs), used for importing workload clusters into Rancher and for flux-webui to use Keycloak SSO | stable |  | [Helm](https://ori-edge.github.io/k8s_gateway/) | 2.4.0 |
 | **kepler** | installs Kepler (Kubernetes-based Efficient Power Level Exporter) exporter for Prometheus | stable |  | [Helm](https://sustainable-computing-io.github.io/kepler-helm-chart) | 0.5.9 |
@@ -37,7 +37,7 @@
 | **monitoring** | installs monitoring stack | stable |  | [Helm](https://charts.rancher.io/) | 103.1.1+up45.31.1 |
 | **multus** | installs Multus | stable |  | [Helm](https://rke2-charts.rancher.io/) | v4.1.001 |
 | **os-image-server** | Deploys a web server on management cluster which serves OS images for baremetal clusters. | stable |  | [Helm](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/os-image-server.git) | 2.1.1 |
-| **postgres** | installs Postgresql for Keycloak | stable |  | [Helm](https://charts.bitnami.com/bitnami) | 15.5.34 |
+| **postgres** | installs Postgresql for Keycloak | stable |  | [Helm](https://charts.bitnami.com/bitnami) | 15.5.36 |
 | **rancher** | installs Rancher | stable |  | [Helm](https://releases.rancher.com/server-charts/stable) | 2.9.2 |
 | **sriov-network-operator** | installs SR-IOV operator | stable |  | [Helm](https://suse-edge.github.io/charts/) | 1.3.0 |
 | **vault** | installs Vault<br/><br/>Vault assumes that the certificate vault-tls has been issued | stable |  | [Kustomize](https://raw.githubusercontent.com/banzaicloud/bank-vaults/1.19.0/operator/deploy/rbac.yaml) | 1.19.0 |
