@@ -144,7 +144,7 @@ spec: {{ $helm_repo_spec | toYaml | nindent 2 }}
         or the last item in the chart path (charts/foo -> foo) ; helm_chart_artifact_name
         is used for units for which 'chart' is empty or '.' (e.g. sylva-capi-cluster chart)
       - the same convention is used to produce OCI artifact for Helm charts
-        in tools/oci/push-helm-charts-artifacts.sh
+        in tools/oci/push-helm-charts-artifacts.py
       - items in 'valuesFiles' are rewritten to remove the chart path
         ('charts/foo/more-values.yaml' -> 'more-values.yaml')
       */}}

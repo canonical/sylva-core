@@ -21,12 +21,14 @@
 publish-kustomize-units-artifact:
   extends: .build-base
   script:
-    - tools/oci/build-kustomize-units-artifact.sh ${OCI_TAG}
+    - export ARTIFACT_VERSION=${OCI_TAG}
+    - tools/oci/build-kustomize-units-artifact.py
 
 push-helm-artifacts:
   extends: .build-base
   script:
-    - tools/oci/push-helm-charts-artifacts.sh "oci://${CI_REGISTRY_IMAGE}"
+    - export OCI_REGISTRY=oci://${CI_REGISTRY_IMAGE}
+    - tools/oci/push-helm-charts-artifacts.py
 
 publish-sylva-units-artifact:
   extends: .build-base
