@@ -129,7 +129,7 @@ variables:
   # For capd MR pipelines we don't want to test rolling updates in MR flagged with ci-feature::test-rolling-update
   # For capd MR pipelines we don't want to test 1.1.1 to main upgrades in MR flagged with ci-feature::test-upgrade-from-1.1.1
   # As it's not supported for single node deployments
-  - if: $CI_MERGE_REQUEST_LABELS =~ /ci-feature::test-rolling-update|ci-feature::test-upgrade-from-1.1.1/ && $CI_JOB_NAME =~ /capd.*/
+  - if: $CI_MERGE_REQUEST_LABELS =~ /ci-feature::test-rolling-update|ci-feature::test-upgrade-from-1.1.1|ci-feature::mgmt-rolling-update/ && $CI_JOB_NAME =~ /capd.*/
     allow_failure: true
     when: manual
   # override to test rolling updates in MR flagged with ci-feature::test-rolling-update
@@ -143,6 +143,19 @@ variables:
       APPLY_WC_WATCH_TIMEOUT_MIN: 80
       WC_INITIAL_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/k8s-1.27.yml
       WC_UPDATE_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/k8s-1.28.yml
+    allow_failure: true
+    when: manual
+  # override to test dev branch to main upgrade in MR flagged with ci-feature::mgmt-rolling-upgrade
+  - if: $CI_MERGE_REQUEST_LABELS =~ /ci-feature::mgmt-rolling-update/
+    variables:
+      EXTRA_DESCRIPTION: "\\e[1;31m \\u26A0 This pipeline was triggered with label ci-feature::mgmt-rolling-update \n  pipeline will perform a rolling upgrade for only mgmt cluster \\e[0m"
+      DEPLOY_MGMT_CLUSTER: "true"
+      UPDATE_MGMT_CLUSTER: "true"
+      DEPLOY_WORKLOAD_CLUSTER: "false"
+      MGMT_INITIAL_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/control-plane-replicas-3.yml
+      MGMT_UPDATE_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/dummy-rolling-update-trigger.yml
+      MGMT_WATCH_TIMEOUT_MIN: 45
+      APPLY_WATCH_TIMEOUT_MIN: 80
     allow_failure: true
     when: manual
   # override to test dev branch to main upgrade in MR flagged with ci-feature::test-upgrade-from-1.1.1
