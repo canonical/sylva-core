@@ -1,0 +1,142 @@
+#!/usr/bin/env python3
+#
+# This script will push to registry.gitlab.com an OCI registry artifact
+# containing the 'kustomize-units'.
+#
+# The artifact is pushed as:
+#  oci://registry.gitlab.com/sylva-projects/sylva-core/kustomize-units:<tag>
+#
+# The pushed artifact will contain a values override file, 'use-oci-registry.values.yaml'
+# that can be used to override all external sources definitions (from source_templates and helm_repo_url)
+# to make them points to OCI Registry artifacts.
+#
+#
+# ### How to use ###
+#
+# The script accepts an optional parameter, ARTIFACT_VERSION which will be used as <tag> above if set as env var.
+# By default the current commit id will be used as <tag>.
+#
+# If run manually, the tool can be used after having preliminarily done
+# a 'docker login registry.gitlab.com' with suitable credentials.
+import os
+import re
+import subprocess
+import shutil
+import yaml
+import atexit
+import artifact_utils
+import logging
+
+BASE_DIR = os.path.realpath(os.path.join(os.path.dirname(__file__), '../..'))
+logger = logging.getLogger()
+
+
+def find_kustomization_files(base_dir):
+    kustomization_files = []
+    for root, dirs, files in os.walk(base_dir):
+        for file in files:
+            if re.match(r'kustomization\.ya?ml$', file):
+                kustomization_files.append(os.path.join(root, file))
+    return sorted(kustomization_files)
+
+
+# processes a kustomization.yaml (given as parameter):
+# - make a copy of the kustomization, keeping only 'resources'
+# - render the kustomization with 'kustomize build'
+# - replaces 'resources' in the original kustomization by the
+#   result of the rendering
+def process_kustomization(kustomization):
+    logger.info(f"  process kustomization: {kustomization}...")
+    kdir = os.path.dirname(kustomization)
+    orig_kustomization = f"{kustomization}.orig"
+    shutil.move(kustomization, orig_kustomization)
+
+    with open(orig_kustomization) as orig_file:
+        data = yaml.safe_load(orig_file)
+
+    with open(kustomization, 'w') as new_file:
+        yaml.dump({
+            'apiVersion': data['apiVersion'],
+            'kind': data['kind'],
+            'resources': data['resources']
+        }, new_file)
+
+    logger.info("  locally rendering remote resources...")
+    subprocess.run(["kubectl", "kustomize", kdir, "-o", f"{kdir}/local-resources.yaml"],
+                   stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    logger.info("OK")
+
+    shutil.move(orig_kustomization, kustomization)
+
+    with open(kustomization) as file:
+        data = yaml.safe_load(file)
+    data['resources'] = ["local-resources.yaml"]
+    with open(kustomization, 'w') as file:
+        yaml.dump(data, file)
+
+
+artifact_name = "kustomize-units"
+
+if os.getenv('CI_REPOSITORY_URL'):
+    artifact_source = re.sub('gitlab-ci-token.*@', '', os.getenv('CI_REPOSITORY_URL'))
+else:
+    artifact_source = subprocess.run(["git", "config", "--get", "remote.origin.url"],
+                                     capture_output=True).stdout.decode('utf-8')
+
+artifact_branch = subprocess.run(['git', 'branch', '--show-current'], capture_output=True)\
+    .stdout.decode('utf-8').strip()
+
+artifact_tag = subprocess.run(['git', 'rev-parse', '--short', 'HEAD'], capture_output=True)\
+    .stdout.decode('utf-8').strip()
+
+artifact_revision = artifact_branch + "/" + artifact_tag
+
+artifact_version = os.getenv('ARTIFACT_VERSION', f"0.0.0-git-{artifact_tag}")
+logger.info(f'artifact_version: {artifact_version}')
+
+
+shutil.copytree(os.path.join(BASE_DIR, 'kustomize-units'), os.path.join(artifact_utils.ARTIFACT_DIR, 'kustomize-units'),
+                dirs_exist_ok=True)
+
+os.chdir(artifact_utils.ARTIFACT_DIR)
+
+kustomizations = find_kustomization_files(artifact_utils.ARTIFACT_DIR)
+
+for kustomization in kustomizations:
+    with open(kustomization) as kustomization_file:
+        data = yaml.safe_load(kustomization_file)
+    if 'resources' in data.keys()\
+            and any('http://' in r or 'https://' in r or 'ssh://' in r for r in data['resources']):
+        logger.info(f"* {os.path.dirname(kustomization)}, processing ...")
+        process_kustomization(kustomization)
+    else:
+        logger.info(f"* {os.path.dirname(kustomization)}: no remote resource, skipping")
+
+remaining_urls = subprocess.run(["find", ".", "-type", "f", "-name", "'kustomization.y*ml'", "-exec", "grep",
+                                 "-nsE", "--", "'- +(https?|ssh)://'", "{}", "+"])
+if remaining_urls.returncode != 0:
+    logger.info("There are remaining remote URLs in some kustomization!")
+    exit(1)
+
+atexit.register(artifact_utils.cleanup)
+
+
+artifact_url = f"{artifact_utils.OCI_REGISTRY}/{artifact_name}:{artifact_version}"
+if artifact_utils.artifact_exists_with_flux(artifact_name, artifact_version, artifact_url):
+
+    artifact_utils.fail_if_existing_artifact_differs(artifact_name, artifact_version, artifact_url)
+
+    # artifact content hasn't changed, but we may want to sign it
+    if 'COSIGN_PUBLIC_KEY' in os.environ:
+        logger.info(f"Check if artifact {artifact_url} is signed with the correct key")
+
+        try:
+            artifact_utils.signature_is_valid(artifact_name)
+            logger.info(f"Artifact {artifact_url} exists and is already signed with the correct key")
+        except ValueError:
+            logger.info(f"Artifact {artifact_url} exists and needs to be signed")
+            artifact_utils.sign(artifact_name, artifact_utils.ARTIFACT_DIGEST)
+    else:
+        logger.warning("Unable to sign the kustomize-units, signing material is not set")
+else:
+    artifact_utils.push_and_sign_with_flux(artifact_name, artifact_version, artifact_source, artifact_revision)

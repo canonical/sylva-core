@@ -361,7 +361,7 @@ units:
   #   helm_chart_versions: optional, if specified, when deploying the Helm chart from an OCI artifact or Helm registry,
   #                             it will drive the version to be used from a dict of <version>:<boolean>
   #                             in case if helmrelease_spec.chart.spec.chart.version is not set
-  #                             (also used by tools/oci/push-helm-charts-artifacts.sh to generate the artifact)
+  #                             (also used by tools/oci/push-helm-charts-artifacts.py to generate the artifact)
   #   kustomization_spec:  # contains a partial spec for a FluxCD Kustomization, most of the
   #                        # things are generated from unit_kustomization_spec_default
   #     # sourceRef is generated from .git_repo field
@@ -4136,7 +4136,7 @@ units:
       description: contains OID files and generates configuration needed by the snmp-exporter
       details: >
         This unit is not to be enabled, as it will not actually be consumed by sylva-units.
-        It is here only to have sylva-core tools/oci/push-helm-charts-artifacts.sh
+        It is here only to have sylva-core tools/oci/push-helm-charts-artifacts.py
         produce an OCI artifact for it, which will be consumed directly by the `snmp-exporter`
         pods (in its init container).
       hidden: true

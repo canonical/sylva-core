@@ -21,44 +21,30 @@
 
 import os
 import subprocess
-import tempfile
 import shutil
 import yaml
 import re
 from pathlib import Path
 import atexit
+import artifact_utils
+import logging
 
-# yaml = YAML()
-# data = yaml.load(file) instead of safe_load
 
 # Set up environment and variables
 script_dir = Path(__file__).parent
 base_dir = script_dir.parent.parent
 
-# the OCI registry to use is:
-# - $OCI_REGISTRY if defined
-# - the gitlab CI registry, $CI_REGISTRY (if applicable)
-# - default value is oci://registry.gitlab.com/sylva-projects/sylva-core
-oci_registry = os.getenv(
-    "OCI_REGISTRY", "oci://registry.gitlab.com/sylva-projects/sylva-core"
-)
-# Cosign use registry URI not oci endpoint so we remove oci prefix
-registry_uri = re.sub(r"oci:\/\/", "", oci_registry)
+logger = logging.getLogger()
+
 helm_chart_version = os.getenv(
     "HELM_CHART_VERSION",
     f"0.0.0-git-{subprocess.check_output(['git', 'rev-parse', 'HEAD']).decode().strip()[0:8]}",
 )
-print("helm_chart_version: ", helm_chart_version)
-
-# Create a temporary directory for the artifacts
-artifact_dir = Path(tempfile.mkdtemp(prefix="sylva-units-"))
-pull_artifact_dir = Path(tempfile.mkdtemp(prefix="sylva-units-pull-"))
-tgz_artifact_dir = Path(tempfile.mkdtemp(prefix="tgz-"))
-print(f"(working in {artifact_dir})")
+logger.info(f'helm_chart_version: {helm_chart_version}')
 
 # Copy the chart directory to the artifact directory and change into it
-chart_source_dir = base_dir / "charts" / "sylva-units"
-chart_dest_dir = artifact_dir / "sylva-units"
+chart_source_dir = base_dir / 'charts' / 'sylva-units'
+chart_dest_dir = artifact_utils.ARTIFACT_DIR / 'sylva-units'
 shutil.copytree(chart_source_dir, chart_dest_dir)
 os.chdir(chart_dest_dir)
 
@@ -103,135 +89,9 @@ def merge_dictionaries(original, to_merge):
             original[key] = value
 
 
-def fail_if_existing_artifact_differs(
-    artifact_name, artifact_version, artifact_url, tgz_file
-):
-    print(
-        f"Checking the integrity of the existing artifact {artifact_name}:{artifact_version} :: "
-        f"{artifact_url}"
-    )
-    subprocess.run(["tar", "-xzf", tgz_file, "-C", tgz_artifact_dir])
-    subprocess.run(
-        [
-            "tar",
-            "-xzf",
-            f"{pull_artifact_dir}/{artifact_name}-{artifact_version}.tgz",
-            "-C",
-            pull_artifact_dir,
-        ]
-    )
-
-    print("---------- make a diff --------------")
-    for root, dirs, files in os.walk(tgz_artifact_dir, topdown=False):
-        for name in files:
-            if name == "Chart.lock":
-                os.remove(os.path.join(root, name))
-        for name in dirs:
-            if name == ".git":
-                shutil.rmtree(os.path.join(root, name))
-    if (
-        subprocess.run(
-            [
-                "diff",
-                "-r",
-                "--exclude",
-                "Chart.lock",
-                f"{tgz_artifact_dir}/sylva-units",
-                f"{pull_artifact_dir}/sylva-units",
-            ]
-        ).returncode
-        == 0
-    ):
-        print("Integrity check: ok")
-        return True
-    else:
-        raise Exception(
-            "\n[ERROR] Sylva-units content differs from the content of the already existing OCI artifact"
-        )
-
-
-# Ensure the temporary directory is cleaned up
-def cleanup():
-    shutil.rmtree(artifact_dir)
-    shutil.rmtree(pull_artifact_dir)
-    shutil.rmtree(tgz_artifact_dir)
-
-
-atexit.register(cleanup)
-
-
-def push_and_sign():
-    print("\nPushing sylva-units artifact to OCI registry...")
-
-    # if we run in a gitlab CI job, then we use the credentials provided by gitlab job environment
-    ci_registry = os.getenv("CI_REGISTRY")
-    if ci_registry:
-        ci_registry_user = os.getenv("CI_REGISTRY_USER")
-        ci_registry_password = os.getenv("CI_REGISTRY_PASSWORD")
-        subprocess.run(
-            f"echo '{ci_registry_password}' | helm registry login -u '{ci_registry_user}' '{ci_registry}' "
-            "--password-stdin",
-            shell=True,
-        )
-    # push the artifact to registry
-    result = subprocess.run(
-        ["helm", "push", f"sylva-units-{helm_chart_version}.tgz", oci_registry],
-        check=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-    )
-
-    # sign the artifact to registry
-    cosign_priv_key = os.getenv("COSIGN_PRIVATE_KEY")
-    cosign_password = os.getenv("COSIGN_PASSWORD")
-    if cosign_priv_key:
-        if cosign_password:
-            print("\nSigning sylva-units artifact to OCI registry...")
-            digest = re.search(r".*Digest:\s+(.*)",
-                               result.stdout.decode("utf-8"), flags=re.M).group(1)
-            subprocess.run(
-                f"cosign sign -y --tlog-upload=false --key env://COSIGN_PRIVATE_KEY {registry_uri}/sylva-units@{digest}", # noqa E501
-                shell=True
-            )
-        else:
-            print(
-                "\n[WARNING] Unable to sign the sylva-units, the private key password is not available"
-            )
-    else:
-        print("\n[WARNING] Unable to sign the sylva-units, the private key is not set")
-
-
-def artifact_exists(artifact_name, artifact_version, artifact_url):
-    print(
-        f"Checking if OCI artifact exists: {artifact_name}:{artifact_version} :: {artifact_url}"
-    )
-    print(
-        f"helm pull {artifact_url} --version {artifact_version} -d {pull_artifact_dir}"
-    )
-    result = subprocess.run(
-        [
-            "helm",
-            "pull",
-            artifact_url,
-            "--version",
-            artifact_version,
-            "-d",
-            pull_artifact_dir,
-        ],
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-    )
-    if result.returncode == 0:
-        global artifact_digest
-        artifact_digest = re.search(r'.*Digest:\s+(.*)',
-                                    result.stdout.decode("utf-8"), flags=re.M).group(1)
-        return True
-    return False
-
-
 # ############################## package charts/sylva-units #########################################################
 # Modify Chart.yaml
-print("Preparing chart...")
+logger.info("Preparing chart...")
 chart_yaml_path = chart_dest_dir / "Chart.yaml"
 modify_chart_yaml(chart_yaml_path, helm_chart_version)
 
@@ -242,7 +102,7 @@ default_values_units = default_values_data["units"]
 
 # ############################## sylva-units overrides to consume Helm charts from OCI artifacts ####################
 
-print("Preparing use-oci-artifacts.values.yaml values override file...")
+logger.info("Preparing use-oci-artifacts.values.yaml values override file...")
 
 # Here we build a values override file for sylva-units to allow to conveniently
 # use sylva-units from OCI registry artifacts.
@@ -423,46 +283,19 @@ if test_values_dir.exists():
 
 # ############################## wrap up Helm packaging  #######################################
 os.chdir(chart_dest_dir)  # Ensure we are in the correct directory
-subprocess.run(["helm", "dependency", "update"], check=True)
+subprocess.run(["helm", "dependency", "update"], check=True,
+               stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 subprocess.run(
     ["helm", "package", "--version", helm_chart_version, str(chart_dest_dir)],
     check=True,
+    stdout=subprocess.PIPE, stderr=subprocess.STDOUT
 )
 
 # ############################## pushing the artifact to registry ###################################################
 tgz_file = f"sylva-units-{helm_chart_version}.tgz"
 artifact_name = "sylva-units"
 artifact_version = helm_chart_version
-artifact_url = f"{oci_registry}/{artifact_name}"
-artifact_digest = None
 
-if artifact_exists(artifact_name, artifact_version, artifact_url):
+atexit.register(artifact_utils.cleanup)
 
-    fail_if_existing_artifact_differs(
-        artifact_name, artifact_version, artifact_url, tgz_file
-    )
-
-    # artifact content hasn't changed, but we may want to sign it
-    if "COSIGN_PUBLIC_KEY" in os.environ:
-        print(f"Check if artifact {artifact_url} is signed with the correct key")
-
-        if (
-            subprocess.run(
-                f"cosign verify --insecure-ignore-tlog=true --insecure-ignore-sct=true --key env://COSIGN_PUBLIC_KEY "
-                f"{registry_uri}/sylva-units@{artifact_digest}",
-                shell=True,
-            ).returncode
-            == 0
-        ):
-            print(
-                f"[INFO] Artifact {artifact_url} exists and is already signed with the correct key"
-            )
-        else:
-            print(f"Artifact {artifact_url} exists and needs to be signed")
-            push_and_sign()
-    else:
-        print(
-            "\n[WARNING] Unable to verify the signature of the sylva-units, signing material is not set"
-        )
-else:
-    push_and_sign()
+artifact_utils.process_artifact_helm(artifact_name, artifact_version, tgz_file)
