@@ -1,8 +1,0 @@
-units:
-  loki:
-    enabled: false
-    repo: loki
-    helmrelease_spec:
-      chart:
-        spec:
-          version: v1.1.1
