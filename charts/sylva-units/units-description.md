@@ -141,6 +141,8 @@
 | **sriov-resources** | configures SRIOV resources |  | True | Helm | N/A |
 | **sylva-ca** | provides a Certificate Authority for units of the Sylva stack |  | True | Kustomize | N/A |
 | **synchronize-secrets** | allows secrets from Vault to be consumed other units, relies on ExternalSecrets |  | True | Kustomize | N/A |
+| **syslog** | deploy a syslog server for CI |  | True | Kustomize | N/A |
+| **syslog-init** | sets up syslog prerequisites<br/><br/>it generates certificate |  | True | Kustomize | N/A |
 | **thanos-credentials-secret** | create a secret containing tenant's thanos credentials |  | True | Kustomize | N/A |
 | **thanos-init** | sets up thanos certificate<br/><br/>it generates a multiple CN certificate for all Thanos components |  | True | Kustomize | N/A |
 | **tigera-clusterrole** | is here to allow for upgrading Calico chart when upgrading cluster<br/><br/>For v1.25.x to v1.26.x, see https://gitlab.com/sylva-projects/sylva-core/-/issues/664 |  | True | Kustomize | N/A |

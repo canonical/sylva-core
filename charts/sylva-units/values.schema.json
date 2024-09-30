@@ -8117,6 +8117,20 @@
               "$ref": "#/$defs/string-with-gotpl"
             }
           ]
+        },
+        "syslog": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "hostname"
+            },
+            {
+              "const": ""
+            },
+            {
+              "$ref": "#/$defs/string-with-gotpl"
+            }
+          ]
         }
       }
     },
@@ -8167,6 +8181,9 @@
           "$ref": "#/$defs/cert-and-key"
         },
         "kubevirt_manager": {
+          "$ref": "#/$defs/cert-and-key"
+        },
+        "syslog": {
           "$ref": "#/$defs/cert-and-key"
         }
       }

@@ -1,0 +1,107 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: syslog-deployment
+  namespace: syslog
+  labels:
+    app: syslog
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: syslog
+  template:
+    metadata:
+      labels:
+        app: syslog
+    spec:
+      containers:
+      - name: syslog
+        image: balabit/syslog-ng:4.7.1
+        command: ["/usr/sbin/syslog-ng"]
+        args: ["-F", "--no-caps"]
+        ports:
+        - name: tcp-port-601
+          containerPort: 601
+          protocol: TCP
+        - name: tcp-port-514
+          containerPort: 514
+          protocol: TCP
+        - name: tcp-port-6514
+          containerPort: 6514
+          protocol: TCP
+        - name: udp-port-514
+          containerPort: 514
+          protocol: UDP
+        resources:
+          requests:
+            cpu: 250m
+            memory: 524Mi
+        volumeMounts:
+          - name: syslog
+            mountPath: "/var/log/remotelogs/"
+          - name: syslog-tls         # mount the keycloak root ca cerftificate to verify the oidc_discovery_url
+            mountPath: /etc/syslog-ng/cert.d/
+          - name: config-volume
+            mountPath: /etc/syslog-ng/
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30
+      volumes:
+        - name: syslog
+          persistentVolumeClaim:
+            claimName: syslog
+        - name: config-volume
+          configMap:
+            name: syslog-d
+        - name: syslog-opt
+          configMap:
+            name: syslog-opt
+        - name: syslog-tls
+          secret:
+            secretName: syslog-tls
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: syslog-d
+  labels:
+    app: syslog
+data:
+  syslog-ng.conf: |
+    @version: 4.7
+    @include "scl.conf"
+
+    source s_local {
+      system();
+      internal();
+    };
+
+    source s_network {
+      default-network-drivers(
+        tls(
+          key-file("/etc/syslog-ng/cert.d/tls.key")
+          cert-file("/etc/syslog-ng/cert.d//tls.crt")
+          peer-verify(optional-untrusted)
+        )
+      );
+    };
+
+    destination d_local {
+            file("/var/log/messages");
+            file("/var/log/remotelogs/${HOST}/${PROGRAM}.log");
+    };
+
+    log {
+            source(s_local);
+            source(s_network);
+            destination(d_local);
+    };
+    options {
+            create_dirs(yes);
+            owner(root);
+            group(root);
+            perm(0644);
+            dir_owner(root);
+            dir_group(root);
+            dir_perm(0755);
+    };

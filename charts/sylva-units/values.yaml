@@ -622,6 +622,55 @@ units:
         - '{{ tuple "components/loki" (tuple . "loki" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/kepler" (tuple . "kepler" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/kube-system" (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpr") | include "set-only-if" }}'
+        - '{{ tuple "components/syslog" (tuple . "syslog" | include "unit-enabled") | include "set-only-if" }}'
+
+  syslog:
+    info:
+      description: deploy a syslog server for CI
+      internal: true
+    unit_templates:
+    - base-deps
+    depends_on:
+      namespace-defs: true
+      syslog-init: true
+    repo: sylva-core
+    kustomization_spec:
+      path: ./kustomize-units/syslog
+      wait: true
+      postBuild:
+        substitute:
+          STORAGECLASS_NAME: '{{ .Values._internal.default_storage_class }}'
+          STORAGE: "50Gi"
+          HOST: '{{ .Values.external_hostnames.syslog }}'
+
+  syslog-init:
+    info:
+      description: sets up syslog prerequisites
+      details: it generates certificate
+      internal: true
+    depends_on:
+      namespace-defs: true
+    unit_templates:
+    - base-deps
+    enabled_conditions:
+      - '{{ tuple . "syslog" | include "unit-enabled" }}'
+    repo: sylva-core
+    kustomization_substitute_secrets:
+      KEY: '{{ .Values.external_certificates.syslog.key | default "" | b64enc }}'
+    kustomization_spec:
+      path: ./kustomize-units/syslog-init
+      wait: true
+      postBuild:
+        substitute:
+          SYSLOG_DNS: '{{ .Values.external_hostnames.syslog }}'
+          SERVICE: syslog
+          SERVICE_DNS: '{{ .Values.external_hostnames.harbor }}'
+          CERTIFICATE_NAMESPACE: syslog
+          CERT: '{{ .Values.external_certificates.syslog.cert | default "" | b64enc }}'
+          CACERT: '{{ .Values.external_certificates.cacert | default "" | b64enc }}'
+      _components:
+        - '{{ ternary "../tls-components/tls-secret" "../tls-components/tls-certificate" (hasKey .Values.external_certificates.syslog "cert") }}'
+        - "../tls-components/sylva-ca"
 
   postgres:
     info:
@@ -6513,6 +6562,7 @@ external_hostnames:
   loki: 'loki.{{ .Values.cluster_domain }}'
   grafana: 'grafana.{{ .Values.cluster_domain }}'
   kubevirt_manager: 'kubevirt-manager.{{ .Values.cluster_domain }}'
+  syslog: 'syslog.{{ .Values.cluster_domain }}'
 
 external_certificates:
   rancher: {}
@@ -6529,6 +6579,7 @@ external_certificates:
   loki: {}
   grafana: {}
   kubevirt_manager: {}
+  syslog: {}
 
 audit_log:
   level: 0

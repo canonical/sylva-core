@@ -1,0 +1,25 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: syslog
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    kubernetes.io/tls-acme: "true"
+
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - ${HOST}
+      secretName: syslog-tls
+  rules:
+    - host: ${HOST}
+      http:
+        paths:
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: syslog
+              port:
+                number: 6514
