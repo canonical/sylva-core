@@ -28,7 +28,7 @@ OKD or OpenShift cluster k8s api URLs are name based, and they are:
 
 - `*.apps.<cluster-name>.<domain-name>`
 
-In a multi-cluster architecrure, a management cluster will install and manage multiple workload clusters. Each OKD workload cluster will need to have the above three DNS entries corresponding to its cluster. In production, we expect an external dns service outside of Sylva stack will fullfil the DNS requirements with pre-populated DNS entries for all workload clusters. An alternative to the external dns service approach is to enhance the Sylva k8s-gateway unit so it will be able to add the cluster DNS entries when a cluster is created, and remove the cluster DNS entries when a cluster is deleted. This alternative work is being tracked by: https://gitlab.com/sylva-projects/sylva-core/-/issues/1573
+In a multi-cluster architecrure, a management cluster will install and manage multiple workload clusters. Each OKD workload cluster will need to have the above three DNS entries corresponding to its cluster. In production, we expect an external dns service outside of Sylva stack will fulfill the DNS requirements with pre-populated DNS entries for all workload clusters. An alternative to the external dns service approach is to enhance the Sylva k8s-gateway unit so it will be able to add the cluster DNS entries when a cluster is created, and remove the cluster DNS entries when a cluster is deleted. This alternative work is being tracked by: https://gitlab.com/sylva-projects/sylva-core/-/issues/1573
 
 ## Install OKD Single Node Cluster
 
@@ -231,11 +231,7 @@ url: {{ $def.machine_image_url }}
 
 For OKD the `image_key` is not used so the `machine_image_*` values are required, otherwise the [`sylva-capi-cluster` chart](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-capi-cluster) templating will fail.
 
-The okd.pullSecret is required but can be a dummy value, one can create the base64 value like:
-
-```
-echo -n '{"auths":{"fake":{"auth":"aWQ6cGFzcwo="}}}' | base64
-```
+For OKD install, the `pullSecret` is not required. If it is not provided, a dummy pull secret will be used by default. If `pullSecret` is provided, it will overwrite the default dummy one. For OpenShift install, the `pullSecret` is required, and the user can acquire a pull secret for OpenShift install from https://console.redhat.com/openshift/install/pull.
 
 OKD has a default user "core", the purpose of okd.sshAuthorizedKey is to login to the OKD node as this user.
 
