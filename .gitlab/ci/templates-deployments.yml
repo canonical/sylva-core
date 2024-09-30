@@ -56,13 +56,42 @@ include:
   # Common function to update the deployment values file with the content of multiple yaml files
   - |
     function update_values_file() {
-    echo -e "Applying values from \\e[1;94m$@\\e[0m to \\e[1;92m$values_file\\e[0m"
-    yq -i eval-all '. as $item ireduce ({}; . * $item )' $values_file $@
+      for target_file in $@; do
+        file_found="false"
+        if [ -f "$target_file" ]; then
+          file_found="true"
+          echo -e "Applying values from \\e[1;94m$target_file\\e[0m to \\e[1;92m$values_file\\e[0m"
+          yq -i eval-all '. as $item ireduce ({}; . * $item )' $values_file $target_file
 
-    if [[ ${DISPLAY:-true} == "true" ]]; then
-      echo "Content of $values_file:"
-      cat $values_file
-    fi
+        else
+          common_ci_values_path=${SYLVA_CI_VALUES_FOLDER}/common
+          if [ -f "$common_ci_values_path/$target_file" ]; then
+            file_found="true"
+            echo -e "Applying values from \\e[1;94m$common_ci_values_path/$target_file\\e[0m to \\e[1;92m$values_file\\e[0m"
+            yq -i eval-all '. as $item ireduce ({}; . * $item )' $values_file $common_ci_values_path/$target_file
+          fi
+
+          versionned_ci_values_path=${SYLVA_CI_VALUES_FOLDER}/${SYLVA_CI_VERSIONNED_CI_VALUES_FOLDER}
+          if [ -d "$SYLVA_CI_VERSIONNED_CI_VALUES_FOLDER" ] || [ -h "$SYLVA_CI_VERSIONNED_CI_VALUES_FOLDER" ] ; then
+            echo >&2 "[WARNING] 🛑 Defined SYLVA_CI_VERSIONNED_CI_VALUES_FOLDER $SYLVA_CI_VERSIONNED_CI_VALUES_FOLDER doesn't exist"
+          fi
+
+          if [ -f "$versionned_ci_values_path/$target_file" ]; then
+            file_found="true"
+            echo -e "Applying values from \\e[1;94m$versionned_ci_values_path/$target_file\\e[0m to \\e[1;92m$values_file\\e[0m"
+            yq -i eval-all '. as $item ireduce ({}; . * $item )' $values_file $versionned_ci_values_path/$target_file
+          fi
+        fi
+        if [ "$file_found" = "false" ]; then
+          echo >&2 "[ERROR] Unable to find value file $target_file"
+          exit 1
+        fi
+      done
+
+      if [[ ${DISPLAY:-true} == "true" ]]; then
+        echo "Content of $values_file:"
+        cat $values_file
+      fi
     }
 
 # This function CI_JOB_TOKEN to authenticate against the gitlab artifact API.
@@ -128,11 +157,7 @@ include:
   - values_file=$ENV_PATH/values.yaml
   - |
     # Force intialization of an http server for log collection in cluster on capm3/capo
-    if [ -f ${SYLVA_CI_VALUES_FOLDER}/run_http_server_for_log_collect.yaml ]; then
-      DISPLAY="false" update_values_file ${SYLVA_CI_VALUES_FOLDER}/run_http_server_for_log_collect.yaml
-    else
-      echo "File 'run_http_server_for_log_collect.yaml' not found, skipping"
-    fi
+    DISPLAY="false" update_values_file run_http_server_for_log_collect.yaml
   - |
     # configure OCI artifacts if needed
     if [ ${OCI_TAG} ]; then
@@ -155,7 +180,7 @@ include:
     fi
   - yq -i '.cluster.name = strenv(CLUSTER_CI_NAME)' $values_file
   - yq -i '.env_type = "ci"' $values_file
-  - update_values_file ${SYLVA_CI_VALUES_FOLDER}/image-key-common.yaml
+  - update_values_file image-key-common.yaml
   - |
     if [ -n "${MGMT_ADDITIONAL_VALUES}" ] && [ "${CLUSTER_TYPE}" = "management" ]; then
       update_values_file ${MGMT_ADDITIONAL_VALUES}
@@ -237,7 +262,6 @@ include:
   variables:
     SPECIFIC_VALUES_FILE: $MGMT_INITIAL_ADDITIONAL_VALUES
     GIT_REVISION: $MGMT_INITIAL_REVISION
-    SYLVA_CI_VALUES_REVISION: $MGMT_INITIAL_CI_VALUES_REVISION
 
 .update-management:
   extends: .management-base
@@ -247,7 +271,6 @@ include:
   variables:
     SPECIFIC_VALUES_FILE: $MGMT_UPDATE_ADDITIONAL_VALUES
     GIT_REVISION: $MGMT_UPDATE_REVISION
-    SYLVA_CI_VALUES_REVISION: $MGMT_UPDATE_CI_VALUES_REVISION
 
 .workload-base:
   extends: .docker-service
@@ -280,8 +303,6 @@ include:
   variables:
     SPECIFIC_VALUES_FILE: $WC_INITIAL_ADDITIONAL_VALUES
     GIT_REVISION: $WC_INITIAL_REVISION
-    SYLVA_CI_VALUES_REVISION: $WC_INITIAL_CI_VALUES_REVISION
-
 .update-workload:
   extends: .workload-base
   script:
@@ -290,7 +311,6 @@ include:
   variables:
     SPECIFIC_VALUES_FILE: $WC_UPDATE_ADDITIONAL_VALUES
     GIT_REVISION: $WC_UPDATE_REVISION
-    SYLVA_CI_VALUES_REVISION: $WC_UPDATE_CI_VALUES_REVISION
 
 .delete-workload:
   extends: .workload-base
