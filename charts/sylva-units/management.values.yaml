@@ -136,7 +136,7 @@ units:
           extraSecretMounts:
             - name: grafana-tls
               mountPath: "/etc/ssl/certs"
-              secretName: grafana-general-tls
+              secretName: sylva-ca.crt
           ingress:
             enabled: true
             ingressClassName: nginx

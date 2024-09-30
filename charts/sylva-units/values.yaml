@@ -3163,6 +3163,7 @@ units:
       targetNamespace: cattle-system
       interval: 10m0s
       values:
+        additionalTrustedCAs: true
         auditLog:
           level: '{{ .Values.audit_log.level | include "preserve-type" }}'
         privateCA: true
@@ -3203,6 +3204,13 @@ units:
                     template:
                       spec:
                         volumes:
+                          - name: tls-ca-additional-volume
+                            secret:
+                              defaultMode: 256
+                              items:
+                                - key: ca.crt
+                                  path: ca-additional.pem
+                              secretName: sylva-ca.crt
                           - name: tls-ca-volume
                             secret:
                               defaultMode: 256
@@ -3566,7 +3574,7 @@ units:
         extraVolumes:
           - name: custom-ca-cert
             secret:
-              secretName: flux-webui-tls
+              secretName: sylva-ca.crt
               items:
                 - key: ca.crt
                   path: ca.crt
@@ -3671,7 +3679,13 @@ units:
         substitute:
           SERVICE: rancher-monitoring-grafana
           GRAFANA_DNS: '{{ .Values.external_hostnames.grafana }}'
+      _components:
+        - "../tls-components/sylva-ca"
       healthChecks:
+        - apiVersion: v1
+          kind: Secret
+          name: sylva-ca.crt
+          namespace: cattle-monitoring-system
         - apiVersion: v1
           kind: Secret
           name: grafana-general-tls
