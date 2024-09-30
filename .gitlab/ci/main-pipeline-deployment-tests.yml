@@ -47,7 +47,7 @@ variables:
       Path to a file for customizing the values used
       during the management cluster deployment stage
   MGMT_UPDATE_ADDITIONAL_VALUES:
-    value: "${SYLVA_CI_VALUES_FOLDER}/ci-enabled-units.yml"
+    value: "ci-enabled-units.yml"
     description: |
       Path to a file for customizing the values used
       during the management cluster update stage
@@ -70,7 +70,7 @@ variables:
       Path to a file for customizing the values used
       during the workload cluster deployment stage
   WC_UPDATE_ADDITIONAL_VALUES:
-    value: "${SYLVA_CI_VALUES_FOLDER}/ci-enabled-units.yml"
+    value: "ci-enabled-units.yml"
     description: |
       Path to a file for customizing the values used
       during the workload cluster update stage
@@ -95,11 +95,11 @@ variables:
   SYLVA_CI_VALUES_FOLDER: environment-values/sylva-core-ci-values
   # Reference to checkout for CI values, by default we use the same for all stages but it can be overriden
   # eg: if we have a breaking change during an upgrade we could use a different branch for the deployment and update
-  CI_VALUES_REVISION: 0.3.1
-  MGMT_INITIAL_CI_VALUES_REVISION: ${CI_VALUES_REVISION}
-  MGMT_UPDATE_CI_VALUES_REVISION: ${MGMT_INITIAL_CI_VALUES_REVISION}
-  WC_INITIAL_CI_VALUES_REVISION: ${CI_VALUES_REVISION}
-  WC_UPDATE_CI_VALUES_REVISION: ${CI_VALUES_REVISION}
+  SYLVA_CI_VALUES_REVISION: 0.4.0
+
+  # Use CI values for specific version
+  # If not specified $GIT_REVISION if set is used or "current" otherwise
+  SYLVA_CI_VERSIONNED_CI_VALUES_FOLDER: ""
 
 
 .deployment_rules:
@@ -119,13 +119,13 @@ variables:
   # override to test rolling updates in scheduled pipelines
   - if: '$CI_PIPELINE_SOURCE == "schedule" && $CI_DEPLOYMENTS && $CI_JOB_NAME =~ $DEPLOYMENT_FLAVOR'
     variables:
-      MGMT_INITIAL_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/control-plane-replicas-3.yml ${SYLVA_CI_VALUES_FOLDER}/serve-k8s-1.27-image.yml
-      MGMT_UPDATE_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/dummy-rolling-update-trigger.yml ${SYLVA_CI_VALUES_FOLDER}/serve-k8s-1.27-image.yml
+      MGMT_INITIAL_ADDITIONAL_VALUES: control-plane-replicas-3.yml serve-k8s-1.27-image.yml
+      MGMT_UPDATE_ADDITIONAL_VALUES: dummy-rolling-update-trigger.yml serve-k8s-1.27-image.yml
       MGMT_WATCH_TIMEOUT_MIN: 45
       APPLY_WATCH_TIMEOUT_MIN: 80
       APPLY_WC_WATCH_TIMEOUT_MIN: 80
-      WC_INITIAL_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/k8s-1.27.yml
-      WC_UPDATE_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/k8s-1.28.yml
+      WC_INITIAL_ADDITIONAL_VALUES: k8s-1.27.yml
+      WC_UPDATE_ADDITIONAL_VALUES: k8s-1.28.yml
   # For capd MR pipelines we don't want to test rolling updates in MR flagged with ci-feature::test-rolling-update
   # For capd MR pipelines we don't want to test 1.1.1 to main upgrades in MR flagged with ci-feature::test-upgrade-from-1.1.1
   # As it's not supported for single node deployments
@@ -136,13 +136,13 @@ variables:
   - if: $CI_MERGE_REQUEST_LABELS =~ /ci-feature::test-rolling-update/
     variables:
       EXTRA_DESCRIPTION: "\\e[1;31m \\u26A0 This pipeline was triggered with label ci-feature::test-rolling-update \n  pipeline will perform a rolling update *with k8s upgrade* instead of a dummy rolling update \\e[0m"
-      MGMT_INITIAL_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/control-plane-replicas-3.yml ${SYLVA_CI_VALUES_FOLDER}/serve-k8s-1.27-image.yml
-      MGMT_UPDATE_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/dummy-rolling-update-trigger.yml ${SYLVA_CI_VALUES_FOLDER}/serve-k8s-1.27-image.yml
+      MGMT_INITIAL_ADDITIONAL_VALUES: control-plane-replicas-3.yml serve-k8s-1.27-image.yml
+      MGMT_UPDATE_ADDITIONAL_VALUES: dummy-rolling-update-trigger.yml serve-k8s-1.27-image.yml
       MGMT_WATCH_TIMEOUT_MIN: 45
       APPLY_WATCH_TIMEOUT_MIN: 80
       APPLY_WC_WATCH_TIMEOUT_MIN: 80
-      WC_INITIAL_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/k8s-1.27.yml
-      WC_UPDATE_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/k8s-1.28.yml
+      WC_INITIAL_ADDITIONAL_VALUES: k8s-1.27.yml
+      WC_UPDATE_ADDITIONAL_VALUES: k8s-1.28.yml
     allow_failure: true
     when: manual
   # override to test dev branch to main upgrade in MR flagged with ci-feature::mgmt-rolling-upgrade
@@ -163,20 +163,15 @@ variables:
     variables:
       EXTRA_DESCRIPTION: "\\e[1;31m \\u26A0 This pipeline was triggered with label ci-feature::test-upgrade-from-1.1.1 \n  pipeline will test upgrade from 1.1.1 version \\e[0m"
       # Need to be HA in case of rolling update triggered by the upgrade
-      MGMT_INITIAL_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/control-plane-replicas-3.yml
+      MGMT_INITIAL_ADDITIONAL_VALUES: control-plane-replicas-3.yml
       # libvirt-metal-no-bond.yaml file is added to updates values as a temporary fix for capm3 upgrades from 1.1.1,
       # it can be removed after next release, see https://gitlab.com/sylva-projects/sylva-core/-/issues/1581
-      MGMT_UPDATE_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/control-plane-replicas-3.yml ${SYLVA_CI_VALUES_FOLDER}/libvirt-metal-no-bond.yaml
-      WC_INITIAL_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/control-plane-replicas-3.yml
-      WC_UPDATE_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/control-plane-replicas-3.yml ${SYLVA_CI_VALUES_FOLDER}/libvirt-metal-no-bond.yaml
+      MGMT_UPDATE_ADDITIONAL_VALUES: control-plane-replicas-3.yml libvirt-metal-no-bond.yaml
+      WC_INITIAL_ADDITIONAL_VALUES: control-plane-replicas-3.yml
+      WC_UPDATE_ADDITIONAL_VALUES: control-plane-replicas-3.yml libvirt-metal-no-bond.yaml
       # Set initial revision to 1.1.1
       MGMT_INITIAL_REVISION: 1.1.1-ci-tweaks
       WC_INITIAL_REVISION: 1.1.1-ci-tweaks
-      # Use 1.1.1 CI values
-      MGMT_INITIAL_CI_VALUES_REVISION: stable/1.1.1
-      MGMT_UPDATE_CI_VALUES_REVISION: ${CI_VALUES_REVISION}
-      WC_INITIAL_CI_VALUES_REVISION: stable/1.1.1
-      WC_UPDATE_CI_VALUES_REVISION: ${CI_VALUES_REVISION}
       # Increase default timers due to rolling update
       MGMT_WATCH_TIMEOUT_MIN: 45
       APPLY_WATCH_TIMEOUT_MIN: 80
@@ -251,7 +246,7 @@ capd-kubeadm-ubuntu:
     UPDATE_MGMT_CLUSTER: "false"
     DEPLOY_WORKLOAD_CLUSTER: "false"
     SKIP_TESTS: "true"
-    MGMT_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/lightweight-disable-some-units.yml
+    MGMT_ADDITIONAL_VALUES: lightweight-disable-some-units.yml
   trigger:
     include: .gitlab/ci/pipeline-deploy-capd.yml
     strategy: depend
@@ -265,7 +260,7 @@ capd-rke2-ubuntu:
     UPDATE_MGMT_CLUSTER: "false"
     DEPLOY_WORKLOAD_CLUSTER: "false"
     SKIP_TESTS: "true"
-    MGMT_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/lightweight-disable-some-units.yml
+    MGMT_ADDITIONAL_VALUES: lightweight-disable-some-units.yml
   trigger:
     include: .gitlab/ci/pipeline-deploy-capd.yml
     strategy: depend
@@ -279,7 +274,7 @@ capd-kubeadm-oci-ubuntu:
     UPDATE_MGMT_CLUSTER: "false"
     DEPLOY_WORKLOAD_CLUSTER: "false"
     SKIP_TESTS: "true"
-    MGMT_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/lightweight-disable-some-units.yml
+    MGMT_ADDITIONAL_VALUES: lightweight-disable-some-units.yml
   trigger:
     include: .gitlab/ci/pipeline-deploy-capd.yml
     strategy: depend
@@ -293,7 +288,7 @@ capd-rke2-oci-ubuntu:
     UPDATE_MGMT_CLUSTER: "false"
     DEPLOY_WORKLOAD_CLUSTER: "false"
     SKIP_TESTS: "true"
-    MGMT_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/lightweight-disable-some-units.yml
+    MGMT_ADDITIONAL_VALUES: lightweight-disable-some-units.yml
   trigger:
     include: .gitlab/ci/pipeline-deploy-capd.yml
     strategy: depend
@@ -344,8 +339,8 @@ capo-misc-rke2-units-ubuntu:
   variables:
     ENV_NAME: rke2-capo
     CAPO_TAG: "${ENV_TAG_OCI}-misc"
-    MGMT_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/misc-units-in-capo.yml
-    WC_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/misc-units-in-capo-wkld.yml
+    MGMT_ADDITIONAL_VALUES: misc-units-in-capo.yml
+    WC_ADDITIONAL_VALUES: misc-units-in-capo-wkld.yml
     MGMT_WATCH_TIMEOUT_MIN: 45
   trigger:
     include: .gitlab/ci/pipeline-deploy-capo.yml
@@ -356,8 +351,8 @@ capo-fip-kubeadm-oci-ubuntu:
   variables:
     ENV_NAME: kubeadm-capo
     CAPO_TAG: "${ENV_TAG_OCI}-fip"
-    MGMT_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/capo-fip.yml
-    WC_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/capo-fip.yml
+    MGMT_ADDITIONAL_VALUES: capo-fip.yml
+    WC_ADDITIONAL_VALUES: capo-fip.yml
     MGMT_WATCH_TIMEOUT_MIN: 22
     E2E_JOB_MR_PARITY: none
   trigger:
@@ -367,14 +362,14 @@ capo-fip-kubeadm-oci-ubuntu:
 capo-rke2-suse:
   extends: capo-rke2-ubuntu
   variables:
-    MGMT_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/suse-os.yml
-    WC_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/suse-os.yml
+    MGMT_ADDITIONAL_VALUES: suse-os.yml
+    WC_ADDITIONAL_VALUES: suse-os.yml
 
 capo-rke2-oci-suse:
   extends: capo-rke2-oci-ubuntu
   variables:
-    MGMT_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/suse-os.yml
-    WC_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/suse-os.yml
+    MGMT_ADDITIONAL_VALUES: suse-os.yml
+    WC_ADDITIONAL_VALUES: suse-os.yml
 
 .capm3-virt-equinix:
   extends: .default-trigger
@@ -407,17 +402,17 @@ capm3-ha-kubeadm-virt-ubuntu:
 capm3-misc-rke2-virt-ubuntu:
   extends: .rke2-capm3-virt-equinix
   variables:
-    MGMT_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/misc-units-in-capm3.yml
-    WC_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/misc-units-in-capm3.yml
+    MGMT_ADDITIONAL_VALUES: misc-units-in-capm3.yml
+    WC_ADDITIONAL_VALUES: misc-units-in-capm3.yml
 
 #capm3-ha-kubeadm-virt-suse:
 #  extends: .kubeadm-capm3-virt-equinix
 #  variables:
-#    MGMT_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/suse-os.yml
-#    WC_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/suse-os.yml
+#    MGMT_ADDITIONAL_VALUES: suse-os.yml
+#    WC_ADDITIONAL_VALUES: suse-os.yml
 
 capm3-ha-rke2-virt-suse:
   extends: .rke2-capm3-virt-equinix
   variables:
-    MGMT_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/suse-os.yml
-    WC_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/suse-os.yml
+    MGMT_ADDITIONAL_VALUES: suse-os.yml
+    WC_ADDITIONAL_VALUES: suse-os.yml
