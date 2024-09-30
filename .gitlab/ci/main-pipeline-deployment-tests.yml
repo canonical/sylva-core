@@ -410,14 +410,14 @@ capm3-misc-rke2-virt-ubuntu:
     MGMT_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/misc-units-in-capm3.yml
     WC_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/misc-units-in-capm3.yml
 
-#capm3-ha-kubeadm-virt-suse:
-#  extends: .kubeadm-capm3-virt-equinix
-#  variables:
-#    MGMT_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/suse-os.yml
-#    WC_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/suse-os.yml
-
 capm3-ha-rke2-virt-suse:
   extends: .rke2-capm3-virt-equinix
+  variables:
+    MGMT_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/suse-os.yml
+    WC_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/suse-os.yml
+
+capm3-ha-kubeadm-virt-suse:
+  extends: .kubeadm-capm3-virt-equinix
   variables:
     MGMT_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/suse-os.yml
     WC_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/suse-os.yml
