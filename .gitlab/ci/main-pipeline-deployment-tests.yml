@@ -152,8 +152,8 @@ variables:
       DEPLOY_MGMT_CLUSTER: "true"
       UPDATE_MGMT_CLUSTER: "true"
       DEPLOY_WORKLOAD_CLUSTER: "false"
-      MGMT_INITIAL_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/control-plane-replicas-3.yml
-      MGMT_UPDATE_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/dummy-rolling-update-trigger.yml
+      MGMT_INITIAL_ADDITIONAL_VALUES: control-plane-replicas-3.yml
+      MGMT_UPDATE_ADDITIONAL_VALUES: dummy-rolling-update-trigger.yml
       MGMT_WATCH_TIMEOUT_MIN: 45
       APPLY_WATCH_TIMEOUT_MIN: 80
     allow_failure: true
