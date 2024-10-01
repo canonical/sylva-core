@@ -124,8 +124,8 @@ variables:
       MGMT_WATCH_TIMEOUT_MIN: 45
       APPLY_WATCH_TIMEOUT_MIN: 80
       APPLY_WC_WATCH_TIMEOUT_MIN: 80
-      WC_INITIAL_ADDITIONAL_VALUES: k8s-1.27.yml
-      WC_UPDATE_ADDITIONAL_VALUES: k8s-1.28.yml
+      WC_INITIAL_ADDITIONAL_VALUES: k8s-1.28.yml
+      WC_UPDATE_ADDITIONAL_VALUES: k8s-1.29.yml
   # For capd MR pipelines we don't want to test rolling updates in MR flagged with ci-feature::test-rolling-update
   # For capd MR pipelines we don't want to test 1.1.1 to main upgrades in MR flagged with ci-feature::test-upgrade-from-1.1.1
   # As it's not supported for single node deployments
@@ -141,8 +141,8 @@ variables:
       MGMT_WATCH_TIMEOUT_MIN: 45
       APPLY_WATCH_TIMEOUT_MIN: 80
       APPLY_WC_WATCH_TIMEOUT_MIN: 80
-      WC_INITIAL_ADDITIONAL_VALUES: k8s-1.27.yml
-      WC_UPDATE_ADDITIONAL_VALUES: k8s-1.28.yml
+      WC_INITIAL_ADDITIONAL_VALUES: k8s-1.28.yml
+      WC_UPDATE_ADDITIONAL_VALUES: k8s-1.29.yml
     allow_failure: true
     when: manual
   # override to test dev branch to main upgrade in MR flagged with ci-feature::mgmt-rolling-upgrade

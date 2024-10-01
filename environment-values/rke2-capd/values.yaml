@@ -21,7 +21,7 @@ units:
 
 cluster:
   capd:
-    image_name: registry.gitlab.com/sylva-projects/sylva-elements/container-images/rke2-in-docker:v1-28-12-rke2r1
+    image_name: registry.gitlab.com/sylva-projects/sylva-elements/container-images/rke2-in-docker:v1-29-8-rke2r1
   capi_providers:
     infra_provider: capd
     bootstrap_provider: cabpr

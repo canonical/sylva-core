@@ -3,7 +3,7 @@
 
 variables:
   KUBE_SCORE_OPTIONS: >-
-    --kubernetes-version=1.28
+    --kubernetes-version=1.29
   KUBE_SCORE_TESTS_WHITELIST: >-
     container-cpu-requests-equal-limits
     container-ephemeral-storage-request-equals-limit
