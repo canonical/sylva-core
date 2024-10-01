@@ -110,8 +110,8 @@ export GIT_SSL_NO_VERIFY=true    # disable git TLS cert validation if needed
 git config --global http.proxy $HTTP_PROXY    # set a proxy for git
 git config --global credential.helper cache    # enable credentials storage in git, if preferred. Attention, this method saves credentials in plaintext on disk
 git config --global credential.helper "cache --timeout=604800"    # enable git credentials caching for 1 week
-git clone https://openstack-git-stg.itn.ftgroup/caas/caas-ci.git    # run some operation to set git credentials
-kustomize build git::https://openstack-git-stg.itn.ftgroup/caas/caas-ci.git/environment-values/falcon-base/?ref=master    # kustomize build should then work and bootstrap.sh would fetch remote targets
+git clone <REMOTE_REPOSITORY_URL>    # run some operation to set git credentials
+kustomize build git::<REMOTE_REPOSITORY_URL>/path/to/kustomization-in-your-dev-env/?ref=master #kustomize build should then work and bootstrap.sh would fetch remote targets
 
 ```
 
