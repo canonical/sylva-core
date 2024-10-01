@@ -61,14 +61,14 @@ include:
         if [ -f "$target_file" ]; then
           file_found="true"
           echo -e "Applying values from \\e[1;94m$target_file\\e[0m to \\e[1;92m$values_file\\e[0m"
-          yq -i eval-all '. as $item ireduce ({}; . * $item )' $values_file $target_file
+          yq -i eval-all 'explode(.) | . as $item ireduce ({}; . * $item )' $values_file $target_file
 
         else
           common_ci_values_path=${SYLVA_CI_VALUES_FOLDER}/common
           if [ -f "$common_ci_values_path/$target_file" ]; then
             file_found="true"
             echo -e "Applying values from \\e[1;94m$common_ci_values_path/$target_file\\e[0m to \\e[1;92m$values_file\\e[0m"
-            yq -i eval-all '. as $item ireduce ({}; . * $item )' $values_file $common_ci_values_path/$target_file
+            yq -i eval-all 'explode(.) | . as $item ireduce ({}; . * $item )' $values_file $common_ci_values_path/$target_file
           fi
 
           versionned_ci_values_path=${SYLVA_CI_VALUES_FOLDER}/${SYLVA_CI_VERSIONNED_CI_VALUES_FOLDER}
@@ -79,7 +79,7 @@ include:
           if [ -f "$versionned_ci_values_path/$target_file" ]; then
             file_found="true"
             echo -e "Applying values from \\e[1;94m$versionned_ci_values_path/$target_file\\e[0m to \\e[1;92m$values_file\\e[0m"
-            yq -i eval-all '. as $item ireduce ({}; . * $item )' $values_file $versionned_ci_values_path/$target_file
+            yq -i eval-all 'explode(.) | . as $item ireduce ({}; . * $item )' $values_file $versionned_ci_values_path/$target_file
           fi
         fi
         if [ "$file_found" = "false" ]; then
