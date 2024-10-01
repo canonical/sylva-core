@@ -3324,7 +3324,7 @@
             }
           ]
         },
-        "okd": {
+        "openshift": {
           "anyOf": [
             {
               "type": "object",
@@ -3413,7 +3413,7 @@
                       "enum": [
                         "cabpk",
                         "cabpr",
-                        "cabpob"
+                        "cabpoa"
                       ]
                     },
                     {
