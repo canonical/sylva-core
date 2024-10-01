@@ -123,6 +123,7 @@
 | **metal3-automated-cleanup-fix** | fix metal3MachineTemplates produced by sylva-capi-cluster version =< 0.2.14 in sylva release =< 1.1.0 |  | True | Kustomize | N/A |
 | **metal3-pdb** | add pdb to baremetal-operator pods |  | True | Kustomize | N/A |
 | **mgmt-cluster-ready** | (workload cluster) this unit reflects the readiness of the mgmt cluster<br/><br/>this unit acts as simple dependency lock to prevent deploying a workload cluster before the mgmt cluster is ready |  | True | Kustomize | N/A |
+| **minio-cleanup-pre-upgrade** | special unit to delete left-over minio PVCs before cluster upgrades<br/><br/>In 1.1.1 release, minio-monitoring-tenant was configured to use single-replica-storageclass, this tenant will be deleted during upgrade, but we have to delete the PVC that will be left over |  | True | Kustomize | N/A |
 | **minio-logging-init** | sets up secrets and certificates for minio-logging |  | True | Kustomize | N/A |
 | **minio-monitoring-init** | sets up secrets and certificates for minio-monitoring |  | True | Kustomize | N/A |
 | **minio-operator-init** | sets up MinIO certificate for minio-operator<br/><br/>it generate certificate |  | True | Kustomize | N/A |

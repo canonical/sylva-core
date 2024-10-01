@@ -2509,6 +2509,7 @@ units:
       cluster-node-provider-id-blacklist: '{{ tuple . "cluster-node-provider-id-blacklist" | include "unit-enabled" }}'
       longhorn-instance-manager-cleanup: '{{ tuple . "longhorn-instance-manager-cleanup" | include "unit-enabled" }}'
       thanos-uninstall-pre-upgrade: '{{ tuple . "thanos-uninstall-pre-upgrade" | include "unit-enabled" }}'
+      minio-cleanup-pre-upgrade: '{{ tuple . "minio-cleanup-pre-upgrade" | include "unit-enabled" }}'
     kustomization_spec:
       prune: '{{ not (eq .Release.Namespace "sylva-system") | include "preserve-type" }}'
       # we wait on all important resources built by sylva-capi-cluster,
@@ -5313,6 +5314,55 @@ units:
           kind: Secret
           name: sts-tls
           namespace: minio-operator
+
+  minio-cleanup-pre-upgrade:
+    info:
+      description: special unit to delete left-over minio PVCs before cluster upgrades
+      details: >-
+        In 1.1.1 release, minio-monitoring-tenant was configured to use single-replica-storageclass,
+        this tenant will be deleted during upgrade, but we have to delete the PVC that will be left over
+      internal: true
+    unit_templates:
+    - kube-job
+    enabled_conditions:
+      - '{{ tuple . "longhorn" | include "unit-enabled" }}'
+      - '{{ lookup "v1" "PersistentVolumeClaim" "minio-monitoring-tenant" "" | dig "items" list | len | ne 0 }}'
+    kustomization_spec:
+      postBuild:
+        substitute:
+          JOB_CHECKSUM: '{{ .Release.Revision }}'
+      _components:
+        - components/root-dependency
+      _patches:
+      - target:
+          kind: ClusterRole
+        patch: |
+          - op: replace
+            path: /rules
+            value:
+              - apiGroups: [""]
+                resources: [pods]
+                verbs: [list, get]
+              - apiGroups: [""]
+                resources: [persistentvolumeclaims]
+                verbs: [list, get, delete]
+      - target:
+          kind: ConfigMap
+          labelSelector: kube-job=script
+        patch: |
+          - op: replace
+            path: /data/kube-job.sh
+            value: |
+              set -e
+
+              echo "-- Ensure that all minio-monitoring-tenant pods are deleted"
+              kubectl wait --for=delete pod --all -n minio-monitoring-tenant --timeout=300s
+
+              echo "-- Delete any pvc that would have been left over"
+              kubectl delete pvc -n minio-monitoring-tenant --all --timeout=300s
+
+              echo "-- Ensure that there are no more minio-monitoring-tenant PVCs using single-replica-storageclass"
+              kubectl get pvc -n minio-monitoring-tenant -o yaml | yq -e '[.items[] | select (.spec.storageClassName == "single-replica-storageclass")] | length == 0'  2>/dev/null
 
   minio-logging-init:
     info:
