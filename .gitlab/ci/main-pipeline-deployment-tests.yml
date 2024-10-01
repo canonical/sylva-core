@@ -403,7 +403,7 @@ capm3-misc-rke2-virt-ubuntu:
   extends: .rke2-capm3-virt-equinix
   variables:
     MGMT_ADDITIONAL_VALUES: misc-units-in-capm3.yml
-    WC_ADDITIONAL_VALUES: misc-units-in-capm3.yml
+    WC_ADDITIONAL_VALUES: misc-units-in-capm3-wkld.yml
 
 #capm3-ha-kubeadm-virt-suse:
 #  extends: .kubeadm-capm3-virt-equinix
