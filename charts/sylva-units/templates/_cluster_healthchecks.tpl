@@ -87,14 +87,14 @@ on the CAPI bootstrap provider being used.
   {{- $cp_kind = "KubeadmControlPlane" -}}
 {{- else if $cluster.capi_providers.bootstrap_provider | eq "cabpr" -}}
   {{- $cp_kind = "RKE2ControlPlane" -}}
-{{- else if $cluster.capi_providers.bootstrap_provider | eq "cabpob" -}}
+{{- else if $cluster.capi_providers.bootstrap_provider | eq "cabpoa" -}}
   {{/* "AgentControlPlane" for OKD CAPI provider */}}
   {{- $cp_kind = "AgentControlPlane" -}}
 {{- else -}}
   {{- fail (printf "sylva-units cluster-healthchecks named template would need to be extended to support CAPI bootstrap provider %s" $cluster.capi_providers.bootstrap_provider) -}}
 {{- end }}
 {{- $cp_apiVersion = include "getApiVersion" $cp_kind -}}
-{{- if $cluster.capi_providers.bootstrap_provider | eq "cabpob" -}}
+{{- if $cluster.capi_providers.bootstrap_provider | eq "cabpoa" -}}
   {{/* "AgentControlPlane" for OKD CAPI provider, needs evolution in https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-library/-/blob/main/templates/_api_versions.tpl */}}
   {{- $cp_apiVersion = "controlplane.cluster.x-k8s.io/v1alpha1" -}}
 {{- end -}}

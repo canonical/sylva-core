@@ -3324,7 +3324,7 @@
             }
           ]
         },
-        "okd": {
+        "openshift": {
           "anyOf": [
             {
               "type": "object",
@@ -3413,7 +3413,7 @@
                       "enum": [
                         "cabpk",
                         "cabpr",
-                        "cabpob"
+                        "cabpoa"
                       ]
                     },
                     {
@@ -8249,7 +8249,7 @@
             }
           ]
         },
-        "assisted_service": {
+        "openshift_assisted_service": {
           "anyOf": [
             {
               "type": "string",
@@ -8263,7 +8263,7 @@
             }
           ]
         },
-        "assisted_images": {
+        "openshift_assisted_images": {
           "anyOf": [
             {
               "type": "string",
@@ -8608,7 +8608,7 @@
       "type": "string",
       "pattern": "^(dev|ci|prod)$"
     },
-    "okd": {
+    "openshift": {
       "type": "object"
     },
     "ntp": {

@@ -795,13 +795,13 @@ properties:
             format: hostname
           - const: ''
           - $ref: "#/$defs/string-with-gotpl"
-      assisted_service:
+      openshift_assisted_service:
         anyOf:
           - type: string
             format: hostname
           - const: ''
           - $ref: "#/$defs/string-with-gotpl"
-      assisted_images:
+      openshift_assisted_images:
         anyOf:
           - type: string
             format: hostname
@@ -1035,7 +1035,7 @@ properties:
     type: string
     pattern: "^(dev|ci|prod)$"
 
-  okd:  # -------------------------------
+  openshift:  # -------------------------------
     type: object
 
   ntp:  # -------------------------------

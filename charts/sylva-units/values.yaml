@@ -58,7 +58,7 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
     spec:
       url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-capi-cluster.git
       ref:
-        tag: 0.0.0-okd-sept19
+        tag: 0.0.0-okd-sep30
 
   local-path-provisioner:
     kind: GitRepository
@@ -2282,7 +2282,7 @@ units:
                   drop:
                     - ALL
 
-  cabpob:
+  cabpoa:
     info:
       description: installs OKD baremetal CAPI provider
       maturity: experimental
@@ -2292,12 +2292,12 @@ units:
     - base-deps
     depends_on:
       capm3: true
-      okd-assisted-installer: true
+      openshift-assisted-installer: true
     kustomization_spec:
-      path: ./kustomize-units/cabpob
+      path: ./kustomize-units/cabpoa
       wait: true
 
-  okd-assisted-installer:
+  openshift-assisted-installer:
     info:
       description: installs assisted installer operator for OKD
       maturity: experimental
@@ -2311,21 +2311,21 @@ units:
       kyverno: true # test workaround for https://gitlab.com/sylva-projects/sylva-core/-/merge_requests/2654#note_2114765991
       '{{ .Values._internal.default_storage_class_unit }}': true
     enabled_conditions:
-    - '{{ tuple . "cabpob" | include "unit-enabled" }}'
+    - '{{ tuple . "cabpoa" | include "unit-enabled" }}'
     - '{{ tuple . "capm3" | include "unit-enabled" }}'
     annotations:
-      sylvactl/readyMessage: "{{ .Values.okd.assisted.serviceHostname | default .Values.external_hostnames.assisted_service }} and {{ .Values.okd.assisted.imageHostname | default .Values.external_hostnames.assisted_images }} must resolve to {{ .Values.display_external_ip }}"
+      sylvactl/readyMessage: "{{ .Values.openshift.assisted.serviceHostname | default .Values.external_hostnames.openshift_assisted_service }} and {{ .Values.openshift.assisted.imageHostname | default .Values.external_hostnames.openshift_assisted_images }} must resolve to {{ .Values.display_external_ip }}"
     kustomization_spec:
-      path: ./kustomize-units/okd-assisted-installer
+      path: ./kustomize-units/openshift-assisted-installer
       postBuild:
         substitute:
           NAMESPACE: assisted-installer
-          ASSISTED_SERVICE_HOSTNAME: '{{ .Values.okd.assisted.serviceHostname | default .Values.external_hostnames.assisted_service }}'
-          ASSISTED_IMAGE_HOSTNAME: '{{ .Values.okd.assisted.imageHostname | default .Values.external_hostnames.assisted_images }}'
-          ASSISTED_DB_SIZE: '{{ .Values.okd.assisted.dbSize }}'
-          ASSISTED_FS_SIZE: '{{ .Values.okd.assisted.fsSize }}'
-          ASSISTED_IMAGESTORE_SIZE: '{{ .Values.okd.assisted.imagestoreSize }}'
-          ASSISTED_OS_IMAGES: '{{ .Values.okd.assisted.osImages | toJson }}'
+          ASSISTED_SERVICE_HOSTNAME: '{{ .Values.openshift.assisted.serviceHostname | default .Values.external_hostnames.openshift_assisted_service }}'
+          ASSISTED_IMAGE_HOSTNAME: '{{ .Values.openshift.assisted.imageHostname | default .Values.external_hostnames.openshift_assisted_images }}'
+          ASSISTED_DB_SIZE: '{{ .Values.openshift.assisted.dbSize }}'
+          ASSISTED_FS_SIZE: '{{ .Values.openshift.assisted.fsSize }}'
+          ASSISTED_IMAGESTORE_SIZE: '{{ .Values.openshift.assisted.imagestoreSize }}'
+          ASSISTED_OS_IMAGES: '{{ .Values.openshift.assisted.osImages | toJson }}'
       healthChecks:
         - apiVersion: apps/v1
           kind: StatefulSet
@@ -2730,7 +2730,7 @@ units:
                   KubeadmControlPlane
                   {{- else if (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpr") }}
                   RKE2ControlPlane
-                  {{- else if (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpob") }}
+                  {{- else if (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpoa") }}
                   AgentControlPlane
                   {{- end }}
       - target:
@@ -6577,10 +6577,10 @@ external_hostnames:
   loki: 'loki.{{ .Values.cluster_domain }}'
   grafana: 'grafana.{{ .Values.cluster_domain }}'
   kubevirt_manager: 'kubevirt-manager.{{ .Values.cluster_domain }}'
-  # assisted_service can be overwritten by okd.assisted.serviceHostname
-  assisted_service: 'assisted-service.{{ .Values.cluster_domain }}'
-  # assisted_images can be overwritten by okd.assisted.imageHostname
-  assisted_images: 'assisted-images.{{ .Values.cluster_domain }}'
+  # openshift_assisted_service can be overwritten by openshift.assisted.serviceHostname
+  openshift_assisted_service: 'openshift-assisted-service.{{ .Values.cluster_domain }}'
+  # openshift_assisted_images can be overwritten by openshift.assisted.imageHostname
+  openshift_assisted_images: 'openshift-assisted-images.{{ .Values.cluster_domain }}'
 
 external_certificates:
   rancher: {}
@@ -7101,7 +7101,7 @@ rancher:
 #       version: 2
 #       community: public
 
-okd:
+openshift:
   assisted:
     dbSize: 8Gi
     fsSize: 8Gi
@@ -7115,7 +7115,7 @@ okd:
       cpuArchitecture: "x86_64"
       url: "https://mirror.openshift.com/pub/openshift-v4/x86_64/dependencies/rhcos/4.15/4.15.0/rhcos-4.15.0-x86_64-live.x86_64.iso"
       version: "4.15.0-0.okd-scos-2024-01-18-223523"
-    # variable to specify the okd assisted service hostname
-    # serviceHostname: assisted-service.example.com
-    # variable to specify the okd assisted image service hostname
-    # imageHostname: assisted-images.example.com
+    # variable to specify the openshift assisted service hostname
+    # serviceHostname: openshift-assisted-service.example.com
+    # variable to specify the openshift assisted image service hostname
+    # imageHostname: openshift-assisted-images.example.com
