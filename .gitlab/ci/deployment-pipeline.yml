@@ -89,7 +89,7 @@ default:
 
 deploy-management-cluster:
   needs:
-    - job: create-runner
+    - job: create-runner-wait
       optional: true
   extends:
     - .deploy-management
