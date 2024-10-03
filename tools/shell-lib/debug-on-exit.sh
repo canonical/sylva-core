@@ -297,7 +297,7 @@ function _openstack() {
 
 function cluster_info_dump() {
   local cluster=$1
-  dump_dir=$cluster-cluster-dump
+  local dump_dir=$cluster-cluster-dump
 
   if [[ $cluster == "workload" ]]; then
     capi_cluster_namespace=$2
@@ -468,7 +468,6 @@ if [[ -f $MGMT_KUBECONFIG ]]; then
     kubectl --request-timeout=3s get nodes
 
     cluster_info_dump management
-    collect_kubectl_get_data management
 
     workload_cluster_name=$(kubectl --request-timeout=3s get cluster.cluster -A -o jsonpath='{ $.items[?(@.metadata.namespace != "sylva-system")].metadata.name }')
     if [[ -z "$workload_cluster_name" ]]; then
@@ -493,7 +492,6 @@ if [[ -f $MGMT_KUBECONFIG ]]; then
         crust_gather_collect workload &
 
         cluster_info_dump workload $workload_cluster_namespace $workload_cluster_name
-        collect_kubectl_get_data workload
     fi
 
   wait
