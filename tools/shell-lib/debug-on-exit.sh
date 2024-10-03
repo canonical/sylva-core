@@ -421,12 +421,12 @@ function cluster_info_dump() {
   local timestamp=$(date +%Y%m%d-%H%M%S)
   echo "Collecting kubectl get data with fixed verbosity -v=6..."
   
-  kubectl get crd -A -v=6 > "${dump_dir}/kubectl-api-response-${timestamp}.log" 2>&1 && \
+  kubectl get crd -A -v=6 > "$dump_dir/kubectl-api-response-${timestamp}.log" 2>&1 && \
   echo "Collected api response data" || \
   echo "Data collection completed. Files saved in $dump_dir."
 
-  echo "Printing the first and second lines of the collected data:"
-  head -n 2 "${dump_dir}/kubectl-api-response-${timestamp}.log"}
+  echo "Displaying collected api response data:"
+  head -n 2 "$dump_dir/kubectl-api-response-${timestamp}.log"}
 
 echo "Start debug-on-exit at: $(date -Iseconds)"
 
