@@ -2326,6 +2326,10 @@ units:
           ASSISTED_FS_SIZE: '{{ .Values.openshift.assisted.fsSize }}'
           ASSISTED_IMAGESTORE_SIZE: '{{ .Values.openshift.assisted.imagestoreSize }}'
           ASSISTED_OS_IMAGES: '{{ .Values.openshift.assisted.osImages | toJson }}'
+          HTTP_PROXY: '{{ .Values.proxies.http_proxy }}'
+          HTTPS_PROXY: '{{ .Values.proxies.https_proxy }}'
+          NO_PROXY: '{{ .Values.proxies.no_proxy }}'
+
       healthChecks:
         - apiVersion: apps/v1
           kind: StatefulSet

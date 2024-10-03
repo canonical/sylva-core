@@ -42,6 +42,21 @@ patches:
       - op: replace
         path: /spec/template/spec/containers/0/env/6/value
         value: quay.io/edge-infrastructure/assisted-installer@sha256:96e0b1926d497310398a2e969774b1010f97859cf0772331fad5d84691c34df5
+      - op: add
+        path: "/spec/template/spec/containers/0/env/-"
+        value:
+          name: HTTP_PROXY
+          value: "${HTTP_PROXY}"
+      - op: add
+        path: "/spec/template/spec/containers/0/env/-"
+        value:
+          name: HTTPS_PROXY
+          value: "${HTTPS_PROXY}"
+      - op: add
+        path: "/spec/template/spec/containers/0/env/-"
+        value:
+          name: NO_PROXY
+          value: "${NO_PROXY}"
   - target:
       version: v1
       kind: Namespace
