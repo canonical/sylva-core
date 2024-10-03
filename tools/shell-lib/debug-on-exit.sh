@@ -99,7 +99,6 @@ additional_resources="
   Tenants.*minio.min.io
   HelmCharts.*helm.cattle.io
 "
-dump_dir=""
 
 function dump_additional_resources() {
     local cluster_dir=$1
@@ -418,18 +417,16 @@ function cluster_info_dump() {
   kubectl get nodes --no-headers | awk '{print $1}' | xargs -I {} sh -c 'echo {} ; kubectl describe node {} | grep Allocated -A 5 | grep -ve Event -ve Allocated -ve percent -ve -- ; echo '
 }
 
-function collect_kubectl_get_data() {
+  # Collect kubectl get data with verbosity level 6
   local timestamp=$(date +%Y%m%d-%H%M%S)
   echo "Collecting kubectl get data with fixed verbosity -v=6..."
-
+  
   kubectl get crd -A -v=6 > "${dump_dir}/kubectl-api-response-${timestamp}.log" 2>&1 && \
-  echo "Collected api response data"  || \
+  echo "Collected api response data" || \
   echo "Data collection completed. Files saved in $dump_dir."
 
   echo "Printing the first and second lines of the collected data:"
-  head -n 2 "${dump_dir}/kubectl-api-response-${timestamp}.log"
-}
-
+  head -n 2 "${dump_dir}/kubectl-api-response-${timestamp}.log"}
 
 echo "Start debug-on-exit at: $(date -Iseconds)"
 
