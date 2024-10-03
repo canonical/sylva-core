@@ -2634,7 +2634,7 @@ units:
     enabled: false
     depends_on:
       # cluster-reachable depends on cluster only on first installation
-      cluster: '{{ not .Release.IsUpgrade }}'
+      cluster: '{{ not .Values._internal.state.is_upgrade }}'
     kustomization_spec:
       targetNamespace: default
       kubeConfig:
@@ -2656,7 +2656,7 @@ units:
       # for kubeadm, calico is installed by Flux and Machines don't become ready until calico is installed
       # so we need to have cluster-machines-ready depend on 'calico'
       # (this is relevant only on installation, on upgrades calico is already installed)
-      '{{ .Values._internal.calico_readiness_unit }}': '{{ and (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpk") (not .Release.IsUpgrade) }}'
+      '{{ .Values._internal.calico_readiness_unit }}': '{{ and (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpk") (not .Values._internal.state.is_upgrade) }}'
       cluster: true
       cluster-ready: true  # no need to start waiting for anything until
     unit_templates:

@@ -58,7 +58,7 @@ units:
       os-image-server: '{{ .Values.cluster.capi_providers.infra_provider | eq "capm3" }}'
 
   calico-ready:
-    enabled: '{{ .Release.IsUpgrade }}'
+    enabled: '{{ .Values._internal.state.is_upgrade }}'
     # we'll use the kustomization_spec.kubeConfig.secretRef from values.yaml definition
     # but that's fine, since secret is present once pivot happened
     # otherwise we'd need to nullify it here and define it also in bootstrap.values.yaml
@@ -254,4 +254,4 @@ cluster:
 _internal:
   mgmt_cluster: true
 
-  calico_readiness_unit: '{{ .Release.IsUpgrade | ternary "calico-ready" "calico" }}'
+  calico_readiness_unit: '{{ .Values._internal.state.is_upgrade | ternary "calico-ready" "calico" }}'
