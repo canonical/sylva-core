@@ -243,6 +243,7 @@ include:
       - debug-on-exit.log
       - bootstrap-cluster-dump/
       - management-cluster-dump/
+      - crust-gather.tar.gz
       - "*-timeline.html"
       - management-cluster-kubeconfig
       - environment-values/${ENV_NAME}/values.yaml
@@ -286,6 +287,7 @@ include:
       - bootstrap-cluster-dump/default/
       - management-cluster-dump/
       - workload-cluster-dump/
+      - crust-gather.tar.gz
       - "*-timeline.html"
       - management-cluster-kubeconfig
       - environment-values/workload-clusters/${ENV_NAME}/values.yaml
