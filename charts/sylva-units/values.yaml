@@ -6780,6 +6780,14 @@ logging:
 
 _internal:
 
+  state:
+    # is_upgrade is true if this release of sylva-units reached reconciliation of the last Kustomization,
+    # sylva-units-status, producing the eponym ConfigMap
+    is_upgrade: >-
+      {{ gt (lookup "v1" "ConfigMap" .Release.Namespace "sylva-units-status" | dig "data" dict | len) 0
+          | include "preserve-type"
+      }}
+
   mgmt_cluster: false
 
   # 'cluster_machines_ready_unit_deps' contains all the dependencies of the 'cluster' unit, direct and indirect,
