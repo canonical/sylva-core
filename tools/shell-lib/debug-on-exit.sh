@@ -146,6 +146,19 @@ function format_and_sort_events() {
       | @tsv"
 }
 
+function crust_gather_collect() {
+  local cluster=$1
+
+  echo "Checking if $cluster cluster is reachable"
+  if ! timeout 10s kubectl get nodes > /dev/null 2>&1 ;then
+    echo "$cluster cluster is unreachable - aborting crust_gather"
+    return 0
+  fi
+
+  crustgather collect --exclude-group="catalog.cattle.io" --exclude-kind=Secret -f crust-gather/$cluster
+  return 0
+}
+
 function cluster_info_dump() {
   local cluster=$1
   local dump_dir=$cluster-cluster-dump
@@ -220,6 +233,7 @@ df -h || true
 unset KUBECONFIG
 
 if [[ $(kind get clusters) =~ $KIND_CLUSTER_NAME ]]; then
+  crust_gather_collect bootstrap
   cluster_info_dump bootstrap
   echo -e "\nDump bootstrap node logs"
   docker ps -q -f name=control-plane* | xargs -I % -r docker exec % journalctl -e > bootstrap-cluster-dump/bootstrap_node.log
@@ -235,6 +249,8 @@ MGMT_KUBECONFIG=${1:-${BASE_DIR}/management-cluster-kubeconfig}
 
 if [[ -f $MGMT_KUBECONFIG ]]; then
     export KUBECONFIG=${MGMT_KUBECONFIG}
+
+    crust_gather_collect management
 
     echo -e "\nGet nodes in management cluster"
     kubectl --request-timeout=3s get nodes
@@ -261,6 +277,13 @@ if [[ -f $MGMT_KUBECONFIG ]]; then
           export KUBECONFIG=$BASE_DIR/workload-cluster-kubeconfig-rancher
         fi
 
+        crust_gather_collect workload
+
         cluster_info_dump workload $workload_cluster_namespace $workload_cluster_name
     fi
+fi
+
+if [[ -d "crust-gather" ]]
+then
+  tar -czf crust-gather.tar.gz crust-gather
 fi
