@@ -123,6 +123,11 @@ pylama:
   script:
     - pip install pylama
     - pylama .
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+      changes:
+        - "**/*.py"
+        - .gitlab/ci/main-pipeline-checks.yml
 
 yamllint:
   extends: .lint-base
@@ -139,6 +144,11 @@ shellcheck:
     - git ls-files --exclude='*.sh' --ignored -c -z | xargs -0r shellcheck ${SHELL_CHECK_OPTIONS}
   variables:
     SHELL_CHECK_OPTIONS: "--severity=error"
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+      changes:
+        - "**/*.sh"
+        - .gitlab/ci/main-pipeline-checks.yml
 
 avoid-typo-on-bootstrap:
   extends: .lint-base
