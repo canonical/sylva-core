@@ -425,7 +425,7 @@ function cluster_info_dump() {
   echo "Data collection completed. Files saved in $dump_dir."
 
   echo "Displaying collected api response data:"
-  head -n 2 "$dump_dir/kubectl-api-response-${timestamp}.log"}
+  head -n 2 "$dump_dir/kubectl-api-response-${timestamp}.log"
 
 }
 
