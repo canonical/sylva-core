@@ -833,6 +833,32 @@ units:
       _components:
         - '{{ tuple "./components/keycloak-upgrade-db" (and .Values._internal.state.is_upgrade (tuple . "keycloak" | include "unit-enabled")) | include "set-only-if" }}'
 
+  litmus-operator:
+    info:
+      description: deploys litmus core component as an unit
+      maturity: beta
+    unit_templates:
+    - base-deps
+    depends_on:
+      sylva-ca: true
+    repo: sylva-core
+    kustomization_spec:
+      path: ./kustomize-units/litmus-operator
+
+  litmus-pod-delete-testcase:
+    info:
+      description: deploys litmus testcases
+      maturity: beta
+    unit_templates:
+    - base-deps
+    depends_on:
+      sylva-ca: true
+    repo: sylva-core
+    enabled_conditions:
+      - '{{ tuple . "litmus-operator" | include "unit-enabled" }}'
+    kustomization_spec:
+      path: ./kustomize-units/litmus-testcases/pod-delete
+
   kubevirt:
     info:
       description: installs kubevirt
