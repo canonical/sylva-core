@@ -1,6 +1,10 @@
   # this is used for unit testing "check-immutable-values" named template
   # (charts/sylva-units/templates/_values_helpers.tpl) and is expected to fail
 _internal:
+
+  state: # simulate an upgrade scenario
+    is_upgrade: true
+
   immutable_values:
     vsphere:
       vsphere-cpi:

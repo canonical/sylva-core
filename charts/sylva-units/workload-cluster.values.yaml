@@ -194,17 +194,17 @@ units:
       cluster-rke2-finalizer-fix:
         '{{
         and (tuple . "cluster-rke2-finalizer-fix" | include "unit-enabled")
-            .Release.IsUpgrade
+            .Values._internal.state.is_upgrade
         }}'
       cluster-node-provider-id-blacklist:
         '{{
         and (tuple . "cluster-node-provider-id-blacklist" | include "unit-enabled")
-            .Release.IsUpgrade
+            .Values._internal.state.is_upgrade
         }}'
       longhorn-instance-manager-cleanup:
         '{{
         and (tuple . "longhorn-instance-manager-cleanup" | include "unit-enabled")
-            .Release.IsUpgrade
+            .Values._internal.state.is_upgrade
         }}'
 
 

@@ -90,12 +90,6 @@ units:
     labels:
       suspend-on-pivot: "yes"  # must be suspended before pivot
 
-  cluster-reachable:
-    depends_on:
-      # the .Release.IsUpgrade from values.yaml isn't the perfect criteria, and for bootstrap we can simplify and use 'true'
-      # see https://gitlab.com/sylva-projects/sylva-core/-/issues/1588
-      cluster: true
-
   kyverno:
     enabled_conditions:
       - '{{ tuple . "capm3" | include "unit-enabled" }}'
