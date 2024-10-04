@@ -7,7 +7,7 @@ include:
   - local: .gitlab/ci/deployment-pipeline.yml
 
 variables:
-  CAPD_RUNNER_TAG: saas-linux-medium-amd64
+  CAPD_RUNNER_TAG: gitlab-org-docker
 
 # This configuration is specific to capd deployments
 .flavored-pre-deployment-configuration:

@@ -88,7 +88,7 @@ include:
         fi
       done
 
-      if [[ ${DISPLAY:-true} == "true" ]]; then
+      if [[ ${DISPLAY:-false} == "true" ]]; then
         echo "Content of $values_file:"
         cat $values_file
       fi
@@ -131,19 +131,80 @@ include:
       ip route add $KIND_PREFIX via $DOCKER_IP
     fi
 
+.deployment-information:
+  - |
+    # Extract deployment parameters from WORKFLOW_NAME
+    DEPLOYMENT_INFRA_PROV=${DEPLOYMENT_INFRA_PROV:-$(echo $WORKFLOW_NAME | sed -n -e 's/.*☁\([[:alnum:]\,\-]\+\).*/\1/p')}
+    DEPLOYMENT_BOOTSTRAP_PROV=${DEPLOYMENT_BOOTSTRAP_PROV:-$(echo $WORKFLOW_NAME | sed -n -e 's/.*🚀\([[:alnum:]\,\-]\+\).*/\1/p')}
+    DEPLOYMENT_OS=${DEPLOYMENT_OS:-$(echo $WORKFLOW_NAME | sed -n -e 's/.*🎸\([[:alnum:]\,\-]\+\).*/\1/p')}
+    DEPLOYMENT_SCENARIO=${DEPLOYMENT_SCENARIO:-$(echo $WORKFLOW_NAME | sed -n -e 's/.*🎬\([[:alnum:]\,\-]\+\).*/\1/p')}
+    DEPLOYMENT_OPTIONS=${DEPLOYMENT_OPTIONS:-$(echo $WORKFLOW_NAME | sed -n -e 's/.*🛠\([[:alnum:]\,\-]\+\).*/\1/p')}
+
+    export ENV_NAME="${DEPLOYMENT_BOOTSTRAP_PROV}-${DEPLOYMENT_INFRA_PROV}"
+    export ENV_TAG="${CI_PIPELINE_ID}-${ENV_NAME}"
+    if [[ "$DEPLOYMENT_INFRA_PROV" == "capo" ]]; then export CAPO_TAG=$ENV_TAG; fi
+    export KIND_CLUSTER_NAME="bootstrap-${ENV_TAG}"
+    export MANAGEMENT_CLUSTER_NAME="mgmt-${ENV_TAG}"
+    export WORKLOAD_CLUSTER_NAME="wc-${ENV_TAG}"
+
+    if [[ ${DEPLOYMENT_OPTIONS} == *"oci"* ]] && [[ ${DEPLOYMENT_OPTIONS} != *"no-oci"* ]]; then
+      export OCI_TAG="$OCI_TAG_FORMAT"
+    fi
+  - |
+      echo -e "[\\e[1;94mEnvironment INFO\\e[0m]"
+      echo "  WORKFLOW_NAME=$WORKFLOW_NAME"
+      echo "  DEPLOYMENT_INFRA_PROVIDER = ${DEPLOYMENT_INFRA_PROV}"
+      echo "  DEPLOYMENT_BOOTSTRAP_PROVIDER = ${DEPLOYMENT_BOOTSTRAP_PROV}"
+      echo "  DEPLOYMENT_OS = ${DEPLOYMENT_OS}"
+      echo "  DEPLOYMENT_SCENARIO = ${DEPLOYMENT_SCENARIO}"
+      echo "  DEPLOYMENT_OPTIONS = ${DEPLOYMENT_OPTIONS}"
+      echo "  GIT_REVISION = ${GIT_REVISION:-'N/A'}"
+      [ -z "$SYLVA_CI_VERSIONNED_CI_VALUES_FOLDER" ] && SYLVA_CI_VERSIONNED_CI_VALUES_FOLDER=${GIT_REVISION:-current}
+      echo "  SYLVA_CI_VERSIONNED_CI_VALUES_FOLDER = ${SYLVA_CI_VERSIONNED_CI_VALUES_FOLDER:-'N/A'}"
+      if [[ -n ${EXTRA_DESCRIPTION} ]]; then echo -e "  ${EXTRA_DESCRIPTION}"; fi
+      echo "  Fetch CI values from ${SYLVA_CI_VALUES_REPO} using ${SYLVA_CI_VALUES_REVISION} revision"
+      echo "  CAPO_TAG = ${CAPO_TAG:-'N/A'}"
+      echo "  OCI_TAG = ${OCI_TAG:-'N/A'}"
+      echo "  ENV_NAME = $ENV_NAME"
+      echo "  KIND_CLUSTER_NAME = $KIND_CLUSTER_NAME"
+      echo "  BOOTSTRAP_WATCH_TIMEOUT_MIN = $BOOTSTRAP_WATCH_TIMEOUT_MIN"
+      echo -e "[\\e[1;94mCommon cluster INFO\\e[0m]"
+      echo "  REMOTE_VALUES = ${REMOTE_VALUES:-'N/A'}"
+      echo -e "[\\e[1;94mManagement cluster INFO\\e[0m]"
+      echo "  MANAGEMENT_CLUSTER_NAME = $MANAGEMENT_CLUSTER_NAME"
+      echo "  MGMT_ADDITIONAL_VALUES = ${MGMT_ADDITIONAL_VALUES:-'N/A'}"
+      echo "  MGMT_INITIAL_ADDITIONAL_VALUES = ${MGMT_INITIAL_ADDITIONAL_VALUES:-'N/A'}"
+      echo "  MGMT_UPDATE_ADDITIONAL_VALUES = ${MGMT_UPDATE_ADDITIONAL_VALUES:-'N/A'}"
+      echo "  MGMT_INITIAL_REVISION = ${MGMT_INITIAL_REVISION:-'N/A'}"
+      echo "  MGMT_UPDATE_REVISION = ${MGMT_UPDATE_REVISION:-'N/A'}"
+      echo "  MGMT_WATCH_TIMEOUT_MIN = ${MGMT_WATCH_TIMEOUT_MIN}"
+      echo "  APPLY_WATCH_TIMEOUT_MIN = ${APPLY_WATCH_TIMEOUT_MIN}"
+      echo -e "[\\e[1;94mWorkload cluster INFO\\e[0m]"
+      echo "  WORKLOAD_CLUSTER_NAME = $WORKLOAD_CLUSTER_NAME"
+      echo "  WC_ADDITIONAL_VALUES = ${WC_ADDITIONAL_VALUES:-'N/A'}"
+      echo "  WC_INITIAL_ADDITIONAL_VALUES = ${WC_INITIAL_ADDITIONAL_VALUES:-'N/A'}"
+      echo "  WC_UPDATE_ADDITIONAL_VALUES = ${WC_UPDATE_ADDITIONAL_VALUES:-'N/A'}"
+      echo "  WC_INITIAL_REVISION = ${WC_INITIAL_REVISION:-'N/A'}"
+      echo "  WC_UPDATE_REVISION = ${WC_UPDATE_REVISION:-'N/A'}"
+      echo "  APPLY_WC_WATCH_TIMEOUT_MIN = ${APPLY_WC_WATCH_TIMEOUT_MIN}"
+
 .setup_ci_context_and_values:
-  - echo -e "\e[1m\e[0Ksection_start:`date +%s`:gitlab_ci_common[collapsed=true]\r\e[0KRunning common deployment steps\e[0m"
+  - |
+    # Running common deployment
+    echo -e "\e[1m\e[0Ksection_start:`date +%s`:gitlab_ci_common[collapsed=true]\r\e[0KRunning common deployment steps\e[0m"
   - !reference [.import_functions]
   - !reference [.setup_docker]
   - !reference [.clone_ci_values]
   - download_artifact deploy-management-cluster management-cluster-kubeconfig
   - |
+    # configure Git revision
     if [ -n "${GIT_REVISION}" ] ; then
       change_git_revision $GIT_REVISION
     else
       echo -e "Current revision: $(git rev-parse HEAD)"
     fi
   - |
+    # configure env type
     if [[ ${CLUSTER_TYPE} == 'workload' ]]; then
         ENV_SUB_PATH="environment-values/workload-clusters"
         export OCI_COMPONENT_PATH="../../components/workload-cluster-oci-artifacts"
@@ -156,8 +217,55 @@ include:
     export ENV_PATH=${ENV_SUB_PATH}/${ENV_NAME}
   - values_file=$ENV_PATH/values.yaml
   - |
-    # Force intialization of an http server for log collection in cluster on capm3/capo
-    DISPLAY="false" update_values_file run_http_server_for_log_collect.yaml
+    # Apply values for requested options
+    yq -i '.cluster.name = strenv(CLUSTER_CI_NAME)' $values_file
+    update_values_file all-ci-deployments.yml
+    if [[ $DEPLOYMENT_OS == "suse" ]]; then
+      update_values_file node-os-suse.yml
+    else  # ubuntu
+      update_values_file node-os-ubuntu.yml
+    fi
+    options=$(echo $DEPLOYMENT_OPTIONS | tr "," "\n")
+    for option in $options; do
+      if [[ $option == "oci" ]]; then
+        echo "OCI will be configured later"
+      elif [[ $option == "misc" ]]; then
+        if [[ "$DEPLOYMENT_INFRA_PROV" == "capo" ]] && [[ "${CLUSTER_TYPE}" == "management" ]]; then
+          update_values_file misc-units-in-capo.yml
+        elif [[ "$DEPLOYMENT_INFRA_PROV" == "capo" ]] && [[ "${CLUSTER_TYPE}" == "workload" ]]; then
+          update_values_file misc-units-in-capo-wkld.yml
+        elif [[ "$DEPLOYMENT_INFRA_PROV" == "capm3-virt" ]]; then
+          update_values_file misc-units-in-capm3.yml
+        fi
+      else
+        update_values_file ${option}.yml
+      fi
+    done
+    if [[ "$DEPLOYMENT_INFRA_PROV" == "capm3-virt" ]] && [[ "$DEPLOYMENT_OPTIONS" == *single-node* ]]; then
+      yq -i '.components = []' $ENV_PATH/kustomization.yaml  # remove ha component
+    fi
+  - |
+    # Apply management/workload cluster additionnal values
+    if [ -n "${MGMT_ADDITIONAL_VALUES}" ] && [ "${CLUSTER_TYPE}" = "management" ]; then
+      update_values_file ${MGMT_ADDITIONAL_VALUES}
+    fi
+    if [ -n "${WC_ADDITIONAL_VALUES}" ] && [ "${CLUSTER_TYPE}" = "workload" ]; then
+      update_values_file ${WC_ADDITIONAL_VALUES}
+    fi
+  - |
+    # Apply remote values in case of cross project pipeline
+    if [ -n "${REMOTE_VALUES}" ]; then
+      echo -e "This pipeline is a cross project pipeline."
+      echo "${REMOTE_VALUES}" > /tmp/remote_values.yaml
+      update_values_file /tmp/remote_values.yaml
+    fi
+  - |
+    # Apply specific value file
+    if [ -n "${SPECIFIC_VALUES_FILE}" ]; then
+      update_values_file $SPECIFIC_VALUES_FILE
+    else
+      echo -e "No specific values to apply"
+    fi
   - |
     # configure OCI artifacts if needed
     if [ ${OCI_TAG} ]; then
@@ -176,35 +284,19 @@ include:
           path: /spec/chart/spec/version
           value: ${OCI_TAG}
     EOF
-      cat $ENV_PATH/kustomization.yaml
-    fi
-  - yq -i '.cluster.name = strenv(CLUSTER_CI_NAME)' $values_file
-  - yq -i '.env_type = "ci"' $values_file
-  - update_values_file image-key-common.yaml
-  - |
-    if [ -n "${MGMT_ADDITIONAL_VALUES}" ] && [ "${CLUSTER_TYPE}" = "management" ]; then
-      update_values_file ${MGMT_ADDITIONAL_VALUES}
-    fi
-  - |
-    if [ -n "${WC_ADDITIONAL_VALUES}" ] && [ "${CLUSTER_TYPE}" = "workload" ]; then
-      update_values_file ${WC_ADDITIONAL_VALUES}
-    fi
-  - |
-    if [ -n "${REMOTE_VALUES}" ]; then
-      echo -e "This pipeline is a cross project pipeline."
-      echo "${REMOTE_VALUES}" > /tmp/remote_values.yaml
-      update_values_file /tmp/remote_values.yaml
     fi
   - echo -e "\e[0Ksection_end:`date +%s`:gitlab_ci_common\r\e[0K"
-  - !reference [.flavored-pre-deployment-configuration]
-  - echo -e "\e[1m\e[0Ksection_start:`date +%s`:gitlab_ci_update_values[collapsed=true]\r\e[0KApply specific values\e[0m"
   - |
-    if [ -n "${SPECIFIC_VALUES_FILE}" ]; then
-      update_values_file $SPECIFIC_VALUES_FILE
-    else
-      echo -e "No specific values to apply"
-    fi
-  - echo -e "\e[0Ksection_end:`date +%s`:gitlab_ci_update_values\r\e[0K"
+    # Display kustomization.yaml
+    echo -e "\e[1m\e[0Ksection_start:`date +%s`:display_kusto[collapsed=true]\r\e[0KDisplay kustomization.yaml\e[0m"
+    cat $ENV_PATH/kustomization.yaml
+    echo -e "\e[0Ksection_end:`date +%s`:display_kusto\r\e[0K"
+  - |
+    # Display values.yaml
+    echo -e "\e[1m\e[0Ksection_start:`date +%s`:display_values[collapsed=true]\r\e[0KDisplay values.yaml\e[0m"
+    cat $values_file
+    echo -e "\e[0Ksection_end:`date +%s`:display_values\r\e[0K"
+  - !reference [.flavored-pre-deployment-configuration]
 
 # By default we don't have specific configuration to apply
 .flavored-pre-deployment-configuration:

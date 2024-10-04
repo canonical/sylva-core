@@ -6,6 +6,9 @@ include:
     file:
       - ci-templates/equinix-runner-request-template.yml
 
+variables:
+  EQUINIX_RUNNER_PLAN: "m3.large.x86"
+
 # Default tag will be used for all deployments/updates jobs
 default:
   tags:
