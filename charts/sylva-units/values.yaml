@@ -3681,7 +3681,7 @@ units:
       path: ./kustomize-units/grafana-init
       postBuild:
         substitute:
-          SERVICE: rancher-monitoring-grafana
+          SERVICE: grafana-sylva-ingress
           GRAFANA_DNS: '{{ .Values.external_hostnames.grafana }}'
       _components:
         - "../tls-components/sylva-ca"

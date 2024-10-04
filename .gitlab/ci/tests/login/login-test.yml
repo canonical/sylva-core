@@ -32,7 +32,7 @@
     - export vault_url=$(kubectl --kubeconfig management-cluster-kubeconfig get ingress -n vault vault -o jsonpath='{ .spec.tls[].hosts[] }')
     - export rancher_url=$(kubectl --kubeconfig management-cluster-kubeconfig get ingress -n cattle-system rancher -o jsonpath='{ .spec.tls[].hosts[] }')
     - export harbor_url=$(kubectl --kubeconfig management-cluster-kubeconfig get ingress -n harbor harbor-ingress -o jsonpath='{ .spec.tls[].hosts[] }')
-    - export grafana_url=$(kubectl --kubeconfig management-cluster-kubeconfig get ingress -n cattle-monitoring-system rancher-monitoring-grafana -o jsonpath='{ .spec.tls[].hosts[] }')
+    - export grafana_url=$(kubectl --kubeconfig management-cluster-kubeconfig get ingress -n cattle-monitoring-system grafana-sylva-ingress -o jsonpath='{ .spec.tls[].hosts[] }')
     - export neuvector_url=$(kubectl --kubeconfig management-cluster-kubeconfig get ingress -n neuvector neuvector-webui-ingress  -o jsonpath='{ .spec.tls[].hosts[] }')
     - export gitea_url=$(kubectl --kubeconfig management-cluster-kubeconfig get ingress -n gitea gitea -o jsonpath='{ .spec.tls[].hosts[] }')
     - export USER_SSO=$(kubectl --kubeconfig ./management-cluster-kubeconfig -n keycloak get secrets/credential-sylva-sylva-admin-keycloak -o jsonpath='{.data.username}'| base64 -d)
