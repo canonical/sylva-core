@@ -137,15 +137,46 @@ units:
             - name: grafana-tls
               mountPath: "/etc/ssl/certs"
               secretName: sylva-ca.crt
-          ingress:
-            enabled: true
-            ingressClassName: nginx
-            hosts:
-              - '{{ .Values.external_hostnames.grafana }}'
-            tls:
+          # Define a custom ingress to directly access Grafana without nginx path rewrite
+          # see https://gitlab.com/sylva-projects/sylva-core/-/issues/1622
+          extraObjects:
+          - apiVersion: v1
+            kind: Service
+            metadata:
+              name: grafana-sylva-service
+              namespace: cattle-monitoring-system
+            spec:
+              type: ClusterIP
+              ports:
+              - name: grafana-http
+                port: 80
+                protocol: TCP
+                targetPort: 3000
+              selector:
+                app.kubernetes.io/instance: rancher-monitoring
+                app.kubernetes.io/name: grafana
+          - apiVersion: networking.k8s.io/v1
+            kind: Ingress
+            metadata:
+              name: grafana-sylva-ingress
+              namespace: cattle-monitoring-system
+            spec:
+              ingressClassName: nginx
+              tls:
               - secretName: grafana-general-tls
                 hosts:
-                  - '{{ .Values.external_hostnames.grafana }}'
+                - '{{ .Values.external_hostnames.grafana }}'
+              rules:
+              - host: '{{ .Values.external_hostnames.grafana }}'
+                http:
+                  paths:
+                  - path: /
+                    pathType: Prefix
+                    backend:
+                      service:
+                        name: grafana-sylva-service
+                        port:
+                          number: 80
         global:
           cattle:
             clusterId: local
