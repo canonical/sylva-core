@@ -155,7 +155,11 @@ function crust_gather_collect() {
     return 0
   fi
 
-  crustgather collect --exclude-group="catalog.cattle.io" --exclude-kind=Secret -f crust-gather/$cluster
+  echo "Crust-gathering $cluster cluster in crust-gather/$cluster"
+
+  mkdir -p "crust-gather/$cluster"
+  crustgather collect --exclude-group="catalog.cattle.io" --exclude-kind=Secret -f crust-gather/$cluster &> "crust-gather/$cluster/crustgather.log"
+
   return 0
 }
 
@@ -286,4 +290,6 @@ fi
 if [[ -d "crust-gather" ]]
 then
   tar -czf crust-gather.tar.gz crust-gather
+
+  [[ $IN_CI ]] && echo -e "Exec following command to serve crust-gather:\n\t./tools/serve-crustgather-artifact.sh -j $CI_JOB_ID"
 fi
