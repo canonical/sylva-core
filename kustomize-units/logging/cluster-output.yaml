@@ -10,9 +10,21 @@ spec:
       chunk_limit_size: 4MB
       timekey: 5m
       timekey_wait: 30s
-    configure_kubernetes_labels: true
+    labels:
+      app_kubernetes_io_component: $['kubernetes']['labels']['app.kubernetes.io/component']
+      app_kubernetes_io_instance: $['kubernetes']['labels']['app.kubernetes.io/instance']
+      app_kubernetes_io_part_of: $['kubernetes']['labels']['app.kubernetes.io/part-of']
+      app_kubernetes_io_version: $['kubernetes']['labels']['app.kubernetes.io/version']
+      app_kubernetes_io_name: $['kubernetes']['labels']['app.kubernetes.io/name']
+      app: $['kubernetes']['labels']['app']
+      component: $['kubernetes']['labels']['component']
+      container: $['kubernetes']['container_name']
+      host: $['kubernetes']['host']
+      namespace: $['kubernetes']['namespace_name']
+      pod: $['kubernetes']['pod_name']
     extra_labels:
-      job: ${CLUSTER_NAME}-job
+      # Extra label to ensure that there will be at least one label, as this is required
+      cluster: ${CLUSTER_NAME}
     tenant: ${CLUSTER_NAME}
     url: ${LOKI_URL}
     insecure_tls: true
