@@ -76,8 +76,6 @@ test_cert_manager_management_cluster:
 
 test_cert_manager_workload_cluster:
   stage: deployment-test
-  variables:
-    KUBE_CONFIG_FILE: "$WORKLOAD_CLUSTER_NAME-rancher.yaml"
   extends:
     - .test-tags
     - .rules:need-workload-cluster
@@ -86,4 +84,5 @@ test_cert_manager_workload_cluster:
     - download_artifact deploy-management-cluster management-cluster-kubeconfig
     - !reference [.test_scripts, edit_hosts_file]
     - !reference [.test_scripts, test_no_sso] # Get workload cluster kubeconfig
+    - export KUBE_CONFIG_FILE="$WORKLOAD_CLUSTER_NAME-rancher.yaml"
     - !reference [.test_cert_manager_scripts, common_test_suite]
