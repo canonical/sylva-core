@@ -880,8 +880,6 @@ units:
             enabled: true
             hosts:
               core: '{{ .Values.external_hostnames.harbor }}'
-            labels: 
-              service-type: gui
           tls:
             enabled: true
             certSource: secret
@@ -1429,13 +1427,6 @@ units:
           target:
             kind: Deployment
             name: keycloak-operator
-        - patch: |   
-            - op: add
-              path: /metadata/labels/service-type
-              value: "gui"
-            target:
-              kind: Ingress
-              name: keycloak-ingress
             
   keycloak-legacy-operator:
     info:
@@ -3178,8 +3169,6 @@ units:
         ingress:
           enabled: true
           ingressClassName: nginx
-          labels:
-           service-type: gui
           tls:
             source: secret
             secretName: rancher-tls
@@ -5237,8 +5226,6 @@ units:
           ingress:
             enabled: true
             ingressClassName: nginx
-            labels:
-              service-type: gui
             host: '{{ .Values.external_hostnames.minio_operator_console }}'
             path: /
             pathType: Prefix
@@ -5450,8 +5437,6 @@ units:
           api:
             enabled: true
             ingressClassName: nginx
-            labels:
-              service-type: gui
             annotations:
               nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
             host: '{{ .Values.external_hostnames.minio_monitoring_tenant }}'
@@ -5558,6 +5543,8 @@ units:
       minio-monitoring-tenant: true
       '{{ .Values._internal.default_storage_class_unit }}': true
       ingress-nginx: '{{ tuple . "ingress-nginx" | include "unit-enabled" }}'
+    labels:
+      service-type: api
     annotations:
       sylvactl/readyMessage: Thanos UI can be reached at https://{{ .Values.external_hostnames.thanos }} ({{ .Values.external_hostnames.thanos }} must resolve to {{ .Values.display_external_ip }})
     helm_repo_url: https://charts.bitnami.com/bitnami
@@ -5676,8 +5663,6 @@ units:
           ingress:
             enabled: true
             ingressClassName: "nginx"
-            labels:
-              service-type: api
             hostname: '{{ .Values.external_hostnames.thanos_query }}'
             extraTls:
               - hosts:
@@ -5696,8 +5681,6 @@ units:
           ingress:
             enabled: true
             ingressClassName: "nginx"
-            labels:
-              service-type: api
             hostname: '{{ .Values.external_hostnames.thanos }}'
             extraTls:
               - hosts:
@@ -5712,8 +5695,6 @@ units:
             enabled: true
             hostname: '{{ .Values.external_hostnames.thanos_storegateway }}'
             ingressClassName: "nginx"
-            labels:
-              service-type: api
             extraTls:
               - hosts:
                   - '{{ .Values.external_hostnames.thanos_storegateway }}'
@@ -5748,8 +5729,6 @@ units:
           ingress:
             enabled: true
             ingressClassName: "nginx"
-            labels:
-              service-type: api
             annotations:
               nginx.ingress.kubernetes.io/client-body-buffer-size: 1m
             hostname: '{{ .Values.external_hostnames.thanos_receive }}'
