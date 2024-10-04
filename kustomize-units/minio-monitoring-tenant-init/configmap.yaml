@@ -1,7 +1,0 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: minio-monitoring-tenant-init-unit
-  namespace: minio-monitoring-tenant
-data:
-  unit: minio-monitoring-tenant-init
