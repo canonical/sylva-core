@@ -126,6 +126,16 @@ variables:
     WC_INITIAL_ADDITIONAL_VALUES: "k8s-1.28.yml"
     WC_UPDATE_ADDITIONAL_VALUES: "k8s-1.29.yml"
 
+.scenario_nightly:  # mix mgmt_rolling-update & k8s-upgrade
+  variables:
+    MGMT_WATCH_TIMEOUT_MIN: "45"
+    APPLY_WATCH_TIMEOUT_MIN: "80"
+    APPLY_WC_WATCH_TIMEOUT_MIN: "80"
+    MGMT_INITIAL_ADDITIONAL_VALUES: "serve-k8s-1.28-image.yml"
+    MGMT_UPDATE_ADDITIONAL_VALUES: "dummy-rolling-update-trigger.yml"
+    WC_INITIAL_ADDITIONAL_VALUES: "k8s-1.28.yml"
+    WC_UPDATE_ADDITIONAL_VALUES: "k8s-1.29.yml"
+
 .scenario_migration:
   variables:
     # libvirt-metal-no-bond.yaml file is added to updates values as a temporary fix for capm3 upgrades from 1.1.1,
@@ -257,43 +267,43 @@ variables:
 ☁capo 🚀kubeadm 🎸ubuntu 🛠capo-fip:
   extends: .capo
 
-☁capo 🚀rke2 🎸ubuntu 🛠ha 🎬k8s-upgrade:
-  extends: [.capo, .scenario_k8s-upgrade]
+☁capo 🚀rke2 🎸ubuntu 🛠ha 🎬nightly:
+  extends: [.capo, .scenario_nightly]
   rules:
     - if: '$CI_PIPELINE_SOURCE == "schedule" && $CI_DEPLOYMENTS && $DEPLOYMENT_DESCRIPTION == "Nightly - CAPO rke2"'
 
-☁capo 🚀rke2 🎸ubuntu 🛠oci,ha 🎬k8s-upgrade:
-  extends: [.capo, .wait-publish-jobs, .scenario_k8s-upgrade]
+☁capo 🚀rke2 🎸ubuntu 🛠oci,ha 🎬nightly:
+  extends: [.capo, .wait-publish-jobs, .scenario_nightly]
   rules:
     - if: '$CI_PIPELINE_SOURCE == "schedule" && $CI_DEPLOYMENTS && $DEPLOYMENT_DESCRIPTION == "Nightly - CAPO rke2"'
 
-☁capo 🚀rke2 🎸suse 🛠ha 🎬k8s-upgrade:
-  extends: [.capo, .scenario_k8s-upgrade]
+☁capo 🚀rke2 🎸suse 🛠ha 🎬nightly:
+  extends: [.capo, .scenario_nightly]
   rules:
     - if: '$CI_PIPELINE_SOURCE == "schedule" && $CI_DEPLOYMENTS && $DEPLOYMENT_DESCRIPTION == "Nightly - CAPO rke2 suse"'
 
-☁capo 🚀rke2 🎸suse 🛠oci,ha 🎬k8s-upgrade:
-  extends: [.capo, .wait-publish-jobs, .scenario_k8s-upgrade]
+☁capo 🚀rke2 🎸suse 🛠oci,ha 🎬nightly:
+  extends: [.capo, .wait-publish-jobs, .scenario_nightly]
   rules:
     - if: '$CI_PIPELINE_SOURCE == "schedule" && $CI_DEPLOYMENTS && $DEPLOYMENT_DESCRIPTION == "Nightly - CAPO rke2 suse"'
 
-☁capo 🚀kubeadm 🎸ubuntu 🛠ha 🎬k8s-upgrade:
-  extends: [.capo, .scenario_k8s-upgrade]
+☁capo 🚀kubeadm 🎸ubuntu 🛠ha 🎬nightly:
+  extends: [.capo, .scenario_nightly]
   rules:
     - if: '$CI_PIPELINE_SOURCE == "schedule" && $CI_DEPLOYMENTS && $DEPLOYMENT_DESCRIPTION == "Nightly - CAPO Kubeadm"'
 
-☁capo 🚀kubeadm 🎸suse 🛠ha 🎬k8s-upgrade:
-  extends: [.capo, .scenario_k8s-upgrade]
+☁capo 🚀kubeadm 🎸suse 🛠ha 🎬nightly:
+  extends: [.capo, .scenario_nightly]
   rules:
     - if: '$CI_PIPELINE_SOURCE == "schedule" && $CI_DEPLOYMENTS && $DEPLOYMENT_DESCRIPTION == "Nightly - CAPO Kubeadm"'
 
-☁capo 🚀rke2 🎸ubuntu 🛠oci,ha,misc 🎬k8s-upgrade:
-  extends: [.capo, .scenario_k8s-upgrade]
+☁capo 🚀rke2 🎸ubuntu 🛠oci,ha,misc 🎬nightly:
+  extends: [.capo, .scenario_nightly]
   rules:
     - if: '$CI_PIPELINE_SOURCE == "schedule" && $CI_DEPLOYMENTS && $DEPLOYMENT_DESCRIPTION == "Nightly - CAPO variants"'
 
-☁capo 🚀kubeadm 🎸ubuntu 🛠capo-fip,ha 🎬k8s-upgrade:
-  extends: [.capo, .scenario_k8s-upgrade]
+☁capo 🚀kubeadm 🎸ubuntu 🛠capo-fip,ha 🎬nightly:
+  extends: [.capo, .scenario_nightly]
   rules:
     - if: '$CI_PIPELINE_SOURCE == "schedule" && $CI_DEPLOYMENTS && $DEPLOYMENT_DESCRIPTION == "Nightly - CAPO variants"'
 
@@ -389,18 +399,23 @@ variables:
 ☁capm3-virt 🚀rke2 🎸ubuntu 🛠misc,ha:
   extends: .capm3-virt
 
-☁capm3-virt 🚀kubeadm 🎸ubuntu 🛠ha 🎬k8s-upgrade:
-  extends: .capm3-virt
+☁capm3-virt 🚀kubeadm 🎸ubuntu 🛠ha 🎬nightly:
+  extends: [.capm3-virt, .scenario_nightly]
   rules:
     - if: '$CI_PIPELINE_SOURCE == "schedule" && $CI_DEPLOYMENTS && $DEPLOYMENT_DESCRIPTION == "Nightly - CAPM3 HA Ubuntu"'
 
-☁capm3-virt 🚀rke2 🎸ubuntu 🛠ha 🎬k8s-upgrade:
-  extends: [.capm3-virt, .scenario_k8s-upgrade]
+☁capm3-virt 🚀rke2 🎸ubuntu 🛠ha 🎬nightly:
+  extends: [.capm3-virt, .scenario_nightly]
   rules:
     - if: '$CI_PIPELINE_SOURCE == "schedule" && $CI_DEPLOYMENTS && $DEPLOYMENT_DESCRIPTION == "Nightly - CAPM3 HA Ubuntu"'
 
-☁capm3-virt 🚀rke2 🎸suse 🛠ha 🎬k8s-upgrade:
-  extends: [.capm3-virt, .scenario_k8s-upgrade]
+☁capm3-virt 🚀rke2 🎸ubuntu 🛠ha,misc 🎬nightly:
+  extends: [.capm3-virt, .scenario_nightly]
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "schedule" && $CI_DEPLOYMENTS && $DEPLOYMENT_DESCRIPTION == "Nightly - CAPM3 HA Ubuntu"'
+
+☁capm3-virt 🚀rke2 🎸suse 🛠ha 🎬nightly:
+  extends: [.capm3-virt, .scenario_nightly]
   rules:
     - if: '$CI_PIPELINE_SOURCE == "schedule" && $CI_DEPLOYMENTS && $DEPLOYMENT_DESCRIPTION == "Nightly - CAPM3 HA Suse"'
 
