@@ -148,9 +148,6 @@ units:
   litmus-operator:
     enabled: '{{ tuple . "litmus-operator" | include "unit-enabled" }}'
 
-  litmus-pod-delete-testcase:
-    enabled: '{{ tuple . "litmus-pod-delete-testcase" | include "unit-enabled" }}'
-
   kubevirt:
     enabled: false
 
