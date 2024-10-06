@@ -2328,7 +2328,7 @@ units:
           ASSISTED_OS_IMAGES: '{{ .Values.openshift.assisted.osImages | toJson }}'
           HTTP_PROXY: '{{ .Values.proxies.http_proxy }}'
           HTTPS_PROXY: '{{ .Values.proxies.https_proxy }}'
-          NO_PROXY: '{{ .Values.proxies.no_proxy }}'
+          NO_PROXY: '{{ include "sylva-units.no_proxy" (tuple .) }}'
 
       healthChecks:
         - apiVersion: apps/v1
