@@ -836,7 +836,7 @@ units:
   litmus-operator:
     info:
       description: deploys litmus core component as an unit
-      maturity: beta
+      maturity: stable
     unit_templates:
     - base-deps
     depends_on:
@@ -848,14 +848,14 @@ units:
   litmus-pod-delete-testcase:
     info:
       description: deploys litmus testcases
-      maturity: beta
+      maturity: stable
     unit_templates:
     - base-deps
     depends_on:
       sylva-ca: true
     repo: sylva-core
-    enabled_conditions:
-      - '{{ tuple . "litmus-operator" | include "unit-enabled" }}'
+    #enabled_conditions:
+    #  - '{{ tuple . "litmus-operator" | include "unit-enabled" }}'
     kustomization_spec:
       path: ./kustomize-units/litmus-testcases/pod-delete
 
