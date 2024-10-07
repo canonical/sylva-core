@@ -376,27 +376,12 @@ def grafana_sso(endpoint, username, password):
         try:
             print(browser.title)
             print(browser.current_url)
-            print("Access dashboards")
+            print("Accessing dashboards")
             element_present = EC.presence_of_element_located(
-                (By.XPATH, '//a[@aria-label="Dashboards"]')
+                (By.XPATH, '//a[@data-testid="data-testid Dashboards breadcrumb"]')
             )
             WebDriverWait(browser, delay).until(element_present)
-            browser.find_element(By.XPATH, '//a[@aria-label="Dashboards"]').click()
-            print(browser.current_url)
-            print("Trying to access Grafana Overwiev dashboard")
-            browser.find_element(
-                By.XPATH, '//span[@id="section-header-label-17"]'
-            ).click()
-            browser.find_element(
-                By.XPATH, '//a[@href="/d/6be0s85Mk/grafana-overview"]'
-            ).click()
-            element_present = EC.presence_of_element_located(
-                (
-                    By.XPATH,
-                    '//header[@data-testid="data-testid Panel header Dashboards"]',
-                )
-            )
-            WebDriverWait(browser, delay).until(element_present)
+            browser.find_element(By.XPATH, '//a[@data-testid="data-testid Dashboards breadcrumb"]').click()
             print(browser.title)
             print(browser.current_url)
             print(Fore.GREEN + "Grafana SSO check done")
