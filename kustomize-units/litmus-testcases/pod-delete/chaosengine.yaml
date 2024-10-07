@@ -33,8 +33,8 @@ spec:
                image: nikhilsethi31/login-test:vault-login-test
            mode: SOT
            runProperties:
-             probeTimeout: "30s"
-             interval: "30s"
+             probeTimeout: "300s"
+             interval: "300s"
              retry: 0
              initialDelaySeconds: 0
          - name: "HTTP Probe--> Check Vault url reachability"
@@ -126,11 +126,11 @@ spec:
          components:
           env:
             - name: TOTAL_CHAOS_DURATION
-              value: '30'
+              value: '300'
 
             # set chaos interval (in sec) as desired
             - name: CHAOS_INTERVAL
-              value: '10'
+              value: '300'
 
             ## percentage of total pods to target
             - name: PODS_AFFECTED_PERC
