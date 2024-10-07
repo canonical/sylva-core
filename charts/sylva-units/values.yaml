@@ -845,6 +845,18 @@ units:
     kustomization_spec:
       path: ./kustomize-units/litmus-operator
 
+  litmus-pod-delete-testcase:
+    info:
+      description: Run pod-delete testcase
+      maturity: stable
+    unit_templates:
+    - base-deps
+    depends_on:
+      sylva-ca: true
+    repo: sylva-core
+    kustomization_spec:
+      path: ./kustomize-units/litmus-testcases/pod-delete
+
   kubevirt:
     info:
       description: installs kubevirt
