@@ -40,7 +40,7 @@ rules:
   - apiGroups: ["apps"]
     resources: ["deployments","statefulsets","replicasets", "daemonsets"]
     verbs: ["list","get"]
-  # deriving the parent/owner details of the pod(if parent is deploymentConfig)  
+  # deriving the parent/owner details of the pod(if parent is deploymentConfig)
   - apiGroups: ["apps.openshift.io"]
     resources: ["deploymentconfigs"]
     verbs: ["list","get"]
