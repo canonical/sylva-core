@@ -9,7 +9,6 @@
   interruptible: true
   rules:
     - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
-    - if: '$CI_PIPELINE_SOURCE == "pipeline"'
 
 # ==========================================
 # sylva-units chart lint
@@ -23,7 +22,7 @@
     - |
       function helm() { $(/usr/bin/which helm) $@ 2> >(grep -v 'found symbolic link' >&2); }
   rules:
-    - if: $CI_PIPELINE_SOURCE == 'merge_request_event' ||  $CI_PIPELINE_SOURCE == 'pipeline'
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
       changes:
         - charts/sylva-units/**/*
         - .gitlab/ci/**/*
@@ -59,7 +58,7 @@ sylva-units:helm-schema-validation:
     - ./tools/validation/helm-schema-validation.sh
   needs: []
   rules:
-    - if: $CI_PIPELINE_SOURCE == 'merge_request_event' ||  $CI_PIPELINE_SOURCE == 'pipeline'
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
       exists:
         - charts/sylva-units/values.schema.yaml
         - charts/sylva-units/values.schema.json
@@ -107,7 +106,7 @@ kustomize-lint:
         exit 1
       fi
   rules:
-    - if: $CI_PIPELINE_SOURCE == 'merge_request_event' ||  $CI_PIPELINE_SOURCE == 'pipeline'
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
       changes:
         - .gitlab/ci/**/*
         - environment-values/**/*
@@ -133,6 +132,9 @@ yamllint:
   extends: .lint-base
   script:
     - 'yamllint . -d "$(cat < .gitlab/ci/configuration/yamllint.yaml) $(cat < .gitlab/ci/configuration/yamllint-helm-exclude-charts.yaml)"'
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+    - if: '$CI_PIPELINE_SOURCE == "pipeline"' # Start this linter in cross-repo job to prevent pipeline to be blocked
 
 shellcheck:
   extends: .lint-base
