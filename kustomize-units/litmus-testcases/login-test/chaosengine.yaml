@@ -1,0 +1,36 @@
+apiVersion: litmuschaos.io/v1alpha1
+kind: ChaosEngine
+metadata:
+  name: login-test-chaos-1-1726768797
+  namespace: 'litmus'
+spec:
+  appinfo:
+    appns: 'litmus'
+    applabel: ''
+    
+  ## It can be true/false
+  annotationCheck: 'false'
+  # It can be active/stop
+  engineState: 'active'
+  chaosServiceAccount: login-test-sa
+  monitoring: false
+  # It can be delete/retain
+  jobCleanUpPolicy: 'delete'
+  experiments:
+    - name: login-test-1-1726768797
+      spec:
+         components:
+          env:
+            - name: TOTAL_CHAOS_DURATION
+              value: '10'
+
+            # set chaos interval (in sec) as desired
+            - name: CHAOS_INTERVAL
+              value: '10'
+
+            ## percentage of total pods to target
+            - name: PODS_AFFECTED_PERC
+              value: ''
+
+            - name: APP_NAMESPACE
+              value: 'litmus'
