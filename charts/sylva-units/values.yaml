@@ -857,6 +857,18 @@ units:
     kustomization_spec:
       path: ./kustomize-units/litmus-testcases/pod-delete
 
+  login-test:
+    info:
+      description: Run login-test testcase
+      maturity: stable
+    unit_templates:
+    - base-deps
+    depends_on:
+      sylva-ca: true
+    repo: sylva-core
+    kustomization_spec:
+      path: ./kustomize-units/litmus-testcases/login-test
+
   kubevirt:
     info:
       description: installs kubevirt
