@@ -149,7 +149,7 @@ units:
     enabled: '{{ tuple . "litmus-operator" | include "unit-enabled" }}'
 
   pod-delete:
-    enabled: false
+    enabled: '{{ tuple . "pod-delete" | include "unit-enabled" }}'
 
   kubevirt:
     enabled: false
