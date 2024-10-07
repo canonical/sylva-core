@@ -855,7 +855,8 @@ units:
       sylva-ca: true
     repo: sylva-core
     kustomization_spec:
-      path: ./kustomize-units/litmus-testcases/pod-delete
+      path: ./kustomize-units/litmus-operator
+      #path: ./kustomize-units/litmus-testcases/pod-delete
 
   kubevirt:
     info:
