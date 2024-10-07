@@ -15,10 +15,6 @@ cluster:
         bmc:
           address: redfish-virtualmedia://{{ .Values._internal.bootstrap_node_ip }}:8010/redfish/v1/Systems/c0014001-b10b-f001-c0de-feeb1e54ee15
         bootMACAddress: 52:54:00:44:44:04
-      ip_preallocations:
-        primary:
-          ip: 192.168.100.70
-          mac_address: 52:54:00:44:44:04
 
     workload-cp-1:
       bmh_metadata:
@@ -28,10 +24,6 @@ cluster:
         bmc:
           address: redfish-virtualmedia://{{ .Values._internal.bootstrap_node_ip }}:8011/redfish/v1/Systems/c0014001-b10b-f001-c0de-feeb1e54ee15
         bootMACAddress: 52:54:00:44:44:05
-      ip_preallocations:
-        primary:
-          ip: 192.168.100.71
-          mac_address: 52:54:00:44:44:05
 
     workload-cp-2:
       bmh_metadata:
@@ -41,10 +33,6 @@ cluster:
         bmc:
           address: redfish-virtualmedia://{{ .Values._internal.bootstrap_node_ip }}:8012/redfish/v1/Systems/c0014001-b10b-f001-c0de-feeb1e54ee15
         bootMACAddress: 52:54:00:44:44:06
-      ip_preallocations:
-        primary:
-          ip: 192.168.100.72
-          mac_address: 52:54:00:44:44:06
 
     workload-md-0:
       bmh_metadata:
@@ -54,10 +42,6 @@ cluster:
         bmc:
           address: redfish-virtualmedia://{{ .Values._internal.bootstrap_node_ip }}:8013/redfish/v1/Systems/c0014001-b10b-f001-c0de-feeb1e54ee15
         bootMACAddress: 52:54:00:44:44:07
-      ip_preallocations:
-        primary:
-          ip: 192.168.100.73
-          mac_address: 52:54:00:44:44:07
 
 units:
   longhorn:
