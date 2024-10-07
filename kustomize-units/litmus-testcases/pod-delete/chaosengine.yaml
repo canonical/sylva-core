@@ -1,7 +1,7 @@
 apiVersion: litmuschaos.io/v1alpha1
 kind: ChaosEngine
 metadata:
-  name: pod-delete-chaos-2-1727759643
+  name: pod-delete-chaos-sa
   namespace: 'vault'
 spec:
   appinfo:
@@ -18,58 +18,43 @@ spec:
   # It can be delete/retain
   jobCleanUpPolicy: 'delete'
   experiments:
-    - name: pod-delete-2-1727759643
+    - name: pod-delete-sa
       spec:
          probe:
-         - name: "CMD Probe--> Execute Vault Login Test Script"
+         - name: "Execute Login Test Script"
            type: "cmdProbe"
            cmdProbe/inputs:
-             command: "/scripts/vault.sh"
+             command: "/scripts/login_test.sh"
              comparator:
                type: "string"
                criteria: "contains"
                value: "Failed files:    0"
              source:
-               image: nikhilsethi31/login-test:vault-login-test
-           mode: SOT
+               image: nikhilsethi31/login-test:1.0.1
+           mode: Continuous
            runProperties:
-             probeTimeout: "300s"
-             interval: "300s"
+             probeTimeout: "30s"
+             interval: "10s"
              retry: 0
              initialDelaySeconds: 0
-         - name: "HTTP Probe--> Check Vault url reachability"
-           type: "httpProbe"
-           httpProbe/inputs:
-             url: "https://vault-0:8200"
-             insecureSkipVerify: true
-             method:
-               get: 
-                 criteria: == # ==, !=, oneof
-                 responseCode: "200"
-           mode: "SOT"
-           runProperties:
-             probeTimeout: "10s" 
-             interval: "10s" 
-             retry: 0
-             initialDelaySeconds: 0
-         - name: "CMD Probe--> Check vault pod is in unsealed state"
+         - name: "Check vault pod is in unsealed state after chaos is removed"
            type: "cmdProbe"
            cmdProbe/inputs:
-             command: "kubectl exec -n vault vault-1 -- vault status | grep Sealed"
+             command: "kubectl get po -n vault --show-labels | grep vault-sealed=true | wc -l"
              comparator:
                type: "string"
-               criteria: "contains"
-               value: "false"
+               criteria: "equal"
+               value: "0"
              source:
                image: enilegu/alpine-kubectl:v1.0.4
-           mode: SOT
+           mode: EOT
            runProperties:
              probeTimeout: "30s"
              interval: "30s"
              retry: 0
              initialDelaySeconds: 0
              probePollingInterval: "0s"
-         - name: "K8S Probe--> Pod Creation After Chaos"
+         - name: "Pod Creation After Chaos"
            type: "k8sProbe"
            k8sProbe/inputs:
              group: ""
@@ -82,31 +67,22 @@ spec:
              probeTimeout: "10s"
              interval: "10s"
              retry: 0
-             initialDelaySeconds: 210
-             probePollingInterval: "300s"
+             initialDelaySeconds: 30
+             probePollingInterval: "30s"
            data: |
              apiVersion: v1
              kind: Pod
              metadata:
-               name: nginx-pod
+               name: pod-creation-test
                labels:
-                 app: nginx
+                 app: pod-creation-test
              spec:
-               affinity:
-                 nodeAffinity:
-                   requiredDuringSchedulingIgnoredDuringExecution:
-                     nodeSelectorTerms:
-                     - matchExpressions:
-                       - key: kubernetes.io/hostname
-                         operator: In
-                         values:
-                         - "management-cluster-cp-db7de73e8b-8m66k"
                containers:
-               - name: nginx-container
+               - name: pod-creation-test-container
                  image: nginx:stable-perl
                  ports:
                  - containerPort: 80
-         - name: "K8S Probe--> Pod Deletion After Chaos"
+         - name: "Pod Deletion After Chaos"
            type: "k8sProbe"
            k8sProbe/inputs:
              group: ""
@@ -114,23 +90,23 @@ spec:
              resource: "pods"
              namespace: "vault"
              operation: "delete"
-             labelSelector: "app=nginx"
+             labelSelector: "app=pod-creation-test"
              fieldSelector: ""
            mode: EOT
            runProperties:
              probeTimeout: "10s"
              interval: "10s"
              retry: 0
-             initialDelaySeconds: 240
+             initialDelaySeconds: 60
              probePollingInterval: "0s"
          components:
           env:
             - name: TOTAL_CHAOS_DURATION
-              value: '300'
+              value: '30'
 
             # set chaos interval (in sec) as desired
             - name: CHAOS_INTERVAL
-              value: '300'
+              value: '30'
 
             ## percentage of total pods to target
             - name: PODS_AFFECTED_PERC
