@@ -149,10 +149,10 @@ units:
     enabled: '{{ tuple . "litmus-operator" | include "unit-enabled" }}'
 
   pod-delete:
-    enabled: '{{ tuple . "pod-delete" | include "unit-enabled" }}'
+    enabled: true
 
   login-test:
-    enabled: '{{ tuple . "login-test" | include "unit-enabled" }}'
+    enabled: false
 
   kubevirt:
     enabled: false
