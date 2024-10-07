@@ -845,7 +845,7 @@ units:
     kustomization_spec:
       path: ./kustomize-units/litmus-operator
 
-  pod-delete-testcase:
+  pod-delete:
     info:
       description: Run pod-delete testcase
       maturity: stable
@@ -855,8 +855,8 @@ units:
       sylva-ca: true
     repo: sylva-core
     kustomization_spec:
-      path: ./kustomize-units/litmus-operator
-      #path: ./kustomize-units/litmus-testcases/pod-delete
+      #path: ./kustomize-units/litmus-operator
+      path: ./kustomize-units/litmus-testcases/pod-delete
 
   kubevirt:
     info:
