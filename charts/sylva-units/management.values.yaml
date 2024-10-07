@@ -151,6 +151,9 @@ units:
   pod-delete:
     enabled: '{{ tuple . "pod-delete" | include "unit-enabled" }}'
 
+  login-test:
+    enabled: '{{ tuple . "login-test" | include "unit-enabled" }}'
+
   kubevirt:
     enabled: false
 
