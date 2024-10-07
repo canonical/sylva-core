@@ -18,5 +18,3 @@ reports/
 
 # Pipeline reports
 report_output.md
-environment-values/my-rke2-capo/kustomization.yaml
-environment-values/my-rke2-capo/values.yaml
