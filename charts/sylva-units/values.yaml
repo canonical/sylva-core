@@ -845,7 +845,7 @@ units:
     kustomization_spec:
       path: ./kustomize-units/litmus-operator
 
-  litmus-pod-delete-testcase:
+  pod-delete-testcase:
     info:
       description: Run pod-delete testcase
       maturity: stable
