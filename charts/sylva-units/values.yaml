@@ -836,6 +836,7 @@ units:
   litmus-operator:
     info:
       description: Deploys litmus core component as an unit
+      internal: true
       maturity: stable
     unit_templates:
     - base-deps
@@ -848,6 +849,7 @@ units:
   litmus-testcase-pod-delete:
     info:
       description: Runs pod-delete testcase for vault pod
+      internal: true
       maturity: stable
     unit_templates:
     - base-deps
