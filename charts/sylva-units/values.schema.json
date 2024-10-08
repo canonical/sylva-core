@@ -3311,6 +3311,74 @@
             }
           ]
         },
+        "agent_config_format": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "$ref": "#/$defs/string-with-gotpl"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "openshift": {
+          "anyOf": [
+            {
+              "type": "object",
+              "additionalProperties": true,
+              "properties": {
+                "version": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "$ref": "#/$defs/string-with-gotpl"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "releaseImage": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "$ref": "#/$defs/string-with-gotpl"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "sshAuthorizedKey": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "$ref": "#/$defs/string-with-gotpl"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "$ref": "#/$defs/string-with-gotpl"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
         "capi_providers": {
           "anyOf": [
             {
@@ -3344,7 +3412,8 @@
                     {
                       "enum": [
                         "cabpk",
-                        "cabpr"
+                        "cabpr",
+                        "cabpoa"
                       ]
                     },
                     {
@@ -6664,92 +6733,98 @@
             }
           },
           "then": {
-            "properties": {
-              "capm3": {
-                "anyOf": [
-                  {
-                    "required": [
-                      "primary_pool_network",
-                      "primary_pool_gateway",
-                      "primary_pool_end",
-                      "primary_pool_start",
-                      "primary_pool_prefix",
-                      "provisioning_pool_network",
-                      "provisioning_pool_gateway",
-                      "provisioning_pool_end",
-                      "provisioning_pool_start",
-                      "provisioning_pool_prefix",
-                      "dns_servers"
-                    ],
-                    "oneOf": [
-                      {
-                        "required": [
-                          "image_key"
-                        ]
-                      },
-                      {
-                        "required": [
-                          "machine_image_url"
-                        ]
-                      }
-                    ]
-                  },
-                  {
-                    "$ref": "#/$defs/string-with-gotpl"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ]
-              },
-              "baremetal_hosts": {
-                "anyOf": [
-                  {
-                    "minProperties": 1
-                  },
-                  {
-                    "$ref": "#/$defs/string-with-gotpl"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ]
-              },
-              "control_plane": {
-                "anyOf": [
-                  {
-                    "properties": {
-                      "network_interfaces": {
-                        "anyOf": [
-                          {
-                            "$ref": "#/$defs/capm3-network-interfaces"
-                          },
-                          {
-                            "$ref": "#/$defs/string-with-gotpl"
-                          }
-                        ]
-                      },
+            "if": {
+              "properties": {
+                "agent_config_format": {
+                  "const": "ignition"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "baremetal_hosts": {
+                  "anyOf": [
+                    {
+                      "minProperties": 1
+                    },
+                    {
+                      "$ref": "#/$defs/string-with-gotpl"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "control_plane": {
+                  "anyOf": [
+                    {
                       "properties": {
-                        "anyOf": [
-                          {
-                            "capm3": {
+                        "capm3": {
+                          "anyOf": [
+                            {
                               "$ref": "#/$defs/capm3-machine"
+                            },
+                            {
+                              "$ref": "#/$defs/string-with-gotpl"
                             }
-                          },
-                          {
-                            "$ref": "#/$defs/string-with-gotpl"
-                          }
-                        ]
+                          ]
+                        }
+                      }
+                    },
+                    {
+                      "$ref": "#/$defs/string-with-gotpl"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              }
+            },
+            "else": {
+              "properties": {
+                "capm3": {
+                  "required": [
+                    "primary_pool_network",
+                    "primary_pool_gateway",
+                    "primary_pool_end",
+                    "primary_pool_start",
+                    "primary_pool_prefix",
+                    "provisioning_pool_network",
+                    "provisioning_pool_gateway",
+                    "provisioning_pool_end",
+                    "provisioning_pool_start",
+                    "provisioning_pool_prefix",
+                    "dns_servers"
+                  ],
+                  "oneOf": [
+                    {
+                      "required": [
+                        "image_key"
+                      ]
+                    },
+                    {
+                      "required": [
+                        "machine_image_url"
+                      ]
+                    }
+                  ]
+                },
+                "baremetal_hosts": {
+                  "minProperties": 1
+                },
+                "control_plane": {
+                  "properties": {
+                    "network_interfaces": {
+                      "$ref": "#/$defs/capm3-network-interfaces"
+                    },
+                    "properties": {
+                      "capm3": {
+                        "$ref": "#/$defs/capm3-machine"
                       }
                     }
-                  },
-                  {
-                    "$ref": "#/$defs/string-with-gotpl"
-                  },
-                  {
-                    "type": "null"
                   }
-                ]
+                }
               }
             }
           }
