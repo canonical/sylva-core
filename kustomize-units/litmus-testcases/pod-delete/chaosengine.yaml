@@ -30,13 +30,14 @@ spec:
               criteria: "contains"
               value: "Failed files:    0"
             source:
-              image: nikhilsethi31/login-test:1.0.1
+              image: nikhilsethi31/login-test:1.0.6
           mode: Continuous
           runProperties:
-            probeTimeout: "30s"
-            interval: "10s"
-            retry: 0
+            probeTimeout: "10s"
+            interval: "5s"
+            retry: 3
             initialDelaySeconds: 0
+            probePollingInterval: "10s"
         - name: "Check vault pod is in unsealed state after chaos is removed"
           type: "cmdProbe"
           cmdProbe/inputs:
