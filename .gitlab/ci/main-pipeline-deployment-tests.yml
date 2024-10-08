@@ -54,8 +54,8 @@ variables:
 
 .deployment_rules:
   - if: '$CI_COMMIT_TAG'
-  - if: $CI_PIPELINE_SOURCE == 'pipeline' && $OCI_TAG == null && $CI_JOB_NAME =~ $DEPLOYMENT_FLAVOR
-  - if: $CI_PIPELINE_SOURCE == 'pipeline' && $OCI_TAG == null
+  - if: $CI_PIPELINE_SOURCE == 'pipeline' && $CI_JOB_NAME =~ $DEPLOYMENT_FLAVOR && $CI_JOB_NAME !~ /.*🛠.*oci.*/
+  - if: $CI_PIPELINE_SOURCE == 'pipeline' && $CI_JOB_NAME !~ /.*🛠.*oci.*/
     allow_failure: true
     when: manual
   - if: '$CI_PIPELINE_SOURCE == "web" && $CI_JOB_NAME =~ $DEPLOYMENT_FLAVOR'
