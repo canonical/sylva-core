@@ -4454,7 +4454,7 @@ units:
             name: '{{ (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpk") | ternary "coredns" "rke2-coredns-rke2-coredns" }}'
           patch: |
             - op: remove
-              path: /spec/template/spec/volumes/0/items
+              path: /spec/template/spec/volumes/0/configMap/items
       postBuild:
         substitute:
           CLUSTER_VIRTUAL_IP: '{{ .Values.cluster_virtual_ip }}'
