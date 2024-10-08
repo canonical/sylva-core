@@ -485,9 +485,3 @@ variables:
     - if: $CI_MERGE_REQUEST_LABELS =~ /ci-feature::mgmt-rolling-update/
       when: manual
       allow_failure: true
-
-capm3-misc-rke2-virt-ubuntu:
-  extends: .rke2-capm3-virt-equinix
-  variables:
-    MGMT_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/misc-units-in-capm3.yml
-    WC_ADDITIONAL_VALUES: ${SYLVA_CI_VALUES_FOLDER}/misc-units-in-capm3.yml
