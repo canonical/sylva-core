@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -e
+
 usage() {
     cat << EOF
 Usage: $0 -p PROJECT_PATH -j JOB_ID [-u URI] -s SOCKET
