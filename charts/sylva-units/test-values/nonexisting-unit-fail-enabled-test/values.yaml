@@ -1,0 +1,8 @@
+# the issue we had in the past is that for a non-existing
+# the "unit-enabled" test return value would be true if units_enabled_default is true
+# so we set here to ensure that we test the problematic case
+units_enabled_default: true
+
+_internal:
+  # this should fail:
+  _test: '{{- tuple . "non-existing" | include "unit-enabled" -}}'
