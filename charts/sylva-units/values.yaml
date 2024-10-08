@@ -6134,6 +6134,27 @@ units:
             drop: ["ALL"]
           seccompProfile:
             type: RuntimeDefault
+      _postRenderers:
+        - kustomize:
+            patches:
+              - target:
+                  kind: Logging
+                  name: logging-root
+                patch: |
+                  - op: add
+                    path: /spec/fluentbit/customParsers
+                    value: |
+                            [PARSER]
+                                Name         crilog
+                                Format       regex
+                                Regex        ^(?<time>[^ ]+) (?<stream>stdout|stderr) (?<logtag>[^ ]+) (?<log>.*)$
+                                Time_Key     time
+                                Time_Format  %Y-%m-%dT%H:%M:%S.%L%z
+                                Time_Keep    "On"
+                  - op: add
+                    path: /spec/fluentbit/inputTail
+                    value:
+                      Parser: crilog
 
   logging-config:
     info:
