@@ -101,14 +101,14 @@ spec:
             initialDelaySeconds: 60
             probePollingInterval: "0s"
         components:
-        env:
-          - name: TOTAL_CHAOS_DURATION
-            value: '30'
+          env:
+            - name: TOTAL_CHAOS_DURATION
+              value: '30'
 
-          # set chaos interval (in sec) as desired
-          - name: CHAOS_INTERVAL
-            value: '30'
+            # set chaos interval (in sec) as desired
+            - name: CHAOS_INTERVAL
+              value: '30'
 
-          ## percentage of total pods to target
-          - name: PODS_AFFECTED_PERC
-            value: ''
+            ## percentage of total pods to target
+            - name: PODS_AFFECTED_PERC
+              value: ''
