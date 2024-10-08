@@ -143,9 +143,9 @@ variables:
     MGMT_ADDITIONAL_VALUES: libvirt-metal-no-bond.yaml
     WC_ADDITIONAL_VALUES: libvirt-metal-no-bond.yaml
     MGMT_INITIAL_REVISION: "1.1.1-ci-tweaks"
-    MGMT_UPDATE_REVISION: "main"
+    MGMT_UPDATE_REVISION: "" # Use current commit
     WC_INITIAL_REVISION: "1.1.1-ci-tweaks"
-    WC_UPDATE_REVISION: "main"
+    WC_UPDATE_REVISION: "" # Use current commit
     # Increase default timers due to rolling upgrade
     MGMT_WATCH_TIMEOUT_MIN: "45"
     APPLY_WATCH_TIMEOUT_MIN: "80"
