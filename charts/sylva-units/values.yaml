@@ -4420,7 +4420,7 @@ units:
             name: '{{ (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpk") | ternary "coredns" "rke2-coredns-rke2-coredns" }}'
           patch: |
             - op: remove
-              path: /spec/templates/spec/volumes/0/items
+              path: /spec/template/spec/volumes/0/items
       postBuild:
         substitute:
           CLUSTER_VIRTUAL_IP: '{{ .Values.cluster_virtual_ip }}'
@@ -6519,9 +6519,6 @@ cluster:
 
   enable_longhorn: '{{ or (tuple . "longhorn" | include "unit-enabled") (tuple . .Values.units.longhorn.enabled | include "interpret-for-test") | include "as-bool" }}'
 
-  openshift:
-    baseDomain: '{{ .Values.cluster_domain }}'
-
   timeouts:
     cluster_delete_hook_job_timeout: 300
 
@@ -7140,6 +7137,7 @@ rancher:
 #       community: public
 
 openshift:
+  baseDomain: '{{ .Values.cluster_domain }}'
   assisted:
     dbSize: 8Gi
     fsSize: 8Gi
