@@ -4,7 +4,6 @@
     "gitlab>sylva-projects/sylva-elements/renovate-config:default"
   ],
   "addLabels": [
-    "run-e2e-tests",
     "renovate"
   ],
   "gitlabci": {
