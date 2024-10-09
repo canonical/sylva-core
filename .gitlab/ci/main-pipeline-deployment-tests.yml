@@ -72,7 +72,6 @@ variables:
     when: never
   - if: $CI_MERGE_REQUEST_LABELS =~ /ci-feature::test-upgrade-from-1.1.1/
     when: never
-
   - if: $CI_MERGE_REQUEST_LABELS =~ /renovate/ && $CAPO_TAG
     allow_failure: true
     when: manual
@@ -395,6 +394,9 @@ variables:
 
 ☁capm3-virt 🚀rke2 🐧suse 🛠ha:
   extends: .capm3-virt
+  rules:
+    - if: $CI_MERGE_REQUEST_LABELS =~ /renovate/
+    - !reference [.deployment_rules]
 
 ☁capm3-virt 🚀rke2 🐧ubuntu 🛠misc,ha:
   extends: .capm3-virt
