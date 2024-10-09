@@ -2490,6 +2490,20 @@ units:
           # We have to set FailurePolicy to Ignore for rke2, otherwise we would hit https://gitlab.com/sylva-projects/sylva-core/-/issues/794
           FAILURE_POLICY: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpk" | ternary "Fail" "Ignore" }}'
 
+  cluster-rke2-migrate-legacy-etcd-certs:
+    info:
+      description: handles the migration of etcd secrets for RKE2 clusters deployed with Sylva <=1.1.1
+    unit_templates:
+    - kube-job
+    enabled_conditions:
+    - '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" }}'  # RKE2-only
+    - '{{ .Values._internal.state.is_upgrade }}'
+    kustomization_spec:
+      path: ./kustomize-units/rke2-etcd-secrets
+      postBuild:
+        substitute:
+          CLUSTER_NAME: '{{ .Values.cluster.name }}'
+
   cluster:
     info:
       description: holds the Cluster API definition for the cluster
@@ -2507,6 +2521,7 @@ units:
       cluster-node-deletion-timeout-fix: '{{ tuple . "cluster-node-deletion-timeout-fix" | include "unit-enabled" }}'
       cluster-rke2-finalizer-fix: '{{ tuple . "cluster-rke2-finalizer-fix" | include "unit-enabled" }}'
       cluster-node-provider-id-blacklist: '{{ tuple . "cluster-node-provider-id-blacklist" | include "unit-enabled" }}'
+      cluster-rke2-migrate-legacy-etcd-certs: '{{ tuple . "cluster-rke2-migrate-legacy-etcd-certs" | include "unit-enabled" }}'
       longhorn-instance-manager-cleanup: '{{ tuple . "longhorn-instance-manager-cleanup" | include "unit-enabled" }}'
       thanos-uninstall-pre-upgrade: '{{ tuple . "thanos-uninstall-pre-upgrade" | include "unit-enabled" }}'
       minio-cleanup-pre-upgrade: '{{ tuple . "minio-cleanup-pre-upgrade" | include "unit-enabled" }}'

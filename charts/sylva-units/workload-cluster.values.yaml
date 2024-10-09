@@ -180,6 +180,12 @@ units:
   cluster-rke2-finalizer-fix:
     enabled: true
 
+  cluster-rke2-migrate-legacy-etcd-certs:
+    enabled: true
+    unit_templates:
+    - kube-job
+    - kustomization-deployed-on-mgmt-cluster
+
   cluster-bmh:
     enabled: true
     unit_templates:
