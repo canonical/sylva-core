@@ -87,6 +87,9 @@ on the CAPI bootstrap provider being used.
   {{- $cp_kind = "KubeadmControlPlane" -}}
 {{- else if $cluster.capi_providers.bootstrap_provider | eq "cabpr" -}}
   {{- $cp_kind = "RKE2ControlPlane" -}}
+{{- else if $cluster.capi_providers.bootstrap_provider | eq "cabpoa" -}}
+  {{/* "AgentControlPlane" for OKD CAPI provider */}}
+  {{- $cp_kind = "AgentControlPlane" -}}
 {{- else -}}
   {{- fail (printf "sylva-units cluster-healthchecks named template would need to be extended to support CAPI bootstrap provider %s" $cluster.capi_providers.bootstrap_provider) -}}
 {{- end }}
