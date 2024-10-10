@@ -6,3 +6,5 @@ resources:
 - disable-automount-sa.yaml
 - ensure-force-cluster-policy.yaml
 - ensure-pdb-minreplicas.yaml
+- always-allow-pdb-unhealthy-pod-eviction.yaml
+- ensure-pdb-unhealthypodeviction.yaml

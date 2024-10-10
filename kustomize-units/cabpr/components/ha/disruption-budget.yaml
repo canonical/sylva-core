@@ -5,6 +5,7 @@ metadata:
   namespace: rke2-control-plane-system
 spec:
   minAvailable: 1
+  unhealthyPodEvictionPolicy: AlwaysAllow
   selector:
     matchLabels:
       cluster.x-k8s.io/provider: control-plane-rke2
@@ -17,6 +18,7 @@ metadata:
   namespace: rke2-bootstrap-system
 spec:
   minAvailable: 1
+  unhealthyPodEvictionPolicy: AlwaysAllow
   selector:
     matchLabels:
       cluster.x-k8s.io/provider: bootstrap-rke2
