@@ -16,6 +16,8 @@ additional_resources="
   ClusterRoleBindings
   ServiceAccounts
   CustomResourceDefinitions
+  MutatingWebhookConfigurations
+  ValidatingWebhookConfigurations
   HelmReleases
   HelmRepositories
   HelmCharts
