@@ -58,7 +58,7 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
     spec:
       url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-capi-cluster.git
       ref:
-        tag: 0.2.45
+        tag: 0.2.48
 
   local-path-provisioner:
     kind: GitRepository
@@ -1876,7 +1876,6 @@ units:
           IMAGE_LIST: '{{ .Values.security.upstream_images_signature.images_list | toJson }}'
       _components:
         - '{{ tuple "components/management-cluster-only" .Values._internal.mgmt_cluster | include "set-only-if" }}'
-        - '{{ tuple "components/capm3-patch-bond-policy" (tuple . "capm3" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/descheduler" (tuple . "descheduler" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/loki-aggregated-secrets" (tuple . "loki" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/thanos" (tuple . "thanos" | include "unit-enabled") | include "set-only-if" }}'
@@ -1902,6 +1901,23 @@ units:
             value: |
               #!/bin/bash
               sleep 60
+
+  kyverno-metal3-policies:
+    info:
+      description: kyverno policies specific to capm3-system
+      internal: true
+    unit_templates:
+      - base-deps
+    enabled_conditions:
+    - '{{ tuple . "kyverno" | include "unit-enabled" }}'
+    - '{{ tuple . "metal3" | include "unit-enabled" }}'
+    depends_on:
+      kyverno: true
+      metal3: true
+    repo: sylva-core
+    kustomization_spec:
+      path: ./kustomize-units/kyverno-policies/metal3-policies
+      wait: true
 
   kyverno-update-namespace-and-psa:
     info:

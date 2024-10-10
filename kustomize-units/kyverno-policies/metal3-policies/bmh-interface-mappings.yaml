@@ -1,0 +1,50 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: capm3-interface-mappings
+  annotations:
+    kustomize.toolkit.fluxcd.io/force: Enabled
+    pod-policies.kyverno.io/autogen-controllers: none
+    policies.kyverno.io/description: >-
+      This policy handles interface mapping annotations (interface-name.sylva.org/nic1: ens5)
+      And converts them into mac-address mappings (interface-mac.sylva.org/nic1: "de:ad:be:ef:00:01")
+      Using interfaces status collected during host introspection
+spec:
+  background: true
+  rules:
+  - name: set-nic-mac-mappings
+    match:
+      any:
+      - resources:
+          kinds:
+          - BareMetalHost
+          - BareMetalHost/status
+    context:
+    - name: bmhData
+      variable:
+        value: "{{ request.object }}"
+    - name: nicAdresses
+      # Build dictionnary of {inspection_name: mac-address} mappings from introspection data
+      variable:
+        value: "{{ bmhData.status.hardware.nics || `[]` | object_from_lists([].name, [].mac) }}"
+    - name: nicNames
+      # Build a list of [{"name": "nic1", "inspection_name": "ens5"}] from {"interface-name.sylva.org/nic1": "ens5"} annotations)
+      variable:
+        value: >-
+          {{ bmhData.metadata.annotations || `{}`
+             | items(@, 'name', 'value')
+             | [?name.starts_with(@, 'interface-name')]
+             | map(&{name: trim_prefix(@.name, 'interface-name.sylva.org/'), inspection_name: @.value}, @)
+          }}
+    mutate:
+      foreach:
+        - list: nicNames
+          preconditions:
+            all:
+            - key: "{{ lookup(nicAdresses, element.inspection_name) }}"
+              operator: NotEquals
+              value: null
+          patchStrategicMerge:
+            metadata:
+              annotations:
+                "interface-mac.sylva.org/{{ element.name }}": "{{ lookup(nicAdresses, element.inspection_name) }}"

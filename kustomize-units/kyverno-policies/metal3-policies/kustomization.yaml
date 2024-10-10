@@ -3,3 +3,4 @@ kind: Component
 
 resources:
   - patch-bond-policy.yaml
+  - bmh-interface-mappings.yaml
