@@ -5,6 +5,7 @@ metadata:
   namespace: capi-system
 spec:
   minAvailable: 1
+  unhealthyPodEvictionPolicy: AlwaysAllow
   selector:
     matchLabels:
       cluster.x-k8s.io/provider: cluster-api

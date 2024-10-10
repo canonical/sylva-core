@@ -515,6 +515,10 @@ units:
             enabled: true
             minAvailable: >-
               {{ .Values._internal.ha_cluster.is_ha | ternary 1 0 }}
+      _postRenderers:
+        - kustomize:
+            patches:
+            - '{{ .Values._internal.pdb_allow_unhealthy_pod_eviction | include "preserve-type" }}'
 
   kube-storage-version-migrator:
     info:
@@ -671,6 +675,10 @@ units:
                       app.kubernetes.io/name: postgres
                       app.kubernetes.io/component: read
                   topologyKey: kubernetes.io/hostname
+      _postRenderers:
+        - kustomize:
+            patches:
+            - '{{ .Values._internal.pdb_allow_unhealthy_pod_eviction | include "preserve-type" }}'
 
   kubevirt:
     info:
@@ -695,6 +703,10 @@ units:
                 - NUMA
                 - CPUManager
                 - Snapshot
+      _postRenderers:
+        - kustomize:
+            patches:
+            - '{{ .Values._internal.pdb_allow_unhealthy_pod_eviction | include "preserve-type" }}'
 
   kubevirt-test-vms:
     info:
@@ -832,6 +844,10 @@ units:
                       app.kubernetes.io/name: postgres
                       app.kubernetes.io/component: read
                   topologyKey: kubernetes.io/hostname
+      _postRenderers:
+        - kustomize:
+            patches:
+            - '{{ .Values._internal.pdb_allow_unhealthy_pod_eviction | include "preserve-type" }}'
 
   harbor:
     info:
@@ -1793,6 +1809,7 @@ units:
                     namespace: kyverno
                   spec:
                     startingDeadlineSeconds: 180
+              - '{{ .Values._internal.pdb_allow_unhealthy_pod_eviction | include "preserve-type" }}'
 
   kyverno-policies:
     info:
@@ -3801,16 +3818,17 @@ units:
         - kind: ConfigMap
           name: prometheus-config-values # this configmap is a byproduct of the prometheus-resources unit
           optional: '{{ not (tuple . "prometheus-resources" | include "unit-enabled") | include "as-bool" }}'
-      # Disable drift detection for rancher-monitoring webhooks
       _postRenderers:
         - kustomize:
             patches:
+            # Disable drift detection for rancher-monitoring webhooks
             - target:
                 kind: (ValidatingWebhookConfiguration|MutatingWebhookConfiguration)
               patch: |
                 - op: add
                   path: /metadata/annotations/helm.toolkit.fluxcd.io~1driftDetection
                   value: disabled
+            - '{{ .Values._internal.pdb_allow_unhealthy_pod_eviction | include "preserve-type" }}'
     helm_secret_values:
       prometheus:
         extraSecret:
@@ -3888,6 +3906,7 @@ units:
         replicaCount: '{{ .Values._internal.ha_cluster.is_ha | ternary 2 1 | include "preserve-type" }}'
         podDisruptionBudget:
           minAvailable: '{{ .Values._internal.ha_cluster.is_ha | ternary 1 0 | include "preserve-type" }}'
+          unhealthyPodEvictionPolicy: AlwaysAllow
         securityContext:
           runAsNonRoot: true
           allowPrivilegeEscalation: false
@@ -5025,6 +5044,10 @@ units:
           storageClass: "{{ .Values._internal.default_storage_class }}"
         persistence:
           size: 8Gi
+      _postRenderers:
+        - kustomize:
+            patches:
+            - '{{ .Values._internal.pdb_allow_unhealthy_pod_eviction | include "preserve-type" }}'
 
   gitea-postgresql-ha:
     info:
@@ -5059,6 +5082,10 @@ units:
           existingSecret: gitea-postgres-secrets
         persistence:
           size: 8Gi
+      _postRenderers:
+        - kustomize:
+            patches:
+            - '{{ .Values._internal.pdb_allow_unhealthy_pod_eviction | include "preserve-type" }}'
 
   gitea:
     info:
@@ -6037,6 +6064,10 @@ units:
         - kind: Secret
           name: thanos-secrets
           valuesKey: secrets
+      _postRenderers:
+        - kustomize:
+            patches:
+            - '{{ .Values._internal.pdb_allow_unhealthy_pod_eviction | include "preserve-type" }}'
     helm_secret_values:
       extraDeploy:
       - apiVersion: v1
@@ -6398,6 +6429,10 @@ units:
         - kind: Secret
           name: loki-secrets
           valuesKey: secrets
+      _postRenderers:
+        - kustomize:
+            patches:
+            - '{{ .Values._internal.pdb_allow_unhealthy_pod_eviction | include "preserve-type" }}'
 
   single-replica-storageclass:
     info:
@@ -7277,6 +7312,17 @@ _internal:
           _immutable_comment: "Underlying infrastructure of a running cluster can't be changed"
       _immutable: '{{ not .Values._internal.ha_cluster.is_ha | include "preserve-type" }}'
       _immutable_comment: "Cluster values can't be changed, as they would trigger a rolling upgrade that is not supported in non-HA mode"
+
+  pdb_allow_unhealthy_pod_eviction:
+    target:
+      kind: PodDisruptionBudget
+    patch: |-
+      apiVersion: policy/v1
+      kind: PodDisruptionBudget
+      metadata:
+        name: not-used
+      spec:
+        unhealthyPodEvictionPolicy: AlwaysAllow
 
 shared_workload_clusters_values:
   ntp: '{{ .Values.ntp | include "set-if-defined" }}'

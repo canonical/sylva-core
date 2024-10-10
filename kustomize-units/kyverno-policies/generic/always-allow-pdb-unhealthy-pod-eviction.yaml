@@ -1,0 +1,34 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: always-allow-pdb-unhealthy-pod-eviction
+  annotations:
+    kustomize.toolkit.fluxcd.io/force: Enabled
+    policies.kyverno.io/title: Set PodDisruptionBudget unhealthyPodEvictionPolicy to AlwaysAllow
+    policies.kyverno.io/category: Other
+    kyverno.io/kyverno-version: 1.9.0
+    kyverno.io/kubernetes-version: "1.24"
+    policies.kyverno.io/subject: PodDisruptionBudget
+    policies.kyverno.io/description: >-
+      The default PodDistruptionBudget configuration forbids evicting unhealthy pods,
+      preventing nodes draining. Filling in the unhealthyPodEvictionPolicy field with the value
+      AlwaysAllow avoids this.
+      This mutation rule sets the unhealthyPodEvictionPolicy to AlwaysAllow in a specific set
+      of namespaces listed in the policy definition.
+spec:
+  useServerSideApply: true
+  rules:
+
+    - name: add-pdb-unhealthypodeviction
+      match:
+        any:
+        - resources:
+            kinds:
+            - PodDisruptionBudget
+            namespaces:
+            - minio-monitoring
+            - minio-logging
+      mutate:
+        patchStrategicMerge:
+          spec:
+            unhealthyPodEvictionPolicy: AlwaysAllow
