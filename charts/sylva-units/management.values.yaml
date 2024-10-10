@@ -80,9 +80,6 @@ units:
     kustomization_spec:
       path: ./kustomize-units/kyverno-policies/prevent-mgmt-cluster-delete
       wait: true
-      postBuild:
-        substitute:
-          CLUSTER_NAME: '{{ .Values.cluster.name }}'
 
   os-image-server:
     enabled: '{{ tuple . "metal3" | include "unit-enabled" }}'
