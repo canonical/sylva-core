@@ -2284,6 +2284,60 @@ units:
                   drop:
                     - ALL
 
+  cabpoa:
+    info:
+      description: installs OKD/OpenShift CAPI bootstrap/controlplane provider
+      maturity: experimental
+    enabled: false
+    repo: sylva-core
+    unit_templates:
+    - base-deps
+    depends_on:
+      capm3: true
+      openshift-assisted-installer: true
+    kustomization_spec:
+      path: ./kustomize-units/cabpoa
+      wait: true
+
+  openshift-assisted-installer:
+    info:
+      description: installs assisted installer operator for OKD
+      maturity: experimental
+    repo: sylva-core
+    unit_templates:
+    - base-deps
+    depends_on:
+      cert-manager: true
+      metal3: true
+      kyverno: true # test workaround for https://gitlab.com/sylva-projects/sylva-core/-/merge_requests/2654#note_2114765991
+      '{{ .Values._internal.default_storage_class_unit }}': true
+    enabled_conditions:
+    - '{{ tuple . "cabpoa" | include "unit-enabled" }}'
+    annotations:
+      sylvactl/readyMessage: "{{ .Values.openshift.assisted.serviceHostname | default .Values.external_hostnames.openshift_assisted_service }} and {{ .Values.openshift.assisted.imageHostname | default .Values.external_hostnames.openshift_assisted_images }} must resolve to {{ .Values.display_external_ip }}"
+    kustomization_spec:
+      path: ./kustomize-units/openshift-assisted-installer
+      postBuild:
+        substitute:
+          ASSISTED_SERVICE_HOSTNAME: '{{ .Values.openshift.assisted.serviceHostname | default .Values.external_hostnames.openshift_assisted_service }}'
+          ASSISTED_IMAGE_HOSTNAME: '{{ .Values.openshift.assisted.imageHostname | default .Values.external_hostnames.openshift_assisted_images }}'
+          ASSISTED_DB_SIZE: '{{ .Values.openshift.assisted.dbSize }}'
+          ASSISTED_FS_SIZE: '{{ .Values.openshift.assisted.fsSize }}'
+          ASSISTED_IMAGESTORE_SIZE: '{{ .Values.openshift.assisted.imagestoreSize }}'
+          ASSISTED_OS_IMAGES: '{{ .Values.openshift.assisted.osImages | toJson }}'
+          HTTP_PROXY: '{{ .Values.proxies.http_proxy }}'
+          HTTPS_PROXY: '{{ .Values.proxies.https_proxy }}'
+          NO_PROXY: '{{ include "sylva-units.no_proxy" (tuple .) }}'
+      healthChecks:
+        - apiVersion: apps/v1
+          kind: StatefulSet
+          name: assisted-image-service
+          namespace: assisted-installer
+        - apiVersion: apps/v1
+          kind: Deployment
+          name: assisted-service
+          namespace: assisted-installer
+
   metal3-automated-cleanup-fix:
     info:
       description: fix metal3MachineTemplates produced by sylva-capi-cluster version =< 0.2.14 in sylva release =< 1.1.0
@@ -2675,7 +2729,14 @@ units:
               - name: WAIT_TIMEOUT
                 value: {{ .Values.cluster_machines_ready.wait_timeout }}
               - name: CONTROL_PLANE
-                value: {{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpk" | ternary "KubeadmControlPlane" "RKE2ControlPlane" }}
+                value: >-
+                  {{- if (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpk") }}
+                  KubeadmControlPlane
+                  {{- else if (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpr") }}
+                  RKE2ControlPlane
+                  {{- else if (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpoa") }}
+                  AgentControlPlane
+                  {{- end }}
       - target:
           kind: ConfigMap
           labelSelector: kube-job=script
@@ -6826,6 +6887,10 @@ external_hostnames:
   loki: 'loki.{{ .Values.cluster_domain }}'
   grafana: 'grafana.{{ .Values.cluster_domain }}'
   kubevirt_manager: 'kubevirt-manager.{{ .Values.cluster_domain }}'
+  # openshift_assisted_service can be overwritten by openshift.assisted.serviceHostname
+  openshift_assisted_service: 'openshift-assisted-service.{{ .Values.cluster_domain }}'
+  # openshift_assisted_images can be overwritten by openshift.assisted.imageHostname
+  openshift_assisted_images: 'openshift-assisted-images.{{ .Values.cluster_domain }}'
 
 external_certificates:
   rancher: {}
@@ -7358,3 +7423,26 @@ rancher:
 #     snmpv2:
 #       version: 2
 #       community: public
+
+openshift:
+  assisted:
+    dbSize: 8Gi
+    fsSize: 8Gi
+    imagestoreSize: 10Gi
+    osImages:
+    - openshiftVersion: "4.14.0-0.okd-scos-2024-01-30-032525"
+      cpuArchitecture: "x86_64"
+      url: "https://mirror.openshift.com/pub/openshift-v4/x86_64/dependencies/rhcos/4.14/4.14.0/rhcos-4.14.0-x86_64-live.x86_64.iso"
+      version: "4.14.0-0.okd-scos-2024-01-30-032525"
+    - openshiftVersion: "4.15.0-0.okd-scos-2024-01-18-223523"
+      cpuArchitecture: "x86_64"
+      url: "https://mirror.openshift.com/pub/openshift-v4/x86_64/dependencies/rhcos/4.15/4.15.0/rhcos-4.15.0-x86_64-live.x86_64.iso"
+      version: "4.15.0-0.okd-scos-2024-01-18-223523"
+    - openshiftVersion: "4.17.0"
+      cpuArchitecture: "x86_64"
+      url: "https://mirror.openshift.com/pub/openshift-v4/x86_64/dependencies/rhcos/4.17/4.17.0/rhcos-4.17.0-x86_64-live.x86_64.iso"
+      version: "4.17.0"
+    # variable to specify the openshift assisted service hostname
+    # serviceHostname: openshift-assisted-service.example.com
+    # variable to specify the openshift assisted image service hostname
+    # imageHostname: openshift-assisted-images.example.com

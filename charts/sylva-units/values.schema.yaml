@@ -807,6 +807,18 @@ properties:
             format: hostname
           - const: ''
           - $ref: "#/$defs/string-with-gotpl"
+      openshift_assisted_service:
+        anyOf:
+          - type: string
+            format: hostname
+          - const: ''
+          - $ref: "#/$defs/string-with-gotpl"
+      openshift_assisted_images:
+        anyOf:
+          - type: string
+            format: hostname
+          - const: ''
+          - $ref: "#/$defs/string-with-gotpl"
 
   external_certificates:  # -------------------------------
     type: object
@@ -1036,6 +1048,9 @@ properties:
   env_type:  # -------------------------------
     type: string
     pattern: "^(dev|ci|prod)$"
+
+  openshift:  # -------------------------------
+    type: object
 
   ntp:  # -------------------------------
     type: object
