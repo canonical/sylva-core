@@ -1831,6 +1831,7 @@ units:
           SIG_REPO: '{{ .Values.security.upstream_images_signature.repository }}'
           DIGEST: '{{ .Values.security.upstream_images_signature.policy_action | eq "Enforce" }}'
           COSIGN_PUBLIC_KEY: '{{ .Values.security.upstream_images_signature.cosign_public_key }}'
+          IMAGE_LIST: '{{ .Values.security.upstream_images_signature.images_list | toJson }}'
       _components:
         - '{{ tuple "components/management-cluster-only" .Values._internal.mgmt_cluster | include "set-only-if" }}'
         - '{{ tuple "components/capm3-patch-bond-policy" (tuple . "capm3" | include "unit-enabled") | include "set-only-if" }}'
@@ -1838,13 +1839,6 @@ units:
         - '{{ tuple "components/loki-aggregated-secrets" (tuple . "loki" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/thanos" (tuple . "thanos" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/check-images" .Values.security.upstream_images_signature.verify | include "set-only-if" }}'
-      _patches:
-      - target:
-          kind: ClusterPolicy
-        patch: |
-          - op: replace
-            path: /spec/rules/0/verifyImages/0/imageReferences
-            value: {{ .Values.security.upstream_images_signature.images_list | toYaml | nindent 4 }}
 
   kyverno-policies-ready:
     info:
