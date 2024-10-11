@@ -19,6 +19,8 @@ metadata:
       a service account token and does not have any explicit rights assignments.
 spec:
   failurePolicy: Ignore
+  background: true
+  mutateExistingOnPolicyUpdate: true
   rules:
   - name: disable-automountserviceaccounttoken
     match:
@@ -28,6 +30,11 @@ spec:
           - ServiceAccount
           names:
           - default
+    skipBackgroundRequests: false
     mutate:
+      targets: # needed to ensure that the background controller will act on existing resources even in the absence of any update on them
+      - apiVersion: v1
+        kind: ServiceAccount
+        name: "{{request.object.metadata.name}}"
       patchStrategicMerge:
         automountServiceAccountToken: false
