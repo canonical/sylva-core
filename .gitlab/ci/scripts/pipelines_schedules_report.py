@@ -79,15 +79,19 @@ def pipeline_summary(pipeline):
     jobs = _sort_jobs_by_starting_date(pipeline.jobs.list())
     test_jobs = [j for j in jobs if j.stage == "deployment-test"]
     test_combined_md = ""
-    for job in jobs:
-        # we don't care about displaying the create-runner job if it worked
-        if job.name == "create-runner" and job.status == "success":
-            continue
 
+    # List of jobs to ignore if they suceed
+    ignored_jobs = [
+        "create-runner",
+        "create-runner-wait",
+    ]
+    for job in jobs:
+        # Don't display jobs in if they are in ignored_jobs list and succeed
+        if job.name in ignored_jobs and job.status == "success":
+            continue
         # we don't care about displaying the cleanup stage if it worked
         if job.stage == "cleanup" and job.status == "success":
             continue
-
         if job not in test_jobs:
             job_text = f"{job.name.replace('-', '‑')}: {get_status_icon(job)}"
             job_md = f"[{job_text}]({job.web_url})<br>"
