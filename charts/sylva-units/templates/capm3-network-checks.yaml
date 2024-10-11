@@ -1,0 +1,3 @@
+{{- if eq .Values.cluster.capi_providers.infra_provider "capm3" -}}
+  {{ tuple .Values.cluster | include "capm3NetworkValidation" }}
+{{- end }}
