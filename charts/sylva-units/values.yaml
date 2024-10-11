@@ -1827,12 +1827,24 @@ units:
       postBuild:
         substitute:
           CLUSTER_NAME: '{{ .Values.cluster.name }}'
+          SIGN_MGMT: '{{ .Values.security.upstream_images_signature.policy_action }}'
+          SIG_REPO: '{{ .Values.security.upstream_images_signature.repository }}'
+          DIGEST: '{{ .Values.security.upstream_images_signature.policy_action | eq "Enforce" }}'
+          COSIGN_PUBLIC_KEY: '{{ .Values.security.upstream_images_signature.cosign_public_key }}'
       _components:
         - '{{ tuple "components/management-cluster-only" .Values._internal.mgmt_cluster | include "set-only-if" }}'
         - '{{ tuple "components/capm3-patch-bond-policy" (tuple . "capm3" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/descheduler" (tuple . "descheduler" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/loki-aggregated-secrets" (tuple . "loki" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/thanos" (tuple . "thanos" | include "unit-enabled") | include "set-only-if" }}'
+        - '{{ tuple "components/check-images" .Values.security.upstream_images_signature.verify | include "set-only-if" }}'
+      _patches:
+      - target:
+          kind: ClusterPolicy
+        patch: |
+          - op: replace
+            path: /spec/rules/0/verifyImages/0/imageReferences
+            value: {{ .Values.security.upstream_images_signature.images_list | toYaml | nindent 4 }}
 
   kyverno-policies-ready:
     info:
@@ -7106,6 +7118,20 @@ os_images_default_download_storage_space: 30Gi
 get_openstack_images_per_image_timeout_minutes: 30
 
 security:
+  default_cosign_public_key: |- # the default public key in PEM format to be used to verify cosign signatures
+     -----BEGIN PUBLIC KEY-----\n
+     MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEEN6LNycNA/OB8/dtqTPZcPDuLnxW\n
+     hR0Rskmno7Lx1WqBl2ylN/sfkLEAPfCkizceHiu/fw8lnsPq9uSGlAICeQ==\n
+     -----END PUBLIC KEY-----
+  upstream_images_signature:
+    verify: false # verify the signature of the upstream images
+    policy_action: Audit  # action taken by kyverno when validation fails report (set Audit) or block the pod (set Enforce)
+    repository: '{{ .Values.sylva_base_oci_registry }}/sylva-core/signatures' # the repository storing the signatures
+    # the public key that kyverno must use to verify the signatures of the trusted upstream images
+    cosign_public_key: '{{ .Values.security.default_cosign_public_key }}'
+    images_list: # the list of trusted images to verify, wildcard is allowed, e.g.
+      - quay.io/keycloak/keycloak*
+      - hashicorp/vault*
   calico_wireguard_enabled: false  # disable wireguard by default
   neuvector_scanning_enabled: false # disable Neuvector scanning capability by default
 
