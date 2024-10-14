@@ -389,6 +389,9 @@ variables:
 ☁capm3-virt 🚀kubeadm 🐧ubuntu 🛠ha:
   extends: .capm3-virt
 
+☁capm3-virt 🚀kubeadm 🐧suse 🛠ha:
+  extends: .capm3-virt
+
 ☁capm3-virt 🚀rke2 🐧ubuntu 🛠ha:
   extends: .capm3-virt
 
@@ -405,6 +408,11 @@ variables:
   extends: [.capm3-virt, .scenario_nightly]
   rules:
     - if: '$CI_PIPELINE_SOURCE == "schedule" && $CI_DEPLOYMENTS && $DEPLOYMENT_DESCRIPTION == "Nightly - CAPM3 HA Ubuntu"'
+
+☁capm3-virt 🚀kubeadm 🐧suse 🛠ha 🎬nightly:
+  extends: [.capm3-virt, .scenario_nightly]
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "schedule" && $CI_DEPLOYMENTS && $DEPLOYMENT_DESCRIPTION == "Nightly - CAPM3 HA Suse"'
 
 ☁capm3-virt 🚀rke2 🐧ubuntu 🛠ha 🎬nightly:
   extends: [.capm3-virt, .scenario_nightly]
@@ -436,6 +444,13 @@ variables:
       when: manual
       allow_failure: true
 
+☁capm3-virt 🚀kubeadm 🐧suse 🛠ha 🎬sylva-upgrade:
+  extends: [.capm3-virt, .scenario_sylva-upgrade]
+  rules:
+    - if: $CI_MERGE_REQUEST_LABELS =~ /ci-feature::test-upgrade-from-1.1.1/
+      when: manual
+      allow_failure: true
+
 ☁capm3-virt 🚀rke2 🐧suse 🛠ha 🎬sylva-upgrade:
   extends: [.capm3-virt, .scenario_sylva-upgrade]
   rules:
@@ -459,6 +474,13 @@ variables:
       allow_failure: true
 
 ☁capm3-virt 🚀kubeadm 🐧ubuntu 🛠ha 🎬rolling-update:
+  extends: [.capm3-virt, .scenario_rolling-update]
+  rules:
+    - if: $CI_MERGE_REQUEST_LABELS =~ /ci-feature::test-rolling-update/
+      when: manual
+      allow_failure: true
+
+☁capm3-virt 🚀kubeadm 🐧suse 🛠ha 🎬rolling-update:
   extends: [.capm3-virt, .scenario_rolling-update]
   rules:
     - if: $CI_MERGE_REQUEST_LABELS =~ /ci-feature::test-rolling-update/
