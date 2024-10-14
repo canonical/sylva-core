@@ -19,7 +19,7 @@ spec:
           dedicatedCpuPlacement: true
         resources:
           limits:
-            memory: 4096Mi
+            memory: 1024Mi
         devices:
           disks:
             - name: containerdisk
@@ -31,7 +31,7 @@ spec:
       volumes:
       - name: containerdisk
         containerDisk:
-          image: quay.io/kubevirt/centos8-container-disk-images:8.4.2105
+          image: quay.io/kubevirt/cirros-container-disk-demo:v1.3.1
       - name: cloudinitdisk
         cloudInitNoCloud:
           userDataBase64: SGkuXG4=
