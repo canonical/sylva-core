@@ -219,20 +219,14 @@ units:
       # cluster readyness will actually be ensured by the retries on installations of this kustomization for now.
       # maybe cluster CRD is not compatible with kstatus? (see https://fluxcd.io/flux/units/kustomize/kustomization/#health-assessment)
       calico-ready: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpk" }}'
-    unit_templates: []
-    repo: sylva-core
+    unit_templates:
+    - flux-common
     kustomization_spec:
-      path: ./kustomize-units/flux-system/base
       kubeConfig:
         secretRef:
           name: '{{ .Values.cluster.name }}-kubeconfig'
-      targetNamespace: flux-system
-      wait: true
-      _components:
-      - '{{ tuple "../components/extra-ca" .Values.oci_registry_extra_ca_certs | include "set-only-if" }}'
       postBuild:
         substitute:
-          EXTRA_CA_CERTS: '{{ tuple (.Values.oci_registry_extra_ca_certs | default "" | b64enc) .Values.oci_registry_extra_ca_certs | include "set-only-if" }}'
           # the no_proxy computed for bootstrap cluster includes pods/services subnets for the kind cluster (see no_proxy_additional in this file)
           # but we don't need nor want that in the mgmt cluster
           no_proxy:
@@ -241,9 +235,7 @@ units:
               (tuple . (dict .Values._internal.kind_kubeadm_networking.podSubnet false
                              .Values._internal.kind_kubeadm_networking.servicesSubnet false))
             -}}'
-        substituteFrom:
-        - kind: ConfigMap
-          name: proxy-env-vars
+
     labels:
       suspend-on-pivot: "yes"  # this unit must be suspended before pivot
 

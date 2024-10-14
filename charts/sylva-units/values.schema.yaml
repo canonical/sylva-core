@@ -656,6 +656,41 @@ properties:
   cis_benchmark_scan_profile:  # -------------------------------
     type: string
 
+  flux: # -------------------------------
+    type: object
+    additionalProperties: false
+    properties:
+      kustomize:  # -------------------------------
+        type: object
+        additionalProperties: false
+        properties:
+          concurrent:
+            type: integer
+          log_level:
+            type: string
+          features_gates:
+            type: object
+      helm:  # -------------------------------
+        type: object
+        additionalProperties: false
+        properties:
+          concurrent:
+            type: integer
+          log_level:
+            type: string
+          features_gates:
+            type: object
+      source:  # -------------------------------
+        type: object
+        additionalProperties: false
+        properties:
+          concurrent:
+            type: integer
+          log_level:
+            type: string
+          features_gates:
+            type: object
+
   flux_webui: # -------------------------------
     type: object
     additionalProperties: false
