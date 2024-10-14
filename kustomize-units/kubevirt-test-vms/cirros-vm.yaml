@@ -8,7 +8,7 @@ spec:
     metadata:
       labels:
         kubevirt.io/size: small
-        kubevirt.io/domain: testvm
+        kubevirt.io/domain: cirros
     spec:
       domain:
         devices:
