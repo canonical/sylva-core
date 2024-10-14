@@ -40,6 +40,7 @@ rules:
     resources:
       - kubeadmcontrolplanes
       - rke2controlplanes
+      - agentcontrolplanes
   - apiGroups:
       - bootstrap.cluster.x-k8s.io
     verbs:
@@ -49,6 +50,7 @@ rules:
     resources:
       - kubeadmconfigtemplates
       - rke2configtemplates
+      - agentbootstrapconfigtemplates
   - apiGroups: [""]
     verbs:
       - get

@@ -515,6 +515,10 @@ units:
             enabled: true
             minAvailable: >-
               {{ .Values._internal.ha_cluster.is_ha | ternary 1 0 }}
+      _postRenderers:
+        - kustomize:
+            patches:
+            - '{{ .Values._internal.pdb_allow_unhealthy_pod_eviction | include "preserve-type" }}'
 
   kube-storage-version-migrator:
     info:
@@ -671,6 +675,10 @@ units:
                       app.kubernetes.io/name: postgres
                       app.kubernetes.io/component: read
                   topologyKey: kubernetes.io/hostname
+      _postRenderers:
+        - kustomize:
+            patches:
+            - '{{ .Values._internal.pdb_allow_unhealthy_pod_eviction | include "preserve-type" }}'
 
   kubevirt:
     info:
@@ -695,6 +703,10 @@ units:
                 - NUMA
                 - CPUManager
                 - Snapshot
+      _postRenderers:
+        - kustomize:
+            patches:
+            - '{{ .Values._internal.pdb_allow_unhealthy_pod_eviction | include "preserve-type" }}'
 
   kubevirt-test-vms:
     info:
@@ -832,6 +844,10 @@ units:
                       app.kubernetes.io/name: postgres
                       app.kubernetes.io/component: read
                   topologyKey: kubernetes.io/hostname
+      _postRenderers:
+        - kustomize:
+            patches:
+            - '{{ .Values._internal.pdb_allow_unhealthy_pod_eviction | include "preserve-type" }}'
 
   harbor:
     info:
@@ -1793,6 +1809,7 @@ units:
                     namespace: kyverno
                   spec:
                     startingDeadlineSeconds: 180
+              - '{{ .Values._internal.pdb_allow_unhealthy_pod_eviction | include "preserve-type" }}'
 
   kyverno-policies:
     info:
@@ -1810,12 +1827,18 @@ units:
       postBuild:
         substitute:
           CLUSTER_NAME: '{{ .Values.cluster.name }}'
+          SIGN_MGMT: '{{ .Values.security.upstream_images_signature.policy_action }}'
+          SIG_REPO: '{{ .Values.security.upstream_images_signature.repository }}'
+          DIGEST: '{{ .Values.security.upstream_images_signature.policy_action | eq "Enforce" }}'
+          COSIGN_PUBLIC_KEY: '{{ .Values.security.upstream_images_signature.cosign_public_key }}'
+          IMAGE_LIST: '{{ .Values.security.upstream_images_signature.images_list | toJson }}'
       _components:
         - '{{ tuple "components/management-cluster-only" .Values._internal.mgmt_cluster | include "set-only-if" }}'
         - '{{ tuple "components/capm3-patch-bond-policy" (tuple . "capm3" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/descheduler" (tuple . "descheduler" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/loki-aggregated-secrets" (tuple . "loki" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/thanos" (tuple . "thanos" | include "unit-enabled") | include "set-only-if" }}'
+        - '{{ tuple "components/check-images" .Values.security.upstream_images_signature.verify | include "set-only-if" }}'
 
   kyverno-policies-ready:
     info:
@@ -2284,6 +2307,60 @@ units:
                   drop:
                     - ALL
 
+  cabpoa:
+    info:
+      description: installs OKD/OpenShift CAPI bootstrap/controlplane provider
+      maturity: experimental
+    enabled: false
+    repo: sylva-core
+    unit_templates:
+    - base-deps
+    depends_on:
+      capm3: true
+      openshift-assisted-installer: true
+    kustomization_spec:
+      path: ./kustomize-units/cabpoa
+      wait: true
+
+  openshift-assisted-installer:
+    info:
+      description: installs assisted installer operator for OKD
+      maturity: experimental
+    repo: sylva-core
+    unit_templates:
+    - base-deps
+    depends_on:
+      cert-manager: true
+      metal3: true
+      kyverno: true # test workaround for https://gitlab.com/sylva-projects/sylva-core/-/merge_requests/2654#note_2114765991
+      '{{ .Values._internal.default_storage_class_unit }}': true
+    enabled_conditions:
+    - '{{ tuple . "cabpoa" | include "unit-enabled" }}'
+    annotations:
+      sylvactl/readyMessage: "{{ .Values.openshift.assisted.serviceHostname | default .Values.external_hostnames.openshift_assisted_service }} and {{ .Values.openshift.assisted.imageHostname | default .Values.external_hostnames.openshift_assisted_images }} must resolve to {{ .Values.display_external_ip }}"
+    kustomization_spec:
+      path: ./kustomize-units/openshift-assisted-installer
+      postBuild:
+        substitute:
+          ASSISTED_SERVICE_HOSTNAME: '{{ .Values.openshift.assisted.serviceHostname | default .Values.external_hostnames.openshift_assisted_service }}'
+          ASSISTED_IMAGE_HOSTNAME: '{{ .Values.openshift.assisted.imageHostname | default .Values.external_hostnames.openshift_assisted_images }}'
+          ASSISTED_DB_SIZE: '{{ .Values.openshift.assisted.dbSize }}'
+          ASSISTED_FS_SIZE: '{{ .Values.openshift.assisted.fsSize }}'
+          ASSISTED_IMAGESTORE_SIZE: '{{ .Values.openshift.assisted.imagestoreSize }}'
+          ASSISTED_OS_IMAGES: '{{ .Values.openshift.assisted.osImages | toJson }}'
+          HTTP_PROXY: '{{ .Values.proxies.http_proxy }}'
+          HTTPS_PROXY: '{{ .Values.proxies.https_proxy }}'
+          NO_PROXY: '{{ include "sylva-units.no_proxy" (tuple .) }}'
+      healthChecks:
+        - apiVersion: apps/v1
+          kind: StatefulSet
+          name: assisted-image-service
+          namespace: assisted-installer
+        - apiVersion: apps/v1
+          kind: Deployment
+          name: assisted-service
+          namespace: assisted-installer
+
   metal3-automated-cleanup-fix:
     info:
       description: fix metal3MachineTemplates produced by sylva-capi-cluster version =< 0.2.14 in sylva release =< 1.1.0
@@ -2675,7 +2752,14 @@ units:
               - name: WAIT_TIMEOUT
                 value: {{ .Values.cluster_machines_ready.wait_timeout }}
               - name: CONTROL_PLANE
-                value: {{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpk" | ternary "KubeadmControlPlane" "RKE2ControlPlane" }}
+                value: >-
+                  {{- if (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpk") }}
+                  KubeadmControlPlane
+                  {{- else if (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpr") }}
+                  RKE2ControlPlane
+                  {{- else if (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpoa") }}
+                  AgentControlPlane
+                  {{- end }}
       - target:
           kind: ConfigMap
           labelSelector: kube-job=script
@@ -3801,16 +3885,17 @@ units:
         - kind: ConfigMap
           name: prometheus-config-values # this configmap is a byproduct of the prometheus-resources unit
           optional: '{{ not (tuple . "prometheus-resources" | include "unit-enabled") | include "as-bool" }}'
-      # Disable drift detection for rancher-monitoring webhooks
       _postRenderers:
         - kustomize:
             patches:
+            # Disable drift detection for rancher-monitoring webhooks
             - target:
                 kind: (ValidatingWebhookConfiguration|MutatingWebhookConfiguration)
               patch: |
                 - op: add
                   path: /metadata/annotations/helm.toolkit.fluxcd.io~1driftDetection
                   value: disabled
+            - '{{ .Values._internal.pdb_allow_unhealthy_pod_eviction | include "preserve-type" }}'
     helm_secret_values:
       prometheus:
         extraSecret:
@@ -3888,6 +3973,7 @@ units:
         replicaCount: '{{ .Values._internal.ha_cluster.is_ha | ternary 2 1 | include "preserve-type" }}'
         podDisruptionBudget:
           minAvailable: '{{ .Values._internal.ha_cluster.is_ha | ternary 1 0 | include "preserve-type" }}'
+          unhealthyPodEvictionPolicy: AlwaysAllow
         securityContext:
           runAsNonRoot: true
           allowPrivilegeEscalation: false
@@ -5025,6 +5111,10 @@ units:
           storageClass: "{{ .Values._internal.default_storage_class }}"
         persistence:
           size: 8Gi
+      _postRenderers:
+        - kustomize:
+            patches:
+            - '{{ .Values._internal.pdb_allow_unhealthy_pod_eviction | include "preserve-type" }}'
 
   gitea-postgresql-ha:
     info:
@@ -5059,6 +5149,10 @@ units:
           existingSecret: gitea-postgres-secrets
         persistence:
           size: 8Gi
+      _postRenderers:
+        - kustomize:
+            patches:
+            - '{{ .Values._internal.pdb_allow_unhealthy_pod_eviction | include "preserve-type" }}'
 
   gitea:
     info:
@@ -5432,7 +5526,6 @@ units:
       chart:
         spec:
           chart: helm/tenant
-          version: v5.0.13
       install:
         createNamespace: false
       values:
@@ -6038,6 +6131,10 @@ units:
         - kind: Secret
           name: thanos-secrets
           valuesKey: secrets
+      _postRenderers:
+        - kustomize:
+            patches:
+            - '{{ .Values._internal.pdb_allow_unhealthy_pod_eviction | include "preserve-type" }}'
     helm_secret_values:
       extraDeploy:
       - apiVersion: v1
@@ -6399,6 +6496,10 @@ units:
         - kind: Secret
           name: loki-secrets
           valuesKey: secrets
+      _postRenderers:
+        - kustomize:
+            patches:
+            - '{{ .Values._internal.pdb_allow_unhealthy_pod_eviction | include "preserve-type" }}'
 
   single-replica-storageclass:
     info:
@@ -6615,7 +6716,7 @@ cluster:
   images:
     kube_vip:
       repository: ghcr.io/kube-vip/kube-vip
-      tag: "v0.8.3"
+      tag: "v0.8.4"
 
   # Nodes number for control-plane
   control_plane_replicas: 3
@@ -6827,6 +6928,10 @@ external_hostnames:
   loki: 'loki.{{ .Values.cluster_domain }}'
   grafana: 'grafana.{{ .Values.cluster_domain }}'
   kubevirt_manager: 'kubevirt-manager.{{ .Values.cluster_domain }}'
+  # openshift_assisted_service can be overwritten by openshift.assisted.serviceHostname
+  openshift_assisted_service: 'openshift-assisted-service.{{ .Values.cluster_domain }}'
+  # openshift_assisted_images can be overwritten by openshift.assisted.imageHostname
+  openshift_assisted_images: 'openshift-assisted-images.{{ .Values.cluster_domain }}'
 
 external_certificates:
   rancher: {}
@@ -7007,6 +7112,20 @@ os_images_default_download_storage_space: 30Gi
 get_openstack_images_per_image_timeout_minutes: 30
 
 security:
+  default_cosign_public_key: |- # the default public key in PEM format to be used to verify cosign signatures
+     -----BEGIN PUBLIC KEY-----\n
+     MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEEN6LNycNA/OB8/dtqTPZcPDuLnxW\n
+     hR0Rskmno7Lx1WqBl2ylN/sfkLEAPfCkizceHiu/fw8lnsPq9uSGlAICeQ==\n
+     -----END PUBLIC KEY-----
+  upstream_images_signature:
+    verify: false # verify the signature of the upstream images
+    policy_action: Audit  # action taken by kyverno when validation fails report (set Audit) or block the pod (set Enforce)
+    repository: '{{ .Values.sylva_base_oci_registry }}/sylva-core/signatures' # the repository storing the signatures
+    # the public key that kyverno must use to verify the signatures of the trusted upstream images
+    cosign_public_key: '{{ .Values.security.default_cosign_public_key }}'
+    images_list: # the list of trusted images to verify, wildcard is allowed, e.g.
+      - quay.io/keycloak/keycloak*
+      - hashicorp/vault*
   calico_wireguard_enabled: false  # disable wireguard by default
   neuvector_scanning_enabled: false # disable Neuvector scanning capability by default
 
@@ -7279,6 +7398,17 @@ _internal:
       _immutable: '{{ not .Values._internal.ha_cluster.is_ha | include "preserve-type" }}'
       _immutable_comment: "Cluster values can't be changed, as they would trigger a rolling upgrade that is not supported in non-HA mode"
 
+  pdb_allow_unhealthy_pod_eviction:
+    target:
+      kind: PodDisruptionBudget
+    patch: |-
+      apiVersion: policy/v1
+      kind: PodDisruptionBudget
+      metadata:
+        name: not-used
+      spec:
+        unhealthyPodEvictionPolicy: AlwaysAllow
+
 shared_workload_clusters_values:
   ntp: '{{ .Values.ntp | include "set-if-defined" }}'
   proxies: '{{ .Values.proxies | include "set-if-defined" }}'
@@ -7359,3 +7489,26 @@ rancher:
 #     snmpv2:
 #       version: 2
 #       community: public
+
+openshift:
+  assisted:
+    dbSize: 8Gi
+    fsSize: 8Gi
+    imagestoreSize: 10Gi
+    osImages:
+    - openshiftVersion: "4.14.0-0.okd-scos-2024-01-30-032525"
+      cpuArchitecture: "x86_64"
+      url: "https://mirror.openshift.com/pub/openshift-v4/x86_64/dependencies/rhcos/4.14/4.14.0/rhcos-4.14.0-x86_64-live.x86_64.iso"
+      version: "4.14.0-0.okd-scos-2024-01-30-032525"
+    - openshiftVersion: "4.15.0-0.okd-scos-2024-01-18-223523"
+      cpuArchitecture: "x86_64"
+      url: "https://mirror.openshift.com/pub/openshift-v4/x86_64/dependencies/rhcos/4.15/4.15.0/rhcos-4.15.0-x86_64-live.x86_64.iso"
+      version: "4.15.0-0.okd-scos-2024-01-18-223523"
+    - openshiftVersion: "4.17.0"
+      cpuArchitecture: "x86_64"
+      url: "https://mirror.openshift.com/pub/openshift-v4/x86_64/dependencies/rhcos/4.17/4.17.0/rhcos-4.17.0-x86_64-live.x86_64.iso"
+      version: "4.17.0"
+    # variable to specify the openshift assisted service hostname
+    # serviceHostname: openshift-assisted-service.example.com
+    # variable to specify the openshift assisted image service hostname
+    # imageHostname: openshift-assisted-images.example.com

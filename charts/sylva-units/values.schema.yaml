@@ -807,6 +807,18 @@ properties:
             format: hostname
           - const: ''
           - $ref: "#/$defs/string-with-gotpl"
+      openshift_assisted_service:
+        anyOf:
+          - type: string
+            format: hostname
+          - const: ''
+          - $ref: "#/$defs/string-with-gotpl"
+      openshift_assisted_images:
+        anyOf:
+          - type: string
+            format: hostname
+          - const: ''
+          - $ref: "#/$defs/string-with-gotpl"
 
   external_certificates:  # -------------------------------
     type: object
@@ -1037,6 +1049,9 @@ properties:
     type: string
     pattern: "^(dev|ci|prod)$"
 
+  openshift:  # -------------------------------
+    type: object
+
   ntp:  # -------------------------------
     type: object
     additionalProperties: false
@@ -1084,6 +1099,22 @@ properties:
     type: object
     additionalProperties: false
     properties:
+      default_cosign_public_key:
+        type: string
+      upstream_images_signature:
+        type: object
+        properties:
+          verify:
+            type: boolean
+          policy_action:
+            type: string
+            pattern: "^(Audit|Enforce)$"
+          repository:
+            type: string
+          cosign_public_key:
+            type: string
+          images_list:
+            type: array
       calico_wireguard_enabled:
         type: boolean
       neuvector_scanning_enabled:

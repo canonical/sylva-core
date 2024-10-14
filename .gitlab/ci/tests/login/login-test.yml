@@ -107,7 +107,7 @@ test-no-sso+workload-kubeconfig:
     - kubectl wait --for=condition=Ready pod/test-no-sso --kubeconfig $WORKLOAD_CLUSTER_NAME-rancher.yaml --timeout=60s
     - echo "-- All done"
 
-test-login:
+test-login-management-cluster:
   stage: deployment-test
   extends:
     - .test-tags
@@ -129,7 +129,7 @@ test-login:
     - download_artifact deploy-management-cluster management-cluster-kubeconfig
     - !reference [.test_scripts, edit_hosts_file]
     - export HURL_token=$(kubectl --kubeconfig management-cluster-kubeconfig -n vault get secrets/vault-unseal-keys -o jsonpath='{.data.vault-root}' | base64 -d)
-    - export HURL_password_grafana=$(kubectl --kubeconfig management-cluster-kubeconfig get secrets sylva-units-values -o yaml | yq .data.values | base64 -d | yq ._internal.grafana_password)
+    - export HURL_password_grafana=$(kubectl --kubeconfig management-cluster-kubeconfig get secrets sylva-units-values -o yaml | yq .data.values | base64 -d | yq ._internal.grafana_admin_password)
     - export HURL_flux_url=$(kubectl --kubeconfig management-cluster-kubeconfig get ingress -n flux-system flux-webui-weave-gitops -o jsonpath='{ .spec.tls[].hosts[] }')
     - export HURL_vault_url=$(kubectl --kubeconfig management-cluster-kubeconfig get ingress -n vault vault -o jsonpath='{ .spec.tls[].hosts[] }')
     - export HURL_rancher_url=$(kubectl --kubeconfig management-cluster-kubeconfig get ingress -n cattle-system rancher -o jsonpath='{ .spec.tls[].hosts[] }'); export domain=$(echo $HURL_rancher_url | cut -f2 -d .)
@@ -156,3 +156,30 @@ test-login:
           rm -rf  ./tools/login-test/gitea-admin.hurl
       fi
     - hurl -k ./tools/login-test/*.hurl --test --color --noproxy=".$domain"  --report-junit $HURL_JUNIT_REPORT --report-html ${CI_PROJECT_DIR}
+
+test-login-workload-cluster:
+  stage: deployment-test
+  extends:
+    - .test-tags
+    - .rules:need-workload-cluster
+  variables:
+    HURL_JUNIT_REPORT: ${CI_PROJECT_DIR}/login_junit_report.xml
+  artifacts:
+    expire_in: 48 hour
+    when: always
+    paths:
+      - $HURL_JUNIT_REPORT
+      - index.html
+      - store/
+    reports:
+      junit:
+      - $HURL_JUNIT_REPORT
+  script:
+    - !reference [.import_functions]
+    - download_artifact deploy-management-cluster management-cluster-kubeconfig
+    - !reference [.test_scripts, edit_hosts_file]
+    - export HURL_token=$(kubectl --kubeconfig management-cluster-kubeconfig -n vault get secrets/vault-unseal-keys -o jsonpath='{.data.vault-root}' | base64 -d)
+    - export HURL_vault_url=$(kubectl --kubeconfig management-cluster-kubeconfig get ingress -n vault vault -o jsonpath='{ .spec.tls[].hosts[] }')
+    - export HURL_rancher_url=$(kubectl --kubeconfig management-cluster-kubeconfig get ingress -n cattle-system rancher -o jsonpath='{ .spec.tls[].hosts[] }')
+    - hurl -k ./tools/login-test/login-workload/*.hurl --test --color --noproxy=".$domain"  --report-junit $HURL_JUNIT_REPORT --report-html ${CI_PROJECT_DIR}
+
