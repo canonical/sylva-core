@@ -213,6 +213,34 @@ unit_templates:
         substitute:
           UNIT_NAME: '{{ .Values._unit_name_ }}'
 
+  flux-common:
+    repo: sylva-core
+    kustomization_spec:
+      path: ./kustomize-units/flux-system/base
+      targetNamespace: flux-system
+      wait: true
+      # prevent Flux from uninstalling itself
+      prune: false
+      _components:
+      - '{{ tuple "../components/extra-ca" .Values.oci_registry_extra_ca_certs | include "set-only-if" }}'
+      postBuild:
+        substitute:
+          var_substitution_enabled: "true" # To force substitution when configmap does not exist
+          EXTRA_CA_CERTS: '{{ tuple (.Values.oci_registry_extra_ca_certs | default "" | b64enc) .Values.oci_registry_extra_ca_certs | include "set-only-if" }}'
+          KUSTOMIZE_CONCURRENT: '{{ .Values.flux.kustomize.concurrent }}'
+          KUSTOMIZE_LOG_LEVEL: '{{ .Values.flux.kustomize.log_level }}'
+          KUSTOMIZE_FEATURES_GATES: '{{ tuple .Values.flux.kustomize.features_gates | include "dict_to_key_values_separated_string"  }}'
+          HELM_CONCURRENT: '{{ .Values.flux.helm.concurrent }}'
+          HELM_LOG_LEVEL: '{{ .Values.flux.helm.log_level }}'
+          HELM_FEATURES_GATES: '{{ tuple .Values.flux.helm.features_gates | include "dict_to_key_values_separated_string"  }}'
+          SOURCE_CONCURRENT: '{{ .Values.flux.source.concurrent }}'
+          SOURCE_LOG_LEVEL: '{{ .Values.flux.source.log_level }}'
+          SOURCE_FEATURES_GATES: '{{ tuple .Values.flux.source.features_gates | include "dict_to_key_values_separated_string"  }}'
+        substituteFrom:
+        - kind: ConfigMap
+          name: proxy-env-vars
+          optional: true
+
   # this unit template gather depends_on common
   # to most units
   base-deps:
@@ -429,23 +457,8 @@ units:
       details: Note that Flux is always installed on the current cluster as a pre-requisite to installing the chart
       maturity: core-component
     repo: sylva-core
-    unit_templates: []  # we intendedly don't inherit from base-deps, because flux is itself part of base dependencies
-    kustomization_spec:
-      path: ./kustomize-units/flux-system/base
-      targetNamespace: flux-system
-      wait: true
-      # prevent Flux from uninstalling itself
-      prune: false
-      _components:
-      - '{{ tuple "../components/extra-ca" .Values.oci_registry_extra_ca_certs | include "set-only-if" }}'
-      postBuild:
-        substitute:
-          var_substitution_enabled: "true" # To force substitution when configmap does not exist
-          EXTRA_CA_CERTS: '{{ tuple (.Values.oci_registry_extra_ca_certs | default "" | b64enc) .Values.oci_registry_extra_ca_certs | include "set-only-if" }}'
-        substituteFrom:
-        - kind: ConfigMap
-          name: proxy-env-vars
-          optional: true
+    unit_templates: # we intendedly don't inherit from base-deps, because flux is itself part of base dependencies
+    - flux-common
 
   cert-manager:
     info:
@@ -6893,6 +6906,23 @@ cluster_virtual_ip: 55.55.55.55
 # Admin password that will be configured by default on various units  # FIXME, only used for SSO today see https://gitlab.com/sylva-projects/sylva-core/-/issues/503
 # [WARNING] This value cannot be overwritten on production environment (env_type: prod)
 admin_password: '{{ .Values._internal.default_password }}'
+
+flux:
+  kustomize:
+    concurrent: 4
+    log_level: info
+    features_gates: {}
+  helm:
+    concurrent: 4
+    features_gates:
+      OOMWatch: true
+      DetectDrift: true
+      CorrectDrift: true
+    log_level: info
+  source:
+    concurrent: 2
+    log_level: info
+    features_gates: {}
 
 flux_webui:
   admin_user: admin
