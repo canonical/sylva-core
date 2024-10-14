@@ -2937,9 +2937,11 @@ units:
     helm_repo_url: https://rke2-charts.rancher.io
     helm_chart_versions: &calico-chart-versions
       v3.27.300: >-
-        {{ include "k8s-version-match" (tuple . ">=1.27.13,<1.29.0") }}
+        {{ or       (include "k8s-version-match" (tuple . ">=1.27.13,<1.28.0"))
+                    (include "k8s-version-match" (tuple . ">=1.28.9,<1.29.0"))
+        }}
       v3.28.100: >-
-        {{ include "k8s-version-match" (tuple . "=1.29.8") }}
+        {{ include "k8s-version-match" (tuple . ">=1.29.0") }}
 
     helmrelease_spec:
       releaseName: rke2-calico-crd
@@ -3500,8 +3502,8 @@ units:
       '{{ .Values._internal.calico_readiness_unit }}': '{{ tuple . "calico" | include "unit-enabled" }}'
     helm_repo_url: https://rke2-charts.rancher.io
     helm_chart_versions:
-      4.10.102: '{{ include "k8s-version-match" (tuple . ">=1.27.16,<1.29.7") }}'  # also for 1.28.12
-      4.10.401: '{{ include "k8s-version-match" (tuple . "=1.29.8") }}'
+      4.10.102: '{{ include "k8s-version-match" (tuple . ">=1.27.16,<1.29.0") }}'  # also for 1.28.12
+      4.10.401: '{{ include "k8s-version-match" (tuple . ">=1.29.0") }}'
     helmrelease_spec:
       releaseName: rke2-ingress-nginx
       targetNamespace: kube-system
@@ -7079,20 +7081,20 @@ k8s_version_short: "1.29"
 
 # Renovate Bot needs additional information to detect sylva diskimage-builder version
 # renovate: depName=sylva-projects/sylva-elements/diskimage-builder
-sylva_diskimagebuilder_version: 0.3.0
+sylva_diskimagebuilder_version: 0.3.1
 
 sylva_diskimagebuilder_images:
-  ubuntu-jammy-hardened-rke2-1-29-8:
+  ubuntu-jammy-hardened-rke2-1-29-9:
     default_enabled: true
-  ubuntu-jammy-plain-rke2-1-29-8: {}
-  ubuntu-jammy-plain-rke2-1-28-12: {}
+  ubuntu-jammy-plain-rke2-1-29-9: {}
+  ubuntu-jammy-plain-rke2-1-28-14: {}
   ubuntu-jammy-plain-rke2-1-27-16: {}
   ubuntu-jammy-hardened-rke2-1-27-16: {}
-  opensuse-15-5-plain-rke2-1-29-8: {}
-  opensuse-15-5-plain-rke2-1-28-12: {}
+  opensuse-15-5-plain-rke2-1-29-9: {}
+  opensuse-15-5-plain-rke2-1-28-14: {}
   opensuse-15-5-plain-rke2-1-27-16: {}
-  opensuse-15-5-hardened-rke2-1-29-8: {}
-  opensuse-15-5-hardened-rke2-1-28-12: {}
+  opensuse-15-5-hardened-rke2-1-29-9: {}
+  opensuse-15-5-hardened-rke2-1-28-14: {}
   opensuse-15-5-hardened-rke2-1-27-16: {}
 
 # this dict can be enriched at deployment time to feed additional information
@@ -7338,9 +7340,9 @@ _internal:
   bootstrap_node_ip: '{{ lookup "v1" "ConfigMap" "sylva-system" "cluster-public-endpoint" | dig "data" "address" "not_found" | default "not_found" }}'
 
   k8s_version_map:
-    1.27: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" | ternary "v1.27.16+rke2r1" "v1.27.16" }}'
-    1.28: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" | ternary "v1.28.12+rke2r1" "v1.28.12" }}'
-    1.29: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" | ternary "v1.29.8+rke2r1" "v1.29.8" }}'
+    1.27: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" | ternary "v1.27.16+rke2r2" "v1.27.16" }}'
+    1.28: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" | ternary "v1.28.14+rke2r1" "v1.28.14" }}'
+    1.29: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" | ternary "v1.29.9+rke2r1" "v1.29.9" }}'
 
   # total number of nodes in this cluster
   node_count:
