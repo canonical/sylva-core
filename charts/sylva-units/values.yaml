@@ -860,6 +860,20 @@ units:
     kustomization_spec:
       path: ./kustomize-units/litmus-testcases/pod-delete
 
+    litmus-testcase-k8s-api-response:
+    info:
+      description: Runs k8s-api-response testcase for fetching the node response time
+      internal: true
+      maturity: stable
+    unit_templates:
+    - base-deps
+    depends_on:
+      sylva-ca: true
+      litmus-operator: true
+    repo: sylva-core
+    kustomization_spec:
+      path: ./kustomize-units/litmus-testcases/k8s-api-response
+
   kubevirt:
     info:
       description: installs kubevirt
