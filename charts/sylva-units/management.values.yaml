@@ -146,10 +146,13 @@ units:
     enabled: '{{ tuple . "metal3" | include "unit-enabled" }}'
 
   litmus-operator:
-    enabled: false
+    enabled: true
 
   litmus-testcase-pod-delete:
     enabled: false
+
+  litmus-testcase-k8s-api-response:
+    enabled: true
 
   kubevirt:
     enabled: false

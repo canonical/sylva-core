@@ -1,0 +1,35 @@
+apiVersion: litmuschaos.io/v1alpha1
+kind: ChaosEngine
+metadata:
+  name: k8s-api-response
+  namespace: 'litmus'
+spec:
+  appinfo:
+    appns: 'litmus'
+    applabel: ''
+  ## It can be true/false
+  annotationCheck: 'false'
+  # It can be active/stop
+  engineState: 'active'
+  chaosServiceAccount: k8s-api-response-sa
+  monitoring: false
+  # It can be delete/retain
+  jobCleanUpPolicy: 'delete'
+  experiments:
+    - name: k8s-api-response
+      spec:
+        components:
+          env:
+            - name: TOTAL_CHAOS_DURATION
+              value: '1800'
+
+            # set chaos interval (in sec) as desired
+            - name: CHAOS_INTERVAL
+              value: '1800'
+
+            ## percentage of total pods to target
+            - name: PODS_AFFECTED_PERC
+              value: ''
+
+            - name: APP_NAMESPACE
+              value: 'litmus'
