@@ -3,7 +3,7 @@ kind: VirtualMachine
 metadata:
   name: cirros-vm
 spec:
-  runStrategy: Always
+  running: true
   template:
     metadata:
       labels:
@@ -16,7 +16,6 @@ spec:
           sockets: 1
           cores: 1
           threads: 1
-          dedicatedCpuPlacement: true
         resources:
           limits:
             memory: 1024Mi
