@@ -11,28 +11,38 @@ spec:
         kubevirt.io/domain: cirros
     spec:
       domain:
+        cpu:
+          cores: 1
         devices:
           disks:
             - name: containerdisk
               disk:
                 bus: virtio
-              bootOrder: 1  # Set as the boot disk
             - name: cloudinitdisk
               disk:
                 bus: virtio
           interfaces:
-            - name: default
-              masquerade: {}
+          - name: default
+            masquerade: {}
         resources:
           requests:
             memory: 128Mi
       networks:
-        - name: default
-          pod: {}
+      - name: default
+        pod: {}
       volumes:
         - name: containerdisk
           containerDisk:
             image: quay.io/kubevirt/cirros-container-disk-demo:v1.4.0
         - name: cloudinitdisk
           cloudInitNoCloud:
-            userDataBase64: SGkuXG4=
+            userData: |-
+              #cloud-config
+              password: cirros
+              chpasswd: { expire: False }
+              ssh_pwauth: True
+              runcmd:
+                - echo 'Disabling GRUB_FORCE_PARTUUID and updating GRUB'
+                - sed -i 's/^GRUB_FORCE_PARTUUID/#GRUB_FORCE_PARTUUID/g' /etc/default/grub
+                - update-grub
+                - reboot
