@@ -860,7 +860,7 @@ units:
     kustomization_spec:
       path: ./kustomize-units/litmus-testcases/pod-delete
 
-    testcase-k8s-api-response:
+  litmus-testcase-k8s-api-response:
     info:
       description: Runs k8s-api-response testcase for fetching the node response time
       internal: true
