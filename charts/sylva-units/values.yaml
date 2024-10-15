@@ -4470,6 +4470,7 @@ units:
         substitute:
           CLUSTER_VIRTUAL_IP: '{{ .Values.cluster_virtual_ip }}'
           CLUSTER_DOMAIN: '{{ .Values.cluster_domain }}'
+          FOO: '{{ .Values._internal.FOO | quote }}'
 
   ceph-csi-cephfs:
     info:
@@ -7242,6 +7243,11 @@ logging:
   loki_url: http://loki-gateway.loki.svc.cluster.local
 
 _internal:
+
+  FOO: |
+    a
+    b
+    c
 
   state:
     # is_upgrade is true if this release of sylva-units reached reconciliation of the last Kustomization,

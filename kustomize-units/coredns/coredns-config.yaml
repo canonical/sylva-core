@@ -4,6 +4,7 @@ metadata:
   name: coredns
   namespace: kube-system
 data:
+  FOO: ${FOO}
   Corefile: |
     ${CLUSTER_DOMAIN}:53 {
         errors
