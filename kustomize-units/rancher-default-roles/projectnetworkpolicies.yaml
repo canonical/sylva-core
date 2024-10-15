@@ -1,0 +1,66 @@
+---
+apiVersion: management.cattle.io/v3
+kind: RoleTemplate
+metadata:
+  name: view-projectnetworkpolicies
+description: View Project Network Policies
+displayName: View Project Network Policies
+context: project
+builtin: false
+external: false
+hidden: false
+rules:
+- apiGroups:
+  - crd.projectcalico.org
+  resources:
+  - networkpolicies
+  - networksets
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - networking.k8s.io
+  resources:
+  - networkpolicies
+  verbs:
+  - get
+  - list
+  - watch
+---
+apiVersion: management.cattle.io/v3
+kind: RoleTemplate
+metadata:
+  name: manage-projectnetworkpolicies
+description: Manage Project Network Policies
+displayName: Manage Project Network Policies
+context: project
+builtin: false
+external: false
+hidden: false
+rules:
+- apiGroups:
+  - crd.projectcalico.org
+  resources:
+  - networkpolicies
+  - networksets
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - networking.k8s.io
+  resources:
+  - networkpolicies
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
