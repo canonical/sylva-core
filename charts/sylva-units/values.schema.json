@@ -2406,6 +2406,19 @@
                 }
               ]
             },
+            "ethernets": {
+              "anyOf": [
+                {
+                  "type": "object"
+                },
+                {
+                  "$ref": "#/$defs/string-with-gotpl"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
             "ip_preallocations": {
               "anyOf": [
                 {
