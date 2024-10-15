@@ -3,7 +3,7 @@ kind: VirtualMachine
 metadata:
   name: cirros-vm
 spec:
-  running: true
+  runStrategy: Always
   template:
     metadata:
       labels:
