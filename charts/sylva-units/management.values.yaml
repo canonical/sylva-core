@@ -148,8 +148,8 @@ units:
   litmus-operator:
     enabled: true
 
-  litmus-testcase-k8s-api-response:
-    enabled: true
+  litmus-testcase-pod-delete:
+    enabled: false
 
   kubevirt:
     enabled: false
