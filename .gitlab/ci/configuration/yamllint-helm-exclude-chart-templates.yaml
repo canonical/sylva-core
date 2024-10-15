@@ -1,3 +1,5 @@
-# Exclude templates path as our helm template include some gotpl
+# - Exclude templates path as our helm template include some gotpl
+# - Exclude a file which is a symlink to a dynamically created file (use-oci-artifacts-final.values.yaml)
 ignore: |
   charts/*/templates/
+  charts/*/test-values/use-oci-artifacts/use-oci-artifacts-final.values.yaml

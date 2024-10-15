@@ -51,6 +51,12 @@ helm dependency update $chart_dir
 
 echo -e "\e[0Ksection_end:`date +%s`:helm_dependency_build\r\e[0K"
 
+echo -e "\e[0Ksection_start:`date +%s`:build_use-oci-artifacts-final\r\e[0K--------------- produce use-oci-artifacts-final.values.yaml"
+
+ONLY_PRODUCE_USE_OCI_ARTIFACTS_VALUES=1 ${BASE_DIR}/tools/oci/build-sylva-units-artifact.py
+
+echo -e "\e[0Ksection_end:`date +%s`:build_use-oci-artifacts-final\r\e[0K"
+
 echo -e "\e[0Ksection_start:`date +%s`:helm_base_values\r\e[0K--------------- Checking default values with 'helm template' and 'yamllint' (for sylva-units chart all units enabled) ..."
 
 # This applies only to sylva-units chart where we want to check that templating
