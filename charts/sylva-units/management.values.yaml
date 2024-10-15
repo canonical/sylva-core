@@ -132,9 +132,6 @@ units:
   litmus-operator:
     enabled: true
 
-  litmus-testcase-pod-delete:
-    enabled: false
-
   litmus-testcase-k8s-api-response:
     enabled: true
 
