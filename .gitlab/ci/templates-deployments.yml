@@ -104,7 +104,9 @@ include:
     artifact_name=$2
     if [[ $CI_JOB_NAME != $job_name ]]; then
       JOB_ID=$(curl --location -f --header "${ARTIFACT_AUTHENTICATION_HEADER:-JOB-TOKEN: $CI_JOB_TOKEN}" "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/pipelines/${CI_PIPELINE_ID}/jobs" | yq '.[] | select(.name == env(job_name)) | .id')
+      echo "JOB_ID = $JOB_ID"
       echo -e "Retrieving \\e[1;94m$artifact_name\\e[0m artifact from \\e[1;92m$job_name\\e[0m job"
+      echo curl --location -f -o $artifact_name --header "${ARTIFACT_AUTHENTICATION_HEADER:-JOB-TOKEN: $CI_JOB_TOKEN}" "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/jobs/$JOB_ID/artifacts/$artifact_name"
       curl --location -f -o $artifact_name --header "${ARTIFACT_AUTHENTICATION_HEADER:-JOB-TOKEN: $CI_JOB_TOKEN}" "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/jobs/$JOB_ID/artifacts/$artifact_name"
     fi
     }
