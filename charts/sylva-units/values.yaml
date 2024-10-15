@@ -4753,6 +4753,23 @@ units:
       wait: true
       force: true
 
+  rancher-default-roles:
+    info:
+      description: Create Rancher role templates
+      details: |
+        This unit creates a set of additional role templates which are likely to be needed by many
+        clusters.
+      internal: true
+    enabled_conditions:
+    - '{{ tuple . "rancher" | include "unit-enabled" }}'
+    unit_templates:
+    - base-deps
+    depends_on:
+      rancher: true
+    repo: sylva-core
+    kustomization_spec:
+      path: ./kustomize-units/rancher-default-roles
+
   os-images-info:
     info:
       description: Creates a list of os images

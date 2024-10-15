@@ -1,0 +1,46 @@
+---
+apiVersion: management.cattle.io/v3
+kind: RoleTemplate
+metadata:
+  name: view-clusternetworkpolicies
+description: View Cluster Network Policies
+displayName: View Cluster Network Policies
+context: cluster
+builtin: false
+external: false
+hidden: false
+rules:
+- apiGroups:
+  - crd.projectcalico.org
+  resources:
+  - globalnetworkpolicies
+  - globalnetworksets
+  verbs:
+  - get
+  - list
+  - watch
+---
+apiVersion: management.cattle.io/v3
+kind: RoleTemplate
+metadata:
+  name: manage-clusternetworkpolicies
+description: Manage Cluster Network Policies
+displayName: Manage Cluster Network Policies
+context: cluster
+builtin: false
+external: false
+hidden: false
+rules:
+- apiGroups:
+  - crd.projectcalico.org
+  resources:
+  - globalnetworkpolicies
+  - globalnetworksets
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch

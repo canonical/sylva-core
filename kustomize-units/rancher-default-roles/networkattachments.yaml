@@ -1,0 +1,44 @@
+---
+apiVersion: management.cattle.io/v3
+kind: RoleTemplate
+metadata:
+  name: view-networkattachements
+description: View Multus Network Attachments
+displayName: View Multus Network Attachments
+context: project
+builtin: false
+external: false
+hidden: false
+rules:
+- apiGroups:
+  - k8s.cni.cncf.io
+  resources:
+  - network-attachment-definitions
+  verbs:
+  - get
+  - list
+  - watch
+---
+apiVersion: management.cattle.io/v3
+kind: RoleTemplate
+metadata:
+  name: manage-networkattachments
+description: Manage Multus Network Attachments
+displayName: Manage Multus Network Attachments
+context: project
+builtin: false
+external: false
+hidden: false
+rules:
+- apiGroups:
+  - k8s.cni.cncf.io
+  resources:
+  - network-attachment-definitions
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
