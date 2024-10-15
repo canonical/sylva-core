@@ -1845,7 +1845,7 @@ units:
           SIGN_MGMT: '{{ .Values.security.upstream_images_signature.policy_action }}'
           SIG_REPO: '{{ .Values.security.upstream_images_signature.repository }}'
           DIGEST: '{{ .Values.security.upstream_images_signature.policy_action | eq "Enforce" }}'
-          COSIGN_PUBLIC_KEY: '{{ .Values.security.upstream_images_signature.cosign_public_key }}'
+          COSIGN_PUBLIC_KEY: '{{ .Values.security.upstream_images_signature.cosign_public_key | quote }}'
           IMAGE_LIST: '{{ .Values.security.upstream_images_signature.images_list | toJson }}'
       _components:
         - '{{ tuple "components/management-cluster-only" .Values._internal.mgmt_cluster | include "set-only-if" }}'
@@ -7164,9 +7164,9 @@ get_openstack_images_per_image_timeout_minutes: 30
 
 security:
   default_cosign_public_key: |- # the default public key in PEM format to be used to verify cosign signatures
-     -----BEGIN PUBLIC KEY-----\n
-     MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEEN6LNycNA/OB8/dtqTPZcPDuLnxW\n
-     hR0Rskmno7Lx1WqBl2ylN/sfkLEAPfCkizceHiu/fw8lnsPq9uSGlAICeQ==\n
+     -----BEGIN PUBLIC KEY-----
+     MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEEN6LNycNA/OB8/dtqTPZcPDuLnxW
+     hR0Rskmno7Lx1WqBl2ylN/sfkLEAPfCkizceHiu/fw8lnsPq9uSGlAICeQ==
      -----END PUBLIC KEY-----
   upstream_images_signature:
     verify: false # verify the signature of the upstream images
