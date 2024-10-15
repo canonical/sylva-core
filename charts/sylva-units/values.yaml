@@ -34,9 +34,10 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
     spec:
       url: https://gitlab.com/sylva-projects/sylva-core.git
       ref:
-        # the sylva-core framework will always override this ref so that the
-        # currently checked out commit of sylva-core is used by sylva-units
-        # (you can grep the code for "CURRENT_COMMIT" to find out how)
+        # by default, for the kustomize-units OCI artifact, we use the same
+        # tag as the one used for the sylva-units Helm chart
+        # (.Chart.Version is the chart version followed by "+<n>" with <n> being
+        # the Helm release iteration, so we need to remove it)
         commit: not-a-real-commit
 
   capi-rancher-import:

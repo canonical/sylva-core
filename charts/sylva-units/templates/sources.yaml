@@ -40,8 +40,13 @@ spec:
     {{- $secret_ref = dict "secretRef" (dict "name" (printf "source-repo-auth-%s" $repo_name)) -}}
   {{- end -}}
   {{- $spec := dict -}}
-  {{- $spec = mergeOverwrite $spec (deepCopy ($repo_def.kind | eq "GitRepository" | ternary $envAll.Values.git_repo_spec_default $envAll.Values.oci_repo_spec_default)) (deepCopy $repo_def.spec) (deepCopy $secret_ref) -}}
-{{ $spec | toYaml | nindent 2 }}
+  {{- $spec = mergeOverwrite $spec (deepCopy ($repo_def.kind | eq "GitRepository" | ternary $envAll.Values.git_repo_spec_default $envAll.Values.oci_repo_spec_default)) (deepCopy $repo_def.spec) -}}
+  {{- if hasKey $repo_def.spec "verify" -}}
+    {{- $verify := dict -}}
+    {{- $verify = dict "verify" (deepCopy $repo_def.spec.verify) -}} 
+    {{- $spec = mergeOverwrite $spec $verify -}}  
+  {{- end -}}  
+  {{ $spec | toYaml | nindent 2 }}
   {{- if hasKey $repo_def "auth" }}
 ---
 apiVersion: v1
