@@ -846,20 +846,6 @@ units:
     kustomization_spec:
       path: ./kustomize-units/litmus-operator
 
-  litmus-testcase-pod-delete:
-    info:
-      description: Runs pod-delete testcase for vault pod
-      internal: true
-      maturity: stable
-    unit_templates:
-    - base-deps
-    depends_on:
-      sylva-ca: true
-      litmus-operator: true
-    repo: sylva-core
-    kustomization_spec:
-      path: ./kustomize-units/litmus-testcases/pod-delete
-
   litmus-testcase-k8s-api-response:
     info:
       description: Runs k8s-api-response testcase for fetching the node response time
