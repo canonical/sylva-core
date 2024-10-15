@@ -10,15 +10,7 @@ spec:
         kubevirt.io/size: small
         kubevirt.io/domain: testvm
     spec:
-      terminationGracePeriodSeconds: 0
       domain:
-        cpu:
-          sockets: 1
-          cores: 1
-          threads: 1
-        resources:
-          limits:
-            memory: 1024Mi
         devices:
           disks:
             - name: containerdisk
@@ -32,7 +24,11 @@ spec:
             masquerade: {}
         resources:
           requests:
+<<<<<<< HEAD
             memory: 128Mi
+=======
+            memory: 64M
+>>>>>>> 3ad86f351 (test)
       networks:
       - name: default
         pod: {}
