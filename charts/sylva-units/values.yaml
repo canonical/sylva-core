@@ -846,9 +846,9 @@ units:
     kustomization_spec:
       path: ./kustomize-units/litmus-operator
 
-  litmus-testcase-pod-delete:
+  litmus-testcase-k8s-api-response:
     info:
-      description: Runs pod-delete testcase for vault pod
+      description: Runs API testcase
       internal: true
       maturity: stable
     unit_templates:
@@ -859,7 +859,6 @@ units:
     repo: sylva-core
     kustomization_spec:
       path: ./kustomize-units/litmus-testcases/k8s-api-response
-      #path: ./kustomize-units/litmus-testcases/pod-delete
 
   kubevirt:
     info:
