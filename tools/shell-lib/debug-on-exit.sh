@@ -208,9 +208,12 @@ function cluster_info_dump() {
   # dump pods
   kubectl get pods -o wide -A > $dump_dir/pods.summary.txt
 
+  # dump CAPI infra secrets
+  kubectl get secret -A --field-selector=type=infrastructure.cluster.x-k8s.io/secret                               > $dump_dir/Secrets-capi-infra.summary.txt
+  kubectl get secret -A --field-selector=type=infrastructure.cluster.x-k8s.io/secret -o yaml --show-managed-fields > $dump_dir/Secrets-capi-infra.yaml
   # dump CAPI secrets
-  kubectl get secret -A --field-selector=type=infrastructure.cluster.x-k8s.io/secret                               > $dump_dir/Secrets-capi.summary.txt
-  kubectl get secret -A --field-selector=type=infrastructure.cluster.x-k8s.io/secret -o yaml --show-managed-fields > $dump_dir/Secrets-capi.yaml
+  kubectl get secret -A --field-selector=type=cluster.x-k8s.io/secret                               > $dump_dir/Secrets-capi.summary.txt
+  kubectl get secret -A --field-selector=type=cluster.x-k8s.io/secret -o yaml --show-managed-fields > $dump_dir/Secrets-capi.yaml
 
   # list secrets
   kubectl get secret -A > $dump_dir/Secrets.summary.txt
