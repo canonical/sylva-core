@@ -612,8 +612,6 @@ units:
       internal: true
     unit_templates:
     - base-deps
-    depends_on:
-      kyverno-policies: '{{ tuple . "kyverno-policies" | include "unit-enabled" }}' # make sure that the policy disable-automountserviceaccounttoken applies
     repo: sylva-core
     kustomization_spec:
       path: ./kustomize-units/namespace-defs
@@ -1802,6 +1800,10 @@ units:
               - apiGroups: [""]
                 resources:
                   - nodes
+                verbs: ["get", "list", "watch", "patch", "update"]
+              - apiGroups: [""]
+                resources:
+                  - serviceaccounts
                 verbs: ["get", "list", "watch", "patch", "update"]
       _postRenderers:
         - kustomize:
