@@ -54,6 +54,7 @@
 | **harbor** | installs Harbor | beta |  | [Helm](https://helm.goharbor.io) | 1.15.1 |
 | **kube-storage-version-migrator** | installs kube-storage-version-migrator to assist apiVersion migrations | beta |  | [Kustomize](https://github.com/kubernetes-sigs/kube-storage-version-migrator/manifests?ref=v0.0.5) | v0.0.5 |
 | **kubevirt** | installs kubevirt | beta |  | [Helm](https://suse-edge.github.io/charts) | 0.4.0 |
+| **kubevirt-cdi** | manages Kubevirt CDI - Container Data Importer | beta |  | [Helm](https://suse-edge.github.io/charts) | 0.4.0 |
 | **logging** | installs Rancher Fluentbit/Fluentd logging stack, for log collecting and shipping | beta |  | [Helm](https://charts.rancher.io/) | 103.1.2+up4.4.0 |
 | **loki** | installs Loki log storage<br/><br/>installs Loki log storage in simple scalable mode | beta |  | [Helm](https://github.com/grafana/loki.git) | v3.2.0 |
 | **minio-logging** | creates a MinIO tenant for the logging stack, used as S3 storage by Loki | beta |  | [Helm](https://github.com/minio/operator.git) | v5.0.16 |

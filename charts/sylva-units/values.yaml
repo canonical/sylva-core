@@ -762,6 +762,34 @@ units:
               seccompProfile:
                 type: RuntimeDefault
 
+  kubevirt-cdi:
+    info:
+      description: manages Kubevirt CDI - Container Data Importer
+      maturity: beta
+    enabled_conditions:
+      - '{{ tuple . "kubevirt" | include "unit-enabled" }}'
+    unit_templates:
+    - base-deps
+    helm_repo_url: https://suse-edge.github.io/charts
+    helm_chart_artifact_name: kubevirt-cdi
+    helmrelease_spec:
+      chart:
+        spec:
+          chart: cdi
+          version: 0.4.0
+      targetNamespace: kubevirt-cdi
+      install:
+        createNamespace: true
+      values:
+        cdi:
+          config:
+            featureGates:
+              - HonorWaitForFirstConsumer
+            importProxy:
+              HTTPProxy: '{{ get .Values.proxies "http_proxy" }}'
+              HTTPSProxy: '{{ get .Values.proxies "https_proxy" }}'
+              noProxy: '{{ include "sylva-units.no_proxy" (tuple .) }}'
+
   harbor-init:
     info:
       description: sets up Harbor prerequisites
