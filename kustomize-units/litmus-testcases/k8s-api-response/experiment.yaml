@@ -1,0 +1,112 @@
+apiVersion: litmuschaos.io/v1alpha1
+description:
+  message: |
+    Deletes a pod belonging to a deployment/statefulset/daemonset
+kind: ChaosExperiment
+metadata:
+  name: k8s-api-response
+  namespace: litmus
+  labels:
+    name: k8s-api-response
+    app.kubernetes.io/part-of: litmus
+    app.kubernetes.io/component: chaosexperiment
+    app.kubernetes.io/version: 3.4.0
+spec:
+  definition:
+    scope: Namespaced
+    permissions:
+      - apiGroups:
+          - ""
+          - "apps"
+          - "apps.openshift.io"
+          - "argoproj.io"
+          - "batch"
+          - "litmuschaos.io"
+        resources:
+          - "deployments"
+          - "jobs"
+          - "pods"
+          - "pods/log"
+          - "replicationcontrollers"
+          - "deployments"
+          - "statefulsets"
+          - "daemonsets"
+          - "replicasets"
+          - "deploymentconfigs"
+          - "rollouts"
+          - "pods/exec"
+          - "events"
+          - "chaosengines"
+          - "chaosexperiments"
+          - "chaosresults"
+        verbs:
+          - "create"
+          - "list"
+          - "get"
+          - "patch"
+          - "update"
+          - "delete"
+          - "deletecollection"
+            #image: 'nikhilsethi31/go-runner:combined-image-v1.0.0'
+            #image: 'enilegu/go-runner:api-response-1'
+    image: 'nikhilsethi31/go-runner:combined-image-v1.0.6'
+    imagePullPolicy: 'IfNotPresent'
+    args:
+    - -c
+    - ./experiments -name k8s-api-response
+    command:
+    - /bin/bash
+    env:
+
+    - name: TOTAL_CHAOS_DURATION
+      value: '100'
+
+    # Period to wait before and after injection of chaos in sec
+
+    - name: RAMP_TIME
+      value: ''
+
+    - name: FORCE
+      value: 'true'
+
+    - name: CHAOS_INTERVAL
+      value: '100'
+
+    - name: TARGET_PODS
+      value: 'custom-exp-pod'
+
+    # pod failures without '--force' & default terminationGracePeriodSeconds
+    - name: FORCE
+      value: 'false'
+
+    ## percentage of total pods to target
+    - name: PODS_AFFECTED_PERC
+      value: '100'
+
+    - name: CLUSTERID
+      value: 'sylva-cluster'
+
+    - name: WORKLOAD_CLUSTER_NAME
+      value: 'my-wc-rke2-capo'
+
+    - name: LIB
+      value: 'litmus'
+
+    - name: LIB_IMAGE
+      value: 'enilegu/go-runner:api-response-1'
+      #value: 'nikhilsethi31/go-runner:k8s-api-response-v1'
+      #value: 'nikhilsethi31/go-runner:combined-image-v1.0.4'
+
+    - name: LIB_IMAGE_PULL_POLICY
+      value: 'IfNotPresent'
+
+    ## it defines the sequence of chaos execution for multiple target pods
+    ## supported values: serial, parallel
+    - name: SEQUENCE
+      value: 'serial'
+
+    labels:
+      name: k8s-api-response
+      app.kubernetes.io/part-of: litmus
+      app.kubernetes.io/component: experiment-job
+      app.kubernetes.io/version: 3.4.0
