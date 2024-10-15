@@ -2,7 +2,7 @@
 
 source tools/shell-lib/common.sh
 
-check_args
+check_args "$@"
 
 if [[ ${KUBECONFIG:-} =~ management-cluster-kubeconfig ]]; then
     echo -e "KUBECONFIG seems to point to the management cluster, which doesn't sound ok for 'bootstrap.sh'\n(KUBECONFIG=$KUBECONFIG)"
@@ -14,7 +14,7 @@ validate_input_values
 check_pivot_has_ran
 
 echo_b "\U0001F503 Preparing bootstrap cluster"
-source tools/kind/bootstrap-cluster.sh
+source tools/kind/bootstrap-cluster.sh ${USE_BOOTSTRAP_PROXY}
 
 ensure_flux
 

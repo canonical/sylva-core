@@ -26,12 +26,38 @@ if [[ -f ${BASE_DIR}/sylva.env ]]; then
 fi
 
 function check_args() {
-  if ! [[ ${#BASH_ARGV[@]} -eq 1 && (-f ${BASH_ARGV[0]}/kustomization.yaml || -L ${BASH_ARGV[0]}/kustomization.yaml) ]]; then 
-    echo "Usage: $BASH_ARGV0 [env_name]"
-    echo "This script expects to find a kustomization in [env_name] directory to generate management-cluster configuration and secrets"
-    exit 1
-  else
+  CALLER_SCRIPT_NAME=$(basename ${BASH_SOURCE[1]})
+  if [[ $CALLER_SCRIPT_NAME == *"apply.sh"*  || $CALLER_SCRIPT_NAME == *"apply-workload-cluster.sh"* ]]; then
+    if ! [[ ${#BASH_ARGV[@]} -eq 1 && (-f ${BASH_ARGV[0]}/kustomization.yaml || -L ${BASH_ARGV[0]}/kustomization.yaml) ]]; then
+      echo "Usage: $BASH_ARGV0 [env_name]"
+      echo "This script expects to find a kustomization in [env_name] directory to generate management-cluster configuration and secrets"
+      exit 1
+    fi
     export ENV_PATH=$(readlink -f ${BASH_ARGV[0]})
+  elif [[ $CALLER_SCRIPT_NAME == *"bootstrap.sh"* ]]; then
+    ENV_PATH=""
+    USE_BOOTSTRAP_PROXY="true"
+    # Loop through arguments to detect flag and environment directory
+    for arg in "$@"; do
+      if [[ "$arg" == "--no-bootstrap-cluster-proxies-needed" ]]; then
+        USE_BOOTSTRAP_PROXY="false" # Flag detected, set proxy usage to false
+      elif [[ -z "$ENV_PATH" ]]; then
+        ENV_PATH="$arg"   # First non-flag argument is assumed to be the environment path    
+      else
+        echo "Unknown argument: $arg"
+        echo "Usage: $0 [env_name] [--no-bootstrap-cluster-proxies-needed]"
+        exit 1
+      fi
+    done
+
+    # Validate ENV_PATH after the loop
+    if [[ -z "$ENV_PATH" || ! (-f "${ENV_PATH}/kustomization.yaml" || -L "${ENV_PATH}/kustomization.yaml") ]]; then
+      echo "Usage: $0 [env_name] [--no-bootstrap-cluster-proxies-needed]"
+      echo "This script expects to find a kustomization.yaml in the [env_name] directory to generate management-cluster configuration and secrets."
+      exit 1
+    fi
+    export ENV_PATH=$(readlink -f "$ENV_PATH")
+    export USE_BOOTSTRAP_PROXY=$(readlink -f "$USE_BOOTSTRAP_PROXY")
   fi
 }
 
