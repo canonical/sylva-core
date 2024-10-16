@@ -13,10 +13,7 @@ spec:
       terminationGracePeriodSeconds: 0
       domain:
         cpu:
-          sockets: 1
           cores: 1
-          threads: 1
-          dedicatedCpuPlacement: true
         resources:
           limits:
             memory: 1024Mi
