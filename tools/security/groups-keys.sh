@@ -77,7 +77,7 @@ if $IDS; then
    else 
      GROUP_NAME=$(echo $1 | sed 's/\//%2F/g')
      GROUP_ID=$(curl -s --header "PRIVATE-TOKEN: $GITLAB_TOKEN" https://gitlab.com/api/v4/groups/${GROUP_NAME} | jq '.id')
-   fi
+fi
 
 if $DELETE_KEY; then
    printf "Deleting key pair from Group: \033[1m%s\033[0m (ID: %s)\n" $GROUP_NAME $GROUP_ID 
