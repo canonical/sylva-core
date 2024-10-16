@@ -658,10 +658,6 @@ units:
           version: 15.5.36
       targetNamespace: keycloak
       values:
-        auth:
-          database: keycloak
-          password: '{{ .Values._internal.postgres_user_password }}'
-          replicationPassword: '{{ .Values._internal.postgres_replication_password }}'
         architecture: replication
         nameOverride: postgres
         serviceAccount:
@@ -690,6 +686,11 @@ units:
         - kustomize:
             patches:
             - '{{ .Values._internal.pdb_allow_unhealthy_pod_eviction | include "preserve-type" }}'
+    helm_secret_values:
+      auth:
+        database: keycloak
+        password: '{{ .Values._internal.postgres_user_password }}'
+        replicationPassword: '{{ .Values._internal.postgres_replication_password }}'
 
   kubevirt:
     info:
@@ -3847,7 +3848,6 @@ units:
         createNamespace: false
       values:
         grafana:
-          adminPassword: '{{ .Values._internal.grafana_admin_password }}'
           sidecar:
             dashboards:
               enabled: true
@@ -3942,6 +3942,8 @@ units:
                   value: disabled
             - '{{ .Values._internal.pdb_allow_unhealthy_pod_eviction | include "preserve-type" }}'
     helm_secret_values:
+      grafana:
+        adminPassword: '{{ .Values._internal.grafana_admin_password }}'
       prometheus:
         extraSecret:
           name: thanos-basic-auth
@@ -6327,6 +6329,9 @@ units:
       logging: true
       #loki: this dependency is handled in a different way, in management.values.yaml and workload-cluster.values.yaml
     repo: sylva-core
+    kustomization_substitute_secrets:
+      LOKI_USERNAME: '{{ .Values._internal.loki_user }}'
+      LOKI_PASSWORD: '{{ .Values._internal.loki_password }}'
     kustomization_spec:
       path: ./kustomize-units/logging
       postBuild:
@@ -6334,8 +6339,6 @@ units:
           # we must use external name in order to work also for workload clusters
           LOKI_URL: '{{ .Values.logging.loki_url }}'
           CLUSTER_NAME: '{{ .Values.cluster.name }}'
-          LOKI_USERNAME: '{{ .Values._internal.loki_user }}'
-          LOKI_PASSWORD: '{{ .Values._internal.loki_password }}'
       wait: true
 
   loki-init:
