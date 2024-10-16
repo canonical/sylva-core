@@ -61,7 +61,7 @@ shift $(($OPTIND -1))
 
 if [ $# -eq 0 ];
 then
-    echo "[ERROR] PROJET and GROUP references are missing"
+    echo "[ERROR] PROJECT and GROUP references are missing"
     Help
     exit 1
 fi
