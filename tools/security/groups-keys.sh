@@ -74,7 +74,7 @@ fi
 if $IDS; then
      GROUP_ID=$1
      GROUP_NAME=$(curl -s --header "PRIVATE-TOKEN: $GITLAB_TOKEN" "https://gitlab.com/api/v4/groups/${GROUP_ID}" | jq -r '.name')
-   else 
+else 
      GROUP_NAME=$(echo $1 | sed 's/\//%2F/g')
      GROUP_ID=$(curl -s --header "PRIVATE-TOKEN: $GITLAB_TOKEN" https://gitlab.com/api/v4/groups/${GROUP_NAME} | jq '.id')
 fi
