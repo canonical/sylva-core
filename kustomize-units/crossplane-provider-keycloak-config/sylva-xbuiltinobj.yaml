@@ -1,0 +1,24 @@
+# Example for Master Realm
+apiVersion: keycloak.crossplane.io/v1alpha1
+kind: XBuiltinObjects
+metadata:
+  name: keycloak-builtin-clients-sylva
+spec:
+  providerConfigName: keycloak-provider-config
+  providerSecretName: keycloak-provider-secret
+  realm: sylva
+  builtinAuthenticationFlows:
+    - browser
+  builtinClients:
+    - account
+    - account-console
+    - admin-cli
+    - broker
+    - realm-management
+    - security-admin-console
+  builtinRealmRoles:
+    - offline_access
+    - uma_authorization
+    - admin
+    - create-realm
+

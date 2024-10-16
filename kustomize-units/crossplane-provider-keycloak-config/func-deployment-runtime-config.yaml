@@ -1,0 +1,40 @@
+apiVersion: pkg.crossplane.io/v1beta1
+kind: DeploymentRuntimeConfig
+metadata:
+  name: provider-functions-runtime-config
+spec:
+  deploymentTemplate:
+    spec:
+      replicas: 1
+      selector: {}
+      template:
+        metadata:
+          labels:
+            app: crossplane-provider
+        spec:
+          containers:
+          - args:
+            - --debug
+            name: package-runtime
+            volumeMounts:
+              - name: truststore
+                mountPath: /etc/ssl/certs
+                readOnly: true
+            securityContext:
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop:
+                - ALL
+              seccompProfile:
+                type: RuntimeDefault
+          volumes:
+            - name: truststore
+              secret:
+                defaultMode: 420
+                secretName: keycloak-internal-tls
+          securityContext:
+            fsGroup: 65532
+            runAsNonRoot: true
+            runAsUser: 65532
+            seccompProfile:
+              type: RuntimeDefault
