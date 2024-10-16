@@ -46,6 +46,13 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
       ref:
         tag: 0.1.7
 
+  metal3-hardys:
+    kind: GitRepository
+    spec:
+      url: https://github.com/hardys/charts.git
+      ref:
+        branch: metal3_082
+
   weave-gitops:
     kind: GitRepository
     spec:
@@ -2449,13 +2456,12 @@ units:
       cert-manager: true
       '{{ .Values._internal.default_storage_class_unit }}': true
       metal3-pdb: '{{ tuple . "metal3-pdb" | include "unit-enabled" }}'
-    helm_repo_url: https://suse-edge.github.io/charts
+    repo: metal3-hardys
     helm_chart_artifact_name: metal3
     helmrelease_spec:
       chart:
         spec:
-          chart: metal3
-          version: 0.8.1
+          chart: charts/metal3/0.8.2
       timeout: 30m
       targetNamespace: metal3-system
       values:
