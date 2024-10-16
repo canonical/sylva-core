@@ -213,6 +213,34 @@ unit_templates:
         substitute:
           UNIT_NAME: '{{ .Values._unit_name_ }}'
 
+  flux-common:
+    repo: sylva-core
+    kustomization_spec:
+      path: ./kustomize-units/flux-system/base
+      targetNamespace: flux-system
+      wait: true
+      # prevent Flux from uninstalling itself
+      prune: false
+      _components:
+      - '{{ tuple "../components/extra-ca" .Values.oci_registry_extra_ca_certs | include "set-only-if" }}'
+      postBuild:
+        substitute:
+          var_substitution_enabled: "true" # To force substitution when configmap does not exist
+          EXTRA_CA_CERTS: '{{ tuple (.Values.oci_registry_extra_ca_certs | default "" | b64enc) .Values.oci_registry_extra_ca_certs | include "set-only-if" }}'
+          KUSTOMIZE_CONCURRENT: '{{ .Values.flux.kustomize.concurrent }}'
+          KUSTOMIZE_LOG_LEVEL: '{{ .Values.flux.kustomize.log_level }}'
+          KUSTOMIZE_FEATURES_GATES: '{{ tuple .Values.flux.kustomize.features_gates | include "dict_to_key_values_separated_string"  }}'
+          HELM_CONCURRENT: '{{ .Values.flux.helm.concurrent }}'
+          HELM_LOG_LEVEL: '{{ .Values.flux.helm.log_level }}'
+          HELM_FEATURES_GATES: '{{ tuple .Values.flux.helm.features_gates | include "dict_to_key_values_separated_string"  }}'
+          SOURCE_CONCURRENT: '{{ .Values.flux.source.concurrent }}'
+          SOURCE_LOG_LEVEL: '{{ .Values.flux.source.log_level }}'
+          SOURCE_FEATURES_GATES: '{{ tuple .Values.flux.source.features_gates | include "dict_to_key_values_separated_string"  }}'
+        substituteFrom:
+        - kind: ConfigMap
+          name: proxy-env-vars
+          optional: true
+
   # this unit template gather depends_on common
   # to most units
   base-deps:
@@ -429,23 +457,8 @@ units:
       details: Note that Flux is always installed on the current cluster as a pre-requisite to installing the chart
       maturity: core-component
     repo: sylva-core
-    unit_templates: []  # we intendedly don't inherit from base-deps, because flux is itself part of base dependencies
-    kustomization_spec:
-      path: ./kustomize-units/flux-system/base
-      targetNamespace: flux-system
-      wait: true
-      # prevent Flux from uninstalling itself
-      prune: false
-      _components:
-      - '{{ tuple "../components/extra-ca" .Values.oci_registry_extra_ca_certs | include "set-only-if" }}'
-      postBuild:
-        substitute:
-          var_substitution_enabled: "true" # To force substitution when configmap does not exist
-          EXTRA_CA_CERTS: '{{ tuple (.Values.oci_registry_extra_ca_certs | default "" | b64enc) .Values.oci_registry_extra_ca_certs | include "set-only-if" }}'
-        substituteFrom:
-        - kind: ConfigMap
-          name: proxy-env-vars
-          optional: true
+    unit_templates: # we intendedly don't inherit from base-deps, because flux is itself part of base dependencies
+    - flux-common
 
   cert-manager:
     info:
@@ -599,8 +612,6 @@ units:
       internal: true
     unit_templates:
     - base-deps
-    depends_on:
-      kyverno-policies: '{{ tuple . "kyverno-policies" | include "unit-enabled" }}' # make sure that the policy disable-automountserviceaccounttoken applies
     repo: sylva-core
     kustomization_spec:
       path: ./kustomize-units/namespace-defs
@@ -761,6 +772,34 @@ units:
               runAsUser: 10000
               seccompProfile:
                 type: RuntimeDefault
+
+  kubevirt-cdi:
+    info:
+      description: manages Kubevirt CDI - Container Data Importer
+      maturity: beta
+    enabled_conditions:
+      - '{{ tuple . "kubevirt" | include "unit-enabled" }}'
+    unit_templates:
+    - base-deps
+    helm_repo_url: https://suse-edge.github.io/charts
+    helm_chart_artifact_name: kubevirt-cdi
+    helmrelease_spec:
+      chart:
+        spec:
+          chart: cdi
+          version: 0.4.0
+      targetNamespace: kubevirt-cdi
+      install:
+        createNamespace: true
+      values:
+        cdi:
+          config:
+            featureGates:
+              - HonorWaitForFirstConsumer
+            importProxy:
+              HTTPProxy: '{{ get .Values.proxies "http_proxy" }}'
+              HTTPSProxy: '{{ get .Values.proxies "https_proxy" }}'
+              noProxy: '{{ include "sylva-units.no_proxy" (tuple .) }}'
 
   harbor-init:
     info:
@@ -1789,6 +1828,10 @@ units:
               - apiGroups: [""]
                 resources:
                   - nodes
+                verbs: ["get", "list", "watch", "patch", "update"]
+              - apiGroups: [""]
+                resources:
+                  - serviceaccounts
                 verbs: ["get", "list", "watch", "patch", "update"]
       _postRenderers:
         - kustomize:
@@ -2937,9 +2980,11 @@ units:
     helm_repo_url: https://rke2-charts.rancher.io
     helm_chart_versions: &calico-chart-versions
       v3.27.300: >-
-        {{ include "k8s-version-match" (tuple . ">=1.27.13,<1.29.0") }}
+        {{ or       (include "k8s-version-match" (tuple . ">=1.27.13,<1.28.0"))
+                    (include "k8s-version-match" (tuple . ">=1.28.9,<1.29.0"))
+        }}
       v3.28.100: >-
-        {{ include "k8s-version-match" (tuple . "=1.29.8") }}
+        {{ include "k8s-version-match" (tuple . ">=1.29.0") }}
 
     helmrelease_spec:
       releaseName: rke2-calico-crd
@@ -3500,8 +3545,8 @@ units:
       '{{ .Values._internal.calico_readiness_unit }}': '{{ tuple . "calico" | include "unit-enabled" }}'
     helm_repo_url: https://rke2-charts.rancher.io
     helm_chart_versions:
-      4.10.102: '{{ include "k8s-version-match" (tuple . ">=1.27.16,<1.29.7") }}'  # also for 1.28.12
-      4.10.401: '{{ include "k8s-version-match" (tuple . "=1.29.8") }}'
+      4.10.102: '{{ include "k8s-version-match" (tuple . ">=1.27.16,<1.29.0") }}'  # also for 1.28.12
+      4.10.401: '{{ include "k8s-version-match" (tuple . ">=1.29.0") }}'
     helmrelease_spec:
       releaseName: rke2-ingress-nginx
       targetNamespace: kube-system
@@ -4735,6 +4780,23 @@ units:
       path: ./kustomize-units/cluster-creator-policy
       wait: true
       force: true
+
+  rancher-default-roles:
+    info:
+      description: Create Rancher role templates
+      details: |
+        This unit creates a set of additional role templates which are likely to be needed by many
+        clusters.
+      internal: true
+    enabled_conditions:
+    - '{{ tuple . "rancher" | include "unit-enabled" }}'
+    unit_templates:
+    - base-deps
+    depends_on:
+      rancher: true
+    repo: sylva-core
+    kustomization_spec:
+      path: ./kustomize-units/rancher-default-roles
 
   os-images-info:
     info:
@@ -6900,6 +6962,23 @@ cluster_virtual_ip: 55.55.55.55
 # [WARNING] This value cannot be overwritten on production environment (env_type: prod)
 admin_password: '{{ .Values._internal.default_password }}'
 
+flux:
+  kustomize:
+    concurrent: 4
+    log_level: info
+    features_gates: {}
+  helm:
+    concurrent: 4
+    features_gates:
+      OOMWatch: true
+      DetectDrift: true
+      CorrectDrift: true
+    log_level: info
+  source:
+    concurrent: 2
+    log_level: info
+    features_gates: {}
+
 flux_webui:
   admin_user: admin
 
@@ -7079,21 +7158,21 @@ k8s_version_short: "1.29"
 
 # Renovate Bot needs additional information to detect sylva diskimage-builder version
 # renovate: depName=sylva-projects/sylva-elements/diskimage-builder
-sylva_diskimagebuilder_version: 0.3.0
+sylva_diskimagebuilder_version: 0.3.2
 
 sylva_diskimagebuilder_images:
-  ubuntu-jammy-hardened-rke2-1-29-8:
+  ubuntu-jammy-hardened-rke2-1-29-9:
     default_enabled: true
-  ubuntu-jammy-plain-rke2-1-29-8: {}
-  ubuntu-jammy-plain-rke2-1-28-12: {}
+  ubuntu-jammy-plain-rke2-1-29-9: {}
+  ubuntu-jammy-plain-rke2-1-28-14: {}
   ubuntu-jammy-plain-rke2-1-27-16: {}
   ubuntu-jammy-hardened-rke2-1-27-16: {}
-  opensuse-15-5-plain-rke2-1-29-8: {}
-  opensuse-15-5-plain-rke2-1-28-12: {}
-  opensuse-15-5-plain-rke2-1-27-16: {}
-  opensuse-15-5-hardened-rke2-1-29-8: {}
-  opensuse-15-5-hardened-rke2-1-28-12: {}
-  opensuse-15-5-hardened-rke2-1-27-16: {}
+  opensuse-15-6-plain-rke2-1-29-9: {}
+  opensuse-15-6-plain-rke2-1-28-14: {}
+  opensuse-15-6-plain-rke2-1-27-16: {}
+  opensuse-15-6-hardened-rke2-1-29-9: {}
+  opensuse-15-6-hardened-rke2-1-28-14: {}
+  opensuse-15-6-hardened-rke2-1-27-16: {}
 
 # this dict can be enriched at deployment time to feed additional information
 # into the sylva-units-status ConfigMap
@@ -7338,9 +7417,9 @@ _internal:
   bootstrap_node_ip: '{{ lookup "v1" "ConfigMap" "sylva-system" "cluster-public-endpoint" | dig "data" "address" "not_found" | default "not_found" }}'
 
   k8s_version_map:
-    1.27: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" | ternary "v1.27.16+rke2r1" "v1.27.16" }}'
-    1.28: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" | ternary "v1.28.12+rke2r1" "v1.28.12" }}'
-    1.29: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" | ternary "v1.29.8+rke2r1" "v1.29.8" }}'
+    1.27: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" | ternary "v1.27.16+rke2r2" "v1.27.16" }}'
+    1.28: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" | ternary "v1.28.14+rke2r1" "v1.28.14" }}'
+    1.29: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" | ternary "v1.29.9+rke2r1" "v1.29.9" }}'
 
   # total number of nodes in this cluster
   node_count:

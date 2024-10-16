@@ -1,0 +1,44 @@
+---
+apiVersion: management.cattle.io/v3
+kind: RoleTemplate
+metadata:
+  name: view-crds
+description: View CRDs
+displayName: View CRDs
+context: cluster
+builtin: false
+external: false
+hidden: false
+rules:
+- apiGroups:
+  - apiextensions.k8s.io
+  resources:
+  - customresourcedefinitions
+  verbs:
+  - get
+  - list
+  - watch
+---
+apiVersion: management.cattle.io/v3
+kind: RoleTemplate
+metadata:
+  name: manage-crds
+description: Manage CRDs
+displayName: Manage CRDs
+context: cluster
+builtin: false
+external: false
+hidden: false
+rules:
+- apiGroups:
+  - apiextensions.k8s.io
+  resources:
+  - customresourcedefinitions
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch

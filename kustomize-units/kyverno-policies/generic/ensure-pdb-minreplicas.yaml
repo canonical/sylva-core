@@ -17,7 +17,11 @@ metadata:
       a matching PodDisruptionBudget to ensure these two values do not match.
 spec:
   validationFailureAction: Enforce
-  background: false
+  background: true
+  webhookConfiguration:
+    matchConditions:
+    - name: 'is-create-or-update'
+      expression: 'request.operation in ["CREATE", "UPDATE"]'
   rules:
     - name: pdb-minavailable
       match:
@@ -26,13 +30,6 @@ spec:
               kinds:
                 - Deployment
                 - StatefulSet
-      preconditions:
-        all:
-        - key: "{{request.operation || 'BACKGROUND'}}"
-          operator: AnyIn
-          value:
-          - CREATE
-          - UPDATE
       context:
         - name: minavailable
           apiCall:

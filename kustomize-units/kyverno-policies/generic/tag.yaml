@@ -16,6 +16,11 @@ metadata:
       specifies a tag and that it is not called `latest` or 'main'.
 spec:
   validationFailureAction: Enforce
+  background: false # validation is moved from Kyverno policy engine to kube-api server
+  webhookConfiguration:
+    matchConditions:
+    - name: 'is-create-or-update'
+      expression: 'request.operation in ["CREATE", "UPDATE"]'
   rules:
   - name: require-image-tag
     match:
@@ -23,19 +28,32 @@ spec:
         kinds:
         - Pod
     validate:
-      message: "An image tag is required"
-      pattern:
-        spec:
-          containers:
-          - image: "*:*"
+      cel:
+        expressions:
+          - expression: >-
+              (
+                  object.spec.containers +
+                  (has(object.spec.initContainers) ? object.spec.initContainers : []) +
+                  (has(object.spec.ephemeralContainers) ? object.spec.ephemeralContainers : [])
+              ).all(container,
+                  container.image.contains(':')
+              )
+            message: "An image tag is required"
   - name: validate-image-tag
     match:
       resources:
         kinds:
         - Pod
     validate:
-      message: "Using a mutable image tag e.g. 'latest' or 'main' is not allowed"
-      pattern:
-        spec:
-          containers:
-          - image: "!*:latest & !*:main"
+      cel:
+        expressions:
+          - expression: >-
+              (
+                  object.spec.containers +
+                  (has(object.spec.initContainers) ? object.spec.initContainers : []) +
+                  (has(object.spec.ephemeralContainers) ? object.spec.ephemeralContainers : [])
+              ).all(container,
+                  !(container.image.endsWith(':latest')) &&
+                  !(container.image.endsWith(':main'))
+              )
+            message: "Using a mutable image tag e.g. 'latest' or 'main' is not allowed"

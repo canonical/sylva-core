@@ -24,6 +24,12 @@ Process all units
 */}}
 {{ range $unit_name, $unit_def := .Values.units }}
 
+  {{/* fail if the unit has both 'repo' and 'helmrelease_spec.chart.spec.version' */}}
+  {{- if and ($unit_def | dig "helmrelease_spec" "chart" "spec" "version" "")
+             ($unit_def | dig "repo" "") -}}
+    {{- fail (printf "unit %s should not have 'repo' and 'helmrelease_spec.chart.spec.version' defined (when 'repo' is set the version used is taken from 'source_templates.<repo>' GitRepository object" $unit_name) -}}
+  {{- end -}}
+
   {{- if include "unit-enabled" (tuple $envAll $unit_name) -}}
 
     {{/* inherit settings from any template specified in unit.<this unit>.unit_templates */}}

@@ -28,6 +28,7 @@ from pathlib import Path
 import atexit
 import artifact_utils
 import logging
+import sys
 
 
 # Set up environment and variables
@@ -45,7 +46,7 @@ logger.info(f'helm_chart_version: {helm_chart_version}')
 # Copy the chart directory to the artifact directory and change into it
 chart_source_dir = base_dir / 'charts' / 'sylva-units'
 chart_dest_dir = artifact_utils.ARTIFACT_DIR / 'sylva-units'
-shutil.copytree(chart_source_dir, chart_dest_dir)
+shutil.copytree(chart_source_dir, chart_dest_dir, ignore=shutil.ignore_patterns('test-values'))
 os.chdir(chart_dest_dir)
 
 values_yaml_path = chart_dest_dir / "values.yaml"
@@ -276,10 +277,11 @@ merge_dictionaries(oci_values_data["units"], repo_overrides)
 
 save_yaml(oci_values_data, oci_values_yaml_path)
 
-# Remove test values directory
-test_values_dir = chart_dest_dir / "test-values"
-if test_values_dir.exists():
-    shutil.rmtree(test_values_dir)
+if os.getenv("ONLY_PRODUCE_USE_OCI_ARTIFACTS_VALUES", ""):
+    output_file = chart_source_dir / "use-oci-artifacts-final.values.yaml"
+    logger.info(f"ONLY_PRODUCE_USE_OCI_ARTIFACTS_VALUES is set, will only produce {output_file}")
+    save_yaml(oci_values_data, output_file)
+    sys.exit(0)
 
 # ############################## wrap up Helm packaging  #######################################
 os.chdir(chart_dest_dir)  # Ensure we are in the correct directory

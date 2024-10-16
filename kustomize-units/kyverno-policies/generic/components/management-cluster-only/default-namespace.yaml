@@ -17,7 +17,11 @@ metadata:
       should not be used. This policy validates that Pods specify a Namespace name other than `default`.
 spec:
   validationFailureAction: Enforce
-  background: true
+  background: false # validation is moved from Kyverno policy engine to kube-api server
+  webhookConfiguration:
+    matchConditions:
+    - name: 'is-create-or-update'
+      expression: 'request.operation in ["CREATE", "UPDATE"]'
   rules:
   - name: validate-namespace
     match:
@@ -26,10 +30,10 @@ spec:
           kinds:
           - Pod
     validate:
-      message: "Using 'default' namespace is not allowed."
-      pattern:
-        metadata:
-          namespace: "!default"
+      cel:
+        expressions:
+          - expression: "!(object.metadata.namespace == 'default')"
+            message: "Using 'default' namespace is not allowed."
   - name: validate-podcontroller-namespace
     match:
       any:
@@ -40,8 +44,7 @@ spec:
           - Job
           - StatefulSet
     validate:
-      message: "Using 'default' namespace is not allowed for pod controllers."
-      pattern:
-        metadata:
-          namespace: "!default"
-
+      cel:
+        expressions:
+          - expression: "!(object.metadata.namespace == 'default')"
+            message: "Using 'default' namespace is not allowed for pod controllers."

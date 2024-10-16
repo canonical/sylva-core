@@ -4,6 +4,7 @@ resources:
   - https://github.com/fluxcd/flux2/releases/download/v2.3.0/install.yaml
 components:
   - ../components/common
+  - ../components/extra-config
 
 patches:
 - target:
