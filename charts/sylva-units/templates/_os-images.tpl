@@ -26,19 +26,25 @@
   {{- $os_image_props := mergeOverwrite (dict "os_images_oci_registry" "sylva") $os_image_props }}
   {{- $oci_registry_url := dig $os_image_props.os_images_oci_registry "url" "" $os_images_oci_registries }}
   {{- $oci_registry_tag := dig $os_image_props.os_images_oci_registry "tag" "" $os_images_oci_registries }}
-    {{- if ($bootstrap_images) }}
-      {{- if (has $os_image_name $bootstrap_images) }}
-        {{- $os_image_props := mergeOverwrite (dict "os_images_oci_registry" "sylva") $os_image_props }}
-        {{- $uri := printf "%s/%s:%s" $oci_registry_url $os_image_name $oci_registry_tag }}
-        {{- $props := dict "uri" $uri "sylva_dib_image" true }}
-        {{- $_ := set $images $os_image_name $props }}
-      {{- end }}
-    {{- else if (or ($os_image_props.enabled) (and $os_image_props.default_enabled (not $os_images ))) }}
-        {{- $uri := printf "%s/%s:%s" $oci_registry_url $os_image_name $oci_registry_tag }}
-        {{- $props := dict "uri" $uri "sylva_dib_image" true }}
-        {{- $_ := set $images $os_image_name $props }}
-    {{- end }}
+  {{- $oci_registry_cosign_publickey := dig $os_image_props.os_images_oci_registry "cosign_publickey" "" $os_images_oci_registries }}
+
+  {{- $use_image := false -}}
+  {{- if ($bootstrap_images) }}
+    {{/* if bootstrap images is set, we'll use an image only if it appears in bootstrap_images */}}
+    {{- $use_image = has $os_image_name $bootstrap_images -}}
+  {{- else -}}
+    {{/* else, we'll use it if .enabled is set or, if os_images isn't set if .default_enabled is set */}}
+    {{- $use_image = or ($os_image_props.enabled) (and $os_image_props.default_enabled (not $os_images)) -}}
   {{- end }}
+
+  {{- if $use_image -}}
+    {{- $props := dict "uri"              (printf "%s/%s:%s" $oci_registry_url $os_image_name $oci_registry_tag)
+                       "sylva_dib_image"  true
+                       "cosign_publickey" $oci_registry_cosign_publickey
+                       -}}
+    {{- $_ := set $images $os_image_name $props }}
+  {{- end -}}
+{{- end }}
 {{- $images | toJson }}
 {{- end }}
 
