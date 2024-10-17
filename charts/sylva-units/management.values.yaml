@@ -288,3 +288,10 @@ _internal:
   mgmt_cluster: true
 
   calico_readiness_unit: '{{ .Values._internal.state.is_upgrade | ternary "calico-ready" "calico" }}'
+
+  monitoring:
+    conditionals:
+      # Always deploy management cluster Longhorn resources, so that the dashboard
+      # is available to observe Longhorn metrics of any workload cluster
+      longhorn:
+        enabled: 'true'

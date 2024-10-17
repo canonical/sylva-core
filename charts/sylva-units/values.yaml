@@ -135,7 +135,7 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
     spec:
       url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-prometheus-rules.git
       ref:
-        tag: 0.0.13
+        tag: 0.0.14
 
   sylva-thanos-rules:
     kind: GitRepository
@@ -4322,17 +4322,7 @@ units:
         createNamespace: true
       values:
         namespace: sylva-dashboards
-        optional_dashboards:
-          longhorn:
-            enabled: '{{ tuple . "longhorn" | include "unit-enabled" }}'
-          flux:
-            enabled: '{{ tuple . "flux-system" | include "unit-enabled" }}'
-          minio:
-            enabled: '{{ tuple . "minio-operator" | include "unit-enabled" }}'
-          loki:
-            enabled: '{{ tuple . "loki" | include "unit-enabled" }}'
-          kepler:
-            enabled: '{{ tuple . "kepler" | include "unit-enabled" }}'
+        optional_dashboards: '{{ .Values._internal.monitoring.conditionals | include "preserve-type" }}'
 
   multus:
     info:
@@ -6653,6 +6643,7 @@ units:
         createRules:
           allclusters: true
           '{{ .Values.cluster.name }}': true
+        optional_rules: '{{ .Values._internal.monitoring.conditionals | include "preserve-type" }}'
 
   sylva-thanos-rules:
     info:
@@ -7343,6 +7334,21 @@ _internal:
 
   # value of "node-role.kubernetes.io/control-plane" node label that differs between kubeadm and rke2
   cp_node_label_value: '{{ (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpr") | ternary "true" "" }}'
+
+  monitoring:
+    conditionals:
+      longhorn:
+        enabled: '{{ tuple . "longhorn" | include "unit-enabled" }}'
+      flux:
+        enabled: '{{ tuple . "flux-system" | include "unit-enabled" }}'
+      minio:
+        enabled: '{{ tuple . "minio-monitoring" | include "unit-enabled" }}'
+      loki:
+        enabled: '{{ tuple . "loki" | include "unit-enabled" }}'
+      kepler:
+        enabled: '{{ tuple . "kepler" | include "unit-enabled" }}'
+      snmp:
+        enabled: '{{ tuple . "snmp-exporter" | include "unit-enabled" }}'
 
   # thanos user and password
   thanos_user: '{{ .Values.cluster.name }}'
