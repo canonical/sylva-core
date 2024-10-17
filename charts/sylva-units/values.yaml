@@ -7165,7 +7165,7 @@ k8s_version_short: "1.29"
 
 # Renovate Bot needs additional information to detect sylva diskimage-builder version
 # renovate: depName=sylva-projects/sylva-elements/diskimage-builder
-sylva_diskimagebuilder_version: 0.3.2
+sylva_diskimagebuilder_version: 0.3.3
 
 sylva_diskimagebuilder_images:
   ubuntu-jammy-hardened-rke2-1-29-9:
