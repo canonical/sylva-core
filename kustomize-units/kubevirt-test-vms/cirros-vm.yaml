@@ -1,7 +1,7 @@
 apiVersion: kubevirt.io/v1
 kind: VirtualMachine
 metadata:
-  name: sylva-tests-cirros-vm
+  name: cpumanager-fg-test-vm
 spec:
   running: true
   template:
