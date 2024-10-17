@@ -61,7 +61,7 @@
 | **minio-operator** | install MinIO operator<br/><br/>MinIO operator is used to manage multiple S3 tenants | beta |  | [Helm](https://github.com/minio/operator.git) | v5.0.16 |
 | **neuvector** | installs Neuvector | beta |  | [Helm](https://neuvector.github.io/neuvector-helm) | 2.8.1 |
 | **openshift-assisted-installer** | installs assisted installer operator for OKD | experimental |  | [Kustomize](https://raw.githubusercontent.com/openshift/assisted-service/v2.33.0/hack/crds/hive.openshift.io_clusterdeployments.yaml) | v2.33.0 |
-| **prometheus-pushgateway** | installs Prometheus Push-gateway exporter | beta |  | [Helm](https://prometheus-community.github.io/helm-charts) | 2.14.0 |
+| **prometheus-pushgateway** | installs Prometheus Push-gateway exporter | beta |  | [Helm](https://prometheus-community.github.io/helm-charts) | 2.15.0 |
 | **rancher-init** | initializes and configures Rancher | beta | True | Kustomize | N/A |
 | **snmp-exporter** | installs SNMP exporter | beta |  | [Helm](https://prometheus-community.github.io/helm-charts) | 5.5.1 |
 | **sylva-dashboards** | adds Sylva-specific Grafana dashboards | beta |  | [Helm](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-dashboards.git) | 0.0.12 |
