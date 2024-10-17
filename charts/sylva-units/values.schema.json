@@ -8450,7 +8450,8 @@
           "additionalProperties": false,
           "required": [
             "url",
-            "tag"
+            "tag",
+            "cosign_publickey"
           ],
           "properties": {
             "url": {
@@ -8467,6 +8468,17 @@
             },
             "tag": {
               "type": "string"
+            },
+            "cosign_publickey": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^-----BEGIN PUBLIC KEY-----"
+                },
+                {
+                  "ref": "#/$defs/string-with-gotpl"
+                }
+              ]
             }
           }
         }
@@ -8627,10 +8639,12 @@
       "additionalProperties": false,
       "properties": {
         "default_cosign_public_key": {
-          "type": "string"
+          "type": "string",
+          "pattern": "^-----BEGIN PUBLIC KEY-----"
         },
         "upstream_images_signature": {
           "type": "object",
+          "additionalProperties": false,
           "properties": {
             "verify": {
               "type": "boolean"
@@ -8643,7 +8657,15 @@
               "type": "string"
             },
             "cosign_public_key": {
-              "type": "string"
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^-----BEGIN PUBLIC KEY-----"
+                },
+                {
+                  "ref": "#/$defs/string-with-gotpl"
+                }
+              ]
             },
             "images_list": {
               "type": "array"
@@ -8655,6 +8677,26 @@
         },
         "neuvector_scanning_enabled": {
           "type": "boolean"
+        },
+        "os_images": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "skip_signing_check": {
+              "type": "boolean"
+            },
+            "cosign_public_key": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^-----BEGIN PUBLIC KEY-----"
+                },
+                {
+                  "ref": "#/$defs/string-with-gotpl"
+                }
+              ]
+            }
+          }
         }
       }
     },

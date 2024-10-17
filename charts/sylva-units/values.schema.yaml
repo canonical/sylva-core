@@ -1015,6 +1015,7 @@ properties:
         required:
           - url
           - tag
+          - cosign_publickey
         properties:
           url:  # -------------------------------
             anyOf:
@@ -1024,6 +1025,11 @@ properties:
               - $ref: "#/$defs/string-with-gotpl"
           tag:  # -------------------------------
             type: string
+          cosign_publickey:
+            anyOf:
+              - type: string
+                pattern: ^-----BEGIN PUBLIC KEY-----
+              - ref: "#/$defs/string-with-gotpl"
 
   oci_registry_extra_ca_certs:  # -------------------------------
     type: string
@@ -1136,8 +1142,10 @@ properties:
     properties:
       default_cosign_public_key:
         type: string
+        pattern: ^-----BEGIN PUBLIC KEY-----
       upstream_images_signature:
         type: object
+        additionalProperties: false
         properties:
           verify:
             type: boolean
@@ -1147,13 +1155,27 @@ properties:
           repository:
             type: string
           cosign_public_key:
-            type: string
+            anyOf:
+              - type: string
+                pattern: ^-----BEGIN PUBLIC KEY-----
+              - ref: "#/$defs/string-with-gotpl"
           images_list:
             type: array
       calico_wireguard_enabled:
         type: boolean
       neuvector_scanning_enabled:
         type: boolean
+      os_images:
+        type: object
+        additionalProperties: false
+        properties:
+          skip_signing_check:
+            type: boolean
+          cosign_public_key:
+            anyOf:
+              - type: string
+                pattern: ^-----BEGIN PUBLIC KEY-----
+              - ref: "#/$defs/string-with-gotpl"
 
   monitoring:  # -------------------------------
     type: object

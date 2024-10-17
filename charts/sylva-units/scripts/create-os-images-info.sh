@@ -30,9 +30,21 @@ while read os_image_key; do
   # Check if the artifact is a Sylva diskimage-builder artifact
   uri=$(yq '.os_images.[env(os_image_key)].uri' /opt/images.yaml)
   sylva_dib_image=$(yq '.os_images.[env(os_image_key)].sylva_dib_image' /opt/images.yaml)
+
   if [[ "$sylva_dib_image" == "true" ]]; then
     echo "This is a Sylva diskimage-builder image. Updating image details from artifact at $uri"
     url=$(echo $uri| sed 's|oci://||')
+
+    if ! $SKIP_IMAGE_VERIFICATION; then
+      echo "Verifying diskimage-builder image signature for $url" 
+
+      yq '.os_images.[env(os_image_key)].cosign_publickey' /opt/images.yaml > /tmp/cosign.pub
+
+      if ! cosign verify  --allow-insecure-registry=$oci_registry_insecure --key /tmp/cosign.pub --insecure-ignore-tlog=true $url; then
+         echo "[ERROR] Invalid signature for $url"
+         exit 1
+      fi
+    fi
     # Get artifact annotations and insert them as image details
     insecure=$([[ $oci_registry_insecure == "true" ]] && echo "--insecure" || true)
     manifest=$(oras manifest fetch $url $insecure)

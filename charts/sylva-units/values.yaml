@@ -1874,7 +1874,7 @@ units:
           SIGN_MGMT: '{{ .Values.security.upstream_images_signature.policy_action }}'
           SIG_REPO: '{{ .Values.security.upstream_images_signature.repository }}'
           DIGEST: '{{ .Values.security.upstream_images_signature.policy_action | eq "Enforce" }}'
-          COSIGN_PUBLIC_KEY: '{{ .Values.security.upstream_images_signature.cosign_public_key }}'
+          COSIGN_PUBLIC_KEY: '{{ .Values.security.upstream_images_signature.cosign_public_key | quote }}'
           IMAGE_LIST: '{{ .Values.security.upstream_images_signature.images_list | toJson }}'
       _components:
         - '{{ tuple "components/management-cluster-only" .Values._internal.mgmt_cluster | include "set-only-if" }}'
@@ -4845,6 +4845,9 @@ units:
                 value: '{{ include "sylva-units.no_proxy" (tuple .) }}'
               - name: oci_registry_insecure
                 value: '{{ .Values.oci_registry_insecure }}'
+              - name: SKIP_IMAGE_VERIFICATION
+                value: '{{ .Values.security.os_images.skip_signing_check }}'
+
         - target:
             kind: ConfigMap
             labelSelector: kube-job=script
@@ -7156,6 +7159,7 @@ os_images_oci_registries:
   sylva:
     url: '{{ .Values.sylva_base_oci_registry }}/sylva-elements/diskimage-builder'
     tag: '{{ .Values.sylva_diskimagebuilder_version }}'
+    cosign_publickey: '{{ .Values.security.os_images.cosign_public_key }}'
 
 k8s_version_short: "1.29"
 
@@ -7194,11 +7198,11 @@ os_images_default_download_storage_space: 30Gi
 get_openstack_images_per_image_timeout_minutes: 30
 
 security:
-  default_cosign_public_key: |- # the default public key in PEM format to be used to verify cosign signatures
-     -----BEGIN PUBLIC KEY-----\n
-     MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEEN6LNycNA/OB8/dtqTPZcPDuLnxW\n
-     hR0Rskmno7Lx1WqBl2ylN/sfkLEAPfCkizceHiu/fw8lnsPq9uSGlAICeQ==\n
-     -----END PUBLIC KEY-----
+  default_cosign_public_key: | # the default public key in PEM format to be used to verify cosign signatures
+    -----BEGIN PUBLIC KEY-----
+    MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEcuuLszwy0u7y394KY6GW1BgjfaU6
+    aK7e95MV+ikZnRfR5EHtqEk1tScNhMqQJMpuFs3QH1TVBr6TIWVLx5cUtg==
+    -----END PUBLIC KEY-----
   upstream_images_signature:
     verify: false # verify the signature of the upstream images
     policy_action: Audit  # action taken by kyverno when validation fails report (set Audit) or block the pod (set Enforce)
@@ -7210,6 +7214,9 @@ security:
       - hashicorp/vault*
   calico_wireguard_enabled: false  # disable wireguard by default
   neuvector_scanning_enabled: false # disable Neuvector scanning capability by default
+  os_images:
+    skip_signing_check: false
+    cosign_public_key: '{{ .Values.security.default_cosign_public_key }}'
 
 monitoring:
   platform_tag: Sylva
