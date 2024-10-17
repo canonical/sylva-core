@@ -259,9 +259,9 @@ for unit in default_values_units:
                     "helmrelease_spec": {
                         "chart": {
                             "spec": {
-                                "version": default_values_source_templates[
-                                    default_values_units[unit]["repo"]
-                                ]["spec"]["ref"]["tag"]
+                                "version": artifact_utils.chart_version_from_repo(
+                                    default_values_source_templates[
+                                        default_values_units[unit]["repo"]])
                             }
                         }
                     },

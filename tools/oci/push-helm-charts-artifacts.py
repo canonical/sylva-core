@@ -129,9 +129,23 @@ def process_chart_in_helm_repo(helm_repo, chart_name, chart_version, artifact_na
         logging.error(error_message)
 
 
-def process_chart_in_git(git_repo, chart_path, revision, chart_name):
-    tgz_file = f"{artifact_utils.ARTIFACT_DIR}/{chart_name}-{revision}.tgz"
-    if subprocess.run(f"git clone -q --depth 1 --branch {revision} {git_repo} {artifact_utils.ARTIFACT_DIR}",
+def process_chart_in_git(repo, chart_path, chart_name):
+
+    chart_version = artifact_utils.chart_version_from_repo(repo)
+
+    git_repo_url = repo['spec']['url']
+
+    if 'branch' in repo['spec']['ref']:
+        git_revision = repo['spec']['ref']['branch']
+
+    if 'tag' in repo['spec']['ref']:
+        git_revision = repo['spec']['ref']['tag']
+
+    if not git_revision:
+        raise Exception(f"git revision could not be identified from <repo>.spec.ref ({repo['spec']['ref']})")
+
+    tgz_file = f"{artifact_utils.ARTIFACT_DIR}/{chart_name}-{chart_version}.tgz"
+    if subprocess.run(f"git clone -q --depth 1 --branch {git_revision} {git_repo_url} {artifact_utils.ARTIFACT_DIR}",
                       shell=True, cwd=artifact_utils.ARTIFACT_DIR,
                       stdout=subprocess.PIPE, stderr=subprocess.STDOUT):
         subprocess.run(f"helm dep update {artifact_utils.ARTIFACT_DIR}/{chart_path}",
@@ -143,18 +157,18 @@ def process_chart_in_git(git_repo, chart_path, revision, chart_name):
             f.seek(0)
             yaml.safe_dump(chart, f)
             f.truncate()
-        subprocess.run(f"helm package --version {revision} {artifact_utils.ARTIFACT_DIR}/{chart_path}"
+        subprocess.run(f"helm package --version {chart_version} {artifact_utils.ARTIFACT_DIR}/{chart_path}"
                        f" -d {artifact_utils.ARTIFACT_DIR}",
                        shell=True, cwd=artifact_utils.ARTIFACT_DIR,
                        stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         if os.path.exists(tgz_file):
-            artifact_utils.process_artifact_helm(chart_name, revision, tgz_file)
+            artifact_utils.process_artifact_helm(chart_name, chart_version, tgz_file)
         else:
             error_message = f"The {tgz_file} is not present after the 'helm package' " \
                 f"operation, check that the chart version is correct."
             logging.error(error_message)
     else:
-        error_message = f"The git repository {git_repo} revision {revision} can't be cloned."
+        error_message = f"The git repository {git_repo_url} revision {git_revision} can't be cloned."
         logging.error(error_message)
 
 
@@ -191,9 +205,7 @@ for unit_name in sorted(units.keys()):
         else:
             chart_name = unit.get('helm_chart_artifact_name', chart.split('/')[-1])
             repo = unit.get('repo')
-            git_repo_url = source_templates[repo]['spec']['url']
-            git_revision = source_templates[repo]['spec']['ref']['tag']
-            process_chart_in_git(git_repo_url, chart, git_revision, chart_name)
+            process_chart_in_git(source_templates[repo], chart, chart_name)
             end_section(unit_name)
     artifact_utils.delete_temp_files()
 
