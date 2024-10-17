@@ -30,6 +30,35 @@ logger = logging.getLogger(__name__)
 logger.info(f"(working in {ARTIFACT_DIR})")
 
 
+def chart_version_from_repo(repo):
+    """Produces a string which will be used as Helm chart version
+    from a source_templates.xxx repo
+
+    Args:
+        repo (dict): dict holding the repo definition (content of source_templates.xxx)
+    """
+    repo_ref = repo["spec"]["ref"]
+
+    if "tag" in repo_ref:
+        return repo_ref["tag"]
+
+    # if the source_templates repo entry points to a branch
+    # we'll generate an OCI artifact with a version containing the branch name and the CI pipeline id
+    # adding the pipeline id allows to have an up-to-date OCI artifact each time a new pipeline is created
+    # (without the pipeline id, a new pipeline after a change of the branch, would result in a different content
+    # and a failure to re-push the OCI artifact because of the checks done elsewhere in these tools to avoid
+    # overwriting an existing artifact with different content)
+    if "branch" in repo_ref:
+        sanitized_branch_name = re.sub(r"[^a-zA-Z0-9-]", "-", repo_ref["branch"])
+        pipeline_id = os.getenv("CI_PIPELINE_IID")
+        if not pipeline_id:
+            raise Exception(f"no CI_PIPELINE_IID, can't generate version for Helm artifact for source_template repo ({repo})")
+        return f"0.0.0-{sanitized_branch_name}-{pipeline_id}"
+
+    if "commit" in repo_ref:
+        raise Exception("using commit in source_templates.x.spec.ref isn't compatible with the production of OCI artifacts")
+
+
 def diff(artifact_name, source_dir, dest_dir):
     logger.info("---------- make a diff --------------")
     result = subprocess.run(
