@@ -42,7 +42,7 @@ cluster:
         bootMACAddress: 52:54:00:44:44:03
 
 libvirt_metal:
-  #image: registry.gitlab.com/sylva-projects/sylva-elements/container-images/libvirt-metal:0.1.4  # customize if wanted
+  #image: registry.gitlab.com/sylva-projects/sylva-elements/container-images/libvirt-metal:_tag_  # customize if wanted
   nodes:
     management-cp-0:
       redfishPort: 8000
@@ -50,7 +50,7 @@ libvirt_metal:
       numCPUs: 8
     management-cp-1:
       redfishPort: 8001
-      memGB: 28
+      memGB: 24
       numCPUs: 8
     management-cp-2:
       redfishPort: 8002
