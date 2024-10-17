@@ -92,7 +92,6 @@
 | **cluster-node-provider-id-blacklist** | Kyverno policy to prevent nodes from being recreated with a providerID that has already been used |  | True | Kustomize | N/A |
 | **cluster-reachable** | ensure that created clusters are reachable, and make failure a bit more explicit if it is not the case<br/><br/>This unit will be enabled in bootstrap cluster to check connectivity to management cluster and in various workload-cluster namespaces in management cluster to check connectivity to workload clusters |  | True | Kustomize | N/A |
 | **cluster-ready** | unit to check readiness of cluster CAPI objects<br/><br/>the healthChecks on this unit complements the one done in the 'cluster' unit, which in some cases can't cover all CAPI resources |  | True | Kustomize | N/A |
-| **cluster-rke2-finalizer-fix** | Kyverno policy to clean a stray finalizer left by RKE2 on Nodes<br/><br/>Kyverno policy to delete the "wrangler.cattle.io/cisnetworkpolicy-node" finalizer<br/>that RKE2 sets on Nodes before version 1.28.9, and because it sometimes isn't<br/>removed, prevents deletion of Nodes. |  | True | Kustomize | N/A |
 | **coredns** | configures DNS inside cluster |  | True | Kustomize | N/A |
 | **descheduler** | install descheduler |  |  | [Helm](https://kubernetes-sigs.github.io/descheduler/) | 0.31.0 |
 | **eso-secret-stores** | defines External Secrets stores |  | True | Kustomize | N/A |
