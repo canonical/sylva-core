@@ -177,9 +177,6 @@ units:
   cluster-node-provider-id-blacklist:
     enabled: true
 
-  cluster-rke2-finalizer-fix:
-    enabled: true
-
   cluster-bmh:
     enabled: true
     unit_templates:
@@ -191,11 +188,6 @@ units:
     - helmrelease-deployed-on-mgmt-cluster
     depends_on:
       # as a pre-requisite to an upgrade, we need to have following units be applied in the workload cluster
-      cluster-rke2-finalizer-fix:
-        '{{
-        and (tuple . "cluster-rke2-finalizer-fix" | include "unit-enabled")
-            .Values._internal.state.is_upgrade
-        }}'
       cluster-node-provider-id-blacklist:
         '{{
         and (tuple . "cluster-node-provider-id-blacklist" | include "unit-enabled")
@@ -206,7 +198,6 @@ units:
         and (tuple . "longhorn-instance-manager-cleanup" | include "unit-enabled")
             .Values._internal.state.is_upgrade
         }}'
-
 
   cluster-reachable:
     enabled: true

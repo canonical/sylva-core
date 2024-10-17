@@ -1767,8 +1767,6 @@ units:
         createNamespace: true
       values:
         config:
-          ### see https://gitlab.com/sylva-projects/sylva-core/-/issues/1425
-          # this can be removed once we upgrade to RKE2 > 1.28.8
           resourceFiltersExclude:
           - "[Node,*,*]"
           - "[Node/*,*,*]"
@@ -2626,7 +2624,6 @@ units:
       cluster-bmh: '{{ .Values.cluster.capi_providers.infra_provider | eq "capm3" }}'
       metal3-automated-cleanup-fix: '{{ tuple . "metal3-automated-cleanup-fix" | include "unit-enabled" }}'
       cluster-node-deletion-timeout-fix: '{{ tuple . "cluster-node-deletion-timeout-fix" | include "unit-enabled" }}'
-      cluster-rke2-finalizer-fix: '{{ tuple . "cluster-rke2-finalizer-fix" | include "unit-enabled" }}'
       cluster-node-provider-id-blacklist: '{{ tuple . "cluster-node-provider-id-blacklist" | include "unit-enabled" }}'
       longhorn-instance-manager-cleanup: '{{ tuple . "longhorn-instance-manager-cleanup" | include "unit-enabled" }}'
       thanos-uninstall-pre-upgrade: '{{ tuple . "thanos-uninstall-pre-upgrade" | include "unit-enabled" }}'
@@ -2707,26 +2704,6 @@ units:
       path: ./kustomize-units/cluster-garbage-collector
       _components:
         - '{{ tuple "components/dev-ci-cronjob-schedule" (list "dev" "ci" | has .Values.env_type) | include "set-only-if" }}'
-
-  cluster-rke2-finalizer-fix:
-    info:
-      description: Kyverno policy to clean a stray finalizer left by RKE2 on Nodes
-      details: |
-        Kyverno policy to delete the "wrangler.cattle.io/cisnetworkpolicy-node" finalizer
-        that RKE2 sets on Nodes before version 1.28.9, and because it sometimes isn't
-        removed, prevents deletion of Nodes.
-      internal: true
-    unit_templates:
-    - base-deps
-    enabled_conditions:
-    - '{{ tuple . "kyverno" | include "unit-enabled" }}'
-    - '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" }}'  # RKE2-only
-    depends_on:
-      kyverno: true
-    repo: sylva-core
-    kustomization_spec:
-      path: ./kustomize-units/kyverno-policies/rke2-clear-cisnetworkpolicy-finalizer
-      wait: true
 
   cluster-ready:
     info:
