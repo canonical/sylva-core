@@ -4,3 +4,4 @@ kind: Component
 resources:
   - eso-keycloak-initial-admin.yaml 
   - eso-keycloak-internal-tls.yaml
+  - eso-sylva-system-keycloak-initial-admin.yaml

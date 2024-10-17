@@ -1440,6 +1440,35 @@ units:
     kustomization_spec:
       path: ./kustomize-units/crossplane-provider-keycloak-config
 
+
+  get-keycloak-uuids:
+    info:
+      description: Get keycloak resource uuids
+      internal: true
+    unit_templates:
+    - base-deps
+    depends_on:
+      keycloak: true
+      crossplane-provider-keycloak-config: true
+    enabled_conditions:
+      - '{{ tuple . "crossplane" | include "unit-enabled" }}'
+      - '{{ tuple . "keycloak" | include "unit-enabled" }}'
+    repo: sylva-core
+    kustomization_spec:
+      path: ./kustomize-units/get-keycloak-uuids
+      wait: true
+      force: true
+      postBuild:
+        healthChecks:
+          - apiVersion: v1
+            kind: Configmap
+            name: keycloak-uuid-resources
+            namespace: sylva-system
+        substitute:
+          JOB_NAME: get-keycloak-resource-uuids
+          JOB_TARGET_NAMESPACE: '{{ .Release.Namespace }}'
+          JOB_CHECKSUM: '{{ .Values | toJson | sha256sum }}'
+
   crossplane:
     info:
       description: Installs Crossplane with RBAC Manager
