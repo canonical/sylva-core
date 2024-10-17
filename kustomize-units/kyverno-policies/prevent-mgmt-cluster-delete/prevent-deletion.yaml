@@ -1,11 +1,21 @@
 apiVersion: kyverno.io/v1
-kind: ClusterPolicy
+kind: Policy
 metadata:
-  name: avoid-delete-mgmt-resources
+  name: avoid-delete-mgmt-resources-flux
   annotations:
     kustomize.toolkit.fluxcd.io/force: Enabled
 spec:
-  background: true
+  background: false
+  webhookConfiguration:
+    matchConditions:
+    - name: is-delete
+      expression: request.operation == "DELETE"
+    - name: match-name-and-ns
+      expression: >-
+        has(oldObject.metadata) && oldObject.metadata.name in [
+          "cluster",
+          "cluster-bmh",
+        ] && oldObject.metadata.namespace == "sylva-system"
   rules:
   - name: helm-resources
     match:
@@ -14,35 +24,35 @@ spec:
           kinds:
           - helm.toolkit.fluxcd.io/*/HelmRelease
           - kustomize.toolkit.fluxcd.io/*/Kustomization
-          names:
-          - cluster
-          - cluster-bmh
-          namespaces:
-          - sylva-system
     validate:
-      message: Deleting the Sylva Flux resources that describe the Cluster API cluster for the management cluster is not possible without breaking the Sylva management cluster.
-      deny:
-        conditions:
-        - key: "{{request.operation}}"
-          operator: In
-          value:
-          - DELETE
+      message: Deleting the Flux resources that describe the Sylva management cluster is not possible without breaking the Sylva management cluster.
+      deny: {}
+  validationFailureAction: Enforce
+---
+apiVersion: kyverno.io/v1
+kind: Policy
+metadata:
+  name: avoid-delete-mgmt-resources-capi
+  annotations:
+    kustomize.toolkit.fluxcd.io/force: Enabled
+spec:
+  background: false
+  webhookConfiguration:
+    matchConditions:
+    - name: is-delete
+      expression: request.operation == "DELETE"
+    - name: match-ns
+      expression: >-
+        has(oldObject.metadata) && oldObject.metadata.namespace == "sylva-system"
+  rules:
   - name: cluster-resources
     match:
       any:
       - resources:
           kinds:
           - cluster.x-k8s.io/*/Cluster
-          - "controlplane.cluster.x-k8s.io/*/*"
-          selector:
-            matchLabels:
-              cluster.x-k8s.io/cluster-name: ${CLUSTER_NAME:-management-cluster}
+          - controlplane.cluster.x-k8s.io/*/*
     validate:
-      message: Deleting the Sylva Flux resources that describe the Cluster API cluster for the management cluster is not possible without breaking the Sylva management cluster.
-      deny:
-        conditions:
-        - key: "{{request.operation}}"
-          operator: In
-          value:
-          - DELETE
+      message: Deleting the Sylva CAPI resources that describe the Cluster API cluster for the management cluster is not possible without breaking the Sylva management cluster.
+      deny: {}
   validationFailureAction: Enforce
