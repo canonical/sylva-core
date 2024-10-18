@@ -26,6 +26,15 @@
   },
   "packageRules": [
     {
+      "description": "Limit patch updates frequency to every 2 weeks for some packages",
+      "matchPackageNames": [
+        "thanos",
+        "postgresql"
+      ],
+      "matchUpdateTypes": ["patch"],
+      "schedule": ["* * 1,14 * *"]
+    },
+    {
       "description": "Regroup CAPI and capd-manager updates",
       "matchPackageNames": [
         "gcr.io/k8s-staging-cluster-api/capd-manager",
