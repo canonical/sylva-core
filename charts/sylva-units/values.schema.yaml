@@ -1309,7 +1309,7 @@ properties:
                 - format: hostname
             module:
               type: string
-              pattern: "^(dell_idrac|hp_cpq)$"
+              pattern: "^(dell_idrac|hp_cpq|lenovo_xcc)$"
             auth:
               type: string
             cluster_name:
