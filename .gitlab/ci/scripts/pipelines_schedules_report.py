@@ -68,15 +68,17 @@ def pipeline_summary(pipeline):
     summary = ""
 
     def _sort_jobs_by_starting_date(jobs):
+        pending_jobs = [j for j in jobs if j.status == "pending"]
         executed_jobs = [j for j in jobs if hasattr(j, "started_at") and j.started_at]
-        return sorted(
+        sorted_executed_jobs = sorted(
             executed_jobs,
             key=lambda x: datetime.datetime.strptime(
                 x.started_at, "%Y-%m-%dT%H:%M:%S.%f%z"
-            ),
+            )
         )
+        return sorted_executed_jobs + pending_jobs
 
-    jobs = _sort_jobs_by_starting_date(pipeline.jobs.list())
+    jobs = _sort_jobs_by_starting_date(pipeline.jobs.list(get_all=True))
     test_jobs = [j for j in jobs if j.stage == "deployment-test"]
     test_combined_md = ""
 
