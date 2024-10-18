@@ -27,9 +27,9 @@ metadata:
 spec:
   filters:
   - parser:
-      key_name: message
+      key_name: MESSAGE
       parse:
-        expression: time="(?<timestamp>[^"]+)" level=(?<level>[a-zA-Z]+) msg="(?<message>[^"]+)"
+        expression: time="(?<timestamp>[^"]+)" level=(?<level>[a-zA-Z]+) msg="(?<log_message>[^"]+)"
         time_format: '%Y-%m-%dT%H:%M:%SZ'
         time_key: timestamp
         type: regexp
