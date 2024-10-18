@@ -14,9 +14,6 @@ spec:
   - from:
     - podSelector:
         matchLabels:
-          app.kubernetes.io/name: crossplane
-    - podSelector:
-        matchLabels:
           app.kubernetes.io/name: crossplane-rbac-manager
     - podSelector:
         matchLabels:
@@ -44,9 +41,6 @@ spec:
     - podSelector:
         matchLabels:
           app.kubernetes.io/name: crossplane
-    - podSelector:
-        matchLabels:
-          app.kubernetes.io/name: crossplane-rbac-manager
     - podSelector:
         matchLabels:
           app: crossplane-provider
