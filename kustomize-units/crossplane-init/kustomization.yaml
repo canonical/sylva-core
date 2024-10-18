@@ -3,4 +3,3 @@ kind: Kustomization
 
 resources:
   - crossplane-network-policy.yaml
-
