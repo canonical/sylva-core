@@ -4,10 +4,10 @@ description:
     Deletes a pod belonging to a deployment/statefulset/daemonset
 kind: ChaosExperiment
 metadata:
-  name: k8s-api-response
-  namespace: litmus
+  name: pod-delete-sa
+  namespace: vault
   labels:
-    name: k8s-api-response
+    name: pod-delete
     app.kubernetes.io/part-of: litmus
     app.kubernetes.io/component: chaosexperiment
     app.kubernetes.io/version: 3.4.0
@@ -47,17 +47,17 @@ spec:
           - "update"
           - "delete"
           - "deletecollection"
-    image: 'nikhilsethi31/go-runner:combined-image-v1.0.6'
+    image: 'litmuschaos/go-runner:3.4.0'
     imagePullPolicy: 'IfNotPresent'
     args:
     - -c
-    - ./experiments -name k8s-api-response
+    - ./experiments -name pod-delete
     command:
     - /bin/bash
     env:
 
     - name: TOTAL_CHAOS_DURATION
-      value: '100'
+      value: '30'
 
     # Period to wait before and after injection of chaos in sec
 
@@ -68,10 +68,10 @@ spec:
       value: 'true'
 
     - name: CHAOS_INTERVAL
-      value: '100'
+      value: '10'
 
     - name: TARGET_PODS
-      value: 'custom-exp-pod'
+      value: 'vault-0,vault-1,vault-2'
 
     # pod failures without '--force' & default terminationGracePeriodSeconds
     - name: FORCE
@@ -81,17 +81,11 @@ spec:
     - name: PODS_AFFECTED_PERC
       value: '100'
 
-    - name: CLUSTERID
-      value: 'sylva-cluster'
-
-    - name: WORKLOAD_CLUSTER_NAME
-      value: ''
-
     - name: LIB
       value: 'litmus'
 
     - name: LIB_IMAGE
-      value: 'nikhilsethi31/go-runner:combined-image-v1.0.6'
+      value: 'litmuschaos/go-runner:3.4.0'
 
     - name: LIB_IMAGE_PULL_POLICY
       value: 'IfNotPresent'
@@ -102,7 +96,7 @@ spec:
       value: 'serial'
 
     labels:
-      name: k8s-api-response
+      name: pod-delete
       app.kubernetes.io/part-of: litmus
       app.kubernetes.io/component: experiment-job
       app.kubernetes.io/version: 3.4.0

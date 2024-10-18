@@ -4,10 +4,10 @@ description:
     Deletes a pod belonging to a deployment/statefulset/daemonset
 kind: ChaosExperiment
 metadata:
-  name: k8s-api-response
+  name: login-test-1-1726768797
   namespace: litmus
   labels:
-    name: k8s-api-response
+    name: login-test
     app.kubernetes.io/part-of: litmus
     app.kubernetes.io/component: chaosexperiment
     app.kubernetes.io/version: 3.4.0
@@ -47,17 +47,17 @@ spec:
           - "update"
           - "delete"
           - "deletecollection"
-    image: 'nikhilsethi31/go-runner:combined-image-v1.0.6'
+    image: 'nikhilsethi31/go-runner:combined-image-v1.0.9'
     imagePullPolicy: 'IfNotPresent'
     args:
     - -c
-    - ./experiments -name k8s-api-response
+    - ./experiments -name login-test
     command:
     - /bin/bash
     env:
 
     - name: TOTAL_CHAOS_DURATION
-      value: '100'
+      value: '10'
 
     # Period to wait before and after injection of chaos in sec
 
@@ -68,7 +68,7 @@ spec:
       value: 'true'
 
     - name: CHAOS_INTERVAL
-      value: '100'
+      value: '10'
 
     - name: TARGET_PODS
       value: 'custom-exp-pod'
@@ -84,14 +84,11 @@ spec:
     - name: CLUSTERID
       value: 'sylva-cluster'
 
-    - name: WORKLOAD_CLUSTER_NAME
-      value: ''
-
     - name: LIB
       value: 'litmus'
 
     - name: LIB_IMAGE
-      value: 'nikhilsethi31/go-runner:combined-image-v1.0.6'
+      value: 'nikhilsethi31/go-runner:combined-image-v1.0.9'
 
     - name: LIB_IMAGE_PULL_POLICY
       value: 'IfNotPresent'
@@ -102,7 +99,7 @@ spec:
       value: 'serial'
 
     labels:
-      name: k8s-api-response
+      name: login-test
       app.kubernetes.io/part-of: litmus
       app.kubernetes.io/component: experiment-job
       app.kubernetes.io/version: 3.4.0

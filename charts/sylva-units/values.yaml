@@ -860,6 +860,34 @@ units:
     kustomization_spec:
       path: ./kustomize-units/litmus-testcases/k8s-api-response
 
+  litmus-testcase-login-test:
+    info:
+      description: Runs API testcase
+      internal: true
+      maturity: stable
+    unit_templates:
+    - base-deps
+    depends_on:
+      sylva-ca: true
+      litmus-operator: true
+    repo: sylva-core
+    kustomization_spec:
+      path: ./kustomize-units/litmus-testcases/login-test
+
+  litmus-testcase-pod-delete:
+    info:
+      description: Runs API testcase
+      internal: true
+      maturity: stable
+    unit_templates:
+    - base-deps
+    depends_on:
+      sylva-ca: true
+      litmus-operator: true
+    repo: sylva-core
+    kustomization_spec:
+      path: ./kustomize-units/litmus-testcases/pod-delete
+
   kubevirt:
     info:
       description: installs kubevirt
