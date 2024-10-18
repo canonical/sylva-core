@@ -390,6 +390,78 @@ function ci_remaining_minutes_and_at_most() {
   fi
 }
 
+function get_all_ingress_service_types() {
+
+  namespace_list=$(kubectl get namespaces -o jsonpath="{.items[*].metadata.name}")
+
+  # Iterate over each namespace
+  for namespace in $namespace_list; do
+      echo "Processing namespace: $namespace"
+
+      # Fetch all Ingresses in the current namespace
+      ingress_list=$(kubectl get ingress -n "$namespace" -o jsonpath="{.items[*].metadata.name}")
+
+      if [ -z "$ingress_list" ]; then
+          echo "No Ingresses found in namespace $namespace"
+          continue
+      fi
+
+      # Iterate over all Ingresses
+      for ingress_name in $ingress_list; do
+          echo "  Processing Ingress: $ingress_name"
+
+          # Try to find the HelmRelease or Kustomization associated with the Ingress
+          helm_release_name=$(kubectl get ingress "$ingress_name" -n "$namespace" -o jsonpath="{.metadata.labels.helm\.toolkit\.fluxcd\.io/name}")
+
+          if [ -z "$helm_release_name" ]; then
+              # Fallback to Kustomization
+              kustomization_name=$(kubectl get ingress "$ingress_name" -n "$namespace" -o jsonpath="{.metadata.labels.kustomize\.toolkit\.fluxcd\.io/name}")
+
+              if [ -z "$kustomization_name" ]; then
+                  echo "    No HelmRelease or Kustomization label found for Ingress $ingress_name"
+                  continue
+              fi
+
+              # Use the Kustomization name as the service name
+              service_name=$kustomization_name
+              echo "    Associated Kustomization: $service_name"
+
+              # Find service type in Kustomization
+              service_type_label="sylva-units/service-type/$service_name"
+              service_type=$(kubectl get ingress "$ingress_name" -n "$namespace" -o jsonpath="{.metadata.labels.$service_type_label}")
+
+              if [ -z "$service_type" ]; then
+                  service_type=$(kubectl get ingress "$ingress_name" -n "$namespace" -o jsonpath="{.metadata.labels.sylva-units/service-type}")
+              fi
+
+              if [ -z "$service_type" ]; then
+                  echo "    Service type not found for Kustomization $service_name"
+              else
+                  echo "    Service type for Kustomization $service_name: $service_type"
+              fi
+          else
+              # Use the HelmRelease name as the service name
+              service_name=$helm_release_name
+              echo "    Associated HelmRelease: $service_name"
+
+              # Find service type in HelmRelease
+              service_type_label="sylva-units/service-type/$service_name"
+              service_type=$(kubectl get ingress "$ingress_name" -n "$namespace" -o jsonpath="{.metadata.labels.$service_type_label}")
+
+              if [ -z "$service_type" ]; then
+                  service_type=$(kubectl get ingress "$ingress_name" -n "$namespace" -o jsonpath="{.metadata.labels.sylva-units/service-type}")
+              fi
+
+              if [ -z "$service_type" ]; then
+                  echo "    Service type not found for HelmRelease $service_name"
+              else
+                  echo "    Service type for HelmRelease $service_name: $service_type"
+              fi
+          fi
+      done
+  done
+}
+
 function display_final_messages() {
   CALLER_SCRIPT_NAME=$(basename ${BASH_SOURCE[1]})
   if [[ $CALLER_SCRIPT_NAME != *"apply-workload-cluster.sh"* ]]; then
@@ -400,7 +472,7 @@ function display_final_messages() {
 
   if [[ $CALLER_SCRIPT_NAME == *"bootstrap.sh"* ]]; then
     echo_b "\U0001F331 You can access following UIs"
-    kubectl --kubeconfig management-cluster-kubeconfig get ingress --all-namespaces --show-labels
+    get_all_ingress_service_types
   fi
   echo_b "\U0001F389 All done"
 }

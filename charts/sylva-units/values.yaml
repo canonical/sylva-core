@@ -845,6 +845,8 @@ units:
       harbor-postgres: true
     annotations:
       sylvactl/readyMessage: "Harbor UI can be reached at https://{{ .Values.external_hostnames.harbor }} ({{ .Values.external_hostnames.harbor }} must resolve to {{ .Values.display_external_ip }})"
+    labels:
+      sylva-units/service-type/harbor: gui
     helm_repo_url: https://helm.goharbor.io
     helmrelease_spec:
       chart:
@@ -5544,7 +5546,7 @@ units:
       '{{ .Values._internal.default_storage_class_unit }}': true
       ingress-nginx: '{{ tuple . "ingress-nginx" | include "unit-enabled" }}'
     labels:
-      service-type: api
+      sylva-units/service-type/thanos: api
     annotations:
       sylvactl/readyMessage: Thanos UI can be reached at https://{{ .Values.external_hostnames.thanos }} ({{ .Values.external_hostnames.thanos }} must resolve to {{ .Values.display_external_ip }})
     helm_repo_url: https://charts.bitnami.com/bitnami
