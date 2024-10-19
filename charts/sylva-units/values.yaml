@@ -4945,7 +4945,8 @@ units:
     helm_repo_url: https://kubernetes.github.io/cloud-provider-vsphere
     helm_chart_versions:
       1.27.0: '{{ include "k8s-version-match" (tuple . ">=1.27.0,<1.28.0") }}'
-      1.28.0: '{{ include "k8s-version-match" (tuple . ">=1.28.0") }}'
+      1.28.0: '{{ include "k8s-version-match" (tuple . ">=1.28.0,<1.29.0") }}'
+      1.29.0: '{{ include "k8s-version-match" (tuple . ">=1.29.0") }}'
     helmrelease_spec:
       chart:
         spec:
