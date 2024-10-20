@@ -60,7 +60,7 @@
 | **minio-logging** | creates a MinIO tenant for the logging stack, used as S3 storage by Loki | beta |  | [Helm](https://github.com/minio/operator.git) | v5.0.16 |
 | **minio-monitoring** | creates a MinIO tenant for the monitoring stack, used as S3 storage by Thanos | beta |  | [Helm](https://github.com/minio/operator.git) | v5.0.16 |
 | **minio-operator** | install MinIO operator<br/><br/>MinIO operator is used to manage multiple S3 tenants | beta |  | [Helm](https://github.com/minio/operator.git) | v5.0.16 |
-| **neuvector** | installs Neuvector | beta |  | [Helm](https://neuvector.github.io/neuvector-helm) | 2.8.1 |
+| **neuvector** | installs Neuvector | beta |  | [Helm](https://neuvector.github.io/neuvector-helm) | 2.8.2 |
 | **openshift-assisted-installer** | installs assisted installer operator for OKD | experimental |  | [Kustomize](https://raw.githubusercontent.com/openshift/assisted-service/v2.33.0/hack/crds/hive.openshift.io_clusterdeployments.yaml) | v2.33.0 |
 | **prometheus-pushgateway** | installs Prometheus Push-gateway exporter | beta |  | [Helm](https://prometheus-community.github.io/helm-charts) | 2.15.0 |
 | **rancher-init** | initializes and configures Rancher | beta | True | Kustomize | N/A |
