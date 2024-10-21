@@ -142,7 +142,8 @@ include:
 .setup_docker:
   - |
     # Configure docker for bootstrap cluster
-    if [ -n "$DOCKER_HOST" ]; then
+    if [[ $SKIP_DOCKER_SERVICE != "true" ]]; then
+      echo "Configuring docker networking"
       docker network create --attachable kind || true
       export DOCKER_IP=$(getent ahostsv4 docker | awk '{print $1}' | sort -u)
       KIND_PREFIX=$(docker network inspect kind -f '{{ (index .IPAM.Config 0).Subnet }}')
