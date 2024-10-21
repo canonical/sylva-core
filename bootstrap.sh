@@ -13,6 +13,8 @@ validate_input_values
 
 check_pivot_has_ran
 
+echo "== value of USE_BOOTSTRAP_PROXY before bootstrap-cluster.sh is $USE_BOOTSTRAP_PROXY"
+
 echo_b "\U0001F503 Preparing bootstrap cluster"
 source tools/kind/bootstrap-cluster.sh ${USE_BOOTSTRAP_PROXY}
 

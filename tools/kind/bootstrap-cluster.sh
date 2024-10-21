@@ -75,6 +75,7 @@ if echo "$EXTRACTED_VALUES" | yq -e '.registry_mirrors.hosts_config | length > 0
         helm template kind-registry-config ${BASE_DIR}/charts/sylva-units --show-only templates/extras/kind.yaml --values - | yq .script | bash
 fi
 
+echo "== value of USE_PROXY inside bootstrap-cluster.sh is $USE_PROXY"
 if [ "$USE_PROXY" = "true" ]; then
     # Try to retrieve proxies config in values passed (in local values.yaml or through Kustomize) and export them for bootstrap cluster
     PROXIES_EXPORT_COMMANDS=$(echo "$EXTRACTED_VALUES" | yq 'with_entries(select(.key == "proxies"))' |\

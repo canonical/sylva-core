@@ -42,7 +42,7 @@ function check_args() {
       if [[ "$arg" == "--no-bootstrap-cluster-proxies-needed" ]]; then
         USE_BOOTSTRAP_PROXY="false" # Flag detected, set proxy usage to false
       elif [[ -z "$ENV_PATH" ]]; then
-        ENV_PATH="$arg"   # First non-flag argument is assumed to be the environment path    
+        ENV_PATH="$arg"   # First non-flag argument is assumed to be the environment-values path
       else
         echo "Unknown argument: $arg"
         echo "Usage: $0 [env_name] [--no-bootstrap-cluster-proxies-needed]"
@@ -57,7 +57,7 @@ function check_args() {
       exit 1
     fi
     export ENV_PATH=$(readlink -f "$ENV_PATH")
-    export USE_BOOTSTRAP_PROXY=$(readlink -f "$USE_BOOTSTRAP_PROXY")
+    export USE_BOOTSTRAP_PROXY
   fi
 }
 
