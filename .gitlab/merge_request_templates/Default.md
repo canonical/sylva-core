@@ -11,11 +11,43 @@
 
 ## CI configuration
 
-CI pipelines perform an update for both management and workload clusters, this update will **NOT** perform a ClusterAPI rolling update (deletion and creation of new K8s nodes) by default.
+Below you can choose test deployment variants to run in this MR's CI.
 
-For some cases, it may be relevant to perform more complex tests.
+<details><summary> Click to open to CI configuration </summary>
 
-Theses features can be activated in an MR by adding one of these labels to the MR and will apply to the next pipelines.
+**Legend:**
 
-* adding the label ~ci-feature::test-rolling-update pipelines will perform a node rolling update in the `-update` jobs (without version upgrades)
-* adding the label ~ci-feature::test-upgrade-from-1.1.1 pipelines will perform an upgrade from Sylva 1.1.1 to your dev branch (including a k8s version upgrade resulting in a node rolling update)
+| Icon | Meaning                  | Available values                                                          |
+|------|--------------------------|---------------------------------------------------------------------------|
+| ☁   | **Infra Provider**       | `capd`, `capo`, `capm3`                                                   |
+| 🚀  | **Bootstrap Provider**   | `kubeadm` (alias `kadm`), `rke2`                                          |
+| 🎸  | **Node OS**              | `ubuntu`, `suse`                                                          |
+| 🛠  | **Deployment Options**    | `light-deploy`, `oci`, `ha`, `misc`                                       |
+| 🎬  | **Pipeline Scenarios**   | `rolling-update`, `mgmt-rolling-update`, `sylva-upgrade`, `simple-update`, `preview` |
+
+<!-- DEPLOYMENT FLAVOR DEFINITION START -->
+
+* [x] 🎬preview ☁capd 🚀kadm 🐧ubuntu 🛠oci
+* [ ] 🎬preview ☁capo 🚀rke2 🐧suse
+* [ ] 🎬preview ☁capm3 🚀rke2 🐧ubuntu
+
+* [x] ☁capd 🚀kubeadm 🛠light-deploy 🎸ubuntu
+* [ ] ☁capd 🚀rke2 🛠oci,light-deploy 🐧suse
+
+* [ ] ☁capo 🚀rke2 🎸ubuntu
+* [ ] ☁capo 🚀kadm 🛠oci 🎸suse
+* [ ] ☁capo 🚀rke2 🎬rolling-update 🛠ha 🐧ubuntu
+* [ ] ☁capo 🚀rke2 🎬mgmt-rolling-update 🛠ha,misc 🐧suse
+* [ ] ☁capo 🚀rke2 🎬sylva-upgrade 🛠misc 🎸ubuntu
+
+* [x] ☁capm3 🚀rke2 🎸suse
+* [ ] ☁capm3 🚀kadm 🛠oci  🎸ubuntu
+* [ ] ☁capm3 🚀rke2 🎬sylva-upgrade 🛠misc,ha 🐧suse
+* [x] ☁capm3 🚀rke2 🎬mgmt-rolling-update 🛠ha,misc 🐧ubuntu
+* [ ] ☁capm3 🚀kadm 🎬rolling-update 🛠ha 🐧suse
+
+<!-- DEPLOYMENT FLAVOR DEFINITION END -->
+</details>
+
+**Be aware:** after configuration change, pipeline is not triggered automatically.
+Please run it manually or push new code.
