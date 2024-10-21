@@ -1,0 +1,43 @@
+---
+# This test gather images reference list
+# and upload it as an artifact
+
+image-ref-report-management-cluster:
+  stage: deployment-test
+  extends:
+    - .test-tags
+    - .rules:need-management-cluster
+  image:
+    name: $CI_IMAGE
+  script:
+    - !reference [.import_functions]
+    - download_artifact deploy-management-cluster management-cluster-kubeconfig
+    - apk add py3-kubernetes py3-pydantic
+    - pip install docker-image-py --break-system-packages
+    - python3 ./tools/get_image_refs.py --kubeconfig management-cluster-kubeconfig --output ./dump/image_refs_mgmt_${CI_PIPELINE_ID}.json
+  artifacts:
+    paths:
+      - ./dump/image_refs_mgmt_${CI_PIPELINE_ID}.json
+    expire_in: 48 hour
+    when: always
+  allow_failure: true
+
+image-ref-report-workload-cluster:
+  stage: deployment-test
+  extends:
+    - .test-tags
+    - .rules:need-workload-cluster
+  image:
+    name: $CI_IMAGE
+  script:
+    - !reference [.import_functions]
+    - export KUBECONFIG=management-cluster-kubeconfig
+    - apk add py3-kubernetes py3-pydantic
+    - pip install docker-image-py paramiko --break-system-packages
+    - python3 ./tools/get_image_refs.py --kubeconfig $KUBECONFIG --workload-cluster-name $WORKLOAD_CLUSTER_NAME --output ./dump/image_refs_wkl_${CI_PIPELINE_ID}.json
+  artifacts:
+    paths:
+      - ./dump/image_refs_wkl_${CI_PIPELINE_ID}.json
+    expire_in: 48 hour
+    when: always
+  allow_failure: true
