@@ -207,6 +207,15 @@
   ],
   "customManagers": [
     {
+      "description": "Update Pylama in GitLab CI pipeline",
+      "customType": "regex",
+      "fileMatch": [".gitlab/ci/.*.yml"],
+      "matchStrings": [
+        ".*pip install\\s+(?<depName>.*)==(?<currentValue>.*)"
+      ],
+      "datasourceTemplate": "pypi"
+    },
+    {
       "description": "Match docker image define in _IMAGE variables for gitlab-ci",
       "customType": "regex",
       "fileMatch": [".gitlab/ci/.*.yml"],
