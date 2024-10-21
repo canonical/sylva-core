@@ -27,7 +27,6 @@ include:
 
   - local: .gitlab/ci/common.yml
   - local: .gitlab/ci/main-pipeline-checks.yml
-  - local: .gitlab/ci/main-pipeline-builds.yml
-  - local: .gitlab/ci/main-pipeline-deployment-tests.yml
+  - local: .gitlab/ci/main-pipeline-prepare-deployments.yml
   - local: .gitlab/ci/main-pipeline-cleanup.yml
   - local: .gitlab/ci/main-pipeline-report.yml

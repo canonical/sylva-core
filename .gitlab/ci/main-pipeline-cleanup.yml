@@ -3,6 +3,9 @@
 # Scheduled cleanup
 # ==========================================
 
+include:
+  - local: .gitlab/ci/templates-deployments.yml
+
 # CAPO_CLEANUP_GITLAB_AUTH_TOKEN variable can be used
 # to authenticate against gitlab pipeline API
 

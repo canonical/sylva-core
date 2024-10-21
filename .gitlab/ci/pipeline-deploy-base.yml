@@ -54,9 +54,6 @@ default:
 # ----------------------------------------------------------
 
 preview-management-cluster:
-  needs:
-    - job: create-runner-wait
-      optional: true
   extends:
     - .preview-management
   rules:
