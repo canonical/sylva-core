@@ -56,6 +56,12 @@ units:
       '{{ .Values.cluster.capi_providers.bootstrap_provider }}': true
       kyverno-policies: '{{ .Values.cluster.capi_providers.infra_provider | eq "capm3" }}'
       os-image-server: '{{ .Values.cluster.capi_providers.infra_provider | eq "capm3" }}'
+      # we need this unit to be upgraded before 'cluster' unit during the upgrade to Sylva 1.2:
+      # this line can be removed after the release of Sylva 1.2 (but it won't cause harm if we keep it)
+      kyverno-policy-prevent-mgmt-cluster-delete: '{{ and (tuple . "kyverno-policy-prevent-mgmt-cluster-delete" | include "unit-enabled") (.Values._internal.state.is_upgrade) }}'
+      # related to the above: we need to ensure that the new policy defined in the unit
+      # mentioned above is ready before we update 'cluster' unit
+      kyverno-policies-ready: '{{ and (tuple . "kyverno-policies-ready" | include "unit-enabled") .Values._internal.state.is_upgrade }}'
 
   calico-ready:
     enabled: '{{ .Values._internal.state.is_upgrade }}'
