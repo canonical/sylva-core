@@ -56,6 +56,7 @@
 | **nfs-ganesha** | manages NFS Ganesha CSI provisioner | experimental | [Helm chart](https://kubernetes-sigs.github.io/nfs-ganesha-server-and-external-provisioner/) | 1.8.0 |
 | **openshift-assisted-installer** | installs assisted installer operator for OKD | experimental | [Kustomization](https://raw.githubusercontent.com/openshift/assisted-service/v2.33.0/hack/crds/hive.openshift.io_clusterdeployments.yaml) | v2.33.0 |
 | **prometheus-pushgateway** | installs Prometheus Push-gateway exporter | beta | [Helm chart](https://prometheus-community.github.io/helm-charts) | 3.0.0 |
+| **sbom-operator** | installs SBOM operator | beta | [Helm chart](https://ckotzbauer.github.io/helm-charts) | 0.36.0 |
 | **snmp-exporter** | installs SNMP exporter | beta | [Helm chart](https://prometheus-community.github.io/helm-charts) | 6.0.0 |
 | **thanos** | installs Thanos | beta | [Helm chart](https://github.com/bitnami/charts.git) | thanos/15.8.0 |
 | **trivy-operator** | installs Trivy operator | beta | [Helm chart](https://aquasecurity.github.io/helm-charts/) | 0.26.0 |
