@@ -1,10 +1,10 @@
 ---
 include:
   - project: "to-be-continuous/gitleaks"
-    ref: 2.6.1
+    ref: 2.7.0
     file: "templates/gitlab-ci-gitleaks.yml"
   - project: 'renovate-bot/renovate-runner'
-    ref: v19.50.3
+    ref: v19.95.0
     file: '/templates/renovate-config-validator.gitlab-ci.yml'
     rules:
       - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
@@ -21,13 +21,17 @@ include:
           paths:
             - renovate.json
   - project: 'sylva-projects/sylva-elements/ci-tooling/ci-templates'
-    ref: 1.0.35
+    ref: 1.0.36
     file:
       - 'templates/release-notes.yml'
 
   - local: .gitlab/ci/common.yml
   - local: .gitlab/ci/main-pipeline-checks.yml
-  - local: .gitlab/ci/main-pipeline-builds.yml
-  - local: .gitlab/ci/main-pipeline-deployment-tests.yml
+  - local: .gitlab/ci/main-pipeline-prepare-deployments.yml
   - local: .gitlab/ci/main-pipeline-cleanup.yml
   - local: .gitlab/ci/main-pipeline-report.yml
+  - local: .gitlab/ci/pipeline-build-oci-artifacts.yml
+    rules:
+      - if: $CI_OPEN_MERGE_REQUESTS  # prevent branch pipeline when an MR is open (prefer MR pipeline)
+        when: never
+      - if: $CI_PIPELINE_SOURCE == "push"

@@ -1,0 +1,39 @@
+---
+# ==========================================
+# Generate deployment jobs
+# ==========================================
+
+.deploy_rules:
+  rules:
+    - if: $NO_DEPLOYMENTS
+      when: never
+    - if: $CI_COMMIT_TAG
+    - if: $CI_PIPELINE_SOURCE == "pipeline"
+    - if: $CI_PIPELINE_SOURCE == "web"
+    - if: '$CI_PIPELINE_SOURCE == "schedule" && $CI_DEPLOYMENTS'
+    - if: '$CI_PIPELINE_SOURCE == "schedule" && $CI_DEPLOYMENTS == null'
+      when: never
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+prepare-deployment-jobs:
+  stage: deploy
+  extends: .deploy_rules
+  needs: []
+  script:
+    - ./.gitlab/ci/scripts/generate_deployment_jobs.py > gitlab-ci-deployment-jobs-defs.yaml
+  artifacts:
+    paths:
+      - gitlab-ci-deployment-jobs-defs.yaml
+
+deployment-jobs:
+  stage: deploy
+  extends: .deploy_rules
+  needs: [prepare-deployment-jobs]
+  trigger:
+    include:
+      - artifact: gitlab-ci-deployment-jobs-defs.yaml
+        job: prepare-deployment-jobs
+    forward:
+      pipeline_variables: true  # required to pass variables from upstream to downstream pipelines
+    strategy: depend

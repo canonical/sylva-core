@@ -22,6 +22,7 @@ variables:
   DEPLOY_WORKLOAD_CLUSTER: "true"   # Controls whether workload cluster deploys
   UPDATE_MGMT_CLUSTER: "true"       # Controls whether management cluster updates
   UPDATE_WORKLOAD_CLUSTER: "true"   # Controls whether workload cluster updates
+  DELETE_WORKLOAD_CLUSTER: "true"   # Controls whether workload cluster deletion
 
 default:
   tags:
@@ -33,11 +34,12 @@ default:
     - key: toolbox  # cache shared by all jobs
       paths:
         - ./bin/
+  interruptible: true
 
 # ----------------------------------------------------------
 .test-tags:
-  dependencies: []
-
+  # Just to avoid test-tags to be empty in some cases which lead to syntax error
+  variables:
 # ----------------------------------------------------------
 
 # Rules reusable in tests definition
@@ -63,10 +65,22 @@ default:
 
 # ----------------------------------------------------------
 
+🚨 dont-interrupt-me:
+  stage: .pre
+  tags: [gitlab-org-docker]
+  image: alpine:edge
+  interruptible: false
+  when: manual
+  allow_failure: true
+  variables:
+    GIT_STRATEGY: none
+  before_script: []
+  script:
+    - echo "This jobs makes sure this pipeline won't be interrupted! xx"
+
+# ----------------------------------------------------------
+
 preview-management-cluster:
-  needs:
-    - job: create-runner-wait
-      optional: true
   extends:
     - .preview-management
   rules:
@@ -127,5 +141,5 @@ delete-workload-cluster:
   extends:
     - .delete-workload
   rules:
-    - if: $DEPLOY_WORKLOAD_CLUSTER == "true"
+    - if: $DEPLOY_WORKLOAD_CLUSTER == "true" && $DELETE_WORKLOAD_CLUSTER == "true"
       when: always

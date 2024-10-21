@@ -15,6 +15,8 @@ workflow:
       variables:
         OCI_TAG_FORMAT: "$CI_COMMIT_TAG"
     - when: always
+  auto_cancel:
+    on_new_commit: conservative
 
 stages:
   - test
@@ -28,19 +30,19 @@ default:
   tags:
     - gitlab-org-docker
   image: $CI_IMAGE
+  interruptible: true
 
 variables:
   RUNNER_GENERATE_ARTIFACTS_METADATA: "true"
   OCI_TAG_FORMAT: "0.0.0-git-$CI_COMMIT_SHORT_SHA"
-
   # renovate: datasource=docker
   OPENSTACK_CLIENT_IMAGE: registry.gitlab.com/sylva-projects/sylva-elements/container-images/openstack-client:v0.0.22
   # renovate: datasource=docker
-  CI_IMAGE: registry.gitlab.com/sylva-projects/sylva-elements/container-images/ci-image:v1.0.54
+  CI_IMAGE: registry.gitlab.com/sylva-projects/sylva-elements/container-images/ci-image:v1.0.56
 
 .docker-service:
   services:
-    - name: docker:27.4.0-dind
+    - name: docker:27.5.1-dind
       alias: docker
   variables:
     DOCKER_TLS_CERTDIR: ""
