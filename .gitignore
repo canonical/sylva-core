@@ -9,6 +9,7 @@ sylva-units-preview/
 sylva.env
 *__pycache__*
 charts/sylva-units/use-oci-artifacts-final.values.yaml
+deployments.yml
 
 # Sops decyphered
 environment-values/ci/private/falcon-base/secrets.yaml
