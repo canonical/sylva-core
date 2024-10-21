@@ -268,8 +268,8 @@ variables:
   variables:
     E2E_JOB_MR_PARITY: even
 
-☁capo 🚀rke2 🐧ubuntu 🛠oci,misc:
-  extends: [.capo, .wait-publish-jobs]
+☁capo 🚀rke2 🐧ubuntu 🛠misc:
+  extends: [.capo]
 
 ☁capo 🚀kubeadm 🐧ubuntu 🛠capo-fip:
   extends: .capo
@@ -304,8 +304,8 @@ variables:
   rules:
     - if: '$CI_PIPELINE_SOURCE == "schedule" && $CI_DEPLOYMENTS && $DEPLOYMENT_DESCRIPTION == "Nightly - CAPO Kubeadm"'
 
-☁capo 🚀rke2 🐧ubuntu 🛠oci,ha,misc 🎬nightly:
-  extends: [.capo, .wait-publish-jobs, .scenario_nightly]
+☁capo 🚀rke2 🐧ubuntu 🛠ha,misc 🎬nightly:
+  extends: [.capo, .scenario_nightly]
   rules:
     - if: '$CI_PIPELINE_SOURCE == "schedule" && $CI_DEPLOYMENTS && $DEPLOYMENT_DESCRIPTION == "Nightly - CAPO variants"'
 
@@ -330,8 +330,8 @@ variables:
       when: manual
       allow_failure: true
 
-☁capo 🚀kubeadm 🐧ubuntu 🛠oci,ha,misc 🎬sylva-upgrade:
-  extends: [.capo, .wait-publish-jobs, .scenario_sylva-upgrade]
+☁capo 🚀kubeadm 🐧ubuntu 🛠ha,misc 🎬sylva-upgrade:
+  extends: [.capo, .scenario_sylva-upgrade]
   rules:
     - if: '$CI_PIPELINE_SOURCE == "schedule" && $CI_DEPLOYMENTS && $DEPLOYMENT_DESCRIPTION == "Nightly - Upgrade from 1.1.1 to main"'
     - if: $CI_MERGE_REQUEST_LABELS =~ /ci-feature::test-upgrade-from-1.1.1/
