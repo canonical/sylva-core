@@ -279,7 +279,6 @@ gitleaks:
 gitleaks-custom:
   stage: gitleaks
   extends: gitleaks
-  interruptible: true
   needs: []
   before_script:
     - echo GITLEAKS_ARGS=$GITLEAKS_ARGS
