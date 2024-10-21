@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  labels:
+    app: nfs-server-provisioner
+    release: nfs-ganesha
+  finalizers:
+  - kubernetes.io/pvc-protection
+  name: nfs-ganesha-data-pvc
+  namespace: nfs-ganesha
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: "${storage_size}"
+  storageClassName: "${storage_class}"
+  volumeMode: Filesystem
+status:
+  accessModes:
+  - ReadWriteOnce

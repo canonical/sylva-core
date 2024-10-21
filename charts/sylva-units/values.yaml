@@ -4468,6 +4468,56 @@ units:
           CLUSTER_VIRTUAL_IP: '{{ .Values.cluster_virtual_ip }}'
           CLUSTER_DOMAIN: '{{ .Values.cluster_domain }}'
 
+  nfs-ganesha-init:
+    info:
+      description: Define persistent volume claim for NFS Ganesha
+      maturity: experimental
+      internal: true
+    unit_templates:
+    - base-deps
+    depends_on:
+      namespace-defs: true
+      '{{ .Values._internal.default_storage_class_unit }}': true
+    enabled_conditions:
+    - '{{ tuple . "nfs-ganesha" | include "unit-enabled" }}'
+    repo: sylva-core
+    kustomization_spec:
+      path: ./kustomize-units/nfs-ganesha-init
+      targetNamespace: nfs-ganesha
+      wait: true
+      postBuild:
+        substitute:
+          storage_size: 5Gi
+          storage_class: '{{ .Values._internal.default_storage_class }}'
+
+  nfs-ganesha:
+    info:
+      description: manages NFS Ganesha CSI provisioner
+      maturity: experimental
+    enabled: false
+    unit_templates:
+    - base-deps
+    depends_on:
+      namespace-defs: true
+      nfs-ganesha-init: true
+    helm_repo_url: https://kubernetes-sigs.github.io/nfs-ganesha-server-and-external-provisioner/
+    helmrelease_spec:
+      targetNamespace: nfs-ganesha
+      chart:
+        spec:
+          chart: nfs-server-provisioner
+          version: 1.8.0
+      values:
+        replicaCount: 1
+        extraArgs:
+          device-based-fsids: false
+        persistence:
+          enabled: true
+          existingClaim: nfs-ganesha-data-pvc
+        storageClass:
+          name: nfs-ganesha
+          allowVolumeExpansion: true
+
   ceph-csi-cephfs:
     info:
       description: Installs Ceph-CSI
