@@ -362,6 +362,9 @@ units:
   multus-ready:
     enabled: true
 
+  nfs-ganesha-init:
+    enabled: true
+
   # sriov-network-operator:
   #   # can be enabled at runtime if desired
   #   enabled: false
@@ -376,6 +379,9 @@ units:
     enabled: true
 
   ceph-csi-cephfs:
+    enabled: false
+
+  nfs-ganesha:
     enabled: false
 
   kyverno:
