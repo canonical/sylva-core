@@ -395,7 +395,7 @@ function fetch_ingress_service_types() {
   echo "Fetching ingress resources and their service types"
 
   # Fetch all ingress resources from all namespaces
-  ingresses=$(kubectl get ingress --all-namespaces -o custom-columns='NAMESPACE:.metadata.namespace,NAME:.metadata.name' --no-headers)
+  ingresses=$(kubectl --kubeconfig management-cluster-kubeconfig get ingress --all-namespaces -o custom-columns='NAMESPACE:.metadata.namespace,NAME:.metadata.name' --no-headers)
   echo "Ingresses fetched: $ingresses"
 
   # Print the header
@@ -409,29 +409,29 @@ function fetch_ingress_service_types() {
       ingress_name=$(echo "$ingress" | awk '{print $2}')
       echo "Namespace: $namespace, Ingress Name: $ingress_name"
 
-      helmrelease=$(kubectl get ingress "$ingress_name" -n "$namespace" -o jsonpath="{.metadata.labels['helm\.toolkit\.fluxcd\.io/name']}" 2>/dev/null)
+      helmrelease=$(kubectl --kubeconfig management-cluster-kubeconfig get ingress "$ingress_name" -n "$namespace" -o jsonpath="{.metadata.labels['helm\.toolkit\.fluxcd\.io/name']}" 2>/dev/null)
       echo "HelmRelease label: $helmrelease"
 
       # If no HelmRelease label is found, check for Kustomization
       if [ -z "$helmrelease" ]; then
           echo "HelmRelease not found, checking for Kustomization"
-          kustomization=$(kubectl get ingress "$ingress_name" -n "$namespace" -o jsonpath="{.metadata.labels['kustomize\.toolkit\.fluxcd\.io/name']}" 2>/dev/null)
+          kustomization=$(kubectl --kubeconfig management-cluster-kubeconfig get ingress "$ingress_name" -n "$namespace" -o jsonpath="{.metadata.labels['kustomize\.toolkit\.fluxcd\.io/name']}" 2>/dev/null)
           echo "Kustomization label: $kustomization"
 
           if [ -n "$kustomization" ]; then
               echo "Found Kustomization: $kustomization"
-              kustomization_info=$(kubectl get kustomization --all-namespaces -o custom-columns='NAMESPACE:.metadata.namespace,NAME:.metadata.name' | grep -E "^.*[[:space:]]$kustomization$")
+              kustomization_info=$(kubectl --kubeconfig management-cluster-kubeconfig get kustomization --all-namespaces -o custom-columns='NAMESPACE:.metadata.namespace,NAME:.metadata.name' | grep -E "^.*[[:space:]]$kustomization$")
               echo "Kustomization info: $kustomization_info"
 
               if [ -n "$kustomization_info" ]; then
                   kustomization_namespace=$(echo "$kustomization_info" | awk '{print $1}')
                   echo "Kustomization namespace: $kustomization_namespace"
                   
-                  service_type=$(kubectl get kustomization "$kustomization" -n "$kustomization_namespace" -o jsonpath="{.metadata.labels['service-type']}" 2>/dev/null)
+                  service_type=$(kubectl --kubeconfig management-cluster-kubeconfig get kustomization "$kustomization" -n "$kustomization_namespace" -o jsonpath="{.metadata.labels['service-type']}" 2>/dev/null)
                   echo "Service type: $service_type"
                   
                   if [ -z "$service_type" ]; then
-                      service_type=$(kubectl get kustomization "$kustomization" -n "$kustomization_namespace" -o jsonpath="{.metadata.labels['service-type-$ingress_name']}")
+                      service_type=$(kubectl --kubeconfig management-cluster-kubeconfig get kustomization "$kustomization" -n "$kustomization_namespace" -o jsonpath="{.metadata.labels['service-type-$ingress_name']}")
                       echo "Service type for ingress: $service_type"
                   fi
                   if [ -n "$service_type" ]; then
@@ -441,18 +441,18 @@ function fetch_ingress_service_types() {
           fi
       else
           echo "HelmRelease found: $helmrelease"
-          helmrelease_info=$(kubectl get helmrelease --all-namespaces -o custom-columns='NAMESPACE:.metadata.namespace,NAME:.metadata.name' | grep -E "^.*[[:space:]]$helmrelease$")
+          helmrelease_info=$(kubectl --kubeconfig management-cluster-kubeconfig get helmrelease --all-namespaces -o custom-columns='NAMESPACE:.metadata.namespace,NAME:.metadata.name' | grep -E "^.*[[:space:]]$helmrelease$")
           echo "HelmRelease info: $helmrelease_info"
 
           if [ -n "$helmrelease_info" ]; then
               helmrelease_namespace=$(echo "$helmrelease_info" | awk '{print $1}')
               echo "HelmRelease namespace: $helmrelease_namespace"
 
-              service_type=$(kubectl get helmrelease "$helmrelease" -n "$helmrelease_namespace" -o jsonpath="{.metadata.labels['service-type']}" 2>/dev/null)
+              service_type=$(kubectl --kubeconfig management-cluster-kubeconfig get helmrelease "$helmrelease" -n "$helmrelease_namespace" -o jsonpath="{.metadata.labels['service-type']}" 2>/dev/null)
               echo "Service type: $service_type"
 
               if [ -z "$service_type" ]; then
-                  service_type=$(kubectl get helmrelease "$helmrelease" -n "$helmrelease_namespace" -o jsonpath="{.metadata.labels['service-type-$ingress_name']}")
+                  service_type=$(kubectl --kubeconfig management-cluster-kubeconfig get helmrelease "$helmrelease" -n "$helmrelease_namespace" -o jsonpath="{.metadata.labels['service-type-$ingress_name']}")
                   echo "Service type for ingress: $service_type"
               fi
               if [ -n "$service_type" ]; then
