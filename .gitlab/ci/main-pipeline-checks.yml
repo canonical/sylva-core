@@ -120,7 +120,7 @@ pylama:
   extends: .lint-base
   image: python:3.9.20-slim
   script:
-    - pip install pylama
+    - pip install pylama==8.4.1
     - pylama .
   rules:
     - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
