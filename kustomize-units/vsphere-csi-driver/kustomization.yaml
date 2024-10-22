@@ -19,3 +19,9 @@ patches:
       - op: replace
         path: /spec/replicas
         value: ${CONTROLLER_REPLICAS}
+
+images:
+- name: gcr.io/cloud-provider-vsphere/csi/release/driver
+  newName: registry.k8s.io/csi-vsphere/driver
+- name: gcr.io/cloud-provider-vsphere/csi/release/syncer
+  newName: registry.k8s.io/csi-vsphere/syncer
