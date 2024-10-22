@@ -20,6 +20,7 @@ import yaml
 SYLVA_UNITS_CHARTS_SCHEMAS = {
     "sylva-capi-cluster": "",
     "libvirt-metal": "charts/libvirt-metal",
+    "sriov-resources": ""
 }
 SCRIPT_DIR = os.path.dirname(os.path.abspath(sys.argv[0]))
 CHART_DIR = os.path.abspath(f"{SCRIPT_DIR}/../charts/sylva-units")
