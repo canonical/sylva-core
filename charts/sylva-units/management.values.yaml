@@ -75,8 +75,6 @@ units:
       internal: true
     enabled_conditions:
     - '{{ tuple . "kyverno" | include "unit-enabled"  }}'
-    - '{{ not (tuple . "cabpoa" | include "unit-enabled")  }}'
-    # The cabpoa condition can be removed when there is fix for: https://github.com/kyverno/kyverno/issues/10729
     depends_on:
       kyverno: true
       capi: true
