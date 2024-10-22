@@ -410,6 +410,61 @@ EOC
   fi
 }
 
+# Function to fetch ingress resources and map to service types
+function fetch_ingress_service_types() {
+  # Fetch all ingress resources from all namespaces
+  ingresses=$(kubectl --kubeconfig management-cluster-kubeconfig get ingress --all-namespaces -o custom-columns='NAMESPACE:.metadata.namespace,NAME:.metadata.name' --no-headers)
+
+  # Print the header
+  printf "%-25s  %-20s\n" "ingress-name" "service-type"
+  echo "--------------            --------------"
+
+  # Loop over each ingress (split by line)
+  while IFS= read -r ingress; do
+      namespace=$(echo "$ingress" | awk '{print $1}')
+      ingress_name=$(echo "$ingress" | awk '{print $2}')
+
+      helmrelease=$(kubectl --kubeconfig management-cluster-kubeconfig get ingress "$ingress_name" -n "$namespace" -o jsonpath="{.metadata.labels['helm\.toolkit\.fluxcd\.io/name']}" 2>/dev/null)
+
+      # If no HelmRelease label is found, check for Kustomization
+      if [ -z "$helmrelease" ]; then
+          kustomization=$(kubectl --kubeconfig management-cluster-kubeconfig get ingress "$ingress_name" -n "$namespace" -o jsonpath="{.metadata.labels['kustomize\.toolkit\.fluxcd\.io/name']}" 2>/dev/null)
+
+          if [ -n "$kustomization" ]; then
+              kustomization_info=$(kubectl --kubeconfig management-cluster-kubeconfig get kustomization --all-namespaces -o custom-columns='NAMESPACE:.metadata.namespace,NAME:.metadata.name' | grep -E "^.*[[:space:]]$kustomization$")
+
+              if [ -n "$kustomization_info" ]; then
+                  kustomization_namespace=$(echo "$kustomization_info" | awk '{print $1}')
+                  
+                  service_type=$(kubectl --kubeconfig management-cluster-kubeconfig get kustomization "$kustomization" -n "$kustomization_namespace" -o jsonpath="{.metadata.labels['service-type']}" 2>/dev/null)
+                  
+                  if [ -z "$service_type" ]; then
+                      service_type=$(kubectl --kubeconfig management-cluster-kubeconfig get kustomization "$kustomization" -n "$kustomization_namespace" -o jsonpath="{.metadata.labels['service-type-$ingress_name']}")
+                  fi
+                  if [ -n "$service_type" ]; then
+                      printf "%-25s  %-15s\n" "$ingress_name" "$service_type"
+                  fi
+              fi
+          fi
+      else
+          helmrelease_info=$(kubectl --kubeconfig management-cluster-kubeconfig get helmrelease --all-namespaces -o custom-columns='NAMESPACE:.metadata.namespace,NAME:.metadata.name' | grep -E "^.*[[:space:]]$helmrelease$")
+
+          if [ -n "$helmrelease_info" ]; then
+              helmrelease_namespace=$(echo "$helmrelease_info" | awk '{print $1}')
+
+              service_type=$(kubectl --kubeconfig management-cluster-kubeconfig get helmrelease "$helmrelease" -n "$helmrelease_namespace" -o jsonpath="{.metadata.labels['service-type']}" 2>/dev/null)
+
+              if [ -z "$service_type" ]; then
+                  service_type=$(kubectl --kubeconfig management-cluster-kubeconfig get helmrelease "$helmrelease" -n "$helmrelease_namespace" -o jsonpath="{.metadata.labels['service-type-$ingress_name']}")
+              fi
+              if [ -n "$service_type" ]; then
+                  printf "%-25s  %-15s\n" "$ingress_name" "$service_type"
+              fi
+          fi
+      fi
+  done <<< "$ingresses"
+}
+
 function display_final_messages() {
   CALLER_SCRIPT_NAME=$(basename ${BASH_SOURCE[1]})
   if [[ $CALLER_SCRIPT_NAME != *"apply-workload-cluster.sh"* ]]; then
@@ -419,13 +474,9 @@ function display_final_messages() {
   fi
 
   if [[ $CALLER_SCRIPT_NAME == *"bootstrap.sh"* ]]; then
-    echo_b "\U0001F331 You can access following WebUIs/APIs"
-    echo "Accessible Available UIs:"
-    kubectl --kubeconfig management-cluster-kubeconfig get ingress -A -l service-type=gui
-
-    echo ""
-    echo "API Endpoints:"
-    kubectl --kubeconfig management-cluster-kubeconfig get ingress -A -l service-type=api
+    echo_b "\U0001F331 You can access following UIs"
+    fetch_ingress_service_types
+    kubectl --kubeconfig management-cluster-kubeconfig get ingress --all-namespaces
   fi
   echo_b "\U0001F389 All done"
 }
