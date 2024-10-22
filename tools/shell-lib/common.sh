@@ -293,7 +293,7 @@ function fix_sylva_units_deprecated_configuration {
 
   # 2 - sylva-units Helm release was using "cluster_public_endpoint" value from cluster-public-endpoint ConfigMap,
   # but this value has been removed to fix https://gitlab.com/sylva-projects/sylva-core/-/issues/1588
-  INDEX=$(kubectl -n $ns get helmreleases.helm.toolkit.fluxcd.io sylva-units -o yaml | yq '.spec.valuesFrom[] | select(.name=="cluster-public-endpoint") | path | .[-1]')
+  INDEX=$( (kubectl -n $ns get helmreleases.helm.toolkit.fluxcd.io sylva-units -o yaml 2>/dev/null || true) | yq '.spec.valuesFrom[] | select(.name=="cluster-public-endpoint") | path | .[-1]')
   if [[ -n $INDEX ]]; then
     echo "Patching sylva-units HelmRelease to remove old valuesFrom cluster-public-endpoint setting..."
 
