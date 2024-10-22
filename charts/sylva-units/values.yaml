@@ -2297,6 +2297,7 @@ units:
               - apiGroups: ["metal3.io"]
                 resources:
                   - baremetalhosts
+                  - metal3machines
                 verbs: ["get", "list", "watch", "patch", "update"]
               # for rke2-helmchart-prevent-uninstall policy:
               - >-
