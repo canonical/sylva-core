@@ -28,7 +28,7 @@ spec:
             bridge: {}
         resources:
           requests:
-            memory: 1024M
+            memory: 128M
       networks:
       - name: default
         pod: {}
