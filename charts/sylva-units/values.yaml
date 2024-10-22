@@ -1671,8 +1671,8 @@ units:
             mountPath: /etc/ssl/certs/ca.crt
             subPath: ca.crt
         extraEnvVarsCrossplane:
-          HTTP_PROXY: '{{ .Values.proxies.http_proxy | default "" }}'
-          HTTPS_PROXY: '{{ .Values.proxies.https_proxy | default "" }}'
+          HTTP_PROXY: '{{ .Values.proxies.http_proxy }}'
+          HTTPS_PROXY: '{{ .Values.proxies.https_proxy }}'
           NO_PROXY: '{{ include "sylva-units.no_proxy" (tuple .) }}'
         rbacManager:
           deploy: true
