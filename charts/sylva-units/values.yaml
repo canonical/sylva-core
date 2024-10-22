@@ -1619,7 +1619,7 @@ units:
     info:
       description: sets up Crossplane prerequisites
       details: |
-        it generates CA certificate secret to be used by 'crossplane' unit
+        it creates the namespace and generates CA certificate secret to be used by 'crossplane' unit
       internal: true
     unit_templates:
     - base-deps
