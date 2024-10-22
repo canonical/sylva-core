@@ -19,7 +19,7 @@ spec:
           dedicatedCpuPlacement: true
         resources:
           limits:
-            memory: 1024Mi
+            memory: 128Mi
         devices:
           disks:
             - name: containerdisk
