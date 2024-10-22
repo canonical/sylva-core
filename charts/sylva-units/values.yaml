@@ -1045,6 +1045,8 @@ units:
       harbor-postgres: true
     annotations:
       sylvactl/readyMessage: "Harbor UI can be reached at https://{{ .Values.external_hostnames.harbor }} ({{ .Values.external_hostnames.harbor }} must resolve to {{ .Values.display_external_ip }})"
+    labels:
+      service-type: "gui"
     helm_repo_url: https://helm.goharbor.io
     helmrelease_spec:
       chart:
@@ -1082,8 +1084,6 @@ units:
             className: nginx
             hosts:
               core: '{{ .Values.external_hostnames.harbor }}'
-            labels:
-              service-type: gui
           tls:
             enabled: true
             certSource: secret
@@ -1198,6 +1198,8 @@ units:
       vault-operator: true
     annotations:
       sylvactl/readyMessage: "Vault UI can be reached at https://{{ .Values.external_hostnames.vault }} ({{ .Values.external_hostnames.vault }} must resolve to {{ .Values.display_external_ip }})"
+    labels:
+      service-type: "gui"
     repo: sylva-core
     kustomization_substitute_secrets:
       ADMIN_PASSWORD: '{{ .Values.admin_password }}'
@@ -1615,6 +1617,8 @@ units:
       synchronize-secrets: true # make sure that the secret keycloak-initial-admin is ready to be consummed
     annotations:
       sylvactl/readyMessage: "Keycloak admin console can be reached at https://{{ .Values.external_hostnames.keycloak }}/admin/master/console, user 'admin', password in Vault at secret/keycloak ({{ .Values.external_hostnames.keycloak }} must resolve to {{ .Values.display_external_ip }})"
+    labels:
+      service-type: "gui"
     repo: sylva-core
     kustomization_substitute_secrets:
       KEY: '{{ .Values.external_certificates.keycloak.key | default "" | b64enc }}'
@@ -3471,6 +3475,8 @@ units:
       synchronize-secrets: true
     annotations:
       sylvactl/readyMessage: "Rancher UI can be reached at https://{{ .Values.external_hostnames.rancher }} ({{ .Values.external_hostnames.rancher }} must resolve to {{ .Values.display_external_ip }})"
+    labels:
+      service-type: "gui"
     helm_repo_url: https://releases.rancher.com/server-charts/stable
     helmrelease_spec:
       chart:
@@ -3492,8 +3498,6 @@ units:
         ingress:
           enabled: true
           ingressClassName: nginx
-          labels:
-            service-type: gui
           tls:
             source: secret
             secretName: rancher-tls
@@ -3882,6 +3886,8 @@ units:
       flux-webui-init: true
     annotations:
       sylvactl/readyMessage: "Flux Web UI can be reached at https://{{ .Values.external_hostnames.flux }} ({{ .Values.external_hostnames.flux }} must resolve to {{ .Values.display_external_ip }})"
+    labels:
+      service-type: "gui"
     repo: weave-gitops
     helm_chart_artifact_name: weave-gitops
     helmrelease_spec:
@@ -3916,8 +3922,6 @@ units:
         ingress:
           enabled: true
           className: nginx
-          labels:
-            service-type: gui
           hosts:
             - host: '{{ .Values.external_hostnames.flux }}'
               paths:
@@ -4059,6 +4063,8 @@ units:
       namespace-defs: true
       monitoring-crd: true
       prometheus-resources: '{{ tuple . "prometheus-resources" | include "unit-enabled" }}'
+    labels:
+      service-type: "gui"
     helm_repo_url: https://charts.rancher.io/
     helmrelease_spec:
       releaseName: rancher-monitoring
@@ -5706,6 +5712,8 @@ units:
       ingress-nginx: '{{ tuple . "ingress-nginx" | include "unit-enabled" }}'
     annotations:
       sylvactl/readyMessage: "minio operator console can be reached at https://{{ .Values.external_hostnames.minio_operator_console }} ({{ .Values.external_hostnames.minio_operator_console }} must resolve to {{ .Values.display_external_ip }})"
+    labels:
+      service-type-minio-operator-console: "gui"
     repo: minio-operator
     helmrelease_spec:
       targetNamespace: minio-operator
@@ -5755,8 +5763,6 @@ units:
           ingress:
             enabled: true
             ingressClassName: nginx
-            labels:
-              service-type: gui
             host: '{{ .Values.external_hostnames.minio_operator_console }}'
             path: /
             pathType: Prefix
@@ -5836,6 +5842,9 @@ units:
       '{{ .Values._internal.default_storage_class_unit }}': '{{ not (tuple . "two-replicas-storageclass" | include "unit-enabled") }}'
     annotations:
       sylvactl/readyMessage: MinIO logging tenant console can be reached at https://{{ .Values.external_hostnames.minio_logging_console }} ({{ .Values.external_hostnames.minio_logging_console }} must resolve to {{ .Values.display_external_ip }})
+    labels:
+      service-type-monitoring: "api"
+      service-type-monitoring-console: "gui"
     repo: minio-operator
     helmrelease_spec:
       targetNamespace: minio-logging
@@ -5930,8 +5939,6 @@ units:
           api:
             enabled: true
             ingressClassName: nginx
-            labels:
-              service-type: api
             annotations:
               nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
             host: '{{ .Values.external_hostnames.minio_logging }}'
@@ -6208,6 +6215,11 @@ units:
       ingress-nginx: '{{ tuple . "ingress-nginx" | include "unit-enabled" }}'
     annotations:
       sylvactl/readyMessage: Thanos UI can be reached at https://{{ .Values.external_hostnames.thanos }} ({{ .Values.external_hostnames.thanos }} must resolve to {{ .Values.display_external_ip }})
+    labels:
+      service-type-thanos-query: "gui"
+      service-type-thanos-query-frontend: "api"
+      service-type-thanos-receive: "api"
+      service-type-thanos-storegateway: "api"
     repo: bitnami-thanos
     helmrelease_spec:
       targetNamespace: thanos
@@ -6323,8 +6335,6 @@ units:
           ingress:
             enabled: true
             ingressClassName: "nginx"
-            labels:
-              service-type: api
             hostname: '{{ .Values.external_hostnames.thanos_query }}'
             extraTls:
               - hosts:
@@ -6343,8 +6353,6 @@ units:
           ingress:
             enabled: true
             ingressClassName: "nginx"
-            labels:
-              service-type: api
             hostname: '{{ .Values.external_hostnames.thanos }}'
             extraTls:
               - hosts:
@@ -6359,8 +6367,6 @@ units:
             enabled: true
             hostname: '{{ .Values.external_hostnames.thanos_storegateway }}'
             ingressClassName: "nginx"
-            labels:
-              service-type: api
             extraTls:
               - hosts:
                   - '{{ .Values.external_hostnames.thanos_storegateway }}'
