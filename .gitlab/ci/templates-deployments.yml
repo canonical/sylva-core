@@ -362,11 +362,11 @@ include:
     cat <<EOF>> $ENV_PATH/kustomization.yaml
     patches:
     - target:
-        kind: HelmRelease
+        kind: OCIRepository
         name: sylva-units
       patch: |
         - op: replace
-          path: /spec/chart/spec/version
+          path: /spec/ref/tag
           value: ${OCI_TAG}
     EOF
     fi

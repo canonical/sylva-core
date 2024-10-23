@@ -2,7 +2,7 @@ apiVersion: kustomize.config.k8s.io/v1alpha1
 kind: Component
 
 resources:
-- helm-repo.yaml
+- oci-repo.yaml
 
 patches:
 - target:
@@ -13,14 +13,16 @@ patches:
     metadata:
       name: _unused_
     spec:
-      chart:
-        spec:
-          sourceRef:
-            kind: HelmRepository
-            name: sylva-units
-          chart: sylva-units
-          reconcileStrategy: ChartVersion
-          version: TBD  # this needs to be overridden at runtime (see README.md)
+      chartRef:
+        kind: OCIRepository # version is driven by OCIRepository/sylva-units, this needs to be overridden at runtime (see README.md)
+        name: sylva-units
+- target:
+    kind: HelmRelease
+    name: sylva-units
+  # this patch removes the .spec.chart (replaced by .spec.chartRef in case of OCI deployments)
+  patch: |
+    - op: remove
+      path: /spec/chart
 
 - target:
     kind: HelmRelease
