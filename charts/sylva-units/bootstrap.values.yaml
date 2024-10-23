@@ -517,6 +517,7 @@ units_override_enabled:
   - management-namespace-defs
   - kyverno
   - kyverno-policies
+  - kyverno-metal3-policies
   - calico-crd
   - calico
   - calico-ready

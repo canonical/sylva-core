@@ -111,6 +111,7 @@
 | **keycloak-resources** | configures keycloak resources |  | True | Kustomize | N/A |
 | **kubevirt-manager** | deploys kubevirt-manager UI for kubevirt workloads |  | True | Kustomize | N/A |
 | **kubevirt-test-vms** | deploys kubevirt VMs for testing |  | True | Kustomize | N/A |
+| **kyverno-metal3-policies** | kyverno policies specific to capm3-system |  | True | Kustomize | N/A |
 | **kyverno-policies** | configures Kyverno policies |  | True | Kustomize | N/A |
 | **kyverno-policies-ready** | additional delay to ensure that kyverno webhooks are properly installed in api-server |  | True | Kustomize | N/A |
 | **kyverno-policy-prevent-mgmt-cluster-delete** | Kyverno policies to prevent deletion of critical resources for mgmt cluster |  | True | Kustomize | N/A |

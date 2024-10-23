@@ -46,6 +46,7 @@ units:
   cluster-bmh:
     depends_on:
       metal3: '{{ .Values.cluster.capi_providers.infra_provider | eq "capm3" }}'
+      kyverno-metal3-policies: '{{ tuple . "kyverno-metal3-policies" | include "unit-enabled" }}'
 
   cluster:
     depends_on:
