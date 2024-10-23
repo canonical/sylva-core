@@ -16,6 +16,7 @@ kubectl --context workload get pods -A
 -p, --project_path  Project ID. Defaults to 42451983
 -j, --job_id        Job ID. Required.
 -s, --socket        The socket address to bind the HTTP server to. Defaults to 127.0.0.1:9385
+-b, --background    Start crust-gather in background and use a dedicated kubeconfig in a subshell to explore this artifact
 
 \$GITLAB_TOKEN        For private projects, an access token with 'read_api' scope is to be provided through GITLAB_TOKEN variable.
 EOF
@@ -42,6 +43,9 @@ do
             SOCKET="${2}"
             shift
             ;;
+        -b|--background)
+            BACKGROUND=1
+            ;;
         *)
             # unknown option
             usage
@@ -51,12 +55,17 @@ do
 done
 
 : ${PROJECT_ID:="42451983"}
-: ${SOCKET:="127.0.0.1:9385"}
+: ${SOCKET:="127.0.0.1:$(( $RANDOM + 1024 ))"}
 
 if [[ -z ${PROJECT_ID} ]] || [[ -z ${JOB_ID} ]] && [[ -z ${URI} ]]
 then
     usage
     exit
+fi
+
+TOOLBOX_ENV=$(dirname ${BASH_SOURCE[0]})/../bin/env
+if ! command -v crustgather &>/dev/null && [[ -f "$TOOLBOX_ENV" ]]; then
+    source "$TOOLBOX_ENV"
 fi
 
 : ${URI:="https://gitlab.com/api/v4/projects/${PROJECT_ID}/jobs/${JOB_ID}/artifacts/crust-gather.tar.gz"}
@@ -67,5 +76,30 @@ curl -H "PRIVATE-TOKEN: ${GITLAB_TOKEN}" -L "${URI}" --output "${tmp}/artifact.t
 tar -xzf "${tmp}/artifact.tar.gz" -C "${tmp}"
 
 echo "Serving on ${SOCKET}..."
-crustgather serve -a ${tmp} -s ${SOCKET}
+
+if [[ $BACKGROUND -eq 1 ]]; then
+    export KUBECONFIG=$(mktemp)
+    crustgather serve -a ${tmp} -s ${SOCKET} -v WARN &
+    crustgather_pid=$!
+
+    kubectl config set-context management --namespace sylva-system
+    kubectl config use-context management
+
+    echo "Starting a new shell in crustgather context, hit ctlr+D to exit"
+    JOB_PROMPT="crustgather-job-$JOB_ID ~> "
+    if [[ $SHELL =~ .*bash$ && -f ~/.bashrc ]]; then
+        $SHELL --rcfile <(cat ~/.bashrc; echo "PS1=\"$JOB_PROMPT\"")
+    else
+        $SHELL -c "export PS1=\"$JOB_PROMPT\"; exec $SHELL"
+    fi
+
+    while kill $crustgather_pid &>/dev/null; do
+      sleep 1
+    done
+    rm $KUBECONFIG
+else
+    crustgather serve -a ${tmp} -s ${SOCKET} -v WARN
+fi
+
 rm -rf ${tmp}
+
