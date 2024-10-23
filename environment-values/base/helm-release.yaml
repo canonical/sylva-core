@@ -23,11 +23,12 @@ spec:
         name: sylva-units
       chart: charts/sylva-units
       reconcileStrategy: Revision
-      valuesFiles:
-        - charts/sylva-units/values.yaml
-        - charts/sylva-units/management.values.yaml
   interval: 10m0s
   valuesFrom:
+  - kind: ConfigMap
+    name: management-values
+    valuesKey: management-values
+    optional: true # only needed for 'validate_sylva_units' preview
   - kind: Secret
     name: sylva-units-secrets
     valuesKey: secrets
