@@ -496,6 +496,8 @@ no_proxy_additional:
   '{{ .Values._internal.kind_kubeadm_networking.podSubnet }}': true
   '{{ .Values._internal.kind_kubeadm_networking.serviceSubnet }}': true
 
+cluster_public_endpoint: '{{ tuple (printf "https://%s:%s" .Values._internal.bootstrap_node_ip "8443") (tuple . "libvirt-metal" | include "unit-enabled") | include "set-only-if" }}'
+
 # only those components will be enabled on bootstrap cluster (this overrides 'units.<component>.enabled')
 # note that this list does *not* override enabled_conditions set on the units, those are still applied
 units_override_enabled:
