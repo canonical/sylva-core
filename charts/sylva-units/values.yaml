@@ -852,9 +852,9 @@ units:
         - '{{ ternary "../tls-components/tls-secret" "../tls-components/tls-certificate" (hasKey .Values.external_certificates.harbor "cert") }}'
         - "../tls-components/sylva-ca"
 
-  harbor-postgres:
+  harbor-postgres-ha:
     info:
-      description: installs Postgresql for Harbor
+      description: installs Postgresql in HA for Harbor
       maturity: stable
     depends_on:
       namespace-defs: true
@@ -868,34 +868,18 @@ units:
     helmrelease_spec:
       chart:
         spec:
-          chart: postgresql
-          version: 15.5.36
+          chart: postgresql-ha
+          version: 14.2.30
       targetNamespace: harbor
       values:
-        auth:
+        global:
+          storageClass: "{{ .Values._internal.default_storage_class }}"
+        postgresql:
           username: harbor
           database: harbor
           existingSecret: harbor-postgres-secrets
-          secretKeys:
-            adminPasswordKey: admin-password
-            userPasswordKey: password
-            replicationPasswordKey: replication-password
-        architecture: replication
-        nameOverride: postgres
-        serviceAccount:
-          create: true
-          name: postgresql
-        primary:
           pdb:
-            create: false  # this is non-HA and single replica, so a PDB does not make sense
-          extendedConfiguration: |-
-            huge_pages = off
-          initdb:
-            args: "--set huge_pages=off"
-        readReplicas:
-          extendedConfiguration: |-
-            huge_pages = off
-          replicaCount: '{{ .Values._internal.ha_cluster.is_ha | ternary 3 1 }}'
+            create: true
           affinity:
             podAntiAffinity:
               requiredDuringSchedulingIgnoredDuringExecution:
@@ -904,6 +888,12 @@ units:
                       app.kubernetes.io/name: postgres
                       app.kubernetes.io/component: read
                   topologyKey: kubernetes.io/hostname
+          configuration: |-
+            huge_pages = off
+        nameOverride: postgres
+        serviceAccount:
+          create: true
+          name: postgresql
       _postRenderers:
         - kustomize:
             patches:
