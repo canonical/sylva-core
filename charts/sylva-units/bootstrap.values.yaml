@@ -316,7 +316,6 @@ units:
           chart: charts/sylva-units
           reconcileStrategy: Revision
           # copy sourceRef from bootstrap HelmRelease:
-          sourceRef: '{{ lookup "helm.toolkit.fluxcd.io/v2" "HelmRelease" "sylva-system" "sylva-units" | dig "spec" "chart" "spec" "sourceRef" (dict "kind" "GitRepository" "name" "not-found" "namespace" "not-found") | include "preserve-type" }}'
           # we copy the valuesFiles from the bootstrap HelmRelease, skipping
           # the bootstrap.values.yaml file (with or without the 'charts/sylva-units/'
           # prefix which is or isn't there depending on whether this is a deployment
@@ -335,7 +334,10 @@ units:
                                             )
         -}}
         {{- mergeOverwrite $chartValues $disableCluster | include "preserve-type" -}}'
-      valuesFrom: '{{ lookup "helm.toolkit.fluxcd.io/v2" "HelmRelease" "sylva-system" "sylva-units" | dig "spec" "valuesFrom" list | include "preserve-type" }}'
+      # copy valuesFrom from current sylva-units HelmRelease, but without the ConfigMap/bootstrap-values, at index 1
+      valuesFrom: >-
+        {{- $valuesFrom := lookup "helm.toolkit.fluxcd.io/v2beta2" "HelmRelease" "sylva-system" "sylva-units" | dig "spec" "valuesFrom" list -}}
+        {{- concat (slice $valuesFrom 0 1 | default list) (slice $valuesFrom 2 | default list) | include "preserve-type" -}}
 
   pivot:
     info:
