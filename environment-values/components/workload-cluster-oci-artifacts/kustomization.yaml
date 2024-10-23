@@ -6,7 +6,7 @@ components:
 
 patches:
   - target:
-      kind: HelmRepository
+      kind: OCIRepository
       name: sylva-units
     patch: |
       - op: replace
