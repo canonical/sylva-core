@@ -717,6 +717,12 @@ properties:
         format: hostname
       - $ref: "#/$defs/string-with-gotpl"
 
+  cluster_public_endpoint:  # -------------------------------
+    anyOf:
+      - type: string
+        pattern: "^(https?://.*|)$"
+      - $ref: "#/$defs/gotpl"
+
   external_hostnames:  # -------------------------------
     type: object
     additionalProperties: false

@@ -44,6 +44,13 @@ spec:
     valuesKey: allocated_fip
     targetPath: openstack.floating_ip
     optional: true
+    # Optional configMap used to save public endpoint
+    # (used when it is determined dynamically in bootstrap for libvirt-metal)
+  - kind: ConfigMap
+    name: cluster-public-endpoint
+    valuesKey: endpoint
+    targetPath: cluster_public_endpoint
+    optional: true
 
   values:
     source_templates:
