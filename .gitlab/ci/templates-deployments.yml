@@ -213,7 +213,10 @@ include:
   - !reference [.import_functions]
   - !reference [.setup_docker]
   - !reference [.clone_ci_values]
-  - download_artifact deploy-management-cluster management-cluster-kubeconfig
+  - |
+    if [[ $CI_JOB_NAME != preview-management-cluster ]]; then
+      download_artifact deploy-management-cluster management-cluster-kubeconfig
+    fi
   - |
     # configure Git revision
     if [ -n "${GIT_REVISION}" ] ; then
@@ -366,6 +369,22 @@ include:
     - |
       .gitlab/ci/scripts/dump_machine_logs.sh management || true
       echo -e "\e[0Ksection_end:`date +%s`:dump_machine_logs\r\e[0K"
+
+.preview-management:
+  extends: .management-base
+  timeout: 15min
+  script:
+    - !reference [.setup_ci_context_and_values]
+    - ./preview.sh environment-values/${ENV_NAME}
+  variables:
+    SPECIFIC_VALUES_FILE: $MGMT_INITIAL_ADDITIONAL_VALUES
+    GIT_REVISION: $MGMT_INITIAL_REVISION
+  artifacts:
+    when: on_failure
+    expire_in: 1 hour
+    paths:
+      - debug-on-exit.log
+      - bootstrap-cluster-dump/
 
 .deploy-management:
   extends: .management-base
