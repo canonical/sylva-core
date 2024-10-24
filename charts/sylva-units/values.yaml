@@ -2482,8 +2482,7 @@ units:
             type: LoadBalancer
             externalIPs:
             - '{{ .Values.cluster_virtual_ip }}'
-            annotations:
-              metallb.universe.tf/allow-shared-ip: cluster-external-ip
+            annotations: '{{ .Values._internal.metallb_service_annotations | default dict | include "preserve-type" }}'
           baremetaloperator:
             ironichostNetwork: false
           persistence:
@@ -3417,9 +3416,9 @@ units:
         domain: '{{ .Values.cluster_domain }}'
         replicaCount: 3
         service:
-          loadBalancerIP: '{{ .Values.cluster_virtual_ip }}'
-          annotations:
-            metallb.universe.tf/allow-shared-ip: cluster-external-ip
+          externalIPs:
+          - '{{ .Values.cluster_virtual_ip }}'
+          annotations: '{{ .Values._internal.metallb_service_annotations | default dict | include "preserve-type" }}'
         # Following extraZonePlugins lines include all chart defaults plus the hosts plugin
         extraZonePlugins:
           - name: log
@@ -3575,8 +3574,7 @@ units:
             enabled: true
             externalIPs:
             - '{{ .Values.cluster_virtual_ip }}'
-            annotations:
-              metallb.universe.tf/allow-shared-ip: cluster-external-ip
+            annotations: '{{ .Values._internal.metallb_service_annotations | default dict | include "preserve-type" }}'
           publishService:
             enabled: true
           ingressClassResource:
@@ -7520,6 +7518,15 @@ _internal:
       {{- end -}}
     {{- end -}}
     {{- $result -}}
+
+  metallb_service_annotations:
+    '{{
+    tuple (dict "metallb.universe.tf/loadBalancerIPs" .Values.cluster_virtual_ip
+                "metallb.universe.tf/allow-shared-ip" "cluster-external-ip")
+          (or (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpr")
+              (tuple . "capd-metallb-config" | include "unit-enabled"))
+      | include "set-only-if"
+    }}'
 
   previous_values: '{{ omit (lookup "v1" "Secret" .Release.Namespace "sylva-units-values" | dig "data" "values" "" | b64dec | fromYaml | default dict) "unit_templates" | include "preserve-type" }}'
 
