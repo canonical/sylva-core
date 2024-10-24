@@ -14,7 +14,7 @@ metadata:
       prevents users from targeting specific Nodes for scheduling of Pods by
       prohibiting the use of the `nodeSelector` and `nodeName` fields. Note that
       this policy is only designed to work on initial creation and not in background
-      mode.      
+      mode.
 spec:
   validationFailureAction: audit
   background: false
