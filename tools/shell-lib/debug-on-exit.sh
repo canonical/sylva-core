@@ -170,6 +170,28 @@ function crust_gather_collect() {
   return 0
 }
 
+
+function remote_command {
+    if [[ $IN_CI -eq 0 ]]; then
+      echo "'remote_command' is available only from CI environments" >&2
+      return 1
+    fi
+
+    local node=$1
+    shift
+
+    echo "running '$*' on $node ... " >&2
+
+    # we assume that the 'sandbox-privileged-namespace' unit is enabled
+    kubectl -n sandbox debug node/$node \
+      --request-timeout=5s \
+      --profile=sysadmin \
+      --image registry.gitlab.com/sylva-projects/sylva-elements/container-images/kube-job:v1.0.17 \
+      -i -q -- \
+      chroot /host \
+      "$@"
+}
+
 function cluster_info_dump() {
   local cluster=$1
   local dump_dir=$cluster-cluster-dump
@@ -226,6 +248,30 @@ function cluster_info_dump() {
 
   # dump RKE2 node-password secrets
   kubectl -n kube-system get secrets -o yaml | yq '.items=[.items[] | select(.metadata.name | contains(".node-password.rke2"))]' > $dump_dir/Secrets-rke2-node-passwords.yaml
+
+  # dump per-node system information
+  echo "Dumping per-node system information..."
+  for node in $(kubectl get nodes -o custom-columns='CLUSTER:.metadata.name' --no-headers); do
+      node_sysinfo_dumpdir=$dump_dir/system-info/$node
+      mkdir -p $node_sysinfo_dumpdir
+
+      echo "-- node $node"
+
+      set -vx
+
+      remote_command $node ss -apnm > $node_sysinfo_dumpdir/ss-apnm.log
+
+      remote_command $node iptables -t nat -nvL > $node_sysinfo_dumpdir/iptables-nat-1-before-clear-counters.log
+      # zeroing iptables counters (we'll retrieve counters below after waiting a bit)
+      remote_command $node iptables -t nat -Z
+      sleep 10
+      remote_command $node iptables -t nat -nvL > $node_sysinfo_dumpdir/iptables-nat-2-after-clear-counters.log
+
+      remote_command $node cat /var/log/syslog  > $node_sysinfo_dumpdir/var-log-syslog
+      remote_command $node cat /var/log/messages  > $node_sysinfo_dumpdir/var-log-messages
+      remote_command $node journalctl -xeu rke2-server > $node_sysinfo_dumpdir/rke2-server.log
+      remote_command $node journalctl -xeu rke2-agent > $node_sysinfo_dumpdir/rke2-agent.log
+  done
 
   echo -e "\nDisplay cluster resources usage per node"
   # From https://github.com/kubernetes/kubernetes/issues/17512
