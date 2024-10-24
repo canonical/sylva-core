@@ -87,6 +87,20 @@
         }
       ]
     },
+    "mac-address": {
+      "anyOf": [
+        {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9]{2}:[a-zA-Z0-9]{2}:[a-zA-Z0-9]{2}:[a-zA-Z0-9]{2}:[a-zA-Z0-9]{2}:[a-zA-Z0-9]{2}$"
+        },
+        {
+          "$ref": "#/$defs/string-with-gotpl"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
     "dict-with-strings": {
       "anyOf": [
         {
@@ -1318,10 +1332,6 @@
                 {
                   "type": "object",
                   "additionalProperties": false,
-                  "required": [
-                    "provisioning_pool_interface",
-                    "primary_pool_interface"
-                  ],
                   "properties": {
                     "provisioning_pool_interface": {
                       "anyOf": [
@@ -1573,10 +1583,6 @@
                 {
                   "type": "object",
                   "additionalProperties": false,
-                  "required": [
-                    "provisioning_pool_interface",
-                    "primary_pool_interface"
-                  ],
                   "properties": {
                     "provisioning_pool_interface": {
                       "anyOf": [
@@ -1916,30 +1922,6 @@
                             "phy",
                             "bond"
                           ]
-                        },
-                        {
-                          "$ref": "#/$defs/string-with-gotpl"
-                        }
-                      ]
-                    },
-                    "macAddress": {
-                      "anyOf": [
-                        {
-                          "type": "object",
-                          "additionalProperties": false,
-                          "properties": {
-                            "fromHostInterface": {
-                              "anyOf": [
-                                {
-                                  "type": "string",
-                                  "$ref": "#/$defs/linux-ifname"
-                                },
-                                {
-                                  "$ref": "#/$defs/string-with-gotpl"
-                                }
-                              ]
-                            }
-                          }
                         },
                         {
                           "$ref": "#/$defs/string-with-gotpl"
@@ -2406,23 +2388,21 @@
                 }
               ]
             },
-            "ip_preallocations": {
+            "interface_mappings": {
               "anyOf": [
                 {
                   "type": "object",
-                  "additionalProperties": false,
-                  "properties": {
-                    "primary": {
+                  "patternProperties": {
+                    "^[a-z0-9][a-z0-9-]*[a-z0-9]$": {
                       "anyOf": [
                         {
                           "type": "object",
                           "additionalProperties": false,
                           "properties": {
-                            "ip": {
+                            "mac_address": {
                               "anyOf": [
                                 {
-                                  "type": "string",
-                                  "format": "ipv4"
+                                  "$ref": "#/$defs/mac-address"
                                 },
                                 {
                                   "$ref": "#/$defs/string-with-gotpl"
@@ -2432,7 +2412,7 @@
                                 }
                               ]
                             },
-                            "mac_address": {
+                            "inspection_name": {
                               "anyOf": [
                                 {
                                   "type": "string"
@@ -2445,7 +2425,49 @@
                                 }
                               ]
                             }
-                          }
+                          },
+                          "oneOf": [
+                            {
+                              "required": [
+                                "mac_address"
+                              ]
+                            },
+                            {
+                              "required": [
+                                "inspection_name"
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "$ref": "#/$defs/string-with-gotpl"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  }
+                },
+                {
+                  "$ref": "#/$defs/string-with-gotpl"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "ip_preallocations": {
+              "anyOf": [
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "primary": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "format": "ipv4"
                         },
                         {
                           "$ref": "#/$defs/string-with-gotpl"
@@ -2458,37 +2480,8 @@
                     "provisioning": {
                       "anyOf": [
                         {
-                          "type": "object",
-                          "additionalProperties": false,
-                          "properties": {
-                            "ip": {
-                              "anyOf": [
-                                {
-                                  "type": "string",
-                                  "format": "ipv4"
-                                },
-                                {
-                                  "$ref": "#/$defs/string-with-gotpl"
-                                },
-                                {
-                                  "type": "null"
-                                }
-                              ]
-                            },
-                            "mac_address": {
-                              "anyOf": [
-                                {
-                                  "type": "string"
-                                },
-                                {
-                                  "$ref": "#/$defs/string-with-gotpl"
-                                },
-                                {
-                                  "type": "null"
-                                }
-                              ]
-                            }
-                          }
+                          "type": "string",
+                          "format": "ipv4"
                         },
                         {
                           "$ref": "#/$defs/string-with-gotpl"
@@ -2970,6 +2963,7 @@
           "type": "object",
           "additionalProperties": false,
           "required": [
+            "non_hugepages_minimum_memory_gb",
             "kernel_cmdline",
             "kubelet_extra_args",
             "kubelet_config_file_options",
@@ -2979,6 +2973,19 @@
             "additional_commands"
           ],
           "properties": {
+            "non_hugepages_minimum_memory_gb": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "$ref": "#/$defs/string-with-gotpl"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
             "kernel_cmdline": {
               "anyOf": [
                 {
@@ -3004,10 +3011,10 @@
                                 }
                               ]
                             },
-                            "2M_percentage_total": {
+                            "hugepagesz_2M": {
                               "anyOf": [
                                 {
-                                  "type": "string"
+                                  "type": "integer"
                                 },
                                 {
                                   "$ref": "#/$defs/string-with-gotpl"
@@ -3017,10 +3024,10 @@
                                 }
                               ]
                             },
-                            "1G_percentage_total": {
+                            "hugepagesz_1G": {
                               "anyOf": [
                                 {
-                                  "type": "string"
+                                  "type": "integer"
                                 },
                                 {
                                   "$ref": "#/$defs/string-with-gotpl"
@@ -3157,6 +3164,36 @@
                   "type": "null"
                 }
               ]
+            }
+          },
+          "if": {
+            "properties": {
+              "kernel_cmdline": {
+                "properties": {
+                  "hugepages": {
+                    "enabled": {
+                      "const": true
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "non_hugepages_minimum_memory_gb": {
+                "anyOf": [
+                  {
+                    "minimum": 2
+                  },
+                  {
+                    "$ref": "#/$defs/string-with-gotpl"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
             }
           }
         },
@@ -4179,6 +4216,20 @@
             {
               "type": "object",
               "additionalProperties": false,
+              "if": {
+                "required": [
+                  "provisioning_pool_name"
+                ]
+              },
+              "then": {
+                "required": [
+                  "provisioning_pool_network",
+                  "provisioning_pool_gateway",
+                  "provisioning_pool_end",
+                  "provisioning_pool_start",
+                  "provisioning_pool_prefix"
+                ]
+              },
               "properties": {
                 "use_os_image_server_service_urls": {
                   "anyOf": [
@@ -4320,10 +4371,6 @@
                     {
                       "type": "object",
                       "additionalProperties": false,
-                      "required": [
-                        "provisioning_pool_interface",
-                        "primary_pool_interface"
-                      ],
                       "properties": {
                         "provisioning_pool_interface": {
                           "anyOf": [
@@ -6596,11 +6643,6 @@
                       "primary_pool_end",
                       "primary_pool_start",
                       "primary_pool_prefix",
-                      "provisioning_pool_network",
-                      "provisioning_pool_gateway",
-                      "provisioning_pool_end",
-                      "provisioning_pool_start",
-                      "provisioning_pool_prefix",
                       "dns_servers"
                     ],
                     "oneOf": [

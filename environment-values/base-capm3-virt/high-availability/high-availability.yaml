@@ -8,6 +8,11 @@ cluster:
 
   baremetal_hosts:
     management-cp-0:
+      interface_mappings:
+        nic1:
+          mac_address: 52:54:00:44:44:00
+        nic2:
+          inspection_name: ens5
       bmh_metadata:
         labels:
           cluster-role: control-plane
@@ -17,6 +22,11 @@ cluster:
           address: redfish-virtualmedia://{{ .Values._internal.bootstrap_node_ip }}:8000/redfish/v1/Systems/c0014001-b10b-f001-c0de-feeb1e54ee15
         bootMACAddress: 52:54:00:44:44:00
     management-cp-1:
+      interface_mappings:
+        nic1:
+          inspection_name: ens4
+        nic2:
+          mac_address: 52:54:00:55:55:01
       bmh_metadata:
         labels:
           cluster-role: control-plane
@@ -25,6 +35,11 @@ cluster:
           address: redfish-virtualmedia://{{ .Values._internal.bootstrap_node_ip }}:8001/redfish/v1/Systems/c0014001-b10b-f001-c0de-feeb1e54ee15
         bootMACAddress: 52:54:00:44:44:01
     management-cp-2:
+      interface_mappings:
+        nic1:
+          mac_address: 52:54:00:44:44:02
+        nic2:
+          mac_address: 52:54:00:55:55:02
       bmh_metadata:
         labels:
           cluster-role: control-plane
@@ -33,6 +48,7 @@ cluster:
           address: redfish-virtualmedia://{{ .Values._internal.bootstrap_node_ip }}:8002/redfish/v1/Systems/c0014001-b10b-f001-c0de-feeb1e54ee15
         bootMACAddress: 52:54:00:44:44:02
     management-md-0:
+      # No interface_mappings to test backward compatibility
       bmh_metadata:
         labels:
           cluster-role: worker
