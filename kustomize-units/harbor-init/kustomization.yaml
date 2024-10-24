@@ -11,3 +11,4 @@ resources:
   - harbor-postgres-user.yaml
   - harbor-postgres-replication.yaml
   - harbor-postgres-repmgr.yaml
+  - harbor-postgres-password.yaml
