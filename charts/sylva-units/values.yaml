@@ -874,6 +874,8 @@ units:
         serviceAccount:
           create: true
           name: postgresql
+        pgpool:
+          existingSecret: harbor-postgres-secrets
       _postRenderers:
         - kustomize:
             patches:
