@@ -381,6 +381,11 @@ include:
     echo -e "\e[1m\e[0Ksection_start:`date +%s`:display_values[collapsed=true]\r\e[0KDisplay values.yaml\e[0m"
     cat $values_file | tee ci-environment-values.yaml
     echo -e "\e[0Ksection_end:`date +%s`:display_values\r\e[0K"
+  - |
+    # Display charts/sylva-units/use-oci-artifacts.values.yaml
+    echo -e "\e[1m\e[0Ksection_start:`date +%s`:display_values[collapsed=true]\r\e[0KDisplay charts/sylva-units/use-oci-artifacts.values.yaml\e[0m"
+    cat charts/sylva-units/use-oci-artifacts.values.yaml | tee sylva-units-use-oci-artifacts.values.yaml
+    echo -e "\e[0Ksection_end:`date +%s`:display_values\r\e[0K"
   - !reference [.flavored-pre-deployment-configuration]
 
 # By default we don't have specific configuration to apply
@@ -423,6 +428,7 @@ include:
       - crust-gather.tar.gz
       - "*-timeline.html"
       - management-cluster-kubeconfig
+      - sylva-units-use-oci-artifacts.values.yaml
       - ci-environment-values.yaml
     name: "artifact-$CI_JOB_ID"
     # expose_as: $CI_JOB_NAME  # not allowed https://gitlab.com/gitlab-org/gitlab/-/issues/427149
@@ -487,6 +493,7 @@ include:
       - crust-gather.tar.gz
       - "*-timeline.html"
       - management-cluster-kubeconfig
+      - sylva-units-use-oci-artifacts.values.yaml
       - ci-environment-values.yaml
   after_script:
     - |
