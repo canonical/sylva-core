@@ -25,3 +25,11 @@ spec:
      remoteRef:
         key: secret/data/harbor-postgres-replication
         property: password
+   - secretKey: repmgr-password
+     remoteRef:
+        key: secret/data/harbor-postgres-repmgr
+        property: password
+   - secretKey: postgres-password
+     remoteRef:
+        key: secret/data/harbor-postgres-password
+        property: password
