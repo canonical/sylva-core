@@ -1799,6 +1799,10 @@ units:
                 resources:
                   - nodes
                 verbs: ["get", "list", "watch", "patch", "update", "delete"]
+              - apiGroups: ["longhorn.io"]
+                resources:
+                  - engineimages
+                verbs: ["get", "list", "watch", "patch", "update", "delete"]
           serviceMonitor:
             enabled: '{{ .Values._internal.monitoring.enabled | include "preserve-type" }}'
         reportsController:
@@ -1897,6 +1901,7 @@ units:
         - '{{ tuple "components/loki-aggregated-secrets" (tuple . "loki" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/thanos" (tuple . "thanos" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/check-images" .Values.security.upstream_images_signature.verify | include "set-only-if" }}'
+        - '{{ tuple "components/longhorn-engine-image-cleanup" (tuple . "longhorn" | include "unit-enabled") | include "set-only-if"  }}'
 
   kyverno-policies-ready:
     info:
