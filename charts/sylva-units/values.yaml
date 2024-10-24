@@ -870,6 +870,7 @@ units:
                   topologyKey: kubernetes.io/hostname
           configuration: |-
             huge_pages = off
+          pgHbaTrustAll: true
         nameOverride: postgres
         serviceAccount:
           create: true
