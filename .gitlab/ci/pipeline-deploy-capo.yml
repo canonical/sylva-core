@@ -75,6 +75,7 @@ deployment-success:cleanup:
 deployment-failure:cleanup:
   extends: .cleanup-openstack
   before_script:
+    - !reference [.deployment-information]
     - |
       if [[ ${CI_MERGE_REQUEST_LABELS} =~ "delay-capo-ci-cleanup-on-failure" ]]; then
         DELAY_CAPO_CLEANUP="true"
