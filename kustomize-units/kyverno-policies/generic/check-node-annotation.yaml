@@ -1,0 +1,24 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: check-node-annotation
+  annotations:
+    kustomize.toolkit.fluxcd.io/force: Enabled
+    policies.kyverno.io/title: Check node annotation
+    policies.kyverno.io/subject: Node
+    policies.kyverno.io/description: >-
+      Check node annotation to confirm that cloud-init completed successfully.
+spec:
+  validationFailureAction: Enforce  # Set to "audit" for auditing
+  rules:
+    - name: validate-node-annotation
+      match:
+        resources:
+          kinds:
+            - Node
+      validate:
+        message: "Node must have the annotation 'sylva/cloud-init-finished'."
+        pattern:
+          metadata:
+            annotations:
+              sylva/cloud-init-finished: "?*"
