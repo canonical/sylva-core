@@ -15,16 +15,16 @@ variables:
 
   # Timeout configuration
   APPLY_WATCH_TIMEOUT_MIN:
-    value: "20"
+    value: "30"
     description: "apply.sh timeout"
   MGMT_WATCH_TIMEOUT_MIN:
-    value: "30"
+    value: "40"
     description: "bootstrap.sh timeout"
   BOOTSTRAP_WATCH_TIMEOUT_MIN:
     value: "45"
     description: "bootstrap.sh timeout for bootstrap cluster"
   APPLY_WC_WATCH_TIMEOUT_MIN:
-    value: "30"
+    value: "40"
     description: "apply-workload-cluster.sh timeout"
 
   # Management cluster relative variables
