@@ -3,6 +3,7 @@ kind: ClusterPolicy
 metadata:
   name: restrict-node-selection
   annotations:
+    kustomize.toolkit.fluxcd.io/force: Enabled
     policies.kyverno.io/title: Restrict node selection
     policies.kyverno.io/category: Sample
     policies.kyverno.io/subject: Pod
