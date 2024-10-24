@@ -25,9 +25,16 @@ echo "# Start collecting logs on nodes for $TARGET_CLUSTER cluster"
 TARGET_LOG_DIR=./$TARGET_CLUSTER-cluster-dump/node_logs
 mkdir -p $TARGET_LOG_DIR
 
+# Check if any cluster name contains "bootstrap", otherwise default to "sylva"
+if [[ $(kind get clusters -q) =~ bootstrap ]]; then
+  KIND_CLUSTER_NAME=$(kind get clusters -q | grep bootstrap)
+else
+  KIND_CLUSTER_NAME="sylva"
+fi
+
 unset KUBECONFIG
 # If bootstrap cluster is present we assume pivot is not done or this is a capm3-virt deployment
-if [[ $(kind get clusters) =~ ${KIND_CLUSTER_NAME:-sylva} ]]; then
+if [[ $(kind get clusters -q) =~ ${KIND_CLUSTER_NAME} ]]; then
   echo "bootstrap cluster detected"
   BOOTSTRAP_ALIVE="true"
   kubectl config view --raw > bootstrap-cluster-kubeconfig
@@ -53,7 +60,7 @@ fi
 # Creating service in bootstrap cluster pointing on given IP adddress
 # It would be usefull to access nodes in capm3-virt deployment
 if [[ ${BOOTSTRAP_ALIVE:-} == "true" ]]; then
-  bootstrap_cluster_ip=$(docker container inspect ${KIND_CLUSTER_NAME:-sylva}-control-plane | yq '.[0].NetworkSettings.Networks.kind.IPAddress')
+  bootstrap_cluster_ip=$(docker container inspect ${KIND_CLUSTER_NAME}-control-plane | yq '.[0].NetworkSettings.Networks.kind.IPAddress')
   echo "
 ---
 apiVersion: v1
@@ -91,34 +98,36 @@ fi
 
 
 
-# Retrieve machines info
+# Retrieve machines namespace
 if [[ $TARGET_CLUSTER == "management" ]]; then
   MACHINES_NS="sylva-system"
 else
-  MACHINES_NS="${ENV_NAME}"
+  MACHINES_NS=($(kubectl --request-timeout=3s get cluster.cluster -A -o jsonpath='{ $.items[?(@.metadata.namespace != "sylva-system")].metadata.namespace }' | tr ' ' '\n' | awk '!seen[$0]++'))
+  if [[ -z "${MACHINES_NS[@]}" ]]; then
+  echo -e "There's no workload cluster."
+  exit 1
+  fi
 fi
-MACHINES=$(kubectl get -n ${MACHINES_NS} machines.cluster.x-k8s.io -ojson)
 
 download_port=25888
 
 function get_download_ip {
     # Get IP address for each machine
-    infra_ref=$(echo "$MACHINES" | yq '.items[] | select(.metadata.name == strenv(machine_name)) | .spec.infrastructureRef')
-    machine_kind=$(echo "$infra_ref" | yq .kind)
+    machine_kind=$(kubectl -n ${clusterns} get machines.cluster.x-k8s.io $machine_name -ojsonpath='{.spec.infrastructureRef.kind}')
     if [[ $machine_kind == "Metal3Machine" ]]; then
-      metal3machine=$(echo "$infra_ref" | yq .name)
-      network_data_secret=$(kubectl get m3m/$metal3machine -n ${MACHINES_NS} -ojson | yq .status.networkData.name)
-      machine_ip=$(kubectl get secret/$network_data_secret -n ${MACHINES_NS} -ojson | yq .data.networkData | base64 -d | yq .networks[0].ip_address)
+      metal3machine=$(kubectl -n ${clusterns} get machines.cluster.x-k8s.io $machine_name -ojsonpath='{.spec.infrastructureRef.name}')
+      network_data_secret=$(kubectl get m3m/$metal3machine -n ${clusterns} -ojsonpath='{.status.networkData.name}')
+      machine_ip=$(kubectl get secret/$network_data_secret -n ${clusterns} -ojsonpath='{.data.networkData}'| base64 -d | yq '.networks[0].ip_address')
+      echo ">> machine_ip=$machine_ip"
     else
-      machine_addresses=$(echo "$MACHINES" | yq '.items[] | select(.metadata.name == strenv(machine_name)) | .status.addresses' )
-      machine_ip=$(echo "$machine_addresses" | yq '.[] | select(.type == "InternalIP") | .address ')
+      machine_ip=$(kubectl -n ${clusterns} get machines.cluster.x-k8s.io $machine_name -ojsonpath='{.status.addresses[0].address}' )
     fi
 
     # download logs using machine IP and port 25888 where miniserve should be listening
     echo ">> Machine IP = $machine_ip"
     if [[ $machine_kind == "Metal3Machine" ]]; then
       let "download_port++"
-      # In cae of capm3-virt node's machine Ip are not directly accessible
+      # In case of capm3-virt node's machine Ip are not directly accessible
       # we are creating service in bootstrap cluster to access it
       kubectl patch endpointslices machine-dump -n default --kubeconfig=bootstrap-cluster-kubeconfig \
         --patch '{"endpoints": [{"addresses": ["'$machine_ip'"]}]}'
@@ -139,14 +148,22 @@ function download_files {
     echo ""
 }
 
-for machine_name in $(echo "$MACHINES" | yq '.items[] | .metadata.name' ); do
+# Loop through namespaces and machines
+for clusterns in "${MACHINES_NS[@]}"; do
+  MACHINES=$(kubectl -n ${clusterns} get machines.cluster.x-k8s.io -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}')
+  for machine_name in $(echo "$MACHINES"); do
+    echo "> Cluster= $(kubectl -n ${clusterns} get clusters.cluster.x-k8s.io -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}') in namespace ${clusterns}"
     export machine_name=$machine_name
     echo "> Machine = $machine_name"
     set +e
     get_download_ip
-    if [ -z "$machine_ip" ];then continue; fi
+    if [ -z "$machine_ip" ]; then
+        echo "> No machine_ip found, skipping..."
+        continue
+    fi
     download_files
     set -e
+  done
 done
 
 echo "## Done !"
