@@ -31,7 +31,7 @@
 | **keycloak-legacy-operator** | installs Keycloak "legacy" operator | stable |  | [Kustomize](https://raw.githubusercontent.com/keycloak/keycloak-realm-operator/1.0.0/deploy/crds/legacy.k8s.keycloak.org_externalkeycloaks_crd.yaml) | 1.0.0 |
 | **libvirt-metal** | installs libvirt for baremetal emulation<br/><br/>this unit is used in bootstrap cluster for baremetal testing | stable |  | [Helm](https://gitlab.com/sylva-projects/sylva-elements/container-images/libvirt-metal.git) | 0.1.19 |
 | **local-path-provisioner** | installs local-path CSI | stable |  | [Helm](https://github.com/rancher/local-path-provisioner.git) | v0.0.29 |
-| **longhorn** | installs Longhorn CSI | stable |  | [Helm](https://charts.rancher.io/) | 104.1.0+up1.6.2 |
+| **longhorn** | installs Longhorn CSI | stable |  | [Helm](https://charts.rancher.io/) | 104.1.1+up1.6.3 |
 | **metal3** | installs SUSE-maintained Metal3 operator | stable |  | [Helm](https://suse-edge.github.io/charts) | 0.8.1 |
 | **metallb** | installs MetalLB operator | stable |  | [Helm](https://metallb.github.io/metallb) | 0.14.8 |
 | **monitoring** | installs monitoring stack | stable |  | [Helm](https://charts.rancher.io/) | 104.1.1+up57.0.3 |

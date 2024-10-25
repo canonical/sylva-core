@@ -4554,7 +4554,7 @@ units:
       chart:
         spec:
           chart: longhorn-crd
-          version: 104.1.0+up1.6.2
+          version: 104.1.1+up1.6.3
 
   longhorn:
     info:
@@ -4576,7 +4576,7 @@ units:
       chart:
         spec:
           chart: longhorn
-          version: 104.1.0+up1.6.2
+          version: 104.1.1+up1.6.3
       values:
         metrics:
           serviceMonitor:
@@ -4587,19 +4587,6 @@ units:
           storageMinimalAvailablePercentage: 10
           replicaReplenishmentWaitInterval: '{{ .Values.cluster.capi_providers.infra_provider | eq "capm3" | ternary 3600 600 | include "preserve-type" }}'
           nodeDrainPolicy: block-for-eviction-if-contains-last-replica
-        image:
-          engine:
-            tag: v1.6.3
-          manager:
-            tag: v1.6.3
-          ui:
-            tag: v1.6.3
-          instanceManager:
-            tag: v1.6.3
-          shareManager:
-            tag: v1.6.3
-          backingImageManager:
-            tag: v1.6.3
 
   longhorn-instance-manager-cleanup:
     info:
