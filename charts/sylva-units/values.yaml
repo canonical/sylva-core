@@ -612,6 +612,11 @@ units:
       internal: true
     unit_templates:
     - base-deps
+    depends_on:
+      # namespace-defs can't depend on Kyverno, because Kyverno depends on
+      # some namespaces
+      kyverno: false
+      kyverno-policies: false
     repo: sylva-core
     kustomization_spec:
       path: ./kustomize-units/namespace-defs
@@ -1756,6 +1761,8 @@ units:
       description: installs Kyverno
       maturity: core-component
     unit_templates: [] # we intendedly don't inherit from base-deps, because kyverno is itself part of base dependencies
+    depends_on:
+      monitoring-crd: '{{ tuple . "monitoring" | include "unit-enabled" }}'
     helm_repo_url: https://kyverno.github.io/kyverno
     helmrelease_spec:
       chart:
@@ -1780,6 +1787,8 @@ units:
           resources:
             limits:
               memory: 1024Mi
+          serviceMonitor:
+            enabled: '{{ .Values._internal.monitoring.enabled | include "preserve-type" }}'
         cleanupController:
           replicas: '{{ .Values._internal.default_replicas | include "preserve-type" }}'
           rbac:
@@ -1789,8 +1798,12 @@ units:
                 resources:
                   - nodes
                 verbs: ["get", "list", "watch", "patch", "update", "delete"]
+          serviceMonitor:
+            enabled: '{{ .Values._internal.monitoring.enabled | include "preserve-type" }}'
         reportsController:
           replicas: '{{ .Values._internal.default_replicas | include "preserve-type" }}'
+          serviceMonitor:
+            enabled: '{{ .Values._internal.monitoring.enabled | include "preserve-type" }}'
         backgroundController:
           replicas: '{{ .Values._internal.default_replicas | include "preserve-type" }}'
           resources:
@@ -1832,6 +1845,8 @@ units:
                 resources:
                   - serviceaccounts
                 verbs: ["get", "list", "watch", "patch", "update"]
+          serviceMonitor:
+            enabled: '{{ .Values._internal.monitoring.enabled | include "preserve-type" }}'
       _postRenderers:
         - kustomize:
             patches:
@@ -3770,6 +3785,10 @@ units:
     unit_templates:
     - base-deps
     depends_on:
+      # this unit provides the monitoring CRDs which Kyverno unit consumes
+      # so it cannot depend on kyverno
+      kyverno: false
+      kyverno-policies: false
       namespace-defs: true
     enabled_conditions:
     - '{{ tuple . "monitoring" | include "unit-enabled" }}'
@@ -3782,8 +3801,6 @@ units:
         spec:
           chart: rancher-monitoring-crd
           version: 104.1.1+up57.0.3
-      install:
-        createNamespace: true
 
   grafana-init:
     info:
@@ -7379,6 +7396,7 @@ _internal:
   cp_node_label_value: '{{ (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpr") | ternary "true" "" }}'
 
   monitoring:
+    enabled: '{{ tuple . "monitoring" | include "unit-enabled" | include "as-bool" }}'
     conditionals:
       longhorn:
         enabled: '{{ tuple . "longhorn" | include "unit-enabled" }}'
