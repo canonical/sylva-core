@@ -3595,6 +3595,13 @@ units:
                               initialDelaySeconds: 120
                               periodSeconds: 30
                               failureThreshold: 20
+            # remove label https://github.com/rancher/rancher/blob/v2.9.2/chart/templates/_helpers.tpl#L27
+            # which post rendering looks like 'rancher-2.9.2+383f6be8fed0', failling k8s validation for char '+'
+              - target:
+                  labelSelector: app=rancher
+                patch: |
+                  - op: remove
+                    path: /metadata/labels/chart
 
     kustomization_spec:
       # these healthChecks are added so that does not become ready before
