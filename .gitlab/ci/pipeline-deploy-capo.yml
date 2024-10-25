@@ -61,7 +61,7 @@ default:
           kubectl --kubeconfig management-cluster-kubeconfig -n $ns patch Kustomization capo-cloud-config --type=merge -p '{"spec":{"suspend":true}}' || true
           kubectl --kubeconfig management-cluster-kubeconfig -n $ns delete secret cluster-cloud-config || true
         done
-        openstack stack list --insecure --tags ${CAPO_TAG} -f value -c ID | xargs -tr openstack stack update --insecure --existing --tag ${CAPO_TAG},please-delay-cleanup
+        openstack stack list --insecure --tags ${CAPO_TAG} -f value -c ID | xargs -n1 -tr openstack stack update --insecure --existing --tag ${CAPO_TAG},please-delay-cleanup
       else
         ./tools/openstack-cleanup.sh capo_cloud "${CAPO_TAG}"
       fi
