@@ -309,6 +309,9 @@ units:
               value:
                 namespace: sylva-system
                 name: sylva-units
+            - op: replace
+              path: /spec/interval
+              value: 1m0s # because of the issue in https://gitlab.com/sylva-projects/sylva-core/-/merge_requests/3180#note_2177823991
     helmrelease_spec:
       releaseName: sylva-units
       chart:

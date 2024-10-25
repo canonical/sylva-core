@@ -45,9 +45,7 @@ echo_b "\U000023F3 Wait for bootstrap units and management cluster to be ready"
 sylvactl watch \
   --reconcile \
   --timeout $(ci_remaining_minutes_and_at_most ${BOOTSTRAP_WATCH_TIMEOUT_MIN:-30}) \
-  ${SYLVACTL_SAVE:+--save bootstrap-timeline.html} \
-  -n sylva-system \
-  Kustomization/sylva-system/management-sylva-units
+  ${SYLVACTL_SAVE:+--save bootstrap-timeline.html}
 
 if kill $KUBECONFIG_PID &>/dev/null; then
     echo_b "\U00002717 Failed to retrieve management-cluster kubeconfig"
