@@ -25,7 +25,8 @@
     - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
       changes:
         - charts/sylva-units/**/*
-        - .gitlab/ci/**/*
+        - .gitlab/ci/main-pipeline-checks.yml
+        - .gitlab-ci.yml
   needs:
     - job: 'sylva-units:helm-schema-validation'
       optional: true
@@ -63,7 +64,8 @@ sylva-units:helm-schema-validation:
         - charts/sylva-units/values.schema.yaml
         - charts/sylva-units/values.schema.json
       changes:
-        - .gitlab/ci/**/*
+        - .gitlab/ci/main-pipeline-checks.yml
+        - .gitlab-ci.yml
         - charts/sylva-units/values.schema.json
         - charts/sylva-units/values.schema.yaml
         - charts/sylva-units/values.yaml
@@ -108,7 +110,8 @@ kustomize-lint:
   rules:
     - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
       changes:
-        - .gitlab/ci/**/*
+        - .gitlab/ci/main-pipeline-checks.yml
+        - .gitlab-ci.yml
         - environment-values/**/*
         - kustomize-units/**/*
 
