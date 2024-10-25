@@ -363,6 +363,8 @@ units:
 
   longhorn-instance-manager-cleanup:
     enabled: true
+    kustomization_spec:
+      targetNamespace: longhorn-system
 
   multus:
     # can be enabled at runtime if desired
