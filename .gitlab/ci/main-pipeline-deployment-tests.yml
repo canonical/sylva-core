@@ -46,7 +46,7 @@ variables:
   SYLVA_CI_VALUES_FOLDER: environment-values/sylva-core-ci-values
   # Reference to checkout for CI values, by default we use the same for all stages but it can be overriden
   # eg: if we have a breaking change during an upgrade we could use a different branch for the deployment and update
-  SYLVA_CI_VALUES_REVISION: 0.4.15
+  SYLVA_CI_VALUES_REVISION: 0.4.17
 
   # Use CI values for specific version
   # If not specified $GIT_REVISION if set is used or "current" otherwise
@@ -140,7 +140,9 @@ variables:
     # libvirt-metal-no-bond.yaml file is added to updates values as a temporary fix for capm3 upgrades from 1.1.1,
     # it can be removed after next release, see https://gitlab.com/sylva-projects/sylva-core/-/issues/1581
     MGMT_ADDITIONAL_VALUES: libvirt-metal-no-bond.yaml
+    MGMT_UPDATE_ADDITIONAL_VALUES: disable-interface-mappings-mgmt.yaml
     WC_ADDITIONAL_VALUES: libvirt-metal-no-bond.yaml
+    WC_UPDATE_ADDITIONAL_VALUES: disable-interface-mappings-wc.yaml
     MGMT_INITIAL_REVISION: "1.1.1-ci-tweaks"
     MGMT_UPDATE_REVISION: "" # Use current commit
     WC_INITIAL_REVISION: "1.1.1-ci-tweaks"
