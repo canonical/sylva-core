@@ -20,12 +20,20 @@
       for STACK in $(openstack stack list -f value -c "Stack Name" | grep -E '^(management-|mgmt-|workload-|wc-|capo-cluster)' ); do
         STACK_TIME=$(date -d "$(openstack stack show ${STACK} -c creation_time -f value | tr T ' ' | tr -d Z )" +%s)
         THIS_TIME=$(date +%s)
+        PIPELINE_INFOS=''
         # deduce pipeline ID from stack tag
         # we'll only consider for cleanup tags for which the corresponding gitlab pipeline status is not running
         STACK_TAG=$(openstack stack show ${STACK} -c tags -f json  | jq '.tags[] | select(contains(env.CAPO_TAG_PATTERN))' -r)
         STACK_PIPELINE_ID=${STACK_TAG/-*/}
         echo "Checking if stack with tag $STACK_TAG still have some job running in pipeline $STACK_PIPELINE_ID"
-        if curl -s -f ${CAPO_CLEANUP_GITLAB_AUTH_TOKEN:+--header \"PRIVATE-TOKEN: $CAPO_CLEANUP_GITLAB_AUTH_TOKEN\"} ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/pipelines/${STACK_PIPELINE_ID} | jq -e '.status != "running"'; then
+        if [ -n "${CAPO_CLEANUP_GITLAB_AUTH_TOKEN}" ]; then
+          # Handle authentication API if needed
+          PIPELINE_INFOS=$(curl -s -f --header "PRIVATE-TOKEN: $CAPO_CLEANUP_GITLAB_AUTH_TOKEN" ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/pipelines/${STACK_PIPELINE_ID})
+        else
+          # When API doesn't require authentication
+          PIPELINE_INFOS=$(curl -s -f ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/pipelines/${STACK_PIPELINE_ID})
+        fi
+        if echo $PIPELINE_INFOS | jq -e '.status != "running"'; then
             # and we'll delay the cleanup for tags of stacks which have "please-delay-cleanup" in their tags
             # this can be patched with: openstack stack update --existing --tag sylva-foo.bar,please-delay-cleanup ${STACK}
             if openstack stack show ${STACK} -c tags -f json | jq .tags[] -r | grep -xq "please-delay-cleanup"; then
