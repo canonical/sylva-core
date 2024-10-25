@@ -308,6 +308,15 @@ function inject_bootstrap_values() {
   fi
 }
 
+function remove_bootstrap_values() {
+  # this function, called in aplly.sh only, removes the Kustomize Component (if present)
+  # brought by 'inject_bootstrap_values' called in bootstraph.sh
+
+  if yq -e '.components[] | select(. == "../components/bootstrap-cluster")' $ENV_PATH/kustomization.yaml &> /dev/null; then
+    yq -i 'del( .components[] | select(. == "../components/bootstrap-cluster") )' $ENV_PATH/kustomization.yaml
+  fi
+}
+
 function validate_sylva_units() {
   # Create & install sylva-units preview Helm release
   # If a Kustomization with the label:  previewNamespace=sylva-units-preview
