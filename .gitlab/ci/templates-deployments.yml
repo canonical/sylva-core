@@ -111,7 +111,7 @@ include:
 
         if [[ -n "${job_id}" ]]; then
           echo -e "Retrieving \\e[1;94m$artifact_name\\e[0m artifact from \\e[1;92m$job_name with ID: ${job_id}\\e[0m job"
-          curl --location --silent -S -f -o $artifact_name --header "${ARTIFACT_AUTHENTICATION_HEADER:-JOB-TOKEN: $CI_JOB_TOKEN}" \
+          curl --location --silent -S -f -o "${job_id}_${artifact_name}" --header "${ARTIFACT_AUTHENTICATION_HEADER:-JOB-TOKEN: $CI_JOB_TOKEN}" \
           "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/jobs/${job_id}/artifacts/$artifact_name"
           break
         fi
