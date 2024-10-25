@@ -5532,7 +5532,6 @@ units:
     unit_templates:
     - kube-job
     enabled_conditions:
-      - '{{ tuple . "longhorn" | include "unit-enabled" }}'
       - '{{ lookup "v1" "PersistentVolumeClaim" "minio-monitoring-tenant" "" | dig "items" list | len | ne 0 }}'
     kustomization_spec:
       postBuild:
