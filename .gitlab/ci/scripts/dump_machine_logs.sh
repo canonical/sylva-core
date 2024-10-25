@@ -104,7 +104,7 @@ if [[ $TARGET_CLUSTER == "management" ]]; then
 else
   MACHINES_NS=$(kubectl --request-timeout=3s get cluster.cluster -A -oyaml | yq '.items[] | select(.metadata.namespace != "sylva-system").metadata.namespace' | sort | uniq )
   if [[ -z "$MACHINES_NS" ]]; then
-    echo "There's no workload cluster."
+    echo -e "There's no workload cluster."
     exit 1
   fi
 fi
@@ -113,14 +113,14 @@ download_port=25888
 
 function get_download_ip {
     # Get IP address for each machine
-    machine_kind=$(kubectl -n ${clusterns} get machines.cluster.x-k8s.io $machine_name -ojsonpath='{.spec.infrastructureRef.kind}')
+    machine_kind=$(kubectl -n ${clusterns} get $machine_name -ojsonpath='{.spec.infrastructureRef.kind}')
     if [[ $machine_kind == "Metal3Machine" ]]; then
-      metal3machine=$(kubectl -n ${clusterns} get machines.cluster.x-k8s.io $machine_name -ojsonpath='{.spec.infrastructureRef.name}')
+      metal3machine=$(kubectl -n ${clusterns} get $machine_name -ojsonpath='{.spec.infrastructureRef.name}')
       network_data_secret=$(kubectl get m3m/$metal3machine -n ${clusterns} -ojsonpath='{.status.networkData.name}')
       machine_ip=$(kubectl get secret/$network_data_secret -n ${clusterns} -ojsonpath='{.data.networkData}'| base64 -d | yq '.networks[0].ip_address')
       echo ">> machine_ip=$machine_ip"
     else
-      machine_ip=$(kubectl -n ${clusterns} get machines.cluster.x-k8s.io $machine_name -ojsonpath='{.status.addresses[0].address}' )
+      machine_ip=$(kubectl -n ${clusterns} get $machine_name -ojsonpath='{.status.addresses[0].address}' )
     fi
 
     # download logs using machine IP and port 25888 where miniserve should be listening
@@ -151,15 +151,15 @@ function download_files {
 # Loop through namespaces and machines
 for clusterns in ${MACHINES_NS}; do
   echo "> In namespace '$clusterns'"
-  MACHINES=$(kubectl -n ${clusterns} get machines.cluster.x-k8s.io -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}')
+  MACHINES=$(kubectl -n ${clusterns} get machines.cluster.x-k8s.io -o name)
 
   if [[ -z "$MACHINES" ]]; then
     echo " There are no machines."
     continue
   fi
 
-  for machine_name in $(echo "$MACHINES"); do
-    echo "> Cluster= $(kubectl -n ${clusterns} get clusters.cluster.x-k8s.io -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}') in namespace ${clusterns}"
+    for machine_name in $MACHINES; do
+    echo "> Cluster= $(kubectl -n ${clusterns} get clusters.cluster.x-k8s.io -o name) in namespace ${clusterns}"
     export machine_name=$machine_name
     echo "> Machine = $machine_name"
     set +e
