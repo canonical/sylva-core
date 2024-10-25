@@ -40,7 +40,7 @@
                 # but only for an period of 12 hours after its creation
                 if [ $((THIS_TIME-STACK_TIME)) -lt 43200 ]; then
                     echo -e "The cleanup of the $(openstack stack show ${STACK} -c tags -f json | jq '.tags[] | select(contains(env.CAPO_TAG_PATTERN))' -r) tag is delayed for $(((STACK_TIME+43200-THIS_TIME)/60)) minutes"
-                    openstack stack show ${STACK} -c tags -f json | jq '.tags[] | select(contains(env.CAPO_TAG_PATTERN))' -r -r >> exclude-tags.txt
+                    openstack stack show ${STACK} -c tags -f json | jq '.tags[] | select(contains(env.CAPO_TAG_PATTERN))' -r >> exclude-tags.txt
                 fi
             fi
             openstack stack show ${STACK} -c tags -f json | jq '.tags[] | select(contains(env.CAPO_TAG_PATTERN))' -r  >> tags.txt
