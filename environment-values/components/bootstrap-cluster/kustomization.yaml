@@ -8,7 +8,7 @@ patches:
   # these patches are called with the 'inject_bootstrap_values' function call in bootstrap.sh
   patch: |
     - op: add
-      path: /spec/valuesFrom/1
+      path: /spec/valuesFrom/6
       value:
         kind: ConfigMap
         name: bootstrap-values

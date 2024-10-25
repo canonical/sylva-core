@@ -25,16 +25,16 @@ spec:
       reconcileStrategy: Revision
   interval: 10m0s
   valuesFrom:
-  - kind: ConfigMap
-    name: management-values
-    valuesKey: management-values
-    optional: true # only needed for 'validate_sylva_units' preview
   - kind: Secret
     name: sylva-units-secrets
     valuesKey: secrets
   - kind: ConfigMap
     name: sylva-units-values
     valuesKey: values
+  - kind: ConfigMap
+    name: management-values
+    valuesKey: management-values
+    optional: true # only needed for 'validate_sylva_units' preview
   - kind: ConfigMap
     name: capo-cluster-resources
     valuesKey: allocated_ip
