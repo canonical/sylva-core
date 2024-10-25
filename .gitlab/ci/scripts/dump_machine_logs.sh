@@ -102,10 +102,10 @@ fi
 if [[ $TARGET_CLUSTER == "management" ]]; then
   MACHINES_NS="sylva-system"
 else
-  MACHINES_NS=($(kubectl --request-timeout=3s get cluster.cluster -A -o jsonpath='{ $.items[?(@.metadata.namespace != "sylva-system")].metadata.namespace }' | tr ' ' '\n' | awk '!seen[$0]++'))
-  if [[ -z "${MACHINES_NS[@]}" ]]; then
-  echo -e "There's no workload cluster."
-  exit 1
+  MACHINES_NS=$(kubectl --request-timeout=3s get cluster.cluster -A -oyaml | yq '.items[] | select(.metadata.namespace != "sylva-system").metadata.namespace' | sort | uniq )
+  if [[ -z "$MACHINES_NS" ]]; then
+    echo "There's no workload cluster."
+    exit 1
   fi
 fi
 
@@ -149,8 +149,15 @@ function download_files {
 }
 
 # Loop through namespaces and machines
-for clusterns in "${MACHINES_NS[@]}"; do
+for clusterns in ${MACHINES_NS}; do
+  echo "> In namespace '$clusterns'"
   MACHINES=$(kubectl -n ${clusterns} get machines.cluster.x-k8s.io -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}')
+
+  if [[ -z "$MACHINES" ]]; then
+    echo " There are no machines."
+    continue
+  fi
+
   for machine_name in $(echo "$MACHINES"); do
     echo "> Cluster= $(kubectl -n ${clusterns} get clusters.cluster.x-k8s.io -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}') in namespace ${clusterns}"
     export machine_name=$machine_name
