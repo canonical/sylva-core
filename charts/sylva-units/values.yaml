@@ -58,7 +58,7 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
     spec:
       url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-capi-cluster.git
       ref:
-        tag: 0.3.1
+        branch: okd-assisted-installer
 
   local-path-provisioner:
     kind: GitRepository
@@ -2384,12 +2384,11 @@ units:
     info:
       description: installs OKD/OpenShift CAPI bootstrap/controlplane provider
       maturity: experimental
-    enabled: false
+    enabled: true
     repo: sylva-core
     unit_templates:
     - base-deps
     depends_on:
-      capm3: true
       openshift-assisted-installer: true
     kustomization_spec:
       path: ./kustomize-units/cabpoa
@@ -2399,6 +2398,7 @@ units:
     info:
       description: installs assisted installer operator for OKD
       maturity: experimental
+    enabled: true
     repo: sylva-core
     unit_templates:
     - base-deps
@@ -2407,8 +2407,6 @@ units:
       metal3: true
       kyverno: true # test workaround for https://gitlab.com/sylva-projects/sylva-core/-/merge_requests/2654#note_2114765991
       '{{ .Values._internal.default_storage_class_unit }}': true
-    enabled_conditions:
-    - '{{ tuple . "cabpoa" | include "unit-enabled" }}'
     annotations:
       sylvactl/readyMessage: "{{ .Values.openshift.assisted.serviceHostname | default .Values.external_hostnames.openshift_assisted_service }} and {{ .Values.openshift.assisted.imageHostname | default .Values.external_hostnames.openshift_assisted_images }} must resolve to {{ .Values.display_external_ip }}"
     kustomization_spec:
