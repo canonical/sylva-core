@@ -56,7 +56,7 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
       url: https://github.com/weaveworks/weave-gitops.git
       ref:
         tag: v0.38.0
-
+#dd
   sylva-capi-cluster:
     kind: GitRepository
     spec:
