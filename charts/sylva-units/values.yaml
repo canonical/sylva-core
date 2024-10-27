@@ -58,7 +58,7 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
     spec:
       url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-capi-cluster.git
       ref:
-        tag: 0.3.1
+        tag: ishita/test-fix-drift
 
   local-path-provisioner:
     kind: GitRepository
@@ -3875,7 +3875,7 @@ units:
             resources:
               limits:
                 memory: 6Gi
-              request:
+              requests:
                 memory: 3Gi
             storageSpec:
               volumeClaimTemplate:
@@ -3902,10 +3902,10 @@ units:
                     key: password
                 tlsConfig:
                   insecureSkipVerify: true
-                queue_config:
-                  batch_send_deadline: 5s
-                  min_backoff: 1s
-                  max_backoff: 30s
+                queueConfig:
+                  batchSendDeadline: 5s
+                  minBackoff: 1s
+                  maxBackoff: 30s
         alertmanager:
           alertmanagerSpec:
             useExistingSecret: true
@@ -7018,7 +7018,7 @@ flux:
       OOMWatch: true
       DetectDrift: true
       CorrectDrift: true
-    log_level: info
+    log_level: debug
   source:
     concurrent: 2
     log_level: info
