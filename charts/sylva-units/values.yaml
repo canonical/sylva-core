@@ -2585,6 +2585,8 @@ units:
     kustomization_spec:
       prune: '{{ not (eq .Release.Namespace "sylva-system") | include "preserve-type" }}'
     helmrelease_spec:
+      driftDetection:
+        mode: disabled
       targetNamespace: '{{ .Release.Namespace }}'
       chart:
         spec:
@@ -2674,6 +2676,8 @@ units:
         | include "preserve-type"
         }}
     helmrelease_spec:
+      driftDetection:
+        mode: disabled
       uninstall:
         timeout: '{{ mul .Values.cluster.timeouts.cluster_delete_hook_job_timeout 1.2 }}s'
       targetNamespace: '{{ .Release.Namespace }}'
@@ -3033,6 +3037,8 @@ units:
     helm_repo_url: https://rke2-charts.rancher.io
     helm_chart_versions: *calico-chart-versions  # we use a YAML anchor rather than templating so that this file can be read by tools/generate_units_documentation.py
     helmrelease_spec:
+      driftDetection:
+        mode: disabled
       chart:
         spec:
           chart: rke2-calico
@@ -3098,6 +3104,8 @@ units:
       '{{ .Values._internal.calico_readiness_unit }}': '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpk" }}'
     helm_repo_url: https://metallb.github.io/metallb
     helmrelease_spec:
+      driftDetection:
+        mode: disabled
       chart:
         spec:
           chart: metallb
@@ -3847,6 +3855,8 @@ units:
       prometheus-resources: '{{ tuple . "prometheus-resources" | include "unit-enabled" }}'
     helm_repo_url: https://charts.rancher.io/
     helmrelease_spec:
+      driftDetection:
+        mode: disabled
       releaseName: rancher-monitoring
       targetNamespace: cattle-monitoring-system
       storageNamespace: cattle-monitoring-system # see https://gitlab.com/sylva-projects/sylva-core/-/issues/443
