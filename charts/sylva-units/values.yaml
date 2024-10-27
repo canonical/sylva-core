@@ -57,6 +57,7 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
       ref:
         tag: v0.38.0
 
+#jj
   sylva-capi-cluster:
     kind: GitRepository
     spec:
