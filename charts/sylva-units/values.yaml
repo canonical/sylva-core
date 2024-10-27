@@ -2895,6 +2895,9 @@ units:
         | include "preserve-type"
         }}
     helmrelease_spec:
+# Setting drift detection mode to warn for cluster HR till https://gitlab.com/sylva-projects/sylva-core/-/issues/1812 is solved.
+      driftDetection:
+        mode: warn
       uninstall:
         timeout: '{{ mul .Values.cluster.timeouts.cluster_delete_hook_job_timeout 1.2 }}s'
       targetNamespace: '{{ .Release.Namespace }}'
@@ -3286,8 +3289,9 @@ units:
     helm_repo_url: https://rke2-charts.rancher.io
     helm_chart_versions: *calico-chart-versions  # we use a YAML anchor rather than templating so that this file can be read by tools/generate_units_documentation.py
     helmrelease_spec:
-      releaseName: '{{ eq .Values.cluster.capi_providers.bootstrap_provider "cabpk" | ternary "calico" "rke2-calico" }}'
-      targetNamespace: '{{ eq .Values.cluster.capi_providers.bootstrap_provider "cabpk" | ternary "sylva-system" "kube-system" }}'
+# Setting drift detection mode to warn for calico till https://gitlab.com/sylva-projects/sylva-core/-/issues/1814 is solved.
+      driftDetection:
+        mode: warn
       chart:
         spec:
           chart: rke2-calico
@@ -3349,6 +3353,9 @@ units:
       cluster-vip: '{{ and (tuple . "cluster-vip" | include "unit-enabled") .Values._internal.state.is_upgrade }}'
     helm_repo_url: https://metallb.github.io/metallb
     helmrelease_spec:
+# Setting drift detection mode to warn for metallb till https://gitlab.com/sylva-projects/sylva-core/-/issues/1814 is solved.
+      driftDetection:
+        mode: warn
       chart:
         spec:
           chart: metallb
@@ -7610,7 +7617,7 @@ admin_password: '{{ .Values._internal.default_password }}'
 flux:
   kustomize:
     concurrent: 4
-    log_level: info
+    log_level: debug
     features_gates: {}
   helm:
     concurrent: 4
@@ -7618,10 +7625,10 @@ flux:
       OOMWatch: true
       DetectDrift: true
       CorrectDrift: true
-    log_level: info
+    log_level: debug
   source:
     concurrent: 2
-    log_level: info
+    log_level: debug
     features_gates: {}
 
 flux_webui:
