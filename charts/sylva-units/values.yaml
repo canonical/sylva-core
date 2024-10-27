@@ -3945,9 +3945,9 @@ units:
       _postRenderers:
         - kustomize:
             patches:
-            # Disable drift detection for rancher-monitoring webhooks
+            # Disable drift detection for rancher-monitoring webhooks and PrometheusRule
             - target:
-                kind: (ValidatingWebhookConfiguration|MutatingWebhookConfiguration)
+                kind: (ValidatingWebhookConfiguration|MutatingWebhookConfiguration|PrometheusRule)
               patch: |
                 - op: add
                   path: /metadata/annotations/helm.toolkit.fluxcd.io~1driftDetection
