@@ -4326,6 +4326,20 @@ units:
       prometheus-resources: '{{ tuple . "prometheus-resources" | include "unit-enabled" }}'
     helm_repo_url: https://charts.rancher.io/
     helmrelease_spec:
+      driftDetection:
+        ignore:
+          - paths:
+            - /metadata/annotations/prometheus-operator-validated
+            target:
+              kind: PrometheusRule
+          - paths:
+            - /webhooks[0]/clientConfig/caBundle
+            target:
+              kind: ValidatingWebhookConfiguration
+          - paths:
+            - /webhooks[0]/clientConfig/caBundle
+            target:
+              kind: MutatingWebhookConfiguration
       releaseName: rancher-monitoring
       targetNamespace: cattle-monitoring-system
       storageNamespace: cattle-monitoring-system # see https://gitlab.com/sylva-projects/sylva-core/-/issues/443
@@ -4433,13 +4447,6 @@ units:
       _postRenderers:
         - kustomize:
             patches:
-            # Disable drift detection for rancher-monitoring webhooks
-            - target:
-                kind: (ValidatingWebhookConfiguration|MutatingWebhookConfiguration)
-              patch: |
-                - op: add
-                  path: /metadata/annotations/helm.toolkit.fluxcd.io~1driftDetection
-                  value: disabled
             - '{{ .Values._internal.pdb_allow_unhealthy_pod_eviction | include "preserve-type" }}'
     helm_secret_values:
       grafana:
