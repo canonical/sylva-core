@@ -18,7 +18,7 @@ variables:
     value: "20"
     description: "apply.sh timeout"
   MGMT_WATCH_TIMEOUT_MIN:
-    value: "30"
+    value: "40"
     description: "bootstrap.sh timeout"
   BOOTSTRAP_WATCH_TIMEOUT_MIN:
     value: "45"

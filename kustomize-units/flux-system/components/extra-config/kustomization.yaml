@@ -12,6 +12,9 @@ patches:
       - op: add
         path: /spec/template/spec/containers/0/args/-
         value: --feature-gates=${HELM_FEATURES_GATES}
+      - op: replace
+        path: /spec/template/spec/containers/0/image
+        value: ghcr.io/fluxcd/helm-controller:v0.37.4
     target:
       kind: Deployment
       name: helm-controller
