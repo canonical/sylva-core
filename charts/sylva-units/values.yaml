@@ -3833,7 +3833,7 @@ units:
               subPath: extra-ca-certs.pem
               mountPath: /etc/ssl/certs/extra-ca-certs.pem
               readOnly: true
-
+#check
   snmp-resources:
     info:
       description: contains OID files and generates configuration needed by the snmp-exporter
