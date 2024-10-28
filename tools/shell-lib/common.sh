@@ -406,3 +406,4 @@ function display_final_messages() {
   fi
   echo_b "\U0001F389 All done"
 }
+

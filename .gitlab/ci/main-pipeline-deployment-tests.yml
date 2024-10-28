@@ -162,19 +162,21 @@ variables:
 .preview:
   extends: .default-deploy-config
   variables:
-    DEPLOY_MGMT_CLUSTER: "true"
+    PREVIEW_MGMT_CLUSTER: "true"
+    DEPLOY_MGMT_CLUSTER: "false"
     UPDATE_MGMT_CLUSTER: "false"
     DEPLOY_WORKLOAD_CLUSTER: "false"
     SKIP_TESTS: "true"
+    CAPD_RUNNER_TAG: gitlab-org-docker
   trigger:
-    include: .gitlab/ci/pipeline-deploy-capd-preview.yml
+    include: .gitlab/ci/pipeline-deploy-capd.yml
     strategy: depend
   rules:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
       changes:
         - preview.sh
         - tools/shell-lib/common.sh
-        - .gitlab/ci/pipeline-deploy-capd-preview.yml
+        - .gitlab/ci/pipeline-deploy-capd.yml
 
 ☁capd 🚀kubeadm 🐧ubuntu 🎬preview:
   extends: .preview
