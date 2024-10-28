@@ -889,7 +889,7 @@ units:
                       app.kubernetes.io/component: read
                   topologyKey: kubernetes.io/hostname
           configuration: |-
-            huge_pages = off
+            huge_pages=off
           pgHbaTrustAll: true
           livenessProbe:
             failureThreshold: 10
