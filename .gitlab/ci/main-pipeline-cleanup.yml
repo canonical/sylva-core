@@ -18,8 +18,6 @@
     - |
       set -eo pipefail
       for STACK in $(openstack stack list -f value -c "Stack Name" | grep -E '^(management-|mgmt-|workload-|wc-|capo-cluster)' ); do
-        STACK_TIME=$(date -d "$(openstack stack show ${STACK} -c creation_time -f value | tr T ' ' | tr -d Z )" +%s)
-        THIS_TIME=$(date +%s)
         PIPELINE_INFOS=''
         # deduce pipeline ID from stack tag
         # we'll only consider for cleanup tags for which the corresponding gitlab pipeline status is not running
@@ -37,7 +35,10 @@
             # and we'll delay the cleanup for tags of stacks which have "please-delay-cleanup" in their tags
             # this can be patched with: openstack stack update --existing --tag sylva-foo.bar,please-delay-cleanup ${STACK}
             if openstack stack show ${STACK} -c tags -f json | jq .tags[] -r | grep -xq "please-delay-cleanup"; then
-                # but only for an period of 12 hours after its creation
+                # use either the "updated time" of the Heat stack, or as fallback the creation time (will be used for a stack that has never been updated)
+                STACK_TIME=$(date -d "$(openstack stack show ${STACK} -f json | jq -r '.updated_time // .creation_time' | tr T ' ' | tr -d Z )" +%s)
+                THIS_TIME=$(date +%s)
+                # but only for an period of 12 hours after its creation/update
                 if [ $((THIS_TIME-STACK_TIME)) -lt 43200 ]; then
                     echo -e "The cleanup of the $(openstack stack show ${STACK} -c tags -f json | jq '.tags[] | select(contains(env.CAPO_TAG_PATTERN))' -r) tag is delayed for $(((STACK_TIME+43200-THIS_TIME)/60)) minutes"
                     openstack stack show ${STACK} -c tags -f json | jq '.tags[] | select(contains(env.CAPO_TAG_PATTERN))' -r >> exclude-tags.txt
@@ -66,6 +67,12 @@
       exit ${global_cleanup_status-0}
   variables:
     OS_CLOUD: "capo_cloud"
+  artifacts:
+    expire_in: 24 hour
+    when: always
+    paths:
+      - tags.txt
+      - exclude-tags.txt
   rules:
     - if: '$CI_PIPELINE_SOURCE == "schedule" && $CI_CAPO_CLEANUP'
       when: always
