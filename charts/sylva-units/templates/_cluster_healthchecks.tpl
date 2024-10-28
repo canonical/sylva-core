@@ -43,6 +43,17 @@ Wait for Cluster resource:
     "name" $cluster.name
     "namespace" $ns
 ) -}}
+
+{{/*
+
+In CAPV the vsphere-cpi is responsible of executing the control plane nodes rollout so
+Cluster is removed from the healthChecks in order for the vsphere-cpi to depend on the cluster unit
+
+*/}}
+{{- if $cluster.capi_providers.infra_provider | eq "capv" -}}
+  {{- $result = initial $result -}}
+{{- end }}
+
 {{/*
 
 Wait for infra provider Cluster
@@ -100,6 +111,17 @@ on the CAPI bootstrap provider being used.
     "name" (printf "%s-control-plane" $cluster.name)
     "namespace" $ns
 ) -}}
+
+{{/*
+
+In CAPV the vsphere-cpi is responsible of executing the control plane nodes rollout so
+the CR representing the Control Plane is removed from the healthChecks in order for the vsphere-cpi to depend on the cluster unit
+
+*/}}
+{{- if $cluster.capi_providers.infra_provider | eq "capv" -}}
+  {{- $result = initial $result -}}
+{{- end }}
+
 {{/*
 
 If $includeMDs was specified, we include all the MachineDeployments in the healthChecks.
