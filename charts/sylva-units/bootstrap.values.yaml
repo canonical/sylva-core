@@ -3,6 +3,7 @@
 # These value are meant to be used as overrides to the default values from values.yaml
 # when the chart is instantiated in the bootstrap cluster
 _internal:
+  bstrp_cluster: true
   mgmt_cluster: false
   ha_cluster:
     is_ha: false  # overrides the computation done in values.yaml so as to ensure
