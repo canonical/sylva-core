@@ -948,7 +948,7 @@ units:
         database:
           type: external
           external:
-            host: harbor-postgres-primary.harbor.svc.cluster.local
+            host: harbor-postgresql-ha-pgpool.harbor.svc.cluster.local
             port: "5432"
             username: "harbor"
             coreDatabase: "harbor"
