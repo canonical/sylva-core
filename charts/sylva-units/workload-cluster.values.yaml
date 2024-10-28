@@ -437,7 +437,6 @@ units:
 
   vsphere-cpi:
     enabled: true
-    # setting the same dependencies of the capv cluster unit in order to run in parallel
 
   vsphere-csi-driver:
     enabled: true

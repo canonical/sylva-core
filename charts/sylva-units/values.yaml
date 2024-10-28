@@ -2791,6 +2791,7 @@ units:
       '{{ .Values._internal.calico_readiness_unit }}': '{{ and (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpk") (not .Values._internal.state.is_upgrade) }}'
       cluster: true
       cluster-ready: true  # no need to start waiting for anything until
+      vsphere-cpi: '{{ .Values.cluster.capi_providers.infra_provider | eq "capv" }}'
     unit_templates:
     - kube-job
     kustomization_spec:
@@ -5008,8 +5009,9 @@ units:
     info:
       description: configures Vsphere Cloud controller manager
       internal: true
-    unit_templates:
-    - base-deps
+    unit_templates: [] # the vsphere-cpi handles the rollout of control plane nodes so must run as soon as the cluster has been created
+    depends_on:
+      cluster: '{{ tuple . "cluster" | include "unit-enabled" }}'
     enabled_conditions:
       - '{{ eq .Values.cluster.capi_providers.infra_provider "capv" }}'
     helm_repo_url: https://kubernetes.github.io/cloud-provider-vsphere
@@ -5022,9 +5024,6 @@ units:
         spec:
           chart: vsphere-cpi
           version: "" # defined by helm_chart_versions
-      install:
-        remediation:
-          retries: -1
       releaseName: vsphere-cpi
       storageNamespace: kube-system
       targetNamespace: kube-system
