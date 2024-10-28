@@ -7,9 +7,9 @@ metadata:
 spec:
   loki:
     buffer:
-      chunk_limit_size: 4MB
-      timekey: 5m
-      timekey_wait: 30s
+      chunk_limit_size: 3MB
+      timekey: 1m
+      timekey_wait: 10s
     labels:
       app_kubernetes_io_component: $['kubernetes']['labels']['app.kubernetes.io/component']
       app_kubernetes_io_instance: $['kubernetes']['labels']['app.kubernetes.io/instance']
