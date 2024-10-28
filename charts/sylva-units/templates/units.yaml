@@ -182,16 +182,7 @@ spec: {{ $helm_repo_spec | toYaml | nindent 2 }}
       that would be used in case no specific 'helmrelease_spec.chart.spec.version' is defined
       */}}
       {{- if hasKey $unit_def "helm_chart_versions" -}}
-        {{- $helm_chart_versions_selection := "" -}}
-        {{- range $ver, $enabled := $unit_def.helm_chart_versions }}
-          {{- if $enabled -}}
-            {{- if $helm_chart_versions_selection -}}
-              {{- fail (printf "unit '%s' has 'true' set on more than one version inside 'helm_chart_versions':\n%s" $unit_name ($unit_def.helm_chart_versions | toYaml)) }}
-            {{- else -}}
-              {{- $helm_chart_versions_selection = $ver -}}
-            {{- end }}
-          {{- end }}
-        {{- end }}
+        {{- $helm_chart_versions_selection := tuple $envAll $unit_name $unit_def | include "get-helm-version" -}}
         {{- if not $helm_chart_versions_selection }}
           {{- fail (printf "unit '%s' has no version set to true inside 'helm_chart_versions':\n%s" $unit_name ($unit_def.helm_chart_versions | toYaml))}}
         {{- end }}
