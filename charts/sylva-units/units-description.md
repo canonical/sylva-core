@@ -34,7 +34,7 @@
 | **longhorn** | installs Longhorn CSI | stable |  | [Helm](https://charts.rancher.io/) | 104.1.1+up1.6.3 |
 | **metal3** | installs SUSE-maintained Metal3 operator | stable |  | [Helm](https://suse-edge.github.io/charts) | 0.8.1 |
 | **metallb** | installs MetalLB operator | stable |  | [Helm](https://metallb.github.io/metallb) | 0.14.8 |
-| **monitoring** | installs monitoring stack | stable |  | [Helm](https://charts.rancher.io/) | 104.1.1+up57.0.3 |
+| **monitoring** | installs monitoring stack | stable |  | [Helm](https://charts.rancher.io/) | 104.1.2+up57.0.3 |
 | **multus** | installs Multus | stable |  | [Helm](https://rke2-charts.rancher.io/) | v4.1.001 |
 | **os-image-server** | Deploys a web server on management cluster which serves OS images for baremetal clusters. | stable |  | [Helm](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/os-image-server.git) | 2.1.1 |
 | **postgres** | installs Postgresql for Keycloak | stable |  | [Helm](https://charts.bitnami.com/bitnami) | 15.5.36 |
