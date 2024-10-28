@@ -19,7 +19,6 @@
 # - cosign
 import atexit
 import os
-import re
 import subprocess
 import shutil
 import yaml
@@ -62,33 +61,30 @@ def end_section(unit_name):
 
 
 def check_invalid_semver_tag(chart_name, version, rewrite_chart=False):
-    if re.search(r"\.0[0-9]", version):
+    if "+" in version:
         # Implement a workaround for issue: https://gitlab.com/sylva-projects/sylva-core/-/issues/253
         # If we find a version with a 0 prefix
         # rewrite the version by (a) prepeding a number before the z in x.y.z (for instance 9)
         # and (b) keeping the original version in the free-form + field
         # 3.25.001 would become 3.25.9001+v3.25.001
-        if re.search(r"(.?[0-9]+)\.([0-9]+)\.([0-9]+)([\+\-].*)?", version):
-            parts = version.split(".")
-            parts[2] = '9' + parts[2]
-            new_version = ".".join(parts) + '+' + version
-            if rewrite_chart:
-                logger.info("rewriting version in Chart.yaml")
-                tgz_file = f"{chart_name}-{version}.tgz"
-                subprocess.run(f"tar -xzf {tgz_file}", shell=True, cwd=artifact_utils.ARTIFACT_DIR,
-                               stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-                with open(f"{artifact_utils.ARTIFACT_DIR}/{chart_name}/Chart.yaml", 'r+') as f:
-                    chart = yaml.safe_load(f)
-                    chart['version'] = new_version
-                    f.seek(0)
-                    yaml.safe_dump(chart, f)
-                    f.truncate()
-                subprocess.run(f"tar -czf {chart_name}-{new_version}.tgz {chart_name}/",
-                               shell=True, cwd=artifact_utils.ARTIFACT_DIR,
-                               stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-                shutil.rmtree(f"{artifact_utils.ARTIFACT_DIR}/{chart_name}")
-                os.remove(f"{artifact_utils.ARTIFACT_DIR}/{tgz_file}")
-            return new_version
+        new_version = version.replace("+", "-")
+        if rewrite_chart:
+            logger.info("rewriting version in Chart.yaml")
+            tgz_file = f"{chart_name}-{version}.tgz"
+            subprocess.run(f"tar -xzf {tgz_file}", shell=True, cwd=artifact_utils.ARTIFACT_DIR,
+                           stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+            with open(f"{artifact_utils.ARTIFACT_DIR}/{chart_name}/Chart.yaml", 'r+') as f:
+                chart = yaml.safe_load(f)
+                chart['version'] = new_version
+                f.seek(0)
+                yaml.safe_dump(chart, f)
+                f.truncate()
+            subprocess.run(f"tar -czf {chart_name}-{new_version}.tgz {chart_name}/",
+                           shell=True, cwd=artifact_utils.ARTIFACT_DIR,
+                           stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+            shutil.rmtree(f"{artifact_utils.ARTIFACT_DIR}/{chart_name}")
+            os.remove(f"{artifact_utils.ARTIFACT_DIR}/{tgz_file}")
+        return new_version
     return version
 
 
