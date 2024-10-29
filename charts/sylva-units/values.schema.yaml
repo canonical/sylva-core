@@ -1239,7 +1239,6 @@ properties:
               - ref: "#/$defs/string-with-gotpl"
       sbom_operator:
         type: object
-        additionalProperties: false
         properties:
           targets:
             type: string
