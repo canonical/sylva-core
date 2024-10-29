@@ -3910,7 +3910,7 @@ units:
                   insecureSkipVerify: true
                 queueConfig:
                   batchSendDeadline: 5s
-                  min_backoff: 1s
+                  minBackoff: 1s
                   max_backoff: 30s
         alertmanager:
           alertmanagerSpec:
