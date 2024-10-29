@@ -178,7 +178,7 @@ function ensure_sylva_toolbox {
         docker run --rm ${SYLVA_TOOLBOX_REGISTRY}/${SYLVA_TOOLBOX_IMAGE}:${SYLVA_TOOLBOX_VERSION} | tar xz -C ${BASE_DIR}/bin
     fi
 }
-ensure_sylva_toolbox
+
 
 function ensure_sylvactl {
     if [[ -n ${SYLVACTL_VERSION:-} ]] && [[ ${SYLVACTL_VERSION} != $(${BASE_DIR}/bin/sylvactl version 2>&1) ]]; then
@@ -191,7 +191,6 @@ function ensure_sylvactl {
         chmod +x ${BASE_DIR}/bin/sylvactl
     fi
 }
-ensure_sylvactl
 
 function cleanup_bootstrap_cluster() {
   : ${CLEANUP_BOOTSTRAP_CLUSTER:='yes'}
@@ -235,7 +234,6 @@ function exit_trap() {
     [ -n "$pids" ] && kill $pids || true
     exit $EXIT_CODE
 }
-trap exit_trap EXIT
 
 function reconcile_sylva_units() {
   local namespace=${1:-sylva-system}
@@ -281,8 +279,8 @@ function reconcile_sylva_units() {
 
 function define_source() {
   sed "s/CURRENT_COMMIT/${CURRENT_COMMIT}/" "$@" | \
-    sed "s,SYLVA_CORE_REPO,${SYLVA_CORE_REPO},g" "$@" | \
-    sed "s,SYLVA_BASE_OCI_REGISTRY,${SYLVA_BASE_OCI_REGISTRY},g" "$@"
+  sed "s,SYLVA_CORE_REPO,${SYLVA_CORE_REPO},g" "$@" | \
+  sed "s,SYLVA_BASE_OCI_REGISTRY,${SYLVA_BASE_OCI_REGISTRY},g" "$@"
 }
 
 function suspend_sylva_units {
@@ -424,4 +422,3 @@ function display_final_messages() {
   fi
   echo_b "\U0001F389 All done"
 }
-

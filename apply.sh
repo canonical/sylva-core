@@ -10,6 +10,10 @@
 
 source $(dirname $0)/tools/shell-lib/common.sh
 
+ensure_sylva_toolbox
+ensure_sylvactl
+trap exit_trap EXIT
+
 check_args
 
 validate_input_values

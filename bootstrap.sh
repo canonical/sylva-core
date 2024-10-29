@@ -2,6 +2,10 @@
 
 source tools/shell-lib/common.sh
 
+ensure_sylva_toolbox
+ensure_sylvactl
+trap exit_trap EXIT
+
 check_args
 
 if [[ ${KUBECONFIG:-} =~ management-cluster-kubeconfig ]]; then
