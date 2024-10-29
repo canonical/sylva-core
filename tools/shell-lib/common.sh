@@ -14,6 +14,9 @@ SYLVA_TOOLBOX_REGISTRY=${SYLVA_TOOLBOX_REGISTRY:-${SYLVA_BASE_OCI_REGISTRY}/sylv
 export KIND_POD_SUBNET=${KIND_POD_SUBNET:-100.100.0.0/16}
 export KIND_SVC_SUBNET=${KIND_SVC_SUBNET:-100.96.0.0/16}
 
+export CURRENT_COMMIT=$(git rev-parse HEAD)
+export SYLVA_CORE_REPO=${SYLVA_CORE_REPO:-$(git remote get-url origin | sed 's|^git@\([^:]\+\):|https://\1/|' | sed 's|gitlab-ci-token.*@||')}
+
 if [[ -n "${CI_JOB_NAME:-}" ]]; then
   export IN_CI=1
   SYLVACTL_SAVE=1
@@ -85,17 +88,14 @@ function check_apply_kustomizations() {
   fi
 }
 
-export CURRENT_COMMIT=$(git rev-parse HEAD)
-export SYLVA_CORE_REPO=${SYLVA_CORE_REPO:-$(git remote get-url origin | sed 's|^git@\([^:]\+\):|https://\1/|' | sed 's|gitlab-ci-token.*@||')}
-
-echo_b() {
+function echo_b() {
   end_section
 
   current_section_number=$(( ${current_section_number:-0} + 1))
   echo -e "\e[1m\e[0Ksection_start:`date +%s`:section_${current_section_number}[collapsed=true]\r\e[0K$*\e[0m"
 }
 
-end_section() {
+function end_section() {
   # this is also called from EXIT trap to ensure that we always close the last section
 
   if (( ${current_section_number:-0} > 0 )) ; then
