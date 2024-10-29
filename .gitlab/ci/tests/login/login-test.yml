@@ -53,6 +53,13 @@ test-sso+workload-kubeconfig:
     - .rules:need-workload-cluster
   retry:
     max: 2
+  variables:
+    SCREENSHOTS: ${CI_PROJECT_DIR}/screenshots
+  artifacts:
+    expire_in: 48 hour
+    when: always
+    paths:
+      - $SCREENSHOTS
   script:
     - !reference [.import_functions]
     - download_artifact deploy-management-cluster management-cluster-kubeconfig
@@ -76,6 +83,13 @@ test-sso:
     - .test-tags
   retry:
     max: 2
+  variables:
+    SCREENSHOTS: ${CI_PROJECT_DIR}/screenshots
+  artifacts:
+    expire_in: 48 hour
+    when: always
+    paths:
+      - $SCREENSHOTS
   script:
     - !reference [.import_functions]
     - download_artifact deploy-management-cluster management-cluster-kubeconfig
@@ -182,4 +196,3 @@ test-login-workload-cluster:
     - export HURL_vault_url=$(kubectl --kubeconfig management-cluster-kubeconfig get ingress -n vault vault -o jsonpath='{ .spec.tls[].hosts[] }')
     - export HURL_rancher_url=$(kubectl --kubeconfig management-cluster-kubeconfig get ingress -n cattle-system rancher -o jsonpath='{ .spec.tls[].hosts[] }')
     - hurl -k ./tools/login-test/login-workload/*.hurl --test --color --noproxy=".$domain"  --report-junit $HURL_JUNIT_REPORT --report-html ${CI_PROJECT_DIR}
-
