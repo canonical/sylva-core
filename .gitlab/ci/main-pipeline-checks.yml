@@ -31,47 +31,6 @@
     - job: 'sylva-units:helm-schema-validation'
       optional: true
 
-sylva-units:helm-lint:
-  stage: test
-  extends: .helm-lint
-  script:
-    - helm dependency update charts/sylva-units
-    - helm lint charts/sylva-units
-
-sylva-units:helm-yamllint:
-  stage: test
-  extends: .helm-lint
-  script:
-    - yamllint charts/sylva-units -d "$(cat < .gitlab/ci/configuration/yamllint.yaml) $(cat < .gitlab/ci/configuration/yamllint-helm-exclude-chart-templates.yaml)"
-
-sylva-units:helm-template-yamllint:
-  stage: test
-  extends: .helm-lint
-  script:
-    - ./tools/validation/helm-template-yamllint.sh
-  variables:
-    HELM_NAME: sylva-units
-
-sylva-units:helm-schema-validation:
-  stage: test
-  extends: .helm-lint
-  script:
-    - ./tools/validation/helm-schema-validation.sh
-  needs: []
-  rules:
-    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
-      exists:
-        - charts/sylva-units/values.schema.yaml
-        - charts/sylva-units/values.schema.json
-      changes:
-        - .gitlab/ci/main-pipeline-checks.yml
-        - .gitlab-ci.yml
-        - charts/sylva-units/values.schema.json
-        - charts/sylva-units/values.schema.yaml
-        - charts/sylva-units/values.yaml
-        - tools/generate_json_schema.py
-  variables:
-    HELM_NAME: sylva-units
 
 # ==========================================
 # kustomize-units & environment-values lint
