@@ -2676,8 +2676,6 @@ units:
         | include "preserve-type"
         }}
     helmrelease_spec:
-      driftDetection:
-        mode: disabled
       uninstall:
         timeout: '{{ mul .Values.cluster.timeouts.cluster_delete_hook_job_timeout 1.2 }}s'
       targetNamespace: '{{ .Release.Namespace }}'
