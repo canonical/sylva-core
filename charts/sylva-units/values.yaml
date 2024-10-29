@@ -3911,7 +3911,7 @@ units:
                 queueConfig:
                   batchSendDeadline: 5s
                   minBackoff: 1s
-                  max_backoff: 30s
+                  maxBackoff: 30s
         alertmanager:
           alertmanagerSpec:
             useExistingSecret: true
