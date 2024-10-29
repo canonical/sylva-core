@@ -20,10 +20,11 @@ grafana_url = os.getenv("grafana_url")
 gitea_url = os.getenv("gitea_url")
 mgmt_only = os.getenv("ONLY_DEPLOY_MGMT")
 workload_name = os.getenv("WORKLOAD_CLUSTER_NAME")
-download_file = os.getenv("PWD")
+download_dir = os.getenv("PWD")
+screenshots_dir = os.getenv("SCREENSHOTS")
 
 options = FirefoxOptions()
-options.set_preference("browser.download.dir", download_file)
+options.set_preference("browser.download.dir", download_dir)
 options.set_preference("browser.download.folderList", 2)
 options.set_preference("browser.download.manager.useWindow", False)
 options.add_argument("-headless")
@@ -35,6 +36,7 @@ def login_to_sso(browser, username, password, delay):
         WebDriverWait(browser, delay).until(element_present)
     except TimeoutException:
         print("Cannot access SSO Sign In page")
+        browser.save_screenshot(screenshots_dir + '/login_to_sso.png')
         return None
     print(browser.title)
     print(browser.current_url)
@@ -62,6 +64,7 @@ def rancher_sso(endpoint, username, password, workload_name):
         WebDriverWait(browser, delay).until(element_present)
     except TimeoutException:
         print("Cannot access SSO option")
+        browser.save_screenshot(screenshots_dir + '/rancher-mgmt.png')
         return None
     browser.find_element(By.XPATH, '//button[@class="btn bg-primary"]').click()
     print("Redirect to SSO")
@@ -99,6 +102,7 @@ def rancher_sso(endpoint, username, password, workload_name):
         WebDriverWait(browser, delay).until(mgmt_clickable)
     except TimeoutException:
         print("Cannot access the Rancher UI")
+        browser.save_screenshot(screenshots_dir + '/rancher-mgmt.png')
         return None
     print("Redirect to rancher UI home page")
     print(browser.current_url)
@@ -118,6 +122,7 @@ def rancher_sso(endpoint, username, password, workload_name):
             WebDriverWait(browser, delay).until(workload_clickable)
         except TimeoutException:
             print("Cannot access workload cluster in Rancher UI")
+            browser.save_screenshot(screenshots_dir + '/rancher-' + workload_name + '.png')
             return None
         print("Switch to workload cluster " + workload_name)
         browser.find_element(By.LINK_TEXT, cluster).click()
@@ -184,6 +189,7 @@ def vault_sso(endpoint, username, password):
         print(Style.RESET_ALL)
     except TimeoutException:
         print("Cannot access the Vault UI")
+        browser.save_screenshot(screenshots_dir + '/vault.png')
         return None
     browser.delete_all_cookies()
     browser.quit()
@@ -207,6 +213,7 @@ def flux_sso(endpoint, username, password):
         WebDriverWait(browser, delay).until(element_present)
     except TimeoutException:
         print("Cannot access SSO option")
+        browser.save_screenshot(screenshots_dir + '/flux.png')
         return None
     # force to retry
     retry = 0
@@ -234,6 +241,7 @@ def flux_sso(endpoint, username, password):
         print(Style.RESET_ALL)
     except TimeoutException:
         print("Cannot access the Flux UI")
+        browser.save_screenshot(screenshots_dir + '/flux.png')
         return None
     browser.delete_all_cookies()
     browser.quit()
@@ -273,6 +281,7 @@ def neuvector_sso(endpoint, username, password):
             WebDriverWait(browser, delay).until(element_present)
         except TimeoutException:
             print("Cannot access SSO option")
+            browser.save_screenshot(screenshots_dir + '/neuvector.png')
             return None
         browser.find_element(
             By.XPATH, '//button[normalize-space()="Login with OpenID"]'
@@ -293,6 +302,7 @@ def neuvector_sso(endpoint, username, password):
             print(Style.RESET_ALL)
         except TimeoutException:
             print("Cannot access the Neuvector UI")
+            browser.save_screenshot(screenshots_dir + '/neuvector.png')
             return None
         browser.delete_all_cookies()
         browser.quit()
@@ -321,6 +331,7 @@ def harbor_sso(endpoint, username, password):
             WebDriverWait(browser, delay).until(element_present)
         except TimeoutException:
             print("Cannot access SSO option")
+            browser.save_screenshot(screenshots_dir + '/harbor.png')
             return None
         browser.find_element(By.XPATH, '//button[@id="log_oidc"]').click()
         print("Redirect to SSO")
@@ -338,6 +349,7 @@ def harbor_sso(endpoint, username, password):
             print(Style.RESET_ALL)
         except TimeoutException:
             print("Cannot access the Harbor UI")
+            browser.save_screenshot(screenshots_dir + '/harbor.png')
             return None
         browser.delete_all_cookies()
         browser.quit()
@@ -366,6 +378,7 @@ def grafana_sso(endpoint, username, password):
             WebDriverWait(browser, delay).until(element_present)
         except TimeoutException:
             print("Cannot access SSO option")
+            browser.save_screenshot(screenshots_dir + '/grafana.png')
             return None
         browser.find_element(By.XPATH, '//a[@href="login/generic_oauth"]').click()
         print("Redirect to SSO")
@@ -389,9 +402,11 @@ def grafana_sso(endpoint, username, password):
             print(Style.RESET_ALL)
         except TimeoutException:
             print("Cannot access the Grafana UI")
+            browser.save_screenshot(screenshots_dir + '/grafana.png')
             return None
-        browser.delete_all_cookies()
-        browser.quit()
+        finally:
+            browser.delete_all_cookies()
+            browser.quit()
         return True
 
 
@@ -417,6 +432,7 @@ def gitea_sso(endpoint, username, password):
             WebDriverWait(browser, delay).until(element_present)
         except TimeoutException:
             print("Cannot access SignIn option")
+            browser.save_screenshot(screenshots_dir + '/gitea.png')
             return None
         browser.find_element(By.XPATH, '//a[@rel="nofollow"]').click()
         print(browser.title)
@@ -427,6 +443,7 @@ def gitea_sso(endpoint, username, password):
             WebDriverWait(browser, delay).until(element_present)
         except TimeoutException:
             print("Cannot access SSO option")
+            browser.save_screenshot(screenshots_dir + '/gitea.png')
             return None
         browser.find_element(
             By.XPATH, '//a[@href="/user/oauth2/keycloak-sylva"]'
@@ -454,6 +471,7 @@ def gitea_sso(endpoint, username, password):
             print(Style.RESET_ALL)
         except TimeoutException:
             print("Cannot access the Gitea UI")
+            browser.save_screenshot(screenshots_dir + '/gitea.png')
             return None
         browser.delete_all_cookies()
         browser.quit()
