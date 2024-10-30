@@ -1,0 +1,15 @@
+---
+apiVersion: crd.projectcalico.org/v1
+kind: NetworkPolicy
+metadata:
+  name: sbom-operator
+  namespace: sbom-operator
+spec:
+  order: 10
+  selector: app.kubernetes.io/name == 'sbom-operator'
+  egress:
+    - action: Allow
+      destination:
+        services:
+          name: kubernetes
+          namespace: default

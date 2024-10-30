@@ -151,6 +151,7 @@
 | **minio-operator-init** | sets up MinIO certificate for minio-operator<br/><br/>it generate certificate | Kustomization |
 | **multus-ready** | checks that Multus is ready<br/><br/>This unit only has dependencies, it does not create resources. It performs healthchecks outside of the multus unit, in order to properly target workload cluster when we deploy multus in it. | Kustomization |
 | **namespace-defs** | creates sylva-system namespace and other namespaces to be used by various units | Kustomization |
+| **network-policies** | creates sylva-system network-policies to be used by various units | Kustomization |
 | **neuvector-init** | sets up Neuvector prerequisites<br/><br/>it generates namespace, certificate, admin password, policy exception for using latest tag images (required for the pod managing the database of vulnerabilities since this DB is updated often) | Kustomization |
 | **nfs-ganesha-init** | Define persistent volume claim for NFS Ganesha | Kustomization |
 | **openshift-security-context-constraints** | sets up openshift security context constraints for operators not installed via RedHat operator lifecycle manager(OLM) | Kustomization |

@@ -1,0 +1,10 @@
+---
+apiVersion: crd.projectcalico.org/v1
+kind: NetworkPolicy
+metadata:
+  name: deny-all-ingress
+  namespace: sbom-operator
+spec:
+  selector: all()
+  types:
+    - Ingress
