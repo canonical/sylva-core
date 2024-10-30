@@ -9337,6 +9337,7 @@
         },
         "sbom_operator": {
           "type": "object",
+          "additionalProperties": false,
           "properties": {
             "targets": {
               "type": "string",
