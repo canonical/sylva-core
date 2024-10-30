@@ -3951,7 +3951,7 @@ units:
             patches:
             # Disable drift detection for rancher-monitoring webhooks and PrometheusRule
             - target:
-                kind: PrometheusRule
+                kind: (ValidatingWebhookConfiguration|MutatingWebhookConfiguration|PrometheusRule)
               patch: |
                 - op: add
                   path: /metadata/annotations/helm.toolkit.fluxcd.io~1driftDetection
