@@ -1,6 +1,6 @@
 ---
 include:
-  - local: .gitlab/ci/deployment-pipeline.yml
+  - local: .gitlab/ci/pipeline-deploy-base.yml
   - project: 'sylva-projects/sylva-elements/ci-tooling/runner-aas'
     ref: 1.1.0
     file:

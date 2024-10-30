@@ -26,10 +26,8 @@ include:
       - 'templates/release-notes.yml'
 
   - local: .gitlab/ci/common.yml
-  - local: .gitlab/ci/main-pipeline-workflow-and-globals.yml
   - local: .gitlab/ci/main-pipeline-checks.yml
   - local: .gitlab/ci/main-pipeline-builds.yml
   - local: .gitlab/ci/main-pipeline-deployment-tests.yml
   - local: .gitlab/ci/main-pipeline-cleanup.yml
   - local: .gitlab/ci/main-pipeline-report.yml
-

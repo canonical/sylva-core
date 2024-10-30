@@ -4,7 +4,7 @@ default:
     - $CAPD_RUNNER_TAG
 
 include:
-  - local: .gitlab/ci/deployment-pipeline.yml
+  - local: .gitlab/ci/pipeline-deploy-base.yml
 
 variables:
   CAPD_RUNNER_TAG: saas-linux-medium-amd64
