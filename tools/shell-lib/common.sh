@@ -219,10 +219,6 @@ function exit_trap() {
         end_section
     fi
 
-    # call cleanup only when script exists successfully
-    if [[ $EXIT_CODE -eq 0 ]]; then
-      cleanup_bootstrap_cluster
-    fi
 
     # Kill all child processes (kubectl watches) on exit
     pids="$(jobs -rp)"
