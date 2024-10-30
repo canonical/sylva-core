@@ -151,7 +151,7 @@ function check_management_kubeconfig() {
 function ensure_flux {
     if ! kubectl get namespace flux-system &>/dev/null; then
         echo_b "\U0001F503 Install flux"
-        flux install --components "source-controller,kustomize-controller" --namespace=flux-system --export >> ${BASE_DIR}/kustomize-units/flux-system/offline/manifests.yaml
+        flux install --components "source-controller,kustomize-controller,helm-controller" --namespace=flux-system --export > ${BASE_DIR}/kustomize-units/flux-system/offline/manifests.yaml
         if _kustomize ${ENV_PATH} | python3 ${BASE_DIR}/tools/extractHelmReleaseValues.py --values-path .spec.valuesFrom | yq -e '.oci_registry_extra_ca_certs' &>/dev/null; then
             if ! yq -e '.components[] | select(. == "../components/extra-ca")' ${BASE_DIR}/kustomize-units/flux-system/offline/kustomization.yaml &> /dev/null; then
                 yq -i '.components += ["../components/extra-ca"]' ${BASE_DIR}/kustomize-units/flux-system/offline/kustomization.yaml
