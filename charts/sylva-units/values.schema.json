@@ -9337,11 +9337,18 @@
         },
         "sbom_operator": {
           "type": "object",
-          "additionalProperties": false,
           "properties": {
             "targets": {
-              "type": "string",
-              "pattern": "(configmap|dtrack|oci)(,configmap|dtrack|oci)?(,configmap|dtrack|oci)?"
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "string",
+                "enum": [
+                  "configmap",
+                  "dtrack",
+                  "oci"
+                ]
+              }
             },
             "dtrack_base_url": {
               "type": "string",
@@ -9373,7 +9380,9 @@
               "if": {
                 "properties": {
                   "targets": {
-                    "pattern": "^.*dtrack.*$"
+                    "contains": {
+                      "const": "dtrack"
+                    }
                   }
                 }
               },
@@ -9388,7 +9397,9 @@
               "if": {
                 "properties": {
                   "targets": {
-                    "pattern": "oci.*$"
+                    "contains": {
+                      "const": "oci"
+                    }
                   }
                 }
               },
