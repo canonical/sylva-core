@@ -137,12 +137,6 @@ variables:
 
 .scenario_sylva-upgrade:
   variables:
-    # libvirt-metal-no-bond.yaml file is added to updates values as a temporary fix for capm3 upgrades from 1.1.1,
-    # it can be removed after next release, see https://gitlab.com/sylva-projects/sylva-core/-/issues/1581
-    MGMT_ADDITIONAL_VALUES: libvirt-metal-no-bond.yaml
-    MGMT_UPDATE_ADDITIONAL_VALUES: disable-interface-mappings-mgmt.yaml
-    WC_ADDITIONAL_VALUES: libvirt-metal-no-bond.yaml
-    WC_UPDATE_ADDITIONAL_VALUES: disable-interface-mappings-wc.yaml
     MGMT_INITIAL_REVISION: "1.1.1-ci-tweaks"
     MGMT_UPDATE_REVISION: "" # Use current commit
     WC_INITIAL_REVISION: "1.1.1-ci-tweaks"
@@ -151,6 +145,16 @@ variables:
     MGMT_WATCH_TIMEOUT_MIN: "45"
     APPLY_WATCH_TIMEOUT_MIN: "80"
     APPLY_WC_WATCH_TIMEOUT_MIN: "80"
+
+.scenario_sylva-upgrade-capm3:
+  variables:
+    # libvirt-metal-no-bond.yaml file is added to updates values as a temporary fix for capm3 upgrades from 1.1.1,
+    # it can be removed after next release, see https://gitlab.com/sylva-projects/sylva-core/-/issues/1581
+    MGMT_ADDITIONAL_VALUES: libvirt-metal-no-bond.yaml
+    MGMT_UPDATE_ADDITIONAL_VALUES: disable-interface-mappings-mgmt.yaml
+    WC_ADDITIONAL_VALUES: libvirt-metal-no-bond.yaml
+    WC_UPDATE_ADDITIONAL_VALUES: disable-interface-mappings-wc.yaml
+
 
 .wait-publish-jobs:
   needs:
@@ -440,7 +444,7 @@ variables:
     - if: '$CI_PIPELINE_SOURCE == "schedule" && $CI_DEPLOYMENTS && $DEPLOYMENT_DESCRIPTION == "Nightly - CAPM3 HA Suse"'
 
 ☁capm3-virt 🚀rke2 🐧ubuntu 🛠oci,ha 🎬sylva-upgrade:
-  extends: [.capm3-virt, .wait-publish-jobs, .scenario_sylva-upgrade]
+  extends: [.capm3-virt, .wait-publish-jobs, .scenario_sylva-upgrade, .scenario_sylva-upgrade-capm3]
   rules:
     - if: '$CI_PIPELINE_SOURCE == "schedule" && $CI_DEPLOYMENTS && $DEPLOYMENT_DESCRIPTION == "Nightly - Upgrade from 1.1.1 to main"'
     - if: $CI_MERGE_REQUEST_LABELS =~ /ci-feature::test-upgrade-from-1.1.1/
@@ -448,7 +452,7 @@ variables:
       allow_failure: true
 
 ☁capm3-virt 🚀kubeadm 🐧ubuntu 🛠ha 🎬sylva-upgrade:
-  extends: [.capm3-virt, .scenario_sylva-upgrade]
+  extends: [.capm3-virt, .scenario_sylva-upgrade, .scenario_sylva-upgrade-capm3]
   rules:
     - if: '$CI_PIPELINE_SOURCE == "schedule" && $CI_DEPLOYMENTS && $DEPLOYMENT_DESCRIPTION == "Nightly - Upgrade from 1.1.1 to main"'
     - if: $CI_MERGE_REQUEST_LABELS =~ /ci-feature::test-upgrade-from-1.1.1/
@@ -456,7 +460,7 @@ variables:
       allow_failure: true
 
 ☁capm3-virt 🚀kubeadm 🐧suse 🛠ha 🎬sylva-upgrade:
-  extends: [.capm3-virt, .scenario_sylva-upgrade]
+  extends: [.capm3-virt, .scenario_sylva-upgrade, .scenario_sylva-upgrade-capm3]
   rules:
     - if: '$CI_PIPELINE_SOURCE == "schedule" && $CI_DEPLOYMENTS && $DEPLOYMENT_DESCRIPTION == "Nightly - Upgrade from 1.1.1 to main"'
     - if: $CI_MERGE_REQUEST_LABELS =~ /ci-feature::test-upgrade-from-1.1.1/
@@ -464,7 +468,7 @@ variables:
       allow_failure: true
 
 ☁capm3-virt 🚀rke2 🐧suse 🛠oci,ha 🎬sylva-upgrade:
-  extends: [.capm3-virt, .wait-publish-jobs, .scenario_sylva-upgrade]
+  extends: [.capm3-virt, .wait-publish-jobs, .scenario_sylva-upgrade, .scenario_sylva-upgrade-capm3]
   rules:
     - if: '$CI_PIPELINE_SOURCE == "schedule" && $CI_DEPLOYMENTS && $DEPLOYMENT_DESCRIPTION == "Nightly - Upgrade from 1.1.1 to main"'
     - if: $CI_MERGE_REQUEST_LABELS =~ /ci-feature::test-upgrade-from-1.1.1/
@@ -472,7 +476,7 @@ variables:
       allow_failure: true
 
 ☁capm3-virt 🚀rke2 🐧ubuntu 🛠oci,ha,misc 🎬sylva-upgrade:
-  extends: [.capm3-virt, .wait-publish-jobs, .scenario_sylva-upgrade]
+  extends: [.capm3-virt, .wait-publish-jobs, .scenario_sylva-upgrade, .scenario_sylva-upgrade-capm3]
   rules:
     - if: '$CI_PIPELINE_SOURCE == "schedule" && $CI_DEPLOYMENTS && $DEPLOYMENT_DESCRIPTION == "Nightly - Upgrade from 1.1.1 to main"'
     - if: $CI_MERGE_REQUEST_LABELS =~ /ci-feature::test-upgrade-from-1.1.1/
