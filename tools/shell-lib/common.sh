@@ -64,7 +64,7 @@ function check_apply_kustomizations() {
       echo "Error: you shouldn't be running apply.sh against a workload cluster directory ($ENV_PATH)."
       exit 1
     fi
-    result=$(_kustomize $ENV_PATH | yq eval-all -e 'select(.kind == "HelmRelease").spec.chart.spec.valuesFiles | any_c(. | test("(^|/)management.values.yaml$")) and select(.kind == "Namespace").metadata.name == "sylva-system"' 2>/dev/null ||:)
+    result=$(_kustomize $ENV_PATH | yq eval-all -e 'select(.kind == "HelmRelease").spec.valuesFrom | any_c(.kind == "ConfigMap" and .name | test("^management-values$")) and select(.kind == "Namespace").metadata.name == "sylva-system"' 2>/dev/null ||:)
     if [[ $result != *"true"* ]]; then
       echo "The directory passed does not contain a management cluster kustomization."
       exit 1
@@ -77,7 +77,7 @@ function check_apply_kustomizations() {
       echo "Error: Please provide a valid workload cluster directory name, other than \"sylva-system\"."
       exit 1
     fi
-    result=$(_kustomize ${ENV_PATH} | set_wc_namespace | yq eval-all -e 'select(.kind == "HelmRelease").spec.chart.spec.valuesFiles | any_c(. | test("(^|/)workload-cluster.values.yaml$")) and select(.kind == "Namespace").metadata.name != "sylva-system"' 2>/dev/null ||:)
+    result=$(_kustomize ${ENV_PATH} | set_wc_namespace | yq eval-all -e 'select(.kind == "HelmRelease").spec.valuesFrom | any_c(.kind == "ConfigMap" and .name | test("^workload-values$")) and select(.kind == "Namespace").metadata.name != "sylva-system"' 2>/dev/null ||:)
     if [[ $result != *"true"* ]]; then
       echo "The directory passed does not contains a workload cluster kustomization."
       exit 1
