@@ -5033,6 +5033,8 @@ units:
           vcenter: '{{ .Values.cluster.capv.server }}'
           datacenter: '{{ .Values.cluster.capv.dataCenter }}'
           thumbprint: '{{ .Values.cluster.capv.tlsThumbprint }}'
+        daemonset:
+          image: '{{ include "k8s-version-match" (tuple . ">=1.27.0,<1.28.0") | eq "true" | ternary "registry.gitlab.com/sylva-projects/sylva-elements/container-images/sandbox-registry/cloud-provider-vsphere-cpi-release-manager" "registry.k8s.io/cloud-pv-vsphere/cloud-provider-vsphere" }}'
       _postRenderers:
         - kustomize:
             patches:
