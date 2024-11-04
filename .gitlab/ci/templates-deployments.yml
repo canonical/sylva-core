@@ -364,6 +364,7 @@ include:
       - "*-timeline.html"
       - management-cluster-kubeconfig
       - ci-environment-values.yaml
+    name: "artifact-$CI_JOB_ID"
     # expose_as: $CI_JOB_NAME  # not allowed https://gitlab.com/gitlab-org/gitlab/-/issues/427149
   after_script:
     - echo -e "\e[1m\e[0Ksection_start:`date +%s`:dump_machine_logs[collapsed=true]\r\e[0KDumping machines logs\e[0m"
@@ -413,6 +414,7 @@ include:
   timeout: 90min
   stage: deploy
   artifacts:
+    name: "artifact-$CI_JOB_ID"
     expire_in: 48 hour
     when: always
     paths:
