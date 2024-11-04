@@ -13,15 +13,22 @@ spec:
       any:
       - resources:
           kinds:
-          - Namespace
+          - ConfigMap
+          names:
+          - workload-values
           selector:
             matchLabels:
               sylva-project.org/shared-workload-cluster-settings: ""
+    preconditions:
+      any:
+      - key: '{{request.object.metadata.namespace}}'
+        operator: NotEquals
+        value: sylva-system
     generate:
       kind: ConfigMap
       apiVersion: v1
       name: shared-workload-clusters-settings
-      namespace: "{{request.object.metadata.name}}"
+      namespace: "{{request.object.metadata.namespace}}"
       synchronize: true
       clone:
         name: shared-workload-clusters-settings

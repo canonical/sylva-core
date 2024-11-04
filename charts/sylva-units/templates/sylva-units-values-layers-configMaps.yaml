@@ -24,6 +24,7 @@ metadata:
   name: workload-values
   namespace: {{ .Release.Namespace }}
   labels:
+    sylva-project.org/shared-workload-cluster-settings: ""
 {{ include "sylva-units.labels" . | indent 4 }}
 data:
   workload-values: {{ .Files.Get "workload-cluster.values.yaml" | toYaml | nindent 4 }}

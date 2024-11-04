@@ -20,6 +20,7 @@ spec:
   - kind: ConfigMap
     name: shared-workload-clusters-settings
     valuesKey: values
+    optional: true # avoid of overwiting units before creating workload-values confimap
   - kind: Secret
     name: sylva-units-secrets
     valuesKey: secrets
