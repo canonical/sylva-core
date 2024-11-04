@@ -1980,7 +1980,7 @@ units:
         - '{{ tuple "components/loki-aggregated-secrets" (tuple . "loki" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/thanos" (tuple . "thanos" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/check-images" .Values.security.upstream_images_signature.verify | include "set-only-if" }}'
-        - '{{ tuple "components/metallb-resources-annotations" (tuple . "metallb" | include "unit-enabled") | include "set-only-if" }}'
+        - '{{ tuple "components/metallb-resources-annotations" (and (eq .Values.cluster.capi_providers.bootstrap_provider "cabpr") (ne .Values.cluster.capi_providers.infra_provider "capd")) | include "set-only-if" }}'
 
   kyverno-metallb-annotations:
     info:
