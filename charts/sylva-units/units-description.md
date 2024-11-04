@@ -131,6 +131,7 @@
 | **management-namespace-defs** | creates sylva-system namespace in management cluster |  | True | Kustomize | N/A |
 | **management-sylva-units** | installs sylva-units in management cluster during bootstrap |  | True | Helm | N/A |
 | **metal3-pdb** | add pdb to baremetal-operator pods |  | True | Kustomize | N/A |
+| **metallb-chart-cleanup** | remove rke2 deployed helm resources for metallb |  | True | Kustomize | N/A |
 | **metallb-resources** | configures metallb resources |  | True | Helm | N/A |
 | **metallb-rke2-chart-cleanup** | remove rke2-deployed HelmChart resources for MetalLB |  | True | Kustomize | N/A |
 | **mgmt-cluster-ready** | (workload cluster) this unit reflects the readiness of the mgmt cluster<br/><br/>this unit acts as simple dependency lock to prevent deploying a workload cluster before the mgmt cluster is ready |  | True | Kustomize | N/A |

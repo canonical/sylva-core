@@ -1,0 +1,41 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: felix-configuration-annotations
+  annotations:
+    kustomize.toolkit.fluxcd.io/force: Enabled
+    policies.kyverno.io/title: Update metallb resources annotations and labels
+    policies.kyverno.io/subject: Pod
+    policies.kyverno.io/description: >-
+      Updates RKE2 deployed metallb resources annotations and labels to be imported in helm
+spec:
+  background: true
+  webhookTimeoutSeconds: 30
+  mutateExistingOnPolicyUpdate: true
+  rules:
+    - name: update-annotations
+      match:
+        any:
+        - resources:
+            kinds:
+              - IPAddressPool
+              - L2Advertisement
+              - BGPPeer
+              - BGPAdvertisement
+      mutate:
+        targets:
+          - apiVersion: metallb.io/v1beta1
+            kind: IPAddressPool
+          - apiVersion: metallb.io/v1beta1
+            kind: L2Advertisement
+          - apiVersion: metallb.io/v1beta2
+            kind: BGPPeer
+          - apiVersion: metallb.io/v1beta1
+            kind: BGPAdvertisement
+        patchStrategicMerge:
+          metadata:
+            labels:
+              app.kubernetes.io/managed-by: Helm
+            annotations:
+              meta.helm.sh/release-name: metallb-resources
+              meta.helm.sh/release-namespace: metallb-system
