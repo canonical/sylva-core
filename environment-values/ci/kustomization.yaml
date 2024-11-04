@@ -27,4 +27,5 @@ secretGenerator:
 patches:
   - target:
       kind: CronJob
+      name: batch-cronjob
     path: patch-cronjobs-policy.yaml
