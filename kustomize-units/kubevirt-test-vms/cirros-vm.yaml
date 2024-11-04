@@ -1,7 +1,7 @@
 apiVersion: kubevirt.io/v1
 kind: VirtualMachine
 metadata:
-  name: cpumanager-fg-test-vm
+  name: cirros-vm
 spec:
   running: true
   template:
@@ -10,16 +10,7 @@ spec:
         kubevirt.io/size: small
         kubevirt.io/domain: testvm
     spec:
-      terminationGracePeriodSeconds: 0
       domain:
-        cpu:
-          sockets: 1
-          cores: 1
-          threads: 1
-          dedicatedCpuPlacement: true
-        resources:
-          limits:
-            memory: 1024Mi
         devices:
           disks:
             - name: containerdisk
