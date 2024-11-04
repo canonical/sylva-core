@@ -6851,7 +6851,7 @@ units:
             metadata:
               name: _unused_
             parameters:
-              numberOfReplicas: "2"
+              numberOfReplicas: '{{ int .Values._internal.node_count | ge 2 | ternary 2 1 }}'
 
   sylva-prometheus-rules:
     info:
