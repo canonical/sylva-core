@@ -4,21 +4,27 @@ kind: Kustomization
 namespace: sylva-system
 
 resources:
-  - ../ci
+  - ../base
 
 buildMetadata:
   - originAnnotations
 
+# Generate empty secret & configmap to let kustomize overlays & descendants add data with 'behavior: merge'
+
 configMapGenerator:
   - name: sylva-units-values
+    behavior: merge
     options:
       disableNameSuffixHash: true
 
 secretGenerator:
   - name: sylva-units-secrets
+    behavior: merge
     options:
       disableNameSuffixHash: true
 
 # Apply the patch to modify the CronJob schedule
 patches:
-  - patch-cronjobs-policy.yaml
+  - target:
+      kind: CronJob
+    path: patch-cronjobs-policy.yaml
