@@ -1,7 +1,7 @@
 apiVersion: kyverno.io/v1
 kind: ClusterPolicy
 metadata:
-  name: felix-configuration-annotations
+  name: metallb-resources-annotations
   annotations:
     kustomize.toolkit.fluxcd.io/force: Enabled
     policies.kyverno.io/title: Update metallb resources annotations and labels
