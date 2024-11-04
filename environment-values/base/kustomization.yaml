@@ -6,7 +6,6 @@ namespace: sylva-system
 resources:
 - helm-release.yaml
 - namespace.yaml
-- ../base
 
 buildMetadata:
 - originAnnotations

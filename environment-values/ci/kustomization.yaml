@@ -4,25 +4,20 @@ kind: Kustomization
 namespace: sylva-system
 
 resources:
-- helm-release.yaml
-- namespace.yaml
-- ../ci
-- patch-cronjobs-policy.yaml
+  - ../ci
 
 buildMetadata:
-- originAnnotations
-
-# Generate empty secret & configmap to let kustomize overlays & descendants add data with 'behavior: merge'
+  - originAnnotations
 
 configMapGenerator:
-- name: sylva-units-values
-  options:
-    disableNameSuffixHash: true
+  - name: sylva-units-values
+    options:
+      disableNameSuffixHash: true
 
 secretGenerator:
-- name: sylva-units-secrets
-  options:
-    disableNameSuffixHash: true
+  - name: sylva-units-secrets
+    options:
+      disableNameSuffixHash: true
 
 # Apply the patch to modify the CronJob schedule
 patches:
