@@ -2828,6 +2828,13 @@ units:
     kustomization_spec:
       prune: '{{ not (eq .Release.Namespace "sylva-system") | include "preserve-type" }}'
     helmrelease_spec:
+      driftDetection:
+        ignore:
+          - paths:
+            - /spec/online
+            - /spec/automatedCleaningMode
+            target:
+              kind: BareMetalHost
       targetNamespace: '{{ .Release.Namespace }}'
       chart:
         spec:
