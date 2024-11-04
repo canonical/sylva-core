@@ -184,12 +184,12 @@ variables:
         - tools/shell-lib/common.sh
         - .gitlab/ci/pipeline-deploy-capd.yml
 
-☁capd 🚀kubeadm 🐧ubuntu 🎬preview:
+☁capd 🚀kadm 🐧ubuntu 🎬preview:
   extends: .preview
   variables:
     E2E_JOB_MR_PARITY: even
 
-☁capd 🚀kubeadm 🐧ubuntu 🎬preview 🛠oci:
+☁capd 🚀kadm 🐧ubuntu 🎬preview 🛠oci:
   extends: [.preview, .wait-publish-jobs]
   variables:
     E2E_JOB_MR_PARITY: odd
@@ -210,7 +210,7 @@ variables:
     - if: '$CI_PIPELINE_SOURCE == "schedule" && $CI_DEPLOYMENTS && $DEPLOYMENT_DESCRIPTION == "Nightly - CAPD"'
     - !reference [.deployment_rules]
 
-☁capd 🚀kubeadm 🐧ubuntu 🛠light-deploy:
+☁capd 🚀kadm 🐧ubuntu 🛠light-deploy:
   extends: .capd
   variables:
     E2E_JOB_MR_PARITY: odd
@@ -220,7 +220,7 @@ variables:
   variables:
     E2E_JOB_MR_PARITY: even
 
-☁capd 🚀kubeadm 🐧ubuntu 🛠oci,light-deploy:
+☁capd 🚀kadm 🐧ubuntu 🛠oci,light-deploy:
   extends: [.capd, .wait-publish-jobs]
   variables:
     E2E_JOB_MR_PARITY: even
@@ -238,7 +238,7 @@ variables:
     include: .gitlab/ci/pipeline-deploy-capo.yml
     strategy: depend
 
-☁capo 🚀kubeadm 🐧ubuntu:
+☁capo 🚀kadm 🐧ubuntu:
   extends: .capo
   variables:
     E2E_JOB_MR_PARITY: odd
@@ -253,7 +253,7 @@ variables:
   variables:
     E2E_JOB_MR_PARITY: odd
 
-☁capo 🚀kubeadm 🐧ubuntu 🛠oci:
+☁capo 🚀kadm 🐧ubuntu 🛠oci:
   extends: [.capo, .wait-publish-jobs]
   variables:
     E2E_JOB_MR_PARITY: even
@@ -271,7 +271,7 @@ variables:
 ☁capo 🚀rke2 🐧ubuntu 🛠oci,misc:
   extends: [.capo, .wait-publish-jobs]
 
-☁capo 🚀kubeadm 🐧ubuntu 🛠capo-fip:
+☁capo 🚀kadm 🐧ubuntu 🛠capo-fip:
   extends: .capo
 
 ☁capo 🚀rke2 🐧ubuntu 🛠ha 🎬nightly:
@@ -294,12 +294,12 @@ variables:
   rules:
     - if: '$CI_PIPELINE_SOURCE == "schedule" && $CI_DEPLOYMENTS && $DEPLOYMENT_DESCRIPTION == "Nightly - CAPO rke2 suse"'
 
-☁capo 🚀kubeadm 🐧ubuntu 🛠ha 🎬nightly:
+☁capo 🚀kadm 🐧ubuntu 🛠ha 🎬nightly:
   extends: [.capo, .scenario_nightly]
   rules:
     - if: '$CI_PIPELINE_SOURCE == "schedule" && $CI_DEPLOYMENTS && $DEPLOYMENT_DESCRIPTION == "Nightly - CAPO Kubeadm"'
 
-☁capo 🚀kubeadm 🐧suse 🛠ha 🎬nightly:
+☁capo 🚀kadm 🐧suse 🛠ha 🎬nightly:
   extends: [.capo, .scenario_nightly]
   rules:
     - if: '$CI_PIPELINE_SOURCE == "schedule" && $CI_DEPLOYMENTS && $DEPLOYMENT_DESCRIPTION == "Nightly - CAPO Kubeadm"'
@@ -309,7 +309,7 @@ variables:
   rules:
     - if: '$CI_PIPELINE_SOURCE == "schedule" && $CI_DEPLOYMENTS && $DEPLOYMENT_DESCRIPTION == "Nightly - CAPO variants"'
 
-☁capo 🚀kubeadm 🐧ubuntu 🛠oci,capo-fip,ha 🎬nightly:
+☁capo 🚀kadm 🐧ubuntu 🛠oci,capo-fip,ha 🎬nightly:
   extends: [.capo, .wait-publish-jobs, .scenario_nightly]
   rules:
     - if: '$CI_PIPELINE_SOURCE == "schedule" && $CI_DEPLOYMENTS && $DEPLOYMENT_DESCRIPTION == "Nightly - CAPO variants"'
@@ -322,7 +322,7 @@ variables:
       when: manual
       allow_failure: true
 
-☁capo 🚀kubeadm 🐧ubuntu 🛠oci,ha 🎬sylva-upgrade:
+☁capo 🚀kadm 🐧ubuntu 🛠oci,ha 🎬sylva-upgrade:
   extends: [.capo, .wait-publish-jobs, .scenario_sylva-upgrade]
   rules:
     - if: '$CI_PIPELINE_SOURCE == "schedule" && $CI_DEPLOYMENTS && $DEPLOYMENT_DESCRIPTION == "Nightly - Upgrade from 1.1.1 to main"'
@@ -330,7 +330,7 @@ variables:
       when: manual
       allow_failure: true
 
-☁capo 🚀kubeadm 🐧ubuntu 🛠oci,ha,misc 🎬sylva-upgrade:
+☁capo 🚀kadm 🐧ubuntu 🛠oci,ha,misc 🎬sylva-upgrade:
   extends: [.capo, .wait-publish-jobs, .scenario_sylva-upgrade]
   rules:
     - if: '$CI_PIPELINE_SOURCE == "schedule" && $CI_DEPLOYMENTS && $DEPLOYMENT_DESCRIPTION == "Nightly - Upgrade from 1.1.1 to main"'
@@ -353,7 +353,7 @@ variables:
       when: manual
       allow_failure: true
 
-☁capo 🚀kubeadm 🐧ubuntu 🛠oci,ha 🎬rolling-update:
+☁capo 🚀kadm 🐧ubuntu 🛠oci,ha 🎬rolling-update:
   extends: [.capo, .wait-publish-jobs, .scenario_rolling-update]
   rules:
     - if: $CI_MERGE_REQUEST_LABELS =~ /ci-feature::test-rolling-update/
@@ -394,56 +394,56 @@ variables:
     APPLY_WATCH_TIMEOUT_MIN: 80
     APPLY_WC_WATCH_TIMEOUT_MIN: 80
 
-☁capm3-virt 🚀kubeadm 🐧ubuntu 🛠ha:
+☁capm3 🚀kadm 🐧ubuntu 🛠ha:
   extends: .capm3-virt
 
-☁capm3-virt 🚀kubeadm 🐧ubuntu 🛠oci,ha:
+☁capm3 🚀kadm 🐧ubuntu 🛠oci,ha:
   extends: [.capm3-virt, .wait-publish-jobs]
 
-☁capm3-virt 🚀kubeadm 🐧suse 🛠ha:
+☁capm3 🚀kadm 🐧suse 🛠ha:
   extends: .capm3-virt
 
-☁capm3-virt 🚀rke2 🐧ubuntu 🛠ha:
+☁capm3 🚀rke2 🐧ubuntu 🛠ha:
   extends: .capm3-virt
 
-☁capm3-virt 🚀rke2 🐧suse 🛠ha:
+☁capm3 🚀rke2 🐧suse 🛠ha:
   extends: .capm3-virt
   rules:
     - if: $CI_MERGE_REQUEST_LABELS =~ /renovate/
     - !reference [.deployment_rules]
 
-☁capm3-virt 🚀rke2 🐧suse 🛠oci,ha:
+☁capm3 🚀rke2 🐧suse 🛠oci,ha:
   extends: [.capm3-virt, .wait-publish-jobs]
 
-☁capm3-virt 🚀rke2 🐧ubuntu 🛠misc,ha:
+☁capm3 🚀rke2 🐧ubuntu 🛠misc,ha:
   extends: .capm3-virt
 
-☁capm3-virt 🚀kubeadm 🐧ubuntu 🛠oci,ha 🎬nightly:
+☁capm3 🚀kadm 🐧ubuntu 🛠oci,ha 🎬nightly:
   extends: [.capm3-virt, .wait-publish-jobs, .scenario_nightly]
   rules:
     - if: '$CI_PIPELINE_SOURCE == "schedule" && $CI_DEPLOYMENTS && $DEPLOYMENT_DESCRIPTION == "Nightly - CAPM3 HA Ubuntu"'
 
-☁capm3-virt 🚀kubeadm 🐧suse 🛠ha 🎬nightly:
+☁capm3 🚀kadm 🐧suse 🛠ha 🎬nightly:
   extends: [.capm3-virt, .scenario_nightly]
   rules:
     - if: '$CI_PIPELINE_SOURCE == "schedule" && $CI_DEPLOYMENTS && $DEPLOYMENT_DESCRIPTION == "Nightly - CAPM3 HA Suse"'
 
-☁capm3-virt 🚀rke2 🐧ubuntu 🛠ha 🎬nightly:
+☁capm3 🚀rke2 🐧ubuntu 🛠ha 🎬nightly:
   extends: [.capm3-virt, .scenario_nightly]
   rules:
     - if: '$CI_PIPELINE_SOURCE == "schedule" && $CI_DEPLOYMENTS && $DEPLOYMENT_DESCRIPTION == "Nightly - CAPM3 HA Ubuntu"'
 
-☁capm3-virt 🚀rke2 🐧ubuntu 🛠oci,ha,misc 🎬nightly:
+☁capm3 🚀rke2 🐧ubuntu 🛠oci,ha,misc 🎬nightly:
   extends: [.capm3-virt, .wait-publish-jobs, .scenario_nightly]
   rules:
     - if: '$CI_PIPELINE_SOURCE == "schedule" && $CI_DEPLOYMENTS && $DEPLOYMENT_DESCRIPTION == "Nightly - CAPM3 HA Ubuntu"'
 
-☁capm3-virt 🚀rke2 🐧suse 🛠oci,ha 🎬nightly:
+☁capm3 🚀rke2 🐧suse 🛠oci,ha 🎬nightly:
   extends: [.capm3-virt, .wait-publish-jobs, .scenario_nightly]
   rules:
     - if: '$CI_PIPELINE_SOURCE == "schedule" && $CI_DEPLOYMENTS && $DEPLOYMENT_DESCRIPTION == "Nightly - CAPM3 HA Suse"'
 
-☁capm3-virt 🚀rke2 🐧ubuntu 🛠oci,ha 🎬sylva-upgrade:
+☁capm3 🚀rke2 🐧ubuntu 🛠oci,ha 🎬sylva-upgrade:
   extends: [.capm3-virt, .wait-publish-jobs, .scenario_sylva-upgrade, .scenario_sylva-upgrade-capm3]
   rules:
     - if: '$CI_PIPELINE_SOURCE == "schedule" && $CI_DEPLOYMENTS && $DEPLOYMENT_DESCRIPTION == "Nightly - Upgrade from 1.1.1 to main"'
@@ -451,7 +451,7 @@ variables:
       when: manual
       allow_failure: true
 
-☁capm3-virt 🚀kubeadm 🐧ubuntu 🛠ha 🎬sylva-upgrade:
+☁capm3 🚀kadm 🐧ubuntu 🛠ha 🎬sylva-upgrade:
   extends: [.capm3-virt, .scenario_sylva-upgrade, .scenario_sylva-upgrade-capm3]
   rules:
     - if: '$CI_PIPELINE_SOURCE == "schedule" && $CI_DEPLOYMENTS && $DEPLOYMENT_DESCRIPTION == "Nightly - Upgrade from 1.1.1 to main"'
@@ -459,7 +459,7 @@ variables:
       when: manual
       allow_failure: true
 
-☁capm3-virt 🚀kubeadm 🐧suse 🛠ha 🎬sylva-upgrade:
+☁capm3 🚀kadm 🐧suse 🛠ha 🎬sylva-upgrade:
   extends: [.capm3-virt, .scenario_sylva-upgrade, .scenario_sylva-upgrade-capm3]
   rules:
     - if: '$CI_PIPELINE_SOURCE == "schedule" && $CI_DEPLOYMENTS && $DEPLOYMENT_DESCRIPTION == "Nightly - Upgrade from 1.1.1 to main"'
@@ -467,7 +467,7 @@ variables:
       when: manual
       allow_failure: true
 
-☁capm3-virt 🚀rke2 🐧suse 🛠oci,ha 🎬sylva-upgrade:
+☁capm3 🚀rke2 🐧suse 🛠oci,ha 🎬sylva-upgrade:
   extends: [.capm3-virt, .wait-publish-jobs, .scenario_sylva-upgrade, .scenario_sylva-upgrade-capm3]
   rules:
     - if: '$CI_PIPELINE_SOURCE == "schedule" && $CI_DEPLOYMENTS && $DEPLOYMENT_DESCRIPTION == "Nightly - Upgrade from 1.1.1 to main"'
@@ -475,7 +475,7 @@ variables:
       when: manual
       allow_failure: true
 
-☁capm3-virt 🚀rke2 🐧ubuntu 🛠oci,ha,misc 🎬sylva-upgrade:
+☁capm3 🚀rke2 🐧ubuntu 🛠oci,ha,misc 🎬sylva-upgrade:
   extends: [.capm3-virt, .wait-publish-jobs, .scenario_sylva-upgrade, .scenario_sylva-upgrade-capm3]
   rules:
     - if: '$CI_PIPELINE_SOURCE == "schedule" && $CI_DEPLOYMENTS && $DEPLOYMENT_DESCRIPTION == "Nightly - Upgrade from 1.1.1 to main"'
@@ -483,56 +483,56 @@ variables:
       when: manual
       allow_failure: true
 
-☁capm3-virt 🚀rke2 🐧ubuntu  🛠ha 🎬rolling-update:
+☁capm3 🚀rke2 🐧ubuntu  🛠ha 🎬rolling-update:
   extends: [.capm3-virt, .scenario_rolling-update]
   rules:
     - if: $CI_MERGE_REQUEST_LABELS =~ /ci-feature::test-rolling-update/
       when: manual
       allow_failure: true
 
-☁capm3-virt 🚀kubeadm 🐧ubuntu 🛠ha 🎬rolling-update:
+☁capm3 🚀kadm 🐧ubuntu 🛠ha 🎬rolling-update:
   extends: [.capm3-virt, .scenario_rolling-update]
   rules:
     - if: $CI_MERGE_REQUEST_LABELS =~ /ci-feature::test-rolling-update/
       when: manual
       allow_failure: true
 
-☁capm3-virt 🚀kubeadm 🐧suse 🛠ha 🎬rolling-update:
+☁capm3 🚀kadm 🐧suse 🛠ha 🎬rolling-update:
   extends: [.capm3-virt, .scenario_rolling-update]
   rules:
     - if: $CI_MERGE_REQUEST_LABELS =~ /ci-feature::test-rolling-update/
       when: manual
       allow_failure: true
 
-☁capm3-virt 🚀kubeadm 🐧suse 🛠oci,ha 🎬rolling-update:
+☁capm3 🚀kadm 🐧suse 🛠oci,ha 🎬rolling-update:
   extends: [.capm3-virt, .wait-publish-jobs, .scenario_rolling-update]
   rules:
     - if: $CI_MERGE_REQUEST_LABELS =~ /ci-feature::test-rolling-update/
       when: manual
       allow_failure: true
 
-☁capm3-virt 🚀rke2 🐧suse 🛠ha 🎬rolling-update:
+☁capm3 🚀rke2 🐧suse 🛠ha 🎬rolling-update:
   extends: [.capm3-virt, .scenario_rolling-update]
   rules:
     - if: $CI_MERGE_REQUEST_LABELS =~ /ci-feature::test-rolling-update/
       when: manual
       allow_failure: true
 
-☁capm3-virt 🚀rke2 🐧ubuntu 🛠ha,misc 🎬rolling-update:
+☁capm3 🚀rke2 🐧ubuntu 🛠ha,misc 🎬rolling-update:
   extends: [.capm3-virt, .scenario_rolling-update]
   rules:
     - if: $CI_MERGE_REQUEST_LABELS =~ /ci-feature::test-rolling-update/
       when: manual
       allow_failure: true
 
-☁capm3-virt 🚀rke2 🐧ubuntu 🛠ha,misc 🎬mgmt-rolling-update:
+☁capm3 🚀rke2 🐧ubuntu 🛠ha,misc 🎬mgmt-rolling-update:
   extends: [.capm3-virt, .scenario_mgmt_rolling-update]
   rules:
     - if: $CI_MERGE_REQUEST_LABELS =~ /ci-feature::mgmt-rolling-update/
       when: manual
       allow_failure: true
 
-☁capm3-virt 🚀rke2 🐧ubuntu 🛠oci,ha,misc 🎬mgmt-rolling-update:
+☁capm3 🚀rke2 🐧ubuntu 🛠oci,ha,misc 🎬mgmt-rolling-update:
   extends: [.capm3-virt, .wait-publish-jobs, .scenario_mgmt_rolling-update]
   rules:
     - if: $CI_MERGE_REQUEST_LABELS =~ /ci-feature::mgmt-rolling-update/
