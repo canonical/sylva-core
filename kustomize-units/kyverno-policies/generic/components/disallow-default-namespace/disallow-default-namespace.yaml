@@ -20,8 +20,12 @@ spec:
   background: false # validation is moved from Kyverno policy engine to kube-api server
   webhookConfiguration:
     matchConditions:
-    - name: 'is-create-or-update'
-      expression: 'request.operation in ["CREATE", "UPDATE"]'
+    - name: request-is-create
+      expression: request.operation == "CREATE"
+    - name: ns-is-default
+      expression: >-
+        has(object.metadata) &&
+        object.metadata.namespace == "default"
   rules:
   - name: validate-namespace
     match:
@@ -30,10 +34,8 @@ spec:
           kinds:
           - Pod
     validate:
-      cel:
-        expressions:
-          - expression: "!(object.metadata.namespace == 'default')"
-            message: "Using 'default' namespace is not allowed."
+      message: Using 'default' namespace is not allowed for Pods.
+      deny: {}
   - name: validate-podcontroller-namespace
     match:
       any:
@@ -44,7 +46,5 @@ spec:
           - Job
           - StatefulSet
     validate:
-      cel:
-        expressions:
-          - expression: "!(object.metadata.namespace == 'default')"
-            message: "Using 'default' namespace is not allowed for pod controllers."
+      message: Using 'default' namespace is not allowed for Pod controllers.
+      deny: {}
