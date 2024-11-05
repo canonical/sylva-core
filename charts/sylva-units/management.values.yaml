@@ -95,9 +95,6 @@ units:
   kubevirt-test-vms:
     enabled: false
 
-  kubevirt-manager:
-    enabled: false
-
   prometheus-flux:
     depends_on:
       monitoring-crd: true
