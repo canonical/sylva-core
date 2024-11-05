@@ -1,0 +1,10 @@
+units:
+  cluster:
+    enabled: true
+    depends_on:
+      capi: true
+
+  capi:
+    enabled: true
+    depends_on:
+      cluster: true
