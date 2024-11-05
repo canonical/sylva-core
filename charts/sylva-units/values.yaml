@@ -1929,6 +1929,10 @@ units:
                       (eq .Values.cluster.capi_providers.bootstrap_provider "cabpr")
                   | include "set-only-if"
                 }}
+              - apiGroups: ["crd.projectcalico.org"]
+                resources:
+                  - felixconfigurations
+                verbs: ["get", "list", "watch", "patch", "update"]
           serviceMonitor:
             enabled: '{{ .Values._internal.monitoring.enabled | include "preserve-type" }}'
       _postRenderers:
@@ -1980,6 +1984,7 @@ units:
         - '{{ tuple "components/loki-aggregated-secrets" (tuple . "loki" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/thanos" (tuple . "thanos" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/check-images" .Values.security.upstream_images_signature.verify | include "set-only-if" }}'
+        - '{{ tuple "components/felix-configuration-annotations" (and (tuple . "calico" | include "unit-enabled") (eq .Values.cluster.capi_providers.bootstrap_provider "cabpr")) | include "set-only-if" }}'
 
   kyverno-metallb-annotations:
     info:
@@ -3181,6 +3186,34 @@ units:
       path: ./kustomize-units/tigera-clusterrole
       wait: true
       force: true
+
+  calico-rke2-chart-cleanup:
+    info:
+      description: remove rke2-deployed HelmChart resources for Calico
+      internal: true
+    unit_templates:
+    - base-deps
+    - kube-job
+    enabled_conditions:
+    - '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" }}'
+    - '{{ .Values._internal.state.is_upgrade }}'
+    kustomization_spec:
+      targetNamespace: kube-system
+      _patches:
+      - target:
+          kind: ConfigMap
+          labelSelector: kube-job=script
+        patch: |
+          - op: replace
+            path: /data/kube-job.sh
+            value: |
+              #!/bin/bash
+              if kubectl -n kube-system get cm chart-content-rke2-calico; then
+                kubectl -n kube-system delete cm chart-content-rke2-calico chart-content-rke2-calico-crd
+                kubectl -n kube-system delete secret chart-values-rke2-calico chart-values-rke2-calico-crd
+                kubectl -n calico-system delete secret -l 'name in (rke2-calico, rke2-calico-crd)',owner=helm
+                kubectl -n calico-system delete helmchart.helm.cattle.io rke2-calico
+              fi
 
   calico:
     info:
