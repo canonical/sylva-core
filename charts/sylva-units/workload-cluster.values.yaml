@@ -177,6 +177,9 @@ units:
   cluster-node-provider-id-blacklist:
     enabled: true
 
+  cluster-prevent-rke2-helmcharts-calico-metallb:
+    enabled: true
+
   cluster-bmh:
     enabled: true
     unit_templates:
