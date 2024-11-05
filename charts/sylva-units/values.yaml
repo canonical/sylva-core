@@ -4175,7 +4175,7 @@ units:
           # set the Prometheus scrape interval for the kepler ServiceMonitor
           PROMETHEUS_SCRAPE_INTERVAL: 30s
         serviceMonitor:
-          enabled: true
+          enabled: '{{ .Values._internal.monitoring.enabled | include "preserve-type" }}'
           labels:
             release: rancher-monitoring
         redfish:
@@ -4629,7 +4629,7 @@ units:
       values:
         metrics:
           serviceMonitor:
-            enabled: '{{ tuple . "monitoring" | include "unit-enabled" | include "as-bool" }}'
+            enabled: '{{ .Values._internal.monitoring.enabled | include "preserve-type" }}'
         defaultSettings:
           createDefaultDiskLabeledNodes: true
           allowVolumeCreationWithDegradedAvailability: false
@@ -5323,7 +5323,7 @@ units:
           metrics:
             enabled: true
             serviceMonitor:
-              enabled: true
+              enabled: '{{ .Values._internal.monitoring.enabled | include "preserve-type" }}'
           oauth:
             - name: "keycloak-sylva"
               provider: "openidConnect"
