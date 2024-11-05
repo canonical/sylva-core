@@ -2640,6 +2640,22 @@ units:
           # We have to set FailurePolicy to Ignore for rke2, otherwise we would hit https://gitlab.com/sylva-projects/sylva-core/-/issues/794
           FAILURE_POLICY: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpk" | ternary "Fail" "Ignore" }}'
 
+  cluster-prevent-rke2-helmcharts-calico-metallb:
+    info:
+      description: Kyverno policy to prevent RKE2 HelmCharts from being recreated for MetaLB and Calico
+      internal: true
+    unit_templates:
+    - base-deps
+    enabled_conditions:
+    - '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" }}'
+    - '{{ .Values._internal.state.is_upgrade }}'
+    depends_on:
+      kyverno: true
+    repo: sylva-core
+    kustomization_spec:
+      path: ./kustomize-units/kyverno-policies/cluster-prevent-rke2-helmcharts-calico-metallb
+      wait: true
+
   cluster:
     info:
       description: holds the Cluster API definition for the cluster
@@ -2659,6 +2675,7 @@ units:
       longhorn-instance-manager-cleanup: '{{ tuple . "longhorn-instance-manager-cleanup" | include "unit-enabled" }}'
       thanos-uninstall-pre-upgrade: '{{ tuple . "thanos-uninstall-pre-upgrade" | include "unit-enabled" }}'
       minio-cleanup-pre-upgrade: '{{ tuple . "minio-cleanup-pre-upgrade" | include "unit-enabled" }}'
+      cluster-prevent-rke2-helmcharts-calico-metallb: '{{ tuple . "cluster-prevent-rke2-helmcharts-calico-metallb" | include "unit-enabled" }}'
     kustomization_spec:
       prune: '{{ not (eq .Release.Namespace "sylva-system") | include "preserve-type" }}'
       # we wait on all important resources built by sylva-capi-cluster,
