@@ -6487,6 +6487,8 @@ units:
         global:
           dnsService: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" | ternary "rke2-coredns-rke2-coredns" "kube-dns" }}'
         loki:
+          analytics:
+            reporting_enabled: false
           containerSecurityContext:
             allowPrivilegeEscalation: false
             capabilities:
