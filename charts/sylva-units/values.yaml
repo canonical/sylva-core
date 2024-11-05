@@ -3223,6 +3223,7 @@ units:
     - base-deps
     depends_on:
       calico-crd: true
+      kyverno-policies: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" }}'
     helm_repo_url: https://rke2-charts.rancher.io
     helm_chart_versions: *calico-chart-versions  # we use a YAML anchor rather than templating so that this file can be read by tools/generate_units_documentation.py
     helmrelease_spec:
