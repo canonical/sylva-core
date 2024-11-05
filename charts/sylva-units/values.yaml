@@ -1980,8 +1980,23 @@ units:
         - '{{ tuple "components/loki-aggregated-secrets" (tuple . "loki" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/thanos" (tuple . "thanos" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/check-images" .Values.security.upstream_images_signature.verify | include "set-only-if" }}'
-        # metallb-resources-annotations should be removed in 1.2+ versions of Sylva
-        - '{{ tuple "components/metallb-resources-annotations" (and (eq .Values.cluster.capi_providers.bootstrap_provider "cabpr") (ne .Values.cluster.capi_providers.infra_provider "capd") .Values._internal.state.is_upgrade) | include "set-only-if" }}'
+
+  kyverno-metallb-annotations:
+    info:
+      description: Adds helm specific annotations to metallb resources. Should be removed in 1.2+ versions of Sylva
+      internal: true
+    unit_templates:
+      - base-deps
+    enabled_conditions:
+      - '{{ eq .Values.cluster.capi_providers.bootstrap_provider "cabpr" }}'
+      - '{{ ne .Values.cluster.capi_providers.infra_provider "capd" }}'
+      - '{{ .Values._internal.state.is_upgrade }}'
+    depends_on:
+      kyverno: true
+    repo: sylva-core
+    kustomization_spec:
+      path: ./kustomize-units/kyverno-policies/metallb-resources-annotations
+      wait: true
 
   kyverno-metallb-annotations:
     info:
