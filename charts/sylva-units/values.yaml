@@ -744,10 +744,11 @@ units:
     info:
       description: deploys kubevirt-manager UI for kubevirt workloads
       internal: true
+    enabled_conditions:
+      - '{{ tuple . "kubevirt" | include "unit-enabled" }}'
     unit_templates:
     - base-deps
     depends_on:
-      kubevirt: true
       ingress-nginx: '{{ tuple . "ingress-nginx" | include "unit-enabled" }}'
     repo: sylva-core
     kustomization_substitute_secrets:
