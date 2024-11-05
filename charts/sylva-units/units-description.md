@@ -76,6 +76,7 @@
 | **workload-cluster-operator** | installs Sylva operator for managing workload clusters | experimental |  | [Kustomize](https://gitlab.com/sylva-projects/sylva-elements/workload-cluster-operator.git/config/default?ref=0.1.3) | 0.1.3 |
 | **workload-team-defs** | installs the workload-team-defs chart<br/><br/>installs the workload-team-defs chart to install the workload cluster through CRD | experimental |  | [Helm](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/workload-team-defs.git) | 0.1.1 |
 | **bootstrap-local-path** | installs localpath CSI in bootstrap cluster |  | True | Kustomize | N/A |
+| **calico-rke2-chart-cleanup** | remove rke2-deployed HelmChart resources for Calico |  | True | Kustomize | N/A |
 | **capi-providers-pivot-ready** | checks if management cluster is ready for pivot<br/><br/>This unit only has dependencies, but does not create resources. It is here only to have a single thing to look at to determine if everything is ready for pivot (see bootstrap.values.yaml pivot unit) |  | True | Kustomize | N/A |
 | **capi-rancher-import** | installs the capi-rancher-import operator, which let's us import Cluster AIP workload clusters in management cluster's Rancher |  | True | Helm | N/A |
 | **capo-cloud-config** | creates CAPO cloud-config used to produce Heat stack |  | True | Kustomize | N/A |
