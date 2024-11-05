@@ -261,11 +261,12 @@ this named template compute all the direct and indirect dependencies of a given 
 
 usage:
 
-  $deps := index (include "all-unit-dependencies" (tuple . "cluster" (list "cluster-machines-ready"))
+  $deps := index (include "all-unit-dependencies" (tuple . "cluster" (list "cluster-machines-ready") dict)
                                                    | fromJson) "result"
 
-(it has a second parameter, $ignore_units, which is used to optimize recursive calls
-or exclude a unit from being considered during computation)
+(it has two additionnal parameters:
+  $ignore_units, which is used to optimize recursive calls or exclude a unit from being considered during computation
+  $all_dependencies_cache, which is used to optimize recursive calls, especially for circular dependency checks)
 
 */}}
 
@@ -273,6 +274,7 @@ or exclude a unit from being considered during computation)
 {{- $envAll := index . 0 -}}
 {{- $unit_name := index . 1 -}}
 {{- $ignore_units := index . 2 -}}{{/* list */}}
+{{- $all_dependencies_cache := index . 3 -}}{{/* dict */}}
 
 {{- if not $unit_name -}}
   {{- fail "unit name nil/empty" -}}
@@ -282,40 +284,46 @@ or exclude a unit from being considered during computation)
 
 {{- $debug := printf "(start %s " $unit_name }}
 
-{{- $unit_def := include "unit-def" (tuple $envAll $unit_name) | fromJson -}}
+{{- if hasKey $all_dependencies_cache $unit_name -}}
+  {{- $result = without (index $all_dependencies_cache $unit_name) $ignore_units -}}
+{{- else -}}
+  {{- $unit_def := include "unit-def" (tuple $envAll $unit_name) | fromJson -}}
 
-{{- if hasKey $unit_def "depends_on" -}}
-  {{/*
-  we need to handle the case where depends_on is a template, and/or
-  where keys or values are templates
-  */}}
-  {{- $depends_on := index (tuple $envAll $unit_def.depends_on | include "interpret-inner-gotpl" | fromJson) "result" -}}
+  {{- if hasKey $unit_def "depends_on" -}}
+    {{/*
+    we need to handle the case where depends_on is a template, and/or
+    where keys or values are templates
+    */}}
+    {{- $depends_on := index (tuple $envAll $unit_def.depends_on | include "interpret-inner-gotpl" | fromJson) "result" -}}
 
-  {{- $debug = printf "%s alldepends_ons:%s" $debug ($unit_def.depends_on|keys|join ",") -}}
+    {{- $debug = printf "%s alldepends_ons:%s" $debug ($unit_def.depends_on|keys|join ",") -}}
 
-  {{- range $dep_name, $is_dependency := $depends_on -}}
-    {{- $debug = printf "%s dep:%s" $debug $dep_name -}}
+    {{- range $dep_name, $is_dependency := $depends_on -}}
+      {{- $debug = printf "%s dep:%s" $debug $dep_name -}}
 
-    {{- if $ignore_units | has $dep_name -}}
-      {{- $debug = printf "%s:ignored-unit" $debug -}}
-      {{- continue }}
+      {{- if $ignore_units | has $dep_name -}}
+        {{- $debug = printf "%s:ignored-unit" $debug -}}
+        {{- continue }}
+      {{- end -}}
+
+      {{/* only take a dependency into account if it is active (depend_on[x] == true) */}}
+      {{- if not (tuple $envAll $is_dependency | include "interpret-for-test") -}}
+        {{- $debug = printf "%s:inactive-dep" $debug -}}
+        {{- continue }}
+      {{- end -}}
+
+      {{- $result = append $result $dep_name -}}
+      {{- $ignore_units = append $ignore_units $dep_name -}}
+
+      {{/* examine the dependency, recursing if needed */}}
+      {{- $recurse := include "all-unit-dependencies" (tuple $envAll $dep_name $ignore_units $all_dependencies_cache) | fromJson -}}
+      {{- $debug = printf "%s:r:%s" $debug $recurse.debug -}}
+
+      {{/* incorporate recursion result in result */}}
+      {{- $result = concat $result $recurse.result -}}
+      {{- $ignore_units = concat $ignore_units $recurse.result -}}
+
     {{- end -}}
-
-    {{/* only take a dependency into account if it is active (depend_on[x] == true) */}}
-    {{- if not (tuple $envAll $is_dependency | include "interpret-for-test") -}}
-      {{- $debug = printf "%s:inactive-dep" $debug -}}
-      {{- continue }}
-    {{- end -}}
-
-    {{- $result = append $result $dep_name -}}
-
-    {{/* examine the dependency, recursing if needed */}}
-    {{- $recurse := include "all-unit-dependencies" (tuple $envAll $dep_name (concat $ignore_units $result)) | fromJson -}}
-    {{- $debug = printf "%s:r:%s" $debug $recurse.debug -}}
-
-    {{/* incorporate recursion result in result */}}
-    {{- $result = concat $result $recurse.result -}}
-
   {{- end -}}
 {{- end -}}
 

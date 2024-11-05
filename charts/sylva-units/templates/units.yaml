@@ -14,7 +14,7 @@ resulting in interpreting 'depends_on.cluster-machines-ready' which itself relie
 causing a variable interpretation loop
 */}}
 {{- $_ := set .Values._internal "cluster_machines_ready_unit_deps"
-                                (index (include "all-unit-dependencies" (tuple . "cluster-machines-ready" (list "cluster-machines-ready"))
+                                (index (include "all-unit-dependencies" (tuple . "cluster-machines-ready" (list "cluster-machines-ready") dict)
                                         | fromJson) "result")
 -}}
 {{/*
@@ -22,6 +22,7 @@ causing a variable interpretation loop
 Process all units
 
 */}}
+{{- $all_dependencies_cache := dict -}}
 {{ range $unit_name, $unit_def := .Values.units }}
 
   {{/* fail if the unit has both 'repo' and 'helmrelease_spec.chart.spec.version' */}}
@@ -31,6 +32,13 @@ Process all units
   {{- end -}}
 
   {{- if include "unit-enabled" (tuple $envAll $unit_name) -}}
+
+    {{/* check if any circular dependency for this unit */}}
+    {{- $all_dependencies := index (include "all-unit-dependencies" (tuple $envAll $unit_name list $all_dependencies_cache) | fromJson) "result" -}}
+    {{- if has $unit_name $all_dependencies -}}
+      {{- fail (printf "unit %s is involved in a circular dependency:\n%s" $unit_name $all_dependencies) -}}
+    {{- end -}}
+    {{- $_ = set $all_dependencies_cache $unit_name $all_dependencies -}}
 
     {{/* inherit settings from any template specified in unit.<this unit>.unit_templates */}}
     {{- $unit_def := include "unit-def" (tuple $envAll $unit_name) | fromJson -}}
