@@ -4014,8 +4014,8 @@ units:
     unit_templates:
       - base-deps
     enabled_conditions:
-      - openshift-monitoring: true
-      - '{{ .Values.openshift_monitoring.user_workload_monitoring }}': true
+      - '{{ tuple . "openshift-monitoring" | include "unit-enabled" }}'
+      - '{{ .Values.openshift_monitoring.user_workload_monitoring | eq true}}'
     depends_on:
       openshift-monitoring: '{{ tuple . "openshift-monitoring" | include "unit-enabled" }}'
     repo: sylva-core
