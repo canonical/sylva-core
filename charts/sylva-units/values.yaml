@@ -254,7 +254,7 @@ unit_templates:
           SOURCE_CONCURRENT: '{{ .Values.flux.source.concurrent }}'
           SOURCE_LOG_LEVEL: '{{ .Values.flux.source.log_level }}'
           SOURCE_FEATURES_GATES: '{{ tuple .Values.flux.source.features_gates | include "dict_to_key_values_separated_string"  }}'
-          COSIGN_PUBLIC_KEY: '{{ (tuple (.Values.security.oci_artifacts.cosign_public_key | quote) (not .Values.security.oci_artifacts.skip_signing_check)) | include "set-only-if" }}'
+          COSIGN_PUBLIC_KEY: '{{ (tuple (.Values.security.oci_artifacts.cosign_public_key | b64enc) (not .Values.security.oci_artifacts.skip_signing_check)) | include "set-only-if" }}'
         substituteFrom:
         - kind: ConfigMap
           name: proxy-env-vars

@@ -149,6 +149,6 @@ cluster:
   metallb_helm_oci_url: '{{ .Values.sylva_base_oci_registry }}/sylva-core/metallb'
   metallb_helm_extra_ca_certs: '{{ .Values.oci_registry_extra_ca_certs | include "set-if-defined" }}'
 ###########################################################################################################
-#### actual content produced at OCI-artifact buildind time by tools/oci/build-sylva-units-artifact.py  ####
+#### actual content produced at OCI-artifact building time by tools/oci/build-sylva-units-artifact.py  ####
 ###########################################################################################################
 
