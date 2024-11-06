@@ -2,5 +2,4 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: sylva-units-status
-  namespace: sylva-system
 data: {}

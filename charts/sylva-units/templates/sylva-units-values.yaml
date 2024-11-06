@@ -69,11 +69,15 @@ metadata:
     target-values-checksum: "{{ $values_checksum }}"
     release-time: "{{ $time }}"
 spec:
-{{ .Values.unit_kustomization_spec_default | toYaml | indent 2 }}
+{{/* omitting 'targetNamespace' and 'kubeConfig' keys is necessary or else we inherit those which
+in the context of workload-cluster.values.yaml results in deploying the ConfigMap in the
+remote cluster */}}
+{{ omit .Values.unit_kustomization_spec_default "targetNamespace" "kubeConfig" | toYaml | indent 2 }}
   sourceRef: {{ .Values.unit_helmrelease_kustomization_spec_default.sourceRef | toYaml | nindent 4 }}
   path: ./kustomize-units/sylva-units-status
   dependsOn: {{ $deps | toYaml | nindent 4 }}
   wait: true
+  targetNamespace: {{ .Release.Namespace }}
   patches:
     - target:
         kind: ConfigMap
