@@ -4353,6 +4353,8 @@ units:
       targetNamespace: kube-system
       install:
         createNamespace: false
+      upgrade:
+        crds: CreateReplace
       values:
         rke2-whereabouts:
           enabled: true
