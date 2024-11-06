@@ -7669,7 +7669,52 @@
                           "verify": {
                             "anyOf": [
                               {
-                                "type": "string"
+                                "$ref": "#/$defs/gotpl"
+                              },
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "provider": {
+                                    "type": "object",
+                                    "additionalProperties": false,
+                                    "anyOf": [
+                                      {
+                                        "required": [
+                                          "secretRef"
+                                        ]
+                                      },
+                                      {
+                                        "required": [
+                                          "matchOIDCIdentity"
+                                        ]
+                                      }
+                                    ],
+                                    "patternProperties": {
+                                      "secretRef": {
+                                        "type": "object",
+                                        "properties": {
+                                          "name": {
+                                            "type": "string"
+                                          }
+                                        }
+                                      },
+                                      "matchOIDCIdentity": {
+                                        "type": "array",
+                                        "items": {
+                                          "type": "object",
+                                          "properties": {
+                                            "issuer": {
+                                              "type": "string"
+                                            },
+                                            "subject": {
+                                              "type": "string"
+                                            }
+                                          }
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
                               },
                               {
                                 "type": "null"
