@@ -1,0 +1,249 @@
+---
+apiVersion: neuvector.com/v1
+kind: NvSecurityRule
+metadata:
+  name: nv.fleet-controller.cattle-fleet-system
+  namespace: cattle-fleet-system
+spec:
+  dlp:
+    settings: []
+    status: true
+  egress:
+  - action: allow
+    applications:
+    - any
+    name: nv.kube-apiserver-mgmt-cluster-cp.kube-system-egress-195
+    ports: tcp/6443
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: kube-apiserver-mgmt-cluster-cp.kube-system
+      - key: domain
+        op: =
+        value: kube-system
+      name: nv.kube-apiserver-mgmt-cluster-cp.kube-system
+      original_name: ''
+  - action: allow
+    applications:
+    - SSL
+    name: nv.rancher.cattle-system-egress-196
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: rancher.cattle-system
+      - key: domain
+        op: =
+        value: cattle-system
+      name: nv.rancher.cattle-system
+      original_name: ''
+  - action: allow
+    applications:
+    - DNS
+    name: nv.rke2-coredns-rke2-coredns.kube-system-egress-197
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: rke2-coredns-rke2-coredns.kube-system
+      - key: domain
+        op: =
+        value: kube-system
+      name: nv.rke2-coredns-rke2-coredns.kube-system
+      original_name: ''
+  - action: allow
+    applications:
+    - any
+    name: nv.rancher.cattle-system-egress-198
+    ports: tcp/444
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: rancher.cattle-system
+      - key: domain
+        op: =
+        value: cattle-system
+      name: nv.rancher.cattle-system
+      original_name: ''
+  file: []
+  ingress: []
+  process:
+  - action: allow
+    allow_update: false
+    name: fleetcontroller
+    path: /usr/bin/fleetcontroller
+  - action: allow
+    allow_update: false
+    name: pathWalker
+    path: /usr/local/bin/pathWalker
+  - action: allow
+    allow_update: false
+    name: pause
+    path: /pause
+  - action: allow
+    allow_update: false
+    name: sed
+    path: /bin/sed
+  process_profile:
+    baseline: zero-drift
+  target:
+    policymode: Monitor
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: fleet-controller.cattle-fleet-system
+      - key: domain
+        op: =
+        value: cattle-fleet-system
+      name: nv.fleet-controller.cattle-fleet-system
+      original_name: ''
+  waf:
+    settings: []
+    status: true
+---
+apiVersion: neuvector.com/v1
+kind: NvSecurityRule
+metadata:
+  name: nv.gitjob.cattle-fleet-system
+  namespace: cattle-fleet-system
+spec:
+  dlp:
+    settings: []
+    status: true
+  egress:
+  - action: allow
+    applications:
+    - any
+    name: nv.kube-apiserver-mgmt-cluster-cp.kube-system-egress-213
+    ports: tcp/6443
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: kube-apiserver-mgmt-cluster-cp.kube-system
+      - key: domain
+        op: =
+        value: kube-system
+      name: nv.kube-apiserver-mgmt-cluster-cp.kube-system
+      original_name: ''
+  - action: allow
+    applications:
+    - DNS
+    name: nv.rke2-coredns-rke2-coredns.kube-system-egress-214
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: rke2-coredns-rke2-coredns.kube-system
+      - key: domain
+        op: =
+        value: kube-system
+      name: nv.rke2-coredns-rke2-coredns.kube-system
+      original_name: ''
+  - action: allow
+    applications:
+    - any
+    name: nv.loki-write.loki-egress-215
+    ports: tcp/7946
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: loki-write.loki
+      - key: domain
+        op: =
+        value: loki
+      name: nv.loki-write.loki
+      original_name: ''
+  - action: allow
+    applications:
+    - any
+    name: nv.loki-backend.loki-egress-216
+    ports: tcp/7946
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: loki-backend.loki
+      - key: domain
+        op: =
+        value: loki
+      name: nv.loki-backend.loki
+      original_name: ''
+  - action: allow
+    applications:
+    - any
+    name: nv.loki-read.loki-egress-217
+    ports: tcp/7946
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: loki-read.loki
+      - key: domain
+        op: =
+        value: loki
+      name: nv.loki-read.loki
+      original_name: ''
+  file: []
+  ingress: []
+  process:
+  - action: allow
+    allow_update: false
+    name: catatonit
+    path: /usr/bin/catatonit
+  - action: allow
+    allow_update: false
+    name: gitjob
+    path: /usr/bin/gitjob
+  - action: allow
+    allow_update: false
+    name: pathWalker
+    path: /usr/local/bin/pathWalker
+  - action: allow
+    allow_update: false
+    name: pause
+    path: /pause
+  process_profile:
+    baseline: zero-drift
+  target:
+    policymode: Monitor
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: gitjob.cattle-fleet-system
+      - key: domain
+        op: =
+        value: cattle-fleet-system
+      name: nv.gitjob.cattle-fleet-system
+      original_name: ''
+  waf:
+    settings: []
+    status: true

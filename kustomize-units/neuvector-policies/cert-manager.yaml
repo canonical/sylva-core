@@ -1,0 +1,433 @@
+---
+apiVersion: neuvector.com/v1
+kind: NvSecurityRule
+metadata:
+  name: nv.cert-manager-cainjector.cert-manager
+  namespace: cert-manager
+spec:
+  dlp:
+    settings: []
+    status: true
+  egress:
+  - action: allow
+    applications:
+    - any
+    name: nv.kube-apiserver-mgmt-cluster-cp.kube-system-egress-163
+    ports: tcp/6443
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: kube-apiserver-mgmt-cluster-cp.kube-system
+      - key: domain
+        op: =
+        value: kube-system
+      name: nv.kube-apiserver-mgmt-cluster-cp.kube-system
+      original_name: ''
+  - action: allow
+    applications:
+    - DNS
+    name: nv.rke2-coredns-rke2-coredns.kube-system-egress-164
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: rke2-coredns-rke2-coredns.kube-system
+      - key: domain
+        op: =
+        value: kube-system
+      name: nv.rke2-coredns-rke2-coredns.kube-system
+      original_name: ''
+  - action: allow
+    applications:
+    - SSL
+    name: nv.monitoring-pool-0.minio-monitoring-tenant-egress-165
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: monitoring-pool-0.minio-monitoring-tenant
+      - key: domain
+        op: =
+        value: minio-monitoring-tenant
+      name: nv.monitoring-pool-0.minio-monitoring-tenant
+      original_name: ''
+  file: []
+  ingress: []
+  process:
+  - action: allow
+    allow_update: false
+    name: cainjector
+    path: /app/cmd/cainjector/cainjector
+  - action: allow
+    allow_update: false
+    name: nginx
+    path: /usr/local/nginx/sbin/nginx
+  - action: allow
+    allow_update: false
+    name: pathWalker
+    path: /usr/local/bin/pathWalker
+  - action: allow
+    allow_update: false
+    name: pause
+    path: /pause
+  process_profile:
+    baseline: zero-drift
+  target:
+    policymode: Monitor
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: cert-manager-cainjector.cert-manager
+      - key: domain
+        op: =
+        value: cert-manager
+      name: nv.cert-manager-cainjector.cert-manager
+      original_name: ''
+  waf:
+    settings: []
+    status: true
+---
+apiVersion: neuvector.com/v1
+kind: NvSecurityRule
+metadata:
+  name: nv.cert-manager-webhook.cert-manager
+  namespace: cert-manager
+spec:
+  dlp:
+    settings: []
+    status: true
+  egress:
+  - action: allow
+    applications:
+    - any
+    name: nv.kube-apiserver-mgmt-cluster-cp.kube-system-egress-166
+    ports: tcp/6443
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: kube-apiserver-mgmt-cluster-cp.kube-system
+      - key: domain
+        op: =
+        value: kube-system
+      name: nv.kube-apiserver-mgmt-cluster-cp.kube-system
+      original_name: ''
+  - action: allow
+    applications:
+    - any
+    name: nv.loki-write.loki-egress-167
+    ports: tcp/7946
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: loki-write.loki
+      - key: domain
+        op: =
+        value: loki
+      name: nv.loki-write.loki
+      original_name: ''
+  - action: allow
+    applications:
+    - DNS
+    name: nv.rke2-coredns-rke2-coredns.kube-system-egress-168
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: rke2-coredns-rke2-coredns.kube-system
+      - key: domain
+        op: =
+        value: kube-system
+      name: nv.rke2-coredns-rke2-coredns.kube-system
+      original_name: ''
+  - action: allow
+    applications:
+    - any
+    name: nv.loki-backend.loki-egress-169
+    ports: tcp/7946
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: loki-backend.loki
+      - key: domain
+        op: =
+        value: loki
+      name: nv.loki-backend.loki
+      original_name: ''
+  - action: allow
+    applications:
+    - SSL
+    name: nv.monitoring-pool-0.minio-monitoring-tenant-egress-170
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: monitoring-pool-0.minio-monitoring-tenant
+      - key: domain
+        op: =
+        value: minio-monitoring-tenant
+      name: nv.monitoring-pool-0.minio-monitoring-tenant
+      original_name: ''
+  - action: allow
+    applications:
+    - any
+    name: nv.loki-read.loki-egress-171
+    ports: tcp/7946
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: loki-read.loki
+      - key: domain
+        op: =
+        value: loki
+      name: nv.loki-read.loki
+      original_name: ''
+  - action: allow
+    applications:
+    - SSL
+    name: nv.vault.vault-egress-172
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: vault.vault
+      - key: domain
+        op: =
+        value: vault
+      name: nv.vault.vault
+      original_name: ''
+  - action: allow
+    applications:
+    - any
+    name: nv.vault.vault-egress-173
+    ports: tcp/8201
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: vault.vault
+      - key: domain
+        op: =
+        value: vault
+      name: nv.vault.vault
+      original_name: ''
+  - action: allow
+    applications:
+    - PostgreSQL
+    name: nv.gitea-postgres-postgresql-ha-postgresql.gitea-egress-174
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: gitea-postgres-postgresql-ha-postgresql.gitea
+      - key: domain
+        op: =
+        value: gitea
+      name: nv.gitea-postgres-postgresql-ha-postgresql.gitea
+      original_name: ''
+  file: []
+  ingress: []
+  process:
+  - action: allow
+    allow_update: false
+    name: iptables-legacy-restore
+    path: /usr/sbin/xtables-legacy-multi
+  - action: allow
+    allow_update: false
+    name: nginx
+    path: /usr/local/nginx/sbin/nginx
+  - action: allow
+    allow_update: false
+    name: pause
+    path: /pause
+  - action: allow
+    allow_update: false
+    name: pgrep
+    path: /bin/pgrep
+  - action: allow
+    allow_update: false
+    name: webhook
+    path: /app/cmd/webhook/webhook
+  process_profile:
+    baseline: zero-drift
+  target:
+    policymode: Monitor
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: cert-manager-webhook.cert-manager
+      - key: domain
+        op: =
+        value: cert-manager
+      name: nv.cert-manager-webhook.cert-manager
+      original_name: ''
+  waf:
+    settings: []
+    status: true
+---
+apiVersion: neuvector.com/v1
+kind: NvSecurityRule
+metadata:
+  name: nv.cert-manager.cert-manager
+  namespace: cert-manager
+spec:
+  dlp:
+    settings: []
+    status: true
+  egress:
+  - action: allow
+    applications:
+    - any
+    name: nv.kube-apiserver-mgmt-cluster-cp.kube-system-egress-175
+    ports: tcp/6443
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: kube-apiserver-mgmt-cluster-cp.kube-system
+      - key: domain
+        op: =
+        value: kube-system
+      name: nv.kube-apiserver-mgmt-cluster-cp.kube-system
+      original_name: ''
+  - action: allow
+    applications:
+    - DNS
+    name: nv.rke2-coredns-rke2-coredns.kube-system-egress-176
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: rke2-coredns-rke2-coredns.kube-system
+      - key: domain
+        op: =
+        value: kube-system
+      name: nv.rke2-coredns-rke2-coredns.kube-system
+      original_name: ''
+  - action: allow
+    applications:
+    - SSL
+    name: nv.vault.vault-egress-177
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: vault.vault
+      - key: domain
+        op: =
+        value: vault
+      name: nv.vault.vault
+      original_name: ''
+  - action: allow
+    applications:
+    - any
+    name: nv.vault.vault-egress-178
+    ports: tcp/8201
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: vault.vault
+      - key: domain
+        op: =
+        value: vault
+      name: nv.vault.vault
+      original_name: ''
+  - action: allow
+    applications:
+    - PostgreSQL
+    name: nv.postgres-primary.keycloak-egress-179
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: postgres-primary.keycloak
+      - key: domain
+        op: =
+        value: keycloak
+      name: nv.postgres-primary.keycloak
+      original_name: ''
+  file: []
+  ingress: []
+  process:
+  - action: allow
+    allow_update: false
+    name: containerd-shim-runc-v2
+    path: /var/lib/rancher/rke2/data/v1.28.8-rke2r1-c4073db9beee/bin/containerd-shim-runc-v2
+  - action: allow
+    allow_update: false
+    name: controller
+    path: /app/cmd/controller/controller
+  - action: allow
+    allow_update: false
+    name: pause
+    path: /pause
+  process_profile:
+    baseline: zero-drift
+  target:
+    policymode: Monitor
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: cert-manager.cert-manager
+      - key: domain
+        op: =
+        value: cert-manager
+      name: nv.cert-manager.cert-manager
+      original_name: ''
+  waf:
+    settings: []
+    status: true

@@ -1,0 +1,262 @@
+---
+apiVersion: neuvector.com/v1
+kind: NvSecurityRule
+metadata:
+  name: nv.monitoring-pool-0.minio-monitoring-tenant
+  namespace: minio-monitoring-tenant
+spec:
+  dlp:
+    settings: []
+    status: true
+  egress:
+  - action: allow
+    applications:
+    - DNS
+    name: nv.rke2-coredns-rke2-coredns.kube-system-egress-303
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: rke2-coredns-rke2-coredns.kube-system
+      - key: domain
+        op: =
+        value: kube-system
+      name: nv.rke2-coredns-rke2-coredns.kube-system
+      original_name: ''
+  file: []
+  ingress:
+  - action: allow
+    applications:
+    - SSL
+    name: nv.monitoring-pool-0.minio-monitoring-tenant-ingress-156
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: prometheus-rancher-monitoring-prometheus.cattle-monitoring-system
+      - key: domain
+        op: =
+        value: cattle-monitoring-system
+      name: nv.prometheus-rancher-monitoring-prometheus.cattle-monitoring-system
+      original_name: ''
+  - action: allow
+    applications:
+    - Kafka
+    - SSL
+    name: nv.monitoring-pool-0.minio-monitoring-tenant-ingress-157
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: monitoring-pool-0.minio-monitoring-tenant
+      - key: domain
+        op: =
+        value: minio-monitoring-tenant
+      name: nv.monitoring-pool-0.minio-monitoring-tenant
+      original_name: ''
+  - action: allow
+    applications:
+    - Kafka
+    - SSL
+    name: nv.monitoring-pool-0.minio-monitoring-tenant-ingress-158
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: thanos-compactor.thanos
+      - key: domain
+        op: =
+        value: thanos
+      name: nv.thanos-compactor.thanos
+      original_name: ''
+  - action: allow
+    applications:
+    - any
+    name: nv.monitoring-pool-0.minio-monitoring-tenant-ingress-159
+    ports: tcp/9000
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: prometheus-rancher-monitoring-prometheus.cattle-monitoring-system
+      - key: domain
+        op: =
+        value: cattle-monitoring-system
+      name: nv.prometheus-rancher-monitoring-prometheus.cattle-monitoring-system
+      original_name: ''
+  - action: allow
+    applications:
+    - SSL
+    name: nv.monitoring-pool-0.minio-monitoring-tenant-ingress-160
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: rke2-control-plane-controller-manager.rke2-control-plane-system
+      - key: domain
+        op: =
+        value: rke2-control-plane-system
+      name: nv.rke2-control-plane-controller-manager.rke2-control-plane-system
+      original_name: ''
+  - action: allow
+    applications:
+    - SSL
+    name: nv.monitoring-pool-0.minio-monitoring-tenant-ingress-161
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: rancher-webhook.cattle-system
+      - key: domain
+        op: =
+        value: cattle-system
+      name: nv.rancher-webhook.cattle-system
+      original_name: ''
+  - action: allow
+    applications:
+    - any
+    name: nv.monitoring-pool-0.minio-monitoring-tenant-ingress-162
+    ports: tcp/9000
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: monitoring-pool-0.minio-monitoring-tenant
+      - key: domain
+        op: =
+        value: minio-monitoring-tenant
+      name: nv.monitoring-pool-0.minio-monitoring-tenant
+      original_name: ''
+  - action: allow
+    applications:
+    - SSL
+    name: nv.monitoring-pool-0.minio-monitoring-tenant-ingress-163
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: postgres-read.keycloak
+      - key: domain
+        op: =
+        value: keycloak
+      name: nv.postgres-read.keycloak
+      original_name: ''
+  - action: allow
+    applications:
+    - any
+    name: nv.monitoring-pool-0.minio-monitoring-tenant-ingress-164
+    ports: tcp/9000
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: thanos-compactor.thanos
+      - key: domain
+        op: =
+        value: thanos
+      name: nv.thanos-compactor.thanos
+      original_name: ''
+  - action: allow
+    applications:
+    - SSL
+    name: nv.monitoring-pool-0.minio-monitoring-tenant-ingress-165
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: thanos-receive.thanos
+      - key: domain
+        op: =
+        value: thanos
+      name: nv.thanos-receive.thanos
+      original_name: ''
+  - action: allow
+    applications:
+    - SSL
+    name: nv.monitoring-pool-0.minio-monitoring-tenant-ingress-166
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: thanos-storegateway.thanos
+      - key: domain
+        op: =
+        value: thanos
+      name: nv.thanos-storegateway.thanos
+      original_name: ''
+  process:
+  - action: allow
+    allow_update: false
+    name: bash
+    path: /usr/bin/bash
+  - action: allow
+    allow_update: false
+    name: grep
+    path: /usr/bin/grep
+  - action: allow
+    allow_update: false
+    name: mc
+    path: /usr/bin/mc
+  - action: allow
+    allow_update: false
+    name: minio
+    path: /usr/bin/minio
+  - action: allow
+    allow_update: false
+    name: minio-operator
+    path: /minio-operator
+  - action: allow
+    allow_update: false
+    name: pause
+    path: /pause
+  process_profile:
+    baseline: zero-drift
+  target:
+    policymode: Monitor
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: monitoring-pool-0.minio-monitoring-tenant
+      - key: domain
+        op: =
+        value: minio-monitoring-tenant
+      name: nv.monitoring-pool-0.minio-monitoring-tenant
+      original_name: ''
+  waf:
+    settings: []
+    status: true

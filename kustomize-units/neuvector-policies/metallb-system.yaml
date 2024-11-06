@@ -1,0 +1,80 @@
+---
+apiVersion: neuvector.com/v1
+kind: NvSecurityRule
+metadata:
+  name: nv.metallb-controller.metallb-system
+  namespace: metallb-system
+spec:
+  dlp:
+    settings: []
+    status: true
+  egress: []
+  file: []
+  ingress: []
+  process:
+  - action: allow
+    allow_update: false
+    name: controller
+    path: /controller
+  - action: allow
+    allow_update: false
+    name: pause
+    path: /pause
+  process_profile:
+    baseline: zero-drift
+  target:
+    policymode: Monitor
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: metallb-controller.metallb-system
+      - key: domain
+        op: =
+        value: metallb-system
+      name: nv.metallb-controller.metallb-system
+      original_name: ''
+  waf:
+    settings: []
+    status: true
+---
+apiVersion: neuvector.com/v1
+kind: NvSecurityRule
+metadata:
+  name: nv.metallb-speaker.metallb-system
+  namespace: metallb-system
+spec:
+  dlp:
+    settings: []
+    status: true
+  egress: []
+  file: []
+  ingress: []
+  process:
+  - action: allow
+    allow_update: false
+    name: pause
+    path: /pause
+  - action: allow
+    allow_update: false
+    name: speaker
+    path: /speaker
+  process_profile:
+    baseline: zero-drift
+  target:
+    policymode: Monitor
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: metallb-speaker.metallb-system
+      - key: domain
+        op: =
+        value: metallb-system
+      name: nv.metallb-speaker.metallb-system
+      original_name: ''
+  waf:
+    settings: []
+    status: true

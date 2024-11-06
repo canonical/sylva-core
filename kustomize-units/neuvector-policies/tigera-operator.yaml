@@ -1,0 +1,40 @@
+---
+apiVersion: neuvector.com/v1
+kind: NvSecurityRule
+metadata:
+  name: nv.tigera-operator.tigera-operator
+  namespace: tigera-operator
+spec:
+  dlp:
+    settings: []
+    status: true
+  egress: []
+  file: []
+  ingress: []
+  process:
+  - action: allow
+    allow_update: false
+    name: operator
+    path: /usr/local/bin/operator
+  - action: allow
+    allow_update: false
+    name: pause
+    path: /pause
+  process_profile:
+    baseline: zero-drift
+  target:
+    policymode: Monitor
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: tigera-operator.tigera-operator
+      - key: domain
+        op: =
+        value: tigera-operator
+      name: nv.tigera-operator.tigera-operator
+      original_name: ''
+  waf:
+    settings: []
+    status: true

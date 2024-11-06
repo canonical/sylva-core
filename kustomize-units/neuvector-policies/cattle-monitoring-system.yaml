@@ -1,0 +1,934 @@
+---
+apiVersion: neuvector.com/v1
+kind: NvSecurityRule
+metadata:
+  name: nv.alertmanager-rancher-monitoring-alertmanager.cattle-monitoring-system
+  namespace: cattle-monitoring-system
+spec:
+  dlp:
+    settings: []
+    status: true
+  egress:
+  - action: allow
+    applications:
+    - DNS
+    name: nv.rke2-coredns-rke2-coredns.kube-system-egress-133
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: rke2-coredns-rke2-coredns.kube-system
+      - key: domain
+        op: =
+        value: kube-system
+      name: nv.rke2-coredns-rke2-coredns.kube-system
+      original_name: ''
+  - action: allow
+    applications:
+    - any
+    name: nv.kube-apiserver-mgmt-cluster-cp.kube-system-egress-134
+    ports: tcp/6443
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: kube-apiserver-mgmt-cluster-cp.kube-system
+      - key: domain
+        op: =
+        value: kube-system
+      name: nv.kube-apiserver-mgmt-cluster-cp.kube-system
+      original_name: ''
+  - action: allow
+    applications:
+    - Redis
+    name: nv.gitea-redis-redis-cluster.gitea-egress-135
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: gitea-redis-redis-cluster.gitea
+      - key: domain
+        op: =
+        value: gitea
+      name: nv.gitea-redis-redis-cluster.gitea
+      original_name: ''
+  file: []
+  ingress:
+  - action: allow
+    applications:
+    - HTTP
+    name: nv.alertmanager-rancher-monitoring-alertmanager.cattle-monitoring-system-ingress-33
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: prometheus-rancher-monitoring-prometheus.cattle-monitoring-system
+      - key: domain
+        op: =
+        value: cattle-monitoring-system
+      name: nv.prometheus-rancher-monitoring-prometheus.cattle-monitoring-system
+      original_name: ''
+  - action: allow
+    applications:
+    - any
+    name: nv.alertmanager-rancher-monitoring-alertmanager.cattle-monitoring-system-ingress-34
+    ports: tcp/9094,udp/9094
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: alertmanager-rancher-monitoring-alertmanager.cattle-monitoring-system
+      - key: domain
+        op: =
+        value: cattle-monitoring-system
+      name: nv.alertmanager-rancher-monitoring-alertmanager.cattle-monitoring-system
+      original_name: ''
+  - action: allow
+    applications:
+    - any
+    name: nv.alertmanager-rancher-monitoring-alertmanager.cattle-monitoring-system-ingress-35
+    ports: tcp/9094,udp/9094
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: source-controller.flux-system
+      - key: domain
+        op: =
+        value: flux-system
+      name: nv.source-controller.flux-system
+      original_name: ''
+  - action: allow
+    applications:
+    - any
+    name: nv.alertmanager-rancher-monitoring-alertmanager.cattle-monitoring-system-ingress-36
+    ports: tcp/9094,udp/9094
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: openstack-cinder-csi-controllerplugin.cinder-csi
+      - key: domain
+        op: =
+        value: cinder-csi
+      name: nv.openstack-cinder-csi-controllerplugin.cinder-csi
+      original_name: ''
+  - action: allow
+    applications:
+    - HTTP
+    name: nv.alertmanager-rancher-monitoring-alertmanager.cattle-monitoring-system-ingress-37
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: capo-controller-manager.capo-system
+      - key: domain
+        op: =
+        value: capo-system
+      name: nv.capo-controller-manager.capo-system
+      original_name: ''
+  - action: allow
+    applications:
+    - any
+    name: nv.alertmanager-rancher-monitoring-alertmanager.cattle-monitoring-system-ingress-38
+    ports: tcp/9094
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: rancher-webhook.cattle-system
+      - key: domain
+        op: =
+        value: cattle-system
+      name: nv.rancher-webhook.cattle-system
+      original_name: ''
+  - action: allow
+    applications:
+    - any
+    name: nv.alertmanager-rancher-monitoring-alertmanager.cattle-monitoring-system-ingress-39
+    ports: tcp/9094,udp/9094
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: cert-manager-webhook.cert-manager
+      - key: domain
+        op: =
+        value: cert-manager
+      name: nv.cert-manager-webhook.cert-manager
+      original_name: ''
+  process:
+  - action: allow
+    allow_update: false
+    name: alertmanager
+    path: /bin/alertmanager
+  - action: allow
+    allow_update: false
+    name: head
+    path: /usr/bin/head
+  - action: allow
+    allow_update: false
+    name: pause
+    path: /pause
+  - action: allow
+    allow_update: false
+    name: prometheus-config-reloader
+    path: /bin/prometheus-config-reloader
+  process_profile:
+    baseline: zero-drift
+  target:
+    policymode: Monitor
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: alertmanager-rancher-monitoring-alertmanager.cattle-monitoring-system
+      - key: domain
+        op: =
+        value: cattle-monitoring-system
+      name: nv.alertmanager-rancher-monitoring-alertmanager.cattle-monitoring-system
+      original_name: ''
+  waf:
+    settings: []
+    status: true
+---
+apiVersion: neuvector.com/v1
+kind: NvSecurityRule
+metadata:
+  name: nv.prometheus-rancher-monitoring-prometheus.cattle-monitoring-system
+  namespace: cattle-monitoring-system
+spec:
+  dlp:
+    settings: []
+    status: true
+  egress:
+  - action: allow
+    applications:
+    - SSL
+    name: nv.rancher-monitoring-operator.cattle-monitoring-system-egress-307
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: rancher-monitoring-operator.cattle-monitoring-system
+      - key: domain
+        op: =
+        value: cattle-monitoring-system
+      name: nv.rancher-monitoring-operator.cattle-monitoring-system
+      original_name: ''
+  - action: allow
+    applications:
+    - DNS
+    - HTTP
+    name: nv.rke2-coredns-rke2-coredns.kube-system-egress-308
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: rke2-coredns-rke2-coredns.kube-system
+      - key: domain
+        op: =
+        value: kube-system
+      name: nv.rke2-coredns-rke2-coredns.kube-system
+      original_name: ''
+  - action: allow
+    applications:
+    - HTTP
+    name: nv.thanos-ruler.thanos-egress-309
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: thanos-ruler.thanos
+      - key: domain
+        op: =
+        value: thanos
+      name: nv.thanos-ruler.thanos
+      original_name: ''
+  - action: allow
+    applications:
+    - HTTP
+    name: nv.rancher-monitoring-kube-state-metrics.cattle-monitoring-system-egress-310
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: rancher-monitoring-kube-state-metrics.cattle-monitoring-system
+      - key: domain
+        op: =
+        value: cattle-monitoring-system
+      name: nv.rancher-monitoring-kube-state-metrics.cattle-monitoring-system
+      original_name: ''
+  - action: allow
+    applications:
+    - HTTP
+    - SSL
+    name: nv.rancher.cattle-system-egress-311
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: rancher.cattle-system
+      - key: domain
+        op: =
+        value: cattle-system
+      name: nv.rancher.cattle-system
+      original_name: ''
+  - action: allow
+    applications:
+    - HTTP
+    name: nv.rancher-monitoring-prometheus-node-exporter.cattle-monitoring-system-egress-312
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: rancher-monitoring-prometheus-node-exporter.cattle-monitoring-system
+      - key: domain
+        op: =
+        value: cattle-monitoring-system
+      name: nv.rancher-monitoring-prometheus-node-exporter.cattle-monitoring-system
+      original_name: ''
+  - action: allow
+    applications:
+    - HTTP
+    name: nv.thanos-compactor.thanos-egress-313
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: thanos-compactor.thanos
+      - key: domain
+        op: =
+        value: thanos
+      name: nv.thanos-compactor.thanos
+      original_name: ''
+  - action: allow
+    applications:
+    - HTTP
+    name: nv.thanos-query-frontend.thanos-egress-314
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: thanos-query-frontend.thanos
+      - key: domain
+        op: =
+        value: thanos
+      name: nv.thanos-query-frontend.thanos
+      original_name: ''
+  - action: allow
+    applications:
+    - HTTP
+    name: nv.source-controller.flux-system-egress-315
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: source-controller.flux-system
+      - key: domain
+        op: =
+        value: flux-system
+      name: nv.source-controller.flux-system
+      original_name: ''
+  - action: allow
+    applications:
+    - any
+    name: nv.thanos-compactor.thanos-egress-316
+    ports: tcp/10902
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: thanos-compactor.thanos
+      - key: domain
+        op: =
+        value: thanos
+      name: nv.thanos-compactor.thanos
+      original_name: ''
+  - action: allow
+    applications:
+    - any
+    name: nv.rancher-monitoring-operator.cattle-monitoring-system-egress-317
+    ports: tcp/8443
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: rancher-monitoring-operator.cattle-monitoring-system
+      - key: domain
+        op: =
+        value: cattle-monitoring-system
+      name: nv.rancher-monitoring-operator.cattle-monitoring-system
+      original_name: ''
+  - action: allow
+    applications:
+    - any
+    name: nv.thanos-ruler.thanos-egress-318
+    ports: tcp/10902
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: thanos-ruler.thanos
+      - key: domain
+        op: =
+        value: thanos
+      name: nv.thanos-ruler.thanos
+      original_name: ''
+  - action: allow
+    applications:
+    - any
+    name: nv.rancher-monitoring-grafana.cattle-monitoring-system-egress-319
+    ports: tcp/8080
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: rancher-monitoring-grafana.cattle-monitoring-system
+      - key: domain
+        op: =
+        value: cattle-monitoring-system
+      name: nv.rancher-monitoring-grafana.cattle-monitoring-system
+      original_name: ''
+  - action: allow
+    applications:
+    - HTTP
+    name: nv.rancher-monitoring-grafana.cattle-monitoring-system-egress-320
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: rancher-monitoring-grafana.cattle-monitoring-system
+      - key: domain
+        op: =
+        value: cattle-monitoring-system
+      name: nv.rancher-monitoring-grafana.cattle-monitoring-system
+      original_name: ''
+  - action: allow
+    applications:
+    - HTTP
+    name: nv.thanos-query.thanos-egress-321
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: thanos-query.thanos
+      - key: domain
+        op: =
+        value: thanos
+      name: nv.thanos-query.thanos
+      original_name: ''
+  - action: allow
+    applications:
+    - HTTP
+    name: nv.thanos-receive.thanos-egress-322
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: thanos-receive.thanos
+      - key: domain
+        op: =
+        value: thanos
+      name: nv.thanos-receive.thanos
+      original_name: ''
+  - action: allow
+    applications:
+    - any
+    name: nv.rancher-monitoring-prometheus-node-exporter.cattle-monitoring-system-egress-323
+    ports: tcp/9796
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: rancher-monitoring-prometheus-node-exporter.cattle-monitoring-system
+      - key: domain
+        op: =
+        value: cattle-monitoring-system
+      name: nv.rancher-monitoring-prometheus-node-exporter.cattle-monitoring-system
+      original_name: ''
+  - action: allow
+    applications:
+    - any
+    name: nv.thanos-receive.thanos-egress-324
+    ports: tcp/19291
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: thanos-receive.thanos
+      - key: domain
+        op: =
+        value: thanos
+      name: nv.thanos-receive.thanos
+      original_name: ''
+  - action: allow
+    applications:
+    - HTTP
+    name: nv.thanos-storegateway.thanos-egress-325
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: thanos-storegateway.thanos
+      - key: domain
+        op: =
+        value: thanos
+      name: nv.thanos-storegateway.thanos
+      original_name: ''
+  file: []
+  ingress:
+  - action: allow
+    applications:
+    - HTTP
+    name: nv.prometheus-rancher-monitoring-prometheus.cattle-monitoring-system-ingress-174
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: rancher-monitoring-prometheus-adapter.cattle-monitoring-system
+      - key: domain
+        op: =
+        value: cattle-monitoring-system
+      name: nv.rancher-monitoring-prometheus-adapter.cattle-monitoring-system
+      original_name: ''
+  - action: allow
+    applications:
+    - HTTP
+    name: nv.prometheus-rancher-monitoring-prometheus.cattle-monitoring-system-ingress-175
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: rancher-monitoring-grafana.cattle-monitoring-system
+      - key: domain
+        op: =
+        value: cattle-monitoring-system
+      name: nv.rancher-monitoring-grafana.cattle-monitoring-system
+      original_name: ''
+  process:
+  - action: allow
+    allow_update: false
+    name: nginx
+    path: /usr/sbin/nginx
+  - action: allow
+    allow_update: false
+    name: pause
+    path: /pause
+  - action: allow
+    allow_update: false
+    name: prometheus
+    path: /bin/prometheus
+  - action: allow
+    allow_update: false
+    name: prometheus-config-reloader
+    path: /bin/prometheus-config-reloader
+  process_profile:
+    baseline: zero-drift
+  target:
+    policymode: Monitor
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: prometheus-rancher-monitoring-prometheus.cattle-monitoring-system
+      - key: domain
+        op: =
+        value: cattle-monitoring-system
+      name: nv.prometheus-rancher-monitoring-prometheus.cattle-monitoring-system
+      original_name: ''
+  waf:
+    settings: []
+    status: true
+---
+apiVersion: neuvector.com/v1
+kind: NvSecurityRule
+metadata:
+  name: nv.rancher-monitoring-grafana.cattle-monitoring-system
+  namespace: cattle-monitoring-system
+spec:
+  dlp:
+    settings: []
+    status: true
+  egress:
+  - action: allow
+    applications:
+    - DNS
+    name: nv.rke2-coredns-rke2-coredns.kube-system-egress-326
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: rke2-coredns-rke2-coredns.kube-system
+      - key: domain
+        op: =
+        value: kube-system
+      name: nv.rke2-coredns-rke2-coredns.kube-system
+      original_name: ''
+  file: []
+  ingress:
+  - action: allow
+    applications:
+    - HTTP
+    name: nv.rancher-monitoring-grafana.cattle-monitoring-system-ingress-176
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: rke2-ingress-nginx-controller.kube-system
+      - key: domain
+        op: =
+        value: kube-system
+      name: nv.rke2-ingress-nginx-controller.kube-system
+      original_name: ''
+  process:
+  - action: allow
+    allow_update: false
+    name: bash
+    path: /bin/bash
+  - action: allow
+    allow_update: false
+    name: grafana-server
+    path: /usr/share/grafana/bin/grafana-server
+  - action: allow
+    allow_update: false
+    name: nginx
+    path: /usr/sbin/nginx
+  - action: allow
+    allow_update: false
+    name: pause
+    path: /pause
+  - action: allow
+    allow_update: false
+    name: python
+    path: /usr/local/bin/python3.11
+  - action: allow
+    allow_update: false
+    name: vi
+    path: /bin/busybox
+  process_profile:
+    baseline: zero-drift
+  target:
+    policymode: Monitor
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: rancher-monitoring-grafana.cattle-monitoring-system
+      - key: domain
+        op: =
+        value: cattle-monitoring-system
+      name: nv.rancher-monitoring-grafana.cattle-monitoring-system
+      original_name: ''
+  waf:
+    settings: []
+    status: true
+---
+apiVersion: neuvector.com/v1
+kind: NvSecurityRule
+metadata:
+  name: nv.rancher-monitoring-kube-state-metrics.cattle-monitoring-system
+  namespace: cattle-monitoring-system
+spec:
+  dlp:
+    settings: []
+    status: true
+  egress:
+  - action: allow
+    applications:
+    - DNS
+    name: nv.rke2-coredns-rke2-coredns.kube-system-egress-327
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: rke2-coredns-rke2-coredns.kube-system
+      - key: domain
+        op: =
+        value: kube-system
+      name: nv.rke2-coredns-rke2-coredns.kube-system
+      original_name: ''
+  file: []
+  ingress: []
+  process:
+  - action: allow
+    allow_update: false
+    name: kube-state-metrics
+    path: /kube-state-metrics
+  - action: allow
+    allow_update: false
+    name: pause
+    path: /pause
+  process_profile:
+    baseline: zero-drift
+  target:
+    policymode: Monitor
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: rancher-monitoring-kube-state-metrics.cattle-monitoring-system
+      - key: domain
+        op: =
+        value: cattle-monitoring-system
+      name: nv.rancher-monitoring-kube-state-metrics.cattle-monitoring-system
+      original_name: ''
+  waf:
+    settings: []
+    status: true
+---
+apiVersion: neuvector.com/v1
+kind: NvSecurityRule
+metadata:
+  name: nv.rancher-monitoring-operator.cattle-monitoring-system
+  namespace: cattle-monitoring-system
+spec:
+  dlp:
+    settings: []
+    status: true
+  egress:
+  - action: allow
+    applications:
+    - DNS
+    name: nv.rke2-coredns-rke2-coredns.kube-system-egress-328
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: rke2-coredns-rke2-coredns.kube-system
+      - key: domain
+        op: =
+        value: kube-system
+      name: nv.rke2-coredns-rke2-coredns.kube-system
+      original_name: ''
+  file: []
+  ingress: []
+  process:
+  - action: allow
+    allow_update: false
+    name: operator
+    path: /bin/operator
+  - action: allow
+    allow_update: false
+    name: pause
+    path: /pause
+  process_profile:
+    baseline: zero-drift
+  target:
+    policymode: Monitor
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: rancher-monitoring-operator.cattle-monitoring-system
+      - key: domain
+        op: =
+        value: cattle-monitoring-system
+      name: nv.rancher-monitoring-operator.cattle-monitoring-system
+      original_name: ''
+  waf:
+    settings: []
+    status: true
+---
+apiVersion: neuvector.com/v1
+kind: NvSecurityRule
+metadata:
+  name: nv.rancher-monitoring-prometheus-adapter.cattle-monitoring-system
+  namespace: cattle-monitoring-system
+spec:
+  dlp:
+    settings: []
+    status: true
+  egress:
+  - action: allow
+    applications:
+    - DNS
+    name: nv.rke2-coredns-rke2-coredns.kube-system-egress-329
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: rke2-coredns-rke2-coredns.kube-system
+      - key: domain
+        op: =
+        value: kube-system
+      name: nv.rke2-coredns-rke2-coredns.kube-system
+      original_name: ''
+  file: []
+  ingress: []
+  process:
+  - action: allow
+    allow_update: false
+    name: adapter
+    path: /adapter
+  - action: allow
+    allow_update: false
+    name: pause
+    path: /pause
+  process_profile:
+    baseline: zero-drift
+  target:
+    policymode: Monitor
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: rancher-monitoring-prometheus-adapter.cattle-monitoring-system
+      - key: domain
+        op: =
+        value: cattle-monitoring-system
+      name: nv.rancher-monitoring-prometheus-adapter.cattle-monitoring-system
+      original_name: ''
+  waf:
+    settings: []
+    status: true
+---
+apiVersion: neuvector.com/v1
+kind: NvSecurityRule
+metadata:
+  name: nv.rancher-monitoring-prometheus-node-exporter.cattle-monitoring-system
+  namespace: cattle-monitoring-system
+spec:
+  dlp:
+    settings: []
+    status: true
+  egress: []
+  file: []
+  ingress: []
+  process:
+  - action: allow
+    allow_update: false
+    name: kubectl
+    path: /usr/local/bin/kubectl
+  - action: allow
+    allow_update: false
+    name: node_exporter
+    path: /bin/node_exporter
+  - action: allow
+    allow_update: false
+    name: pathWalker
+    path: /usr/local/bin/pathWalker
+  - action: allow
+    allow_update: false
+    name: pause
+    path: /pause
+  process_profile:
+    baseline: zero-drift
+  target:
+    policymode: Monitor
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: rancher-monitoring-prometheus-node-exporter.cattle-monitoring-system
+      - key: domain
+        op: =
+        value: cattle-monitoring-system
+      name: nv.rancher-monitoring-prometheus-node-exporter.cattle-monitoring-system
+      original_name: ''
+  waf:
+    settings: []
+    status: true

@@ -1,0 +1,73 @@
+---
+apiVersion: neuvector.com/v1
+kind: NvSecurityRule
+metadata:
+  name: nv.rke2-bootstrap-controller-manager.rke2-bootstrap-system
+  namespace: rke2-bootstrap-system
+spec:
+  dlp:
+    settings: []
+    status: true
+  egress:
+  - action: allow
+    applications:
+    - DNS
+    name: nv.rke2-coredns-rke2-coredns.kube-system-egress-333
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: rke2-coredns-rke2-coredns.kube-system
+      - key: domain
+        op: =
+        value: kube-system
+      name: nv.rke2-coredns-rke2-coredns.kube-system
+      original_name: ''
+  file: []
+  ingress: []
+  process:
+  - action: allow
+    allow_update: false
+    name: manager
+    path: /manager
+  - action: allow
+    allow_update: false
+    name: pathWalker
+    path: /usr/local/bin/pathWalker
+  - action: allow
+    allow_update: false
+    name: pause
+    path: /pause
+  - action: allow
+    allow_update: false
+    name: redis-cli
+    path: /opt/bitnami/redis/bin/redis-cli
+  - action: allow
+    allow_update: false
+    name: sh
+    path: /bin/dash
+  - action: allow
+    allow_update: false
+    name: timeout
+    path: /usr/bin/timeout
+  process_profile:
+    baseline: zero-drift
+  target:
+    policymode: Monitor
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: rke2-bootstrap-controller-manager.rke2-bootstrap-system
+      - key: domain
+        op: =
+        value: rke2-bootstrap-system
+      name: nv.rke2-bootstrap-controller-manager.rke2-bootstrap-system
+      original_name: ''
+  waf:
+    settings: []
+    status: true

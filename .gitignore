@@ -1,5 +1,6 @@
 *-kubeconfig
 *secrets.*
+!kustomize-units/neuvector-policies/external-secrets.yaml
 bin/*
 tools/kind/registry.d/
 clouds.yaml

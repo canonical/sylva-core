@@ -1,0 +1,40 @@
+---
+apiVersion: neuvector.com/v1
+kind: NvSecurityRule
+metadata:
+  name: nv.sle-15-5-hardened-rke2-1-28-8.os-images
+  namespace: os-images
+spec:
+  dlp:
+    settings: []
+    status: true
+  egress: []
+  file: []
+  ingress: []
+  process:
+  - action: allow
+    allow_update: false
+    name: nginx
+    path: /usr/sbin/nginx
+  - action: allow
+    allow_update: false
+    name: pause
+    path: /pause
+  process_profile:
+    baseline: zero-drift
+  target:
+    policymode: Monitor
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: sle-15-5-hardened-rke2-1-28-8.os-images
+      - key: domain
+        op: =
+        value: os-images
+      name: nv.sle-15-5-hardened-rke2-1-28-8.os-images
+      original_name: ''
+  waf:
+    settings: []
+    status: true

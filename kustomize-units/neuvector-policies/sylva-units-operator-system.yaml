@@ -1,0 +1,44 @@
+---
+apiVersion: neuvector.com/v1
+kind: NvSecurityRule
+metadata:
+  name: nv.sylva-units-operator-controller-manager.sylva-units-operator-system
+  namespace: sylva-units-operator-system
+spec:
+  dlp:
+    settings: []
+    status: true
+  egress: []
+  file: []
+  ingress: []
+  process:
+  - action: allow
+    allow_update: false
+    name: kube-rbac-proxy
+    path: /usr/local/bin/kube-rbac-proxy
+  - action: allow
+    allow_update: false
+    name: manager
+    path: /manager
+  - action: allow
+    allow_update: false
+    name: pause
+    path: /pause
+  process_profile:
+    baseline: zero-drift
+  target:
+    policymode: Monitor
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: sylva-units-operator-controller-manager.sylva-units-operator-system
+      - key: domain
+        op: =
+        value: sylva-units-operator-system
+      name: nv.sylva-units-operator-controller-manager.sylva-units-operator-system
+      original_name: ''
+  waf:
+    settings: []
+    status: true

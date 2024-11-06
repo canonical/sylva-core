@@ -1,0 +1,327 @@
+---
+apiVersion: neuvector.com/v1
+kind: NvSecurityRule
+metadata:
+  name: nv.vault-config-operator.vault
+  namespace: vault
+spec:
+  dlp:
+    settings: []
+    status: true
+  egress:
+  - action: allow
+    applications:
+    - SSL
+    name: nv.vault.vault-egress-344
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: vault.vault
+      - key: domain
+        op: =
+        value: vault
+      name: nv.vault.vault
+      original_name: ''
+  - action: allow
+    applications:
+    - any
+    name: nv.vault.vault-egress-345
+    ports: tcp/8200
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: vault.vault
+      - key: domain
+        op: =
+        value: vault
+      name: nv.vault.vault
+      original_name: ''
+  file: []
+  ingress: []
+  process:
+  - action: allow
+    allow_update: false
+    name: head
+    path: /usr/bin/head
+  - action: allow
+    allow_update: false
+    name: manager
+    path: /manager
+  - action: allow
+    allow_update: false
+    name: pause
+    path: /pause
+  process_profile:
+    baseline: zero-drift
+  target:
+    policymode: Monitor
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: vault-config-operator.vault
+      - key: domain
+        op: =
+        value: vault
+      name: nv.vault-config-operator.vault
+      original_name: ''
+  waf:
+    settings: []
+    status: true
+---
+apiVersion: neuvector.com/v1
+kind: NvSecurityRule
+metadata:
+  name: nv.vault-configurer.vault
+  namespace: vault
+spec:
+  dlp:
+    settings: []
+    status: true
+  egress:
+  - action: allow
+    applications:
+    - SSL
+    name: nv.vault.vault-egress-346
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: vault.vault
+      - key: domain
+        op: =
+        value: vault
+      name: nv.vault.vault
+      original_name: ''
+  file: []
+  ingress: []
+  process:
+  - action: allow
+    allow_update: false
+    name: bank-vaults
+    path: /usr/local/bin/bank-vaults
+  - action: allow
+    allow_update: false
+    name: pause
+    path: /pause
+  process_profile:
+    baseline: zero-drift
+  target:
+    policymode: Monitor
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: vault-configurer.vault
+      - key: domain
+        op: =
+        value: vault
+      name: nv.vault-configurer.vault
+      original_name: ''
+  waf:
+    settings: []
+    status: true
+---
+apiVersion: neuvector.com/v1
+kind: NvSecurityRule
+metadata:
+  name: nv.vault-operator.vault
+  namespace: vault
+spec:
+  dlp:
+    settings: []
+    status: true
+  egress:
+  - action: allow
+    applications:
+    - SSL
+    name: nv.vault.vault-egress-347
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: vault.vault
+      - key: domain
+        op: =
+        value: vault
+      name: nv.vault.vault
+      original_name: ''
+  - action: allow
+    applications:
+    - any
+    name: nv.vault.vault-egress-348
+    ports: tcp/8200
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: vault.vault
+      - key: domain
+        op: =
+        value: vault
+      name: nv.vault.vault
+      original_name: ''
+  file: []
+  ingress: []
+  process:
+  - action: allow
+    allow_update: false
+    name: pause
+    path: /pause
+  - action: allow
+    allow_update: false
+    name: vault-operator
+    path: /usr/local/bin/vault-operator
+  process_profile:
+    baseline: zero-drift
+  target:
+    policymode: Monitor
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: vault-operator.vault
+      - key: domain
+        op: =
+        value: vault
+      name: nv.vault-operator.vault
+      original_name: ''
+  waf:
+    settings: []
+    status: true
+---
+apiVersion: neuvector.com/v1
+kind: NvSecurityRule
+metadata:
+  name: nv.vault.vault
+  namespace: vault
+spec:
+  dlp:
+    settings: []
+    status: true
+  egress: []
+  file: []
+  ingress:
+  - action: allow
+    applications:
+    - SSL
+    name: nv.vault.vault-ingress-191
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: vault.vault
+      - key: domain
+        op: =
+        value: vault
+      name: nv.vault.vault
+      original_name: ''
+  - action: allow
+    applications:
+    - any
+    name: nv.vault.vault-ingress-192
+    ports: tcp/8201
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: vault.vault
+      - key: domain
+        op: =
+        value: vault
+      name: nv.vault.vault
+      original_name: ''
+  process:
+  - action: allow
+    allow_update: false
+    name: bank-vaults
+    path: /usr/local/bin/bank-vaults
+  - action: allow
+    allow_update: false
+    name: dumb-init
+    path: /usr/bin/dumb-init
+  - action: allow
+    allow_update: false
+    name: harbor_registryctl
+    path: /home/harbor/harbor_registryctl
+  - action: allow
+    allow_update: false
+    name: hostname
+    path: /bin/hostname
+  - action: allow
+    allow_update: false
+    name: ip
+    path: /bin/ip
+  - action: allow
+    allow_update: false
+    name: ls
+    path: /bin/ls
+  - action: allow
+    allow_update: false
+    name: mount
+    path: /bin/mount
+  - action: allow
+    allow_update: false
+    name: pause
+    path: /pause
+  - action: allow
+    allow_update: false
+    name: ps
+    path: /bin/ps
+  - action: allow
+    allow_update: false
+    name: setcap
+    path: /usr/sbin/setcap
+  - action: allow
+    allow_update: false
+    name: sh
+    path: /bin/busybox
+  - action: allow
+    allow_update: false
+    name: sh
+    path: /bin/sh
+  - action: allow
+    allow_update: false
+    name: vault
+    path: /bin/vault
+  process_profile:
+    baseline: zero-drift
+  target:
+    policymode: Monitor
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: vault.vault
+      - key: domain
+        op: =
+        value: vault
+      name: nv.vault.vault
+      original_name: ''
+  waf:
+    settings: []
+    status: true

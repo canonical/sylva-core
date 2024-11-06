@@ -1,0 +1,362 @@
+---
+apiVersion: neuvector.com/v1
+kind: NvSecurityRule
+metadata:
+  name: nv.thanos-compactor.thanos
+  namespace: thanos
+spec:
+  dlp:
+    settings: []
+    status: true
+  egress: []
+  file: []
+  ingress: []
+  process:
+  - action: allow
+    allow_update: false
+    name: pause
+    path: /pause
+  - action: allow
+    allow_update: false
+    name: thanos
+    path: /bin/thanos
+  process_profile:
+    baseline: zero-drift
+  target:
+    policymode: Monitor
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: thanos-compactor.thanos
+      - key: domain
+        op: =
+        value: thanos
+      name: nv.thanos-compactor.thanos
+      original_name: ''
+  waf:
+    settings: []
+    status: true
+---
+apiVersion: neuvector.com/v1
+kind: NvSecurityRule
+metadata:
+  name: nv.thanos-query-frontend.thanos
+  namespace: thanos
+spec:
+  dlp:
+    settings: []
+    status: true
+  egress:
+  - action: allow
+    applications:
+    - HTTP
+    name: nv.thanos-query.thanos-egress-338
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: thanos-query.thanos
+      - key: domain
+        op: =
+        value: thanos
+      name: nv.thanos-query.thanos
+      original_name: ''
+  file: []
+  ingress: []
+  process:
+  - action: allow
+    allow_update: false
+    name: pause
+    path: /pause
+  - action: allow
+    allow_update: false
+    name: thanos
+    path: /bin/thanos
+  process_profile:
+    baseline: zero-drift
+  target:
+    policymode: Monitor
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: thanos-query-frontend.thanos
+      - key: domain
+        op: =
+        value: thanos
+      name: nv.thanos-query-frontend.thanos
+      original_name: ''
+  waf:
+    settings: []
+    status: true
+---
+apiVersion: neuvector.com/v1
+kind: NvSecurityRule
+metadata:
+  name: nv.thanos-query.thanos
+  namespace: thanos
+spec:
+  dlp:
+    settings: []
+    status: true
+  egress:
+  - action: allow
+    applications:
+    - HTTP
+    name: nv.thanos-ruler.thanos-egress-339
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: thanos-ruler.thanos
+      - key: domain
+        op: =
+        value: thanos
+      name: nv.thanos-ruler.thanos
+      original_name: ''
+  - action: allow
+    applications:
+    - HTTP
+    name: nv.thanos-receive.thanos-egress-340
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: thanos-receive.thanos
+      - key: domain
+        op: =
+        value: thanos
+      name: nv.thanos-receive.thanos
+      original_name: ''
+  - action: allow
+    applications:
+    - any
+    name: nv.thanos-storegateway.thanos-egress-341
+    ports: tcp/10901
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: thanos-storegateway.thanos
+      - key: domain
+        op: =
+        value: thanos
+      name: nv.thanos-storegateway.thanos
+      original_name: ''
+  - action: allow
+    applications:
+    - HTTP
+    name: nv.thanos-storegateway.thanos-egress-342
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: thanos-storegateway.thanos
+      - key: domain
+        op: =
+        value: thanos
+      name: nv.thanos-storegateway.thanos
+      original_name: ''
+  - action: allow
+    applications:
+    - any
+    name: nv.thanos-receive.thanos-egress-343
+    ports: tcp/10901
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: thanos-receive.thanos
+      - key: domain
+        op: =
+        value: thanos
+      name: nv.thanos-receive.thanos
+      original_name: ''
+  file: []
+  ingress: []
+  process:
+  - action: allow
+    allow_update: false
+    name: pause
+    path: /pause
+  - action: allow
+    allow_update: false
+    name: thanos
+    path: /bin/thanos
+  process_profile:
+    baseline: zero-drift
+  target:
+    policymode: Monitor
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: thanos-query.thanos
+      - key: domain
+        op: =
+        value: thanos
+      name: nv.thanos-query.thanos
+      original_name: ''
+  waf:
+    settings: []
+    status: true
+---
+apiVersion: neuvector.com/v1
+kind: NvSecurityRule
+metadata:
+  name: nv.thanos-receive.thanos
+  namespace: thanos
+spec:
+  dlp:
+    settings: []
+    status: true
+  egress: []
+  file: []
+  ingress: []
+  process:
+  - action: allow
+    allow_update: false
+    name: pause
+    path: /pause
+  - action: allow
+    allow_update: false
+    name: thanos
+    path: /bin/thanos
+  process_profile:
+    baseline: zero-drift
+  target:
+    policymode: Monitor
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: thanos-receive.thanos
+      - key: domain
+        op: =
+        value: thanos
+      name: nv.thanos-receive.thanos
+      original_name: ''
+  waf:
+    settings: []
+    status: true
+---
+apiVersion: neuvector.com/v1
+kind: NvSecurityRule
+metadata:
+  name: nv.thanos-ruler.thanos
+  namespace: thanos
+spec:
+  dlp:
+    settings: []
+    status: true
+  egress: []
+  file: []
+  ingress: []
+  process:
+  - action: allow
+    allow_update: false
+    name: bash
+    path: /usr/bin/bash
+  - action: allow
+    allow_update: false
+    name: configmap-reload
+    path: /opt/bitnami/configmap-reload/bin/configmap-reload
+  - action: allow
+    allow_update: false
+    name: containerd-shim-runc-v2
+    path: /var/lib/rancher/rke2/data/v1.28.8-rke2r1-c4073db9beee/bin/containerd-shim-runc-v2
+  - action: allow
+    allow_update: false
+    name: pause
+    path: /pause
+  - action: allow
+    allow_update: false
+    name: postgres
+    path: /opt/bitnami/postgresql/bin/postgres
+  - action: allow
+    allow_update: false
+    name: repmgrd
+    path: /opt/bitnami/repmgr/bin/repmgrd
+  - action: allow
+    allow_update: false
+    name: thanos
+    path: /bin/thanos
+  process_profile:
+    baseline: zero-drift
+  target:
+    policymode: Monitor
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: thanos-ruler.thanos
+      - key: domain
+        op: =
+        value: thanos
+      name: nv.thanos-ruler.thanos
+      original_name: ''
+  waf:
+    settings: []
+    status: true
+---
+apiVersion: neuvector.com/v1
+kind: NvSecurityRule
+metadata:
+  name: nv.thanos-storegateway.thanos
+  namespace: thanos
+spec:
+  dlp:
+    settings: []
+    status: true
+  egress: []
+  file: []
+  ingress: []
+  process:
+  - action: allow
+    allow_update: false
+    name: pause
+    path: /pause
+  - action: allow
+    allow_update: false
+    name: thanos
+    path: /bin/thanos
+  process_profile:
+    baseline: zero-drift
+  target:
+    policymode: Monitor
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: thanos-storegateway.thanos
+      - key: domain
+        op: =
+        value: thanos
+      name: nv.thanos-storegateway.thanos
+      original_name: ''
+  waf:
+    settings: []
+    status: true

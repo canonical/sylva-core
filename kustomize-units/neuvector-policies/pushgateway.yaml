@@ -1,0 +1,77 @@
+---
+apiVersion: neuvector.com/v1
+kind: NvSecurityRule
+metadata:
+  name: nv.prometheus-pushgateway.pushgateway
+  namespace: pushgateway
+spec:
+  dlp:
+    settings: []
+    status: true
+  egress: []
+  file: []
+  ingress:
+  - action: allow
+    applications:
+    - HTTP
+    name: nv.prometheus-pushgateway.pushgateway-ingress-173
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: prometheus-rancher-monitoring-prometheus.cattle-monitoring-system
+      - key: domain
+        op: =
+        value: cattle-monitoring-system
+      name: nv.prometheus-rancher-monitoring-prometheus.cattle-monitoring-system
+      original_name: ''
+  process:
+  - action: allow
+    allow_update: false
+    name: busybox
+    path: /bin/busybox
+  - action: allow
+    allow_update: false
+    name: curl
+    path: /usr/bin/curl
+  - action: allow
+    allow_update: false
+    name: grep
+    path: /bin/busybox
+  - action: allow
+    allow_update: false
+    name: pause
+    path: /pause
+  - action: allow
+    allow_update: false
+    name: pushgateway
+    path: /bin/pushgateway
+  - action: allow
+    allow_update: false
+    name: sh
+    path: /bin/busybox
+  - action: allow
+    allow_update: false
+    name: sleep
+    path: /bin/busybox
+  process_profile:
+    baseline: zero-drift
+  target:
+    policymode: Monitor
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: prometheus-pushgateway.pushgateway
+      - key: domain
+        op: =
+        value: pushgateway
+      name: nv.prometheus-pushgateway.pushgateway
+      original_name: ''
+  waf:
+    settings: []
+    status: true

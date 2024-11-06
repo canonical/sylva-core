@@ -1,0 +1,24 @@
+---
+apiVersion: neuvector.com/v1
+kind: NvSecurityRule
+metadata:
+  name: nv.ip.kubernetes.default
+  namespace: default
+spec:
+  egress: []
+  file: []
+  ingress: []
+  process: []
+  target:
+    policymode: N/A
+    selector:
+      comment: ''
+      criteria:
+      - key: address
+        op: =
+        value: 100.73.0.1
+      - key: domain
+        op: =
+        value: default
+      name: nv.ip.kubernetes.default
+      original_name: ''

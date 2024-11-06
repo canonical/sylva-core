@@ -1,0 +1,822 @@
+---
+apiVersion: neuvector.com/v1
+kind: NvSecurityRule
+metadata:
+  name: nv.gitea-postgres-postgresql-ha-pgpool.gitea
+  namespace: gitea
+spec:
+  dlp:
+    settings: []
+    status: true
+  egress:
+  - action: allow
+    applications:
+    - DNS
+    name: nv.rke2-coredns-rke2-coredns.kube-system-egress-202
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: rke2-coredns-rke2-coredns.kube-system
+      - key: domain
+        op: =
+        value: kube-system
+      name: nv.rke2-coredns-rke2-coredns.kube-system
+      original_name: ''
+  - action: allow
+    applications:
+    - PostgreSQL
+    name: nv.gitea-postgres-postgresql-ha-postgresql.gitea-egress-203
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: gitea-postgres-postgresql-ha-postgresql.gitea
+      - key: domain
+        op: =
+        value: gitea
+      name: nv.gitea-postgres-postgresql-ha-postgresql.gitea
+      original_name: ''
+  - action: allow
+    applications:
+    - any
+    name: nv.gitea-postgres-postgresql-ha-postgresql.gitea-egress-204
+    ports: tcp/5432
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: gitea-postgres-postgresql-ha-postgresql.gitea
+      - key: domain
+        op: =
+        value: gitea
+      name: nv.gitea-postgres-postgresql-ha-postgresql.gitea
+      original_name: ''
+  file: []
+  ingress:
+  - action: allow
+    applications:
+    - PostgreSQL
+    name: nv.gitea-postgres-postgresql-ha-pgpool.gitea-ingress-43
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: gitea.gitea
+      - key: domain
+        op: =
+        value: gitea
+      name: nv.gitea.gitea
+      original_name: ''
+  - action: allow
+    applications:
+    - any
+    name: nv.gitea-postgres-postgresql-ha-pgpool.gitea-ingress-44
+    ports: tcp/5432
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: gitea.gitea
+      - key: domain
+        op: =
+        value: gitea
+      name: nv.gitea.gitea
+      original_name: ''
+  process:
+  - action: allow
+    allow_update: false
+    name: bash
+    path: '*'
+  - action: allow
+    allow_update: false
+    name: healthcheck.sh
+    path: /opt/bitnami/scripts/pgpool/healthcheck.sh
+  process_profile:
+    baseline: zero-drift
+  target:
+    policymode: Monitor
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: gitea-postgres-postgresql-ha-pgpool.gitea
+      - key: domain
+        op: =
+        value: gitea
+      name: nv.gitea-postgres-postgresql-ha-pgpool.gitea
+      original_name: ''
+  waf:
+    settings: []
+    status: true
+---
+apiVersion: neuvector.com/v1
+kind: NvSecurityRule
+metadata:
+  name: nv.gitea-postgres-postgresql-ha-postgresql.gitea
+  namespace: gitea
+spec:
+  dlp:
+    settings: []
+    status: true
+  egress:
+  - action: allow
+    applications:
+    - DNS
+    name: nv.rke2-coredns-rke2-coredns.kube-system-egress-205
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: rke2-coredns-rke2-coredns.kube-system
+      - key: domain
+        op: =
+        value: kube-system
+      name: nv.rke2-coredns-rke2-coredns.kube-system
+      original_name: ''
+  - action: allow
+    applications:
+    - any
+    name: nv.vault.vault-egress-206
+    ports: tcp/8201
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: vault.vault
+      - key: domain
+        op: =
+        value: vault
+      name: nv.vault.vault
+      original_name: ''
+  file: []
+  ingress:
+  - action: allow
+    applications:
+    - PostgreSQL
+    name: nv.gitea-postgres-postgresql-ha-postgresql.gitea-ingress-45
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: gitea-postgres-postgresql-ha-postgresql.gitea
+      - key: domain
+        op: =
+        value: gitea
+      name: nv.gitea-postgres-postgresql-ha-postgresql.gitea
+      original_name: ''
+  - action: allow
+    applications:
+    - PostgreSQL
+    name: nv.gitea-postgres-postgresql-ha-postgresql.gitea-ingress-46
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: loki-gateway.loki
+      - key: domain
+        op: =
+        value: loki
+      name: nv.loki-gateway.loki
+      original_name: ''
+  - action: allow
+    applications:
+    - PostgreSQL
+    name: nv.gitea-postgres-postgresql-ha-postgresql.gitea-ingress-47
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: gitea-redis-redis-cluster.gitea
+      - key: domain
+        op: =
+        value: gitea
+      name: nv.gitea-redis-redis-cluster.gitea
+      original_name: ''
+  - action: allow
+    applications:
+    - PostgreSQL
+    name: nv.gitea-postgres-postgresql-ha-postgresql.gitea-ingress-48
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: gitjob.cattle-fleet-system
+      - key: domain
+        op: =
+        value: cattle-fleet-system
+      name: nv.gitjob.cattle-fleet-system
+      original_name: ''
+  - action: allow
+    applications:
+    - PostgreSQL
+    name: nv.gitea-postgres-postgresql-ha-postgresql.gitea-ingress-49
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: vault-configurer.vault
+      - key: domain
+        op: =
+        value: vault
+      name: nv.vault-configurer.vault
+      original_name: ''
+  - action: allow
+    applications:
+    - PostgreSQL
+    name: nv.gitea-postgres-postgresql-ha-postgresql.gitea-ingress-50
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: kyverno-reports-controller.kyverno
+      - key: domain
+        op: =
+        value: kyverno
+      name: nv.kyverno-reports-controller.kyverno
+      original_name: ''
+  - action: allow
+    applications:
+    - PostgreSQL
+    name: nv.gitea-postgres-postgresql-ha-postgresql.gitea-ingress-51
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: kyverno-background-controller.kyverno
+      - key: domain
+        op: =
+        value: kyverno
+      name: nv.kyverno-background-controller.kyverno
+      original_name: ''
+  - action: allow
+    applications:
+    - PostgreSQL
+    name: nv.gitea-postgres-postgresql-ha-postgresql.gitea-ingress-52
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: k8s-gateway.k8s-gateway
+      - key: domain
+        op: =
+        value: k8s-gateway
+      name: nv.k8s-gateway.k8s-gateway
+      original_name: ''
+  process:
+  - action: allow
+    allow_update: false
+    name: bash
+    path: '*'
+  process_profile:
+    baseline: zero-drift
+  target:
+    policymode: Monitor
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: gitea-postgres-postgresql-ha-postgresql.gitea
+      - key: domain
+        op: =
+        value: gitea
+      name: nv.gitea-postgres-postgresql-ha-postgresql.gitea
+      original_name: ''
+  waf:
+    settings: []
+    status: true
+---
+apiVersion: neuvector.com/v1
+kind: NvSecurityRule
+metadata:
+  name: nv.gitea-redis-redis-cluster.gitea
+  namespace: gitea
+spec:
+  dlp:
+    settings: []
+    status: true
+  egress:
+  - action: allow
+    applications:
+    - DNS
+    name: nv.rke2-coredns-rke2-coredns.kube-system-egress-207
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: rke2-coredns-rke2-coredns.kube-system
+      - key: domain
+        op: =
+        value: kube-system
+      name: nv.rke2-coredns-rke2-coredns.kube-system
+      original_name: ''
+  - action: allow
+    applications:
+    - any
+    name: nv.kube-apiserver-mgmt-cluster-cp.kube-system-egress-208
+    ports: tcp/6443
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: kube-apiserver-mgmt-cluster-cp.kube-system
+      - key: domain
+        op: =
+        value: kube-system
+      name: nv.kube-apiserver-mgmt-cluster-cp.kube-system
+      original_name: ''
+  - action: allow
+    applications:
+    - any
+    name: nv.loki-backend.loki-egress-209
+    ports: tcp/7946
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: loki-backend.loki
+      - key: domain
+        op: =
+        value: loki
+      name: nv.loki-backend.loki
+      original_name: ''
+  - action: allow
+    applications:
+    - any
+    name: nv.loki-write.loki-egress-210
+    ports: tcp/7946
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: loki-write.loki
+      - key: domain
+        op: =
+        value: loki
+      name: nv.loki-write.loki
+      original_name: ''
+  - action: allow
+    applications:
+    - any
+    name: nv.loki-read.loki-egress-211
+    ports: tcp/7946
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: loki-read.loki
+      - key: domain
+        op: =
+        value: loki
+      name: nv.loki-read.loki
+      original_name: ''
+  file: []
+  ingress:
+  - action: allow
+    applications:
+    - Redis
+    name: nv.gitea-redis-redis-cluster.gitea-ingress-53
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: gitea-redis-redis-cluster.gitea
+      - key: domain
+        op: =
+        value: gitea
+      name: nv.gitea-redis-redis-cluster.gitea
+      original_name: ''
+  - action: allow
+    applications:
+    - Redis
+    name: nv.gitea-redis-redis-cluster.gitea-ingress-54
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: gitea.gitea
+      - key: domain
+        op: =
+        value: gitea
+      name: nv.gitea.gitea
+      original_name: ''
+  - action: allow
+    applications:
+    - Redis
+    name: nv.gitea-redis-redis-cluster.gitea-ingress-55
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: helm-controller.flux-system
+      - key: domain
+        op: =
+        value: flux-system
+      name: nv.helm-controller.flux-system
+      original_name: ''
+  - action: allow
+    applications:
+    - Redis
+    name: nv.gitea-redis-redis-cluster.gitea-ingress-56
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: loki-gateway.loki
+      - key: domain
+        op: =
+        value: loki
+      name: nv.loki-gateway.loki
+      original_name: ''
+  - action: allow
+    applications:
+    - Redis
+    name: nv.gitea-redis-redis-cluster.gitea-ingress-57
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: thanos-compactor.thanos
+      - key: domain
+        op: =
+        value: thanos
+      name: nv.thanos-compactor.thanos
+      original_name: ''
+  - action: allow
+    applications:
+    - Redis
+    name: nv.gitea-redis-redis-cluster.gitea-ingress-58
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: kyverno-reports-controller.kyverno
+      - key: domain
+        op: =
+        value: kyverno
+      name: nv.kyverno-reports-controller.kyverno
+      original_name: ''
+  - action: allow
+    applications:
+    - Redis
+    name: nv.gitea-redis-redis-cluster.gitea-ingress-59
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: notification-controller.flux-system
+      - key: domain
+        op: =
+        value: flux-system
+      name: nv.notification-controller.flux-system
+      original_name: ''
+  - action: allow
+    applications:
+    - Redis
+    name: nv.gitea-redis-redis-cluster.gitea-ingress-60
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: source-controller.flux-system
+      - key: domain
+        op: =
+        value: flux-system
+      name: nv.source-controller.flux-system
+      original_name: ''
+  - action: allow
+    applications:
+    - any
+    name: nv.gitea-redis-redis-cluster.gitea-ingress-61
+    ports: tcp/6379
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: gitea.gitea
+      - key: domain
+        op: =
+        value: gitea
+      name: nv.gitea.gitea
+      original_name: ''
+  - action: allow
+    applications:
+    - Redis
+    name: nv.gitea-redis-redis-cluster.gitea-ingress-62
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: minio-operator.minio-operator
+      - key: domain
+        op: =
+        value: minio-operator
+      name: nv.minio-operator.minio-operator
+      original_name: ''
+  - action: allow
+    applications:
+    - Redis
+    name: nv.gitea-redis-redis-cluster.gitea-ingress-63
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: kustomize-controller.flux-system
+      - key: domain
+        op: =
+        value: flux-system
+      name: nv.kustomize-controller.flux-system
+      original_name: ''
+  - action: allow
+    applications:
+    - Redis
+    name: nv.gitea-redis-redis-cluster.gitea-ingress-64
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: trigger.kube-storage-version-migrator
+      - key: domain
+        op: =
+        value: kube-storage-version-migrator
+      name: nv.trigger.kube-storage-version-migrator
+      original_name: ''
+  - action: allow
+    applications:
+    - Redis
+    name: nv.gitea-redis-redis-cluster.gitea-ingress-65
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: thanos-query-frontend.thanos
+      - key: domain
+        op: =
+        value: thanos
+      name: nv.thanos-query-frontend.thanos
+      original_name: ''
+  - action: allow
+    applications:
+    - Redis
+    name: nv.gitea-redis-redis-cluster.gitea-ingress-66
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: ipam-controller-manager.capm3-system
+      - key: domain
+        op: =
+        value: capm3-system
+      name: nv.ipam-controller-manager.capm3-system
+      original_name: ''
+  process:
+  - action: allow
+    allow_update: false
+    name: sh
+    path: '*'
+  process_profile:
+    baseline: zero-drift
+  target:
+    policymode: Monitor
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: gitea-redis-redis-cluster.gitea
+      - key: domain
+        op: =
+        value: gitea
+      name: nv.gitea-redis-redis-cluster.gitea
+      original_name: ''
+  waf:
+    settings: []
+    status: true
+---
+apiVersion: neuvector.com/v1
+kind: NvSecurityRule
+metadata:
+  name: nv.gitea.gitea
+  namespace: gitea
+spec:
+  dlp:
+    settings: []
+    status: true
+  egress:
+  - action: allow
+    applications:
+    - DNS
+    name: nv.rke2-coredns-rke2-coredns.kube-system-egress-212
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: rke2-coredns-rke2-coredns.kube-system
+      - key: domain
+        op: =
+        value: kube-system
+      name: nv.rke2-coredns-rke2-coredns.kube-system
+      original_name: ''
+  file: []
+  ingress:
+  - action: allow
+    applications:
+    - HTTP
+    name: nv.gitea.gitea-ingress-67
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: prometheus-rancher-monitoring-prometheus.cattle-monitoring-system
+      - key: domain
+        op: =
+        value: cattle-monitoring-system
+      name: nv.prometheus-rancher-monitoring-prometheus.cattle-monitoring-system
+      original_name: ''
+  - action: allow
+    applications:
+    - any
+    name: nv.gitea.gitea-ingress-68
+    ports: tcp/3000
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: prometheus-rancher-monitoring-prometheus.cattle-monitoring-system
+      - key: domain
+        op: =
+        value: cattle-monitoring-system
+      name: nv.prometheus-rancher-monitoring-prometheus.cattle-monitoring-system
+      original_name: ''
+  - action: allow
+    applications:
+    - HTTP
+    name: nv.gitea.gitea-ingress-69
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: rke2-ingress-nginx-controller.kube-system
+      - key: domain
+        op: =
+        value: kube-system
+      name: nv.rke2-ingress-nginx-controller.kube-system
+      original_name: ''
+  process:
+  - action: allow
+    allow_update: false
+    name: awk
+    path: /bin/busybox
+  - action: allow
+    allow_update: false
+    name: bash
+    path: /bin/bash
+  - action: allow
+    allow_update: false
+    name: dumb-init
+    path: /usr/bin/dumb-init
+  - action: allow
+    allow_update: false
+    name: git
+    path: /usr/bin/git
+  - action: allow
+    allow_update: false
+    name: gitea
+    path: /app/gitea/gitea
+  - action: allow
+    allow_update: false
+    name: gitea
+    path: /bin/bash
+  - action: allow
+    allow_update: false
+    name: grep
+    path: /bin/busybox
+  - action: allow
+    allow_update: false
+    name: pause
+    path: /pause
+  process_profile:
+    baseline: zero-drift
+  target:
+    policymode: Monitor
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: gitea.gitea
+      - key: domain
+        op: =
+        value: gitea
+      name: nv.gitea.gitea
+      original_name: ''
+  waf:
+    settings: []
+    status: true

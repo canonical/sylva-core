@@ -61,6 +61,7 @@
 | **minio-monitoring** | creates a MinIO tenant for the monitoring stack, used as S3 storage by Thanos | beta |  | [Helm](https://github.com/minio/operator.git) | v5.0.16 |
 | **minio-operator** | install MinIO operator<br/><br/>MinIO operator is used to manage multiple S3 tenants | beta |  | [Helm](https://github.com/minio/operator.git) | v5.0.16 |
 | **neuvector** | installs Neuvector | beta |  | [Helm](https://neuvector.github.io/neuvector-helm) | 2.8.2 |
+| **neuvector-crd** | installs Neuvector CRDs | beta |  | [Helm](https://neuvector.github.io/neuvector-helm) | 2.8.2 |
 | **nfs-ganesha** | manages NFS Ganesha CSI provisioner | experimental |  | [Helm](https://kubernetes-sigs.github.io/nfs-ganesha-server-and-external-provisioner/) | 1.8.0 |
 | **nfs-ganesha-init** | Define persistent volume claim for NFS Ganesha | experimental | True | Kustomize | N/A |
 | **openshift-assisted-installer** | installs assisted installer operator for OKD | experimental |  | [Kustomize](https://raw.githubusercontent.com/openshift/assisted-service/v2.33.0/hack/crds/hive.openshift.io_clusterdeployments.yaml) | v2.33.0 |
@@ -142,6 +143,7 @@
 | **multus-ready** | checks that Multus is ready<br/><br/>This unit only has dependencies, it does not create resources. It performs healthchecks outside of the multus unit, in order to properly target workload cluster when we deploy multus in it. |  | True | Kustomize | N/A |
 | **namespace-defs** | creates sylva-system namespace and other namespaces to be used by various units |  | True | Kustomize | N/A |
 | **neuvector-init** | sets up Neuvector prerequisites<br/><br/>it generates namespace, certificate, admin password, policy exception for using latest tag images (required for the pod managing the database of vulnerabilities since this DB is updated often) |  | True | Kustomize | N/A |
+| **neuvector-policies** | sets up Neuvector policies<br/><br/>it generates neuvector policies for the management cluster |  | True | Kustomize | N/A |
 | **os-images-info** | Creates a list of os images<br/><br/>This unit creates a configmap containing the os images (and their details in the case of Sylva diskimage-builder ones)<br/>to be further served by os-image-server |  | True | Kustomize | N/A |
 | **pivot** | moves ClusterAPI objects from bootstrap cluster to management cluster |  | True | Kustomize | N/A |
 | **prometheus-flux** | Prometheus configuration for Flux controllers & resources<br/><br/>Adding podmonitors for flux controllers and custom labels to the flux resource metrics by configuring kube-state-metrics |  | True | Kustomize | N/A |

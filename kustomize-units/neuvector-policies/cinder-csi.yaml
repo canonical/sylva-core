@@ -1,0 +1,173 @@
+---
+apiVersion: neuvector.com/v1
+kind: NvSecurityRule
+metadata:
+  name: nv.openstack-cinder-csi-controllerplugin.cinder-csi
+  namespace: cinder-csi
+spec:
+  dlp:
+    settings: []
+    status: true
+  egress:
+  - action: allow
+    applications:
+    - DNS
+    name: nv.rke2-coredns-rke2-coredns.kube-system-egress-305
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: rke2-coredns-rke2-coredns.kube-system
+      - key: domain
+        op: =
+        value: kube-system
+      name: nv.rke2-coredns-rke2-coredns.kube-system
+      original_name: ''
+  file: []
+  ingress: []
+  process:
+  - action: allow
+    allow_update: false
+    name: calico-ipam
+    path: /opt/cni/bin/calico-ipam
+  - action: allow
+    allow_update: false
+    name: cinder-csi-plugin
+    path: /bin/cinder-csi-plugin
+  - action: allow
+    allow_update: false
+    name: csi-attacher
+    path: /csi-attacher
+  - action: allow
+    allow_update: false
+    name: csi-provisioner
+    path: /csi-provisioner
+  - action: allow
+    allow_update: false
+    name: csi-resizer
+    path: /csi-resizer
+  - action: allow
+    allow_update: false
+    name: csi-snapshotter
+    path: /csi-snapshotter
+  - action: allow
+    allow_update: false
+    name: go-runner
+    path: /go-runner
+  - action: allow
+    allow_update: false
+    name: livenessprobe
+    path: /livenessprobe
+  - action: allow
+    allow_update: false
+    name: manager
+    path: /manager
+  - action: allow
+    allow_update: false
+    name: pathWalker
+    path: /usr/local/bin/pathWalker
+  - action: allow
+    allow_update: false
+    name: pause
+    path: /pause
+  - action: allow
+    allow_update: false
+    name: snapshot-controller
+    path: /snapshot-controller
+  process_profile:
+    baseline: zero-drift
+  target:
+    policymode: Monitor
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: openstack-cinder-csi-controllerplugin.cinder-csi
+      - key: domain
+        op: =
+        value: cinder-csi
+      name: nv.openstack-cinder-csi-controllerplugin.cinder-csi
+      original_name: ''
+  waf:
+    settings: []
+    status: true
+---
+apiVersion: neuvector.com/v1
+kind: NvSecurityRule
+metadata:
+  name: nv.openstack-cinder-csi-nodeplugin.cinder-csi
+  namespace: cinder-csi
+spec:
+  dlp:
+    settings: []
+    status: true
+  egress: []
+  file: []
+  ingress: []
+  process:
+  - action: allow
+    allow_update: false
+    name: blkid
+    path: /sbin/blkid
+  - action: allow
+    allow_update: false
+    name: cinder-csi-plugin
+    path: /bin/cinder-csi-plugin
+  - action: allow
+    allow_update: false
+    name: csi-node-driver-registrar
+    path: /csi-node-driver-registrar
+  - action: allow
+    allow_update: false
+    name: fsck
+    path: /sbin/fsck
+  - action: allow
+    allow_update: false
+    name: fsck.ext4
+    path: /sbin/fsck.ext4
+  - action: allow
+    allow_update: false
+    name: go-runner
+    path: /go-runner
+  - action: allow
+    allow_update: false
+    name: livenessprobe
+    path: /livenessprobe
+  - action: allow
+    allow_update: false
+    name: mkfs.ext4
+    path: /sbin/mkfs.ext4
+  - action: allow
+    allow_update: false
+    name: mount
+    path: /bin/mount
+  - action: allow
+    allow_update: false
+    name: pause
+    path: /pause
+  - action: allow
+    allow_update: false
+    name: umount
+    path: /bin/umount
+  process_profile:
+    baseline: zero-drift
+  target:
+    policymode: Monitor
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: openstack-cinder-csi-nodeplugin.cinder-csi
+      - key: domain
+        op: =
+        value: cinder-csi
+      name: nv.openstack-cinder-csi-nodeplugin.cinder-csi
+      original_name: ''
+  waf:
+    settings: []
+    status: true

@@ -1,0 +1,556 @@
+---
+apiVersion: neuvector.com/v1
+kind: NvSecurityRule
+metadata:
+  name: nv.harbor-core.harbor
+  namespace: harbor
+spec:
+  dlp:
+    settings: []
+    status: true
+  egress:
+  - action: allow
+    applications:
+    - DNS
+    name: nv.rke2-coredns-rke2-coredns.kube-system-egress-218
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: rke2-coredns-rke2-coredns.kube-system
+      - key: domain
+        op: =
+        value: kube-system
+      name: nv.rke2-coredns-rke2-coredns.kube-system
+      original_name: ''
+  - action: allow
+    applications:
+    - HTTP
+    name: nv.harbor-registry.harbor-egress-219
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: harbor-registry.harbor
+      - key: domain
+        op: =
+        value: harbor
+      name: nv.harbor-registry.harbor
+      original_name: ''
+  - action: allow
+    applications:
+    - HTTP
+    name: nv.harbor-portal.harbor-egress-220
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: harbor-portal.harbor
+      - key: domain
+        op: =
+        value: harbor
+      name: nv.harbor-portal.harbor
+      original_name: ''
+  - action: allow
+    applications:
+    - HTTP
+    name: nv.harbor-jobservice.harbor-egress-221
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: harbor-jobservice.harbor
+      - key: domain
+        op: =
+        value: harbor
+      name: nv.harbor-jobservice.harbor
+      original_name: ''
+  - action: allow
+    applications:
+    - PostgreSQL
+    name: nv.harbor-postgres-primary.harbor-egress-222
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: harbor-postgres-primary.harbor
+      - key: domain
+        op: =
+        value: harbor
+      name: nv.harbor-postgres-primary.harbor
+      original_name: ''
+  - action: allow
+    applications:
+    - Redis
+    name: nv.harbor-redis.harbor-egress-223
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: harbor-redis.harbor
+      - key: domain
+        op: =
+        value: harbor
+      name: nv.harbor-redis.harbor
+      original_name: ''
+  - action: allow
+    applications:
+    - any
+    name: nv.harbor-registry.harbor-egress-224
+    ports: tcp/5000
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: harbor-registry.harbor
+      - key: domain
+        op: =
+        value: harbor
+      name: nv.harbor-registry.harbor
+      original_name: ''
+  file: []
+  ingress:
+  - action: allow
+    applications:
+    - HTTP
+    name: nv.harbor-core.harbor-ingress-70
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: harbor-jobservice.harbor
+      - key: domain
+        op: =
+        value: harbor
+      name: nv.harbor-jobservice.harbor
+      original_name: ''
+  process:
+  - action: allow
+    allow_update: false
+    name: harbor_core
+    path: /harbor/harbor_core
+  - action: allow
+    allow_update: false
+    name: pause
+    path: /pause
+  process_profile:
+    baseline: zero-drift
+  target:
+    policymode: Monitor
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: harbor-core.harbor
+      - key: domain
+        op: =
+        value: harbor
+      name: nv.harbor-core.harbor
+      original_name: ''
+  waf:
+    settings: []
+    status: true
+---
+apiVersion: neuvector.com/v1
+kind: NvSecurityRule
+metadata:
+  name: nv.harbor-jobservice.harbor
+  namespace: harbor
+spec:
+  dlp:
+    settings: []
+    status: true
+  egress:
+  - action: allow
+    applications:
+    - Redis
+    name: nv.harbor-redis.harbor-egress-225
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: harbor-redis.harbor
+      - key: domain
+        op: =
+        value: harbor
+      name: nv.harbor-redis.harbor
+      original_name: ''
+  - action: allow
+    applications:
+    - DNS
+    name: nv.rke2-coredns-rke2-coredns.kube-system-egress-226
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: rke2-coredns-rke2-coredns.kube-system
+      - key: domain
+        op: =
+        value: kube-system
+      name: nv.rke2-coredns-rke2-coredns.kube-system
+      original_name: ''
+  - action: allow
+    applications:
+    - PostgreSQL
+    name: nv.harbor-postgres-primary.harbor-egress-227
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: harbor-postgres-primary.harbor
+      - key: domain
+        op: =
+        value: harbor
+      name: nv.harbor-postgres-primary.harbor
+      original_name: ''
+  file: []
+  ingress: []
+  process:
+  - action: allow
+    allow_update: false
+    name: harbor_jobservice
+    path: /harbor/harbor_jobservice
+  - action: allow
+    allow_update: false
+    name: pause
+    path: /pause
+  process_profile:
+    baseline: zero-drift
+  target:
+    policymode: Monitor
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: harbor-jobservice.harbor
+      - key: domain
+        op: =
+        value: harbor
+      name: nv.harbor-jobservice.harbor
+      original_name: ''
+  waf:
+    settings: []
+    status: true
+---
+apiVersion: neuvector.com/v1
+kind: NvSecurityRule
+metadata:
+  name: nv.harbor-portal.harbor
+  namespace: harbor
+spec:
+  dlp:
+    settings: []
+    status: true
+  egress: []
+  file: []
+  ingress: []
+  process:
+  - action: allow
+    allow_update: false
+    name: nginx
+    path: /usr/sbin/nginx
+  - action: allow
+    allow_update: false
+    name: pathWalker
+    path: /usr/local/bin/pathWalker
+  - action: allow
+    allow_update: false
+    name: pause
+    path: /pause
+  process_profile:
+    baseline: zero-drift
+  target:
+    policymode: Monitor
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: harbor-portal.harbor
+      - key: domain
+        op: =
+        value: harbor
+      name: nv.harbor-portal.harbor
+      original_name: ''
+  waf:
+    settings: []
+    status: true
+---
+apiVersion: neuvector.com/v1
+kind: NvSecurityRule
+metadata:
+  name: nv.harbor-postgres-primary.harbor
+  namespace: harbor
+spec:
+  dlp:
+    settings: []
+    status: true
+  egress: []
+  file: []
+  ingress:
+  - action: allow
+    applications:
+    - PostgreSQL
+    name: nv.harbor-postgres-primary.harbor-ingress-71
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: kyverno-background-controller.kyverno
+      - key: domain
+        op: =
+        value: kyverno
+      name: nv.kyverno-background-controller.kyverno
+      original_name: ''
+  - action: allow
+    applications:
+    - PostgreSQL
+    name: nv.harbor-postgres-primary.harbor-ingress-72
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: logging-rancher-logging.cattle-logging-system
+      - key: domain
+        op: =
+        value: cattle-logging-system
+      name: nv.logging-rancher-logging.cattle-logging-system
+      original_name: ''
+  - action: allow
+    applications:
+    - PostgreSQL
+    name: nv.harbor-postgres-primary.harbor-ingress-73
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: harbor-postgres-read.harbor
+      - key: domain
+        op: =
+        value: harbor
+      name: nv.harbor-postgres-read.harbor
+      original_name: ''
+  process:
+  - action: allow
+    allow_update: false
+    name: sh
+    path: '*'
+  process_profile:
+    baseline: zero-drift
+  target:
+    policymode: Monitor
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: harbor-postgres-primary.harbor
+      - key: domain
+        op: =
+        value: harbor
+      name: nv.harbor-postgres-primary.harbor
+      original_name: ''
+  waf:
+    settings: []
+    status: true
+---
+apiVersion: neuvector.com/v1
+kind: NvSecurityRule
+metadata:
+  name: nv.harbor-postgres-read.harbor
+  namespace: harbor
+spec:
+  dlp:
+    settings: []
+    status: true
+  egress:
+  - action: allow
+    applications:
+    - DNS
+    name: nv.rke2-coredns-rke2-coredns.kube-system-egress-228
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: rke2-coredns-rke2-coredns.kube-system
+      - key: domain
+        op: =
+        value: kube-system
+      name: nv.rke2-coredns-rke2-coredns.kube-system
+      original_name: ''
+  file: []
+  ingress: []
+  process:
+  - action: allow
+    allow_update: false
+    name: sh
+    path: '*'
+  process_profile:
+    baseline: zero-drift
+  target:
+    policymode: Monitor
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: harbor-postgres-read.harbor
+      - key: domain
+        op: =
+        value: harbor
+      name: nv.harbor-postgres-read.harbor
+      original_name: ''
+  waf:
+    settings: []
+    status: true
+---
+apiVersion: neuvector.com/v1
+kind: NvSecurityRule
+metadata:
+  name: nv.harbor-redis.harbor
+  namespace: harbor
+spec:
+  dlp:
+    settings: []
+    status: true
+  egress: []
+  file: []
+  ingress: []
+  process:
+  - action: allow
+    allow_update: false
+    name: nginx
+    path: /usr/local/nginx/sbin/nginx
+  - action: allow
+    allow_update: false
+    name: pause
+    path: /pause
+  - action: allow
+    allow_update: false
+    name: redis-server
+    path: /usr/bin/redis-server
+  process_profile:
+    baseline: zero-drift
+  target:
+    policymode: Monitor
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: harbor-redis.harbor
+      - key: domain
+        op: =
+        value: harbor
+      name: nv.harbor-redis.harbor
+      original_name: ''
+  waf:
+    settings: []
+    status: true
+---
+apiVersion: neuvector.com/v1
+kind: NvSecurityRule
+metadata:
+  name: nv.harbor-registry.harbor
+  namespace: harbor
+spec:
+  dlp:
+    settings: []
+    status: true
+  egress:
+  - action: allow
+    applications:
+    - any
+    name: nv.kube-apiserver-mgmt-cluster-cp.kube-system-egress-229
+    ports: tcp/6443
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: kube-apiserver-mgmt-cluster-cp.kube-system
+      - key: domain
+        op: =
+        value: kube-system
+      name: nv.kube-apiserver-mgmt-cluster-cp.kube-system
+      original_name: ''
+  file: []
+  ingress: []
+  process:
+  - action: allow
+    allow_update: false
+    name: harbor_registryctl
+    path: /home/harbor/harbor_registryctl
+  - action: allow
+    allow_update: false
+    name: pause
+    path: /pause
+  - action: allow
+    allow_update: false
+    name: registry_DO_NOT_USE_GC
+    path: /usr/bin/registry_DO_NOT_USE_GC
+  process_profile:
+    baseline: zero-drift
+  target:
+    policymode: Monitor
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: harbor-registry.harbor
+      - key: domain
+        op: =
+        value: harbor
+      name: nv.harbor-registry.harbor
+      original_name: ''
+  waf:
+    settings: []
+    status: true

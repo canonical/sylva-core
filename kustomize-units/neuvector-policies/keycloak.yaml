@@ -1,0 +1,430 @@
+---
+apiVersion: neuvector.com/v1
+kind: NvSecurityRule
+metadata:
+  name: nv.keycloak-operator.keycloak
+  namespace: keycloak
+spec:
+  dlp:
+    settings: []
+    status: true
+  egress:
+  - action: allow
+    applications:
+    - any
+    name: nv.kube-apiserver-mgmt-cluster-cp.kube-system-egress-241
+    ports: tcp/6443
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: kube-apiserver-mgmt-cluster-cp.kube-system
+      - key: domain
+        op: =
+        value: kube-system
+      name: nv.kube-apiserver-mgmt-cluster-cp.kube-system
+      original_name: ''
+  file: []
+  ingress: []
+  process:
+  - action: allow
+    allow_update: false
+    name: java
+    path: /usr/lib/jvm/java-17-openjdk-17.0.10.0.7-2.el9.x86_64/bin/java
+  - action: allow
+    allow_update: false
+    name: pause
+    path: /pause
+  process_profile:
+    baseline: zero-drift
+  target:
+    policymode: Monitor
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: keycloak-operator.keycloak
+      - key: domain
+        op: =
+        value: keycloak
+      name: nv.keycloak-operator.keycloak
+      original_name: ''
+  waf:
+    settings: []
+    status: true
+---
+apiVersion: neuvector.com/v1
+kind: NvSecurityRule
+metadata:
+  name: nv.keycloak-realm-operator.keycloak
+  namespace: keycloak
+spec:
+  dlp:
+    settings: []
+    status: true
+  egress:
+  - action: allow
+    applications:
+    - any
+    name: nv.kube-apiserver-mgmt-cluster-cp.kube-system-egress-242
+    ports: tcp/6443
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: kube-apiserver-mgmt-cluster-cp.kube-system
+      - key: domain
+        op: =
+        value: kube-system
+      name: nv.kube-apiserver-mgmt-cluster-cp.kube-system
+      original_name: ''
+  - action: allow
+    applications:
+    - DNS
+    name: nv.rke2-coredns-rke2-coredns.kube-system-egress-243
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: rke2-coredns-rke2-coredns.kube-system
+      - key: domain
+        op: =
+        value: kube-system
+      name: nv.rke2-coredns-rke2-coredns.kube-system
+      original_name: ''
+  - action: allow
+    applications:
+    - any
+    name: nv.loki-write.loki-egress-244
+    ports: tcp/7946
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: loki-write.loki
+      - key: domain
+        op: =
+        value: loki
+      name: nv.loki-write.loki
+      original_name: ''
+  - action: allow
+    applications:
+    - any
+    name: nv.loki-backend.loki-egress-245
+    ports: tcp/7946
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: loki-backend.loki
+      - key: domain
+        op: =
+        value: loki
+      name: nv.loki-backend.loki
+      original_name: ''
+  - action: allow
+    applications:
+    - any
+    name: nv.loki-read.loki-egress-246
+    ports: tcp/7946
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: loki-read.loki
+      - key: domain
+        op: =
+        value: loki
+      name: nv.loki-read.loki
+      original_name: ''
+  - action: allow
+    applications:
+    - SSL
+    name: nv.keycloak.keycloak-egress-247
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: keycloak.keycloak
+      - key: domain
+        op: =
+        value: keycloak
+      name: nv.keycloak.keycloak
+      original_name: ''
+  file: []
+  ingress: []
+  process:
+  - action: allow
+    allow_update: false
+    name: keycloak-realm-operator
+    path: /usr/local/bin/keycloak-realm-operator
+  - action: allow
+    allow_update: false
+    name: pause
+    path: /pause
+  process_profile:
+    baseline: zero-drift
+  target:
+    policymode: Monitor
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: keycloak-realm-operator.keycloak
+      - key: domain
+        op: =
+        value: keycloak
+      name: nv.keycloak-realm-operator.keycloak
+      original_name: ''
+  waf:
+    settings: []
+    status: true
+---
+apiVersion: neuvector.com/v1
+kind: NvSecurityRule
+metadata:
+  name: nv.keycloak.keycloak
+  namespace: keycloak
+spec:
+  dlp:
+    settings: []
+    status: true
+  egress:
+  - action: allow
+    applications:
+    - DNS
+    name: nv.rke2-coredns-rke2-coredns.kube-system-egress-248
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: rke2-coredns-rke2-coredns.kube-system
+      - key: domain
+        op: =
+        value: kube-system
+      name: nv.rke2-coredns-rke2-coredns.kube-system
+      original_name: ''
+  - action: allow
+    applications:
+    - PostgreSQL
+    name: nv.postgres-primary.keycloak-egress-249
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: postgres-primary.keycloak
+      - key: domain
+        op: =
+        value: keycloak
+      name: nv.postgres-primary.keycloak
+      original_name: ''
+  file: []
+  ingress:
+  - action: allow
+    applications:
+    - SSL
+    name: nv.keycloak.keycloak-ingress-75
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: rke2-ingress-nginx-controller.kube-system
+      - key: domain
+        op: =
+        value: kube-system
+      name: nv.rke2-ingress-nginx-controller.kube-system
+      original_name: ''
+  process:
+  - action: allow
+    allow_update: false
+    name: java
+    path: /usr/lib/jvm/java-17-openjdk-17.0.10.0.7-2.el9.x86_64/bin/java
+  - action: allow
+    allow_update: false
+    name: pause
+    path: /pause
+  process_profile:
+    baseline: zero-drift
+  target:
+    policymode: Monitor
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: keycloak.keycloak
+      - key: domain
+        op: =
+        value: keycloak
+      name: nv.keycloak.keycloak
+      original_name: ''
+  waf:
+    settings: []
+    status: true
+---
+apiVersion: neuvector.com/v1
+kind: NvSecurityRule
+metadata:
+  name: nv.postgres-primary.keycloak
+  namespace: keycloak
+spec:
+  dlp:
+    settings: []
+    status: true
+  egress: []
+  file: []
+  ingress:
+  - action: allow
+    applications:
+    - PostgreSQL
+    name: nv.postgres-primary.keycloak-ingress-170
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: postgres-read.keycloak
+      - key: domain
+        op: =
+        value: keycloak
+      name: nv.postgres-read.keycloak
+      original_name: ''
+  - action: allow
+    applications:
+    - PostgreSQL
+    name: nv.postgres-primary.keycloak-ingress-171
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: rancher-webhook.cattle-system
+      - key: domain
+        op: =
+        value: cattle-system
+      name: nv.rancher-webhook.cattle-system
+      original_name: ''
+  - action: allow
+    applications:
+    - PostgreSQL
+    name: nv.postgres-primary.keycloak-ingress-172
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: source-controller.flux-system
+      - key: domain
+        op: =
+        value: flux-system
+      name: nv.source-controller.flux-system
+      original_name: ''
+  process:
+  - action: allow
+    allow_update: false
+    name: sh
+    path: '*'
+  process_profile:
+    baseline: zero-drift
+  target:
+    policymode: Monitor
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: postgres-primary.keycloak
+      - key: domain
+        op: =
+        value: keycloak
+      name: nv.postgres-primary.keycloak
+      original_name: ''
+  waf:
+    settings: []
+    status: true
+---
+apiVersion: neuvector.com/v1
+kind: NvSecurityRule
+metadata:
+  name: nv.postgres-read.keycloak
+  namespace: keycloak
+spec:
+  dlp:
+    settings: []
+    status: true
+  egress:
+  - action: allow
+    applications:
+    - DNS
+    name: nv.rke2-coredns-rke2-coredns.kube-system-egress-306
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: rke2-coredns-rke2-coredns.kube-system
+      - key: domain
+        op: =
+        value: kube-system
+      name: nv.rke2-coredns-rke2-coredns.kube-system
+      original_name: ''
+  file: []
+  ingress: []
+  process:
+  - action: allow
+    allow_update: false
+    name: sh
+    path: '*'
+  process_profile:
+    baseline: zero-drift
+  target:
+    policymode: Monitor
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: postgres-read.keycloak
+      - key: domain
+        op: =
+        value: keycloak
+      name: nv.postgres-read.keycloak
+      original_name: ''
+  waf:
+    settings: []
+    status: true

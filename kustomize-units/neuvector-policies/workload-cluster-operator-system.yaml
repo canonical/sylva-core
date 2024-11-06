@@ -1,0 +1,56 @@
+---
+apiVersion: neuvector.com/v1
+kind: NvSecurityRule
+metadata:
+  name: nv.workload-cluster-operator-controller-manager.workload-cluster-operator-system
+  namespace: workload-cluster-operator-system
+spec:
+  dlp:
+    settings: []
+    status: true
+  egress: []
+  file: []
+  ingress: []
+  process:
+  - action: allow
+    allow_update: false
+    name: calico-ipam
+    path: /opt/cni/bin/calico-ipam
+  - action: allow
+    allow_update: false
+    name: grep
+    path: /usr/bin/grep
+  - action: allow
+    allow_update: false
+    name: kube-rbac-proxy
+    path: /usr/local/bin/kube-rbac-proxy
+  - action: allow
+    allow_update: false
+    name: manager
+    path: /manager
+  - action: allow
+    allow_update: false
+    name: pathWalker
+    path: /usr/local/bin/pathWalker
+  - action: allow
+    allow_update: false
+    name: pause
+    path: /pause
+  process_profile:
+    baseline: zero-drift
+  target:
+    policymode: Monitor
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: workload-cluster-operator-controller-manager.workload-cluster-operator-system
+      - key: domain
+        op: =
+        value: workload-cluster-operator-system
+      name: nv.workload-cluster-operator-controller-manager.workload-cluster-operator-system
+      original_name: ''
+  waf:
+    settings: []
+    status: true
