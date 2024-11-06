@@ -146,6 +146,8 @@ units:
     enabled: false
   openshift-monitoring:
     enabled: true
+  openshift-user-workload-monitoring:
+    enabled: true
 
   calico-crd:
     enabled: false
