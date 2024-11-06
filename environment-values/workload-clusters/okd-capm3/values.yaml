@@ -1,0 +1,188 @@
+# This example environment values files will let you build
+# a one-node OKD worload baremetal cluster
+
+cluster_virtual_ip: 192.168.74.142
+
+cluster:
+  name: ptnr3
+  agent_config_format: "ignition"
+  capi_providers:
+    infra_provider: capm3
+    bootstrap_provider: cabpoa
+
+  control_plane_replicas: 3
+  cluster_services_cidrs:
+    - 100.73.0.0/16
+  cluster_pods_cidrs:
+    - 100.72.0.0/16
+
+  capm3:  # For OKD, the only capm3-image spec required is `machine_image_format: live-iso`, rest are dummy values
+    machine_image_checksum: https://abcde
+    machine_image_checksum_type: sha256
+    machine_image_format: live-iso
+    machine_image_url: https://abcde
+
+    primary_pool_network: 192.168.74.128
+    primary_pool_gateway: 192.168.74.129
+    primary_pool_start: 192.168.74.151
+    primary_pool_end: 192.168.74.153
+    primary_pool_prefix: "26"
+    dns_servers:
+    - 192.168.74.134
+  
+  openshift:
+    version: 4.17.0
+    releaseImage: quay.io/okd/scos-release:4.17.0-0.okd-scos-2024-09-30-101739
+    baseDomain: "cert2.bos2.lab"
+    sshAuthorizedKey: ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQC26LPtszBaiDUleyFv4/CVV8FGJoqg5hoVHQpFDSDGqLH4Ytdua8NYvEgJkO3IGyYXRAr0hRjBvVi9+gSaShpKQvdMtVwiW80y7XkKucfpBve94zfn77jrj1mMoGd5vv0NNIxuyJPhZCliuA396S8td0TRWYB8vN/sfQhS8gbvsMtufdgi/xZjXvyr5zbX8Y1bnJIX6V2SfjFc3dDhpy8NJIDPDs4fbikLPaCGNvyDSPc1xkky9xv0X12PKLzQE/Q6eWxpNlKTXegr8vdelqVJdnjqZFM++7LTyIVg8pxB3zo/OpMFxO82go+xayOxJxg4+LZwrxIHNe6yKU5+wT9wMNxRCJ4MCqqYIVK7phsHohqfLcBn6WgqlJtEwK9iVGj7NjUckA6Nu5J7RtzjkhWatQIzyFHe+tpXkdPd19AAXnuC7MRFqcDvJQfebL8bsgx/wCwKBeq5GR3l770yKGOSpYcYlYBXo4f2KcLS1xkrnbw8iyA4pOrCLk7vMdcPkt4lnLXs3kXqPRVGcy2M9QEOTNNjkZgkhi88ppnPTaGSBSs2gsyvchBMfaGRRDb3dACgFktHEA20WwMuzLHZJFXwQAetjC4U6SGCpmwNu+Zs5lv043qvSB5TX3ZEnY2ax25wdv/EqtdflX9v05vW76eTh3A2BkDq5WqYIMEJXY44vw== root@bastion
+    ingressVIP: 192.168.74.143
+    # pullSecret: not required for OKD; for OpenShift, this is a json string acquired from https://console.redhat.com/openshift/install/pull
+  
+  control_plane:
+    capm3:
+      hostSelector:  # criteria for matching labels on BareMetalHost objects defined by baremetal_hosts value
+        matchLabels:
+          cluster-role: control-plane
+      primary_pool_interface: ens10f0
+    network_interfaces:  # for CAPM3 folowing are used and mapped to Metal3Data.spec.template.spec.networkData.links
+      ens10f0:
+        type: phy
+
+  machine_deployment_default:
+    capm3:
+      hostSelector:
+        matchLabels:
+          cluster-role: worker
+      primary_pool_interface: ens10f0
+
+  machine_deployments:
+    md0:
+      replicas: 1
+      network_interfaces:
+        ens10f0:
+          type: phy
+
+  baremetal_host_default:
+    bmh_spec:
+      online: true
+      externallyProvisioned: false
+      bmc:
+        disableCertificateVerification: true
+      bootMode: "UEFI"
+      rootDeviceHints:
+        deviceName: /dev/sda
+
+  baremetal_hosts:  # corresponding credentials need to be set in secrets.yaml
+    ranworker2: 
+      bmh_metadata:
+        labels:
+          cluster-role: control-plane
+      bmh_spec:
+        description: workload cluster control plane node-1
+        bmc:
+          address: "redfish-virtualmedia://192.168.73.24/redfish/v1/Systems/1"   # put the real BMC address here ()
+          disableCertificateVerification: true
+        bootMACAddress: "b4:96:91:d6:c4:b0"
+      interface_mappings:
+        ens10f0:
+          mac_address: "b4:96:91:d6:c4:b0"
+
+    ranworker3: 
+      bmh_metadata:
+        labels:
+          cluster-role: control-plane
+      bmh_spec:
+        description: workload cluster control plane node-2
+        bmc:
+          address: "redfish-virtualmedia://192.168.73.23/redfish/v1/Systems/1"   # put the real BMC address here ()
+          disableCertificateVerification: true
+        bootMACAddress: "b4:96:91:d8:b8:04"
+      interface_mappings:
+        ens10f0:
+          mac_address: "b4:96:91:d8:b8:04"
+
+    ranworker4: 
+      bmh_metadata:
+        labels:
+          cluster-role: control-plane
+      bmh_spec:
+        description: workload cluster control plane node-3
+        bmc:
+          address: "redfish-virtualmedia://192.168.73.22/redfish/v1/Systems/1"   # put the real BMC address here ()
+          disableCertificateVerification: true
+        bootMACAddress: "b4:96:91:d6:c3:a4"
+      interface_mappings:
+        ens10f0:
+          mac_address: "b4:96:91:d6:c3:a4"
+
+    worker-node: 
+      bmh_metadata:
+        labels:
+          cluster-role: worker
+      bmh_spec:
+        description: workload cluster worker node 1
+        bmc:
+          address: "redfish-virtualmedia://192.168.72.140/redfish/v1/Systems/1"   # put the real BMC address here ()
+          disableCertificateVerification: true
+        bootMACAddress: "b4:96:91:c6:79:72"
+      interface_mappings:
+        ens10f0:
+          mac_address: "b4:96:91:c6:79:72"
+
+units:
+  longhorn-crd:
+    enabled: false
+  longhorn:
+    enabled: false
+  multus-ready:
+    enabled: false
+  sriov-crd:
+    enabled: false
+  cluster-machines-ready:
+    enabled: false
+  monitoring-crd:
+    enabled: false
+  monitoring:
+    enabled: false
+  openshift-monitoring:
+    enabled: true
+    # kustomization_spec:
+    #   user_workload_monitoring: "false"
+
+  calico-crd:
+    enabled: false
+  calico:
+    enabled: false
+  tigera-clusterrole:
+    enabled: false
+  # minio-monitoring:
+  #   enabled: false
+  # thanos:
+  #   enabled: false
+  ingress-nginx:
+    enabled: false
+
+openshift-monitoring:
+  user_workload_monitoring: false
+
+registry_mirrors:
+  default_settings:
+    skip_verify: true
+    override_path: true
+  hosts_config:
+    docker.io:
+      - mirror_url: http://192.168.74.136/v2/docker.io
+    gcr.io:
+      - mirror_url: http://192.168.74.136/v2/gcr.io
+    ghcr.io:
+      - mirror_url: http://192.168.74.136/v2/ghcr.io
+    registry.gitlab.com:
+      - mirror_url: http://192.168.74.136/v2/registry.gitlab.com
+    registry.k8s.io:
+      - mirror_url: http://192.168.74.136/v2/registry.k8s.io
+    quay.io:
+      - mirror_url: http://192.168.74.136/v2/quay.io
+    registry.opensuse.org:
+      - mirror_url: http://192.168.74.136/v2/registry.opensuse.org
+    registry.suse.com:
+      - mirror_url: http://192.168.74.136/v2/registry.suse.com

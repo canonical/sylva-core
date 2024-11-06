@@ -8975,6 +8975,9 @@
           "anyOf": [
             {
               "type": "boolean"
+            },
+            {
+              "$ref": "#/$defs/string-with-gotpl"
             }
           ]
         },

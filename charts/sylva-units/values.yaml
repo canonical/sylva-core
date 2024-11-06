@@ -4002,7 +4002,7 @@ units:
       path: ./kustomize-units/openshift-monitoring
       postBuild:
         substitute:
-          user_workload_monitoring: "false"
+          USER_WORKLOAD_MONITORING: '{{ .Values.openshift_monitoring.user_workload_monitoring }}'
           SECRET_NAME: mgmt-cluster-thanos-credentials
           CLUSTER_NAME: '{{ .Values.cluster.name }}'
           THANOS_URL: '{{ .Values.monitoring.thanos_receive_url }}'
@@ -7773,5 +7773,5 @@ openshift:
     # variable to specify the openshift assisted image service hostname
     # imageHostname: openshift-assisted-images.example.com
 
-# openshift-monitoring:
-#   user_workload_monitoring: false
+openshift-monitoring:
+  user_workload_monitoring: false
