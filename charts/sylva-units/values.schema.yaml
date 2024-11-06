@@ -1248,6 +1248,22 @@ properties:
                       defaults:
                         - receivers
 
+  openshift-monitoring:  # -------------------------------
+    type: object
+    additionalProperties: false
+    properties:
+      user_workload_monitoring:
+          anyOf:
+            - type: boolean
+            - $ref: "#/$defs/gotpl"
+            - $ref: "#/$defs/boolean-string"
+      thanos_receive_url:  # -------------------------------
+        anyOf:
+          - type: string
+            format: uri
+          - $ref: "#/$defs/string-with-gotpl"
+
+
   logging:  # -------------------------------
     type: object
     additionalProperties: false
