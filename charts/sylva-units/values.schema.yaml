@@ -1252,10 +1252,6 @@ properties:
     type: object
     additionalProperties: false
     properties:
-      user_workload_monitoring:
-          anyOf:
-            - type: boolean
-            - $ref: "#/$defs/string-with-gotpl"
       thanos_receive_url:  # -------------------------------
         anyOf:
           - type: string

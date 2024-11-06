@@ -4002,7 +4002,6 @@ units:
       path: ./kustomize-units/openshift-monitoring
       postBuild:
         substitute:
-          USER_WORKLOAD_MONITORING: '{{ .Values.openshift_monitoring.user_workload_monitoring }}'
           SECRET_NAME: mgmt-cluster-thanos-credentials
           CLUSTER_NAME: '{{ .Values.cluster.name }}'
           THANOS_URL: '{{ .Values.monitoring.thanos_receive_url }}'
@@ -4015,7 +4014,6 @@ units:
       - base-deps
     enabled_conditions:
       - '{{ tuple . "openshift-monitoring" | include "unit-enabled" }}'
-      # - '{{ .Values.openshift_monitoring.user_workload_monitoring | eq "true"}}'
     depends_on:
       openshift-monitoring: '{{ tuple . "openshift-monitoring" | include "unit-enabled" }}'
     repo: sylva-core
@@ -7694,9 +7692,6 @@ shared_workload_clusters_values:
   logging:
     loki_url: "https://{{ .Values.external_hostnames.loki }}"
 
-  # openshift-monitoring:
-  #   user_workload_monitoring: '{{ .Values.openshift_monitoring.user_workload_monitoring | include "set-if-defined" }}'
-
   _internal:
     workload_clusters_cluster_subdomain: wclusters.{{ .Values.cluster_domain }}  # workload clusters cluster_domain will all be under wclusters.<cluster_domain>
     sylva_system_default_storage_class_unit: '{{ .Values._internal.default_storage_class_unit }}'
@@ -7772,6 +7767,3 @@ openshift:
     # serviceHostname: openshift-assisted-service.example.com
     # variable to specify the openshift assisted image service hostname
     # imageHostname: openshift-assisted-images.example.com
-
-openshift-monitoring:
-  user_workload_monitoring: false

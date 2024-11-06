@@ -146,8 +146,6 @@ units:
     enabled: false
   openshift-monitoring:
     enabled: true
-    # kustomization_spec:
-    #   user_workload_monitoring: "false"
 
   calico-crd:
     enabled: false
@@ -161,9 +159,6 @@ units:
   #   enabled: false
   ingress-nginx:
     enabled: false
-
-openshift-monitoring:
-  user_workload_monitoring: false
 
 registry_mirrors:
   default_settings:

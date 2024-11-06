@@ -4,7 +4,7 @@ metadata:
   name: cluster-monitoring-config
 data:
   config.yaml: |
-    enableUserWorkload: ${USER_WORKLOAD_MONITORING}
+    enableUserWorkload: true
     prometheusK8s:
       externalLabels:
         cluster: ${CLUSTER_NAME}  # required for multi-cluster dashboards
