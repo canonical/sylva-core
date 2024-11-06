@@ -4014,7 +4014,7 @@ units:
     unit_templates:
       - base-deps
     enabled_conditions:
-      - '{{ tuple . "openshift-monitoring" | include "unit-enabled" }}'
+      - openshift-monitoring: true
       - '{{ .Values.openshift_monitoring.user_workload_monitoring }}': true
     depends_on:
       openshift-monitoring: '{{ tuple . "openshift-monitoring" | include "unit-enabled" }}'
