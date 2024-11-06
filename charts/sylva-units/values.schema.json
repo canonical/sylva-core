@@ -8975,12 +8975,6 @@
           "anyOf": [
             {
               "type": "boolean"
-            },
-            {
-              "$ref": "#/$defs/gotpl"
-            },
-            {
-              "$ref": "#/$defs/boolean-string"
             }
           ]
         },

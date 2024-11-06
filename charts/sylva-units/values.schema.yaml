@@ -1255,8 +1255,6 @@ properties:
       user_workload_monitoring:
           anyOf:
             - type: boolean
-            - $ref: "#/$defs/gotpl"
-            - $ref: "#/$defs/boolean-string"
       thanos_receive_url:  # -------------------------------
         anyOf:
           - type: string
