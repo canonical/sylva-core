@@ -1342,6 +1342,18 @@ units:
     repo: sylva-core
     kustomization_spec:
       path: ./kustomize-units/neuvector-policies
+      _components:
+        - '{{ tuple "components/capm3" (tuple . "metal3" | include "unit-enabled") | include "set-only-if" }}'
+        - '{{ tuple "components/capo" (.Values.cluster.capi_providers.infra_provider | eq "capo") | include "set-only-if" }}'
+        - '{{ tuple "components/ceph-csi-cephfs" (tuple . "ceph-csi-cephfs" | include "unit-enabled") | include "set-only-if" }}'
+        - '{{ tuple "components/gitea" (tuple . "gitea" | include "unit-enabled") | include "set-only-if" }}'
+        - '{{ tuple "components/harbor" (tuple . "harbor" | include "unit-enabled") | include "set-only-if" }}'
+        - '{{ tuple "components/kepler" (tuple . "kepler" | include "unit-enabled") | include "set-only-if" }}'
+        - '{{ tuple "components/logging" (tuple . "logging" | include "unit-enabled") | include "set-only-if" }}'
+        - '{{ tuple "components/longhorn" (tuple . "longhorn" | include "unit-enabled") | include "set-only-if" }}'
+        - '{{ tuple "components/monitoring" (tuple . "monitoring" | include "unit-enabled") | include "set-only-if" }}'
+        - '{{ tuple "components/rancher" (tuple . "rancher" | include "unit-enabled") | include "set-only-if" }}'
+        - '{{ tuple "components/sriov" (tuple . "sriov-network-operator" | include "unit-enabled") | include "set-only-if" }}'
 
   neuvector-init:
     info:

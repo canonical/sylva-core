@@ -2,8 +2,8 @@
 apiVersion: neuvector.com/v1
 kind: NvSecurityRule
 metadata:
-  name: nv.monitoring-pool-0.minio-monitoring-tenant
-  namespace: minio-monitoring-tenant
+  name: nv.monitoring-pool-0.minio-monitoring
+  namespace: minio-monitoring
 spec:
   dlp:
     settings: []
@@ -31,7 +31,7 @@ spec:
   - action: allow
     applications:
     - SSL
-    name: nv.monitoring-pool-0.minio-monitoring-tenant-ingress-156
+    name: nv.monitoring-pool-0.minio-monitoring-ingress-156
     ports: any
     priority: 0
     selector:
@@ -49,7 +49,7 @@ spec:
     applications:
     - Kafka
     - SSL
-    name: nv.monitoring-pool-0.minio-monitoring-tenant-ingress-157
+    name: nv.monitoring-pool-0.minio-monitoring-ingress-157
     ports: any
     priority: 0
     selector:
@@ -57,17 +57,17 @@ spec:
       criteria:
       - key: service
         op: =
-        value: monitoring-pool-0.minio-monitoring-tenant
+        value: monitoring-pool-0.minio-monitoring
       - key: domain
         op: =
-        value: minio-monitoring-tenant
-      name: nv.monitoring-pool-0.minio-monitoring-tenant
+        value: minio-monitoring
+      name: nv.monitoring-pool-0.minio-monitoring
       original_name: ''
   - action: allow
     applications:
     - Kafka
     - SSL
-    name: nv.monitoring-pool-0.minio-monitoring-tenant-ingress-158
+    name: nv.monitoring-pool-0.minio-monitoring-ingress-158
     ports: any
     priority: 0
     selector:
@@ -84,7 +84,7 @@ spec:
   - action: allow
     applications:
     - any
-    name: nv.monitoring-pool-0.minio-monitoring-tenant-ingress-159
+    name: nv.monitoring-pool-0.minio-monitoring-ingress-159
     ports: tcp/9000
     priority: 0
     selector:
@@ -101,7 +101,7 @@ spec:
   - action: allow
     applications:
     - SSL
-    name: nv.monitoring-pool-0.minio-monitoring-tenant-ingress-160
+    name: nv.monitoring-pool-0.minio-monitoring-ingress-160
     ports: any
     priority: 0
     selector:
@@ -118,7 +118,7 @@ spec:
   - action: allow
     applications:
     - SSL
-    name: nv.monitoring-pool-0.minio-monitoring-tenant-ingress-161
+    name: nv.monitoring-pool-0.minio-monitoring-ingress-161
     ports: any
     priority: 0
     selector:
@@ -135,7 +135,7 @@ spec:
   - action: allow
     applications:
     - any
-    name: nv.monitoring-pool-0.minio-monitoring-tenant-ingress-162
+    name: nv.monitoring-pool-0.minio-monitoring-ingress-162
     ports: tcp/9000
     priority: 0
     selector:
@@ -143,16 +143,16 @@ spec:
       criteria:
       - key: service
         op: =
-        value: monitoring-pool-0.minio-monitoring-tenant
+        value: monitoring-pool-0.minio-monitoring
       - key: domain
         op: =
-        value: minio-monitoring-tenant
-      name: nv.monitoring-pool-0.minio-monitoring-tenant
+        value: minio-monitoring
+      name: nv.monitoring-pool-0.minio-monitoring
       original_name: ''
   - action: allow
     applications:
     - SSL
-    name: nv.monitoring-pool-0.minio-monitoring-tenant-ingress-163
+    name: nv.monitoring-pool-0.minio-monitoring-ingress-163
     ports: any
     priority: 0
     selector:
@@ -169,7 +169,7 @@ spec:
   - action: allow
     applications:
     - any
-    name: nv.monitoring-pool-0.minio-monitoring-tenant-ingress-164
+    name: nv.monitoring-pool-0.minio-monitoring-ingress-164
     ports: tcp/9000
     priority: 0
     selector:
@@ -186,7 +186,7 @@ spec:
   - action: allow
     applications:
     - SSL
-    name: nv.monitoring-pool-0.minio-monitoring-tenant-ingress-165
+    name: nv.monitoring-pool-0.minio-monitoring-ingress-165
     ports: any
     priority: 0
     selector:
@@ -203,7 +203,7 @@ spec:
   - action: allow
     applications:
     - SSL
-    name: nv.monitoring-pool-0.minio-monitoring-tenant-ingress-166
+    name: nv.monitoring-pool-0.minio-monitoring-ingress-166
     ports: any
     priority: 0
     selector:
@@ -251,11 +251,11 @@ spec:
       criteria:
       - key: service
         op: =
-        value: monitoring-pool-0.minio-monitoring-tenant
+        value: monitoring-pool-0.minio-monitoring
       - key: domain
         op: =
-        value: minio-monitoring-tenant
-      name: nv.monitoring-pool-0.minio-monitoring-tenant
+        value: minio-monitoring
+      name: nv.monitoring-pool-0.minio-monitoring
       original_name: ''
   waf:
     settings: []
