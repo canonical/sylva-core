@@ -2880,6 +2880,17 @@ units:
           name: '{{ .Values._internal.cluster_unit_os_images_info_configmap }}'
           valuesKey: values.yaml
           optional: '{{ not (.Values.cluster.capi_providers.infra_provider | eq "capm3") | include "as-bool" }}'
+        - |
+          {{-
+          tuple
+            (dict "kind" "ConfigMap"
+                  "name" "capo-cluster-resources"
+                  "valuesKey" "allocated_ip"
+                  "targetPath" "cni.calico.helm_values.installation.calicoNetwork.nodeAddressAutodetectionV4.canReach"
+            )
+            .Values.capo_calico_autodetection_method_use_canReach_vip
+          | include "set-only-if"
+          -}}
     # we pass everything that is under `cluster` to this unit that uses sylva-capi-cluster chart
     # (we do it via a secret because some of the values are credentials in many scenarios)
     helm_secret_values: '{{ .Values.cluster | include "preserve-type" }}'
@@ -3234,6 +3245,23 @@ units:
           chart: rke2-calico
           version: "" # will be defined by helm_chart_versions
       values: '{{ .Values.calico_helm_values | include "preserve-type" }}'
+      valuesFrom:
+        # For Calico nodeAddressAutodetection, for RKE2 on CAPO, we need to pass the cluster VIP in calico values
+        # as installation.calicoNetwork.nodeAddressAutodetectionV4.canReach
+        #
+        # this address is read from the ConfigMap produced by capo-cluster-resources unit
+        # which allocates the VIP
+        - |
+          {{-
+          tuple
+            (dict "kind" "ConfigMap"
+                  "name" "capo-cluster-resources"
+                  "valuesKey" "allocated_ip"
+                  "targetPath" "installation.calicoNetwork.nodeAddressAutodetectionV4.canReach"
+            )
+            .Values.capo_calico_autodetection_method_use_canReach_vip
+          | include "set-only-if"
+          -}}
 
   calico-ready:
     info:
@@ -7691,7 +7719,13 @@ calico_helm_values:
     calicoNetwork:
       bgp: Enabled
       mtu: '{{ tuple .Values.cluster.capm3.network_interfaces.mtu (and (.Values.cluster.capi_providers.infra_provider | eq "capm3") .Values.cluster.capm3.network_interfaces.mtu) | include "set-only-if" }}'
-      nodeAddressAutodetectionV4: '{{ .Values._internal.default_calico_autodetection_method | include "preserve-type" }}'
+      nodeAddressAutodetectionV4: |
+        {{
+        tuple
+          .Values._internal.default_calico_autodetection_method
+          (not .Values._internal.capo_calico_autodetection_method_use_canReach_vip)
+        | include "set-only-if"
+        }}
     registry: UseDefault
   felixConfiguration:
     wireguardEnabled: '{{ .Values.security.calico_wireguard_enabled | include "preserve-type" }}'
@@ -7893,8 +7927,15 @@ _internal:
     {{- if .Values.cluster.capi_providers.bootstrap_provider | eq "cabpk" }}
       {{- dict "kubernetes" "NodeInternalIP" | include "preserve-type" -}}
     {{- else -}}
-      {{- dict | include "preserve-type" -}}
+      {{- dict "canReach" (not (empty .Values.mgmt_cluster_ip) | ternary .Values.mgmt_cluster_ip .Values.cluster_virtual_ip) | include "preserve-type" -}}
     {{- end -}}
+
+  capo_calico_autodetection_method_use_canReach_vip: |
+    {{
+      and (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpr")
+          (.Values.cluster.capi_providers.infra_provider | eq "capo")
+          (empty .Values.mgmt_cluster_ip)
+    }}
 
   calico_readiness_unit: "calico"
 
