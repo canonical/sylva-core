@@ -151,6 +151,13 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
       ref:
         tag: 0.0.2
 
+  workload-team-defs:
+    kind: GitRepository
+    spec:
+      url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/workload-team-defs.git
+      ref:
+        tag: 0.1.0
+
 helm_repo_spec_default:
   interval: 60m0s
 
@@ -6813,6 +6820,27 @@ units:
                     - RemoveDuplicates
                     - LowNodeUtilization
 
+  workload-team-defs:
+    info:
+      description: installs the workload-team-defs chart
+      details: installs the workload-team-defs chart to install the workload cluster through CRD
+      maturity: experimental
+    repo: workload-team-defs
+    unit_templates:
+    - base-deps
+    depends_on:
+      sylva-units-operator: true
+    enabled_conditions:
+      - '{{ tuple . "workload-cluster-operator" | include "unit-enabled" }}'
+    helm_chart_artifact_name: workload-team-defs
+    helmrelease_spec:
+      chart:
+        spec:
+          chart: .
+      values:
+        workload_cluster_teams: '{{ .Values.workload_cluster_teams | include "preserve-type" }}'
+        managed_clusters_settings: '{{ index (tuple . .Values.shared_workload_clusters_values | include "interpret-inner-gotpl" | fromJson) "result" | include "preserve-type" }}'
+
 ##### stuff related to the 'cluster' unit #####
 #
 # all these values under 'cluster' are passed as values to sylva-capi-cluster chart
@@ -7625,6 +7653,8 @@ shared_workload_clusters_values:
       {{- range $name, $hostname := .Values.external_hostnames }}{{ if has $name (list "loki" "rancher" "thanos_receive" "harbor") }}{{ $hostname }}{{print " "}}{{ end }}{{ end }}
 
 shared_workload_clusters_secret_values: {}
+
+workload_cluster_teams: {}
 
 snmp:
   devices: []

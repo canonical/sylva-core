@@ -1289,6 +1289,9 @@ properties:
   shared_workload_clusters_secret_values:
     type: object
 
+  workload_cluster_teams:
+    type: object
+
   snmp:
     type: object
     additionalProperties: false
