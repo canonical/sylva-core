@@ -7367,10 +7367,21 @@ logging:
 _internal:
 
   state:
-    # is_upgrade is true if this release of sylva-units reached reconciliation of the last Kustomization,
-    # sylva-units-status, producing the eponym ConfigMap
+    # is_upgrade reflects whether or not the currently processed release
+    #   is an "upgrade", ie. a new release coming after a full installation
+    #   of Sylva.
+    #
+    # Helm built-in .Release.IsUpgrade is not used because it reflects only whether
+    # or not we are on the first version of the Helm release, but because of how pivot
+    # is done, and because there may be failed attempts before the first that succeeds,
+    # we have cases where .Release.IsUpgrade is true while we haven't ever reached yet
+    # a full installation.
+    #
+    # The criteria we rely on is whether this release of sylva-units reached reconciliation
+    # of the sylva-units-status Kustomization, which is the last reconciliation of the
+    # dependency chain.
     is_upgrade: >-
-      {{ gt (lookup "v1" "ConfigMap" .Release.Namespace "sylva-units-status" | dig "data" dict | len) 0
+      {{ gt (lookup "kustomize.toolkit.fluxcd.io/v1" "Kustomization" .Release.Namespace "sylva-units-status" | dig "status" "inventory" "entries" list | len) 0
           | include "preserve-type"
       }}
 
