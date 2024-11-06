@@ -1,0 +1,30 @@
+---
+kind: ServiceMonitor
+apiVersion: monitoring.coreos.com/v1
+metadata:
+  name: loki
+  namespace: loki
+spec:
+  endpoints:
+  - interval: 60s
+    path: /metrics
+    port: http-metrics
+    relabelings:
+    - action: replace
+      replacement: loki/$1
+      sourceLabels:
+      - job
+      targetLabel: job
+    - action: replace
+      replacement: loki
+      targetLabel: cluster
+    scheme: http
+  selector:
+    matchExpressions:
+    - key: prometheus.io/service-monitor
+      operator: NotIn
+      values:
+      - "false"
+    matchLabels:
+      app.kubernetes.io/instance: loki
+      app.kubernetes.io/name: loki
