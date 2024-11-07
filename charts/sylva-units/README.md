@@ -21,7 +21,7 @@ resources, each defining the final resources for a given unit thanks to either o
 * FluxCD `HelmReleases`, which contain definitions of Helm releases for Helm charts hosted
   for instance on Git (or in Helm repos) with the desired overridden Helm values.
 
-![sylva-units overview](../../docs/img/sylva-units-overview.drawio.png)
+![sylva-units overview](./img/sylva-units-overview.drawio.png)
 
 To ensure that no useless attemps at deploying a unit is made before everything that it
 depends on is ready, we declare dependencies between these FluxCD resources,
