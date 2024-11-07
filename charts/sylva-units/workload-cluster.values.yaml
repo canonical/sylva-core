@@ -395,6 +395,12 @@ units:
     unit_templates:
     - base-deps
 
+  kyverno-policy-delete-kubernetes-vip-svc:
+    enabled: true
+    enabled_conditions:
+    - '{{ tuple . "kyverno" | include "unit-enabled"  }}'
+    - '{{ .Values._internal.state.is_upgrade }}'
+
   cluster-import:
     enabled: false  # overriden depending on whether Rancher is enabled or not (eg. via shared-workload-clusters-settings)
     info:
