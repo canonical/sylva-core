@@ -1974,7 +1974,7 @@ units:
 
   kyverno-policy-delete-kubernetes-vip-svc:
     info:
-      description: Kyverno policy to cleanup the deprecated kubernetes-vip service in the case of upgrade from Sylva versions <1.2
+      description: Kyverno policy to cleanup the deprecated kubernetes-vip service in the case of upgrade from Sylva versions prior to v1.2
       internal: true
     enabled_conditions:
     - '{{ tuple . "kyverno" | include "unit-enabled"  }}'
