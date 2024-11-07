@@ -37,9 +37,15 @@ base_dir = script_dir.parent.parent
 
 logger = logging.getLogger()
 
+# the version of the Helm chart we generate is:
+# - the Git tag passed via HELM_CHART_VERSION (used when run via a Git tag action)
+# - else: derived from the commit id and pipeline id (the latter is necessary
+#         because when we use 'branch:` for a source in source_templates.xxx the resulting OCI source_templates.xxx
+#         will change for each run pipeline, because of and content consistency check would fail if we
+#         try to override the sylva-units artifact with a different one)
 helm_chart_version = os.getenv(
     "HELM_CHART_VERSION",
-    f"0.0.0-git-{subprocess.check_output(['git', 'rev-parse', 'HEAD']).decode().strip()[0:8]}",
+    f"0.0.0-git-{subprocess.check_output(['git', 'rev-parse', 'HEAD']).decode().strip()[0:8]}-{os.getenv("CI_PIPELINE_IID","x")}",
 )
 logger.info(f'helm_chart_version: {helm_chart_version}')
 
