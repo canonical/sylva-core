@@ -4643,6 +4643,24 @@ units:
           name: nfs-ganesha
           allowVolumeExpansion: true
 
+  test-nfs-ganesha:
+    enabled: '{{ .Values.env_type | eq "ci" }}'
+    info:
+      description: Perform testing for RWX enabled PVs created from NFS Ganesha
+      internal: true
+    unit_templates:
+    - base-deps
+    depends_on:
+      namespace-defs: true
+      nfs-ganesha: true
+    enabled_conditions:
+    - '{{ tuple . "nfs-ganesha" | include "unit-enabled" }}'
+    repo: sylva-core
+    kustomization_spec:
+      path: ./kustomize-units/test-nfs-ganesha
+      targetNamespace: nfs-ganesha
+      wait: true
+
   ceph-csi-cephfs:
     info:
       description: Installs Ceph-CSI

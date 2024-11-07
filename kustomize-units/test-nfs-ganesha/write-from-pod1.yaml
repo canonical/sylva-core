@@ -1,0 +1,40 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: write-data-from-pod-1
+spec:
+  ttlSecondsAfterFinished: 7200  # Automatically delete job and pods 120 minutes after completion
+  activeDeadlineSeconds: 600     # 10 minutes max runtime
+  backoffLimit: 3                # Retry up to 3 times on failure
+  template:
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 1
+              podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app: nfs-ganesha-jobs
+                topologyKey: "kubernetes.io/hostname"
+      containers:
+        - name: test-container
+          image: busybox:1.35.0
+          command:
+            - sh
+            - -c
+            - |
+              echo "Writing 10MB data from pod-1"
+              dd if=/dev/zero of=/mnt/pod1-testfile bs=1M count=10
+              echo "Data write in pod-1 complete."
+          volumeMounts:
+            - name: nfs-volume
+              mountPath: /mnt
+      volumes:
+        - name: nfs-volume
+          persistentVolumeClaim:
+            claimName: nfs-ganesha-pvc
+      restartPolicy: Never
+      metadata:
+        labels:
+          app: nfs-ganesha-jobs
