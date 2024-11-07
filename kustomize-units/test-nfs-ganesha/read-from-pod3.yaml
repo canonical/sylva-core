@@ -1,0 +1,57 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: read-data-from-pod-3
+spec:
+  ttlSecondsAfterFinished: 7200  # Automatically delete job and pods 120 minutes after completion
+  activeDeadlineSeconds: 600     # 10 minutes max runtime
+  backoffLimit: 3                # Retry up to 3 times on failure
+  template:
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 1
+              podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app: nfs-ganesha-jobs
+                topologyKey: "kubernetes.io/hostname"
+      containers:
+        - name: test-container
+          image: busybox:1.35.0
+          command:
+            - sh
+            - -c
+            - |
+              echo "Starting read operations in pod-3"
+              # Read and validate pod1-testfile, redirecting output to /dev/null
+              echo "Reading from pod1-testfile:"
+              if cat /mnt/pod1-testfile > /dev/null; then
+                echo "Successfully read data from pod1-testfile"
+              else
+                echo "Failed to read data from pod1-testfile"
+                exit 1
+              fi
+
+              # Read and validate pod2-testfile, redirecting output to /dev/null
+              echo "Reading from pod2-testfile:"
+              if cat /mnt/pod2-testfile > /dev/null; then
+                echo "Successfully read data from pod2-testfile"
+              else
+                echo "Failed to read data from pod2-testfile"
+                exit 1
+              fi
+
+              echo "Read operations from pod-3 complete. Exiting job."
+          volumeMounts:
+            - name: nfs-volume
+              mountPath: /mnt
+      volumes:
+        - name: nfs-volume
+          persistentVolumeClaim:
+            claimName: nfs-ganesha-pvc
+      restartPolicy: Never
+      metadata:
+        labels:
+          app: nfs-ganesha-jobs

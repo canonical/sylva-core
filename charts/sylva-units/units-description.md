@@ -152,6 +152,7 @@
 | **sriov-resources** | configures SRIOV resources |  | True | Helm | N/A |
 | **sylva-ca** | provides a Certificate Authority for units of the Sylva stack |  | True | Kustomize | N/A |
 | **synchronize-secrets** | allows secrets from Vault to be consumed other units, relies on ExternalSecrets |  | True | Kustomize | N/A |
+| **test-nfs-ganesha** | Perform testing for RWX enabled PVs created from NFS Ganesha |  | True | Kustomize | N/A |
 | **thanos-credentials-secret** | create a secret containing tenant's thanos credentials |  | True | Kustomize | N/A |
 | **thanos-init** | sets up thanos certificate<br/><br/>it generates a multiple CN certificate for all Thanos components |  | True | Kustomize | N/A |
 | **thanos-uninstall-pre-upgrade** | special unit to uninstall thanos before cluster upgrades<br/><br/>In 1.1.1 release, thanos was configured to use single-replica-storageclass, As this value can't be updated, and thanos data will be deleted in any case as minio tenant will be deleted, uninstall it prior to upgrade cluster and reinstall it with new values. |  | True | Kustomize | N/A |

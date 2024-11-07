@@ -1,0 +1,8 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: nfs-ganesha
+resources:
+  - create-rwx-enabled-pvc.yaml
+  - write-from-pod1.yaml
+  - write-from-pod2.yaml
+  - read-from-pod3.yaml
