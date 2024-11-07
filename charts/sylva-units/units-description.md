@@ -116,7 +116,7 @@
 | **kyverno-metal3-policies** | kyverno policies specific to capm3-system |  | True | Kustomize | N/A |
 | **kyverno-policies** | configures Kyverno policies |  | True | Kustomize | N/A |
 | **kyverno-policies-ready** | additional delay to ensure that kyverno webhooks are properly installed in api-server |  | True | Kustomize | N/A |
-| **kyverno-policy-delete-kubernetes-vip-svc** | Kyverno policy to cleanup the deprecated kubernetes-vip service in the case of upgrade from Sylva versions <1.2 |  | True | Kustomize | N/A |
+| **kyverno-policy-delete-kubernetes-vip-svc** | Kyverno policy to cleanup the deprecated kubernetes-vip service in the case of upgrade from Sylva versions prior to v1.2 |  | True | Kustomize | N/A |
 | **kyverno-policy-prevent-mgmt-cluster-delete** | Kyverno policies to prevent deletion of critical resources for mgmt cluster |  | True | Kustomize | N/A |
 | **kyverno-update-namespace-and-psa** | grants to Kyverno the permission to update namespaces using the "updatepsa" verb (Rancher-specific)<br/><br/>This unit allows Kyverno to define namespaces with specific PodSecurityAdmission levels. It is useful for situations where namespaces need to be mutated (with PSA labels) in order to accomodate privileged pods (for which PSA level restricted at cluster level is not enough), when namespace creation is not controlled |  | True | Kustomize | N/A |
 | **logging-config** | Configures rancher-logging to ship logs to Loki |  | True | Kustomize | N/A |
