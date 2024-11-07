@@ -352,6 +352,9 @@ units:
     # can be enabled at runtime if desired
     enabled: '{{ .Values.cluster.capi_providers.infra_provider | eq "capm3" }}'
 
+  longhorn-engine-image-cleanup:
+    enabled: true
+
   longhorn-instance-manager-cleanup:
     enabled: true
     kustomization_spec:
@@ -394,6 +397,12 @@ units:
     # in mgmt cluster, kyverno is part of base-deps, so cannot depend on itself, but here in workload-cluster we need it
     unit_templates:
     - base-deps
+
+  kyverno-policy-delete-kubernetes-vip-svc:
+    enabled: true
+    enabled_conditions:
+    - '{{ tuple . "kyverno" | include "unit-enabled"  }}'
+    - '{{ .Values._internal.state.is_upgrade }}'
 
   cluster-import:
     enabled: false  # overriden depending on whether Rancher is enabled or not (eg. via shared-workload-clusters-settings)

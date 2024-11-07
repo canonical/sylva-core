@@ -1072,6 +1072,47 @@ units:
       KEY: '{{ .Values.external_certificates.vault.key | default "" | b64enc }}'
     kustomization_spec:
       path: ./kustomize-units/vault
+      _patches:
+        # Create a list of ACL and read roles, one per team expected to deploy workload clusters. The loop over .Values.workloadcluster.team is done in the Helm template
+        - target:
+            group: vault.banzaicloud.com
+            version: v1alpha1
+            kind: Vault
+            name: vault
+          # Empty patch is not allowed, hence the if (no workload cluster teams) then dummy patch (which is always true)
+          patch: |
+            {{- if .Values.workload_cluster_teams -}}
+            {{- range $name, $_ := .Values.workload_cluster_teams }}
+            - op: add
+              path: /spec/externalConfig/policies/-
+              value:
+                name: secret-reader-{{ $name }}
+                rules: |
+                  path "secret/data/{{ $name }}/*" {
+                    capabilities = [ "read", "list" ]
+                  }
+            - op: add
+              path: /spec/externalConfig/policies/-
+              value:
+                name: secret-writer-{{ $name }}
+                rules: |
+                  path "secret/data/{{ $name }}/*" {
+                    capabilities = [ "create", "update", "delete" ]
+                  }
+            - op: add
+              path: /spec/externalConfig/auth/0/roles/-
+              value:
+                name: secret-reader-{{ $name }}
+                bound_service_account_names: ["default", "vault-secrets-webhook", "vault"]
+                bound_service_account_namespaces: ["vault"]
+                policies: [ "secret-reader-{{ $name }}"]
+                ttl: 1h
+            {{- end}}
+            {{- else -}}
+            - op: test
+              path: /spec/externalConfig/secrets/0/type
+              value: kv
+            {{- end -}}
       postBuild:
         substitute:
           VAULT_DNS: '{{ .Values.external_hostnames.vault }}'
@@ -1805,6 +1846,11 @@ units:
               - apiGroups: [""]
                 resources:
                   - nodes
+                  - services
+                verbs: ["get", "list", "watch", "patch", "update", "delete"]
+              - apiGroups: ["longhorn.io"]
+                resources:
+                  - engineimages
                 verbs: ["get", "list", "watch", "patch", "update", "delete"]
           serviceMonitor:
             enabled: '{{ .Values._internal.monitoring.enabled | include "preserve-type" }}'
@@ -1925,6 +1971,23 @@ units:
             value: |
               #!/bin/bash
               sleep 60
+
+  kyverno-policy-delete-kubernetes-vip-svc:
+    info:
+      description: Kyverno policy to cleanup the deprecated kubernetes-vip service in the case of upgrade from Sylva versions <1.2
+      internal: true
+    enabled_conditions:
+    - '{{ tuple . "kyverno" | include "unit-enabled"  }}'
+    - '{{ lookup "v1" "Service" "kube-system" "kubernetes-vip" | empty | not }}'
+    depends_on:
+      cluster-machines-ready: true
+      kyverno: true
+    unit_templates:
+    - base-deps
+    repo: sylva-core
+    kustomization_spec:
+      path: ./kustomize-units/kyverno-policies/remove-kubernetes-vip-svc
+      wait: true
 
   kyverno-metal3-policies:
     info:
@@ -4421,6 +4484,8 @@ units:
       targetNamespace: kube-system
       install:
         createNamespace: false
+      upgrade:
+        crds: CreateReplace
       values:
         rke2-whereabouts:
           enabled: true
@@ -4620,6 +4685,24 @@ units:
           name: nfs-ganesha
           allowVolumeExpansion: true
 
+  test-nfs-ganesha:
+    enabled: '{{ .Values.env_type | eq "ci" }}'
+    info:
+      description: Perform testing for RWX enabled PVs created from NFS Ganesha
+      internal: true
+    unit_templates:
+    - base-deps
+    depends_on:
+      namespace-defs: true
+      nfs-ganesha: true
+    enabled_conditions:
+    - '{{ tuple . "nfs-ganesha" | include "unit-enabled" }}'
+    repo: sylva-core
+    kustomization_spec:
+      path: ./kustomize-units/test-nfs-ganesha
+      targetNamespace: nfs-ganesha
+      wait: true
+
   ceph-csi-cephfs:
     info:
       description: Installs Ceph-CSI
@@ -4706,6 +4789,23 @@ units:
           storageMinimalAvailablePercentage: 10
           replicaReplenishmentWaitInterval: '{{ .Values.cluster.capi_providers.infra_provider | eq "capm3" | ternary 3600 600 | include "preserve-type" }}'
           nodeDrainPolicy: block-for-eviction-if-contains-last-replica
+          concurrentAutomaticEngineUpgradePerNodeLimit: 3
+
+  longhorn-engine-image-cleanup:
+    info:
+      description: kyverno cleanup policy to delete old Longhorn engineimages that are left-over after upgrade
+      internal: true
+    enabled_conditions:
+    - '{{ tuple . "longhorn" | include "unit-enabled" }}'
+    - '{{ tuple . "kyverno" | include "unit-enabled" }}'
+    depends_on:
+      longhorn: true
+      kyverno: true
+    unit_templates:
+    - base-deps
+    repo: sylva-core
+    kustomization_spec:
+      path: ./kustomize-units/kyverno-policies/longhorn-engine-image-cleanup
 
   longhorn-instance-manager-cleanup:
     info:

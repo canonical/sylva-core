@@ -116,11 +116,13 @@
 | **kyverno-metal3-policies** | kyverno policies specific to capm3-system |  | True | Kustomize | N/A |
 | **kyverno-policies** | configures Kyverno policies |  | True | Kustomize | N/A |
 | **kyverno-policies-ready** | additional delay to ensure that kyverno webhooks are properly installed in api-server |  | True | Kustomize | N/A |
+| **kyverno-policy-delete-kubernetes-vip-svc** | Kyverno policy to cleanup the deprecated kubernetes-vip service in the case of upgrade from Sylva versions <1.2 |  | True | Kustomize | N/A |
 | **kyverno-policy-prevent-mgmt-cluster-delete** | Kyverno policies to prevent deletion of critical resources for mgmt cluster |  | True | Kustomize | N/A |
 | **kyverno-update-namespace-and-psa** | grants to Kyverno the permission to update namespaces using the "updatepsa" verb (Rancher-specific)<br/><br/>This unit allows Kyverno to define namespaces with specific PodSecurityAdmission levels. It is useful for situations where namespaces need to be mutated (with PSA labels) in order to accomodate privileged pods (for which PSA level restricted at cluster level is not enough), when namespace creation is not controlled |  | True | Kustomize | N/A |
 | **logging-config** | Configures rancher-logging to ship logs to Loki |  | True | Kustomize | N/A |
 | **loki-credentials-secret** | create a secret containing tenant's loki credentials |  | True | Kustomize | N/A |
 | **loki-init** | sets up Loki certificate<br/><br/>it generate certificate |  | True | Kustomize | N/A |
+| **longhorn-engine-image-cleanup** | kyverno cleanup policy to delete old Longhorn engineimages that are left-over after upgrade |  | True | Kustomize | N/A |
 | **longhorn-instance-manager-cleanup** | cronjob to cleanup Longhorn instance-manager pods that are preventing node drain |  | True | Kustomize | N/A |
 | **management-cluster-configs** | copies configuration object in management cluster during bootstrap |  | True | Kustomize | N/A |
 | **management-cluster-flux** | installs flux in management cluster during bootstrap |  | True | Kustomize | N/A |
@@ -154,6 +156,7 @@
 | **sriov-resources** | configures SRIOV resources |  | True | Helm | N/A |
 | **sylva-ca** | provides a Certificate Authority for units of the Sylva stack |  | True | Kustomize | N/A |
 | **synchronize-secrets** | allows secrets from Vault to be consumed other units, relies on ExternalSecrets |  | True | Kustomize | N/A |
+| **test-nfs-ganesha** | Perform testing for RWX enabled PVs created from NFS Ganesha |  | True | Kustomize | N/A |
 | **thanos-credentials-secret** | create a secret containing tenant's thanos credentials |  | True | Kustomize | N/A |
 | **thanos-init** | sets up thanos certificate<br/><br/>it generates a multiple CN certificate for all Thanos components |  | True | Kustomize | N/A |
 | **thanos-uninstall-pre-upgrade** | special unit to uninstall thanos before cluster upgrades<br/><br/>In 1.1.1 release, thanos was configured to use single-replica-storageclass, As this value can't be updated, and thanos data will be deleted in any case as minio tenant will be deleted, uninstall it prior to upgrade cluster and reinstall it with new values. |  | True | Kustomize | N/A |

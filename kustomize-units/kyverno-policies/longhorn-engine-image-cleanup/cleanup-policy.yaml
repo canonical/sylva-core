@@ -1,0 +1,39 @@
+
+---
+apiVersion: kyverno.io/v2
+kind: CleanupPolicy
+metadata:
+  name: engine-image-cleanup
+  namespace: longhorn-system
+  annotations:
+    kustomize.toolkit.fluxcd.io/force: Enabled
+    policies.kyverno.io/title: Delete old engineimages that are left-over after upgrade
+    policies.kyverno.io/minversion: 1.12.0
+spec:
+  schedule: "*/20 * * * *"
+  match:
+    any:
+    - resources:
+        kinds:
+          - longhorn.io/*/EngineImage
+  context:
+  - name: latestVersion
+    apiCall:
+      urlPath: "/apis/longhorn.io/v1beta2/namespaces/longhorn-system/engineimages"
+      jmesPath: >-
+        items[].status.version
+        | map(&trim_prefix(@, 'v')
+        | split(@, '.'), @)
+        | sort_by(@, &to_number([2]))
+        | sort_by(@, &to_number([1]))
+        | sort_by(@, &to_number([0]))
+        | [-1]
+        | join('.', @)
+  conditions:
+    all:
+    - key: "{{ target.status.version || '' }}"
+      operator: NotEquals
+      value: "v{{ latestVersion }}"
+    - key: "{{ target.status.refCount || '' }}"
+      operator: Equals
+      value: "0"
