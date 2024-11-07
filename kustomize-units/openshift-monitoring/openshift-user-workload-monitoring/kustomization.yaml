@@ -3,4 +3,4 @@ kind: Kustomization
 
 resources:
   - thanos-receive-secret.yaml
-  - user-workload-monitoring-config.yaml 
+  - user-workload-monitoring-config.yaml
