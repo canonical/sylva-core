@@ -122,6 +122,7 @@
 | **logging-config** | Configures rancher-logging to ship logs to Loki |  | True | Kustomize | N/A |
 | **loki-credentials-secret** | create a secret containing tenant's loki credentials |  | True | Kustomize | N/A |
 | **loki-init** | sets up Loki certificate<br/><br/>it generate certificate |  | True | Kustomize | N/A |
+| **longhorn-engine-image-cleanup** | kyverno cleanup policy to delete old Longhorn engineimages that are left-over after upgrade |  | True | Kustomize | N/A |
 | **longhorn-instance-manager-cleanup** | cronjob to cleanup Longhorn instance-manager pods that are preventing node drain |  | True | Kustomize | N/A |
 | **management-cluster-configs** | copies configuration object in management cluster during bootstrap |  | True | Kustomize | N/A |
 | **management-cluster-flux** | installs flux in management cluster during bootstrap |  | True | Kustomize | N/A |
