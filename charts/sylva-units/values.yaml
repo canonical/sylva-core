@@ -1846,6 +1846,7 @@ units:
               - apiGroups: [""]
                 resources:
                   - nodes
+                  - services
                 verbs: ["get", "list", "watch", "patch", "update", "delete"]
               - apiGroups: ["longhorn.io"]
                 resources:
@@ -1971,6 +1972,23 @@ units:
             value: |
               #!/bin/bash
               sleep 60
+
+  kyverno-policy-delete-kubernetes-vip-svc:
+    info:
+      description: Kyverno policy to cleanup the deprecated kubernetes-vip service in the case of upgrade from Sylva versions <1.2
+      internal: true
+    enabled_conditions:
+    - '{{ tuple . "kyverno" | include "unit-enabled"  }}'
+    - '{{ lookup "v1" "Service" "kube-system" "kubernetes-vip" | empty | not }}'
+    depends_on:
+      cluster-machines-ready: true
+      kyverno: true
+    unit_templates:
+    - base-deps
+    repo: sylva-core
+    kustomization_spec:
+      path: ./kustomize-units/kyverno-policies/remove-kubernetes-vip-svc
+      wait: true
 
   kyverno-metal3-policies:
     info:
