@@ -2,7 +2,8 @@
 apiVersion: neuvector.com/v1
 kind: NvSecurityRule
 metadata:
-  name: nv.cloud-controller-manager-mgmt-cluster-cp.kube-system
+  creationTimestamp: null
+  name: nv.cloud-controller-manager-main-mgmt-cp.kube-system
   namespace: kube-system
 spec:
   dlp:
@@ -29,11 +30,15 @@ spec:
       criteria:
       - key: service
         op: =
-        value: cloud-controller-manager-mgmt-cluster-cp.kube-system
+        value: cloud-controller-manager-main-mgmt-cp.kube-system
       - key: domain
         op: =
         value: kube-system
-      name: nv.cloud-controller-manager-mgmt-cluster-cp.kube-system
+      grp_band_width: 0
+      grp_sess_cur: 0
+      grp_sess_rate: 0
+      mon_metric: false
+      name: nv.cloud-controller-manager-main-mgmt-cp.kube-system
       original_name: ''
   waf:
     settings: []
@@ -42,7 +47,8 @@ spec:
 apiVersion: neuvector.com/v1
 kind: NvSecurityRule
 metadata:
-  name: nv.etcd-mgmt-cluster-cp.kube-system
+  creationTimestamp: null
+  name: nv.etcd-main-mgmt-cp.kube-system
   namespace: kube-system
 spec:
   dlp:
@@ -69,11 +75,15 @@ spec:
       criteria:
       - key: service
         op: =
-        value: etcd-mgmt-cluster-cp.kube-system
+        value: etcd-main-mgmt-cp.kube-system
       - key: domain
         op: =
         value: kube-system
-      name: nv.etcd-mgmt-cluster-cp.kube-system
+      grp_band_width: 0
+      grp_sess_cur: 0
+      grp_sess_rate: 0
+      mon_metric: false
+      name: nv.etcd-main-mgmt-cp.kube-system
       original_name: ''
   waf:
     settings: []
@@ -82,51 +92,203 @@ spec:
 apiVersion: neuvector.com/v1
 kind: NvSecurityRule
 metadata:
-  name: nv.helm-install-rke2-calico.kube-system
+  creationTimestamp: null
+  name: nv.ip.cluster-vip.kube-system
   namespace: kube-system
 spec:
-  dlp:
-    settings: []
-    status: true
   egress: []
   file: []
   ingress: []
-  process:
-  - action: allow
-    allow_update: false
-    name: entry
-    path: /bin/bash
-  - action: allow
-    allow_update: false
-    name: helm_v3
-    path: /usr/bin/helm_v3
-  - action: allow
-    allow_update: false
-    name: pause
-    path: /pause
-  process_profile:
-    baseline: zero-drift
+  process: []
   target:
-    policymode: Monitor
+    policymode: N/A
     selector:
       comment: ''
       criteria:
-      - key: service
+      - key: address
         op: =
-        value: helm-install-rke2-calico.kube-system
+        value: 100.73.53.92
       - key: domain
         op: =
         value: kube-system
-      name: nv.helm-install-rke2-calico.kube-system
+      - key: label
+        op: =
+        value: component=kube-apiserver
+      name: nv.ip.cluster-vip.kube-system
       original_name: ''
-  waf:
-    settings: []
-    status: true
 ---
 apiVersion: neuvector.com/v1
 kind: NvSecurityRule
 metadata:
-  name: nv.kube-apiserver-mgmt-cluster-cp.kube-system
+  creationTimestamp: null
+  name: nv.ip.rke2-coredns-rke2-coredns.kube-system
+  namespace: kube-system
+spec:
+  egress: []
+  file: []
+  ingress: []
+  process: []
+  target:
+    policymode: N/A
+    selector:
+      comment: ''
+      criteria:
+      - key: address
+        op: =
+        value: 100.73.0.10
+      - key: domain
+        op: =
+        value: kube-system
+      - key: label
+        op: =
+        value: app.kubernetes.io/instance=rke2-coredns
+      - key: label
+        op: =
+        value: app.kubernetes.io/name=rke2-coredns
+      - key: label
+        op: =
+        value: k8s-app=kube-dns
+      name: nv.ip.rke2-coredns-rke2-coredns.kube-system
+      original_name: ''
+---
+apiVersion: neuvector.com/v1
+kind: NvSecurityRule
+metadata:
+  creationTimestamp: null
+  name: nv.ip.rke2-ingress-nginx-controller-admission.kube-system
+  namespace: kube-system
+spec:
+  egress: []
+  file: []
+  ingress: []
+  process: []
+  target:
+    policymode: N/A
+    selector:
+      comment: ''
+      criteria:
+      - key: address
+        op: =
+        value: 100.73.67.58
+      - key: domain
+        op: =
+        value: kube-system
+      - key: label
+        op: =
+        value: app.kubernetes.io/name=rke2-ingress-nginx
+      - key: label
+        op: =
+        value: app.kubernetes.io/component=controller
+      - key: label
+        op: =
+        value: app.kubernetes.io/instance=rke2-ingress-nginx
+      name: nv.ip.rke2-ingress-nginx-controller-admission.kube-system
+      original_name: ''
+---
+apiVersion: neuvector.com/v1
+kind: NvSecurityRule
+metadata:
+  creationTimestamp: null
+  name: nv.ip.rke2-ingress-nginx-controller.kube-system
+  namespace: kube-system
+spec:
+  egress: []
+  file: []
+  ingress: []
+  process: []
+  target:
+    policymode: N/A
+    selector:
+      comment: ''
+      criteria:
+      - key: address
+        op: =
+        value: 100.73.117.84
+      - key: domain
+        op: =
+        value: kube-system
+      - key: label
+        op: =
+        value: app.kubernetes.io/component=controller
+      - key: label
+        op: =
+        value: app.kubernetes.io/instance=rke2-ingress-nginx
+      - key: label
+        op: =
+        value: app.kubernetes.io/name=rke2-ingress-nginx
+      name: nv.ip.rke2-ingress-nginx-controller.kube-system
+      original_name: ''
+---
+apiVersion: neuvector.com/v1
+kind: NvSecurityRule
+metadata:
+  creationTimestamp: null
+  name: nv.ip.rke2-metrics-server.kube-system
+  namespace: kube-system
+spec:
+  egress: []
+  file: []
+  ingress: []
+  process: []
+  target:
+    policymode: N/A
+    selector:
+      comment: ''
+      criteria:
+      - key: address
+        op: =
+        value: 100.73.9.179
+      - key: domain
+        op: =
+        value: kube-system
+      - key: label
+        op: =
+        value: app=rke2-metrics-server
+      - key: label
+        op: =
+        value: app.kubernetes.io/instance=rke2-metrics-server
+      - key: label
+        op: =
+        value: app.kubernetes.io/name=rke2-metrics-server
+      name: nv.ip.rke2-metrics-server.kube-system
+      original_name: ''
+---
+apiVersion: neuvector.com/v1
+kind: NvSecurityRule
+metadata:
+  creationTimestamp: null
+  name: nv.ip.rke2-snapshot-validation-webhook.kube-system
+  namespace: kube-system
+spec:
+  egress: []
+  file: []
+  ingress: []
+  process: []
+  target:
+    policymode: N/A
+    selector:
+      comment: ''
+      criteria:
+      - key: address
+        op: =
+        value: 100.73.10.70
+      - key: domain
+        op: =
+        value: kube-system
+      - key: label
+        op: =
+        value: app.kubernetes.io/instance=rke2-snapshot-validation-webhook
+      - key: label
+        op: =
+        value: app.kubernetes.io/name=rke2-snapshot-validation-webhook
+      name: nv.ip.rke2-snapshot-validation-webhook.kube-system
+      original_name: ''
+---
+apiVersion: neuvector.com/v1
+kind: NvSecurityRule
+metadata:
+  creationTimestamp: null
+  name: nv.kube-apiserver-main-mgmt-cp.kube-system
   namespace: kube-system
 spec:
   dlp:
@@ -138,143 +300,7 @@ spec:
   - action: allow
     applications:
     - any
-    name: nv.kube-apiserver-mgmt-cluster-cp.kube-system-ingress-76
-    ports: tcp/6443
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: minio-operator.minio-operator
-      - key: domain
-        op: =
-        value: minio-operator
-      name: nv.minio-operator.minio-operator
-      original_name: ''
-  - action: allow
-    applications:
-    - any
-    name: nv.kube-apiserver-mgmt-cluster-cp.kube-system-ingress-77
-    ports: tcp/6443
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: rke2-bootstrap-controller-manager.rke2-bootstrap-system
-      - key: domain
-        op: =
-        value: rke2-bootstrap-system
-      name: nv.rke2-bootstrap-controller-manager.rke2-bootstrap-system
-      original_name: ''
-  - action: allow
-    applications:
-    - any
-    name: nv.kube-apiserver-mgmt-cluster-cp.kube-system-ingress-78
-    ports: tcp/6443
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: rancher.cattle-system
-      - key: domain
-        op: =
-        value: cattle-system
-      name: nv.rancher.cattle-system
-      original_name: ''
-  - action: allow
-    applications:
-    - any
-    name: nv.kube-apiserver-mgmt-cluster-cp.kube-system-ingress-79
-    ports: tcp/6443
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: rancher-webhook.cattle-system
-      - key: domain
-        op: =
-        value: cattle-system
-      name: nv.rancher-webhook.cattle-system
-      original_name: ''
-  - action: allow
-    applications:
-    - any
-    name: nv.kube-apiserver-mgmt-cluster-cp.kube-system-ingress-80
-    ports: tcp/6443
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: rke2-snapshot-validation-webhook.kube-system
-      - key: domain
-        op: =
-        value: kube-system
-      name: nv.rke2-snapshot-validation-webhook.kube-system
-      original_name: ''
-  - action: allow
-    applications:
-    - any
-    name: nv.kube-apiserver-mgmt-cluster-cp.kube-system-ingress-81
-    ports: tcp/6443
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: rke2-coredns-rke2-coredns.kube-system
-      - key: domain
-        op: =
-        value: kube-system
-      name: nv.rke2-coredns-rke2-coredns.kube-system
-      original_name: ''
-  - action: allow
-    applications:
-    - any
-    name: nv.kube-apiserver-mgmt-cluster-cp.kube-system-ingress-82
-    ports: tcp/6443
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: openstack-cinder-csi-controllerplugin.cinder-csi
-      - key: domain
-        op: =
-        value: cinder-csi
-      name: nv.openstack-cinder-csi-controllerplugin.cinder-csi
-      original_name: ''
-  - action: allow
-    applications:
-    - any
-    name: nv.kube-apiserver-mgmt-cluster-cp.kube-system-ingress-83
-    ports: tcp/6443
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: migrator.kube-storage-version-migrator
-      - key: domain
-        op: =
-        value: kube-storage-version-migrator
-      name: nv.migrator.kube-storage-version-migrator
-      original_name: ''
-  - action: allow
-    applications:
-    - any
-    name: nv.kube-apiserver-mgmt-cluster-cp.kube-system-ingress-84
+    name: nv.kube-apiserver-main-mgmt-cp.kube-system-ingress-27
     ports: tcp/6443
     priority: 0
     selector:
@@ -291,7 +317,7 @@ spec:
   - action: allow
     applications:
     - any
-    name: nv.kube-apiserver-mgmt-cluster-cp.kube-system-ingress-85
+    name: nv.kube-apiserver-main-mgmt-cp.kube-system-ingress-28
     ports: tcp/6443
     priority: 0
     selector:
@@ -299,16 +325,16 @@ spec:
       criteria:
       - key: service
         op: =
-        value: kyverno-admission-controller.kyverno
+        value: monitoring-pool-0.minio-monitoring
       - key: domain
         op: =
-        value: kyverno
-      name: nv.kyverno-admission-controller.kyverno
+        value: minio-monitoring
+      name: nv.monitoring-pool-0.minio-monitoring
       original_name: ''
   - action: allow
     applications:
     - any
-    name: nv.kube-apiserver-mgmt-cluster-cp.kube-system-ingress-86
+    name: nv.kube-apiserver-main-mgmt-cp.kube-system-ingress-29
     ports: tcp/6443
     priority: 0
     selector:
@@ -316,16 +342,16 @@ spec:
       criteria:
       - key: service
         op: =
-        value: monitoring-pool-0.minio-monitoring-tenant
+        value: metallb-controller.metallb-system
       - key: domain
         op: =
-        value: minio-monitoring-tenant
-      name: nv.monitoring-pool-0.minio-monitoring-tenant
+        value: metallb-system
+      name: nv.metallb-controller.metallb-system
       original_name: ''
   - action: allow
     applications:
     - any
-    name: nv.kube-apiserver-mgmt-cluster-cp.kube-system-ingress-87
+    name: nv.kube-apiserver-main-mgmt-cp.kube-system-ingress-30
     ports: tcp/6443
     priority: 0
     selector:
@@ -333,16 +359,16 @@ spec:
       criteria:
       - key: service
         op: =
-        value: local-path-provisioner.kube-system
+        value: rke2-metrics-server.kube-system
       - key: domain
         op: =
         value: kube-system
-      name: nv.local-path-provisioner.kube-system
+      name: nv.rke2-metrics-server.kube-system
       original_name: ''
   - action: allow
     applications:
     - any
-    name: nv.kube-apiserver-mgmt-cluster-cp.kube-system-ingress-88
+    name: nv.kube-apiserver-main-mgmt-cp.kube-system-ingress-31
     ports: tcp/6443
     priority: 0
     selector:
@@ -350,16 +376,16 @@ spec:
       criteria:
       - key: service
         op: =
-        value: kustomize-controller.flux-system
+        value: rke2-snapshot-validation-webhook.kube-system
       - key: domain
         op: =
-        value: flux-system
-      name: nv.kustomize-controller.flux-system
+        value: kube-system
+      name: nv.rke2-snapshot-validation-webhook.kube-system
       original_name: ''
   - action: allow
     applications:
     - any
-    name: nv.kube-apiserver-mgmt-cluster-cp.kube-system-ingress-89
+    name: nv.kube-apiserver-main-mgmt-cp.kube-system-ingress-32
     ports: tcp/6443
     priority: 0
     selector:
@@ -367,16 +393,16 @@ spec:
       criteria:
       - key: service
         op: =
-        value: notification-controller.flux-system
+        value: logging-pool-0.minio-logging
       - key: domain
         op: =
-        value: flux-system
-      name: nv.notification-controller.flux-system
+        value: minio-logging
+      name: nv.logging-pool-0.minio-logging
       original_name: ''
   - action: allow
     applications:
     - any
-    name: nv.kube-apiserver-mgmt-cluster-cp.kube-system-ingress-90
+    name: nv.kube-apiserver-main-mgmt-cp.kube-system-ingress-33
     ports: tcp/6443
     priority: 0
     selector:
@@ -384,322 +410,16 @@ spec:
       criteria:
       - key: service
         op: =
-        value: vault.vault
-      - key: domain
-        op: =
-        value: vault
-      name: nv.vault.vault
-      original_name: ''
-  - action: allow
-    applications:
-    - any
-    name: nv.kube-apiserver-mgmt-cluster-cp.kube-system-ingress-91
-    ports: tcp/6443
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: kyverno-reports-controller.kyverno
-      - key: domain
-        op: =
-        value: kyverno
-      name: nv.kyverno-reports-controller.kyverno
-      original_name: ''
-  - action: allow
-    applications:
-    - any
-    name: nv.kube-apiserver-mgmt-cluster-cp.kube-system-ingress-92
-    ports: tcp/6443
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: logging-rancher-logging.cattle-logging-system
-      - key: domain
-        op: =
-        value: cattle-logging-system
-      name: nv.logging-rancher-logging.cattle-logging-system
-      original_name: ''
-  - action: allow
-    applications:
-    - any
-    name: nv.kube-apiserver-mgmt-cluster-cp.kube-system-ingress-93
-    ports: tcp/6443
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: workload-cluster-operator-controller-manager.workload-cluster-operator-system
-      - key: domain
-        op: =
-        value: workload-cluster-operator-system
-      name: nv.workload-cluster-operator-controller-manager.workload-cluster-operator-system
-      original_name: ''
-  - action: allow
-    applications:
-    - any
-    name: nv.kube-apiserver-mgmt-cluster-cp.kube-system-ingress-94
-    ports: tcp/6443
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: logging-root-fluentbit.cattle-logging-system
-      - key: domain
-        op: =
-        value: cattle-logging-system
-      name: nv.logging-root-fluentbit.cattle-logging-system
-      original_name: ''
-  - action: allow
-    applications:
-    - any
-    name: nv.kube-apiserver-mgmt-cluster-cp.kube-system-ingress-95
-    ports: tcp/6443
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: kyverno-background-controller.kyverno
-      - key: domain
-        op: =
-        value: kyverno
-      name: nv.kyverno-background-controller.kyverno
-      original_name: ''
-  - action: allow
-    applications:
-    - SSL
-    name: nv.kube-apiserver-mgmt-cluster-cp.kube-system-ingress-96
-    ports: any
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: prometheus-rancher-monitoring-prometheus.cattle-monitoring-system
-      - key: domain
-        op: =
-        value: cattle-monitoring-system
-      name: nv.prometheus-rancher-monitoring-prometheus.cattle-monitoring-system
-      original_name: ''
-  - action: allow
-    applications:
-    - any
-    name: nv.kube-apiserver-mgmt-cluster-cp.kube-system-ingress-97
-    ports: tcp/6443
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: vault-config-operator.vault
-      - key: domain
-        op: =
-        value: vault
-      name: nv.vault-config-operator.vault
-      original_name: ''
-  - action: allow
-    applications:
-    - any
-    name: nv.kube-apiserver-mgmt-cluster-cp.kube-system-ingress-98
-    ports: tcp/6443
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: rancher-monitoring-operator.cattle-monitoring-system
-      - key: domain
-        op: =
-        value: cattle-monitoring-system
-      name: nv.rancher-monitoring-operator.cattle-monitoring-system
-      original_name: ''
-  - action: allow
-    applications:
-    - any
-    name: nv.kube-apiserver-mgmt-cluster-cp.kube-system-ingress-99
-    ports: tcp/6443
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: rke2-control-plane-controller-manager.rke2-control-plane-system
-      - key: domain
-        op: =
-        value: rke2-control-plane-system
-      name: nv.rke2-control-plane-controller-manager.rke2-control-plane-system
-      original_name: ''
-  - action: allow
-    applications:
-    - any
-    name: nv.kube-apiserver-mgmt-cluster-cp.kube-system-ingress-100
-    ports: tcp/6443
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: rancher-monitoring-kube-state-metrics.cattle-monitoring-system
-      - key: domain
-        op: =
-        value: cattle-monitoring-system
-      name: nv.rancher-monitoring-kube-state-metrics.cattle-monitoring-system
-      original_name: ''
-  - action: allow
-    applications:
-    - any
-    name: nv.kube-apiserver-mgmt-cluster-cp.kube-system-ingress-101
-    ports: tcp/6443
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: trigger.kube-storage-version-migrator
-      - key: domain
-        op: =
-        value: kube-storage-version-migrator
-      name: nv.trigger.kube-storage-version-migrator
-      original_name: ''
-  - action: allow
-    applications:
-    - any
-    name: nv.kube-apiserver-mgmt-cluster-cp.kube-system-ingress-102
-    ports: tcp/6443
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: source-controller.flux-system
-      - key: domain
-        op: =
-        value: flux-system
-      name: nv.source-controller.flux-system
-      original_name: ''
-  - action: allow
-    applications:
-    - any
-    name: nv.kube-apiserver-mgmt-cluster-cp.kube-system-ingress-103
-    ports: tcp/6443
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: sylva-units-operator-controller-manager.sylva-units-operator-system
-      - key: domain
-        op: =
-        value: sylva-units-operator-system
-      name: nv.sylva-units-operator-controller-manager.sylva-units-operator-system
-      original_name: ''
-  - action: allow
-    applications:
-    - any
-    name: nv.kube-apiserver-mgmt-cluster-cp.kube-system-ingress-104
-    ports: tcp/6443
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: vault-operator.vault
-      - key: domain
-        op: =
-        value: vault
-      name: nv.vault-operator.vault
-      original_name: ''
-  - action: allow
-    applications:
-    - any
-    name: nv.kube-apiserver-mgmt-cluster-cp.kube-system-ingress-105
-    ports: tcp/6443
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: postgres-read.keycloak
-      - key: domain
-        op: =
-        value: keycloak
-      name: nv.postgres-read.keycloak
-      original_name: ''
-  - action: allow
-    applications:
-    - any
-    name: nv.kube-apiserver-mgmt-cluster-cp.kube-system-ingress-106
-    ports: tcp/6443
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: vault-configurer.vault
-      - key: domain
-        op: =
-        value: vault
-      name: nv.vault-configurer.vault
-      original_name: ''
-  - action: allow
-    applications:
-    - any
-    name: nv.kube-apiserver-mgmt-cluster-cp.kube-system-ingress-107
-    ports: tcp/6443
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: thanos-ruler.thanos
-      - key: domain
-        op: =
-        value: thanos
-      name: nv.thanos-ruler.thanos
-      original_name: ''
-  - action: allow
-    applications:
-    - any
-    name: nv.kube-apiserver-mgmt-cluster-cp.kube-system-ingress-108
-    ports: tcp/6443
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: loki-gateway.loki
+        value: loki-backend.loki
       - key: domain
         op: =
         value: loki
-      name: nv.loki-gateway.loki
+      name: nv.loki-backend.loki
       original_name: ''
   - action: allow
     applications:
     - any
-    name: nv.kube-apiserver-mgmt-cluster-cp.kube-system-ingress-109
+    name: nv.kube-apiserver-main-mgmt-cp.kube-system-ingress-34
     ports: tcp/6443
     priority: 0
     selector:
@@ -707,67 +427,16 @@ spec:
       criteria:
       - key: service
         op: =
-        value: prometheus-rancher-monitoring-prometheus.cattle-monitoring-system
+        value: rancher.cattle-system
       - key: domain
         op: =
-        value: cattle-monitoring-system
-      name: nv.prometheus-rancher-monitoring-prometheus.cattle-monitoring-system
+        value: cattle-system
+      name: nv.rancher.cattle-system
       original_name: ''
   - action: allow
     applications:
     - any
-    name: nv.kube-apiserver-mgmt-cluster-cp.kube-system-ingress-110
-    ports: tcp/6443
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: kyverno-cleanup-controller.kyverno
-      - key: domain
-        op: =
-        value: kyverno
-      name: nv.kyverno-cleanup-controller.kyverno
-      original_name: ''
-  - action: allow
-    applications:
-    - any
-    name: nv.kube-apiserver-mgmt-cluster-cp.kube-system-ingress-111
-    ports: tcp/6443
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: rancher-monitoring-grafana.cattle-monitoring-system
-      - key: domain
-        op: =
-        value: cattle-monitoring-system
-      name: nv.rancher-monitoring-grafana.cattle-monitoring-system
-      original_name: ''
-  - action: allow
-    applications:
-    - any
-    name: nv.kube-apiserver-mgmt-cluster-cp.kube-system-ingress-112
-    ports: tcp/6443
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: rke2-coredns-rke2-coredns-autoscaler.kube-system
-      - key: domain
-        op: =
-        value: kube-system
-      name: nv.rke2-coredns-rke2-coredns-autoscaler.kube-system
-      original_name: ''
-  - action: allow
-    applications:
-    - any
-    name: nv.kube-apiserver-mgmt-cluster-cp.kube-system-ingress-113
+    name: nv.kube-apiserver-main-mgmt-cp.kube-system-ingress-35
     ports: tcp/6443
     priority: 0
     selector:
@@ -784,7 +453,7 @@ spec:
   - action: allow
     applications:
     - any
-    name: nv.kube-apiserver-mgmt-cluster-cp.kube-system-ingress-114
+    name: nv.kube-apiserver-main-mgmt-cp.kube-system-ingress-36
     ports: tcp/6443
     priority: 0
     selector:
@@ -792,16 +461,16 @@ spec:
       criteria:
       - key: service
         op: =
-        value: rancher-monitoring-prometheus-adapter.cattle-monitoring-system
+        value: rke2-coredns-rke2-coredns-autoscaler.kube-system
       - key: domain
         op: =
-        value: cattle-monitoring-system
-      name: nv.rancher-monitoring-prometheus-adapter.cattle-monitoring-system
+        value: kube-system
+      name: nv.rke2-coredns-rke2-coredns-autoscaler.kube-system
       original_name: ''
   - action: allow
     applications:
     - any
-    name: nv.kube-apiserver-mgmt-cluster-cp.kube-system-ingress-115
+    name: nv.kube-apiserver-main-mgmt-cp.kube-system-ingress-37
     ports: tcp/6443
     priority: 0
     selector:
@@ -809,11 +478,266 @@ spec:
       criteria:
       - key: service
         op: =
-        value: metallb-controller.metallb-system
+        value: rke2-coredns-rke2-coredns.kube-system
       - key: domain
         op: =
-        value: metallb-system
-      name: nv.metallb-controller.metallb-system
+        value: kube-system
+      name: nv.rke2-coredns-rke2-coredns.kube-system
+      original_name: ''
+  - action: allow
+    applications:
+    - any
+    name: nv.kube-apiserver-main-mgmt-cp.kube-system-ingress-38
+    ports: tcp/6443
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: minio-operator.minio-operator
+      - key: domain
+        op: =
+        value: minio-operator
+      name: nv.minio-operator.minio-operator
+      original_name: ''
+  - action: allow
+    applications:
+    - any
+    name: nv.kube-apiserver-main-mgmt-cp.kube-system-ingress-39
+    ports: tcp/6443
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: rancher-monitoring-operator.cattle-monitoring-system
+      - key: domain
+        op: =
+        value: cattle-monitoring-system
+      name: nv.rancher-monitoring-operator.cattle-monitoring-system
+      original_name: ''
+  - action: allow
+    applications:
+    - SSL
+    name: nv.kube-apiserver-main-mgmt-cp.kube-system-ingress-40
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: prometheus-rancher-monitoring-prometheus.cattle-monitoring-system
+      - key: domain
+        op: =
+        value: cattle-monitoring-system
+      name: nv.prometheus-rancher-monitoring-prometheus.cattle-monitoring-system
+      original_name: ''
+  - action: allow
+    applications:
+    - any
+    name: nv.kube-apiserver-main-mgmt-cp.kube-system-ingress-41
+    ports: tcp/6443
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: rancher-monitoring-grafana.cattle-monitoring-system
+      - key: domain
+        op: =
+        value: cattle-monitoring-system
+      name: nv.rancher-monitoring-grafana.cattle-monitoring-system
+      original_name: ''
+  - action: allow
+    applications:
+    - any
+    name: nv.kube-apiserver-main-mgmt-cp.kube-system-ingress-42
+    ports: tcp/6443
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: vault.vault
+      - key: domain
+        op: =
+        value: vault
+      name: nv.vault.vault
+      original_name: ''
+  - action: allow
+    applications:
+    - any
+    name: nv.kube-apiserver-main-mgmt-cp.kube-system-ingress-43
+    ports: tcp/6443
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: kyverno-cleanup-admission-reports.kyverno
+      - key: domain
+        op: =
+        value: kyverno
+      name: nv.kyverno-cleanup-admission-reports.kyverno
+      original_name: ''
+  - action: allow
+    applications:
+    - any
+    name: nv.kube-apiserver-main-mgmt-cp.kube-system-ingress-44
+    ports: tcp/6443
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: logging-root-fluentbit.cattle-logging-system
+      - key: domain
+        op: =
+        value: cattle-logging-system
+      name: nv.logging-root-fluentbit.cattle-logging-system
+      original_name: ''
+  - action: allow
+    applications:
+    - any
+    name: nv.kube-apiserver-main-mgmt-cp.kube-system-ingress-45
+    ports: tcp/6443
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: rke2-control-plane-controller-manager.rke2-control-plane-system
+      - key: domain
+        op: =
+        value: rke2-control-plane-system
+      name: nv.rke2-control-plane-controller-manager.rke2-control-plane-system
+      original_name: ''
+  - action: allow
+    applications:
+    - any
+    name: nv.kube-apiserver-main-mgmt-cp.kube-system-ingress-46
+    ports: tcp/6443
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: kyverno-admission-controller.kyverno
+      - key: domain
+        op: =
+        value: kyverno
+      name: nv.kyverno-admission-controller.kyverno
+      original_name: ''
+  - action: allow
+    applications:
+    - any
+    name: nv.kube-apiserver-main-mgmt-cp.kube-system-ingress-47
+    ports: tcp/6443
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: rke2-bootstrap-controller-manager.rke2-bootstrap-system
+      - key: domain
+        op: =
+        value: rke2-bootstrap-system
+      name: nv.rke2-bootstrap-controller-manager.rke2-bootstrap-system
+      original_name: ''
+  - action: allow
+    applications:
+    - any
+    name: nv.kube-apiserver-main-mgmt-cp.kube-system-ingress-48
+    ports: tcp/6443
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: prometheus-rancher-monitoring-prometheus.cattle-monitoring-system
+      - key: domain
+        op: =
+        value: cattle-monitoring-system
+      name: nv.prometheus-rancher-monitoring-prometheus.cattle-monitoring-system
+      original_name: ''
+  - action: allow
+    applications:
+    - any
+    name: nv.kube-apiserver-main-mgmt-cp.kube-system-ingress-49
+    ports: tcp/6443
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: kyverno-cleanup-controller.kyverno
+      - key: domain
+        op: =
+        value: kyverno
+      name: nv.kyverno-cleanup-controller.kyverno
+      original_name: ''
+  - action: allow
+    applications:
+    - any
+    name: nv.kube-apiserver-main-mgmt-cp.kube-system-ingress-50
+    ports: tcp/6443
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: workload-cluster-operator-controller-manager.workload-cluster-operator-system
+      - key: domain
+        op: =
+        value: workload-cluster-operator-system
+      name: nv.workload-cluster-operator-controller-manager.workload-cluster-operator-system
+      original_name: ''
+  - action: allow
+    applications:
+    - any
+    name: nv.kube-apiserver-main-mgmt-cp.kube-system-ingress-51
+    ports: tcp/6443
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: openstack-cinder-csi-controllerplugin.cinder-csi
+      - key: domain
+        op: =
+        value: cinder-csi
+      name: nv.openstack-cinder-csi-controllerplugin.cinder-csi
+      original_name: ''
+  - action: allow
+    applications:
+    - any
+    name: nv.kube-apiserver-main-mgmt-cp.kube-system-ingress-52
+    ports: tcp/6443
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: kyverno-reports-controller.kyverno
+      - key: domain
+        op: =
+        value: kyverno
+      name: nv.kyverno-reports-controller.kyverno
       original_name: ''
   process:
   - action: allow
@@ -829,11 +753,15 @@ spec:
       criteria:
       - key: service
         op: =
-        value: kube-apiserver-mgmt-cluster-cp.kube-system
+        value: kube-apiserver-main-mgmt-cp.kube-system
       - key: domain
         op: =
         value: kube-system
-      name: nv.kube-apiserver-mgmt-cluster-cp.kube-system
+      grp_band_width: 0
+      grp_sess_cur: 0
+      grp_sess_rate: 0
+      mon_metric: false
+      name: nv.kube-apiserver-main-mgmt-cp.kube-system
       original_name: ''
   waf:
     settings: []
@@ -842,7 +770,8 @@ spec:
 apiVersion: neuvector.com/v1
 kind: NvSecurityRule
 metadata:
-  name: nv.kube-controller-manager-mgmt-cluster-cp.kube-system
+  creationTimestamp: null
+  name: nv.kube-controller-manager-main-mgmt-cp.kube-system
   namespace: kube-system
 spec:
   dlp:
@@ -869,11 +798,15 @@ spec:
       criteria:
       - key: service
         op: =
-        value: kube-controller-manager-mgmt-cluster-cp.kube-system
+        value: kube-controller-manager-main-mgmt-cp.kube-system
       - key: domain
         op: =
         value: kube-system
-      name: nv.kube-controller-manager-mgmt-cluster-cp.kube-system
+      grp_band_width: 0
+      grp_sess_cur: 0
+      grp_sess_rate: 0
+      mon_metric: false
+      name: nv.kube-controller-manager-main-mgmt-cp.kube-system
       original_name: ''
   waf:
     settings: []
@@ -882,7 +815,8 @@ spec:
 apiVersion: neuvector.com/v1
 kind: NvSecurityRule
 metadata:
-  name: nv.kube-proxy-mgmt-cluster-cp.kube-system
+  creationTimestamp: null
+  name: nv.kube-proxy-main-mgmt-cp.kube-system
   namespace: kube-system
 spec:
   dlp:
@@ -894,31 +828,11 @@ spec:
   process:
   - action: allow
     allow_update: false
-    name: bash
-    path: /usr/bin/bash
-  - action: allow
-    allow_update: false
-    name: calico-node
-    path: /usr/bin/calico-node
-  - action: allow
-    allow_update: false
     name: conntrack
     path: /usr/sbin/conntrack
   - action: allow
     allow_update: false
-    name: csi-attacher
-    path: /csi-attacher
-  - action: allow
-    allow_update: false
-    name: csi-provisioner
-    path: /csi-provisioner
-  - action: allow
-    allow_update: false
     name: ip6tables
-    path: /usr/sbin/xtables-legacy-multi
-  - action: allow
-    allow_update: false
-    name: ip6tables-resto
     path: /usr/sbin/xtables-legacy-multi
   - action: allow
     allow_update: false
@@ -934,10 +848,6 @@ spec:
     path: /usr/sbin/xtables-legacy-multi
   - action: allow
     allow_update: false
-    name: iptables-restor
-    path: /usr/sbin/xtables-legacy-multi
-  - action: allow
-    allow_update: false
     name: iptables-restore
     path: /usr/sbin/xtables-legacy-multi
   - action: allow
@@ -946,40 +856,12 @@ spec:
     path: /usr/sbin/xtables-legacy-multi
   - action: allow
     allow_update: false
-    name: java
-    path: /usr/lib/jvm/java-17-openjdk-17.0.10.0.7-2.el9.x86_64/bin/java
-  - action: allow
-    allow_update: false
     name: kube-proxy
     path: /usr/local/bin/kube-proxy
   - action: allow
     allow_update: false
-    name: manager
-    path: /manager
-  - action: allow
-    allow_update: false
-    name: minio-operator
-    path: /minio-operator
-  - action: allow
-    allow_update: false
-    name: nginx
-    path: /usr/local/nginx/sbin/nginx
-  - action: allow
-    allow_update: false
-    name: pathWalker
-    path: /usr/local/bin/pathWalker
-  - action: allow
-    allow_update: false
     name: pause
     path: /pause
-  - action: allow
-    allow_update: false
-    name: pgpool
-    path: /opt/bitnami/pgpool/bin/pgpool
-  - action: allow
-    allow_update: false
-    name: postgres
-    path: /opt/bitnami/postgresql/bin/postgres
   - action: allow
     allow_update: false
     name: xtables-legacy-multi
@@ -993,11 +875,15 @@ spec:
       criteria:
       - key: service
         op: =
-        value: kube-proxy-mgmt-cluster-cp.kube-system
+        value: kube-proxy-main-mgmt-cp.kube-system
       - key: domain
         op: =
         value: kube-system
-      name: nv.kube-proxy-mgmt-cluster-cp.kube-system
+      grp_band_width: 0
+      grp_sess_cur: 0
+      grp_sess_rate: 0
+      mon_metric: false
+      name: nv.kube-proxy-main-mgmt-cp.kube-system
       original_name: ''
   waf:
     settings: []
@@ -1006,7 +892,8 @@ spec:
 apiVersion: neuvector.com/v1
 kind: NvSecurityRule
 metadata:
-  name: nv.kube-proxy-mgmt-cluster-md-md0.kube-system
+  creationTimestamp: null
+  name: nv.kube-proxy.kube-system
   namespace: kube-system
 spec:
   dlp:
@@ -1018,24 +905,8 @@ spec:
   process:
   - action: allow
     allow_update: false
-    name: .
-    path: /usr/bin/ruby
-  - action: allow
-    allow_update: false
-    name: awk
-    path: /usr/bin/mawk
-  - action: allow
-    allow_update: false
-    name: cat
-    path: /bin/busybox
-  - action: allow
-    allow_update: false
     name: conntrack
     path: /usr/sbin/conntrack
-  - action: allow
-    allow_update: false
-    name: head
-    path: /usr/bin/head
   - action: allow
     allow_update: false
     name: ip6tables
@@ -1074,32 +945,8 @@ spec:
     path: /usr/local/bin/kube-proxy
   - action: allow
     allow_update: false
-    name: mawk
-    path: /usr/bin/mawk
-  - action: allow
-    allow_update: false
-    name: pathWalker
-    path: /usr/local/bin/pathWalker
-  - action: allow
-    allow_update: false
     name: pause
     path: /pause
-  - action: allow
-    allow_update: false
-    name: redis-cli
-    path: /opt/bitnami/redis/bin/redis-cli
-  - action: allow
-    allow_update: false
-    name: sh
-    path: /bin/dash
-  - action: allow
-    allow_update: false
-    name: timeout
-    path: /usr/bin/timeout
-  - action: allow
-    allow_update: false
-    name: tini
-    path: /sbin/tini
   - action: allow
     allow_update: false
     name: xtables-legacy-multi
@@ -1113,11 +960,15 @@ spec:
       criteria:
       - key: service
         op: =
-        value: kube-proxy-mgmt-cluster-md-md0.kube-system
+        value: kube-proxy.kube-system
       - key: domain
         op: =
         value: kube-system
-      name: nv.kube-proxy-mgmt-cluster-md-md0.kube-system
+      grp_band_width: 0
+      grp_sess_cur: 0
+      grp_sess_rate: 0
+      mon_metric: false
+      name: nv.kube-proxy.kube-system
       original_name: ''
   waf:
     settings: []
@@ -1126,7 +977,8 @@ spec:
 apiVersion: neuvector.com/v1
 kind: NvSecurityRule
 metadata:
-  name: nv.kube-scheduler-mgmt-cluster-cp.kube-system
+  creationTimestamp: null
+  name: nv.kube-scheduler-main-mgmt-cp.kube-system
   namespace: kube-system
 spec:
   dlp:
@@ -1153,11 +1005,15 @@ spec:
       criteria:
       - key: service
         op: =
-        value: kube-scheduler-mgmt-cluster-cp.kube-system
+        value: kube-scheduler-main-mgmt-cp.kube-system
       - key: domain
         op: =
         value: kube-system
-      name: nv.kube-scheduler-mgmt-cluster-cp.kube-system
+      grp_band_width: 0
+      grp_sess_cur: 0
+      grp_sess_rate: 0
+      mon_metric: false
+      name: nv.kube-scheduler-main-mgmt-cp.kube-system
       original_name: ''
   waf:
     settings: []
@@ -1166,6 +1022,7 @@ spec:
 apiVersion: neuvector.com/v1
 kind: NvSecurityRule
 metadata:
+  creationTimestamp: null
   name: nv.local-path-provisioner.kube-system
   namespace: kube-system
 spec:
@@ -1178,24 +1035,12 @@ spec:
   process:
   - action: allow
     allow_update: false
-    name: iptables
-    path: /usr/sbin/xtables-legacy-multi
-  - action: allow
-    allow_update: false
     name: local-path-provisioner
     path: /usr/bin/local-path-provisioner
   - action: allow
     allow_update: false
     name: pause
     path: /pause
-  - action: allow
-    allow_update: false
-    name: redis-cli
-    path: /opt/bitnami/redis/bin/redis-cli
-  - action: allow
-    allow_update: false
-    name: timeout
-    path: /usr/bin/timeout
   process_profile:
     baseline: zero-drift
   target:
@@ -1209,6 +1054,10 @@ spec:
       - key: domain
         op: =
         value: kube-system
+      grp_band_width: 0
+      grp_sess_cur: 0
+      grp_sess_rate: 0
+      mon_metric: false
       name: nv.local-path-provisioner.kube-system
       original_name: ''
   waf:
@@ -1218,6 +1067,7 @@ spec:
 apiVersion: neuvector.com/v1
 kind: NvSecurityRule
 metadata:
+  creationTimestamp: null
   name: nv.rke2-coredns-rke2-coredns-autoscaler.kube-system
   namespace: kube-system
 spec:
@@ -1249,6 +1099,10 @@ spec:
       - key: domain
         op: =
         value: kube-system
+      grp_band_width: 0
+      grp_sess_cur: 0
+      grp_sess_rate: 0
+      mon_metric: false
       name: nv.rke2-coredns-rke2-coredns-autoscaler.kube-system
       original_name: ''
   waf:
@@ -1258,6 +1112,7 @@ spec:
 apiVersion: neuvector.com/v1
 kind: NvSecurityRule
 metadata:
+  creationTimestamp: null
   name: nv.rke2-coredns-rke2-coredns.kube-system
   namespace: kube-system
 spec:
@@ -1270,143 +1125,7 @@ spec:
   - action: allow
     applications:
     - DNS
-    name: nv.rke2-coredns-rke2-coredns.kube-system-ingress-180
-    ports: any
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: vault-operator.vault
-      - key: domain
-        op: =
-        value: vault
-      name: nv.vault-operator.vault
-      original_name: ''
-  - action: allow
-    applications:
-    - DNS
-    name: nv.rke2-coredns-rke2-coredns.kube-system-ingress-181
-    ports: any
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: thanos-compactor.thanos
-      - key: domain
-        op: =
-        value: thanos
-      name: nv.thanos-compactor.thanos
-      original_name: ''
-  - action: allow
-    applications:
-    - DNS
-    name: nv.rke2-coredns-rke2-coredns.kube-system-ingress-182
-    ports: any
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: source-controller.flux-system
-      - key: domain
-        op: =
-        value: flux-system
-      name: nv.source-controller.flux-system
-      original_name: ''
-  - action: allow
-    applications:
-    - DNS
-    name: nv.rke2-coredns-rke2-coredns.kube-system-ingress-183
-    ports: any
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: thanos-query-frontend.thanos
-      - key: domain
-        op: =
-        value: thanos
-      name: nv.thanos-query-frontend.thanos
-      original_name: ''
-  - action: allow
-    applications:
-    - DNS
-    name: nv.rke2-coredns-rke2-coredns.kube-system-ingress-184
-    ports: any
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: vault-config-operator.vault
-      - key: domain
-        op: =
-        value: vault
-      name: nv.vault-config-operator.vault
-      original_name: ''
-  - action: allow
-    applications:
-    - DNS
-    name: nv.rke2-coredns-rke2-coredns.kube-system-ingress-185
-    ports: any
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: vault.vault
-      - key: domain
-        op: =
-        value: vault
-      name: nv.vault.vault
-      original_name: ''
-  - action: allow
-    applications:
-    - DNS
-    name: nv.rke2-coredns-rke2-coredns.kube-system-ingress-186
-    ports: any
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: vault-configurer.vault
-      - key: domain
-        op: =
-        value: vault
-      name: nv.vault-configurer.vault
-      original_name: ''
-  - action: allow
-    applications:
-    - DNS
-    name: nv.rke2-coredns-rke2-coredns.kube-system-ingress-187
-    ports: any
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: trigger.kube-storage-version-migrator
-      - key: domain
-        op: =
-        value: kube-storage-version-migrator
-      name: nv.trigger.kube-storage-version-migrator
-      original_name: ''
-  - action: allow
-    applications:
-    - DNS
-    name: nv.rke2-coredns-rke2-coredns.kube-system-ingress-188
+    name: nv.rke2-coredns-rke2-coredns.kube-system-ingress-86
     ports: any
     priority: 0
     selector:
@@ -1423,7 +1142,58 @@ spec:
   - action: allow
     applications:
     - DNS
-    name: nv.rke2-coredns-rke2-coredns.kube-system-ingress-189
+    name: nv.rke2-coredns-rke2-coredns.kube-system-ingress-87
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: vault-operator.vault
+      - key: domain
+        op: =
+        value: vault
+      name: nv.vault-operator.vault
+      original_name: ''
+  - action: allow
+    applications:
+    - DNS
+    name: nv.rke2-coredns-rke2-coredns.kube-system-ingress-88
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: thanos-storegateway.thanos
+      - key: domain
+        op: =
+        value: thanos
+      name: nv.thanos-storegateway.thanos
+      original_name: ''
+  - action: allow
+    applications:
+    - DNS
+    name: nv.rke2-coredns-rke2-coredns.kube-system-ingress-89
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: source-controller.flux-system
+      - key: domain
+        op: =
+        value: flux-system
+      name: nv.source-controller.flux-system
+      original_name: ''
+  - action: allow
+    applications:
+    - DNS
+    name: nv.rke2-coredns-rke2-coredns.kube-system-ingress-90
     ports: any
     priority: 0
     selector:
@@ -1440,78 +1210,7 @@ spec:
   - action: allow
     applications:
     - DNS
-    name: nv.rke2-coredns-rke2-coredns.kube-system-ingress-190
-    ports: any
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: thanos-storegateway.thanos
-      - key: domain
-        op: =
-        value: thanos
-      name: nv.thanos-storegateway.thanos
-      original_name: ''
-  process:
-  - action: allow
-    allow_update: false
-    name: calico-node
-    path: /usr/bin/calico-node
-  - action: allow
-    allow_update: false
-    name: coredns
-    path: /coredns
-  - action: allow
-    allow_update: false
-    name: nslookup
-    path: /usr/bin/busybox
-  - action: allow
-    allow_update: false
-    name: pause
-    path: /pause
-  - action: allow
-    allow_update: false
-    name: sh
-    path: /usr/bin/busybox
-  - action: allow
-    allow_update: false
-    name: start_runit
-    path: /usr/bin/bash
-  process_profile:
-    baseline: zero-drift
-  target:
-    policymode: Monitor
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: rke2-coredns-rke2-coredns.kube-system
-      - key: domain
-        op: =
-        value: kube-system
-      name: nv.rke2-coredns-rke2-coredns.kube-system
-      original_name: ''
-  waf:
-    settings: []
-    status: true
----
-apiVersion: neuvector.com/v1
-kind: NvSecurityRule
-metadata:
-  name: nv.rke2-ingress-nginx-controller.kube-system
-  namespace: kube-system
-spec:
-  dlp:
-    settings: []
-    status: true
-  egress:
-  - action: allow
-    applications:
-    - SSL
-    name: nv.vault.vault-egress-335
+    name: nv.rke2-coredns-rke2-coredns.kube-system-ingress-91
     ports: any
     priority: 0
     selector:
@@ -1527,8 +1226,8 @@ spec:
       original_name: ''
   - action: allow
     applications:
-    - HTTP
-    name: nv.thanos-query-frontend.thanos-egress-336
+    - DNS
+    name: nv.rke2-coredns-rke2-coredns.kube-system-ingress-92
     ports: any
     priority: 0
     selector:
@@ -1536,16 +1235,16 @@ spec:
       criteria:
       - key: service
         op: =
-        value: thanos-query-frontend.thanos
+        value: vault-config-operator.vault
       - key: domain
         op: =
-        value: thanos
-      name: nv.thanos-query-frontend.thanos
+        value: vault
+      name: nv.vault-config-operator.vault
       original_name: ''
   - action: allow
     applications:
-    - HTTP
-    name: nv.thanos-receive.thanos-egress-337
+    - DNS
+    name: nv.rke2-coredns-rke2-coredns.kube-system-ingress-93
     ports: any
     priority: 0
     selector:
@@ -1553,27 +1252,72 @@ spec:
       criteria:
       - key: service
         op: =
-        value: thanos-receive.thanos
+        value: thanos-compactor.thanos
       - key: domain
         op: =
         value: thanos
-      name: nv.thanos-receive.thanos
+      name: nv.thanos-compactor.thanos
       original_name: ''
+  process:
+  - action: allow
+    allow_update: false
+    name: coredns
+    path: /coredns
+  - action: allow
+    allow_update: false
+    name: pause
+    path: /pause
+  process_profile:
+    baseline: zero-drift
+  target:
+    policymode: Monitor
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: rke2-coredns-rke2-coredns.kube-system
+      - key: domain
+        op: =
+        value: kube-system
+      grp_band_width: 0
+      grp_sess_cur: 0
+      grp_sess_rate: 0
+      mon_metric: false
+      name: nv.rke2-coredns-rke2-coredns.kube-system
+      original_name: ''
+  waf:
+    settings: []
+    status: true
+---
+apiVersion: neuvector.com/v1
+kind: NvSecurityRule
+metadata:
+  creationTimestamp: null
+  name: nv.rke2-ingress-nginx-controller.kube-system
+  namespace: kube-system
+spec:
+  dlp:
+    settings: []
+    status: true
+  egress: []
   file: []
-  ingress: []
+  ingress:
+  - action: allow
+    applications:
+    - SSL
+    name: nv.rke2-ingress-nginx-controller.kube-system-ingress-94
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      name: Workload:ingress
+      original_name: ''
   process:
   - action: allow
     allow_update: false
     name: catatonit
     path: /usr/bin/catatonit
-  - action: allow
-    allow_update: false
-    name: java
-    path: /usr/lib/jvm/java-17-openjdk-17.0.10.0.7-2.el9.x86_64/bin/java
-  - action: allow
-    allow_update: false
-    name: manager
-    path: /manager
   - action: allow
     allow_update: false
     name: nginx
@@ -1584,28 +1328,8 @@ spec:
     path: /nginx-ingress-controller
   - action: allow
     allow_update: false
-    name: pathWalker
-    path: /usr/local/bin/pathWalker
-  - action: allow
-    allow_update: false
     name: pause
     path: /pause
-  - action: allow
-    allow_update: false
-    name: pg_isready
-    path: /opt/bitnami/postgresql/bin/pg_isready
-  - action: allow
-    allow_update: false
-    name: pkill
-    path: /bin/pkill
-  - action: allow
-    allow_update: false
-    name: timeout
-    path: /usr/bin/timeout
-  - action: allow
-    allow_update: false
-    name: wait-shutdown
-    path: /wait-shutdown
   process_profile:
     baseline: zero-drift
   target:
@@ -1619,6 +1343,10 @@ spec:
       - key: domain
         op: =
         value: kube-system
+      grp_band_width: 0
+      grp_sess_cur: 0
+      grp_sess_rate: 0
+      mon_metric: false
       name: nv.rke2-ingress-nginx-controller.kube-system
       original_name: ''
   waf:
@@ -1628,6 +1356,7 @@ spec:
 apiVersion: neuvector.com/v1
 kind: NvSecurityRule
 metadata:
+  creationTimestamp: null
   name: nv.rke2-metrics-server.kube-system
   namespace: kube-system
 spec:
@@ -1636,7 +1365,17 @@ spec:
     status: true
   egress: []
   file: []
-  ingress: []
+  ingress:
+  - action: allow
+    applications:
+    - SSL
+    name: nv.rke2-metrics-server.kube-system-ingress-95
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      name: Workload:ingress
+      original_name: ''
   process:
   - action: allow
     allow_update: false
@@ -1659,6 +1398,10 @@ spec:
       - key: domain
         op: =
         value: kube-system
+      grp_band_width: 0
+      grp_sess_cur: 0
+      grp_sess_rate: 0
+      mon_metric: false
       name: nv.rke2-metrics-server.kube-system
       original_name: ''
   waf:
@@ -1668,6 +1411,7 @@ spec:
 apiVersion: neuvector.com/v1
 kind: NvSecurityRule
 metadata:
+  creationTimestamp: null
   name: nv.rke2-snapshot-controller.kube-system
   namespace: kube-system
 spec:
@@ -1699,6 +1443,10 @@ spec:
       - key: domain
         op: =
         value: kube-system
+      grp_band_width: 0
+      grp_sess_cur: 0
+      grp_sess_rate: 0
+      mon_metric: false
       name: nv.rke2-snapshot-controller.kube-system
       original_name: ''
   waf:
@@ -1708,6 +1456,7 @@ spec:
 apiVersion: neuvector.com/v1
 kind: NvSecurityRule
 metadata:
+  creationTimestamp: null
   name: nv.rke2-snapshot-validation-webhook.kube-system
   namespace: kube-system
 spec:
@@ -1726,10 +1475,6 @@ spec:
     allow_update: false
     name: snapshot-validation-webhook
     path: /snapshot-validation-webhook
-  - action: allow
-    allow_update: false
-    name: thanos
-    path: /bin/thanos
   process_profile:
     baseline: zero-drift
   target:
@@ -1743,6 +1488,10 @@ spec:
       - key: domain
         op: =
         value: kube-system
+      grp_band_width: 0
+      grp_sess_cur: 0
+      grp_sess_rate: 0
+      mon_metric: false
       name: nv.rke2-snapshot-validation-webhook.kube-system
       original_name: ''
   waf:

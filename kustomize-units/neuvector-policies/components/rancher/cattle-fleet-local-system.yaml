@@ -2,6 +2,7 @@
 apiVersion: neuvector.com/v1
 kind: NvSecurityRule
 metadata:
+  creationTimestamp: null
   name: nv.fleet-agent.cattle-fleet-local-system
   namespace: cattle-fleet-local-system
 spec:
@@ -12,7 +13,7 @@ spec:
   - action: allow
     applications:
     - any
-    name: nv.kube-apiserver-mgmt-cluster-cp.kube-system-egress-194
+    name: nv.kube-apiserver-main-mgmt-cp.kube-system-egress-101
     ports: tcp/6443
     priority: 0
     selector:
@@ -20,11 +21,11 @@ spec:
       criteria:
       - key: service
         op: =
-        value: kube-apiserver-mgmt-cluster-cp.kube-system
+        value: kube-apiserver-main-mgmt-cp.kube-system
       - key: domain
         op: =
         value: kube-system
-      name: nv.kube-apiserver-mgmt-cluster-cp.kube-system
+      name: nv.kube-apiserver-main-mgmt-cp.kube-system
       original_name: ''
   file: []
   ingress: []
@@ -50,6 +51,10 @@ spec:
       - key: domain
         op: =
         value: cattle-fleet-local-system
+      grp_band_width: 0
+      grp_sess_cur: 0
+      grp_sess_rate: 0
+      mon_metric: false
       name: nv.fleet-agent.cattle-fleet-local-system
       original_name: ''
   waf:

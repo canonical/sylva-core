@@ -2,7 +2,8 @@
 apiVersion: neuvector.com/v1
 kind: NvSecurityRule
 metadata:
-  name: nv.rancher-webhook.cattle-system
+  creationTimestamp: null
+  name: nv.helm-operation.cattle-system
   namespace: cattle-system
 spec:
   dlp:
@@ -12,7 +13,7 @@ spec:
   - action: allow
     applications:
     - DNS
-    name: nv.rke2-coredns-rke2-coredns.kube-system-egress-330
+    name: nv.rke2-coredns-rke2-coredns.kube-system-egress-115
     ports: any
     priority: 0
     selector:
@@ -31,20 +32,111 @@ spec:
   process:
   - action: allow
     allow_update: false
-    name: awk
-    path: /usr/bin/mawk
+    name: pause
+    path: /pause
+  process_profile:
+    baseline: zero-drift
+  target:
+    policymode: Monitor
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: helm-operation.cattle-system
+      - key: domain
+        op: =
+        value: cattle-system
+      grp_band_width: 0
+      grp_sess_cur: 0
+      grp_sess_rate: 0
+      mon_metric: false
+      name: nv.helm-operation.cattle-system
+      original_name: ''
+  waf:
+    settings: []
+    status: true
+---
+apiVersion: neuvector.com/v1
+kind: NvSecurityRule
+metadata:
+  creationTimestamp: null
+  name: nv.ip.rancher-webhook.cattle-system
+  namespace: cattle-system
+spec:
+  egress: []
+  file: []
+  ingress: []
+  process: []
+  target:
+    policymode: N/A
+    selector:
+      comment: ''
+      criteria:
+      - key: address
+        op: =
+        value: 100.73.213.239
+      - key: domain
+        op: =
+        value: cattle-system
+      - key: label
+        op: =
+        value: app=rancher-webhook
+      name: nv.ip.rancher-webhook.cattle-system
+      original_name: ''
+---
+apiVersion: neuvector.com/v1
+kind: NvSecurityRule
+metadata:
+  creationTimestamp: null
+  name: nv.ip.rancher.cattle-system
+  namespace: cattle-system
+spec:
+  egress: []
+  file: []
+  ingress: []
+  process: []
+  target:
+    policymode: N/A
+    selector:
+      comment: ''
+      criteria:
+      - key: address
+        op: =
+        value: 100.73.106.11
+      - key: domain
+        op: =
+        value: cattle-system
+      - key: label
+        op: =
+        value: app=rancher
+      name: nv.ip.rancher.cattle-system
+      original_name: ''
+---
+apiVersion: neuvector.com/v1
+kind: NvSecurityRule
+metadata:
+  creationTimestamp: null
+  name: nv.rancher-webhook.cattle-system
+  namespace: cattle-system
+spec:
+  dlp:
+    settings: []
+    status: true
+  egress: []
+  file: []
+  ingress:
   - action: allow
-    allow_update: false
-    name: getent
-    path: /usr/bin/getent
-  - action: allow
-    allow_update: false
-    name: head
-    path: /usr/bin/head
-  - action: allow
-    allow_update: false
-    name: pathWalker
-    path: /usr/local/bin/pathWalker
+    applications:
+    - SSL
+    name: nv.rancher-webhook.cattle-system-ingress-81
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      name: Workload:ingress
+      original_name: ''
+  process:
   - action: allow
     allow_update: false
     name: pause
@@ -53,10 +145,6 @@ spec:
     allow_update: false
     name: webhook
     path: /usr/bin/webhook
-  - action: allow
-    allow_update: false
-    name: xargs
-    path: /usr/bin/xargs
   process_profile:
     baseline: zero-drift
   target:
@@ -70,6 +158,10 @@ spec:
       - key: domain
         op: =
         value: cattle-system
+      grp_band_width: 0
+      grp_sess_cur: 0
+      grp_sess_rate: 0
+      mon_metric: false
       name: nv.rancher-webhook.cattle-system
       original_name: ''
   waf:
@@ -79,70 +171,20 @@ spec:
 apiVersion: neuvector.com/v1
 kind: NvSecurityRule
 metadata:
+  creationTimestamp: null
   name: nv.rancher.cattle-system
   namespace: cattle-system
 spec:
   dlp:
     settings: []
     status: true
-  egress:
-  - action: allow
-    applications:
-    - DNS
-    name: nv.rke2-coredns-rke2-coredns.kube-system-egress-331
-    ports: any
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: rke2-coredns-rke2-coredns.kube-system
-      - key: domain
-        op: =
-        value: kube-system
-      name: nv.rke2-coredns-rke2-coredns.kube-system
-      original_name: ''
-  - action: allow
-    applications:
-    - SSL
-    name: nv.vault.vault-egress-332
-    ports: any
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: vault.vault
-      - key: domain
-        op: =
-        value: vault
-      name: nv.vault.vault
-      original_name: ''
+  egress: []
   file: []
   ingress:
   - action: allow
     applications:
-    - HTTP
-    name: nv.rancher.cattle-system-ingress-177
-    ports: any
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: rke2-ingress-nginx-controller.kube-system
-      - key: domain
-        op: =
-        value: kube-system
-      name: nv.rke2-ingress-nginx-controller.kube-system
-      original_name: ''
-  - action: allow
-    applications:
     - SSL
-    name: nv.rancher.cattle-system-ingress-178
+    name: nv.rancher.cattle-system-ingress-82
     ports: any
     priority: 0
     selector:
@@ -158,78 +200,27 @@ spec:
       original_name: ''
   - action: allow
     applications:
-    - any
-    name: nv.rancher.cattle-system-ingress-179
-    ports: tcp/80
+    - SSL
+    name: nv.rancher.cattle-system-ingress-83
+    ports: any
     priority: 0
     selector:
       comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: rke2-ingress-nginx-controller.kube-system
-      - key: domain
-        op: =
-        value: kube-system
-      name: nv.rke2-ingress-nginx-controller.kube-system
+      name: Workload:ingress
       original_name: ''
   process:
-  - action: allow
-    allow_update: false
-    name: 70openssl.run
-    path: /usr/bin/bash
-  - action: allow
-    allow_update: false
-    name: 80etc_ssl.run
-    path: /usr/bin/bash
-  - action: allow
-    allow_update: false
-    name: bash
-    path: /usr/bin/bash
-  - action: allow
-    allow_update: false
-    name: cat
-    path: /usr/bin/cat
   - action: allow
     allow_update: false
     name: cp
     path: /usr/bin/cp
   - action: allow
     allow_update: false
-    name: entrypoint.sh
-    path: /usr/bin/bash
-  - action: allow
-    allow_update: false
     name: git
     path: /usr/lib/git/git
   - action: allow
     allow_update: false
-    name: iptables-restor
-    path: /usr/bin/xtables-legacy-multi
-  - action: allow
-    allow_update: false
-    name: iptables-restore
-    path: /usr/bin/xtables-legacy-multi
-  - action: allow
-    allow_update: false
     name: jailer.sh
     path: /usr/bin/bash
-  - action: allow
-    allow_update: false
-    name: k3s
-    path: /usr/bin/k3s
-  - action: allow
-    allow_update: false
-    name: kubectl
-    path: /usr/bin/k3s
-  - action: allow
-    allow_update: false
-    name: mkdir
-    path: /usr/bin/mkdir
-  - action: allow
-    allow_update: false
-    name: pathWalker
-    path: /usr/local/bin/pathWalker
   - action: allow
     allow_update: false
     name: pause
@@ -240,36 +231,12 @@ spec:
     path: /usr/bin/rancher
   - action: allow
     allow_update: false
-    name: readlink
-    path: /usr/bin/readlink
-  - action: allow
-    allow_update: false
-    name: ruby
-    path: /usr/bin/ruby
-  - action: allow
-    allow_update: false
-    name: tail
-    path: /usr/bin/tail
-  - action: allow
-    allow_update: false
     name: tar
     path: /usr/bin/tar
   - action: allow
     allow_update: false
     name: tini
     path: /usr/bin/tini
-  - action: allow
-    allow_update: false
-    name: touch
-    path: /usr/bin/touch
-  - action: allow
-    allow_update: false
-    name: trust
-    path: /usr/bin/trust
-  - action: allow
-    allow_update: false
-    name: xtables-legacy-multi
-    path: /usr/bin/xtables-legacy-multi
   process_profile:
     baseline: zero-drift
   target:
@@ -283,6 +250,10 @@ spec:
       - key: domain
         op: =
         value: cattle-system
+      grp_band_width: 0
+      grp_sess_cur: 0
+      grp_sess_rate: 0
+      mon_metric: false
       name: nv.rancher.cattle-system
       original_name: ''
   waf:

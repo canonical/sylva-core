@@ -2,6 +2,7 @@
 apiVersion: neuvector.com/v1
 kind: NvSecurityRule
 metadata:
+  creationTimestamp: null
   name: nv.capo-controller-manager.capo-system
   namespace: capo-system
 spec:
@@ -11,26 +12,8 @@ spec:
   egress:
   - action: allow
     applications:
-    - DNS
-    - HTTP
-    name: nv.rke2-coredns-rke2-coredns.kube-system-egress-149
-    ports: any
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: rke2-coredns-rke2-coredns.kube-system
-      - key: domain
-        op: =
-        value: kube-system
-      name: nv.rke2-coredns-rke2-coredns.kube-system
-      original_name: ''
-  - action: allow
-    applications:
     - any
-    name: nv.kube-apiserver-mgmt-cluster-cp.kube-system-egress-150
+    name: nv.kube-apiserver-main-mgmt-cp.kube-system-egress-95
     ports: tcp/6443
     priority: 0
     selector:
@@ -38,219 +21,24 @@ spec:
       criteria:
       - key: service
         op: =
-        value: kube-apiserver-mgmt-cluster-cp.kube-system
+        value: kube-apiserver-main-mgmt-cp.kube-system
       - key: domain
         op: =
         value: kube-system
-      name: nv.kube-apiserver-mgmt-cluster-cp.kube-system
-      original_name: ''
-  - action: allow
-    applications:
-    - HTTP
-    name: nv.notification-controller.flux-system-egress-151
-    ports: any
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: notification-controller.flux-system
-      - key: domain
-        op: =
-        value: flux-system
-      name: nv.notification-controller.flux-system
-      original_name: ''
-  - action: allow
-    applications:
-    - HTTP
-    name: nv.loki-write.loki-egress-152
-    ports: any
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: loki-write.loki
-      - key: domain
-        op: =
-        value: loki
-      name: nv.loki-write.loki
-      original_name: ''
-  - action: allow
-    applications:
-    - HTTP
-    name: nv.loki-backend.loki-egress-153
-    ports: any
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: loki-backend.loki
-      - key: domain
-        op: =
-        value: loki
-      name: nv.loki-backend.loki
-      original_name: ''
-  - action: allow
-    applications:
-    - HTTP
-    name: nv.rancher-monitoring-kube-state-metrics.cattle-monitoring-system-egress-154
-    ports: any
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: rancher-monitoring-kube-state-metrics.cattle-monitoring-system
-      - key: domain
-        op: =
-        value: cattle-monitoring-system
-      name: nv.rancher-monitoring-kube-state-metrics.cattle-monitoring-system
-      original_name: ''
-  - action: allow
-    applications:
-    - HTTP
-    name: nv.loki-read.loki-egress-155
-    ports: any
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: loki-read.loki
-      - key: domain
-        op: =
-        value: loki
-      name: nv.loki-read.loki
-      original_name: ''
-  - action: allow
-    applications:
-    - HTTP
-    name: nv.source-controller.flux-system-egress-156
-    ports: any
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: source-controller.flux-system
-      - key: domain
-        op: =
-        value: flux-system
-      name: nv.source-controller.flux-system
-      original_name: ''
-  - action: allow
-    applications:
-    - HTTP
-    name: nv.thanos-query-frontend.thanos-egress-157
-    ports: any
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: thanos-query-frontend.thanos
-      - key: domain
-        op: =
-        value: thanos
-      name: nv.thanos-query-frontend.thanos
-      original_name: ''
-  - action: allow
-    applications:
-    - HTTP
-    - SSL
-    name: nv.rancher.cattle-system-egress-158
-    ports: any
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: rancher.cattle-system
-      - key: domain
-        op: =
-        value: cattle-system
-      name: nv.rancher.cattle-system
-      original_name: ''
-  - action: allow
-    applications:
-    - HTTP
-    name: nv.helm-controller.flux-system-egress-159
-    ports: any
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: helm-controller.flux-system
-      - key: domain
-        op: =
-        value: flux-system
-      name: nv.helm-controller.flux-system
-      original_name: ''
-  - action: allow
-    applications:
-    - HTTP
-    name: nv.thanos-ruler.thanos-egress-160
-    ports: any
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: thanos-ruler.thanos
-      - key: domain
-        op: =
-        value: thanos
-      name: nv.thanos-ruler.thanos
-      original_name: ''
-  - action: allow
-    applications:
-    - SSL
-    name: nv.monitoring-pool-0.minio-monitoring-tenant-egress-161
-    ports: any
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: monitoring-pool-0.minio-monitoring-tenant
-      - key: domain
-        op: =
-        value: minio-monitoring-tenant
-      name: nv.monitoring-pool-0.minio-monitoring-tenant
-      original_name: ''
-  - action: allow
-    applications:
-    - Redis
-    name: nv.gitea-redis-redis-cluster.gitea-egress-162
-    ports: any
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: gitea-redis-redis-cluster.gitea
-      - key: domain
-        op: =
-        value: gitea
-      name: nv.gitea-redis-redis-cluster.gitea
+      name: nv.kube-apiserver-main-mgmt-cp.kube-system
       original_name: ''
   file: []
-  ingress: []
+  ingress:
+  - action: allow
+    applications:
+    - SSL
+    name: nv.capo-controller-manager.capo-system-ingress-17
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      name: Workload:ingress
+      original_name: ''
   process:
   - action: allow
     allow_update: false
@@ -258,20 +46,8 @@ spec:
     path: /manager
   - action: allow
     allow_update: false
-    name: nginx
-    path: /usr/local/nginx/sbin/nginx
-  - action: allow
-    allow_update: false
     name: pause
     path: /pause
-  - action: allow
-    allow_update: false
-    name: postgres
-    path: /opt/bitnami/postgresql/bin/postgres
-  - action: allow
-    allow_update: false
-    name: snapshot-validation-webhook
-    path: /snapshot-validation-webhook
   process_profile:
     baseline: zero-drift
   target:
@@ -285,8 +61,40 @@ spec:
       - key: domain
         op: =
         value: capo-system
+      grp_band_width: 0
+      grp_sess_cur: 0
+      grp_sess_rate: 0
+      mon_metric: false
       name: nv.capo-controller-manager.capo-system
       original_name: ''
   waf:
     settings: []
     status: true
+---
+apiVersion: neuvector.com/v1
+kind: NvSecurityRule
+metadata:
+  creationTimestamp: null
+  name: nv.ip.capo-webhook-service.capo-system
+  namespace: capo-system
+spec:
+  egress: []
+  file: []
+  ingress: []
+  process: []
+  target:
+    policymode: N/A
+    selector:
+      comment: ''
+      criteria:
+      - key: address
+        op: =
+        value: 100.73.242.52
+      - key: domain
+        op: =
+        value: capo-system
+      - key: label
+        op: =
+        value: cluster.x-k8s.io/provider=infrastructure-openstack
+      name: nv.ip.capo-webhook-service.capo-system
+      original_name: ''

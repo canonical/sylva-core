@@ -2,32 +2,54 @@
 apiVersion: neuvector.com/v1
 kind: NvSecurityRule
 metadata:
+  creationTimestamp: null
+  name: nv.ip.rke2-bootstrap-webhook-service.rke2-bootstrap-system
+  namespace: rke2-bootstrap-system
+spec:
+  egress: []
+  file: []
+  ingress: []
+  process: []
+  target:
+    policymode: N/A
+    selector:
+      comment: ''
+      criteria:
+      - key: address
+        op: =
+        value: 100.73.107.99
+      - key: domain
+        op: =
+        value: rke2-bootstrap-system
+      - key: label
+        op: =
+        value: cluster.x-k8s.io/provider=bootstrap-rke2
+      name: nv.ip.rke2-bootstrap-webhook-service.rke2-bootstrap-system
+      original_name: ''
+---
+apiVersion: neuvector.com/v1
+kind: NvSecurityRule
+metadata:
+  creationTimestamp: null
   name: nv.rke2-bootstrap-controller-manager.rke2-bootstrap-system
   namespace: rke2-bootstrap-system
 spec:
   dlp:
     settings: []
     status: true
-  egress:
+  egress: []
+  file: []
+  ingress:
   - action: allow
     applications:
-    - DNS
-    name: nv.rke2-coredns-rke2-coredns.kube-system-egress-333
+    - SSL
+    name: nv.rke2-bootstrap-controller-manager.rke2-bootstrap-system-ingress-84
     ports: any
     priority: 0
     selector:
       comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: rke2-coredns-rke2-coredns.kube-system
-      - key: domain
-        op: =
-        value: kube-system
-      name: nv.rke2-coredns-rke2-coredns.kube-system
+      name: Workload:ingress
       original_name: ''
-  file: []
-  ingress: []
   process:
   - action: allow
     allow_update: false
@@ -35,24 +57,8 @@ spec:
     path: /manager
   - action: allow
     allow_update: false
-    name: pathWalker
-    path: /usr/local/bin/pathWalker
-  - action: allow
-    allow_update: false
     name: pause
     path: /pause
-  - action: allow
-    allow_update: false
-    name: redis-cli
-    path: /opt/bitnami/redis/bin/redis-cli
-  - action: allow
-    allow_update: false
-    name: sh
-    path: /bin/dash
-  - action: allow
-    allow_update: false
-    name: timeout
-    path: /usr/bin/timeout
   process_profile:
     baseline: zero-drift
   target:
@@ -66,6 +72,10 @@ spec:
       - key: domain
         op: =
         value: rke2-bootstrap-system
+      grp_band_width: 0
+      grp_sess_cur: 0
+      grp_sess_rate: 0
+      mon_metric: false
       name: nv.rke2-bootstrap-controller-manager.rke2-bootstrap-system
       original_name: ''
   waf:

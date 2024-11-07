@@ -2,6 +2,35 @@
 apiVersion: neuvector.com/v1
 kind: NvSecurityRule
 metadata:
+  creationTimestamp: null
+  name: nv.ip.workload-cluster-operator-controller-manager-metrics-service.workload-cluster-operator-system
+  namespace: workload-cluster-operator-system
+spec:
+  egress: []
+  file: []
+  ingress: []
+  process: []
+  target:
+    policymode: N/A
+    selector:
+      comment: ''
+      criteria:
+      - key: address
+        op: =
+        value: 100.73.32.200
+      - key: domain
+        op: =
+        value: workload-cluster-operator-system
+      - key: label
+        op: =
+        value: control-plane=controller-manager
+      name: nv.ip.workload-cluster-operator-controller-manager-metrics-service.workload-cluster-operator-system
+      original_name: ''
+---
+apiVersion: neuvector.com/v1
+kind: NvSecurityRule
+metadata:
+  creationTimestamp: null
   name: nv.workload-cluster-operator-controller-manager.workload-cluster-operator-system
   namespace: workload-cluster-operator-system
 spec:
@@ -14,24 +43,12 @@ spec:
   process:
   - action: allow
     allow_update: false
-    name: calico-ipam
-    path: /opt/cni/bin/calico-ipam
-  - action: allow
-    allow_update: false
-    name: grep
-    path: /usr/bin/grep
-  - action: allow
-    allow_update: false
     name: kube-rbac-proxy
     path: /usr/local/bin/kube-rbac-proxy
   - action: allow
     allow_update: false
     name: manager
     path: /manager
-  - action: allow
-    allow_update: false
-    name: pathWalker
-    path: /usr/local/bin/pathWalker
   - action: allow
     allow_update: false
     name: pause
@@ -49,6 +66,10 @@ spec:
       - key: domain
         op: =
         value: workload-cluster-operator-system
+      grp_band_width: 0
+      grp_sess_cur: 0
+      grp_sess_rate: 0
+      mon_metric: false
       name: nv.workload-cluster-operator-controller-manager.workload-cluster-operator-system
       original_name: ''
   waf:

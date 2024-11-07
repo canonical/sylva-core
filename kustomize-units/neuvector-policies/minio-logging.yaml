@@ -3,8 +3,8 @@ apiVersion: neuvector.com/v1
 kind: NvSecurityRule
 metadata:
   creationTimestamp: null
-  name: nv.ip.minio.minio-monitoring
-  namespace: minio-monitoring
+  name: nv.ip.logging-console.minio-logging
+  namespace: minio-logging
 spec:
   egress: []
   file: []
@@ -17,22 +17,22 @@ spec:
       criteria:
       - key: address
         op: =
-        value: 100.73.198.66
+        value: 100.73.152.247
       - key: domain
         op: =
-        value: minio-monitoring
+        value: minio-logging
       - key: label
         op: =
-        value: v1.min.io/tenant=monitoring
-      name: nv.ip.minio.minio-monitoring
+        value: v1.min.io/tenant=logging
+      name: nv.ip.logging-console.minio-logging
       original_name: ''
 ---
 apiVersion: neuvector.com/v1
 kind: NvSecurityRule
 metadata:
   creationTimestamp: null
-  name: nv.ip.monitoring-console.minio-monitoring
-  namespace: minio-monitoring
+  name: nv.ip.minio.minio-logging
+  namespace: minio-logging
 spec:
   egress: []
   file: []
@@ -45,22 +45,22 @@ spec:
       criteria:
       - key: address
         op: =
-        value: 100.73.95.48
+        value: 100.73.138.243
       - key: domain
         op: =
-        value: minio-monitoring
+        value: minio-logging
       - key: label
         op: =
-        value: v1.min.io/tenant=monitoring
-      name: nv.ip.monitoring-console.minio-monitoring
+        value: v1.min.io/tenant=logging
+      name: nv.ip.minio.minio-logging
       original_name: ''
 ---
 apiVersion: neuvector.com/v1
 kind: NvSecurityRule
 metadata:
   creationTimestamp: null
-  name: nv.monitoring-pool-0.minio-monitoring
-  namespace: minio-monitoring
+  name: nv.logging-pool-0.minio-logging
+  namespace: minio-logging
 spec:
   dlp:
     settings: []
@@ -69,7 +69,7 @@ spec:
   - action: allow
     applications:
     - DNS
-    name: nv.rke2-coredns-rke2-coredns.kube-system-egress-141
+    name: nv.rke2-coredns-rke2-coredns.kube-system-egress-126
     ports: any
     priority: 0
     selector:
@@ -88,24 +88,7 @@ spec:
   - action: allow
     applications:
     - SSL
-    name: nv.monitoring-pool-0.minio-monitoring-ingress-70
-    ports: any
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: monitoring-pool-0.minio-monitoring
-      - key: domain
-        op: =
-        value: minio-monitoring
-      name: nv.monitoring-pool-0.minio-monitoring
-      original_name: ''
-  - action: allow
-    applications:
-    - SSL
-    name: nv.monitoring-pool-0.minio-monitoring-ingress-71
+    name: nv.logging-pool-0.minio-logging-ingress-58
     ports: any
     priority: 0
     selector:
@@ -122,7 +105,7 @@ spec:
   - action: allow
     applications:
     - SSL
-    name: nv.monitoring-pool-0.minio-monitoring-ingress-72
+    name: nv.logging-pool-0.minio-logging-ingress-59
     ports: any
     priority: 0
     selector:
@@ -130,16 +113,16 @@ spec:
       criteria:
       - key: service
         op: =
-        value: thanos-storegateway.thanos
+        value: loki-backend.loki
       - key: domain
         op: =
-        value: thanos
-      name: nv.thanos-storegateway.thanos
+        value: loki
+      name: nv.loki-backend.loki
       original_name: ''
   - action: allow
     applications:
     - SSL
-    name: nv.monitoring-pool-0.minio-monitoring-ingress-73
+    name: nv.logging-pool-0.minio-logging-ingress-60
     ports: any
     priority: 0
     selector:
@@ -147,16 +130,16 @@ spec:
       criteria:
       - key: service
         op: =
-        value: thanos-receive.thanos
+        value: logging-pool-0.minio-logging
       - key: domain
         op: =
-        value: thanos
-      name: nv.thanos-receive.thanos
+        value: minio-logging
+      name: nv.logging-pool-0.minio-logging
       original_name: ''
   - action: allow
     applications:
     - SSL
-    name: nv.monitoring-pool-0.minio-monitoring-ingress-74
+    name: nv.logging-pool-0.minio-logging-ingress-61
     ports: any
     priority: 0
     selector:
@@ -164,11 +147,28 @@ spec:
       criteria:
       - key: service
         op: =
-        value: thanos-compactor.thanos
+        value: loki-write.loki
       - key: domain
         op: =
-        value: thanos
-      name: nv.thanos-compactor.thanos
+        value: loki
+      name: nv.loki-write.loki
+      original_name: ''
+  - action: allow
+    applications:
+    - SSL
+    name: nv.logging-pool-0.minio-logging-ingress-62
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: minio-operator.minio-operator
+      - key: domain
+        op: =
+        value: minio-operator
+      name: nv.minio-operator.minio-operator
       original_name: ''
   process:
   - action: allow
@@ -192,15 +192,15 @@ spec:
       criteria:
       - key: service
         op: =
-        value: monitoring-pool-0.minio-monitoring
+        value: logging-pool-0.minio-logging
       - key: domain
         op: =
-        value: minio-monitoring
+        value: minio-logging
       grp_band_width: 0
       grp_sess_cur: 0
       grp_sess_rate: 0
       mon_metric: false
-      name: nv.monitoring-pool-0.minio-monitoring
+      name: nv.logging-pool-0.minio-logging
       original_name: ''
   waf:
     settings: []

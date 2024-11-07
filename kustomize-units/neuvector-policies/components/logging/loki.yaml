@@ -2,6 +2,143 @@
 apiVersion: neuvector.com/v1
 kind: NvSecurityRule
 metadata:
+  creationTimestamp: null
+  name: nv.ip.loki-backend.loki
+  namespace: loki
+spec:
+  egress: []
+  file: []
+  ingress: []
+  process: []
+  target:
+    policymode: N/A
+    selector:
+      comment: ''
+      criteria:
+      - key: address
+        op: =
+        value: 100.73.198.188
+      - key: domain
+        op: =
+        value: loki
+      - key: label
+        op: =
+        value: app.kubernetes.io/instance=loki
+      - key: label
+        op: =
+        value: app.kubernetes.io/name=loki
+      - key: label
+        op: =
+        value: app.kubernetes.io/component=backend
+      name: nv.ip.loki-backend.loki
+      original_name: ''
+---
+apiVersion: neuvector.com/v1
+kind: NvSecurityRule
+metadata:
+  creationTimestamp: null
+  name: nv.ip.loki-gateway.loki
+  namespace: loki
+spec:
+  egress: []
+  file: []
+  ingress: []
+  process: []
+  target:
+    policymode: N/A
+    selector:
+      comment: ''
+      criteria:
+      - key: address
+        op: =
+        value: 100.73.135.112
+      - key: domain
+        op: =
+        value: loki
+      - key: label
+        op: =
+        value: app.kubernetes.io/component=gateway
+      - key: label
+        op: =
+        value: app.kubernetes.io/instance=loki
+      - key: label
+        op: =
+        value: app.kubernetes.io/name=loki
+      name: nv.ip.loki-gateway.loki
+      original_name: ''
+---
+apiVersion: neuvector.com/v1
+kind: NvSecurityRule
+metadata:
+  creationTimestamp: null
+  name: nv.ip.loki-read.loki
+  namespace: loki
+spec:
+  egress: []
+  file: []
+  ingress: []
+  process: []
+  target:
+    policymode: N/A
+    selector:
+      comment: ''
+      criteria:
+      - key: address
+        op: =
+        value: 100.73.34.74
+      - key: domain
+        op: =
+        value: loki
+      - key: label
+        op: =
+        value: app.kubernetes.io/component=read
+      - key: label
+        op: =
+        value: app.kubernetes.io/instance=loki
+      - key: label
+        op: =
+        value: app.kubernetes.io/name=loki
+      name: nv.ip.loki-read.loki
+      original_name: ''
+---
+apiVersion: neuvector.com/v1
+kind: NvSecurityRule
+metadata:
+  creationTimestamp: null
+  name: nv.ip.loki-write.loki
+  namespace: loki
+spec:
+  egress: []
+  file: []
+  ingress: []
+  process: []
+  target:
+    policymode: N/A
+    selector:
+      comment: ''
+      criteria:
+      - key: address
+        op: =
+        value: 100.73.47.191
+      - key: domain
+        op: =
+        value: loki
+      - key: label
+        op: =
+        value: app.kubernetes.io/instance=loki
+      - key: label
+        op: =
+        value: app.kubernetes.io/name=loki
+      - key: label
+        op: =
+        value: app.kubernetes.io/component=write
+      name: nv.ip.loki-write.loki
+      original_name: ''
+---
+apiVersion: neuvector.com/v1
+kind: NvSecurityRule
+metadata:
+  creationTimestamp: null
   name: nv.loki-backend.loki
   namespace: loki
 spec:
@@ -12,7 +149,7 @@ spec:
   - action: allow
     applications:
     - any
-    name: nv.loki-read.loki-egress-277
+    name: nv.loki-read.loki-egress-131
     ports: tcp/7946
     priority: 0
     selector:
@@ -29,7 +166,7 @@ spec:
   - action: allow
     applications:
     - any
-    name: nv.loki-write.loki-egress-278
+    name: nv.loki-write.loki-egress-132
     ports: tcp/7946
     priority: 0
     selector:
@@ -46,7 +183,7 @@ spec:
   - action: allow
     applications:
     - DNS
-    name: nv.rke2-coredns-rke2-coredns.kube-system-egress-279
+    name: nv.rke2-coredns-rke2-coredns.kube-system-egress-133
     ports: any
     priority: 0
     selector:
@@ -60,28 +197,13 @@ spec:
         value: kube-system
       name: nv.rke2-coredns-rke2-coredns.kube-system
       original_name: ''
+  file: []
+  ingress:
   - action: allow
     applications:
-    - SSL
-    name: nv.monitoring-pool-0.minio-monitoring-tenant-egress-280
-    ports: any
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: monitoring-pool-0.minio-monitoring-tenant
-      - key: domain
-        op: =
-        value: minio-monitoring-tenant
-      name: nv.monitoring-pool-0.minio-monitoring-tenant
-      original_name: ''
-  - action: allow
-    applications:
-    - HTTP
-    name: nv.loki-read.loki-egress-281
-    ports: any
+    - any
+    name: nv.loki-backend.loki-ingress-63
+    ports: tcp/7946
     priority: 0
     selector:
       comment: ''
@@ -94,12 +216,10 @@ spec:
         value: loki
       name: nv.loki-read.loki
       original_name: ''
-  file: []
-  ingress:
   - action: allow
     applications:
     - any
-    name: nv.loki-backend.loki-ingress-118
+    name: nv.loki-backend.loki-ingress-64
     ports: tcp/7946
     priority: 0
     selector:
@@ -115,59 +235,8 @@ spec:
       original_name: ''
   - action: allow
     applications:
-    - HTTP
-    name: nv.loki-backend.loki-ingress-119
-    ports: any
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: loki-read.loki
-      - key: domain
-        op: =
-        value: loki
-      name: nv.loki-read.loki
-      original_name: ''
-  - action: allow
-    applications:
     - any
-    name: nv.loki-backend.loki-ingress-120
-    ports: tcp/7946,tcp/9095
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: loki-read.loki
-      - key: domain
-        op: =
-        value: loki
-      name: nv.loki-read.loki
-      original_name: ''
-  - action: allow
-    applications:
-    - HTTP
-    name: nv.loki-backend.loki-ingress-121
-    ports: any
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: prometheus-rancher-monitoring-prometheus.cattle-monitoring-system
-      - key: domain
-        op: =
-        value: cattle-monitoring-system
-      name: nv.prometheus-rancher-monitoring-prometheus.cattle-monitoring-system
-      original_name: ''
-  - action: allow
-    applications:
-    - any
-    name: nv.loki-backend.loki-ingress-122
+    name: nv.loki-backend.loki-ingress-65
     ports: tcp/7946
     priority: 0
     selector:
@@ -181,176 +250,6 @@ spec:
         value: loki
       name: nv.loki-backend.loki
       original_name: ''
-  - action: allow
-    applications:
-    - any
-    name: nv.loki-backend.loki-ingress-123
-    ports: tcp/7946
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: migrator.kube-storage-version-migrator
-      - key: domain
-        op: =
-        value: kube-storage-version-migrator
-      name: nv.migrator.kube-storage-version-migrator
-      original_name: ''
-  - action: allow
-    applications:
-    - HTTP
-    name: nv.loki-backend.loki-ingress-124
-    ports: any
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: rke2-control-plane-controller-manager.rke2-control-plane-system
-      - key: domain
-        op: =
-        value: rke2-control-plane-system
-      name: nv.rke2-control-plane-controller-manager.rke2-control-plane-system
-      original_name: ''
-  - action: allow
-    applications:
-    - any
-    name: nv.loki-backend.loki-ingress-125
-    ports: tcp/7946
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: rke2-control-plane-controller-manager.rke2-control-plane-system
-      - key: domain
-        op: =
-        value: rke2-control-plane-system
-      name: nv.rke2-control-plane-controller-manager.rke2-control-plane-system
-      original_name: ''
-  - action: allow
-    applications:
-    - any
-    name: nv.loki-backend.loki-ingress-126
-    ports: tcp/7946
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: notification-controller.flux-system
-      - key: domain
-        op: =
-        value: flux-system
-      name: nv.notification-controller.flux-system
-      original_name: ''
-  - action: allow
-    applications:
-    - any
-    name: nv.loki-backend.loki-ingress-127
-    ports: tcp/7946
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: thanos-ruler.thanos
-      - key: domain
-        op: =
-        value: thanos
-      name: nv.thanos-ruler.thanos
-      original_name: ''
-  - action: allow
-    applications:
-    - any
-    name: nv.loki-backend.loki-ingress-128
-    ports: tcp/7946
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: rke2-coredns-rke2-coredns.kube-system
-      - key: domain
-        op: =
-        value: kube-system
-      name: nv.rke2-coredns-rke2-coredns.kube-system
-      original_name: ''
-  - action: allow
-    applications:
-    - HTTP
-    name: nv.loki-backend.loki-ingress-129
-    ports: any
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: rke2-coredns-rke2-coredns.kube-system
-      - key: domain
-        op: =
-        value: kube-system
-      name: nv.rke2-coredns-rke2-coredns.kube-system
-      original_name: ''
-  - action: allow
-    applications:
-    - HTTP
-    name: nv.loki-backend.loki-ingress-130
-    ports: any
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: workload-cluster-operator-controller-manager.workload-cluster-operator-system
-      - key: domain
-        op: =
-        value: workload-cluster-operator-system
-      name: nv.workload-cluster-operator-controller-manager.workload-cluster-operator-system
-      original_name: ''
-  - action: allow
-    applications:
-    - any
-    name: nv.loki-backend.loki-ingress-131
-    ports: tcp/3100
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: prometheus-rancher-monitoring-prometheus.cattle-monitoring-system
-      - key: domain
-        op: =
-        value: cattle-monitoring-system
-      name: nv.prometheus-rancher-monitoring-prometheus.cattle-monitoring-system
-      original_name: ''
-  - action: allow
-    applications:
-    - any
-    name: nv.loki-backend.loki-ingress-132
-    ports: tcp/7946
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: postgres-read.keycloak
-      - key: domain
-        op: =
-        value: keycloak
-      name: nv.postgres-read.keycloak
-      original_name: ''
   process:
   - action: allow
     allow_update: false
@@ -362,8 +261,8 @@ spec:
     path: /pause
   - action: allow
     allow_update: false
-    name: sh
-    path: /bin/busybox
+    name: python
+    path: /usr/local/bin/python3.12
   process_profile:
     baseline: zero-drift
   target:
@@ -377,6 +276,10 @@ spec:
       - key: domain
         op: =
         value: loki
+      grp_band_width: 0
+      grp_sess_cur: 0
+      grp_sess_rate: 0
+      mon_metric: false
       name: nv.loki-backend.loki
       original_name: ''
   waf:
@@ -386,6 +289,7 @@ spec:
 apiVersion: neuvector.com/v1
 kind: NvSecurityRule
 metadata:
+  creationTimestamp: null
   name: nv.loki-gateway.loki
   namespace: loki
 spec:
@@ -395,8 +299,25 @@ spec:
   egress:
   - action: allow
     applications:
+    - HTTP
+    name: nv.loki-write.loki-egress-134
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: loki-write.loki
+      - key: domain
+        op: =
+        value: loki
+      name: nv.loki-write.loki
+      original_name: ''
+  - action: allow
+    applications:
     - DNS
-    name: nv.rke2-coredns-rke2-coredns.kube-system-egress-282
+    name: nv.rke2-coredns-rke2-coredns.kube-system-egress-135
     ports: any
     priority: 0
     selector:
@@ -410,132 +331,9 @@ spec:
         value: kube-system
       name: nv.rke2-coredns-rke2-coredns.kube-system
       original_name: ''
-  - action: allow
-    applications:
-    - HTTP
-    name: nv.loki-read.loki-egress-283
-    ports: any
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: loki-read.loki
-      - key: domain
-        op: =
-        value: loki
-      name: nv.loki-read.loki
-      original_name: ''
-  - action: allow
-    applications:
-    - HTTP
-    name: nv.loki-write.loki-egress-284
-    ports: any
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: loki-write.loki
-      - key: domain
-        op: =
-        value: loki
-      name: nv.loki-write.loki
-      original_name: ''
-  - action: allow
-    applications:
-    - any
-    name: nv.loki-write.loki-egress-285
-    ports: tcp/3100
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: loki-write.loki
-      - key: domain
-        op: =
-        value: loki
-      name: nv.loki-write.loki
-      original_name: ''
   file: []
-  ingress:
-  - action: allow
-    applications:
-    - HTTP
-    name: nv.loki-gateway.loki-ingress-133
-    ports: any
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: rancher-monitoring-kube-state-metrics.cattle-monitoring-system
-      - key: domain
-        op: =
-        value: cattle-monitoring-system
-      name: nv.rancher-monitoring-kube-state-metrics.cattle-monitoring-system
-      original_name: ''
-  - action: allow
-    applications:
-    - HTTP
-    name: nv.loki-gateway.loki-ingress-134
-    ports: any
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: notification-controller.flux-system
-      - key: domain
-        op: =
-        value: flux-system
-      name: nv.notification-controller.flux-system
-      original_name: ''
-  - action: allow
-    applications:
-    - HTTP
-    name: nv.loki-gateway.loki-ingress-135
-    ports: any
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: rancher-monitoring-grafana.cattle-monitoring-system
-      - key: domain
-        op: =
-        value: cattle-monitoring-system
-      name: nv.rancher-monitoring-grafana.cattle-monitoring-system
-      original_name: ''
-  - action: allow
-    applications:
-    - HTTP
-    name: nv.loki-gateway.loki-ingress-136
-    ports: any
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: rke2-ingress-nginx-controller.kube-system
-      - key: domain
-        op: =
-        value: kube-system
-      name: nv.rke2-ingress-nginx-controller.kube-system
-      original_name: ''
+  ingress: []
   process:
-  - action: allow
-    allow_update: false
-    name: awk
-    path: /usr/bin/mawk
   - action: allow
     allow_update: false
     name: nginx
@@ -544,22 +342,6 @@ spec:
     allow_update: false
     name: pause
     path: /pause
-  - action: allow
-    allow_update: false
-    name: redis-cli
-    path: /opt/bitnami/redis/bin/redis-cli
-  - action: allow
-    allow_update: false
-    name: sh
-    path: /bin/busybox
-  - action: allow
-    allow_update: false
-    name: sh
-    path: /bin/dash
-  - action: allow
-    allow_update: false
-    name: timeout
-    path: /usr/bin/timeout
   process_profile:
     baseline: zero-drift
   target:
@@ -573,6 +355,10 @@ spec:
       - key: domain
         op: =
         value: loki
+      grp_band_width: 0
+      grp_sess_cur: 0
+      grp_sess_rate: 0
+      mon_metric: false
       name: nv.loki-gateway.loki
       original_name: ''
   waf:
@@ -582,6 +368,7 @@ spec:
 apiVersion: neuvector.com/v1
 kind: NvSecurityRule
 metadata:
+  creationTimestamp: null
   name: nv.loki-read.loki
   namespace: loki
 spec:
@@ -592,7 +379,7 @@ spec:
   - action: allow
     applications:
     - DNS
-    name: nv.rke2-coredns-rke2-coredns.kube-system-egress-286
+    name: nv.rke2-coredns-rke2-coredns.kube-system-egress-136
     ports: any
     priority: 0
     selector:
@@ -609,8 +396,8 @@ spec:
   - action: allow
     applications:
     - any
-    name: nv.loki-write.loki-egress-287
-    ports: tcp/7946,tcp/9095
+    name: nv.loki-write.loki-egress-137
+    ports: tcp/7946
     priority: 0
     selector:
       comment: ''
@@ -622,81 +409,13 @@ spec:
         op: =
         value: loki
       name: nv.loki-write.loki
-      original_name: ''
-  - action: allow
-    applications:
-    - HTTP
-    name: nv.loki-write.loki-egress-288
-    ports: any
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: loki-write.loki
-      - key: domain
-        op: =
-        value: loki
-      name: nv.loki-write.loki
-      original_name: ''
-  - action: allow
-    applications:
-    - SSL
-    name: nv.monitoring-pool-0.minio-monitoring-tenant-egress-289
-    ports: any
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: monitoring-pool-0.minio-monitoring-tenant
-      - key: domain
-        op: =
-        value: minio-monitoring-tenant
-      name: nv.monitoring-pool-0.minio-monitoring-tenant
       original_name: ''
   file: []
   ingress:
   - action: allow
     applications:
-    - HTTP
-    name: nv.loki-read.loki-ingress-137
-    ports: any
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: prometheus-rancher-monitoring-prometheus.cattle-monitoring-system
-      - key: domain
-        op: =
-        value: cattle-monitoring-system
-      name: nv.prometheus-rancher-monitoring-prometheus.cattle-monitoring-system
-      original_name: ''
-  - action: allow
-    applications:
     - any
-    name: nv.loki-read.loki-ingress-138
-    ports: tcp/7946,tcp/9095
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: loki-read.loki
-      - key: domain
-        op: =
-        value: loki
-      name: nv.loki-read.loki
-      original_name: ''
-  - action: allow
-    applications:
-    - any
-    name: nv.loki-read.loki-ingress-139
+    name: nv.loki-read.loki-ingress-66
     ports: tcp/7946
     priority: 0
     selector:
@@ -712,9 +431,9 @@ spec:
       original_name: ''
   - action: allow
     applications:
-    - HTTP
-    name: nv.loki-read.loki-ingress-140
-    ports: any
+    - any
+    name: nv.loki-read.loki-ingress-67
+    ports: tcp/7946
     priority: 0
     selector:
       comment: ''
@@ -727,113 +446,7 @@ spec:
         value: loki
       name: nv.loki-read.loki
       original_name: ''
-  - action: allow
-    applications:
-    - any
-    name: nv.loki-read.loki-ingress-141
-    ports: tcp/7946
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: notification-controller.flux-system
-      - key: domain
-        op: =
-        value: flux-system
-      name: nv.notification-controller.flux-system
-      original_name: ''
-  - action: allow
-    applications:
-    - any
-    name: nv.loki-read.loki-ingress-142
-    ports: tcp/7946
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: migrator.kube-storage-version-migrator
-      - key: domain
-        op: =
-        value: kube-storage-version-migrator
-      name: nv.migrator.kube-storage-version-migrator
-      original_name: ''
-  - action: allow
-    applications:
-    - any
-    name: nv.loki-read.loki-ingress-143
-    ports: tcp/7946
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: rke2-control-plane-controller-manager.rke2-control-plane-system
-      - key: domain
-        op: =
-        value: rke2-control-plane-system
-      name: nv.rke2-control-plane-controller-manager.rke2-control-plane-system
-      original_name: ''
-  - action: allow
-    applications:
-    - any
-    name: nv.loki-read.loki-ingress-144
-    ports: tcp/7946
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: rke2-coredns-rke2-coredns.kube-system
-      - key: domain
-        op: =
-        value: kube-system
-      name: nv.rke2-coredns-rke2-coredns.kube-system
-      original_name: ''
-  - action: allow
-    applications:
-    - any
-    name: nv.loki-read.loki-ingress-145
-    ports: tcp/7946
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: thanos-ruler.thanos
-      - key: domain
-        op: =
-        value: thanos
-      name: nv.thanos-ruler.thanos
-      original_name: ''
-  - action: allow
-    applications:
-    - any
-    name: nv.loki-read.loki-ingress-146
-    ports: tcp/7946
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: postgres-read.keycloak
-      - key: domain
-        op: =
-        value: keycloak
-      name: nv.postgres-read.keycloak
-      original_name: ''
   process:
-  - action: allow
-    allow_update: false
-    name: cut
-    path: /usr/bin/cut
   - action: allow
     allow_update: false
     name: loki
@@ -842,10 +455,6 @@ spec:
     allow_update: false
     name: pause
     path: /pause
-  - action: allow
-    allow_update: false
-    name: sh
-    path: /bin/busybox
   process_profile:
     baseline: zero-drift
   target:
@@ -859,6 +468,10 @@ spec:
       - key: domain
         op: =
         value: loki
+      grp_band_width: 0
+      grp_sess_cur: 0
+      grp_sess_rate: 0
+      mon_metric: false
       name: nv.loki-read.loki
       original_name: ''
   waf:
@@ -868,6 +481,56 @@ spec:
 apiVersion: neuvector.com/v1
 kind: NvSecurityRule
 metadata:
+  creationTimestamp: null
+  name: nv.loki-results-cache.loki
+  namespace: loki
+spec:
+  dlp:
+    settings: []
+    status: true
+  egress: []
+  file: []
+  ingress: []
+  process:
+  - action: allow
+    allow_update: false
+    name: memcached
+    path: /usr/local/bin/memcached
+  - action: allow
+    allow_update: false
+    name: memcached_exporter
+    path: /bin/memcached_exporter
+  - action: allow
+    allow_update: false
+    name: pause
+    path: /pause
+  process_profile:
+    baseline: zero-drift
+  target:
+    policymode: Monitor
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: loki-results-cache.loki
+      - key: domain
+        op: =
+        value: loki
+      grp_band_width: 0
+      grp_sess_cur: 0
+      grp_sess_rate: 0
+      mon_metric: false
+      name: nv.loki-results-cache.loki
+      original_name: ''
+  waf:
+    settings: []
+    status: true
+---
+apiVersion: neuvector.com/v1
+kind: NvSecurityRule
+metadata:
+  creationTimestamp: null
   name: nv.loki-write.loki
   namespace: loki
 spec:
@@ -878,7 +541,7 @@ spec:
   - action: allow
     applications:
     - DNS
-    name: nv.rke2-coredns-rke2-coredns.kube-system-egress-290
+    name: nv.rke2-coredns-rke2-coredns.kube-system-egress-138
     ports: any
     priority: 0
     selector:
@@ -891,48 +554,14 @@ spec:
         op: =
         value: kube-system
       name: nv.rke2-coredns-rke2-coredns.kube-system
-      original_name: ''
-  - action: allow
-    applications:
-    - SSL
-    name: nv.monitoring-pool-0.minio-monitoring-tenant-egress-291
-    ports: any
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: monitoring-pool-0.minio-monitoring-tenant
-      - key: domain
-        op: =
-        value: minio-monitoring-tenant
-      name: nv.monitoring-pool-0.minio-monitoring-tenant
-      original_name: ''
-  - action: allow
-    applications:
-    - any
-    name: nv.monitoring-pool-0.minio-monitoring-tenant-egress-292
-    ports: tcp/9000
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: monitoring-pool-0.minio-monitoring-tenant
-      - key: domain
-        op: =
-        value: minio-monitoring-tenant
-      name: nv.monitoring-pool-0.minio-monitoring-tenant
       original_name: ''
   file: []
   ingress:
   - action: allow
     applications:
     - any
-    name: nv.loki-write.loki-ingress-147
-    ports: tcp/7946,tcp/9095
+    name: nv.loki-write.loki-ingress-68
+    ports: tcp/7946
     priority: 0
     selector:
       comment: ''
@@ -948,7 +577,7 @@ spec:
   - action: allow
     applications:
     - HTTP
-    name: nv.loki-write.loki-ingress-148
+    name: nv.loki-write.loki-ingress-69
     ports: any
     priority: 0
     selector:
@@ -961,125 +590,6 @@ spec:
         op: =
         value: loki
       name: nv.loki-write.loki
-      original_name: ''
-  - action: allow
-    applications:
-    - HTTP
-    name: nv.loki-write.loki-ingress-149
-    ports: any
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: prometheus-rancher-monitoring-prometheus.cattle-monitoring-system
-      - key: domain
-        op: =
-        value: cattle-monitoring-system
-      name: nv.prometheus-rancher-monitoring-prometheus.cattle-monitoring-system
-      original_name: ''
-  - action: allow
-    applications:
-    - any
-    name: nv.loki-write.loki-ingress-150
-    ports: tcp/7946
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: notification-controller.flux-system
-      - key: domain
-        op: =
-        value: flux-system
-      name: nv.notification-controller.flux-system
-      original_name: ''
-  - action: allow
-    applications:
-    - any
-    name: nv.loki-write.loki-ingress-151
-    ports: tcp/7946
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: rke2-control-plane-controller-manager.rke2-control-plane-system
-      - key: domain
-        op: =
-        value: rke2-control-plane-system
-      name: nv.rke2-control-plane-controller-manager.rke2-control-plane-system
-      original_name: ''
-  - action: allow
-    applications:
-    - any
-    name: nv.loki-write.loki-ingress-152
-    ports: tcp/7946
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: migrator.kube-storage-version-migrator
-      - key: domain
-        op: =
-        value: kube-storage-version-migrator
-      name: nv.migrator.kube-storage-version-migrator
-      original_name: ''
-  - action: allow
-    applications:
-    - any
-    name: nv.loki-write.loki-ingress-153
-    ports: tcp/7946
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: rke2-coredns-rke2-coredns.kube-system
-      - key: domain
-        op: =
-        value: kube-system
-      name: nv.rke2-coredns-rke2-coredns.kube-system
-      original_name: ''
-  - action: allow
-    applications:
-    - HTTP
-    name: nv.loki-write.loki-ingress-154
-    ports: any
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: workload-cluster-operator-controller-manager.workload-cluster-operator-system
-      - key: domain
-        op: =
-        value: workload-cluster-operator-system
-      name: nv.workload-cluster-operator-controller-manager.workload-cluster-operator-system
-      original_name: ''
-  - action: allow
-    applications:
-    - any
-    name: nv.loki-write.loki-ingress-155
-    ports: tcp/7946
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: postgres-read.keycloak
-      - key: domain
-        op: =
-        value: keycloak
-      name: nv.postgres-read.keycloak
       original_name: ''
   process:
   - action: allow
@@ -1088,16 +598,8 @@ spec:
     path: /usr/bin/loki
   - action: allow
     allow_update: false
-    name: pathWalker
-    path: /usr/local/bin/pathWalker
-  - action: allow
-    allow_update: false
     name: pause
     path: /pause
-  - action: allow
-    allow_update: false
-    name: sh
-    path: /bin/busybox
   process_profile:
     baseline: zero-drift
   target:
@@ -1111,6 +613,10 @@ spec:
       - key: domain
         op: =
         value: loki
+      grp_band_width: 0
+      grp_sess_cur: 0
+      grp_sess_rate: 0
+      mon_metric: false
       name: nv.loki-write.loki
       original_name: ''
   waf:

@@ -2,82 +2,25 @@
 apiVersion: neuvector.com/v1
 kind: NvSecurityRule
 metadata:
+  creationTimestamp: null
   name: nv.flux-webui-weave-gitops.flux-system
   namespace: flux-system
 spec:
   dlp:
     settings: []
     status: true
-  egress:
-  - action: allow
-    applications:
-    - any
-    name: nv.kube-apiserver-mgmt-cluster-cp.kube-system-egress-199
-    ports: tcp/6443
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: kube-apiserver-mgmt-cluster-cp.kube-system
-      - key: domain
-        op: =
-        value: kube-system
-      name: nv.kube-apiserver-mgmt-cluster-cp.kube-system
-      original_name: ''
-  - action: allow
-    applications:
-    - DNS
-    name: nv.rke2-coredns-rke2-coredns.kube-system-egress-200
-    ports: any
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: rke2-coredns-rke2-coredns.kube-system
-      - key: domain
-        op: =
-        value: kube-system
-      name: nv.rke2-coredns-rke2-coredns.kube-system
-      original_name: ''
-  - action: allow
-    applications:
-    - Kafka
-    name: nv.monitoring-pool-0.minio-monitoring-tenant-egress-201
-    ports: any
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: monitoring-pool-0.minio-monitoring-tenant
-      - key: domain
-        op: =
-        value: minio-monitoring-tenant
-      name: nv.monitoring-pool-0.minio-monitoring-tenant
-      original_name: ''
+  egress: []
   file: []
   ingress:
   - action: allow
     applications:
-    - HTTP
-    name: nv.flux-webui-weave-gitops.flux-system-ingress-42
+    - SSL
+    name: nv.flux-webui-weave-gitops.flux-system-ingress-20
     ports: any
     priority: 0
     selector:
       comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: rke2-ingress-nginx-controller.kube-system
-      - key: domain
-        op: =
-        value: kube-system
-      name: nv.rke2-ingress-nginx-controller.kube-system
+      name: Workload:ingress
       original_name: ''
   process:
   - action: allow
@@ -101,6 +44,10 @@ spec:
       - key: domain
         op: =
         value: flux-system
+      grp_band_width: 0
+      grp_sess_cur: 0
+      grp_sess_rate: 0
+      mon_metric: false
       name: nv.flux-webui-weave-gitops.flux-system
       original_name: ''
   waf:
@@ -110,6 +57,7 @@ spec:
 apiVersion: neuvector.com/v1
 kind: NvSecurityRule
 metadata:
+  creationTimestamp: null
   name: nv.helm-controller.flux-system
   namespace: flux-system
 spec:
@@ -120,7 +68,7 @@ spec:
   - action: allow
     applications:
     - HTTP
-    name: nv.source-controller.flux-system-egress-232
+    name: nv.source-controller.flux-system-egress-113
     ports: any
     priority: 0
     selector:
@@ -137,7 +85,7 @@ spec:
   - action: allow
     applications:
     - DNS
-    name: nv.rke2-coredns-rke2-coredns.kube-system-egress-233
+    name: nv.rke2-coredns-rke2-coredns.kube-system-egress-114
     ports: any
     priority: 0
     selector:
@@ -151,101 +99,13 @@ spec:
         value: kube-system
       name: nv.rke2-coredns-rke2-coredns.kube-system
       original_name: ''
-  - action: allow
-    applications:
-    - any
-    name: nv.source-controller.flux-system-egress-234
-    ports: tcp/9090
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: source-controller.flux-system
-      - key: domain
-        op: =
-        value: flux-system
-      name: nv.source-controller.flux-system
-      original_name: ''
-  - action: allow
-    applications:
-    - HTTP
-    name: nv.notification-controller.flux-system-egress-235
-    ports: any
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: notification-controller.flux-system
-      - key: domain
-        op: =
-        value: flux-system
-      name: nv.notification-controller.flux-system
-      original_name: ''
-  - action: allow
-    applications:
-    - any
-    name: nv.kube-apiserver-mgmt-cluster-cp.kube-system-egress-236
-    ports: tcp/6443
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: kube-apiserver-mgmt-cluster-cp.kube-system
-      - key: domain
-        op: =
-        value: kube-system
-      name: nv.kube-apiserver-mgmt-cluster-cp.kube-system
-      original_name: ''
   file: []
-  ingress:
-  - action: allow
-    applications:
-    - HTTP
-    name: nv.helm-controller.flux-system-ingress-74
-    ports: any
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: prometheus-rancher-monitoring-prometheus.cattle-monitoring-system
-      - key: domain
-        op: =
-        value: cattle-monitoring-system
-      name: nv.prometheus-rancher-monitoring-prometheus.cattle-monitoring-system
-      original_name: ''
+  ingress: []
   process:
-  - action: allow
-    allow_update: false
-    name: awk
-    path: /usr/bin/mawk
-  - action: allow
-    allow_update: false
-    name: calico
-    path: /opt/cni/bin/calico
-  - action: allow
-    allow_update: false
-    name: getent
-    path: /usr/bin/getent
-  - action: allow
-    allow_update: false
-    name: head
-    path: /usr/bin/head
   - action: allow
     allow_update: false
     name: helm-controller
     path: /usr/local/bin/helm-controller
-  - action: allow
-    allow_update: false
-    name: pathWalker
-    path: /usr/local/bin/pathWalker
   - action: allow
     allow_update: false
     name: pause
@@ -263,6 +123,10 @@ spec:
       - key: domain
         op: =
         value: flux-system
+      grp_band_width: 0
+      grp_sess_cur: 0
+      grp_sess_rate: 0
+      mon_metric: false
       name: nv.helm-controller.flux-system
       original_name: ''
   waf:
@@ -272,6 +136,122 @@ spec:
 apiVersion: neuvector.com/v1
 kind: NvSecurityRule
 metadata:
+  creationTimestamp: null
+  name: nv.ip.flux-webui-weave-gitops.flux-system
+  namespace: flux-system
+spec:
+  egress: []
+  file: []
+  ingress: []
+  process: []
+  target:
+    policymode: N/A
+    selector:
+      comment: ''
+      criteria:
+      - key: address
+        op: =
+        value: 100.73.29.104
+      - key: domain
+        op: =
+        value: flux-system
+      - key: label
+        op: =
+        value: app.kubernetes.io/instance=flux-webui
+      - key: label
+        op: =
+        value: app.kubernetes.io/name=weave-gitops
+      name: nv.ip.flux-webui-weave-gitops.flux-system
+      original_name: ''
+---
+apiVersion: neuvector.com/v1
+kind: NvSecurityRule
+metadata:
+  creationTimestamp: null
+  name: nv.ip.notification-controller.flux-system
+  namespace: flux-system
+spec:
+  egress: []
+  file: []
+  ingress: []
+  process: []
+  target:
+    policymode: N/A
+    selector:
+      comment: ''
+      criteria:
+      - key: address
+        op: =
+        value: 100.73.27.162
+      - key: domain
+        op: =
+        value: flux-system
+      - key: label
+        op: =
+        value: app=notification-controller
+      name: nv.ip.notification-controller.flux-system
+      original_name: ''
+---
+apiVersion: neuvector.com/v1
+kind: NvSecurityRule
+metadata:
+  creationTimestamp: null
+  name: nv.ip.source-controller.flux-system
+  namespace: flux-system
+spec:
+  egress: []
+  file: []
+  ingress: []
+  process: []
+  target:
+    policymode: N/A
+    selector:
+      comment: ''
+      criteria:
+      - key: address
+        op: =
+        value: 100.73.95.186
+      - key: domain
+        op: =
+        value: flux-system
+      - key: label
+        op: =
+        value: app=source-controller
+      name: nv.ip.source-controller.flux-system
+      original_name: ''
+---
+apiVersion: neuvector.com/v1
+kind: NvSecurityRule
+metadata:
+  creationTimestamp: null
+  name: nv.ip.webhook-receiver.flux-system
+  namespace: flux-system
+spec:
+  egress: []
+  file: []
+  ingress: []
+  process: []
+  target:
+    policymode: N/A
+    selector:
+      comment: ''
+      criteria:
+      - key: address
+        op: =
+        value: 100.73.183.115
+      - key: domain
+        op: =
+        value: flux-system
+      - key: label
+        op: =
+        value: app=notification-controller
+      name: nv.ip.webhook-receiver.flux-system
+      original_name: ''
+---
+apiVersion: neuvector.com/v1
+kind: NvSecurityRule
+metadata:
+  creationTimestamp: null
   name: nv.kustomize-controller.flux-system
   namespace: flux-system
 spec:
@@ -281,25 +261,8 @@ spec:
   egress:
   - action: allow
     applications:
-    - HTTP
-    name: nv.source-controller.flux-system-egress-250
-    ports: any
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: source-controller.flux-system
-      - key: domain
-        op: =
-        value: flux-system
-      name: nv.source-controller.flux-system
-      original_name: ''
-  - action: allow
-    applications:
     - DNS
-    name: nv.rke2-coredns-rke2-coredns.kube-system-egress-251
+    name: nv.rke2-coredns-rke2-coredns.kube-system-egress-123
     ports: any
     priority: 0
     selector:
@@ -316,25 +279,8 @@ spec:
   - action: allow
     applications:
     - HTTP
-    name: nv.notification-controller.flux-system-egress-252
+    name: nv.source-controller.flux-system-egress-124
     ports: any
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: notification-controller.flux-system
-      - key: domain
-        op: =
-        value: flux-system
-      name: nv.notification-controller.flux-system
-      original_name: ''
-  - action: allow
-    applications:
-    - any
-    name: nv.source-controller.flux-system-egress-253
-    ports: tcp/9090
     priority: 0
     selector:
       comment: ''
@@ -349,9 +295,9 @@ spec:
       original_name: ''
   - action: allow
     applications:
-    - any
-    name: nv.notification-controller.flux-system-egress-254
-    ports: tcp/9090
+    - HTTP
+    name: nv.notification-controller.flux-system-egress-125
+    ports: any
     priority: 0
     selector:
       comment: ''
@@ -364,64 +310,37 @@ spec:
         value: flux-system
       name: nv.notification-controller.flux-system
       original_name: ''
-  - action: allow
-    applications:
-    - SSL
-    name: nv.vault.vault-egress-255
-    ports: any
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: vault.vault
-      - key: domain
-        op: =
-        value: vault
-      name: nv.vault.vault
-      original_name: ''
   file: []
-  ingress:
-  - action: allow
-    applications:
-    - HTTP
-    name: nv.kustomize-controller.flux-system-ingress-116
-    ports: any
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: prometheus-rancher-monitoring-prometheus.cattle-monitoring-system
-      - key: domain
-        op: =
-        value: cattle-monitoring-system
-      name: nv.prometheus-rancher-monitoring-prometheus.cattle-monitoring-system
-      original_name: ''
-  - action: allow
-    applications:
-    - any
-    name: nv.kustomize-controller.flux-system-ingress-117
-    ports: tcp/8080
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: prometheus-rancher-monitoring-prometheus.cattle-monitoring-system
-      - key: domain
-        op: =
-        value: cattle-monitoring-system
-      name: nv.prometheus-rancher-monitoring-prometheus.cattle-monitoring-system
-      original_name: ''
+  ingress: []
   process:
   - action: allow
     allow_update: false
-    name: csi-attacher
-    path: /csi-attacher
+    name: basename
+    path: /bin/busybox
+  - action: allow
+    allow_update: false
+    name: busybox
+    path: /bin/busybox
+  - action: allow
+    allow_update: false
+    name: git
+    path: /usr/bin/git
+  - action: allow
+    allow_update: false
+    name: git-remote-https
+    path: /usr/libexec/git-core/git-remote-http
+  - action: allow
+    allow_update: false
+    name: git-sh-i18n--en
+    path: /usr/libexec/git-core/git-sh-i18n--envsubst
+  - action: allow
+    allow_update: false
+    name: git-sh-i18n--envsubst
+    path: /usr/libexec/git-core/git-sh-i18n--envsubst
+  - action: allow
+    allow_update: false
+    name: git-submodule
+    path: /bin/busybox
   - action: allow
     allow_update: false
     name: kustomize-controller
@@ -432,12 +351,16 @@ spec:
     path: /pause
   - action: allow
     allow_update: false
-    name: sh
+    name: sed
     path: /bin/busybox
   - action: allow
     allow_update: false
     name: tini
     path: /sbin/tini
+  - action: allow
+    allow_update: false
+    name: uname
+    path: /bin/busybox
   process_profile:
     baseline: zero-drift
   target:
@@ -451,6 +374,10 @@ spec:
       - key: domain
         op: =
         value: flux-system
+      grp_band_width: 0
+      grp_sess_cur: 0
+      grp_sess_rate: 0
+      mon_metric: false
       name: nv.kustomize-controller.flux-system
       original_name: ''
   waf:
@@ -460,36 +387,20 @@ spec:
 apiVersion: neuvector.com/v1
 kind: NvSecurityRule
 metadata:
+  creationTimestamp: null
   name: nv.notification-controller.flux-system
   namespace: flux-system
 spec:
   dlp:
     settings: []
     status: true
-  egress:
-  - action: allow
-    applications:
-    - DNS
-    name: nv.rke2-coredns-rke2-coredns.kube-system-egress-304
-    ports: any
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: rke2-coredns-rke2-coredns.kube-system
-      - key: domain
-        op: =
-        value: kube-system
-      name: nv.rke2-coredns-rke2-coredns.kube-system
-      original_name: ''
+  egress: []
   file: []
   ingress:
   - action: allow
     applications:
     - HTTP
-    name: nv.notification-controller.flux-system-ingress-167
+    name: nv.notification-controller.flux-system-ingress-75
     ports: any
     priority: 0
     selector:
@@ -503,53 +414,11 @@ spec:
         value: flux-system
       name: nv.source-controller.flux-system
       original_name: ''
-  - action: allow
-    applications:
-    - HTTP
-    name: nv.notification-controller.flux-system-ingress-168
-    ports: any
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: prometheus-rancher-monitoring-prometheus.cattle-monitoring-system
-      - key: domain
-        op: =
-        value: cattle-monitoring-system
-      name: nv.prometheus-rancher-monitoring-prometheus.cattle-monitoring-system
-      original_name: ''
-  - action: allow
-    applications:
-    - any
-    name: nv.notification-controller.flux-system-ingress-169
-    ports: tcp/8080
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: prometheus-rancher-monitoring-prometheus.cattle-monitoring-system
-      - key: domain
-        op: =
-        value: cattle-monitoring-system
-      name: nv.prometheus-rancher-monitoring-prometheus.cattle-monitoring-system
-      original_name: ''
   process:
-  - action: allow
-    allow_update: false
-    name: manager
-    path: /manager
   - action: allow
     allow_update: false
     name: notification-controller
     path: /usr/local/bin/notification-controller
-  - action: allow
-    allow_update: false
-    name: pathWalker
-    path: /usr/local/bin/pathWalker
   - action: allow
     allow_update: false
     name: pause
@@ -567,6 +436,10 @@ spec:
       - key: domain
         op: =
         value: flux-system
+      grp_band_width: 0
+      grp_sess_cur: 0
+      grp_sess_rate: 0
+      mon_metric: false
       name: nv.notification-controller.flux-system
       original_name: ''
   waf:
@@ -576,6 +449,7 @@ spec:
 apiVersion: neuvector.com/v1
 kind: NvSecurityRule
 metadata:
+  creationTimestamp: null
   name: nv.source-controller.flux-system
   namespace: flux-system
 spec:
@@ -607,6 +481,10 @@ spec:
       - key: domain
         op: =
         value: flux-system
+      grp_band_width: 0
+      grp_sess_cur: 0
+      grp_sess_rate: 0
+      mon_metric: false
       name: nv.source-controller.flux-system
       original_name: ''
   waf:

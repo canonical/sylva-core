@@ -2,6 +2,7 @@
 apiVersion: neuvector.com/v1
 kind: NvSecurityRule
 metadata:
+  creationTimestamp: null
   name: nv.tigera-operator.tigera-operator
   namespace: tigera-operator
 spec:
@@ -15,7 +16,7 @@ spec:
   - action: allow
     allow_update: false
     name: operator
-    path: /usr/local/bin/operator
+    path: /usr/bin/operator
   - action: allow
     allow_update: false
     name: pause
@@ -33,6 +34,10 @@ spec:
       - key: domain
         op: =
         value: tigera-operator
+      grp_band_width: 0
+      grp_sess_cur: 0
+      grp_sess_rate: 0
+      mon_metric: false
       name: nv.tigera-operator.tigera-operator
       original_name: ''
   waf:

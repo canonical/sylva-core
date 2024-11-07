@@ -1,8 +1,7 @@
-apiVersion: kustomize.config.k8s.io/v1alpha1
+apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Component
-
 resources:
-  - cattle-monitoring-system.yaml
-  - minio-monitoring.yaml
-  - minio-operator.yaml
-  - thanos.yaml
+- cattle-monitoring-system.yaml
+- minio-operator.yaml
+- minio-monitoring.yaml
+- thanos.yaml

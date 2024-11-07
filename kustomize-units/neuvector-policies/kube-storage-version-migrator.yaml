@@ -2,47 +2,14 @@
 apiVersion: neuvector.com/v1
 kind: NvSecurityRule
 metadata:
+  creationTimestamp: null
   name: nv.migrator.kube-storage-version-migrator
   namespace: kube-storage-version-migrator
 spec:
   dlp:
     settings: []
     status: true
-  egress:
-  - action: allow
-    applications:
-    - DNS
-    name: nv.rke2-coredns-rke2-coredns.kube-system-egress-296
-    ports: any
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: rke2-coredns-rke2-coredns.kube-system
-      - key: domain
-        op: =
-        value: kube-system
-      name: nv.rke2-coredns-rke2-coredns.kube-system
-      original_name: ''
-  - action: allow
-    applications:
-    - SSL
-    name: nv.monitoring-pool-0.minio-monitoring-tenant-egress-297
-    ports: any
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: monitoring-pool-0.minio-monitoring-tenant
-      - key: domain
-        op: =
-        value: minio-monitoring-tenant
-      name: nv.monitoring-pool-0.minio-monitoring-tenant
-      original_name: ''
+  egress: []
   file: []
   ingress: []
   process:
@@ -54,10 +21,6 @@ spec:
     allow_update: false
     name: pause
     path: /pause
-  - action: allow
-    allow_update: false
-    name: pgrep
-    path: /bin/pgrep
   process_profile:
     baseline: zero-drift
   target:
@@ -71,6 +34,10 @@ spec:
       - key: domain
         op: =
         value: kube-storage-version-migrator
+      grp_band_width: 0
+      grp_sess_cur: 0
+      grp_sess_rate: 0
+      mon_metric: false
       name: nv.migrator.kube-storage-version-migrator
       original_name: ''
   waf:
@@ -80,6 +47,7 @@ spec:
 apiVersion: neuvector.com/v1
 kind: NvSecurityRule
 metadata:
+  creationTimestamp: null
   name: nv.trigger.kube-storage-version-migrator
   namespace: kube-storage-version-migrator
 spec:
@@ -94,10 +62,6 @@ spec:
     allow_update: false
     name: pause
     path: /pause
-  - action: allow
-    allow_update: false
-    name: postgres
-    path: /opt/bitnami/postgresql/bin/postgres
   - action: allow
     allow_update: false
     name: trigger
@@ -115,6 +79,10 @@ spec:
       - key: domain
         op: =
         value: kube-storage-version-migrator
+      grp_band_width: 0
+      grp_sess_cur: 0
+      grp_sess_rate: 0
+      mon_metric: false
       name: nv.trigger.kube-storage-version-migrator
       original_name: ''
   waf:

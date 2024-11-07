@@ -2,6 +2,7 @@
 apiVersion: neuvector.com/v1
 kind: NvSecurityRule
 metadata:
+  creationTimestamp: null
   name: nv.calico-kube-controllers.calico-system
   namespace: calico-system
 spec:
@@ -12,7 +13,7 @@ spec:
   - action: allow
     applications:
     - any
-    name: nv.kube-apiserver-mgmt-cluster-cp.kube-system-egress-137
+    name: nv.kube-apiserver-main-mgmt-cp.kube-system-egress-93
     ports: tcp/6443
     priority: 0
     selector:
@@ -20,45 +21,11 @@ spec:
       criteria:
       - key: service
         op: =
-        value: kube-apiserver-mgmt-cluster-cp.kube-system
+        value: kube-apiserver-main-mgmt-cp.kube-system
       - key: domain
         op: =
         value: kube-system
-      name: nv.kube-apiserver-mgmt-cluster-cp.kube-system
-      original_name: ''
-  - action: allow
-    applications:
-    - DNS
-    name: nv.rke2-coredns-rke2-coredns.kube-system-egress-138
-    ports: any
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: rke2-coredns-rke2-coredns.kube-system
-      - key: domain
-        op: =
-        value: kube-system
-      name: nv.rke2-coredns-rke2-coredns.kube-system
-      original_name: ''
-  - action: allow
-    applications:
-    - HTTP
-    name: nv.loki-gateway.loki-egress-139
-    ports: any
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: loki-gateway.loki
-      - key: domain
-        op: =
-        value: loki
-      name: nv.loki-gateway.loki
+      name: nv.kube-apiserver-main-mgmt-cp.kube-system
       original_name: ''
   file: []
   ingress: []
@@ -80,6 +47,10 @@ spec:
       - key: domain
         op: =
         value: calico-system
+      grp_band_width: 0
+      grp_sess_cur: 0
+      grp_sess_rate: 0
+      mon_metric: false
       name: nv.calico-kube-controllers.calico-system
       original_name: ''
   waf:
@@ -89,6 +60,7 @@ spec:
 apiVersion: neuvector.com/v1
 kind: NvSecurityRule
 metadata:
+  creationTimestamp: null
   name: nv.calico-node.calico-system
   namespace: calico-system
 spec:
@@ -116,6 +88,10 @@ spec:
       - key: domain
         op: =
         value: calico-system
+      grp_band_width: 0
+      grp_sess_cur: 0
+      grp_sess_rate: 0
+      mon_metric: false
       name: nv.calico-node.calico-system
       original_name: ''
   waf:
@@ -125,6 +101,7 @@ spec:
 apiVersion: neuvector.com/v1
 kind: NvSecurityRule
 metadata:
+  creationTimestamp: null
   name: nv.calico-typha.calico-system
   namespace: calico-system
 spec:
@@ -138,19 +115,11 @@ spec:
   - action: allow
     allow_update: false
     name: calico-typha
-    path: /code/calico-typha
-  - action: allow
-    allow_update: false
-    name: pathWalker
-    path: /usr/local/bin/pathWalker
+    path: /usr/bin/calico-typha
   - action: allow
     allow_update: false
     name: pause
     path: /pause
-  - action: allow
-    allow_update: false
-    name: tini
-    path: /sbin/tini
   process_profile:
     baseline: zero-drift
   target:
@@ -164,8 +133,40 @@ spec:
       - key: domain
         op: =
         value: calico-system
+      grp_band_width: 0
+      grp_sess_cur: 0
+      grp_sess_rate: 0
+      mon_metric: false
       name: nv.calico-typha.calico-system
       original_name: ''
   waf:
     settings: []
     status: true
+---
+apiVersion: neuvector.com/v1
+kind: NvSecurityRule
+metadata:
+  creationTimestamp: null
+  name: nv.ip.calico-typha.calico-system
+  namespace: calico-system
+spec:
+  egress: []
+  file: []
+  ingress: []
+  process: []
+  target:
+    policymode: N/A
+    selector:
+      comment: ''
+      criteria:
+      - key: address
+        op: =
+        value: 100.73.37.100
+      - key: domain
+        op: =
+        value: calico-system
+      - key: label
+        op: =
+        value: k8s-app=calico-typha
+      name: nv.ip.calico-typha.calico-system
+      original_name: ''

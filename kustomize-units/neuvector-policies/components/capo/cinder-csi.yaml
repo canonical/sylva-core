@@ -2,37 +2,17 @@
 apiVersion: neuvector.com/v1
 kind: NvSecurityRule
 metadata:
+  creationTimestamp: null
   name: nv.openstack-cinder-csi-controllerplugin.cinder-csi
   namespace: cinder-csi
 spec:
   dlp:
     settings: []
     status: true
-  egress:
-  - action: allow
-    applications:
-    - DNS
-    name: nv.rke2-coredns-rke2-coredns.kube-system-egress-305
-    ports: any
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: rke2-coredns-rke2-coredns.kube-system
-      - key: domain
-        op: =
-        value: kube-system
-      name: nv.rke2-coredns-rke2-coredns.kube-system
-      original_name: ''
+  egress: []
   file: []
   ingress: []
   process:
-  - action: allow
-    allow_update: false
-    name: calico-ipam
-    path: /opt/cni/bin/calico-ipam
   - action: allow
     allow_update: false
     name: cinder-csi-plugin
@@ -63,20 +43,8 @@ spec:
     path: /livenessprobe
   - action: allow
     allow_update: false
-    name: manager
-    path: /manager
-  - action: allow
-    allow_update: false
-    name: pathWalker
-    path: /usr/local/bin/pathWalker
-  - action: allow
-    allow_update: false
     name: pause
     path: /pause
-  - action: allow
-    allow_update: false
-    name: snapshot-controller
-    path: /snapshot-controller
   process_profile:
     baseline: zero-drift
   target:
@@ -90,6 +58,10 @@ spec:
       - key: domain
         op: =
         value: cinder-csi
+      grp_band_width: 0
+      grp_sess_cur: 0
+      grp_sess_rate: 0
+      mon_metric: false
       name: nv.openstack-cinder-csi-controllerplugin.cinder-csi
       original_name: ''
   waf:
@@ -99,6 +71,7 @@ spec:
 apiVersion: neuvector.com/v1
 kind: NvSecurityRule
 metadata:
+  creationTimestamp: null
   name: nv.openstack-cinder-csi-nodeplugin.cinder-csi
   namespace: cinder-csi
 spec:
@@ -139,20 +112,12 @@ spec:
     path: /livenessprobe
   - action: allow
     allow_update: false
-    name: mkfs.ext4
-    path: /sbin/mkfs.ext4
-  - action: allow
-    allow_update: false
     name: mount
     path: /bin/mount
   - action: allow
     allow_update: false
     name: pause
     path: /pause
-  - action: allow
-    allow_update: false
-    name: umount
-    path: /bin/umount
   process_profile:
     baseline: zero-drift
   target:
@@ -166,6 +131,10 @@ spec:
       - key: domain
         op: =
         value: cinder-csi
+      grp_band_width: 0
+      grp_sess_cur: 0
+      grp_sess_rate: 0
+      mon_metric: false
       name: nv.openstack-cinder-csi-nodeplugin.cinder-csi
       original_name: ''
   waf:

@@ -2,54 +2,17 @@
 apiVersion: neuvector.com/v1
 kind: NvSecurityRule
 metadata:
+  creationTimestamp: null
   name: nv.heat-operator-controller-manager.heat-operator-system
   namespace: heat-operator-system
 spec:
   dlp:
     settings: []
     status: true
-  egress:
-  - action: allow
-    applications:
-    - DNS
-    name: nv.rke2-coredns-rke2-coredns.kube-system-egress-230
-    ports: any
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: rke2-coredns-rke2-coredns.kube-system
-      - key: domain
-        op: =
-        value: kube-system
-      name: nv.rke2-coredns-rke2-coredns.kube-system
-      original_name: ''
-  - action: allow
-    applications:
-    - any
-    name: nv.kube-apiserver-mgmt-cluster-cp.kube-system-egress-231
-    ports: tcp/6443
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: kube-apiserver-mgmt-cluster-cp.kube-system
-      - key: domain
-        op: =
-        value: kube-system
-      name: nv.kube-apiserver-mgmt-cluster-cp.kube-system
-      original_name: ''
+  egress: []
   file: []
   ingress: []
   process:
-  - action: allow
-    allow_update: false
-    name: csi-snapshotter
-    path: /csi-snapshotter
   - action: allow
     allow_update: false
     name: kube-rbac-proxy
@@ -75,8 +38,40 @@ spec:
       - key: domain
         op: =
         value: heat-operator-system
+      grp_band_width: 0
+      grp_sess_cur: 0
+      grp_sess_rate: 0
+      mon_metric: false
       name: nv.heat-operator-controller-manager.heat-operator-system
       original_name: ''
   waf:
     settings: []
     status: true
+---
+apiVersion: neuvector.com/v1
+kind: NvSecurityRule
+metadata:
+  creationTimestamp: null
+  name: nv.ip.heat-operator-controller-manager-metrics-service.heat-operator-system
+  namespace: heat-operator-system
+spec:
+  egress: []
+  file: []
+  ingress: []
+  process: []
+  target:
+    policymode: N/A
+    selector:
+      comment: ''
+      criteria:
+      - key: address
+        op: =
+        value: 100.73.177.128
+      - key: domain
+        op: =
+        value: heat-operator-system
+      - key: label
+        op: =
+        value: control-plane=controller-manager
+      name: nv.ip.heat-operator-controller-manager-metrics-service.heat-operator-system
+      original_name: ''

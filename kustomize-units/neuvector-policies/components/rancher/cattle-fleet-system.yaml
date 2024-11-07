@@ -2,81 +2,51 @@
 apiVersion: neuvector.com/v1
 kind: NvSecurityRule
 metadata:
+  creationTimestamp: null
+  name: nv.fleet-cleanup-gitrepo-jobs.cattle-fleet-system
+  namespace: cattle-fleet-system
+spec:
+  dlp:
+    settings: []
+    status: true
+  egress: []
+  file: []
+  ingress: []
+  process: []
+  process_profile:
+    baseline: zero-drift
+  target:
+    policymode: Monitor
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: fleet-cleanup-gitrepo-jobs.cattle-fleet-system
+      - key: domain
+        op: =
+        value: cattle-fleet-system
+      grp_band_width: 0
+      grp_sess_cur: 0
+      grp_sess_rate: 0
+      mon_metric: false
+      name: nv.fleet-cleanup-gitrepo-jobs.cattle-fleet-system
+      original_name: ''
+  waf:
+    settings: []
+    status: true
+---
+apiVersion: neuvector.com/v1
+kind: NvSecurityRule
+metadata:
+  creationTimestamp: null
   name: nv.fleet-controller.cattle-fleet-system
   namespace: cattle-fleet-system
 spec:
   dlp:
     settings: []
     status: true
-  egress:
-  - action: allow
-    applications:
-    - any
-    name: nv.kube-apiserver-mgmt-cluster-cp.kube-system-egress-195
-    ports: tcp/6443
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: kube-apiserver-mgmt-cluster-cp.kube-system
-      - key: domain
-        op: =
-        value: kube-system
-      name: nv.kube-apiserver-mgmt-cluster-cp.kube-system
-      original_name: ''
-  - action: allow
-    applications:
-    - SSL
-    name: nv.rancher.cattle-system-egress-196
-    ports: any
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: rancher.cattle-system
-      - key: domain
-        op: =
-        value: cattle-system
-      name: nv.rancher.cattle-system
-      original_name: ''
-  - action: allow
-    applications:
-    - DNS
-    name: nv.rke2-coredns-rke2-coredns.kube-system-egress-197
-    ports: any
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: rke2-coredns-rke2-coredns.kube-system
-      - key: domain
-        op: =
-        value: kube-system
-      name: nv.rke2-coredns-rke2-coredns.kube-system
-      original_name: ''
-  - action: allow
-    applications:
-    - any
-    name: nv.rancher.cattle-system-egress-198
-    ports: tcp/444
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: rancher.cattle-system
-      - key: domain
-        op: =
-        value: cattle-system
-      name: nv.rancher.cattle-system
-      original_name: ''
+  egress: []
   file: []
   ingress: []
   process:
@@ -86,16 +56,8 @@ spec:
     path: /usr/bin/fleetcontroller
   - action: allow
     allow_update: false
-    name: pathWalker
-    path: /usr/local/bin/pathWalker
-  - action: allow
-    allow_update: false
     name: pause
     path: /pause
-  - action: allow
-    allow_update: false
-    name: sed
-    path: /bin/sed
   process_profile:
     baseline: zero-drift
   target:
@@ -109,6 +71,10 @@ spec:
       - key: domain
         op: =
         value: cattle-fleet-system
+      grp_band_width: 0
+      grp_sess_cur: 0
+      grp_sess_rate: 0
+      mon_metric: false
       name: nv.fleet-controller.cattle-fleet-system
       original_name: ''
   waf:
@@ -118,34 +84,20 @@ spec:
 apiVersion: neuvector.com/v1
 kind: NvSecurityRule
 metadata:
+  creationTimestamp: null
   name: nv.gitjob.cattle-fleet-system
   namespace: cattle-fleet-system
 spec:
   dlp:
     settings: []
     status: true
-  egress:
+  egress: []
+  file: []
+  ingress:
   - action: allow
     applications:
-    - any
-    name: nv.kube-apiserver-mgmt-cluster-cp.kube-system-egress-213
-    ports: tcp/6443
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: kube-apiserver-mgmt-cluster-cp.kube-system
-      - key: domain
-        op: =
-        value: kube-system
-      name: nv.kube-apiserver-mgmt-cluster-cp.kube-system
-      original_name: ''
-  - action: allow
-    applications:
-    - DNS
-    name: nv.rke2-coredns-rke2-coredns.kube-system-egress-214
+    - HTTP
+    name: nv.gitjob.cattle-fleet-system-ingress-21
     ports: any
     priority: 0
     selector:
@@ -153,82 +105,25 @@ spec:
       criteria:
       - key: service
         op: =
-        value: rke2-coredns-rke2-coredns.kube-system
+        value: prometheus-rancher-monitoring-prometheus.cattle-monitoring-system
       - key: domain
         op: =
-        value: kube-system
-      name: nv.rke2-coredns-rke2-coredns.kube-system
+        value: cattle-monitoring-system
+      name: nv.prometheus-rancher-monitoring-prometheus.cattle-monitoring-system
       original_name: ''
-  - action: allow
-    applications:
-    - any
-    name: nv.loki-write.loki-egress-215
-    ports: tcp/7946
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: loki-write.loki
-      - key: domain
-        op: =
-        value: loki
-      name: nv.loki-write.loki
-      original_name: ''
-  - action: allow
-    applications:
-    - any
-    name: nv.loki-backend.loki-egress-216
-    ports: tcp/7946
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: loki-backend.loki
-      - key: domain
-        op: =
-        value: loki
-      name: nv.loki-backend.loki
-      original_name: ''
-  - action: allow
-    applications:
-    - any
-    name: nv.loki-read.loki-egress-217
-    ports: tcp/7946
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: loki-read.loki
-      - key: domain
-        op: =
-        value: loki
-      name: nv.loki-read.loki
-      original_name: ''
-  file: []
-  ingress: []
   process:
   - action: allow
     allow_update: false
-    name: catatonit
-    path: /usr/bin/catatonit
-  - action: allow
-    allow_update: false
-    name: gitjob
-    path: /usr/bin/gitjob
-  - action: allow
-    allow_update: false
-    name: pathWalker
-    path: /usr/local/bin/pathWalker
+    name: fleetcontroller
+    path: /usr/bin/fleetcontroller
   - action: allow
     allow_update: false
     name: pause
     path: /pause
+  - action: allow
+    allow_update: false
+    name: tini
+    path: /usr/sbin/tini
   process_profile:
     baseline: zero-drift
   target:
@@ -242,8 +137,102 @@ spec:
       - key: domain
         op: =
         value: cattle-fleet-system
+      grp_band_width: 0
+      grp_sess_cur: 0
+      grp_sess_rate: 0
+      mon_metric: false
       name: nv.gitjob.cattle-fleet-system
       original_name: ''
   waf:
     settings: []
     status: true
+---
+apiVersion: neuvector.com/v1
+kind: NvSecurityRule
+metadata:
+  creationTimestamp: null
+  name: nv.ip.gitjob.cattle-fleet-system
+  namespace: cattle-fleet-system
+spec:
+  egress: []
+  file: []
+  ingress: []
+  process: []
+  target:
+    policymode: N/A
+    selector:
+      comment: ''
+      criteria:
+      - key: address
+        op: =
+        value: 100.73.8.187
+      - key: domain
+        op: =
+        value: cattle-fleet-system
+      - key: label
+        op: =
+        value: app=gitjob
+      name: nv.ip.gitjob.cattle-fleet-system
+      original_name: ''
+---
+apiVersion: neuvector.com/v1
+kind: NvSecurityRule
+metadata:
+  creationTimestamp: null
+  name: nv.ip.monitoring-fleet-controller.cattle-fleet-system
+  namespace: cattle-fleet-system
+spec:
+  egress: []
+  file: []
+  ingress: []
+  process: []
+  target:
+    policymode: N/A
+    selector:
+      comment: ''
+      criteria:
+      - key: address
+        op: =
+        value: 100.73.205.218
+      - key: domain
+        op: =
+        value: cattle-fleet-system
+      - key: label
+        op: =
+        value: app=fleet-controller
+      - key: label
+        op: =
+        value: fleet.cattle.io/shard-default=true
+      name: nv.ip.monitoring-fleet-controller.cattle-fleet-system
+      original_name: ''
+---
+apiVersion: neuvector.com/v1
+kind: NvSecurityRule
+metadata:
+  creationTimestamp: null
+  name: nv.ip.monitoring-gitjob.cattle-fleet-system
+  namespace: cattle-fleet-system
+spec:
+  egress: []
+  file: []
+  ingress: []
+  process: []
+  target:
+    policymode: N/A
+    selector:
+      comment: ''
+      criteria:
+      - key: address
+        op: =
+        value: 100.73.193.71
+      - key: domain
+        op: =
+        value: cattle-fleet-system
+      - key: label
+        op: =
+        value: fleet.cattle.io/shard-default=true
+      - key: label
+        op: =
+        value: app=gitjob
+      name: nv.ip.monitoring-gitjob.cattle-fleet-system
+      original_name: ''

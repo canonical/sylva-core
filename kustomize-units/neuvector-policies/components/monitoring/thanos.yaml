@@ -2,6 +2,211 @@
 apiVersion: neuvector.com/v1
 kind: NvSecurityRule
 metadata:
+  creationTimestamp: null
+  name: nv.ip.thanos-compactor.thanos
+  namespace: thanos
+spec:
+  egress: []
+  file: []
+  ingress: []
+  process: []
+  target:
+    policymode: N/A
+    selector:
+      comment: ''
+      criteria:
+      - key: address
+        op: =
+        value: 100.73.63.98
+      - key: domain
+        op: =
+        value: thanos
+      - key: label
+        op: =
+        value: app.kubernetes.io/component=compactor
+      - key: label
+        op: =
+        value: app.kubernetes.io/instance=thanos
+      - key: label
+        op: =
+        value: app.kubernetes.io/name=thanos
+      name: nv.ip.thanos-compactor.thanos
+      original_name: ''
+---
+apiVersion: neuvector.com/v1
+kind: NvSecurityRule
+metadata:
+  creationTimestamp: null
+  name: nv.ip.thanos-query-frontend.thanos
+  namespace: thanos
+spec:
+  egress: []
+  file: []
+  ingress: []
+  process: []
+  target:
+    policymode: N/A
+    selector:
+      comment: ''
+      criteria:
+      - key: address
+        op: =
+        value: 100.73.57.182
+      - key: domain
+        op: =
+        value: thanos
+      - key: label
+        op: =
+        value: app.kubernetes.io/component=query-frontend
+      - key: label
+        op: =
+        value: app.kubernetes.io/instance=thanos
+      - key: label
+        op: =
+        value: app.kubernetes.io/name=thanos
+      name: nv.ip.thanos-query-frontend.thanos
+      original_name: ''
+---
+apiVersion: neuvector.com/v1
+kind: NvSecurityRule
+metadata:
+  creationTimestamp: null
+  name: nv.ip.thanos-query-grpc.thanos
+  namespace: thanos
+spec:
+  egress: []
+  file: []
+  ingress: []
+  process: []
+  target:
+    policymode: N/A
+    selector:
+      comment: ''
+      criteria:
+      - key: address
+        op: =
+        value: 100.73.93.225
+      - key: domain
+        op: =
+        value: thanos
+      - key: label
+        op: =
+        value: app.kubernetes.io/component=query
+      - key: label
+        op: =
+        value: app.kubernetes.io/instance=thanos
+      - key: label
+        op: =
+        value: app.kubernetes.io/name=thanos
+      name: nv.ip.thanos-query-grpc.thanos
+      original_name: ''
+---
+apiVersion: neuvector.com/v1
+kind: NvSecurityRule
+metadata:
+  creationTimestamp: null
+  name: nv.ip.thanos-query.thanos
+  namespace: thanos
+spec:
+  egress: []
+  file: []
+  ingress: []
+  process: []
+  target:
+    policymode: N/A
+    selector:
+      comment: ''
+      criteria:
+      - key: address
+        op: =
+        value: 100.73.99.4
+      - key: domain
+        op: =
+        value: thanos
+      - key: label
+        op: =
+        value: app.kubernetes.io/name=thanos
+      - key: label
+        op: =
+        value: app.kubernetes.io/component=query
+      - key: label
+        op: =
+        value: app.kubernetes.io/instance=thanos
+      name: nv.ip.thanos-query.thanos
+      original_name: ''
+---
+apiVersion: neuvector.com/v1
+kind: NvSecurityRule
+metadata:
+  creationTimestamp: null
+  name: nv.ip.thanos-receive.thanos
+  namespace: thanos
+spec:
+  egress: []
+  file: []
+  ingress: []
+  process: []
+  target:
+    policymode: N/A
+    selector:
+      comment: ''
+      criteria:
+      - key: address
+        op: =
+        value: 100.73.87.3
+      - key: domain
+        op: =
+        value: thanos
+      - key: label
+        op: =
+        value: app.kubernetes.io/instance=thanos
+      - key: label
+        op: =
+        value: app.kubernetes.io/name=thanos
+      - key: label
+        op: =
+        value: app.kubernetes.io/component=receive
+      name: nv.ip.thanos-receive.thanos
+      original_name: ''
+---
+apiVersion: neuvector.com/v1
+kind: NvSecurityRule
+metadata:
+  creationTimestamp: null
+  name: nv.ip.thanos-storegateway.thanos
+  namespace: thanos
+spec:
+  egress: []
+  file: []
+  ingress: []
+  process: []
+  target:
+    policymode: N/A
+    selector:
+      comment: ''
+      criteria:
+      - key: address
+        op: =
+        value: 100.73.47.121
+      - key: domain
+        op: =
+        value: thanos
+      - key: label
+        op: =
+        value: app.kubernetes.io/instance=thanos
+      - key: label
+        op: =
+        value: app.kubernetes.io/name=thanos
+      - key: label
+        op: =
+        value: app.kubernetes.io/component=storegateway
+      name: nv.ip.thanos-storegateway.thanos
+      original_name: ''
+---
+apiVersion: neuvector.com/v1
+kind: NvSecurityRule
+metadata:
+  creationTimestamp: null
   name: nv.thanos-compactor.thanos
   namespace: thanos
 spec:
@@ -33,6 +238,10 @@ spec:
       - key: domain
         op: =
         value: thanos
+      grp_band_width: 0
+      grp_sess_cur: 0
+      grp_sess_rate: 0
+      mon_metric: false
       name: nv.thanos-compactor.thanos
       original_name: ''
   waf:
@@ -42,32 +251,26 @@ spec:
 apiVersion: neuvector.com/v1
 kind: NvSecurityRule
 metadata:
+  creationTimestamp: null
   name: nv.thanos-query-frontend.thanos
   namespace: thanos
 spec:
   dlp:
     settings: []
     status: true
-  egress:
+  egress: []
+  file: []
+  ingress:
   - action: allow
     applications:
     - HTTP
-    name: nv.thanos-query.thanos-egress-338
+    name: nv.thanos-query-frontend.thanos-ingress-96
     ports: any
     priority: 0
     selector:
       comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: thanos-query.thanos
-      - key: domain
-        op: =
-        value: thanos
-      name: nv.thanos-query.thanos
+      name: Workload:ingress
       original_name: ''
-  file: []
-  ingress: []
   process:
   - action: allow
     allow_update: false
@@ -90,6 +293,10 @@ spec:
       - key: domain
         op: =
         value: thanos
+      grp_band_width: 0
+      grp_sess_cur: 0
+      grp_sess_rate: 0
+      mon_metric: false
       name: nv.thanos-query-frontend.thanos
       original_name: ''
   waf:
@@ -99,6 +306,7 @@ spec:
 apiVersion: neuvector.com/v1
 kind: NvSecurityRule
 metadata:
+  creationTimestamp: null
   name: nv.thanos-query.thanos
   namespace: thanos
 spec:
@@ -109,7 +317,7 @@ spec:
   - action: allow
     applications:
     - HTTP
-    name: nv.thanos-ruler.thanos-egress-339
+    name: nv.thanos-storegateway.thanos-egress-153
     ports: any
     priority: 0
     selector:
@@ -117,16 +325,16 @@ spec:
       criteria:
       - key: service
         op: =
-        value: thanos-ruler.thanos
+        value: thanos-storegateway.thanos
       - key: domain
         op: =
         value: thanos
-      name: nv.thanos-ruler.thanos
+      name: nv.thanos-storegateway.thanos
       original_name: ''
   - action: allow
     applications:
     - HTTP
-    name: nv.thanos-receive.thanos-egress-340
+    name: nv.thanos-receive.thanos-egress-154
     ports: any
     priority: 0
     selector:
@@ -143,41 +351,7 @@ spec:
   - action: allow
     applications:
     - any
-    name: nv.thanos-storegateway.thanos-egress-341
-    ports: tcp/10901
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: thanos-storegateway.thanos
-      - key: domain
-        op: =
-        value: thanos
-      name: nv.thanos-storegateway.thanos
-      original_name: ''
-  - action: allow
-    applications:
-    - HTTP
-    name: nv.thanos-storegateway.thanos-egress-342
-    ports: any
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: thanos-storegateway.thanos
-      - key: domain
-        op: =
-        value: thanos
-      name: nv.thanos-storegateway.thanos
-      original_name: ''
-  - action: allow
-    applications:
-    - any
-    name: nv.thanos-receive.thanos-egress-343
+    name: nv.thanos-receive.thanos-egress-155
     ports: tcp/10901
     priority: 0
     selector:
@@ -190,9 +364,36 @@ spec:
         op: =
         value: thanos
       name: nv.thanos-receive.thanos
+      original_name: ''
+  - action: allow
+    applications:
+    - any
+    name: nv.thanos-storegateway.thanos-egress-156
+    ports: tcp/10901
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: thanos-storegateway.thanos
+      - key: domain
+        op: =
+        value: thanos
+      name: nv.thanos-storegateway.thanos
       original_name: ''
   file: []
-  ingress: []
+  ingress:
+  - action: allow
+    applications:
+    - HTTP
+    name: nv.thanos-query.thanos-ingress-97
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      name: Workload:ingress
+      original_name: ''
   process:
   - action: allow
     allow_update: false
@@ -215,6 +416,10 @@ spec:
       - key: domain
         op: =
         value: thanos
+      grp_band_width: 0
+      grp_sess_cur: 0
+      grp_sess_rate: 0
+      mon_metric: false
       name: nv.thanos-query.thanos
       original_name: ''
   waf:
@@ -224,6 +429,7 @@ spec:
 apiVersion: neuvector.com/v1
 kind: NvSecurityRule
 metadata:
+  creationTimestamp: null
   name: nv.thanos-receive.thanos
   namespace: thanos
 spec:
@@ -255,6 +461,10 @@ spec:
       - key: domain
         op: =
         value: thanos
+      grp_band_width: 0
+      grp_sess_cur: 0
+      grp_sess_rate: 0
+      mon_metric: false
       name: nv.thanos-receive.thanos
       original_name: ''
   waf:
@@ -264,6 +474,7 @@ spec:
 apiVersion: neuvector.com/v1
 kind: NvSecurityRule
 metadata:
+  creationTimestamp: null
   name: nv.thanos-ruler.thanos
   namespace: thanos
 spec:
@@ -276,28 +487,12 @@ spec:
   process:
   - action: allow
     allow_update: false
-    name: bash
-    path: /usr/bin/bash
-  - action: allow
-    allow_update: false
     name: configmap-reload
     path: /opt/bitnami/configmap-reload/bin/configmap-reload
   - action: allow
     allow_update: false
-    name: containerd-shim-runc-v2
-    path: /var/lib/rancher/rke2/data/v1.28.8-rke2r1-c4073db9beee/bin/containerd-shim-runc-v2
-  - action: allow
-    allow_update: false
     name: pause
     path: /pause
-  - action: allow
-    allow_update: false
-    name: postgres
-    path: /opt/bitnami/postgresql/bin/postgres
-  - action: allow
-    allow_update: false
-    name: repmgrd
-    path: /opt/bitnami/repmgr/bin/repmgrd
   - action: allow
     allow_update: false
     name: thanos
@@ -315,6 +510,10 @@ spec:
       - key: domain
         op: =
         value: thanos
+      grp_band_width: 0
+      grp_sess_cur: 0
+      grp_sess_rate: 0
+      mon_metric: false
       name: nv.thanos-ruler.thanos
       original_name: ''
   waf:
@@ -324,6 +523,7 @@ spec:
 apiVersion: neuvector.com/v1
 kind: NvSecurityRule
 metadata:
+  creationTimestamp: null
   name: nv.thanos-storegateway.thanos
   namespace: thanos
 spec:
@@ -355,6 +555,10 @@ spec:
       - key: domain
         op: =
         value: thanos
+      grp_band_width: 0
+      grp_sess_cur: 0
+      grp_sess_rate: 0
+      mon_metric: false
       name: nv.thanos-storegateway.thanos
       original_name: ''
   waf:

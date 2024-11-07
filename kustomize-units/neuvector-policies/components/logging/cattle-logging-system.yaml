@@ -2,47 +2,48 @@
 apiVersion: neuvector.com/v1
 kind: NvSecurityRule
 metadata:
+  creationTimestamp: null
+  name: nv.ip.logging-root-fluentd.cattle-logging-system
+  namespace: cattle-logging-system
+spec:
+  egress: []
+  file: []
+  ingress: []
+  process: []
+  target:
+    policymode: N/A
+    selector:
+      comment: ''
+      criteria:
+      - key: address
+        op: =
+        value: 100.73.72.82
+      - key: domain
+        op: =
+        value: cattle-logging-system
+      - key: label
+        op: =
+        value: app.kubernetes.io/managed-by=logging-root
+      - key: label
+        op: =
+        value: app.kubernetes.io/name=fluentd
+      - key: label
+        op: =
+        value: app.kubernetes.io/component=fluentd
+      name: nv.ip.logging-root-fluentd.cattle-logging-system
+      original_name: ''
+---
+apiVersion: neuvector.com/v1
+kind: NvSecurityRule
+metadata:
+  creationTimestamp: null
   name: nv.logging-rancher-logging.cattle-logging-system
   namespace: cattle-logging-system
 spec:
   dlp:
     settings: []
     status: true
-  egress:
-  - action: allow
-    applications:
-    - DNS
-    name: nv.rke2-coredns-rke2-coredns.kube-system-egress-269
-    ports: any
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: rke2-coredns-rke2-coredns.kube-system
-      - key: domain
-        op: =
-        value: kube-system
-      name: nv.rke2-coredns-rke2-coredns.kube-system
-      original_name: ''
-  - action: allow
-    applications:
-    - SSL
-    name: nv.monitoring-pool-0.minio-monitoring-tenant-egress-270
-    ports: any
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: monitoring-pool-0.minio-monitoring-tenant
-      - key: domain
-        op: =
-        value: minio-monitoring-tenant
-      name: nv.monitoring-pool-0.minio-monitoring-tenant
-      original_name: ''
+  egress: []
   file: []
   ingress: []
   process:
@@ -54,10 +55,6 @@ spec:
     allow_update: false
     name: pause
     path: /pause
-  - action: allow
-    allow_update: false
-    name: pgrep
-    path: /bin/pgrep
   process_profile:
     baseline: zero-drift
   target:
@@ -71,6 +68,10 @@ spec:
       - key: domain
         op: =
         value: cattle-logging-system
+      grp_band_width: 0
+      grp_sess_cur: 0
+      grp_sess_rate: 0
+      mon_metric: false
       name: nv.logging-rancher-logging.cattle-logging-system
       original_name: ''
   waf:
@@ -80,84 +81,7 @@ spec:
 apiVersion: neuvector.com/v1
 kind: NvSecurityRule
 metadata:
-  name: nv.logging-rke2-journald-aggregator.cattle-logging-system
-  namespace: cattle-logging-system
-spec:
-  dlp:
-    settings: []
-    status: true
-  egress:
-  - action: allow
-    applications:
-    - DNS
-    name: nv.rke2-coredns-rke2-coredns.kube-system-egress-271
-    ports: any
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: rke2-coredns-rke2-coredns.kube-system
-      - key: domain
-        op: =
-        value: kube-system
-      name: nv.rke2-coredns-rke2-coredns.kube-system
-      original_name: ''
-  - action: allow
-    applications:
-    - any
-    name: nv.logging-root-fluentd.cattle-logging-system-egress-272
-    ports: tcp/24240
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: logging-root-fluentd.cattle-logging-system
-      - key: domain
-        op: =
-        value: cattle-logging-system
-      name: nv.logging-root-fluentd.cattle-logging-system
-      original_name: ''
-  file: []
-  ingress: []
-  process:
-  - action: allow
-    allow_update: false
-    name: flb-logger
-    path: /fluent-bit/bin/fluent-bit
-  - action: allow
-    allow_update: false
-    name: fluent-bit
-    path: /fluent-bit/bin/fluent-bit
-  - action: allow
-    allow_update: false
-    name: pause
-    path: /pause
-  process_profile:
-    baseline: zero-drift
-  target:
-    policymode: Monitor
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: logging-rke2-journald-aggregator.cattle-logging-system
-      - key: domain
-        op: =
-        value: cattle-logging-system
-      name: nv.logging-rke2-journald-aggregator.cattle-logging-system
-      original_name: ''
-  waf:
-    settings: []
-    status: true
----
-apiVersion: neuvector.com/v1
-kind: NvSecurityRule
-metadata:
+  creationTimestamp: null
   name: nv.logging-root-fluentbit.cattle-logging-system
   namespace: cattle-logging-system
 spec:
@@ -168,7 +92,7 @@ spec:
   - action: allow
     applications:
     - DNS
-    name: nv.rke2-coredns-rke2-coredns.kube-system-egress-273
+    name: nv.rke2-coredns-rke2-coredns.kube-system-egress-127
     ports: any
     priority: 0
     selector:
@@ -185,7 +109,7 @@ spec:
   - action: allow
     applications:
     - any
-    name: nv.logging-root-fluentd.cattle-logging-system-egress-274
+    name: nv.logging-root-fluentd.cattle-logging-system-egress-128
     ports: tcp/24240
     priority: 0
     selector:
@@ -223,6 +147,10 @@ spec:
       - key: domain
         op: =
         value: cattle-logging-system
+      grp_band_width: 0
+      grp_sess_cur: 0
+      grp_sess_rate: 0
+      mon_metric: false
       name: nv.logging-root-fluentbit.cattle-logging-system
       original_name: ''
   waf:
@@ -232,6 +160,7 @@ spec:
 apiVersion: neuvector.com/v1
 kind: NvSecurityRule
 metadata:
+  creationTimestamp: null
   name: nv.logging-root-fluentd.cattle-logging-system
   namespace: cattle-logging-system
 spec:
@@ -242,7 +171,7 @@ spec:
   - action: allow
     applications:
     - DNS
-    name: nv.rke2-coredns-rke2-coredns.kube-system-egress-275
+    name: nv.rke2-coredns-rke2-coredns.kube-system-egress-129
     ports: any
     priority: 0
     selector:
@@ -259,7 +188,7 @@ spec:
   - action: allow
     applications:
     - HTTP
-    name: nv.loki-gateway.loki-egress-276
+    name: nv.loki-gateway.loki-egress-130
     ports: any
     priority: 0
     selector:
@@ -278,24 +207,12 @@ spec:
   process:
   - action: allow
     allow_update: false
-    name: .
-    path: /usr/bin/ruby
-  - action: allow
-    allow_update: false
     name: configmap-reload
     path: /configmap-reload
   - action: allow
     allow_update: false
     name: fluentd
     path: /usr/bin/ruby
-  - action: allow
-    allow_update: false
-    name: less
-    path: /bin/busybox
-  - action: allow
-    allow_update: false
-    name: pathWalker
-    path: /usr/local/bin/pathWalker
   - action: allow
     allow_update: false
     name: pause
@@ -306,16 +223,8 @@ spec:
     path: /usr/bin/ruby
   - action: allow
     allow_update: false
-    name: sh
-    path: /bin/busybox
-  - action: allow
-    allow_update: false
     name: tini
     path: /sbin/tini
-  - action: allow
-    allow_update: false
-    name: vi
-    path: /bin/busybox
   process_profile:
     baseline: zero-drift
   target:
@@ -329,6 +238,10 @@ spec:
       - key: domain
         op: =
         value: cattle-logging-system
+      grp_band_width: 0
+      grp_sess_cur: 0
+      grp_sess_rate: 0
+      mon_metric: false
       name: nv.logging-root-fluentd.cattle-logging-system
       original_name: ''
   waf:

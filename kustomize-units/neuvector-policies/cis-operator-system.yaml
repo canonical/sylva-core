@@ -2,6 +2,7 @@
 apiVersion: neuvector.com/v1
 kind: NvSecurityRule
 metadata:
+  creationTimestamp: null
   name: nv.cis-operator.cis-operator-system
   namespace: cis-operator-system
 spec:
@@ -12,7 +13,7 @@ spec:
   - action: allow
     applications:
     - any
-    name: nv.kube-apiserver-mgmt-cluster-cp.kube-system-egress-180
+    name: nv.kube-apiserver-main-mgmt-cp.kube-system-egress-97
     ports: tcp/6443
     priority: 0
     selector:
@@ -20,11 +21,11 @@ spec:
       criteria:
       - key: service
         op: =
-        value: kube-apiserver-mgmt-cluster-cp.kube-system
+        value: kube-apiserver-main-mgmt-cp.kube-system
       - key: domain
         op: =
         value: kube-system
-      name: nv.kube-apiserver-mgmt-cluster-cp.kube-system
+      name: nv.kube-apiserver-main-mgmt-cp.kube-system
       original_name: ''
   file: []
   ingress: []
@@ -50,8 +51,43 @@ spec:
       - key: domain
         op: =
         value: cis-operator-system
+      grp_band_width: 0
+      grp_sess_cur: 0
+      grp_sess_rate: 0
+      mon_metric: false
       name: nv.cis-operator.cis-operator-system
       original_name: ''
   waf:
     settings: []
     status: true
+---
+apiVersion: neuvector.com/v1
+kind: NvSecurityRule
+metadata:
+  creationTimestamp: null
+  name: nv.ip.service-rancher-cis-benchmark.cis-operator-system
+  namespace: cis-operator-system
+spec:
+  egress: []
+  file: []
+  ingress: []
+  process: []
+  target:
+    policymode: N/A
+    selector:
+      comment: ''
+      criteria:
+      - key: address
+        op: =
+        value: 100.73.179.192
+      - key: domain
+        op: =
+        value: cis-operator-system
+      - key: label
+        op: =
+        value: app.kubernetes.io/instance=security-scan-runner-rke2-cis
+      - key: label
+        op: =
+        value: app.kubernetes.io/name=rancher-cis-benchmark
+      name: nv.ip.service-rancher-cis-benchmark.cis-operator-system
+      original_name: ''

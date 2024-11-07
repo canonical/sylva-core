@@ -2,121 +2,17 @@
 apiVersion: neuvector.com/v1
 kind: NvSecurityRule
 metadata:
+  creationTimestamp: null
   name: nv.console.minio-operator
   namespace: minio-operator
 spec:
   dlp:
     settings: []
     status: true
-  egress:
-  - action: allow
-    applications:
-    - SSL
-    name: nv.vault.vault-egress-181
-    ports: any
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: vault.vault
-      - key: domain
-        op: =
-        value: vault
-      name: nv.vault.vault
-      original_name: ''
-  - action: allow
-    applications:
-    - DNS
-    name: nv.rke2-coredns-rke2-coredns.kube-system-egress-182
-    ports: any
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: rke2-coredns-rke2-coredns.kube-system
-      - key: domain
-        op: =
-        value: kube-system
-      name: nv.rke2-coredns-rke2-coredns.kube-system
-      original_name: ''
-  - action: allow
-    applications:
-    - any
-    name: nv.kube-apiserver-mgmt-cluster-cp.kube-system-egress-183
-    ports: tcp/6443
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: kube-apiserver-mgmt-cluster-cp.kube-system
-      - key: domain
-        op: =
-        value: kube-system
-      name: nv.kube-apiserver-mgmt-cluster-cp.kube-system
-      original_name: ''
-  - action: allow
-    applications:
-    - SSL
-    name: nv.monitoring-pool-0.minio-monitoring-tenant-egress-184
-    ports: any
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: monitoring-pool-0.minio-monitoring-tenant
-      - key: domain
-        op: =
-        value: minio-monitoring-tenant
-      name: nv.monitoring-pool-0.minio-monitoring-tenant
-      original_name: ''
+  egress: []
   file: []
-  ingress:
-  - action: allow
-    applications:
-    - HTTP
-    name: nv.console.minio-operator-ingress-40
-    ports: any
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: rke2-ingress-nginx-controller.kube-system
-      - key: domain
-        op: =
-        value: kube-system
-      name: nv.rke2-ingress-nginx-controller.kube-system
-      original_name: ''
+  ingress: []
   process:
-  - action: allow
-    allow_update: false
-    name: awk
-    path: /usr/bin/mawk
-  - action: allow
-    allow_update: false
-    name: bank-vaults
-    path: /usr/local/bin/bank-vaults
-  - action: allow
-    allow_update: false
-    name: calico-ipam
-    path: /opt/cni/bin/calico-ipam
-  - action: allow
-    allow_update: false
-    name: containerd-shim-runc-v2
-    path: /var/lib/rancher/rke2/data/v1.28.8-rke2r1-c4073db9beee/bin/containerd-shim-runc-v2
-  - action: allow
-    allow_update: false
-    name: dumb-init
-    path: /usr/bin/dumb-init
   - action: allow
     allow_update: false
     name: minio-operator
@@ -125,14 +21,6 @@ spec:
     allow_update: false
     name: pause
     path: /pause
-  - action: allow
-    allow_update: false
-    name: template
-    path: /usr/local/bin/template
-  - action: allow
-    allow_update: false
-    name: vault
-    path: /bin/vault
   process_profile:
     baseline: zero-drift
   target:
@@ -146,6 +34,10 @@ spec:
       - key: domain
         op: =
         value: minio-operator
+      grp_band_width: 0
+      grp_sess_cur: 0
+      grp_sess_rate: 0
+      mon_metric: false
       name: nv.console.minio-operator
       original_name: ''
   waf:
@@ -155,6 +47,103 @@ spec:
 apiVersion: neuvector.com/v1
 kind: NvSecurityRule
 metadata:
+  creationTimestamp: null
+  name: nv.ip.console.minio-operator
+  namespace: minio-operator
+spec:
+  egress: []
+  file: []
+  ingress: []
+  process: []
+  target:
+    policymode: N/A
+    selector:
+      comment: ''
+      criteria:
+      - key: address
+        op: =
+        value: 100.73.80.43
+      - key: domain
+        op: =
+        value: minio-operator
+      - key: label
+        op: =
+        value: app.kubernetes.io/instance=minio-operator-console
+      - key: label
+        op: =
+        value: app.kubernetes.io/name=operator
+      name: nv.ip.console.minio-operator
+      original_name: ''
+---
+apiVersion: neuvector.com/v1
+kind: NvSecurityRule
+metadata:
+  creationTimestamp: null
+  name: nv.ip.operator.minio-operator
+  namespace: minio-operator
+spec:
+  egress: []
+  file: []
+  ingress: []
+  process: []
+  target:
+    policymode: N/A
+    selector:
+      comment: ''
+      criteria:
+      - key: address
+        op: =
+        value: 100.73.134.145
+      - key: domain
+        op: =
+        value: minio-operator
+      - key: label
+        op: =
+        value: operator=leader
+      - key: label
+        op: =
+        value: app.kubernetes.io/instance=minio-operator
+      - key: label
+        op: =
+        value: app.kubernetes.io/name=operator
+      name: nv.ip.operator.minio-operator
+      original_name: ''
+---
+apiVersion: neuvector.com/v1
+kind: NvSecurityRule
+metadata:
+  creationTimestamp: null
+  name: nv.ip.sts.minio-operator
+  namespace: minio-operator
+spec:
+  egress: []
+  file: []
+  ingress: []
+  process: []
+  target:
+    policymode: N/A
+    selector:
+      comment: ''
+      criteria:
+      - key: address
+        op: =
+        value: 100.73.138.70
+      - key: domain
+        op: =
+        value: minio-operator
+      - key: label
+        op: =
+        value: app.kubernetes.io/instance=minio-operator
+      - key: label
+        op: =
+        value: app.kubernetes.io/name=operator
+      name: nv.ip.sts.minio-operator
+      original_name: ''
+---
+apiVersion: neuvector.com/v1
+kind: NvSecurityRule
+metadata:
+  creationTimestamp: null
   name: nv.minio-operator.minio-operator
   namespace: minio-operator
 spec:
@@ -165,7 +154,7 @@ spec:
   - action: allow
     applications:
     - DNS
-    name: nv.rke2-coredns-rke2-coredns.kube-system-egress-298
+    name: nv.rke2-coredns-rke2-coredns.kube-system-egress-139
     ports: any
     priority: 0
     selector:
@@ -182,7 +171,7 @@ spec:
   - action: allow
     applications:
     - SSL
-    name: nv.monitoring-pool-0.minio-monitoring-tenant-egress-299
+    name: nv.monitoring-pool-0.minio-monitoring-egress-140
     ports: any
     priority: 0
     selector:
@@ -190,78 +179,19 @@ spec:
       criteria:
       - key: service
         op: =
-        value: monitoring-pool-0.minio-monitoring-tenant
+        value: monitoring-pool-0.minio-monitoring
       - key: domain
         op: =
-        value: minio-monitoring-tenant
-      name: nv.monitoring-pool-0.minio-monitoring-tenant
-      original_name: ''
-  - action: allow
-    applications:
-    - SSL
-    name: nv.vault.vault-egress-300
-    ports: any
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: vault.vault
-      - key: domain
-        op: =
-        value: vault
-      name: nv.vault.vault
-      original_name: ''
-  - action: allow
-    applications:
-    - any
-    name: nv.vault.vault-egress-301
-    ports: tcp/8200
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: vault.vault
-      - key: domain
-        op: =
-        value: vault
-      name: nv.vault.vault
-      original_name: ''
-  - action: allow
-    applications:
-    - PostgreSQL
-    name: nv.postgres-primary.keycloak-egress-302
-    ports: any
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: postgres-primary.keycloak
-      - key: domain
-        op: =
-        value: keycloak
-      name: nv.postgres-primary.keycloak
+        value: minio-monitoring
+      name: nv.monitoring-pool-0.minio-monitoring
       original_name: ''
   file: []
   ingress: []
   process:
   - action: allow
     allow_update: false
-    name: calico-ipam
-    path: /opt/cni/bin/calico-ipam
-  - action: allow
-    allow_update: false
     name: minio-operator
     path: /minio-operator
-  - action: allow
-    allow_update: false
-    name: pathWalker
-    path: /usr/local/bin/pathWalker
   - action: allow
     allow_update: false
     name: pause
@@ -279,6 +209,10 @@ spec:
       - key: domain
         op: =
         value: minio-operator
+      grp_band_width: 0
+      grp_sess_cur: 0
+      grp_sess_rate: 0
+      mon_metric: false
       name: nv.minio-operator.minio-operator
       original_name: ''
   waf:

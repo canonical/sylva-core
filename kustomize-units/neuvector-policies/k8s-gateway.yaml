@@ -2,6 +2,38 @@
 apiVersion: neuvector.com/v1
 kind: NvSecurityRule
 metadata:
+  creationTimestamp: null
+  name: nv.ip.k8s-gateway.k8s-gateway
+  namespace: k8s-gateway
+spec:
+  egress: []
+  file: []
+  ingress: []
+  process: []
+  target:
+    policymode: N/A
+    selector:
+      comment: ''
+      criteria:
+      - key: address
+        op: =
+        value: 100.73.39.219
+      - key: domain
+        op: =
+        value: k8s-gateway
+      - key: label
+        op: =
+        value: app.kubernetes.io/name=k8s-gateway
+      - key: label
+        op: =
+        value: app.kubernetes.io/instance=k8s-gateway
+      name: nv.ip.k8s-gateway.k8s-gateway
+      original_name: ''
+---
+apiVersion: neuvector.com/v1
+kind: NvSecurityRule
+metadata:
+  creationTimestamp: null
   name: nv.k8s-gateway.k8s-gateway
   namespace: k8s-gateway
 spec:
@@ -12,7 +44,7 @@ spec:
   - action: allow
     applications:
     - any
-    name: nv.kube-apiserver-mgmt-cluster-cp.kube-system-egress-239
+    name: nv.kube-apiserver-main-mgmt-cp.kube-system-egress-116
     ports: tcp/6443
     priority: 0
     selector:
@@ -20,16 +52,16 @@ spec:
       criteria:
       - key: service
         op: =
-        value: kube-apiserver-mgmt-cluster-cp.kube-system
+        value: kube-apiserver-main-mgmt-cp.kube-system
       - key: domain
         op: =
         value: kube-system
-      name: nv.kube-apiserver-mgmt-cluster-cp.kube-system
+      name: nv.kube-apiserver-main-mgmt-cp.kube-system
       original_name: ''
   - action: allow
     applications:
     - DNS
-    name: nv.rke2-coredns-rke2-coredns.kube-system-egress-240
+    name: nv.rke2-coredns-rke2-coredns.kube-system-egress-117
     ports: any
     priority: 0
     selector:
@@ -44,7 +76,17 @@ spec:
       name: nv.rke2-coredns-rke2-coredns.kube-system
       original_name: ''
   file: []
-  ingress: []
+  ingress:
+  - action: allow
+    applications:
+    - any
+    name: nv.k8s-gateway.k8s-gateway-ingress-25
+    ports: udp/1053
+    priority: 0
+    selector:
+      comment: ''
+      name: Workload:ingress
+      original_name: ''
   process:
   - action: allow
     allow_update: false
@@ -52,20 +94,8 @@ spec:
     path: /coredns
   - action: allow
     allow_update: false
-    name: nginx
-    path: /usr/local/nginx/sbin/nginx
-  - action: allow
-    allow_update: false
     name: pause
     path: /pause
-  - action: allow
-    allow_update: false
-    name: sed
-    path: /usr/bin/sed
-  - action: allow
-    allow_update: false
-    name: tr
-    path: /usr/bin/tr
   process_profile:
     baseline: zero-drift
   target:
@@ -79,6 +109,10 @@ spec:
       - key: domain
         op: =
         value: k8s-gateway
+      grp_band_width: 0
+      grp_sess_cur: 0
+      grp_sess_rate: 0
+      mon_metric: false
       name: nv.k8s-gateway.k8s-gateway
       original_name: ''
   waf:

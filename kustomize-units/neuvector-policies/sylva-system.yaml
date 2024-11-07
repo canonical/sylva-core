@@ -3,8 +3,8 @@ apiVersion: neuvector.com/v1
 kind: NvSecurityRule
 metadata:
   creationTimestamp: null
-  name: nv.capi-rancher-import.capi-rancher-import
-  namespace: capi-rancher-import
+  name: nv.cluster-garbage-collector.sylva-system
+  namespace: sylva-system
 spec:
   dlp:
     settings: []
@@ -15,12 +15,28 @@ spec:
   process:
   - action: allow
     allow_update: false
-    name: kopf
-    path: /usr/local/bin/python3.12
+    name: bash
+    path: /bin/bash
+  - action: allow
+    allow_update: false
+    name: grep
+    path: /bin/busybox
+  - action: allow
+    allow_update: false
+    name: kubectl
+    path: /usr/local/bin/kubectl
   - action: allow
     allow_update: false
     name: pause
     path: /pause
+  - action: allow
+    allow_update: false
+    name: sed
+    path: /bin/busybox
+  - action: allow
+    allow_update: false
+    name: wc
+    path: /bin/busybox
   process_profile:
     baseline: zero-drift
   target:
@@ -30,15 +46,15 @@ spec:
       criteria:
       - key: service
         op: =
-        value: capi-rancher-import.capi-rancher-import
+        value: cluster-garbage-collector.sylva-system
       - key: domain
         op: =
-        value: capi-rancher-import
+        value: sylva-system
       grp_band_width: 0
       grp_sess_cur: 0
       grp_sess_rate: 0
       mon_metric: false
-      name: nv.capi-rancher-import.capi-rancher-import
+      name: nv.cluster-garbage-collector.sylva-system
       original_name: ''
   waf:
     settings: []

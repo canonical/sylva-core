@@ -2,34 +2,234 @@
 apiVersion: neuvector.com/v1
 kind: NvSecurityRule
 metadata:
+  creationTimestamp: null
+  name: nv.ip.kyverno-background-controller-metrics.kyverno
+  namespace: kyverno
+spec:
+  egress: []
+  file: []
+  ingress: []
+  process: []
+  target:
+    policymode: N/A
+    selector:
+      comment: ''
+      criteria:
+      - key: address
+        op: =
+        value: 100.73.152.227
+      - key: domain
+        op: =
+        value: kyverno
+      - key: label
+        op: =
+        value: app.kubernetes.io/component=background-controller
+      - key: label
+        op: =
+        value: app.kubernetes.io/instance=kyverno
+      - key: label
+        op: =
+        value: app.kubernetes.io/part-of=kyverno
+      name: nv.ip.kyverno-background-controller-metrics.kyverno
+      original_name: ''
+---
+apiVersion: neuvector.com/v1
+kind: NvSecurityRule
+metadata:
+  creationTimestamp: null
+  name: nv.ip.kyverno-cleanup-controller-metrics.kyverno
+  namespace: kyverno
+spec:
+  egress: []
+  file: []
+  ingress: []
+  process: []
+  target:
+    policymode: N/A
+    selector:
+      comment: ''
+      criteria:
+      - key: address
+        op: =
+        value: 100.73.254.254
+      - key: domain
+        op: =
+        value: kyverno
+      - key: label
+        op: =
+        value: app.kubernetes.io/part-of=kyverno
+      - key: label
+        op: =
+        value: app.kubernetes.io/component=cleanup-controller
+      - key: label
+        op: =
+        value: app.kubernetes.io/instance=kyverno
+      name: nv.ip.kyverno-cleanup-controller-metrics.kyverno
+      original_name: ''
+---
+apiVersion: neuvector.com/v1
+kind: NvSecurityRule
+metadata:
+  creationTimestamp: null
+  name: nv.ip.kyverno-cleanup-controller.kyverno
+  namespace: kyverno
+spec:
+  egress: []
+  file: []
+  ingress: []
+  process: []
+  target:
+    policymode: N/A
+    selector:
+      comment: ''
+      criteria:
+      - key: address
+        op: =
+        value: 100.73.154.172
+      - key: domain
+        op: =
+        value: kyverno
+      - key: label
+        op: =
+        value: app.kubernetes.io/part-of=kyverno
+      - key: label
+        op: =
+        value: app.kubernetes.io/component=cleanup-controller
+      - key: label
+        op: =
+        value: app.kubernetes.io/instance=kyverno
+      name: nv.ip.kyverno-cleanup-controller.kyverno
+      original_name: ''
+---
+apiVersion: neuvector.com/v1
+kind: NvSecurityRule
+metadata:
+  creationTimestamp: null
+  name: nv.ip.kyverno-reports-controller-metrics.kyverno
+  namespace: kyverno
+spec:
+  egress: []
+  file: []
+  ingress: []
+  process: []
+  target:
+    policymode: N/A
+    selector:
+      comment: ''
+      criteria:
+      - key: address
+        op: =
+        value: 100.73.135.45
+      - key: domain
+        op: =
+        value: kyverno
+      - key: label
+        op: =
+        value: app.kubernetes.io/component=reports-controller
+      - key: label
+        op: =
+        value: app.kubernetes.io/instance=kyverno
+      - key: label
+        op: =
+        value: app.kubernetes.io/part-of=kyverno
+      name: nv.ip.kyverno-reports-controller-metrics.kyverno
+      original_name: ''
+---
+apiVersion: neuvector.com/v1
+kind: NvSecurityRule
+metadata:
+  creationTimestamp: null
+  name: nv.ip.kyverno-svc-metrics.kyverno
+  namespace: kyverno
+spec:
+  egress: []
+  file: []
+  ingress: []
+  process: []
+  target:
+    policymode: N/A
+    selector:
+      comment: ''
+      criteria:
+      - key: address
+        op: =
+        value: 100.73.248.153
+      - key: domain
+        op: =
+        value: kyverno
+      - key: label
+        op: =
+        value: app.kubernetes.io/component=admission-controller
+      - key: label
+        op: =
+        value: app.kubernetes.io/instance=kyverno
+      - key: label
+        op: =
+        value: app.kubernetes.io/part-of=kyverno
+      name: nv.ip.kyverno-svc-metrics.kyverno
+      original_name: ''
+---
+apiVersion: neuvector.com/v1
+kind: NvSecurityRule
+metadata:
+  creationTimestamp: null
+  name: nv.ip.kyverno-svc.kyverno
+  namespace: kyverno
+spec:
+  egress: []
+  file: []
+  ingress: []
+  process: []
+  target:
+    policymode: N/A
+    selector:
+      comment: ''
+      criteria:
+      - key: address
+        op: =
+        value: 100.73.232.11
+      - key: domain
+        op: =
+        value: kyverno
+      - key: label
+        op: =
+        value: app.kubernetes.io/component=admission-controller
+      - key: label
+        op: =
+        value: app.kubernetes.io/instance=kyverno
+      - key: label
+        op: =
+        value: app.kubernetes.io/part-of=kyverno
+      name: nv.ip.kyverno-svc.kyverno
+      original_name: ''
+---
+apiVersion: neuvector.com/v1
+kind: NvSecurityRule
+metadata:
+  creationTimestamp: null
   name: nv.kyverno-admission-controller.kyverno
   namespace: kyverno
 spec:
   dlp:
     settings: []
     status: true
-  egress:
-  - action: allow
-    applications:
-    - DNS
-    name: nv.rke2-coredns-rke2-coredns.kube-system-egress-256
-    ports: any
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: rke2-coredns-rke2-coredns.kube-system
-      - key: domain
-        op: =
-        value: kube-system
-      name: nv.rke2-coredns-rke2-coredns.kube-system
-      original_name: ''
+  egress: []
+  file: []
+  ingress:
   - action: allow
     applications:
     - SSL
-    name: nv.monitoring-pool-0.minio-monitoring-tenant-egress-257
+    name: nv.kyverno-admission-controller.kyverno-ingress-53
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      name: Workload:ingress
+      original_name: ''
+  - action: allow
+    applications:
+    - HTTP
+    name: nv.kyverno-admission-controller.kyverno-ingress-54
     ports: any
     priority: 0
     selector:
@@ -37,36 +237,13 @@ spec:
       criteria:
       - key: service
         op: =
-        value: monitoring-pool-0.minio-monitoring-tenant
+        value: prometheus-rancher-monitoring-prometheus.cattle-monitoring-system
       - key: domain
         op: =
-        value: minio-monitoring-tenant
-      name: nv.monitoring-pool-0.minio-monitoring-tenant
+        value: cattle-monitoring-system
+      name: nv.prometheus-rancher-monitoring-prometheus.cattle-monitoring-system
       original_name: ''
-  - action: allow
-    applications:
-    - any
-    name: nv.loki-write.loki-egress-258
-    ports: tcp/7946
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: loki-write.loki
-      - key: domain
-        op: =
-        value: loki
-      name: nv.loki-write.loki
-      original_name: ''
-  file: []
-  ingress: []
   process:
-  - action: allow
-    allow_update: false
-    name: grep
-    path: /usr/bin/grep
   - action: allow
     allow_update: false
     name: kyverno
@@ -75,10 +252,6 @@ spec:
     allow_update: false
     name: kyverno-init
     path: /ko-app/kyverno-init
-  - action: allow
-    allow_update: false
-    name: nginx
-    path: /usr/local/nginx/sbin/nginx
   - action: allow
     allow_update: false
     name: pause
@@ -96,6 +269,10 @@ spec:
       - key: domain
         op: =
         value: kyverno
+      grp_band_width: 0
+      grp_sess_cur: 0
+      grp_sess_rate: 0
+      mon_metric: false
       name: nv.kyverno-admission-controller.kyverno
       original_name: ''
   waf:
@@ -105,137 +282,42 @@ spec:
 apiVersion: neuvector.com/v1
 kind: NvSecurityRule
 metadata:
+  creationTimestamp: null
   name: nv.kyverno-background-controller.kyverno
   namespace: kyverno
 spec:
   dlp:
     settings: []
     status: true
-  egress:
-  - action: allow
-    applications:
-    - HTTP
-    - SSL
-    name: nv.rancher.cattle-system-egress-259
-    ports: any
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: rancher.cattle-system
-      - key: domain
-        op: =
-        value: cattle-system
-      name: nv.rancher.cattle-system
-      original_name: ''
-  - action: allow
-    applications:
-    - DNS
-    name: nv.rke2-coredns-rke2-coredns.kube-system-egress-260
-    ports: any
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: rke2-coredns-rke2-coredns.kube-system
-      - key: domain
-        op: =
-        value: kube-system
-      name: nv.rke2-coredns-rke2-coredns.kube-system
-      original_name: ''
-  - action: allow
-    applications:
-    - SSL
-    name: nv.monitoring-pool-0.minio-monitoring-tenant-egress-261
-    ports: any
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: monitoring-pool-0.minio-monitoring-tenant
-      - key: domain
-        op: =
-        value: minio-monitoring-tenant
-      name: nv.monitoring-pool-0.minio-monitoring-tenant
-      original_name: ''
-  - action: allow
-    applications:
-    - HTTP
-    name: nv.thanos-ruler.thanos-egress-262
-    ports: any
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: thanos-ruler.thanos
-      - key: domain
-        op: =
-        value: thanos
-      name: nv.thanos-ruler.thanos
-      original_name: ''
+  egress: []
   file: []
-  ingress: []
-  process:
+  ingress:
   - action: allow
-    allow_update: false
-    name: awk
-    path: /usr/bin/mawk
+    applications:
+    - HTTP
+    name: nv.kyverno-background-controller.kyverno-ingress-55
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: prometheus-rancher-monitoring-prometheus.cattle-monitoring-system
+      - key: domain
+        op: =
+        value: cattle-monitoring-system
+      name: nv.prometheus-rancher-monitoring-prometheus.cattle-monitoring-system
+      original_name: ''
+  process:
   - action: allow
     allow_update: false
     name: background-controller
     path: /ko-app/background-controller
   - action: allow
     allow_update: false
-    name: calico-ipam
-    path: /opt/cni/bin/calico-ipam
-  - action: allow
-    allow_update: false
-    name: cut
-    path: /usr/bin/cut
-  - action: allow
-    allow_update: false
-    name: entrypoint.sh
-    path: /bin/bash
-  - action: allow
-    allow_update: false
-    name: getent
-    path: /usr/bin/getent
-  - action: allow
-    allow_update: false
-    name: head
-    path: /usr/bin/head
-  - action: allow
-    allow_update: false
     name: pause
     path: /pause
-  - action: allow
-    allow_update: false
-    name: pgrep
-    path: /bin/pgrep
-  - action: allow
-    allow_update: false
-    name: redis-server
-    path: /opt/bitnami/redis/bin/redis-server
-  - action: allow
-    allow_update: false
-    name: sed
-    path: /bin/sed
-  - action: allow
-    allow_update: false
-    name: setup.sh
-    path: /bin/bash
-  - action: allow
-    allow_update: false
-    name: tr
-    path: /usr/bin/tr
   process_profile:
     baseline: zero-drift
   target:
@@ -249,6 +331,10 @@ spec:
       - key: domain
         op: =
         value: kyverno
+      grp_band_width: 0
+      grp_sess_cur: 0
+      grp_sess_rate: 0
+      mon_metric: false
       name: nv.kyverno-background-controller.kyverno
       original_name: ''
   waf:
@@ -258,6 +344,7 @@ spec:
 apiVersion: neuvector.com/v1
 kind: NvSecurityRule
 metadata:
+  creationTimestamp: null
   name: nv.kyverno-cleanup-admission-reports.kyverno
   namespace: kyverno
 spec:
@@ -267,11 +354,15 @@ spec:
   egress: []
   file: []
   ingress: []
-  process: []
+  process:
+  - action: allow
+    allow_update: false
+    name: pause
+    path: /pause
   process_profile:
     baseline: zero-drift
   target:
-    policymode: Discover
+    policymode: Monitor
     selector:
       comment: ''
       criteria:
@@ -281,6 +372,10 @@ spec:
       - key: domain
         op: =
         value: kyverno
+      grp_band_width: 0
+      grp_sess_cur: 0
+      grp_sess_rate: 0
+      mon_metric: false
       name: nv.kyverno-cleanup-admission-reports.kyverno
       original_name: ''
   waf:
@@ -290,6 +385,7 @@ spec:
 apiVersion: neuvector.com/v1
 kind: NvSecurityRule
 metadata:
+  creationTimestamp: null
   name: nv.kyverno-cleanup-cluster-admission-reports.kyverno
   namespace: kyverno
 spec:
@@ -299,11 +395,15 @@ spec:
   egress: []
   file: []
   ingress: []
-  process: []
+  process:
+  - action: allow
+    allow_update: false
+    name: pause
+    path: /pause
   process_profile:
     baseline: zero-drift
   target:
-    policymode: Discover
+    policymode: Monitor
     selector:
       comment: ''
       criteria:
@@ -313,6 +413,10 @@ spec:
       - key: domain
         op: =
         value: kyverno
+      grp_band_width: 0
+      grp_sess_cur: 0
+      grp_sess_rate: 0
+      mon_metric: false
       name: nv.kyverno-cleanup-cluster-admission-reports.kyverno
       original_name: ''
   waf:
@@ -322,7 +426,8 @@ spec:
 apiVersion: neuvector.com/v1
 kind: NvSecurityRule
 metadata:
-  name: nv.kyverno-cleanup-controller.kyverno
+  creationTimestamp: null
+  name: nv.kyverno-cleanup-cluster-ephemeral-reports.kyverno
   namespace: kyverno
 spec:
   dlp:
@@ -331,6 +436,64 @@ spec:
   egress: []
   file: []
   ingress: []
+  process:
+  - action: allow
+    allow_update: false
+    name: pause
+    path: /pause
+  process_profile:
+    baseline: zero-drift
+  target:
+    policymode: Monitor
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: kyverno-cleanup-cluster-ephemeral-reports.kyverno
+      - key: domain
+        op: =
+        value: kyverno
+      grp_band_width: 0
+      grp_sess_cur: 0
+      grp_sess_rate: 0
+      mon_metric: false
+      name: nv.kyverno-cleanup-cluster-ephemeral-reports.kyverno
+      original_name: ''
+  waf:
+    settings: []
+    status: true
+---
+apiVersion: neuvector.com/v1
+kind: NvSecurityRule
+metadata:
+  creationTimestamp: null
+  name: nv.kyverno-cleanup-controller.kyverno
+  namespace: kyverno
+spec:
+  dlp:
+    settings: []
+    status: true
+  egress: []
+  file: []
+  ingress:
+  - action: allow
+    applications:
+    - HTTP
+    name: nv.kyverno-cleanup-controller.kyverno-ingress-56
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: prometheus-rancher-monitoring-prometheus.cattle-monitoring-system
+      - key: domain
+        op: =
+        value: cattle-monitoring-system
+      name: nv.prometheus-rancher-monitoring-prometheus.cattle-monitoring-system
+      original_name: ''
   process:
   - action: allow
     allow_update: false
@@ -353,6 +516,10 @@ spec:
       - key: domain
         op: =
         value: kyverno
+      grp_band_width: 0
+      grp_sess_cur: 0
+      grp_sess_rate: 0
+      mon_metric: false
       name: nv.kyverno-cleanup-controller.kyverno
       original_name: ''
   waf:
@@ -362,122 +529,75 @@ spec:
 apiVersion: neuvector.com/v1
 kind: NvSecurityRule
 metadata:
+  creationTimestamp: null
+  name: nv.kyverno-cleanup-ephemeral-reports.kyverno
+  namespace: kyverno
+spec:
+  dlp:
+    settings: []
+    status: true
+  egress: []
+  file: []
+  ingress: []
+  process:
+  - action: allow
+    allow_update: false
+    name: pause
+    path: /pause
+  process_profile:
+    baseline: zero-drift
+  target:
+    policymode: Monitor
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: kyverno-cleanup-ephemeral-reports.kyverno
+      - key: domain
+        op: =
+        value: kyverno
+      grp_band_width: 0
+      grp_sess_cur: 0
+      grp_sess_rate: 0
+      mon_metric: false
+      name: nv.kyverno-cleanup-ephemeral-reports.kyverno
+      original_name: ''
+  waf:
+    settings: []
+    status: true
+---
+apiVersion: neuvector.com/v1
+kind: NvSecurityRule
+metadata:
+  creationTimestamp: null
   name: nv.kyverno-reports-controller.kyverno
   namespace: kyverno
 spec:
   dlp:
     settings: []
     status: true
-  egress:
-  - action: allow
-    applications:
-    - DNS
-    name: nv.rke2-coredns-rke2-coredns.kube-system-egress-263
-    ports: any
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: rke2-coredns-rke2-coredns.kube-system
-      - key: domain
-        op: =
-        value: kube-system
-      name: nv.rke2-coredns-rke2-coredns.kube-system
-      original_name: ''
-  - action: allow
-    applications:
-    - PostgreSQL
-    name: nv.postgres-primary.keycloak-egress-264
-    ports: any
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: postgres-primary.keycloak
-      - key: domain
-        op: =
-        value: keycloak
-      name: nv.postgres-primary.keycloak
-      original_name: ''
-  - action: allow
-    applications:
-    - any
-    name: nv.loki-write.loki-egress-265
-    ports: tcp/7946
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: loki-write.loki
-      - key: domain
-        op: =
-        value: loki
-      name: nv.loki-write.loki
-      original_name: ''
-  - action: allow
-    applications:
-    - any
-    name: nv.loki-backend.loki-egress-266
-    ports: tcp/7946
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: loki-backend.loki
-      - key: domain
-        op: =
-        value: loki
-      name: nv.loki-backend.loki
-      original_name: ''
-  - action: allow
-    applications:
-    - any
-    name: nv.loki-read.loki-egress-267
-    ports: tcp/7946
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: loki-read.loki
-      - key: domain
-        op: =
-        value: loki
-      name: nv.loki-read.loki
-      original_name: ''
-  - action: allow
-    applications:
-    - SSL
-    name: nv.monitoring-pool-0.minio-monitoring-tenant-egress-268
-    ports: any
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: monitoring-pool-0.minio-monitoring-tenant
-      - key: domain
-        op: =
-        value: minio-monitoring-tenant
-      name: nv.monitoring-pool-0.minio-monitoring-tenant
-      original_name: ''
+  egress: []
   file: []
-  ingress: []
-  process:
+  ingress:
   - action: allow
-    allow_update: false
-    name: pathWalker
-    path: /usr/local/bin/pathWalker
+    applications:
+    - HTTP
+    name: nv.kyverno-reports-controller.kyverno-ingress-57
+    ports: any
+    priority: 0
+    selector:
+      comment: ''
+      criteria:
+      - key: service
+        op: =
+        value: prometheus-rancher-monitoring-prometheus.cattle-monitoring-system
+      - key: domain
+        op: =
+        value: cattle-monitoring-system
+      name: nv.prometheus-rancher-monitoring-prometheus.cattle-monitoring-system
+      original_name: ''
+  process:
   - action: allow
     allow_update: false
     name: pause
@@ -486,10 +606,6 @@ spec:
     allow_update: false
     name: reports-controller
     path: /ko-app/reports-controller
-  - action: allow
-    allow_update: false
-    name: run
-    path: /usr/bin/bash
   process_profile:
     baseline: zero-drift
   target:
@@ -503,6 +619,10 @@ spec:
       - key: domain
         op: =
         value: kyverno
+      grp_band_width: 0
+      grp_sess_cur: 0
+      grp_sess_rate: 0
+      mon_metric: false
       name: nv.kyverno-reports-controller.kyverno
       original_name: ''
   waf:

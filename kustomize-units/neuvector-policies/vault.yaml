@@ -2,6 +2,258 @@
 apiVersion: neuvector.com/v1
 kind: NvSecurityRule
 metadata:
+  creationTimestamp: null
+  name: nv.ip.vault-0.vault
+  namespace: vault
+spec:
+  egress: []
+  file: []
+  ingress: []
+  process: []
+  target:
+    policymode: N/A
+    selector:
+      comment: ''
+      criteria:
+      - key: address
+        op: =
+        value: 100.73.5.12
+      - key: domain
+        op: =
+        value: vault
+      - key: label
+        op: =
+        value: statefulset.kubernetes.io/pod-name=vault-0
+      - key: label
+        op: =
+        value: vault_cr=vault
+      - key: label
+        op: =
+        value: app.kubernetes.io/name=vault
+      name: nv.ip.vault-0.vault
+      original_name: ''
+---
+apiVersion: neuvector.com/v1
+kind: NvSecurityRule
+metadata:
+  creationTimestamp: null
+  name: nv.ip.vault-1.vault
+  namespace: vault
+spec:
+  egress: []
+  file: []
+  ingress: []
+  process: []
+  target:
+    policymode: N/A
+    selector:
+      comment: ''
+      criteria:
+      - key: address
+        op: =
+        value: 100.73.242.153
+      - key: domain
+        op: =
+        value: vault
+      - key: label
+        op: =
+        value: app.kubernetes.io/name=vault
+      - key: label
+        op: =
+        value: statefulset.kubernetes.io/pod-name=vault-1
+      - key: label
+        op: =
+        value: vault_cr=vault
+      name: nv.ip.vault-1.vault
+      original_name: ''
+---
+apiVersion: neuvector.com/v1
+kind: NvSecurityRule
+metadata:
+  creationTimestamp: null
+  name: nv.ip.vault-2.vault
+  namespace: vault
+spec:
+  egress: []
+  file: []
+  ingress: []
+  process: []
+  target:
+    policymode: N/A
+    selector:
+      comment: ''
+      criteria:
+      - key: address
+        op: =
+        value: 100.73.72.125
+      - key: domain
+        op: =
+        value: vault
+      - key: label
+        op: =
+        value: app.kubernetes.io/name=vault
+      - key: label
+        op: =
+        value: statefulset.kubernetes.io/pod-name=vault-2
+      - key: label
+        op: =
+        value: vault_cr=vault
+      name: nv.ip.vault-2.vault
+      original_name: ''
+---
+apiVersion: neuvector.com/v1
+kind: NvSecurityRule
+metadata:
+  creationTimestamp: null
+  name: nv.ip.vault-config-operator-controller-manager-metrics-service.vault
+  namespace: vault
+spec:
+  egress: []
+  file: []
+  ingress: []
+  process: []
+  target:
+    policymode: N/A
+    selector:
+      comment: ''
+      criteria:
+      - key: address
+        op: =
+        value: 100.73.113.137
+      - key: domain
+        op: =
+        value: vault
+      - key: label
+        op: =
+        value: control-plane=vault-config-operator
+      name: nv.ip.vault-config-operator-controller-manager-metrics-service.vault
+      original_name: ''
+---
+apiVersion: neuvector.com/v1
+kind: NvSecurityRule
+metadata:
+  creationTimestamp: null
+  name: nv.ip.vault-config-operator-webhook-service.vault
+  namespace: vault
+spec:
+  egress: []
+  file: []
+  ingress: []
+  process: []
+  target:
+    policymode: N/A
+    selector:
+      comment: ''
+      criteria:
+      - key: address
+        op: =
+        value: 100.73.89.240
+      - key: domain
+        op: =
+        value: vault
+      - key: label
+        op: =
+        value: control-plane=vault-config-operator
+      name: nv.ip.vault-config-operator-webhook-service.vault
+      original_name: ''
+---
+apiVersion: neuvector.com/v1
+kind: NvSecurityRule
+metadata:
+  creationTimestamp: null
+  name: nv.ip.vault-configurer.vault
+  namespace: vault
+spec:
+  egress: []
+  file: []
+  ingress: []
+  process: []
+  target:
+    policymode: N/A
+    selector:
+      comment: ''
+      criteria:
+      - key: address
+        op: =
+        value: 100.73.232.221
+      - key: domain
+        op: =
+        value: vault
+      - key: label
+        op: =
+        value: app.kubernetes.io/name=vault-configurator
+      - key: label
+        op: =
+        value: vault_cr=vault
+      name: nv.ip.vault-configurer.vault
+      original_name: ''
+---
+apiVersion: neuvector.com/v1
+kind: NvSecurityRule
+metadata:
+  creationTimestamp: null
+  name: nv.ip.vault-operator.vault
+  namespace: vault
+spec:
+  egress: []
+  file: []
+  ingress: []
+  process: []
+  target:
+    policymode: N/A
+    selector:
+      comment: ''
+      criteria:
+      - key: address
+        op: =
+        value: 100.73.143.128
+      - key: domain
+        op: =
+        value: vault
+      - key: label
+        op: =
+        value: app.kubernetes.io/name=vault-operator
+      name: nv.ip.vault-operator.vault
+      original_name: ''
+---
+apiVersion: neuvector.com/v1
+kind: NvSecurityRule
+metadata:
+  creationTimestamp: null
+  name: nv.ip.vault.vault
+  namespace: vault
+spec:
+  egress: []
+  file: []
+  ingress: []
+  process: []
+  target:
+    policymode: N/A
+    selector:
+      comment: ''
+      criteria:
+      - key: address
+        op: =
+        value: 100.73.26.175
+      - key: domain
+        op: =
+        value: vault
+      - key: label
+        op: =
+        value: app.kubernetes.io/name=vault
+      - key: label
+        op: =
+        value: vault-active=true
+      - key: label
+        op: =
+        value: vault_cr=vault
+      name: nv.ip.vault.vault
+      original_name: ''
+---
+apiVersion: neuvector.com/v1
+kind: NvSecurityRule
+metadata:
+  creationTimestamp: null
   name: nv.vault-config-operator.vault
   namespace: vault
 spec:
@@ -12,7 +264,7 @@ spec:
   - action: allow
     applications:
     - SSL
-    name: nv.vault.vault-egress-344
+    name: nv.vault.vault-egress-157
     ports: any
     priority: 0
     selector:
@@ -26,30 +278,19 @@ spec:
         value: vault
       name: nv.vault.vault
       original_name: ''
+  file: []
+  ingress:
   - action: allow
     applications:
-    - any
-    name: nv.vault.vault-egress-345
-    ports: tcp/8200
+    - SSL
+    name: nv.vault-config-operator.vault-ingress-98
+    ports: any
     priority: 0
     selector:
       comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: vault.vault
-      - key: domain
-        op: =
-        value: vault
-      name: nv.vault.vault
+      name: Workload:ingress
       original_name: ''
-  file: []
-  ingress: []
   process:
-  - action: allow
-    allow_update: false
-    name: head
-    path: /usr/bin/head
   - action: allow
     allow_update: false
     name: manager
@@ -71,6 +312,10 @@ spec:
       - key: domain
         op: =
         value: vault
+      grp_band_width: 0
+      grp_sess_cur: 0
+      grp_sess_rate: 0
+      mon_metric: false
       name: nv.vault-config-operator.vault
       original_name: ''
   waf:
@@ -80,30 +325,14 @@ spec:
 apiVersion: neuvector.com/v1
 kind: NvSecurityRule
 metadata:
+  creationTimestamp: null
   name: nv.vault-configurer.vault
   namespace: vault
 spec:
   dlp:
     settings: []
     status: true
-  egress:
-  - action: allow
-    applications:
-    - SSL
-    name: nv.vault.vault-egress-346
-    ports: any
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: vault.vault
-      - key: domain
-        op: =
-        value: vault
-      name: nv.vault.vault
-      original_name: ''
+  egress: []
   file: []
   ingress: []
   process:
@@ -128,6 +357,10 @@ spec:
       - key: domain
         op: =
         value: vault
+      grp_band_width: 0
+      grp_sess_cur: 0
+      grp_sess_rate: 0
+      mon_metric: false
       name: nv.vault-configurer.vault
       original_name: ''
   waf:
@@ -137,6 +370,7 @@ spec:
 apiVersion: neuvector.com/v1
 kind: NvSecurityRule
 metadata:
+  creationTimestamp: null
   name: nv.vault-operator.vault
   namespace: vault
 spec:
@@ -147,25 +381,8 @@ spec:
   - action: allow
     applications:
     - SSL
-    name: nv.vault.vault-egress-347
+    name: nv.vault.vault-egress-158
     ports: any
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: vault.vault
-      - key: domain
-        op: =
-        value: vault
-      name: nv.vault.vault
-      original_name: ''
-  - action: allow
-    applications:
-    - any
-    name: nv.vault.vault-egress-348
-    ports: tcp/8200
     priority: 0
     selector:
       comment: ''
@@ -202,6 +419,10 @@ spec:
       - key: domain
         op: =
         value: vault
+      grp_band_width: 0
+      grp_sess_cur: 0
+      grp_sess_rate: 0
+      mon_metric: false
       name: nv.vault-operator.vault
       original_name: ''
   waf:
@@ -211,6 +432,7 @@ spec:
 apiVersion: neuvector.com/v1
 kind: NvSecurityRule
 metadata:
+  creationTimestamp: null
   name: nv.vault.vault
   namespace: vault
 spec:
@@ -219,41 +441,7 @@ spec:
     status: true
   egress: []
   file: []
-  ingress:
-  - action: allow
-    applications:
-    - SSL
-    name: nv.vault.vault-ingress-191
-    ports: any
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: vault.vault
-      - key: domain
-        op: =
-        value: vault
-      name: nv.vault.vault
-      original_name: ''
-  - action: allow
-    applications:
-    - any
-    name: nv.vault.vault-ingress-192
-    ports: tcp/8201
-    priority: 0
-    selector:
-      comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: vault.vault
-      - key: domain
-        op: =
-        value: vault
-      name: nv.vault.vault
-      original_name: ''
+  ingress: []
   process:
   - action: allow
     allow_update: false
@@ -265,44 +453,8 @@ spec:
     path: /usr/bin/dumb-init
   - action: allow
     allow_update: false
-    name: harbor_registryctl
-    path: /home/harbor/harbor_registryctl
-  - action: allow
-    allow_update: false
-    name: hostname
-    path: /bin/hostname
-  - action: allow
-    allow_update: false
-    name: ip
-    path: /bin/ip
-  - action: allow
-    allow_update: false
-    name: ls
-    path: /bin/ls
-  - action: allow
-    allow_update: false
-    name: mount
-    path: /bin/mount
-  - action: allow
-    allow_update: false
     name: pause
     path: /pause
-  - action: allow
-    allow_update: false
-    name: ps
-    path: /bin/ps
-  - action: allow
-    allow_update: false
-    name: setcap
-    path: /usr/sbin/setcap
-  - action: allow
-    allow_update: false
-    name: sh
-    path: /bin/busybox
-  - action: allow
-    allow_update: false
-    name: sh
-    path: /bin/sh
   - action: allow
     allow_update: false
     name: vault
@@ -320,6 +472,10 @@ spec:
       - key: domain
         op: =
         value: vault
+      grp_band_width: 0
+      grp_sess_cur: 0
+      grp_sess_rate: 0
+      mon_metric: false
       name: nv.vault.vault
       original_name: ''
   waf:

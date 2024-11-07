@@ -2,6 +2,41 @@
 apiVersion: neuvector.com/v1
 kind: NvSecurityRule
 metadata:
+  creationTimestamp: null
+  name: nv.ip.metallb-webhook-service.metallb-system
+  namespace: metallb-system
+spec:
+  egress: []
+  file: []
+  ingress: []
+  process: []
+  target:
+    policymode: N/A
+    selector:
+      comment: ''
+      criteria:
+      - key: address
+        op: =
+        value: 100.73.179.26
+      - key: domain
+        op: =
+        value: metallb-system
+      - key: label
+        op: =
+        value: app.kubernetes.io/component=controller
+      - key: label
+        op: =
+        value: app.kubernetes.io/instance=metallb
+      - key: label
+        op: =
+        value: app.kubernetes.io/name=metallb
+      name: nv.ip.metallb-webhook-service.metallb-system
+      original_name: ''
+---
+apiVersion: neuvector.com/v1
+kind: NvSecurityRule
+metadata:
+  creationTimestamp: null
   name: nv.metallb-controller.metallb-system
   namespace: metallb-system
 spec:
@@ -33,6 +68,10 @@ spec:
       - key: domain
         op: =
         value: metallb-system
+      grp_band_width: 0
+      grp_sess_cur: 0
+      grp_sess_rate: 0
+      mon_metric: false
       name: nv.metallb-controller.metallb-system
       original_name: ''
   waf:
@@ -42,6 +81,7 @@ spec:
 apiVersion: neuvector.com/v1
 kind: NvSecurityRule
 metadata:
+  creationTimestamp: null
   name: nv.metallb-speaker.metallb-system
   namespace: metallb-system
 spec:
@@ -73,6 +113,10 @@ spec:
       - key: domain
         op: =
         value: metallb-system
+      grp_band_width: 0
+      grp_sess_cur: 0
+      grp_sess_rate: 0
+      mon_metric: false
       name: nv.metallb-speaker.metallb-system
       original_name: ''
   waf:

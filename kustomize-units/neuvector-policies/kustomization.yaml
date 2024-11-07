@@ -1,29 +1,27 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
-
 resources:
+- nodes.yaml
 - calico-system.yaml
-- capi-rancher-import.yaml
 - capi-system.yaml
+- capi-rancher-import.yaml
 - cert-manager.yaml
 - cis-operator-system.yaml
-- default.yaml
+- kube-system.yaml
+- sylva-system.yaml
 - external-secrets.yaml
-# - external.yaml
 - flux-system.yaml
 - k8s-gateway.yaml
 - keycloak.yaml
-# - kube-job.yaml
-- kube-storage-version-migrator.yaml
-- kube-system.yaml
+- default.yaml
 - kyverno.yaml
+- minio-logging.yaml
 - metallb-system.yaml
-- nodes.yaml
-# - os-images.yaml
 - pushgateway.yaml
 - rke2-bootstrap-system.yaml
 - rke2-control-plane-system.yaml
 - sylva-units-operator-system.yaml
-- tigera-operator.yaml
 - vault.yaml
 - workload-cluster-operator-system.yaml
+- kube-storage-version-migrator.yaml
+- tigera-operator.yaml

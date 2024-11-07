@@ -2,6 +2,35 @@
 apiVersion: neuvector.com/v1
 kind: NvSecurityRule
 metadata:
+  creationTimestamp: null
+  name: nv.ip.sylva-units-operator-controller-manager-metrics-service.sylva-units-operator-system
+  namespace: sylva-units-operator-system
+spec:
+  egress: []
+  file: []
+  ingress: []
+  process: []
+  target:
+    policymode: N/A
+    selector:
+      comment: ''
+      criteria:
+      - key: address
+        op: =
+        value: 100.73.66.234
+      - key: domain
+        op: =
+        value: sylva-units-operator-system
+      - key: label
+        op: =
+        value: control-plane=controller-manager
+      name: nv.ip.sylva-units-operator-controller-manager-metrics-service.sylva-units-operator-system
+      original_name: ''
+---
+apiVersion: neuvector.com/v1
+kind: NvSecurityRule
+metadata:
+  creationTimestamp: null
   name: nv.sylva-units-operator-controller-manager.sylva-units-operator-system
   namespace: sylva-units-operator-system
 spec:
@@ -37,6 +66,10 @@ spec:
       - key: domain
         op: =
         value: sylva-units-operator-system
+      grp_band_width: 0
+      grp_sess_cur: 0
+      grp_sess_rate: 0
+      mon_metric: false
       name: nv.sylva-units-operator-controller-manager.sylva-units-operator-system
       original_name: ''
   waf:

@@ -2,6 +2,38 @@
 apiVersion: neuvector.com/v1
 kind: NvSecurityRule
 metadata:
+  creationTimestamp: null
+  name: nv.ip.prometheus-pushgateway.pushgateway
+  namespace: pushgateway
+spec:
+  egress: []
+  file: []
+  ingress: []
+  process: []
+  target:
+    policymode: N/A
+    selector:
+      comment: ''
+      criteria:
+      - key: address
+        op: =
+        value: 100.73.35.60
+      - key: domain
+        op: =
+        value: pushgateway
+      - key: label
+        op: =
+        value: app.kubernetes.io/instance=prometheus-pushgateway
+      - key: label
+        op: =
+        value: app.kubernetes.io/name=prometheus-pushgateway
+      name: nv.ip.prometheus-pushgateway.pushgateway
+      original_name: ''
+---
+apiVersion: neuvector.com/v1
+kind: NvSecurityRule
+metadata:
+  creationTimestamp: null
   name: nv.prometheus-pushgateway.pushgateway
   namespace: pushgateway
 spec:
@@ -14,7 +46,7 @@ spec:
   - action: allow
     applications:
     - HTTP
-    name: nv.prometheus-pushgateway.pushgateway-ingress-173
+    name: nv.prometheus-pushgateway.pushgateway-ingress-76
     ports: any
     priority: 0
     selector:
@@ -29,10 +61,6 @@ spec:
       name: nv.prometheus-rancher-monitoring-prometheus.cattle-monitoring-system
       original_name: ''
   process:
-  - action: allow
-    allow_update: false
-    name: busybox
-    path: /bin/busybox
   - action: allow
     allow_update: false
     name: curl
@@ -70,6 +98,10 @@ spec:
       - key: domain
         op: =
         value: pushgateway
+      grp_band_width: 0
+      grp_sess_cur: 0
+      grp_sess_rate: 0
+      mon_metric: false
       name: nv.prometheus-pushgateway.pushgateway
       original_name: ''
   waf:

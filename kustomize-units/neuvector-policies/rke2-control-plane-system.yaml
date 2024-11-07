@@ -2,32 +2,54 @@
 apiVersion: neuvector.com/v1
 kind: NvSecurityRule
 metadata:
+  creationTimestamp: null
+  name: nv.ip.rke2-control-plane-webhook-service.rke2-control-plane-system
+  namespace: rke2-control-plane-system
+spec:
+  egress: []
+  file: []
+  ingress: []
+  process: []
+  target:
+    policymode: N/A
+    selector:
+      comment: ''
+      criteria:
+      - key: address
+        op: =
+        value: 100.73.205.115
+      - key: domain
+        op: =
+        value: rke2-control-plane-system
+      - key: label
+        op: =
+        value: cluster.x-k8s.io/provider=control-plane-rke2
+      name: nv.ip.rke2-control-plane-webhook-service.rke2-control-plane-system
+      original_name: ''
+---
+apiVersion: neuvector.com/v1
+kind: NvSecurityRule
+metadata:
+  creationTimestamp: null
   name: nv.rke2-control-plane-controller-manager.rke2-control-plane-system
   namespace: rke2-control-plane-system
 spec:
   dlp:
     settings: []
     status: true
-  egress:
+  egress: []
+  file: []
+  ingress:
   - action: allow
     applications:
-    - DNS
-    name: nv.rke2-coredns-rke2-coredns.kube-system-egress-334
+    - SSL
+    name: nv.rke2-control-plane-controller-manager.rke2-control-plane-system-ingress-85
     ports: any
     priority: 0
     selector:
       comment: ''
-      criteria:
-      - key: service
-        op: =
-        value: rke2-coredns-rke2-coredns.kube-system
-      - key: domain
-        op: =
-        value: kube-system
-      name: nv.rke2-coredns-rke2-coredns.kube-system
+      name: Workload:ingress
       original_name: ''
-  file: []
-  ingress: []
   process:
   - action: allow
     allow_update: false
@@ -50,6 +72,10 @@ spec:
       - key: domain
         op: =
         value: rke2-control-plane-system
+      grp_band_width: 0
+      grp_sess_cur: 0
+      grp_sess_rate: 0
+      mon_metric: false
       name: nv.rke2-control-plane-controller-manager.rke2-control-plane-system
       original_name: ''
   waf:
