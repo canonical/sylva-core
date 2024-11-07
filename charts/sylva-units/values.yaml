@@ -1459,7 +1459,7 @@ units:
     info:
       description: sets up Neuvector prerequisites
       details: |
-        it generates namespace, certificate, admin password, policy exception for using latest tag images (required for the pod managing the database of vulnerabilities since this DB is updated often)
+        it generates certificate, admin password, policy exception for using latest tag images (required for the pod managing the database of vulnerabilities since this DB is updated often)
       internal: true
     unit_templates:
     - base-deps
@@ -1473,6 +1473,7 @@ units:
       kyverno: true
       keycloak-add-client-scope: true
       keycloak-oidc-external-secrets: true
+      kyverno-policies-ready: true
     repo: sylva-core
     kustomization_substitute_secrets:
       KEY: '{{ .Values.external_certificates.neuvector.key | default "" | b64enc }}'
@@ -1508,8 +1509,7 @@ units:
     unit_templates:
     - base-deps
     depends_on:
-      neuvector-init: true
-      kyverno-policies-ready: true
+      neuvector-init: '{{ tuple . "neuvector-init" | include "unit-enabled" }}'
       ingress-nginx: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpk" }}'
     annotations:
       sylvactl/readyMessage: "Neuvector UI can be reached at https://{{ .Values.external_hostnames.neuvector }} ({{ .Values.external_hostnames.neuvector }} must resolve to {{ .Values.display_external_ip }})"
@@ -9187,7 +9187,16 @@ mgmt_cluster_state_values:
       {{- end -}}
       {{- $units | include "preserve-type" -}}
     mgmt_cluster_service_names: >-
-      {{- range $name, $hostname := .Values.external_hostnames }}{{ if has $name (list "loki" "rancher" "thanos_receive" "harbor") }}{{ $hostname }}{{print " "}}{{ end }}{{ end }}
+      {{- range $name, $hostname := .Values.external_hostnames }}
+         {{- if has $name (list
+                                "loki"
+                                "rancher"
+                                "thanos_receive"
+                                "harbor"
+                           ) -}}
+           {{- $hostname }}{{print " "}}
+         {{- end -}}
+       {{- end -}}
 
 workload_clusters:
   teams: {}
