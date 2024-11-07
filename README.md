@@ -1,6 +1,4 @@
-![sylva-logo](docs/img/sylva-logo-green.svg)
-
-Note: Document has been modified and split into multiple unitary documents available on the [documentation portal](https://sylva-projects.gitlab.io/dev-zone/getting-started).
+![sylva-logo](./img/sylva-logo-green.svg)
 
 # Sylva-core
 

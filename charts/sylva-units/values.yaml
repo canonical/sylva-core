@@ -1974,7 +1974,7 @@ units:
 
   kyverno-policy-delete-kubernetes-vip-svc:
     info:
-      description: Kyverno policy to cleanup the deprecated kubernetes-vip service in the case of upgrade from Sylva versions <1.2
+      description: Kyverno policy to cleanup the deprecated kubernetes-vip service in the case of upgrade from Sylva versions prior to v1.2
       internal: true
     enabled_conditions:
     - '{{ tuple . "kyverno" | include "unit-enabled"  }}'
@@ -6639,6 +6639,8 @@ units:
         global:
           dnsService: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" | ternary "rke2-coredns-rke2-coredns" "kube-dns" }}'
         loki:
+          analytics:
+            reporting_enabled: false
           containerSecurityContext:
             allowPrivilegeEscalation: false
             capabilities:
