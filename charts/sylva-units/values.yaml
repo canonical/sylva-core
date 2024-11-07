@@ -1950,7 +1950,6 @@ units:
         - '{{ tuple "components/loki-aggregated-secrets" (tuple . "loki" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/thanos" (tuple . "thanos" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/check-images" .Values.security.upstream_images_signature.verify | include "set-only-if" }}'
-        - '{{ tuple "components/longhorn-engine-image-cleanup" (tuple . "longhorn" | include "unit-enabled") | include "set-only-if"  }}'
 
   kyverno-policies-ready:
     info:
@@ -4730,6 +4729,22 @@ units:
           replicaReplenishmentWaitInterval: '{{ .Values.cluster.capi_providers.infra_provider | eq "capm3" | ternary 3600 600 | include "preserve-type" }}'
           nodeDrainPolicy: block-for-eviction-if-contains-last-replica
           concurrentAutomaticEngineUpgradePerNodeLimit: 3
+
+  longhorn-engine-image-cleanup:
+    info:
+      description: kyverno cleanup policy to delete old Longhorn engineimages that are left-over after upgrade
+      internal: true
+    enabled_conditions:
+    - '{{ tuple . "longhorn" | include "unit-enabled" }}'
+    - '{{ tuple . "kyverno" | include "unit-enabled" }}'
+    depends_on:
+      longhorn: true
+      kyverno: true
+    unit_templates:
+    - base-deps
+    repo: sylva-core
+    kustomization_spec:
+      path: ./kustomize-units/kyverno-policies/longhorn-engine-image-cleanup
 
   longhorn-instance-manager-cleanup:
     info:

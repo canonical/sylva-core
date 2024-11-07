@@ -352,6 +352,9 @@ units:
     # can be enabled at runtime if desired
     enabled: '{{ .Values.cluster.capi_providers.infra_provider | eq "capm3" }}'
 
+  longhorn-engine-image-cleanup:
+    enabled: true
+
   longhorn-instance-manager-cleanup:
     enabled: true
     kustomization_spec:
