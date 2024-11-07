@@ -114,6 +114,7 @@
 | **keycloak-resources** | configures keycloak resources |  | True | Kustomize | N/A |
 | **kubevirt-manager** | deploys kubevirt-manager UI for kubevirt workloads |  | True | Kustomize | N/A |
 | **kubevirt-test-vms** | deploys kubevirt VMs for testing |  | True | Kustomize | N/A |
+| **kyverno-calico-annotations** | Adds helm specific annotations to calico resources. |  | True | Kustomize | N/A |
 | **kyverno-metal3-policies** | kyverno policies specific to capm3-system |  | True | Kustomize | N/A |
 | **kyverno-metallb-annotations** | Adds helm specific annotations to metallb resources. Should be removed in 1.2+ versions of Sylva |  | True | Kustomize | N/A |
 | **kyverno-policies** | configures Kyverno policies |  | True | Kustomize | N/A |
