@@ -1433,7 +1433,7 @@ units:
     info:
       description: sets up Neuvector prerequisites
       details: |
-        it generates namespace, certificate, admin password, policy exception for using latest tag images (required for the pod managing the database of vulnerabilities since this DB is updated often)
+        it generates certificate, admin password, policy exception for using latest tag images (required for the pod managing the database of vulnerabilities since this DB is updated often)
       internal: true
     unit_templates:
     - base-deps
@@ -1464,6 +1464,7 @@ units:
       postBuild:
         substitute:
           NEUVECTOR_DNS: '{{ .Values.external_hostnames.neuvector }}'
+          NEUVECTOR_MASTERSVC_DNS: '{{ .Values.external_hostnames.neuvector_master_hostname }}'
           KEYCLOAK_DNS: '{{ .Values.external_hostnames.keycloak }}'
           SERVICE: neuvector
           SERVICE_DNS: '{{ .Values.external_hostnames.neuvector }}'
@@ -1482,8 +1483,9 @@ units:
     unit_templates:
     - base-deps
     depends_on:
-      neuvector-init: true
+      neuvector-init: '{{ tuple . "neuvector-init" | include "unit-enabled" }}'
       kyverno-policies-ready: true
+      namespace-defs: true
       ingress-nginx: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpk" }}'
     annotations:
       sylvactl/readyMessage: "Neuvector UI can be reached at https://{{ .Values.external_hostnames.neuvector }} ({{ .Values.external_hostnames.neuvector }} must resolve to {{ .Values.display_external_ip }})"
@@ -7934,6 +7936,7 @@ external_hostnames:
   keycloak: 'keycloak.{{ .Values.cluster_domain }}'
   flux: 'flux.{{ .Values.cluster_domain }}'
   neuvector: 'neuvector.{{ .Values.cluster_domain }}'
+  neuvector_master_hostname: 'master.neuvector.{{ .Values.cluster_domain }}'
   harbor: 'harbor.{{ .Values.cluster_domain }}'
   os_image_server: ''
   gitea: 'gitea.{{ .Values.cluster_domain }}'
@@ -8509,6 +8512,9 @@ _internal:
   kubevirt_admin_user: 'admin'
   kubevirt_admin_password: '{{ include "internalPersistentRandomPasswd" (tuple . "kubevirt_admin_password") }}'
 
+  # neuvector join token for cluster federation
+  neuvector_join_token: '{{ include "internalPersistentRandomPasswd" (tuple . "neuvector_join_token") }}'
+
   default_password: '{{ include "internalPersistentRandomPasswd" (tuple . "default_password") }}'
 
   default_longhorn_storage_class: >-
@@ -8779,7 +8785,9 @@ shared_workload_clusters_values:
       {{- end -}}
       {{- $units | include "preserve-type" -}}
     mgmt_cluster_service_names: >-
-      {{- range $name, $hostname := .Values.external_hostnames }}{{ if has $name (list "loki" "rancher" "thanos_receive" "harbor") }}{{ $hostname }}{{print " "}}{{ end }}{{ end }}
+      {{- range $name, $hostname := .Values.external_hostnames }}{{ if has $name (list "loki" "rancher" "thanos_receive" "harbor" "neuvector_master_hostname") }}{{ $hostname }}{{print " "}}{{ end }}{{ end }}
+    mgmt_neuvector_master_hostname: '{{ .Values.external_hostnames.neuvector_master_hostname }}'
+    neuvector_join_token: '{{ .Values._internal.neuvector_join_token }}'
 
 shared_workload_clusters_secret_values: {}
 

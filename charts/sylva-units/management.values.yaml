@@ -311,6 +311,65 @@ units:
                                     key: CONFIG_OVERWRITE_JSON
                                     name: "harbor-oidc"
 
+  neuvector:
+    helmrelease_spec:
+      values:
+        controller:
+          apisvc:
+            type: ClusterIP
+          federation:
+            mastersvc:
+              type: ClusterIP
+              ingress:
+                enabled: true
+                host: '{{ .Values.external_hostnames.neuvector_master_hostname }}'
+                ingressClassName: nginx
+                path: /
+                annotations:
+                  nginx.ingress.kubernetes.io/backend-protocol: https
+                tls: true
+                secretName: neuvector-mastersvc-tls
+          configmap:
+            enabled: true
+            data:
+              fedinitcfg.yaml: |
+                cluster_name: {{ .Values.cluster.name }}
+                primary_rest_info:
+                  server: {{ .Values.external_hostnames.neuvector_master_hostname }}
+                  port: 443
+                join_token: {{ .Values._internal.neuvector_join_token }}
+
+  neuvector-assign-fedadmin-role:
+    info:
+      description: configures Neuvector fedAdmin role
+      details: >
+        a job to manually add fedAdmin role to sylva infra-admins group
+      internal: true
+    unit_templates:
+    - base-deps
+    - kube-job
+    enabled_conditions:
+    - '{{ tuple . "neuvector" | include "unit-enabled" }}'
+    depends_on:
+      neuvector: true
+    kustomization_spec:
+      targetNamespace: neuvector
+      _patches:
+      - target:
+          kind: Job
+        patch: |
+          - op: replace
+            path: /spec/backoffLimit
+            value: 15
+      - target:
+          kind: ConfigMap
+          labelSelector: kube-job=script
+        patch: |
+          - op: replace
+            path: /data/kube-job.sh
+            value: |
+          {{ .Files.Get "scripts/neuvector-assign-fedadmin-role.sh" | indent 4 }}
+
   management-flag:
     info:
       internal: true

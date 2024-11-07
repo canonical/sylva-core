@@ -784,6 +784,16 @@ properties:
           - type: string
             format: hostname
           - $ref: "#/$defs/string-with-gotpl"
+      neuvector_master_hostname:  # ---------------------
+        anyOf:
+          - type: string
+            format: hostname
+          - $ref: "#/$defs/string-with-gotpl"
+      neuvector_managed_hostname:  # --------------------
+        anyOf:
+          - type: string
+            format: hostname
+          - $ref: "#/$defs/string-with-gotpl"
       harbor:  # -------------------------------
         anyOf:
           - type: string

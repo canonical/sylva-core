@@ -337,6 +337,42 @@ units:
           name: '{{ .Values.cluster.name }}-capi-monitoring-info'  # this configmap is produced by a kyverno policy defined by the "rancher-monitoring-clusterid-inject" mgmt unit
           optional: false
 
+  neuvector-init:
+    # this unit isn't relevant in workload clusters
+    enabled_conditions: [false]
+
+  neuvector:
+    # can be enabled at runtime if desired
+    enabled: false
+    helmrelease_spec:
+      values:
+        controller:
+          federation:
+            managedsvc:
+              type: ClusterIP
+              ingress:
+                enabled: true
+                host: '{{ .Values.external_hostnames.neuvector_managed_hostname }}'
+                ingressClassName: nginx
+                path: /
+                annotations:
+                  nginx.ingress.kubernetes.io/backend-protocol: https
+                tls: true
+                secretName: neuvector-managedsvc-tls
+          configmap:
+            enabled: true
+            data:
+              fedinitcfg.yaml: |
+                cluster_name: {{ .Values.cluster.name }}
+                primary_rest_info:
+                  server: {{ .Values._internal.mgmt_neuvector_master_hostname }}
+                  port: 443
+                managed_rest_info:
+                  server: {{ .Values.external_hostnames.neuvector_managed_hostname }}
+                  port: 443
+                join_token: {{ .Values._internal.neuvector_join_token }}
+
+
   thanos-credentials-secret:
     enabled: true
     enabled_conditions:
@@ -549,6 +585,9 @@ units:
     - kustomization-deployed-on-mgmt-cluster
 
 cluster_domain: '{{ .Values.cluster.name }}.{{ .Values._internal.workload_clusters_cluster_subdomain }}'
+
+external_hostnames:
+  neuvector_managed_hostname: 'managed.neuvector.{{ .Values.cluster_domain }}'
 
 _internal:
   # for capm3 the os-images-info configmap is copied by kyverno from main sylva-units release, corresponding to what os-image-server will serve
