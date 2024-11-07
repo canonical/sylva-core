@@ -3,34 +3,6 @@ apiVersion: neuvector.com/v1
 kind: NvSecurityRule
 metadata:
   creationTimestamp: null
-  name: nv.ip.rke2-bootstrap-webhook-service.rke2-bootstrap-system
-  namespace: rke2-bootstrap-system
-spec:
-  egress: []
-  file: []
-  ingress: []
-  process: []
-  target:
-    policymode: N/A
-    selector:
-      comment: ''
-      criteria:
-      - key: address
-        op: =
-        value: 100.73.107.99
-      - key: domain
-        op: =
-        value: rke2-bootstrap-system
-      - key: label
-        op: =
-        value: cluster.x-k8s.io/provider=bootstrap-rke2
-      name: nv.ip.rke2-bootstrap-webhook-service.rke2-bootstrap-system
-      original_name: ''
----
-apiVersion: neuvector.com/v1
-kind: NvSecurityRule
-metadata:
-  creationTimestamp: null
   name: nv.rke2-bootstrap-controller-manager.rke2-bootstrap-system
   namespace: rke2-bootstrap-system
 spec:

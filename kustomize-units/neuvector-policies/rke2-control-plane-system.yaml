@@ -3,34 +3,6 @@ apiVersion: neuvector.com/v1
 kind: NvSecurityRule
 metadata:
   creationTimestamp: null
-  name: nv.ip.rke2-control-plane-webhook-service.rke2-control-plane-system
-  namespace: rke2-control-plane-system
-spec:
-  egress: []
-  file: []
-  ingress: []
-  process: []
-  target:
-    policymode: N/A
-    selector:
-      comment: ''
-      criteria:
-      - key: address
-        op: =
-        value: 100.73.205.115
-      - key: domain
-        op: =
-        value: rke2-control-plane-system
-      - key: label
-        op: =
-        value: cluster.x-k8s.io/provider=control-plane-rke2
-      name: nv.ip.rke2-control-plane-webhook-service.rke2-control-plane-system
-      original_name: ''
----
-apiVersion: neuvector.com/v1
-kind: NvSecurityRule
-metadata:
-  creationTimestamp: null
   name: nv.rke2-control-plane-controller-manager.rke2-control-plane-system
   namespace: rke2-control-plane-system
 spec:

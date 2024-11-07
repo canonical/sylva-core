@@ -13,15 +13,14 @@ resources:
 - flux-system.yaml
 - k8s-gateway.yaml
 - keycloak.yaml
-- default.yaml
 - kyverno.yaml
 - minio-logging.yaml
 - metallb-system.yaml
+- kube-storage-version-migrator.yaml
 - pushgateway.yaml
 - rke2-bootstrap-system.yaml
 - rke2-control-plane-system.yaml
 - sylva-units-operator-system.yaml
+- tigera-operator.yaml
 - vault.yaml
 - workload-cluster-operator-system.yaml
-- kube-storage-version-migrator.yaml
-- tigera-operator.yaml

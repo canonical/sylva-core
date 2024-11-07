@@ -60,34 +60,3 @@ spec:
   waf:
     settings: []
     status: true
----
-apiVersion: neuvector.com/v1
-kind: NvSecurityRule
-metadata:
-  creationTimestamp: null
-  name: nv.ip.service-rancher-cis-benchmark.cis-operator-system
-  namespace: cis-operator-system
-spec:
-  egress: []
-  file: []
-  ingress: []
-  process: []
-  target:
-    policymode: N/A
-    selector:
-      comment: ''
-      criteria:
-      - key: address
-        op: =
-        value: 100.73.179.192
-      - key: domain
-        op: =
-        value: cis-operator-system
-      - key: label
-        op: =
-        value: app.kubernetes.io/instance=security-scan-runner-rke2-cis
-      - key: label
-        op: =
-        value: app.kubernetes.io/name=rancher-cis-benchmark
-      name: nv.ip.service-rancher-cis-benchmark.cis-operator-system
-      original_name: ''

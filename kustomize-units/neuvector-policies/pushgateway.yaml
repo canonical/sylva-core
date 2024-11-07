@@ -3,37 +3,6 @@ apiVersion: neuvector.com/v1
 kind: NvSecurityRule
 metadata:
   creationTimestamp: null
-  name: nv.ip.prometheus-pushgateway.pushgateway
-  namespace: pushgateway
-spec:
-  egress: []
-  file: []
-  ingress: []
-  process: []
-  target:
-    policymode: N/A
-    selector:
-      comment: ''
-      criteria:
-      - key: address
-        op: =
-        value: 100.73.35.60
-      - key: domain
-        op: =
-        value: pushgateway
-      - key: label
-        op: =
-        value: app.kubernetes.io/instance=prometheus-pushgateway
-      - key: label
-        op: =
-        value: app.kubernetes.io/name=prometheus-pushgateway
-      name: nv.ip.prometheus-pushgateway.pushgateway
-      original_name: ''
----
-apiVersion: neuvector.com/v1
-kind: NvSecurityRule
-metadata:
-  creationTimestamp: null
   name: nv.prometheus-pushgateway.pushgateway
   namespace: pushgateway
 spec:

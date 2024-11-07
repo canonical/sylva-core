@@ -47,31 +47,3 @@ spec:
   waf:
     settings: []
     status: true
----
-apiVersion: neuvector.com/v1
-kind: NvSecurityRule
-metadata:
-  creationTimestamp: null
-  name: nv.ip.heat-operator-controller-manager-metrics-service.heat-operator-system
-  namespace: heat-operator-system
-spec:
-  egress: []
-  file: []
-  ingress: []
-  process: []
-  target:
-    policymode: N/A
-    selector:
-      comment: ''
-      criteria:
-      - key: address
-        op: =
-        value: 100.73.177.128
-      - key: domain
-        op: =
-        value: heat-operator-system
-      - key: label
-        op: =
-        value: control-plane=controller-manager
-      name: nv.ip.heat-operator-controller-manager-metrics-service.heat-operator-system
-      original_name: ''

@@ -3,62 +3,6 @@ apiVersion: neuvector.com/v1
 kind: NvSecurityRule
 metadata:
   creationTimestamp: null
-  name: nv.ip.minio.minio-monitoring
-  namespace: minio-monitoring
-spec:
-  egress: []
-  file: []
-  ingress: []
-  process: []
-  target:
-    policymode: N/A
-    selector:
-      comment: ''
-      criteria:
-      - key: address
-        op: =
-        value: 100.73.198.66
-      - key: domain
-        op: =
-        value: minio-monitoring
-      - key: label
-        op: =
-        value: v1.min.io/tenant=monitoring
-      name: nv.ip.minio.minio-monitoring
-      original_name: ''
----
-apiVersion: neuvector.com/v1
-kind: NvSecurityRule
-metadata:
-  creationTimestamp: null
-  name: nv.ip.monitoring-console.minio-monitoring
-  namespace: minio-monitoring
-spec:
-  egress: []
-  file: []
-  ingress: []
-  process: []
-  target:
-    policymode: N/A
-    selector:
-      comment: ''
-      criteria:
-      - key: address
-        op: =
-        value: 100.73.95.48
-      - key: domain
-        op: =
-        value: minio-monitoring
-      - key: label
-        op: =
-        value: v1.min.io/tenant=monitoring
-      name: nv.ip.monitoring-console.minio-monitoring
-      original_name: ''
----
-apiVersion: neuvector.com/v1
-kind: NvSecurityRule
-metadata:
-  creationTimestamp: null
   name: nv.monitoring-pool-0.minio-monitoring
   namespace: minio-monitoring
 spec:

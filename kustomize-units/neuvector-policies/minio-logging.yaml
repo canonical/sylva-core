@@ -3,62 +3,6 @@ apiVersion: neuvector.com/v1
 kind: NvSecurityRule
 metadata:
   creationTimestamp: null
-  name: nv.ip.logging-console.minio-logging
-  namespace: minio-logging
-spec:
-  egress: []
-  file: []
-  ingress: []
-  process: []
-  target:
-    policymode: N/A
-    selector:
-      comment: ''
-      criteria:
-      - key: address
-        op: =
-        value: 100.73.152.247
-      - key: domain
-        op: =
-        value: minio-logging
-      - key: label
-        op: =
-        value: v1.min.io/tenant=logging
-      name: nv.ip.logging-console.minio-logging
-      original_name: ''
----
-apiVersion: neuvector.com/v1
-kind: NvSecurityRule
-metadata:
-  creationTimestamp: null
-  name: nv.ip.minio.minio-logging
-  namespace: minio-logging
-spec:
-  egress: []
-  file: []
-  ingress: []
-  process: []
-  target:
-    policymode: N/A
-    selector:
-      comment: ''
-      criteria:
-      - key: address
-        op: =
-        value: 100.73.138.243
-      - key: domain
-        op: =
-        value: minio-logging
-      - key: label
-        op: =
-        value: v1.min.io/tenant=logging
-      name: nv.ip.minio.minio-logging
-      original_name: ''
----
-apiVersion: neuvector.com/v1
-kind: NvSecurityRule
-metadata:
-  creationTimestamp: null
   name: nv.logging-pool-0.minio-logging
   namespace: minio-logging
 spec:

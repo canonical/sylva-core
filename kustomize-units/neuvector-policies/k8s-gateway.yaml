@@ -3,37 +3,6 @@ apiVersion: neuvector.com/v1
 kind: NvSecurityRule
 metadata:
   creationTimestamp: null
-  name: nv.ip.k8s-gateway.k8s-gateway
-  namespace: k8s-gateway
-spec:
-  egress: []
-  file: []
-  ingress: []
-  process: []
-  target:
-    policymode: N/A
-    selector:
-      comment: ''
-      criteria:
-      - key: address
-        op: =
-        value: 100.73.39.219
-      - key: domain
-        op: =
-        value: k8s-gateway
-      - key: label
-        op: =
-        value: app.kubernetes.io/name=k8s-gateway
-      - key: label
-        op: =
-        value: app.kubernetes.io/instance=k8s-gateway
-      name: nv.ip.k8s-gateway.k8s-gateway
-      original_name: ''
----
-apiVersion: neuvector.com/v1
-kind: NvSecurityRule
-metadata:
-  creationTimestamp: null
   name: nv.k8s-gateway.k8s-gateway
   namespace: k8s-gateway
 spec:

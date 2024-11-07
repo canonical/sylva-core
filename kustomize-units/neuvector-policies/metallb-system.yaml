@@ -3,40 +3,6 @@ apiVersion: neuvector.com/v1
 kind: NvSecurityRule
 metadata:
   creationTimestamp: null
-  name: nv.ip.metallb-webhook-service.metallb-system
-  namespace: metallb-system
-spec:
-  egress: []
-  file: []
-  ingress: []
-  process: []
-  target:
-    policymode: N/A
-    selector:
-      comment: ''
-      criteria:
-      - key: address
-        op: =
-        value: 100.73.179.26
-      - key: domain
-        op: =
-        value: metallb-system
-      - key: label
-        op: =
-        value: app.kubernetes.io/component=controller
-      - key: label
-        op: =
-        value: app.kubernetes.io/instance=metallb
-      - key: label
-        op: =
-        value: app.kubernetes.io/name=metallb
-      name: nv.ip.metallb-webhook-service.metallb-system
-      original_name: ''
----
-apiVersion: neuvector.com/v1
-kind: NvSecurityRule
-metadata:
-  creationTimestamp: null
   name: nv.metallb-controller.metallb-system
   namespace: metallb-system
 spec:

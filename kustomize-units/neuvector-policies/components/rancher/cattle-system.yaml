@@ -61,62 +61,6 @@ apiVersion: neuvector.com/v1
 kind: NvSecurityRule
 metadata:
   creationTimestamp: null
-  name: nv.ip.rancher-webhook.cattle-system
-  namespace: cattle-system
-spec:
-  egress: []
-  file: []
-  ingress: []
-  process: []
-  target:
-    policymode: N/A
-    selector:
-      comment: ''
-      criteria:
-      - key: address
-        op: =
-        value: 100.73.213.239
-      - key: domain
-        op: =
-        value: cattle-system
-      - key: label
-        op: =
-        value: app=rancher-webhook
-      name: nv.ip.rancher-webhook.cattle-system
-      original_name: ''
----
-apiVersion: neuvector.com/v1
-kind: NvSecurityRule
-metadata:
-  creationTimestamp: null
-  name: nv.ip.rancher.cattle-system
-  namespace: cattle-system
-spec:
-  egress: []
-  file: []
-  ingress: []
-  process: []
-  target:
-    policymode: N/A
-    selector:
-      comment: ''
-      criteria:
-      - key: address
-        op: =
-        value: 100.73.106.11
-      - key: domain
-        op: =
-        value: cattle-system
-      - key: label
-        op: =
-        value: app=rancher
-      name: nv.ip.rancher.cattle-system
-      original_name: ''
----
-apiVersion: neuvector.com/v1
-kind: NvSecurityRule
-metadata:
-  creationTimestamp: null
   name: nv.rancher-webhook.cattle-system
   namespace: cattle-system
 spec:

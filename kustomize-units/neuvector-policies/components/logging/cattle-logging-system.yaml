@@ -3,40 +3,6 @@ apiVersion: neuvector.com/v1
 kind: NvSecurityRule
 metadata:
   creationTimestamp: null
-  name: nv.ip.logging-root-fluentd.cattle-logging-system
-  namespace: cattle-logging-system
-spec:
-  egress: []
-  file: []
-  ingress: []
-  process: []
-  target:
-    policymode: N/A
-    selector:
-      comment: ''
-      criteria:
-      - key: address
-        op: =
-        value: 100.73.72.82
-      - key: domain
-        op: =
-        value: cattle-logging-system
-      - key: label
-        op: =
-        value: app.kubernetes.io/managed-by=logging-root
-      - key: label
-        op: =
-        value: app.kubernetes.io/name=fluentd
-      - key: label
-        op: =
-        value: app.kubernetes.io/component=fluentd
-      name: nv.ip.logging-root-fluentd.cattle-logging-system
-      original_name: ''
----
-apiVersion: neuvector.com/v1
-kind: NvSecurityRule
-metadata:
-  creationTimestamp: null
   name: nv.logging-rancher-logging.cattle-logging-system
   namespace: cattle-logging-system
 spec:

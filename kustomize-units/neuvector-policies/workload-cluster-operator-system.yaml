@@ -3,34 +3,6 @@ apiVersion: neuvector.com/v1
 kind: NvSecurityRule
 metadata:
   creationTimestamp: null
-  name: nv.ip.workload-cluster-operator-controller-manager-metrics-service.workload-cluster-operator-system
-  namespace: workload-cluster-operator-system
-spec:
-  egress: []
-  file: []
-  ingress: []
-  process: []
-  target:
-    policymode: N/A
-    selector:
-      comment: ''
-      criteria:
-      - key: address
-        op: =
-        value: 100.73.32.200
-      - key: domain
-        op: =
-        value: workload-cluster-operator-system
-      - key: label
-        op: =
-        value: control-plane=controller-manager
-      name: nv.ip.workload-cluster-operator-controller-manager-metrics-service.workload-cluster-operator-system
-      original_name: ''
----
-apiVersion: neuvector.com/v1
-kind: NvSecurityRule
-metadata:
-  creationTimestamp: null
   name: nv.workload-cluster-operator-controller-manager.workload-cluster-operator-system
   namespace: workload-cluster-operator-system
 spec:

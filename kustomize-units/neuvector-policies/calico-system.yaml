@@ -142,31 +142,3 @@ spec:
   waf:
     settings: []
     status: true
----
-apiVersion: neuvector.com/v1
-kind: NvSecurityRule
-metadata:
-  creationTimestamp: null
-  name: nv.ip.calico-typha.calico-system
-  namespace: calico-system
-spec:
-  egress: []
-  file: []
-  ingress: []
-  process: []
-  target:
-    policymode: N/A
-    selector:
-      comment: ''
-      criteria:
-      - key: address
-        op: =
-        value: 100.73.37.100
-      - key: domain
-        op: =
-        value: calico-system
-      - key: label
-        op: =
-        value: k8s-app=calico-typha
-      name: nv.ip.calico-typha.calico-system
-      original_name: ''
