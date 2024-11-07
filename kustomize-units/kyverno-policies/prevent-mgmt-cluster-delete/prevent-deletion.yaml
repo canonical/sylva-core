@@ -13,6 +13,12 @@ spec:
     - name: match-name-and-ns
       expression: >-
         has(oldObject.metadata) && oldObject.metadata.name in [
+          "sylva-units",
+          "flux-system",
+          "capo-cluster-resources",
+          "cluster-vip",
+          "metallb",
+          "metallb-resources",
           "cluster",
           "cluster-bmh",
         ] && oldObject.metadata.namespace == "sylva-system"
