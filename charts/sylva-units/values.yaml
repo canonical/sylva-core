@@ -4053,6 +4053,7 @@ units:
     info:
       description: Enable monitoring of OKD workload cluster components on Sylva management cluster
       maturity: experimental
+      internal: true
     unit_templates:
     - base-deps
     enabled: false
@@ -4073,6 +4074,7 @@ units:
     info:
       description: Enable monitoring of workload CNFs on Sylva management cluster
       maturity: experimental
+      internal: true
     unit_templates:
       - base-deps
     enabled_conditions:
