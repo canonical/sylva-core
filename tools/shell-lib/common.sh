@@ -381,7 +381,7 @@ function ci_remaining_minutes_and_at_most() {
     # ... and we never return more than at_most seconds
     ci_job_started_at_epoch=$(date +%s --date=$CI_JOB_STARTED_AT)
     current_time_epoch=$(date +%s)
-    debug_on_exit_max_duration_seconds=200
+    debug_on_exit_max_duration_seconds=450
 
     # here we compute how much seconds are left before the CI job times out
     # (minus debug_on_exit_max_duration_seconds)
