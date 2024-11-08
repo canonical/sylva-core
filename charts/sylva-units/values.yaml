@@ -58,7 +58,7 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
     spec:
       url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-capi-cluster.git
       ref:
-        tag: 0.3.4
+        tag: 0.4.0
 
   local-path-provisioner:
     kind: GitRepository
@@ -73,6 +73,13 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
       url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sriov-resources.git
       ref:
         tag: 0.0.3
+
+  metallb-resources:
+    kind: GitRepository
+    spec:
+      url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/metallb-resources.git
+      ref:
+        tag: 0.0.2
 
   os-image-server:
     kind: GitRepository
@@ -1899,6 +1906,13 @@ units:
                 resources:
                   - serviceaccounts
                 verbs: ["get", "list", "watch", "patch", "update"]
+              - apiGroups: ["metallb.io"]
+                resources:
+                  - ipaddresspools
+                  - l2advertisements
+                  - bgppeers
+                  - bgpadvertisements
+                verbs: ["get", "list", "watch", "patch", "update"]
           serviceMonitor:
             enabled: '{{ .Values._internal.monitoring.enabled | include "preserve-type" }}'
       _postRenderers:
@@ -1950,6 +1964,23 @@ units:
         - '{{ tuple "components/loki-aggregated-secrets" (tuple . "loki" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/thanos" (tuple . "thanos" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/check-images" .Values.security.upstream_images_signature.verify | include "set-only-if" }}'
+
+  kyverno-metallb-annotations:
+    info:
+      description: Adds helm specific annotations to metallb resources. Should be removed in 1.2+ versions of Sylva
+      internal: true
+    unit_templates:
+      - base-deps
+    enabled_conditions:
+      - '{{ eq .Values.cluster.capi_providers.bootstrap_provider "cabpr" }}'
+      - '{{ ne .Values.cluster.capi_providers.infra_provider "capd" }}'
+      - '{{ .Values._internal.state.is_upgrade }}'
+    depends_on:
+      kyverno: true
+    repo: sylva-core
+    kustomization_spec:
+      path: ./kustomize-units/kyverno-policies/metallb-resources-annotations
+      wait: true
 
   kyverno-policies-ready:
     info:
@@ -2551,6 +2582,7 @@ units:
       cert-manager: true
       '{{ .Values._internal.default_storage_class_unit }}': true
       metal3-pdb: '{{ tuple . "metal3-pdb" | include "unit-enabled" }}'
+      metallb-resources: '{{ tuple . "metallb" | include "unit-enabled" }}'
     helm_repo_url: https://suse-edge.github.io/charts
     helm_chart_artifact_name: metal3
     helmrelease_spec:
@@ -3174,6 +3206,34 @@ units:
           kind: Installation
           name: default
 
+  metallb-rke2-chart-cleanup:
+    info:
+      description: remove rke2-deployed HelmChart resources for MetalLB
+      internal: true
+    unit_templates:
+    - base-deps
+    - kube-job
+    enabled_conditions:
+    - '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" }}'
+    - '{{ .Values._internal.state.is_upgrade }}'
+    kustomization_spec:
+      targetNamespace: metallb-system
+      _patches:
+      - target:
+          kind: ConfigMap
+          labelSelector: kube-job=script
+        patch: |
+          - op: replace
+            path: /data/kube-job.sh
+            value: |
+              #!/bin/bash
+              if kubectl -n metallb-system get cm chart-content-metallb; then
+                kubectl -n metallb-system delete cm chart-content-metallb
+                kubectl -n metallb-system delete secret chart-values-metallb
+                kubectl -n metallb-system delete secret -l name=metallb,owner=helm
+                kubectl -n metallb-system delete helmchart.helm.cattle.io metallb
+              fi
+
   metallb:
     info:
       description: installs MetalLB operator
@@ -3181,9 +3241,11 @@ units:
     unit_templates:
     - base-deps
     enabled_conditions:
-      - '{{ .Values.cluster.capi_providers.infra_provider | eq "capd" }}'
+      - '{{ or (.Values.cluster.capi_providers.infra_provider | eq "capd")
+               (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpr") }}'
     depends_on:
       '{{ .Values._internal.calico_readiness_unit }}': '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpk" }}'
+      metallb-rke2-chart-cleanup: '{{ tuple . "metallb-rke2-chart-cleanup" | include "unit-enabled" }}'
     helm_repo_url: https://metallb.github.io/metallb
     helmrelease_spec:
       chart:
@@ -3223,6 +3285,37 @@ units:
             key: node-role.kubernetes.io/master
           - effect: NoSchedule
             key: node-role.kubernetes.io/control-plane
+
+  metallb-resources:
+    info:
+      description: configures metallb resources
+      internal: true
+    enabled_conditions:
+    - '{{ tuple . "metallb" | include "unit-enabled" }}'
+    unit_templates:
+    - base-deps
+    depends_on:
+      metallb: true
+    repo: metallb-resources
+    helm_chart_artifact_name: metallb-resources
+    helmrelease_spec:
+      chart:
+        spec:
+          chart: .
+      targetNamespace: metallb-system
+      driftDetection:
+        mode: enabled
+      values: >-
+        {{- $resources := dict }}
+        {{- tuple $resources .Values.cluster.metallb .Values._internal.metallb | include "merge-append" }}
+        {{ $resources | include "preserve-type" }}
+      valuesFrom:
+        # for capo the cluster VIP has to be taken from capo-cluster-resources ConfigMap (and isn't included in .Values._internal.metallb above)
+        - kind: ConfigMap
+          name: capo-cluster-resources
+          valuesKey: allocated_ip
+          targetPath: cluster_virtual_ip  # will result in the creation of the 'lbpool' IPAddressPool
+          optional: '{{ not (.Values.cluster.capi_providers.infra_provider | eq "capo") | include "as-bool" }}'
 
   cinder-csi:
     info:
@@ -3507,7 +3600,7 @@ units:
     unit_templates:
     - base-deps
     depends_on:
-      capd-metallb-config: '{{ tuple . "capd-metallb-config" | include "unit-enabled" }}'
+      metallb-resources: '{{ tuple . "metallb" | include "unit-enabled" }}'
     helm_repo_url: https://ori-edge.github.io/k8s_gateway/
     helmrelease_spec:
       chart:
@@ -3570,24 +3663,38 @@ units:
                             seccompProfile:
                               type: RuntimeDefault
 
-  capd-metallb-config:
+  cluster-vip:
     info:
-      description: configures MetalLB in a capd context
+      description: Defines the cluster-vip Service for MetalLB load-balancing
+      details:
+        MetalLB will only handle the VIP if it has a corresponding service with endpoints,
+        but we don't want that the API access (6443) relies on kube-proxy, because on RKE2 agent nodes,
+        kube-proxy uses RKE2 internal load-balancing proxy that may fall-back to the VIP to access the API,
+        which could create a deadlock if endpoints are not up-to-date.
+
+        The cluster-vip Service that plays this role. This unit manages this resource, taking over
+        the control after the initial creation of this Service by a cloud-init post command on the first node).
       internal: true
     unit_templates:
     - base-deps
     enabled_conditions:
     - '{{ tuple . "metallb" | include "unit-enabled" }}'
-    - '{{ .Values.cluster.capi_providers.infra_provider | eq "capd" }}'
+    - '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" }}'
     repo: sylva-core
-    depends_on:
-      metallb: true
     kustomization_spec:
-      path: ./kustomize-units/metallb-config
+      path: ./kustomize-units/cluster-vip
       wait: true
       postBuild:
         substitute:
-          CLUSTER_VIRTUAL_IP: '{{ .Values.cluster_virtual_ip }}'
+          # in the general case, the cluster VIP is taken from .Values.cluster_virtual_ip
+          # except in the CAPO case where we don't know it beforehand in values and we take it
+          # from capo-cluster-resources ConfigMap (see substituteFrom below)
+          allocated_ip: '{{ tuple .Values.cluster_virtual_ip (not (.Values.cluster.capi_providers.infra_provider | eq "capo")) | include "set-only-if" }}'
+        substituteFrom:
+        # see explanation above about allocated_ip / cluster_virtual_ip in CAPO case
+        - kind: ConfigMap
+          name: capo-cluster-resources
+          optional: '{{ not (.Values.cluster.capi_providers.infra_provider | eq "capo") | include "as-bool" }}'
 
   capi-rancher-import:
     info:
@@ -3639,7 +3746,7 @@ units:
     unit_templates:
     - base-deps
     depends_on:
-      capd-metallb-config: '{{ tuple . "capd-metallb-config" | include "unit-enabled" }}'
+      metallb-resources: '{{ tuple . "metallb" | include "unit-enabled" }}'
       '{{ .Values._internal.calico_readiness_unit }}': '{{ tuple . "calico" | include "unit-enabled" }}'
     helm_repo_url: https://rke2-charts.rancher.io
     helm_chart_versions:
@@ -7109,6 +7216,36 @@ cluster:
     #   additional_commands:
     #     pre_bootstrap_commands: []
     #     post_bootstrap_commands: []
+  metallb: {}
+    #l2_lbs: # add your metallb-l2 config if required
+      #address_pools:
+      #  - name: my-custom-pool
+      #    addresses:
+      #      - 10.122.22.151/32
+      #      - 10.10.10.10-10.10.10.120
+      #l2_options:
+      #  advertisements:
+      #    - node_selectors:
+      #        - kubernetes.io/hostname: hostB #  to limit the set of nodes for a given advertisement, the node selector must be set
+      #      interface: eth1  # interfaces selector can also be used together with node_selectors
+      #      advertised_pools:
+      #        - my-custom-pool # additional IP pools to be advertised to this peer
+
+    #bgp_lbs: # add your metallb-l3 config if required
+      #l3_options:
+      #  bgp_peers:
+      #    - name: peerName
+      #      local_asn: 64511  # example only, must be updated
+      #      peer_asn: 64510  # example only, must be updated
+      #      peer_address: 10.122.22.129
+      #      advertised_pools:
+      #        - lbpool  # default IP pool used for kube-api and ingress exposure
+      #        - my-custom-pool  # additional IP pools to be advertised to this peer
+      #address_pools:
+      #  - name: my-custom-pool
+      #    addresses:
+      #      - 10.122.22.151/32
+      #      - 10.10.10.10-10.10.10.120
 
 cluster_machines_ready:
   wait_timeout: 600s
@@ -7668,6 +7805,23 @@ _internal:
 
   calico_readiness_unit: "calico"
 
+  metallb:
+    # for CAPO the cluster_virtual_ip is injected into 'metallb-resources' and 'cluster' units via capo-cluster-resources configmap
+    # so we omit it here in that case
+    cluster_virtual_ip: '{{ tuple .Values.cluster_virtual_ip (ne .Values.cluster.capi_providers.infra_provider "capo") | include "set-only-if" }}'
+    l2_lbs:
+      l2_options:
+        advertisements:
+          - name: l2advertisement
+            advertised_pools:
+              - lbpool  # this is the pool generated by from cluster_virtual_ip
+            interfaces: >-
+              {{- if eq .Values.cluster.capi_providers.infra_provider "capm3" }}
+               {{ .Values.cluster.cluster_primary_interfaces | default (list .Values.cluster.control_plane.capm3.primary_pool_interface)  | include "preserve-type" }}
+              {{- else -}}
+                {{- dict | include "preserve-type" -}}
+              {{- end }}
+
   capo_need_v1alpha8_fix: >-
     {{
     .Capabilities.APIVersions | has "infrastructure.cluster.x-k8s.io/v1alpha8/OpenStackCluster" | include "preserve-type"
@@ -7689,7 +7843,7 @@ _internal:
     tuple (dict "metallb.universe.tf/loadBalancerIPs" .Values.cluster_virtual_ip
                 "metallb.universe.tf/allow-shared-ip" "cluster-external-ip")
           (or (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpr")
-              (tuple . "capd-metallb-config" | include "unit-enabled"))
+              (tuple . "metallb" | include "unit-enabled"))
       | include "set-only-if"
     }}'
 

@@ -297,6 +297,18 @@ units:
   metallb:
     enabled: true
 
+  metallb-resources:
+    enabled: true
+
+  metallb-rke2-chart-cleanup:
+    enabled: true
+
+  kyverno-metallb-annotations:
+    enabled: true
+
+  cluster-vip:
+    enabled: true
+
   ingress-nginx:
     enabled: true
     depends_on:
