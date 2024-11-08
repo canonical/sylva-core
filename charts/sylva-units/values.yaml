@@ -173,6 +173,8 @@ unit_kustomization_spec_default: # default .spec for a Kustomization
 # this defines the default .spec for a HelmRelease resource
 # generated a unit with a "helmrelease_spec" field
 unit_helmrelease_spec_default:  # default for the .spec of a HelmRelease
+  driftDetection:
+    mode: enabled
   interval: 15m
   # Following ConfigMap won't add any value to the chart, it is used to prevent periodic reconciliation during the upgrades:
   # As root-dependency-<n>-cm will be pruned when root-dependency-<n+1> will be reconciled, HelmRelease reconciliation
@@ -2655,6 +2657,12 @@ units:
     kustomization_spec:
       prune: '{{ not (eq .Release.Namespace "sylva-system") | include "preserve-type" }}'
     helmrelease_spec:
+      driftDetection:
+        ignore:
+          - paths:
+            - /spec/online
+            target:
+              kind: BareMetalHost
       targetNamespace: '{{ .Release.Namespace }}'
       chart:
         spec:
@@ -2761,6 +2769,9 @@ units:
         | include "preserve-type"
         }}
     helmrelease_spec:
+# Disable drift for cluster HR till https://gitlab.com/sylva-projects/sylva-core/-/issues/1812 is solved.
+      driftDetection:
+        mode: disabled
       uninstall:
         timeout: '{{ mul .Values.cluster.timeouts.cluster_delete_hook_job_timeout 1.2 }}s'
       targetNamespace: '{{ .Release.Namespace }}'
@@ -3121,6 +3132,9 @@ units:
     helm_repo_url: https://rke2-charts.rancher.io
     helm_chart_versions: *calico-chart-versions  # we use a YAML anchor rather than templating so that this file can be read by tools/generate_units_documentation.py
     helmrelease_spec:
+# Disable drift for calico till https://gitlab.com/sylva-projects/sylva-core/-/issues/1814 is solved.
+      driftDetection:
+        mode: disabled
       chart:
         spec:
           chart: rke2-calico
@@ -3186,6 +3200,9 @@ units:
       '{{ .Values._internal.calico_readiness_unit }}': '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpk" }}'
     helm_repo_url: https://metallb.github.io/metallb
     helmrelease_spec:
+# Disable drift for metallb till https://gitlab.com/sylva-projects/sylva-core/-/issues/1814 is solved.
+      driftDetection:
+        mode: disabled
       chart:
         spec:
           chart: metallb
@@ -4031,9 +4048,9 @@ units:
       _postRenderers:
         - kustomize:
             patches:
-            # Disable drift detection for rancher-monitoring webhooks
+            # Disable drift detection for rancher-monitoring webhooks and PrometheusRule
             - target:
-                kind: (ValidatingWebhookConfiguration|MutatingWebhookConfiguration)
+                kind: (ValidatingWebhookConfiguration|MutatingWebhookConfiguration|PrometheusRule)
               patch: |
                 - op: add
                   path: /metadata/annotations/helm.toolkit.fluxcd.io~1driftDetection
