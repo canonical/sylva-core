@@ -11,12 +11,9 @@ spec:
     matchConditions:
     - name: is-delete
       expression: request.operation == "DELETE"
-    - name: match-name-and-ns
+    - name: match-label
       expression: >-
-        has(oldObject.metadata) && oldObject.metadata.name in [
-          "cluster",
-          "cluster-bmh",
-        ] && oldObject.metadata.namespace == "sylva-system"
+         has(oldObject.metadata.labels) && 'sylva-units/protected' in oldObject.metadata.labels
   rules:
   - name: helm-resources
     match:
