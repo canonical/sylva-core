@@ -1833,6 +1833,7 @@ units:
           resourceFiltersExclude:
           - "[Node,*,*]"
           - "[Node/*,*,*]"
+          - "[*/*,kube-system,*]"  # necessary for rke2-helmchart-prevent-uninstall policy
         webhooksCleanup:
           enabled: false
         features:
@@ -1917,6 +1918,16 @@ units:
                 resources:
                   - baremetalhosts
                 verbs: ["get", "list", "watch", "patch", "update"]
+              # for rke2-helmchart-prevent-uninstall policy:
+              - >-
+                {{
+                tuple (dict "apiGroups" (list "helm.cattle.io")
+                            "resources" (list "helmcharts")
+                            "verbs" (list "get" "list" "watch" "patch" "update")
+                      )
+                      (eq .Values.cluster.capi_providers.bootstrap_provider "cabpr")
+                  | include "set-only-if"
+                }}
           serviceMonitor:
             enabled: '{{ .Values._internal.monitoring.enabled | include "preserve-type" }}'
       _postRenderers:
@@ -2730,6 +2741,27 @@ units:
       path: ./kustomize-units/kyverno-policies/cluster-prevent-rke2-helmcharts-calico-metallb
       wait: true
 
+  rke2-helmchart-prevent-uninstall:
+    info:
+      description: Kyverno policy to prevent key Helm charts from being uninstalled by RKE2 HelmChart controller
+      internal: true
+    unit_templates:
+    - base-deps
+    enabled_conditions:
+    - '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" }}'
+    depends_on:
+      kyverno: true
+      # on an upgrade we don't want this unit to be applied after 'cluster' unit reconciliation,
+      # because we want the policy to be active during node rolling update
+      # but on a fresh install, we setup this policy only after 'cluster' unit (the first
+      # RKE2 installation installs the RKE2 HelmChart CRD):
+      cluster: '{{ and (not .Values._internal.state.is_upgrade)
+                       (tuple . "cluster" | include "unit-enabled") }}'
+    repo: sylva-core
+    kustomization_spec:
+      path: ./kustomize-units/kyverno-policies/rke2-helmchart-prevent-uninstall
+      wait: true
+
   cluster:
     info:
       description: holds the Cluster API definition for the cluster
@@ -2749,6 +2781,7 @@ units:
       thanos-uninstall-pre-upgrade: '{{ tuple . "thanos-uninstall-pre-upgrade" | include "unit-enabled" }}'
       minio-cleanup-pre-upgrade: '{{ tuple . "minio-cleanup-pre-upgrade" | include "unit-enabled" }}'
       cluster-prevent-rke2-helmcharts-calico-metallb: '{{ tuple . "cluster-prevent-rke2-helmcharts-calico-metallb" | include "unit-enabled" }}'
+      rke2-helmchart-prevent-uninstall: '{{ and (tuple . "rke2-helmchart-prevent-uninstall" | include "unit-enabled") .Values._internal.state.is_upgrade }}'
     kustomization_spec:
       prune: '{{ not (eq .Release.Namespace "sylva-system") | include "preserve-type" }}'
       # we wait on all important resources built by sylva-capi-cluster,
