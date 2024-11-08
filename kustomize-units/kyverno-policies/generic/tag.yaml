@@ -21,39 +21,40 @@ spec:
     matchConditions:
     - name: 'is-create-or-update'
       expression: 'request.operation in ["CREATE", "UPDATE"]'
+    - name: 'missing-or-mutable-image-tag'
+      expression: >-
+          !(
+              (has(object.spec.containers) ? object.spec.containers : []) +
+              (has(object.spec.initContainers) ? object.spec.initContainers : []) +
+              (has(object.spec.ephemeralContainers) ? object.spec.ephemeralContainers : []) +
+              (has(object.spec.template) && has(object.spec.template.spec.containers) ? object.spec.template.spec.containers : []) +
+              (has(object.spec.template) && has(object.spec.template.spec.initContainers) ? object.spec.template.spec.initContainers : []) +
+              (has(object.spec.template) && has(object.spec.template.spec.ephemeralContainers) ? object.spec.template.spec.ephemeralContainers : []) +
+              (has(object.spec.jobTemplate) && has(object.spec.jobTemplate.spec.template) &&
+               has(object.spec.jobTemplate.spec.template.spec.containers) ? object.spec.jobTemplate.spec.template.spec.containers : []) +
+              (has(object.spec.jobTemplate) && has(object.spec.jobTemplate.spec.template) &&
+               has(object.spec.jobTemplate.spec.template.spec.initContainers) ? object.spec.jobTemplate.spec.template.spec.initContainers : []) +
+              (has(object.spec.jobTemplate) && has(object.spec.jobTemplate.spec.template) &&
+               has(object.spec.jobTemplate.spec.template.spec.ephemeralContainers) ? object.spec.jobTemplate.spec.template.spec.ephemeralContainers : [])
+          ).all(container,
+              container.image.contains(':') &&
+              !(container.image.endsWith(':latest')) &&
+              !(container.image.endsWith(':main'))
+          )
   rules:
-  - name: require-image-tag
+  - name: require-valid-image-tag
     match:
       resources:
         kinds:
         - Pod
+        - Pod/ephemeralcontainers
+        - ReplicationController
+        - DaemonSet
+        - Deployment
+        - ReplicaSet
+        - StatefulSet
+        - CronJob
+        - Job
     validate:
-      cel:
-        expressions:
-          - expression: >-
-              (
-                  object.spec.containers +
-                  (has(object.spec.initContainers) ? object.spec.initContainers : []) +
-                  (has(object.spec.ephemeralContainers) ? object.spec.ephemeralContainers : [])
-              ).all(container,
-                  container.image.contains(':')
-              )
-            message: "An image tag is required"
-  - name: validate-image-tag
-    match:
-      resources:
-        kinds:
-        - Pod
-    validate:
-      cel:
-        expressions:
-          - expression: >-
-              (
-                  object.spec.containers +
-                  (has(object.spec.initContainers) ? object.spec.initContainers : []) +
-                  (has(object.spec.ephemeralContainers) ? object.spec.ephemeralContainers : [])
-              ).all(container,
-                  !(container.image.endsWith(':latest')) &&
-                  !(container.image.endsWith(':main'))
-              )
-            message: "Using a mutable image tag e.g. 'latest' or 'main' is not allowed"
+      message: An immutable image tag is required (a tag must be provided and different from "main" or "latest")
+      deny: {}
