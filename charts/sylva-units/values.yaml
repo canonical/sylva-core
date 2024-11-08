@@ -1316,6 +1316,8 @@ units:
       maturity: beta
     enabled_conditions:
     - '{{ tuple . "neuvector" | include "unit-enabled" }}'
+    depends_on:
+      neuvector-init: true     # the neuvector namespace must be created
     unit_templates:
     - base-deps
     helm_repo_url: https://neuvector.github.io/neuvector-helm
