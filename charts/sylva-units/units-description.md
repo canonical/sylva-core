@@ -9,8 +9,8 @@
 | **capo** | installs OpenStack CAPI infra provider | core-component |  | [Kustomize](https://github.com/kubernetes-sigs/cluster-api-provider-openstack/releases/download/v0.11.1/infrastructure-components.yaml) | v0.11.1 |
 | **capv** | installs vSphere CAPI infra provider | core-component |  | [Kustomize](https://github.com/kubernetes-sigs/cluster-api-provider-vsphere/releases/download/v1.11.2/infrastructure-components.yaml) | v1.11.2 |
 | **cert-manager** | installs cert-manager, an X.509 certificate controller | core-component |  | [Helm](https://charts.jetstack.io) | v1.15.3 |
-| **cluster** | holds the Cluster API definition for the cluster | core-component |  | [Helm](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-capi-cluster.git) | 0.3.4 |
-| **cluster-bmh** | definitions for Cluster API BareMetalHosts resources (capm3) | core-component |  | [Helm](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-capi-cluster.git) | 0.3.4 |
+| **cluster** | holds the Cluster API definition for the cluster | core-component |  | [Helm](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-capi-cluster.git) | 0.4.0 |
+| **cluster-bmh** | definitions for Cluster API BareMetalHosts resources (capm3) | core-component |  | [Helm](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-capi-cluster.git) | 0.4.0 |
 | **flux-system** | contains Flux definitions *to manage the Flux system itself via gitops*<br/><br/>Note that Flux is always installed on the current cluster as a pre-requisite to installing the chart | core-component |  | Kustomize |  |
 | **heat-operator** | installs OpenStack Heat operator | core-component |  | [Kustomize](https://gitlab.com/sylva-projects/sylva-elements/heat-operator.git/config/default?ref=0.0.10) | 0.0.10 |
 | **kyverno** | installs Kyverno | core-component |  | [Helm](https://kyverno.github.io/kyverno) | 3.2.7 |
@@ -79,7 +79,6 @@
 | **workload-cluster-operator** | installs Sylva operator for managing workload clusters | experimental |  | [Kustomize](https://gitlab.com/sylva-projects/sylva-elements/workload-cluster-operator.git/config/default?ref=0.1.2) | 0.1.2 |
 | **workload-team-defs** | installs the workload-team-defs chart<br/><br/>installs the workload-team-defs chart to install the workload cluster through CRD | experimental |  | [Helm](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/workload-team-defs.git) | 0.1.0 |
 | **bootstrap-local-path** | installs localpath CSI in bootstrap cluster |  | True | Kustomize | N/A |
-| **capd-metallb-config** | configures MetalLB in a capd context |  | True | Kustomize | N/A |
 | **capi-providers-pivot-ready** | checks if management cluster is ready for pivot<br/><br/>This unit only has dependencies, but does not create resources. It is here only to have a single thing to look at to determine if everything is ready for pivot (see bootstrap.values.yaml pivot unit) |  | True | Kustomize | N/A |
 | **capi-rancher-import** | installs the capi-rancher-import operator, which let's us import Cluster AIP workload clusters in management cluster's Rancher |  | True | Helm | N/A |
 | **capo-cloud-config** | creates CAPO cloud-config used to produce Heat stack |  | True | Kustomize | N/A |
@@ -98,6 +97,7 @@
 | **cluster-prevent-rke2-helmcharts-calico-metallb** | Kyverno policy to prevent RKE2 HelmCharts from being recreated for MetaLB and Calico |  | True | Kustomize | N/A |
 | **cluster-reachable** | ensure that created clusters are reachable, and make failure a bit more explicit if it is not the case<br/><br/>This unit will be enabled in bootstrap cluster to check connectivity to management cluster and in various workload-cluster namespaces in management cluster to check connectivity to workload clusters |  | True | Kustomize | N/A |
 | **cluster-ready** | unit to check readiness of cluster CAPI objects<br/><br/>the healthChecks on this unit complements the one done in the 'cluster' unit, which in some cases can't cover all CAPI resources |  | True | Kustomize | N/A |
+| **cluster-vip** | Defines the cluster-vip Service for MetalLB load-balancing<br/><br/>MetalLB will only handle the VIP if it has a corresponding service with endpoints, but we don't want that the API access (6443) relies on kube-proxy, because on RKE2 agent nodes, kube-proxy uses RKE2 internal load-balancing proxy that may fall-back to the VIP to access the API, which could create a deadlock if endpoints are not up-to-date.<br/>The cluster-vip Service that plays this role. This unit manages this resource, taking over the control after the initial creation of this Service by a cloud-init post command on the first node). |  | True | Kustomize | N/A |
 | **coredns** | configures DNS inside cluster |  | True | Kustomize | N/A |
 | **descheduler** | install descheduler |  |  | [Helm](https://kubernetes-sigs.github.io/descheduler/) | 0.31.0 |
 | **eso-secret-stores** | defines External Secrets stores |  | True | Kustomize | N/A |
@@ -116,6 +116,7 @@
 | **kubevirt-manager** | deploys kubevirt-manager UI for kubevirt workloads |  | True | Kustomize | N/A |
 | **kubevirt-test-vms** | deploys kubevirt VMs for testing |  | True | Kustomize | N/A |
 | **kyverno-metal3-policies** | kyverno policies specific to capm3-system |  | True | Kustomize | N/A |
+| **kyverno-metallb-annotations** | Adds helm specific annotations to metallb resources. Should be removed in 1.2+ versions of Sylva |  | True | Kustomize | N/A |
 | **kyverno-policies** | configures Kyverno policies |  | True | Kustomize | N/A |
 | **kyverno-policies-ready** | additional delay to ensure that kyverno webhooks are properly installed in api-server |  | True | Kustomize | N/A |
 | **kyverno-policy-delete-kubernetes-vip-svc** | Kyverno policy to cleanup the deprecated kubernetes-vip service in the case of upgrade from Sylva versions prior to v1.2 |  | True | Kustomize | N/A |
@@ -133,6 +134,8 @@
 | **management-sylva-units** | installs sylva-units in management cluster during bootstrap |  | True | Helm | N/A |
 | **metal3-automated-cleanup-fix** | fix metal3MachineTemplates produced by sylva-capi-cluster version =< 0.2.14 in sylva release =< 1.1.0 |  | True | Kustomize | N/A |
 | **metal3-pdb** | add pdb to baremetal-operator pods |  | True | Kustomize | N/A |
+| **metallb-resources** | configures metallb resources |  | True | Helm | N/A |
+| **metallb-rke2-chart-cleanup** | remove rke2-deployed HelmChart resources for MetalLB |  | True | Kustomize | N/A |
 | **mgmt-cluster-ready** | (workload cluster) this unit reflects the readiness of the mgmt cluster<br/><br/>this unit acts as simple dependency lock to prevent deploying a workload cluster before the mgmt cluster is ready |  | True | Kustomize | N/A |
 | **minio-cleanup-pre-upgrade** | special unit to delete left-over minio PVCs before cluster upgrades<br/><br/>In 1.1.1 release, minio-monitoring-tenant was configured to use single-replica-storageclass, this tenant will be deleted during upgrade, but we have to delete the PVC that will be left over |  | True | Kustomize | N/A |
 | **minio-logging-init** | sets up secrets and certificates for minio-logging |  | True | Kustomize | N/A |

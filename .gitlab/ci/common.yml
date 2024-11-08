@@ -36,11 +36,11 @@ variables:
   # renovate: datasource=docker
   OPENSTACK_CLIENT_IMAGE: registry.gitlab.com/sylva-projects/sylva-elements/container-images/openstack-client:v0.0.17
   # renovate: datasource=docker
-  CI_IMAGE: registry.gitlab.com/sylva-projects/sylva-elements/container-images/ci-image:v1.0.44
+  CI_IMAGE: registry.gitlab.com/sylva-projects/sylva-elements/container-images/ci-image:v1.0.49
 
 .docker-service:
   services:
-    - name: docker:27.2.1-dind
+    - name: docker:27.3.1-dind
       alias: docker
   variables:
     DOCKER_TLS_CERTDIR: ""

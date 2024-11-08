@@ -24,3 +24,6 @@
 # our files
 test-values
 values.schema.yaml
+img
+units-description.md
+values.schema.yaml
