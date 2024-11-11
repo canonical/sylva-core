@@ -4443,6 +4443,19 @@
                     }
                   ]
                 },
+                "label_sync_prefixes": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "$ref": "#/$defs/string-with-gotpl"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
                 "primary_pool_name": {
                   "anyOf": [
                     {
