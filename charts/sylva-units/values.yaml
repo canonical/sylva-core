@@ -918,13 +918,13 @@ units:
       harbor: '{{ tuple . "harbor" | include "unit-enabled" }}'
       harbor-postgres-ha: true
     kustomization_spec:
-      resources:
-        - job-backup.yaml
-        - job-restore.yaml
-      patches:
+      path: ./kustomize-units/harbor-postgres-ha
+      wait: true
+      targetNamespace: harbor
+      _patches:
         - target:
             kind: Job
-            name: harbor-db-backup
+            name: pg-backup
           patch: |-
             - op: add
               path: /spec/template/spec/containers/0/env
@@ -947,7 +947,7 @@ units:
                   value: "/data/harbor_backup.sql"
         - target:
             kind: Job
-            name: harbor-db-restore
+            name: pg-restore
           patch: |-
             - op: add
               path: /spec/template/spec/containers/0/env
