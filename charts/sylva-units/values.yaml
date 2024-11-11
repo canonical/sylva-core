@@ -3253,8 +3253,8 @@ units:
     helm_repo_url: https://rke2-charts.rancher.io
     helm_chart_versions: *calico-chart-versions  # we use a YAML anchor rather than templating so that this file can be read by tools/generate_units_documentation.py
     helmrelease_spec:
-      releaseName: rke2-calico
-      targetNamespace: kube-system
+      releaseName: '{{ eq .Values.cluster.capi_providers.infra_provider "cabpk" | ternary "calico" "rke2-calico" }}'
+      targetNamespace: '{{ eq .Values.cluster.capi_providers.infra_provider "cabpk" | ternary "sylva-system" "kube-system" }}'
       chart:
         spec:
           chart: rke2-calico
