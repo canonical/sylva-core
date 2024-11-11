@@ -910,6 +910,65 @@ units:
             patches:
             - '{{ .Values._internal.pdb_allow_unhealthy_pod_eviction | include "preserve-type" }}'
 
+  harbor-db-migrate:
+    info:
+      description: Migrates Harbor database from PostgreSQL to PostgreSQL-HA
+      maturity: alpha
+    depends_on:
+      harbor: '{{ tuple . "harbor" | include "unit-enabled" }}'
+      harbor-postgres-ha: true
+    kustomization_spec:
+      resources:
+        - job-backup.yaml
+        - job-restore.yaml
+      patches:
+        - target:
+            kind: Job
+            name: harbor-db-backup
+          patch: |-
+            - op: add
+              path: /spec/template/spec/containers/0/env
+              value:
+                - name: PGHOST
+                  value: harbor-db.harbor.svc.cluster.local
+                - name: PGUSER
+                  valueFrom:
+                    secretKeyRef:
+                      name: harbor-db
+                      key: username
+                - name: PGPASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: harbor-db
+                      key: password
+                - name: PGDATABASE
+                  value: harbor
+                - name: BACKUP_FILE
+                  value: "/data/harbor_backup.sql"
+        - target:
+            kind: Job
+            name: harbor-db-restore
+          patch: |-
+            - op: add
+              path: /spec/template/spec/containers/0/env
+              value:
+                - name: PGHOST
+                  value: harbor-postgres-ha-postgresql.harbor.svc.cluster.local
+                - name: PGUSER
+                  valueFrom:
+                    secretKeyRef:
+                      name: harbor-postgres-secrets
+                      key: username
+                - name: PGPASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: harbor-postgres-secrets
+                      key: password
+                - name: PGDATABASE
+                  value: harbor
+                - name: BACKUP_FILE
+                  value: "/data/harbor_backup.sql"
+
   harbor:
     info:
       description: installs Harbor

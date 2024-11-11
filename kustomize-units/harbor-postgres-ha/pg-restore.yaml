@@ -1,0 +1,22 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: harbor-db-restore
+  namespace: harbor
+spec:
+  template:
+    spec:
+      containers:
+        - name: pg-restore
+          image: postgres:13
+          command: ["/bin/sh", "-c"]
+          args:
+            - psql -h "$PGHOST" -U "$PGUSER" "$PGDATABASE" < "$BACKUP_FILE";
+              echo "Restore complete";
+          volumeMounts:
+            - mountPath: /data
+              name: backup-storage
+      restartPolicy: Never
+      volumes:
+        - name: backup-storage
+          emptyDir: {}  # Same volume as in the backup job
