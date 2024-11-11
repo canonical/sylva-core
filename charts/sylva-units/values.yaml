@@ -7925,7 +7925,7 @@ _internal:
       {{- dict "canReach" (not (empty .Values.mgmt_cluster_ip) | ternary .Values.mgmt_cluster_ip .Values.cluster_virtual_ip) | include "preserve-type" -}}
     {{- end -}}
 
-  capo_calico_autodetection_method_use_canReach_vip: 
+  capo_calico_autodetection_method_use_canReach_vip:
     '{{
       and (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpr")
           (.Values.cluster.capi_providers.infra_provider | eq "capo")
