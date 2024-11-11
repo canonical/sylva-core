@@ -172,6 +172,7 @@ units:
     # overload calico definition in bootstrap context to deploy in the management cluster
     depends_on:
       cluster-reachable: true
+      kyverno-policies: false
     helmrelease_spec:
       kubeConfig:
         secretRef:

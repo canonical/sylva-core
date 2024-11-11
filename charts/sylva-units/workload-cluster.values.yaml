@@ -262,6 +262,9 @@ units:
   calico-ready:
     enabled: true
 
+  kyverno-calico-annotations:
+    enabled: true
+
   harbor-init:
     # this unit isn't relevant in workload clusters
     # postgress passwords are not handled with Vault/ExternalSecret
