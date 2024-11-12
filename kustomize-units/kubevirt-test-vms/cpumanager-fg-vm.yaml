@@ -35,3 +35,4 @@ spec:
       - name: cloudinitdisk
         cloudInitNoCloud:
           userDataBase64: SGkuXG4=
+
