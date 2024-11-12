@@ -1,9 +1,0 @@
-apply-patch-cronjob:
-  stage: deployment-test
-  extends:
-    - .test-tags
-  script:
-    - !reference [.import_functions]
-    - download_artifact deploy-management-cluster management-cluster-kubeconfig
-    - kustomize build ci-tooling/ci-deployment-values/common | kubectl apply -f -
-  when: always
