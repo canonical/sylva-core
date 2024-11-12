@@ -913,10 +913,12 @@ units:
   harbor-db-migrate:
     info:
       description: Migrates Harbor database from PostgreSQL to PostgreSQL-HA
-      maturity: beta
+      maturity: experimental
     depends_on:
       harbor: '{{ tuple . "harbor" | include "unit-enabled" }}'
       harbor-postgres-ha: true
+    unit_templates:
+    - base-deps
     kustomization_spec:
       path: ./kustomize-units/harbor-postgres-ha
       wait: true
