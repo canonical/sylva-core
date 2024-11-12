@@ -913,7 +913,7 @@ units:
   harbor-db-migrate:
     info:
       description: Migrates Harbor database from PostgreSQL to PostgreSQL-HA
-      maturity: alpha
+      maturity: beta
     depends_on:
       harbor: '{{ tuple . "harbor" | include "unit-enabled" }}'
       harbor-postgres-ha: true
