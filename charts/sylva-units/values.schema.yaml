@@ -1289,8 +1289,13 @@ properties:
   shared_workload_clusters_secret_values:
     type: object
 
-  workload_cluster_teams:
+  workload_clusters:
     type: object
+    properties:
+      sylva_source:
+        $ref: "#/$defs/workload_cluster_sylva_source"
+      teams:
+        $ref: "#/$defs/workload_cluster_teams"
 
   snmp:
     type: object
