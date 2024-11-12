@@ -18,7 +18,7 @@ additional_resources="
   CustomResourceDefinitions
   HelmReleases
   HelmRepositories
-  HelmCharts
+  HelmCharts.*source.toolkit.fluxcd.io
   GitRepositories
   OCIRepositories
   Kustomizations
@@ -66,6 +66,10 @@ additional_resources="
   Metal3DataTemplates
   Metal3Datas
   Metal3DataClaims
+  TigeraStatuses.*operator.tigera.io
+  Installations.*operator.tigera.io
+  IPPools.*crd.projectcalico.org
+  FelixConfigurations.*crd.projectcalico.org
   IPAddresses.*ipam.metal3.io
   IPClaims.*ipam.metal3.io
   IPPools.*ipam.metal3.io
@@ -89,6 +93,7 @@ additional_resources="
   PolicyReports.*wgpolicyk8s.io
   ClusterPolicyReports.*wgpolicyk8s.io
   Tenants.*minio.min.io
+  HelmCharts.*helm.cattle.io
 "
 
 function dump_additional_resources() {
@@ -98,7 +103,7 @@ function dump_additional_resources() {
     # shellcheck disable=SC2068
     for cr in $@; do
       if ! [[  ${cr} =~ ^[A-Z][A-Za-z0-9]*s($|\.\*.*) ]]; then
-          echo '${cr} does not match the expected pattern, you should provide the capiatalised (plural) NAME of the resource, not the KIND'
+          echo "dump_additional_resources issue: '${cr}' does not match the expected pattern, you should provide the capitalized (plural) NAME of the resource, not the KIND"
           echo 'For example, provided following results:'
           echo '$ k api-resources | grep "NAME\|clusterpolicies"'
           echo 'NAME                                         SHORTNAMES              APIVERSION                                   NAMESPACED   KIND'
