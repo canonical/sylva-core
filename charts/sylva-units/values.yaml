@@ -919,6 +919,7 @@ units:
       harbor-postgres-ha: true
     unit_templates:
     - base-deps
+    repo: sylva-core
     kustomization_spec:
       path: ./kustomize-units/harbor-postgres-ha
       wait: true
