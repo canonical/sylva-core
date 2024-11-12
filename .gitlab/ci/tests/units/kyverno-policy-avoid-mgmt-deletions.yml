@@ -34,8 +34,18 @@ mgmt-avoid-mgmt-deletion-policies:
         set -e
       }
 
-      fail_if_delete_succeeds Kustomization cluster
-      fail_if_delete_succeeds HelmRelease cluster
+      #get protected resources ks/hr based on label
+      resources_ks=$(kubectl get kustomization -l=sylva-units/protected --no-headers | awk '{print $1}')
+      resources_hr=$(kubectl get helmrelease -l=sylva-units/protected --no-headers | awk '{print $1}')
+      for resources in ${resources_ks[@]}
+      do
+         fail_if_delete_succeeds Kustomization $resources
+      done
+
+      for resources in ${resources_hr[@]}
+      do
+        fail_if_delete_succeeds HelmRelease $resources
+      done
 
       # find Cluster resource
       cluster_resource_name=$(kubectl get cluster.cluster.x-k8s.io -o custom-columns='CLUSTER:.metadata.name' --no-headers)
