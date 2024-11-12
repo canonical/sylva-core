@@ -388,7 +388,20 @@ function ci_remaining_minutes_and_at_most() {
     ci_remaining_time=$((ci_job_started_at_epoch+CI_JOB_TIMEOUT-current_time_epoch-debug_on_exit_max_duration_seconds))
     ci_remaining_time=$((ci_remaining_time > 0 ? ci_remaining_time : 0))
     ci_remaining_min=$((ci_remaining_time/60))
-    echo $((ci_remaining_min > at_most ? at_most : ci_remaining_min))m
+
+    result=$((ci_remaining_min > at_most ? at_most : ci_remaining_min))m
+    echo $result
+
+    cat >&2 <<EOC
+debug automatic computation of sylvactl --timeout (ci_remaining_minutes_and_at_most):
+- at_most=$at_most
+- CI_JOB_TIMEOUT=$CI_JOB_TIMEOUT
+- ci_job_started_at_epoch=$ci_job_started_at_epoch
+- current_time_epoch=$current_time_epoch
+- debug_on_exit_max_duration_seconds=$debug_on_exit_max_duration_seconds=
+- ci_remaining_min=$ci_remaining_time
+- result of timeout computation: $result
+EOC
   fi
 }
 
