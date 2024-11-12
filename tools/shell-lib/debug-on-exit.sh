@@ -96,6 +96,7 @@ additional_resources="
   ClusterPolicyReports.*wgpolicyk8s.io
   Tenants.*minio.min.io
   HelmCharts.*helm.cattle.io
+  APIServices
 "
 
 function dump_additional_resources() {
