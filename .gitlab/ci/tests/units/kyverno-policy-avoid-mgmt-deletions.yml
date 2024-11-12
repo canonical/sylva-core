@@ -7,8 +7,6 @@ mgmt-avoid-mgmt-deletion-policies:
     - .test-base-management-cluster
   script:
     - |-
-      ls
-      cat management-cluster-kubeconfig
       export KUBECONFIG=management-cluster-kubeconfig
       set -e
 
