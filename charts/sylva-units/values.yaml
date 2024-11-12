@@ -7714,13 +7714,13 @@ calico_helm_values:
     calicoNetwork:
       bgp: Enabled
       mtu: '{{ tuple .Values.cluster.capm3.network_interfaces.mtu (and (.Values.cluster.capi_providers.infra_provider | eq "capm3") .Values.cluster.capm3.network_interfaces.mtu) | include "set-only-if" }}'
-      nodeAddressAutodetectionV4: |
-        {{
+      nodeAddressAutodetectionV4:
+        '{{
         tuple
           .Values._internal.default_calico_autodetection_method
           (not .Values._internal.capo_calico_autodetection_method_use_canReach_vip)
         | include "set-only-if"
-        }}
+        }}'
     registry: UseDefault
   felixConfiguration:
     wireguardEnabled: '{{ .Values.security.calico_wireguard_enabled | include "preserve-type" }}'
