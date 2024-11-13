@@ -52,7 +52,7 @@
 | **ceph-csi-cephfs** | Installs Ceph-CSI | beta |  | [Helm](https://ceph.github.io/csi-charts) | 3.12.2 |
 | **flux-webui-init** | initializes and configures flux-webui | beta | True | Kustomize | N/A |
 | **harbor** | installs Harbor | beta |  | [Helm](https://helm.goharbor.io) | 1.15.1 |
-| **harbor-db-migrate** | Migrates Harbor database from PostgreSQL to PostgreSQL-HA | experimental |  | Kustomize |  |
+| **harbor-db-migrate** | Migrates Harbor database from PostgreSQL to PostgreSQL-HA | experimental | True | Kustomize | N/A |
 | **kube-storage-version-migrator** | installs kube-storage-version-migrator to assist apiVersion migrations | beta |  | [Kustomize](https://github.com/kubernetes-sigs/kube-storage-version-migrator/manifests?ref=v0.0.5) | v0.0.5 |
 | **kubevirt** | installs kubevirt | beta |  | [Helm](https://suse-edge.github.io/charts) | 0.4.0 |
 | **kubevirt-cdi** | manages Kubevirt CDI - Container Data Importer | beta |  | [Helm](https://suse-edge.github.io/charts) | 0.4.0 |
