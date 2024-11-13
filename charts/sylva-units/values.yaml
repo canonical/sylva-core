@@ -876,20 +876,26 @@ units:
           username: harbor
           database: harbor
           existingSecret: harbor-postgres-secrets
+          secretKeys:
+            adminPasswordKey: admin-password
+            userPasswordKey: password
+            replicationPasswordKey: replication-password
+        architecture: replication
+        nameOverride: postgres
+        serviceAccount:
+          create: true
+          name: postgresql
+        primary:
           pdb:
-            create: true
-          affinity:
-            podAntiAffinity:
-              requiredDuringSchedulingIgnoredDuringExecution:
-                - labelSelector:
-                    matchLabels:
-                      app.kubernetes.io/name: postgres
-                      app.kubernetes.io/component: read
-                  topologyKey: kubernetes.io/hostname
-      _postRenderers:
-        - kustomize:
-            patches:
-            - '{{ .Values._internal.pdb_allow_unhealthy_pod_eviction | include "preserve-type" }}'
+            create: false  # this is non-HA and single replica, so a PDB does not make sense
+          extendedConfiguration: |-
+            huge_pages = off
+          initdb:
+            args: "--set huge_pages=off"
+        readReplicas:
+          extendedConfiguration: |-
+            huge_pages = off
+          replicaCount: '{{ .Values._internal.ha_cluster.is_ha | ternary 3 1 }}'
 
   harbor-postgres-ha:
     info:
