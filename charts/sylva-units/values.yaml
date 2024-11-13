@@ -7924,14 +7924,14 @@ _internal:
     {{- if .Values.cluster.capi_providers.bootstrap_provider | eq "cabpk" }}
       {{- dict "kubernetes" "NodeInternalIP" | include "preserve-type" -}}
     {{- else -}}
-      {{- dict "canReach" (not (empty .Values.mgmt_cluster_ip) | ternary .Values.mgmt_cluster_ip .Values.cluster_virtual_ip) | include "preserve-type" -}}
+      {{- dict "canReach" (not (empty .Values.cluster.mgmt_cluster_ip) | ternary .Values.cluster.mgmt_cluster_ip .Values.cluster_virtual_ip) | include "preserve-type" -}}
     {{- end -}}
 
   capo_calico_autodetection_method_use_canReach_vip:
     '{{
       and (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpr")
           (.Values.cluster.capi_providers.infra_provider | eq "capo")
-          (empty .Values.mgmt_cluster_ip) | include "preserve-type"
+          (empty .Values.cluster.mgmt_cluster_ip) | include "preserve-type"
     }}'
 
   calico_readiness_unit: "calico"
