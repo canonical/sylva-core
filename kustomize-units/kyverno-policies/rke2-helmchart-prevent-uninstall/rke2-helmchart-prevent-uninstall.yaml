@@ -1,0 +1,41 @@
+apiVersion: kyverno.io/v1
+kind: Policy
+metadata:
+  name: rke2-helmchart-prevent-uninstall
+  namespace: kube-system
+  annotations:
+    kustomize.toolkit.fluxcd.io/force: Enabled
+    policies.kyverno.io/title: patch some RKE2 HelmCharts to set a safe failurePolicy
+    policies.kyverno.io/subject: HelmChart.helm.cattle.io
+    policies.kyverno.io/description: >-
+      This policy patches RKE2 HelmCharts to ensure that their failurePolicy
+      is not the default "reinstall" policy, which leads those charts to be
+      uninstalled/resintalled on a failure to upgrade, which is quite
+      unsafe for critical charts like calico, calico-crd or coredns.
+
+      see https://github.com/k3s-io/helm-controller/blob/5d91b5fef8482219a93ed6ccfc4ea026431966f8/pkg/controllers/chart/chart.go#L50
+      and https://github.com/k3s-io/klipper-helm/blob/de91d326f6c1a85889228e8602dcce6d380a9f1b/entry#L63
+spec:
+  failurePolicy: Ignore
+  background: true
+  mutateExistingOnPolicyUpdate: true
+  rules:
+    - name: update-helmchart
+      match:
+        any:
+        - resources:
+            kinds:
+              - helm.cattle.io/*/HelmChart
+            names:
+              - rke2-calico
+              - rke2-calico-crd
+              - rke2-coredns
+              - metallb
+      mutate:
+        targets:
+          - apiVersion: helm.cattle.io/v1
+            kind: HelmChart
+            name: '{{ request.object.metadata.name }}'
+        patchStrategicMerge:
+          spec:
+            failurePolicy: abort
