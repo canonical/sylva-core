@@ -5,7 +5,6 @@ metadata:
   annotations:
     kustomize.toolkit.fluxcd.io/force: Enabled
     policies.kyverno.io/title: Update metallb resources annotations and labels
-    policies.kyverno.io/subject: Pod
     policies.kyverno.io/description: >-
       Updates RKE2 deployed metallb resources annotations and labels to be imported in helm
 spec:
@@ -22,16 +21,22 @@ spec:
               - L2Advertisement
               - BGPPeer
               - BGPAdvertisement
+            namespaces:
+              - metallb-system
       mutate:
         targets:
           - apiVersion: metallb.io/v1beta1
             kind: IPAddressPool
+            name: '{{ request.object.metadata.name }}'
           - apiVersion: metallb.io/v1beta1
             kind: L2Advertisement
+            name: '{{ request.object.metadata.name }}'
           - apiVersion: metallb.io/v1beta2
             kind: BGPPeer
+            name: '{{ request.object.metadata.name }}'
           - apiVersion: metallb.io/v1beta1
             kind: BGPAdvertisement
+            name: '{{ request.object.metadata.name }}'
         patchStrategicMerge:
           metadata:
             labels:
