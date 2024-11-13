@@ -1310,23 +1310,6 @@
                 }
               ]
             },
-            "automatedCleaningMode": {
-              "anyOf": [
-                {
-                  "type": "string",
-                  "enum": [
-                    "disabled",
-                    "metadata"
-                  ]
-                },
-                {
-                  "$ref": "#/$defs/string-with-gotpl"
-                },
-                {
-                  "type": "null"
-                }
-              ]
-            },
             "networkData": {
               "anyOf": [
                 {
@@ -1552,23 +1535,6 @@
               "anyOf": [
                 {
                   "type": "boolean"
-                },
-                {
-                  "$ref": "#/$defs/string-with-gotpl"
-                },
-                {
-                  "type": "null"
-                }
-              ]
-            },
-            "automatedCleaningMode": {
-              "anyOf": [
-                {
-                  "type": "string",
-                  "enum": [
-                    "disabled",
-                    "metadata"
-                  ]
                 },
                 {
                   "$ref": "#/$defs/string-with-gotpl"
@@ -4441,23 +4407,6 @@
                   "anyOf": [
                     {
                       "type": "boolean"
-                    },
-                    {
-                      "$ref": "#/$defs/string-with-gotpl"
-                    },
-                    {
-                      "type": "null"
-                    }
-                  ]
-                },
-                "automatedCleaningMode": {
-                  "anyOf": [
-                    {
-                      "type": "string",
-                      "enum": [
-                        "disabled",
-                        "metadata"
-                      ]
                     },
                     {
                       "$ref": "#/$defs/string-with-gotpl"
