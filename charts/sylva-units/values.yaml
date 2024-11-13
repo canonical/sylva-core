@@ -3206,6 +3206,8 @@ units:
     enabled_conditions:
     - '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" }}'
     - '{{ .Values._internal.state.is_upgrade }}'
+    depends_on:
+      cluster-prevent-rke2-helmcharts-calico-metallb: true
     kustomization_spec:
       targetNamespace: kube-system
       _patches:
