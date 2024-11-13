@@ -1,0 +1,42 @@
+---
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: bmh-disable-automatedcleaningmode
+  namespace: sylva-system
+  annotations:
+    kustomize.toolkit.fluxcd.io/force: Enabled
+    policies.kyverno.io/title: BMH disable automatedCleaningMode
+    policies.kyverno.io/description: >-
+      This policy disables the automatedCleaningMode after the initial provisioning of a baremetal host.
+      Hence, the disks are cleaned only during the first installation and are not affected during upgrades.
+spec:
+  background: true
+  mutateExistingOnPolicyUpdate: true
+  webhookConfiguration:
+    matchConditions:
+    - name: cleaning-is-enabled
+      expression: >-
+        has(object.spec.automatedCleaningMode) &&
+        object.spec.automatedCleaningMode == "metadata"
+    - name: already-provisioned
+      expression: >-
+        has(object.status) &&
+        object.status.operationHistory.provision.end != null
+  rules:
+  - name: disable-automatedCleaningMode
+    match:
+      any:
+      - resources:
+          kinds:
+          - metal3.io/*/BareMetalHost
+          - metal3.io/*/BareMetalHost/status
+    mutate:
+      patchStrategicMerge:
+        spec:
+          automatedCleaningMode: "disabled"
+      targets:
+      - apiVersion: metal3.io/*
+        kind: BareMetalHost
+        name: '{{ request.object.metadata.name }}'
+        namespace: '{{ request.object.metadata.namespace }}'
