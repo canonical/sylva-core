@@ -24,7 +24,7 @@ patches:
             - name: manager
               env:
               - name: USE_INTERNAL_IMAGE_URL
-                value: "false"
+                value: "true"
               - name: IMAGE_SERVICE_NAMESPACE
                 value: "assisted-installer"
 labels:
