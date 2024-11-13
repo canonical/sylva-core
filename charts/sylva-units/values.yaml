@@ -3222,8 +3222,8 @@ units:
               if kubectl -n kube-system get cm chart-content-rke2-calico; then
                 kubectl -n kube-system delete cm chart-content-rke2-calico chart-content-rke2-calico-crd
                 kubectl -n kube-system delete secret chart-values-rke2-calico chart-values-rke2-calico-crd
-                kubectl -n calico-system delete secret -l 'name in (rke2-calico, rke2-calico-crd)',owner=helm
-                kubectl -n calico-system delete helmchart.helm.cattle.io rke2-calico
+                kubectl -n kube-system delete secret -l 'name in (rke2-calico, rke2-calico-crd)',owner=helm
+                kubectl -n kube-system delete helmchart.helm.cattle.io rke2-calico rke2-calico-crd
               fi
 
   calico:
