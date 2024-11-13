@@ -852,6 +852,45 @@ units:
         - '{{ ternary "../tls-components/tls-secret" "../tls-components/tls-certificate" (hasKey .Values.external_certificates.harbor "cert") }}'
         - "../tls-components/sylva-ca"
 
+  harbor-postgres:
+    info:
+      description: installs Postgresql for Harbor
+      maturity: stable
+    depends_on:
+      namespace-defs: true
+      harbor-init: '{{ tuple . "harbor-init" | include "unit-enabled" }}'  # conditional, because in workload clusters harbor-init isn't used
+      '{{ .Values._internal.default_storage_class_unit }}': true
+    unit_templates:
+    - base-deps
+    enabled_conditions:
+      - '{{ tuple . "harbor" | include "unit-enabled" }}'
+    helm_repo_url: https://charts.bitnami.com/bitnami
+    helmrelease_spec:
+      chart:
+        spec:
+          chart: postgresql
+          version: 15.5.36
+      targetNamespace: harbor
+      values:
+        auth:
+          username: harbor
+          database: harbor
+          existingSecret: harbor-postgres-secrets
+          pdb:
+            create: true
+          affinity:
+            podAntiAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution:
+                - labelSelector:
+                    matchLabels:
+                      app.kubernetes.io/name: postgres
+                      app.kubernetes.io/component: read
+                  topologyKey: kubernetes.io/hostname
+      _postRenderers:
+        - kustomize:
+            patches:
+            - '{{ .Values._internal.pdb_allow_unhealthy_pod_eviction | include "preserve-type" }}'
+
   harbor-postgres-ha:
     info:
       description: installs Postgresql in HA for Harbor
