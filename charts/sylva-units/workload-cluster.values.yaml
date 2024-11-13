@@ -183,6 +183,9 @@ units:
   rke2-helmchart-prevent-uninstall:
     enabled: true
 
+  rke2-metrics-server-fix-old-pods:
+    enabled: true
+
   cluster-bmh:
     enabled: true
     unit_templates:
