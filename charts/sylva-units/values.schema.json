@@ -3403,6 +3403,19 @@
                       "type": "null"
                     }
                   ]
+                },
+                "pullSecret": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "$ref": "#/$defs/string-with-gotpl"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
                 }
               }
             },
