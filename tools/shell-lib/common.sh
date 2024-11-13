@@ -107,10 +107,13 @@ function set_current_namespace {
 }
 
 function check_pivot_has_ran() {
-  if kubectl wait --for condition=complete --timeout=0s job pivot-job-sylva-system -n kube-job > /dev/null 2>&1; then
-      if [ ! -f "management-cluster-kubeconfig" ]; then
+  if [ ! -f "management-cluster-kubeconfig" ]; then
+      if kubectl get secret management-cluster-kubeconfig-copy >/dev/null 2>&1 ; then
+         echo_b "\U001F4C4 creating kubeconfig file for management cluster"
           kubectl get secret management-cluster-kubeconfig-copy -o jsonpath='{.data.value}' 2>/dev/null | base64 -d > management-cluster-kubeconfig
       fi
+  fi
+  if kubectl wait --for condition=complete --timeout=0s job pivot-job-sylva-system -n kube-job > /dev/null 2>&1; then
       echo_b "\U000274C The pivot job has already ran and moved resources to the management cluster. Please use apply.sh instead of bootstrap.sh"
       exit 1
   fi
