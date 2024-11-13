@@ -2775,6 +2775,36 @@ units:
       path: ./kustomize-units/kyverno-policies/rke2-helmchart-prevent-uninstall
       wait: true
 
+  rke2-metrics-server-fix-old-pods:
+    info:
+      description: transition unit to smoothen RKE2 upgrades for k8s metrics server, fixing a mismatch between old pods and new service pod selector
+      details: |-
+        see https://gitlab.com/sylva-projects/sylva-core/-/issues/1857 on motivations
+
+        this unit patches the rke2-metrics-server Deployment to ensure that its pods will have
+        all the necessary labels to transition from version 2.11 of the chart to version
+        3.12.x which is used in recent RKE2
+
+        this unit shouldn't be necessary to keep after Sylva 1.2
+    unit_templates:
+    - kube-job
+    enabled_conditions:
+    - '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" }}'
+    - '{{ .Values._internal.state.is_upgrade }}'
+    kustomization_spec:
+      targetNamespace: kube-system
+      _patches:
+      - target:
+          kind: ConfigMap
+          labelSelector: kube-job=script
+        patch: |
+          - op: replace
+            path: /data/kube-job.sh
+            value: |
+              #!/bin/bash
+              kubectl -n kube-system patch deployment rke2-metrics-server --type=merge \
+                --patch='{"spec":{"template":{"metadata":{"labels":{"app.kubernetes.io/instance":"rke2-metrics-server","app.kubernetes.io/name":"rke2-metrics-server"}}}}}'
+
   cluster:
     info:
       description: holds the Cluster API definition for the cluster
@@ -2796,6 +2826,7 @@ units:
       minio-cleanup-pre-upgrade: '{{ tuple . "minio-cleanup-pre-upgrade" | include "unit-enabled" }}'
       cluster-prevent-rke2-helmcharts-calico-metallb: '{{ tuple . "cluster-prevent-rke2-helmcharts-calico-metallb" | include "unit-enabled" }}'
       rke2-helmchart-prevent-uninstall: '{{ and (tuple . "rke2-helmchart-prevent-uninstall" | include "unit-enabled") .Values._internal.state.is_upgrade }}'
+      rke2-metrics-server-fix-old-pods: '{{ tuple . "rke2-metrics-server-fix-old-pods" | include "unit-enabled" }}'
       metallb: '{{ and (tuple . "metallb" | include "unit-enabled") .Values._internal.state.is_upgrade }}'
     kustomization_spec:
       prune: '{{ not (eq .Release.Namespace "sylva-system") | include "preserve-type" }}'
