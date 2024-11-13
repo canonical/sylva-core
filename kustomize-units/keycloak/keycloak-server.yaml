@@ -7,13 +7,13 @@ metadata:
 spec:
   db:
     vendor: postgres
-    host: postgres-primary
+    host: cnpg-keycloak-rw
     usernameSecret:
-      name: keycloak-db-secret
+      name: cnpg-keycloak-app
       key: username
     passwordSecret:
-      name: postgres
-      key: postgres-password
+      name: cnpg-keycloak-app
+      key: password
   hostname:
     hostname: https://${KEYCLOAK_DNS}
   http:

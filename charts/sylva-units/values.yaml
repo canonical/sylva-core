@@ -641,6 +641,7 @@ units:
         - '{{ tuple "components/metal3" (tuple . "metal3" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/longhorn" (tuple . "longhorn" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/keycloak" (tuple . "keycloak" | include "unit-enabled") | include "set-only-if" }}'
+        - '{{ tuple "components/cnpg" (tuple . "keycloak" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/harbor" (tuple . "harbor" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/vault" (tuple . "vault" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/rancher" (tuple . "rancher" | include "unit-enabled") | include "set-only-if" }}'
@@ -1474,6 +1475,23 @@ units:
           name: neuvector-controller-pod
           namespace: neuvector
 
+  cnpg:
+    info:
+      internal: true
+      description: Deploys CloudNativePostgres
+      maturity: stable
+    unit_templates:
+      - base-deps
+    depends_on:
+      namespace-defs: true
+    annotations:
+      sylvactl/readyMessage: "CNPG Deployed"
+    repo: sylva-core
+    kustomization_spec:
+      path: ./kustomize-units/cnpg
+      targetNamespace: cnpg-system
+      force: true
+      
   keycloak:
     info:
       description: initializes and configures Keycloak
