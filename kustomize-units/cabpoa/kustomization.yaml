@@ -3,6 +3,15 @@ kind: Kustomization
 resources:
   - https://github.com/openshift-assisted/cluster-api-agent/releases/download/v0.1.5/bootstrap-components.yaml
   - https://github.com/openshift-assisted/cluster-api-agent/releases/download/v0.1.5/controlplane-components.yaml
+
+images:
+- name: quay.io/edge-infrastructure/openshift-capi-agent-bootstrap
+  newName: quay.io/jianzzha/openshift-capi-agent-bootstrap
+  newTag: sriov
+- name: quay.io/edge-infrastructure/openshift-capi-agent-controlplane
+  newName: quay.io/jianzzha/openshift-capi-agent-controlplane
+  newTag: sriov
+
 patches:
   - target:
       version: v1
