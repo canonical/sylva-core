@@ -914,6 +914,7 @@ units:
     info:
       description: Migrates Harbor database from PostgreSQL to PostgreSQL-HA
       maturity: experimental
+      internal: true
     depends_on:
       harbor: '{{ tuple . "harbor" | include "unit-enabled" }}'
       harbor-postgres-ha: true
