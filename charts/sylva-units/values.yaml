@@ -2742,8 +2742,6 @@ units:
     enabled_conditions:
     - '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" }}'
     - '{{ .Values._internal.state.is_upgrade }}'
-    depends_on:
-      kyverno: true
     repo: sylva-core
     kustomization_spec:
       path: ./kustomize-units/kyverno-policies/cluster-prevent-rke2-helmcharts-calico-metallb
@@ -2824,6 +2822,8 @@ units:
       rke2-helmchart-prevent-uninstall: '{{ and (tuple . "rke2-helmchart-prevent-uninstall" | include "unit-enabled") .Values._internal.state.is_upgrade }}'
       rke2-metrics-server-fix-old-pods: '{{ tuple . "rke2-metrics-server-fix-old-pods" | include "unit-enabled" }}'
       metallb: '{{ and (tuple . "metallb" | include "unit-enabled") .Values._internal.state.is_upgrade }}'
+      calico-crd: '{{ .Values._internal.state.is_upgrade }}'
+      calico: '{{ .Values._internal.state.is_upgrade }}'
     kustomization_spec:
       prune: '{{ not (eq .Release.Namespace "sylva-system") | include "preserve-type" }}'
       # we wait on all important resources built by sylva-capi-cluster,
@@ -3163,6 +3163,7 @@ units:
     - '{{ tuple . "calico" | include "unit-enabled" }}'
     depends_on:
       namespace-defs: true
+      calico-rke2-chart-cleanup: '{{ tuple . "calico-rke2-chart-cleanup" | include "unit-enabled" }}'
     helm_repo_url: https://rke2-charts.rancher.io
     helm_chart_versions: &calico-chart-versions
       v3.27.300: >-
@@ -3201,7 +3202,6 @@ units:
       description: remove rke2-deployed HelmChart resources for Calico
       internal: true
     unit_templates:
-    - base-deps
     - kube-job
     enabled_conditions:
     - '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" }}'
@@ -3232,7 +3232,7 @@ units:
     - base-deps
     depends_on:
       calico-crd: true
-      kyverno-policies: '{{ and (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpr") }}'
+      calico-rke2-chart-cleanup: '{{ tuple . "calico-rke2-chart-cleanup" | include "unit-enabled" }}'
     helm_repo_url: https://rke2-charts.rancher.io
     helm_chart_versions: *calico-chart-versions  # we use a YAML anchor rather than templating so that this file can be read by tools/generate_units_documentation.py
     helmrelease_spec:
