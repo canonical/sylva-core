@@ -11,7 +11,8 @@ spec:
           image: postgres:13  # Use a PostgreSQL-compatible image
           command: ["/bin/sh", "-c"]
           args:
-            - pg_dump -h "$PGHOST" -U "$PGUSER" "$PGDATABASE" > "$BACKUP_FILE";
+            - mkdir -p /data;
+              pg_dump -h "$PGHOST" -U "$PGUSER" "$PGDATABASE" > "/data/$BACKUP_FILE";
               echo "Backup complete";
           volumeMounts:
             - mountPath: /data

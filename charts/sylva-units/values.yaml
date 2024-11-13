@@ -948,7 +948,7 @@ units:
                 - name: PGDATABASE
                   value: harbor
                 - name: BACKUP_FILE
-                  value: "/data/harbor_backup.sql"
+                  value: "harbor_backup.sql"
         - target:
             kind: Job
             name: pg-restore
@@ -971,7 +971,7 @@ units:
                 - name: PGDATABASE
                   value: harbor
                 - name: BACKUP_FILE
-                  value: "/data/harbor_backup.sql"
+                  value: "harbor_backup.sql"
 
   harbor:
     info:
