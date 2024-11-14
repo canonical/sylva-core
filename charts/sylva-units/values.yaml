@@ -445,6 +445,7 @@ units:
           JOB_CHECKSUM: '{{ .Release.Revision }}'
           RUNASUSER: '10000'
           RUNASGROUP: '10000'
+          HELM_VERSION: '{{ .Release.Revision }}'
       _components:
         - components/root-dependency
       _patches:

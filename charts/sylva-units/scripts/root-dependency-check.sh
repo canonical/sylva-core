@@ -30,6 +30,15 @@ function error_trap() {
 }
 trap error_trap ERR
 
+echo "--- deleting leftover root-dependency-<n> Kustomizations for older versions"
+kubectl get Kustomization -l sylva-units.unit=root-dependency -o json | jq -r '.items[] | select(.metadata.annotations."sylva-units-helm-revision" != "'$HELM_REVISION'") | .metadata.name' \
+    | xargs -r kubectl delete Kustomization || true
+
+# this is a safeguard:
+echo "--- deleting leftover root-dependency-<n>-cm ConfigMaps for older versions"
+kubectl get ConfigMap -o json | jq -r '.items[] | select((.metadata.name | startswith("root-dependency-")) and (.metadata.labels."sylva-units.version" // "" != "'$HELM_REVISION'")) | .metadata.name' \
+    | xargs -r kubectl delete ConfigMap || true
+
 echo "--- waiting for Kustomizations to be labeled with sylva-units-helm-revision=$HELM_REVISION"
 
 kubectl wait Kustomization -l sylva-units/root-dependency-wait --timeout $WAIT_TIMEOUT \
