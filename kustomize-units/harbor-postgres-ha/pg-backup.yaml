@@ -12,8 +12,11 @@ spec:
           command: ["/bin/sh", "-c"]
           args:
             - mkdir -p /data;
+              echo "Taking backup";
               pg_dump -h "$PGHOST" -U "$PGUSER" "$PGDATABASE" > "/data/$BACKUP_FILE";
               echo "Backup complete";
+              echo "Backup file created:";
+              ls -lrth /data;
           volumeMounts:
             - mountPath: /data
               name: backup-storage
