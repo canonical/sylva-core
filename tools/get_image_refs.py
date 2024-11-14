@@ -8,6 +8,7 @@ import yaml
 import paramiko
 from docker_image import reference
 from kubernetes.config.config_exception import ConfigException
+from kubernetes.client.rest import ApiException
 from kubernetes import client, config
 from pydantic import BaseModel
 from merge_image_refs import update_images_ref
@@ -65,10 +66,17 @@ class K8sParser(object):
 
             api_mgmt_versions = apis_mgmt.get_api_versions()
 
+            for group in api_mgmt_versions.groups:
+                if group.name == "helm.toolkit.fluxcd.io":
+                    self.helmrelease_api_version = group.preferred_version.version
+                if group.name == "cluster.x-k8s.io":
+                    self.cluster_api_version = group.preferred_version.version
+
             # Fetch workload cluster kubeconfig if provided
             config_wkl = None
             if workload_name:
-                wkl_kubeconfig_dict = self.get_kubeconfig_from_secret(f"{workload_name}-kubeconfig", workload_name)
+                workload_namespace = self.get_workload_cluster_namespace(workload_name)
+                wkl_kubeconfig_dict = self.get_kubeconfig_from_secret(f"{workload_name}-kubeconfig", workload_namespace)
                 config_wkl = config.new_client_from_config_dict(wkl_kubeconfig_dict)
             elif workload_kubeconfig:
                 config_wkl = config.new_client_from_config(workload_kubeconfig)
@@ -78,10 +86,6 @@ class K8sParser(object):
             else:
                 self.api_core = self.api_core_mgmt
                 self.api = self.api_mgmt
-
-            for group in api_mgmt_versions.groups:
-                if group.name == "helm.toolkit.fluxcd.io":
-                    self.helmrelease_api_version = group.preferred_version.version
 
             self.nodes = self.api_core.list_node()
 
@@ -102,6 +106,23 @@ class K8sParser(object):
             return True
         except Exception:
             return False
+
+    def get_workload_cluster_namespace(self, workload_cluster_name):
+        try:
+            # List all cluster.cluster objects across all namespaces
+            clusters = self.api_mgmt.list_cluster_custom_object(
+                group="cluster.x-k8s.io",
+                version=self.cluster_api_version,
+                plural="clusters"
+            )
+
+            # Find the namespace for the given workload cluster name
+            for cluster in clusters['items']:
+                if cluster['metadata']['name'] == workload_cluster_name:
+                    return cluster['metadata']['namespace']
+            raise RuntimeError(f"Workload cluster {workload_cluster_name} not found.")
+        except ApiException as e:
+            raise RuntimeError(f"Failed to get workload cluster namespace: {e}")
 
     def get_kubeconfig_from_secret(self, secret_name, namespace='default'):
         """
