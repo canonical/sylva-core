@@ -88,7 +88,7 @@ kustomize-lint:
         fi
         echo -e "\e[1m\e[0Ksection_start:`date +%s`:$count[collapsed=true]\r\e[0KRun kustomize build for $kustomization\e[0m"
         if kustomize build $kustomization 2>stderr 1>/dev/null; then
-          echo "kustomize build suceed for $kustomization"
+          echo "kustomize build succeeded for $kustomization"
         else
           echo "kustomize build failed for $kustomization with the following error:" >> error_log
           cat stderr >> error_log
