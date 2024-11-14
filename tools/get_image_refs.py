@@ -47,10 +47,11 @@ class K8sParser(object):
     We need to pass a kubeconfig and optionally a workload cluster name.
 
     :param kubeconfig: Optional. Path to the management cluster kubeconfig file. If not provided, the default system kubeconfig will be used.
-    :param workload_cluster_name: Optional. Workload cluster name.
+    :param workload_kubeconfig: Optional. Path to the workload cluster kubeconfig file.
+    :param workload_name: Optional. Workload cluster name.
     """
 
-    def __init__(self, kubeconfig=None, workload_cluster_name=None):
+    def __init__(self, kubeconfig=None, workload_kubeconfig=None, workload_name=None):
 
         if not kubeconfig:
             kubeconfig = os.environ['KUBECONFIG']
@@ -65,9 +66,13 @@ class K8sParser(object):
             api_mgmt_versions = apis_mgmt.get_api_versions()
 
             # Fetch workload cluster kubeconfig if provided
-            if workload_cluster_name:
-                wkl_kubeconfig_dict = self.get_kubeconfig_from_secret(f"{workload_cluster_name}-kubeconfig", workload_cluster_name)
+            config_wkl = None
+            if workload_name:
+                wkl_kubeconfig_dict = self.get_kubeconfig_from_secret(f"{workload_name}-kubeconfig", workload_name)
                 config_wkl = config.new_client_from_config_dict(wkl_kubeconfig_dict)
+            elif workload_kubeconfig:
+                config_wkl = config.new_client_from_config(workload_kubeconfig)
+            if config_wkl:
                 self.api_core = client.CoreV1Api(config_wkl)
                 self.api = client.CustomObjectsApi(config_wkl)
             else:
@@ -477,12 +482,17 @@ def main():
     Generates a JSON report for management clusters:
     python get_image_refs.py --output image_refs.json --kubeconfig /path/to/kubeconfig
     Generates a JSON report for workload clusters:
-    python get_image_refs.py --output image_refs.json --kubeconfig /path/to/kubeconfig --workload-cluster-name <workload-cluster-name>
+    python get_image_refs.py --output image_refs.json --kubeconfig /path/to/kubeconfig --workload-kubeconfig /path/to/workload-kubeconfig
 
-    :param --kubeconfig: Optional. The path to the management cluster kubeconfig file. If not provided, the default system kubeconfig will be used.
-    :param --workload-cluster-name: Optional. The name of the workload cluster.
-    :param --output: Optional. The file path to save the result as JSON. If not provided, the result will be printed to the console.
-    :param --ssh-key: Optional. Path to SSH key for node authentication. If provided, connects to nodes and uses crictl to list containerd images.
+    :param --kubeconfig: Optional. The path to the management cluster kubeconfig file.
+    If not provided, the default system kubeconfig will be used.
+    :param --workload-kubeconfig: Optional. The path to the workload cluster kubeconfig file
+    If not provided, the default system kubeconfig will be used.
+    :param --workload-name: Optional. The name of the workload cluster.
+    :param --output: Optional. The file path to save the result as JSON.
+    If not provided, the result will be printed to the console.
+    :param --ssh-key: Optional. Path to SSH key for node authentication.
+    If provided, connects to nodes and uses crictl to list containerd images.
     :param --input: Optional. Paths to previous lists to merge with the new output.
     :return: None
     :raises Exception: For any exceptions that may occur during execution.
@@ -492,13 +502,16 @@ def main():
 
     # Args parsing
     parser = argparse.ArgumentParser(description='Kubernetes cluster images parser')
-    parser.add_argument('-w', '--workload-cluster-name',
-                        required=False,
-                        help='Name of the workload cluster.')
     parser.add_argument('-k', '--kubeconfig',
                         required=False,
                         default=None,
                         help='Path for the management cluster kubeconfig.')
+    parser.add_argument('-w', '--workload-kubeconfig',
+                        required=False,
+                        help='Path for the management cluster kubeconfig.')
+    parser.add_argument('--workload-name',
+                        required=False,
+                        help='Name of the workload cluster (the script will try to get the kubeconfig from the management cluster).')
     parser.add_argument('-o', '--output',
                         required=False,
                         default=None,
@@ -515,10 +528,14 @@ def main():
                         help='Required by crictl - Path to the SSH key for authentication to the nodes.')
     args = parser.parse_args()
 
+    # Validation logic
+    if args.workload_name and args.workload_kubeconfig:
+        parser.error("You cannot provide both --workload-name and --workload-kubeconfig at the same time.")
+
     images_set = set()
 
     # Initialize K8sParser
-    k8s_parser = K8sParser(kubeconfig=args.kubeconfig, workload_cluster_name=args.workload_cluster_name)
+    k8s_parser = K8sParser(kubeconfig=args.kubeconfig, workload_kubeconfig=args.workload_kubeconfig, workload_name=args.workload_name)
 
     # Images from pods
     pod_images_dependencies = k8s_parser.get_pods_images_dependencies()
