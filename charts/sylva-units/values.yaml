@@ -3110,6 +3110,8 @@ units:
       description: installs Calico CRDs
       maturity: stable
       hidden: true
+    labels:
+      sylva-units/protected: ""
     unit_templates:
       - '{{ tuple "base-deps" (not .Values._internal.state.is_upgrade) | include "set-only-if" }}'
     enabled_conditions:
@@ -3166,6 +3168,8 @@ units:
     info:
       description: install Calico CNI
       maturity: stable
+    labels:
+      sylva-units/protected: ""
     unit_templates:
       - '{{ tuple "base-deps" (not .Values._internal.state.is_upgrade) | include "set-only-if" }}'
     depends_on:

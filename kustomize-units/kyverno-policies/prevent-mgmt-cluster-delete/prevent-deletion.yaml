@@ -23,7 +23,7 @@ spec:
           - helm.toolkit.fluxcd.io/*/HelmRelease
           - kustomize.toolkit.fluxcd.io/*/Kustomization
     validate:
-      message: Deleting the Flux resources that describe the Sylva management cluster is not possible without breaking the Sylva management cluster.
+      message: This is a mandatory resource, deleting it is not possible without breaking the Sylva management cluster.
       deny: {}
   validationFailureAction: Enforce
 ---
