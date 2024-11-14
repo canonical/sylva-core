@@ -197,16 +197,21 @@ function cleanup_bootstrap_cluster() {
   CALLER_SCRIPT_NAME=$(basename $0)
   kind_clusters=`kind get clusters -q`
 
-  # if caller script is bootstrap.sh or apply.sh and if current bootstrap-cluster contains sylva bootstrap-cluster - then delete it
+  # if caller script is bootstrap.sh or apply.sh, current bootstrap-cluster contains sylva bootstrap-cluster and pivot was successful - then delete it
   if [[ $CALLER_SCRIPT_NAME =~ "bootstrap.sh"|"apply.sh" && ${kind_clusters} =~ $KIND_CLUSTER_NAME ]]; then
     libvirt_metal_ks=`KUBECONFIG= kubectl get ks -l sylva-units.unit=libvirt-metal -o yaml | yq '.items|length'`
     if [[ $CLEANUP_BOOTSTRAP_CLUSTER == 'yes' && $libvirt_metal_ks == "0" ]]; then
       echo_b "\U0001F5D1 Delete bootstrap cluster"
-      kind delete cluster -n $KIND_CLUSTER_NAME
+      if [[ "$(kubectl get kustomization.kustomize.toolkit.fluxcd.io pivot -o jsonpath='{.status.conditions[?(@.type=="Ready")].status}' 2>/dev/null)" == "True" ]]; then
+        kind delete cluster -n $KIND_CLUSTER_NAME
+      else
+        echo "Cannot delete bootstrap cluster as 'pivot' Kustomization is not ready."
+        echo "To delete the bootstrap cluster, you can re-run apply.sh anytime after fixing this."
+        exit 1
+      fi
       end_section
     fi
   fi
-
 }
 
 function exit_trap() {
