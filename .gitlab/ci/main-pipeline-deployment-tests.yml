@@ -119,8 +119,8 @@ variables:
   variables:
     UPDATE_MGMT_CLUSTER: "false"
     MGMT_WATCH_TIMEOUT_MIN: "45"
-    APPLY_WATCH_TIMEOUT_MIN: "95"
-    APPLY_WC_WATCH_TIMEOUT_MIN: "95"
+    APPLY_WATCH_TIMEOUT_MIN: "115"
+    APPLY_WC_WATCH_TIMEOUT_MIN: "115"
     MGMT_INITIAL_ADDITIONAL_VALUES: "serve-k8s-1.28-image.yml"
     WC_INITIAL_ADDITIONAL_VALUES: "k8s-1.28.yml"
     WC_UPDATE_ADDITIONAL_VALUES: "k8s-1.29.yml"
@@ -128,8 +128,8 @@ variables:
 .scenario_nightly:  # mix mgmt_rolling-update & k8s-upgrade
   variables:
     MGMT_WATCH_TIMEOUT_MIN: "45"
-    APPLY_WATCH_TIMEOUT_MIN: "95"
-    APPLY_WC_WATCH_TIMEOUT_MIN: "95"
+    APPLY_WATCH_TIMEOUT_MIN: "115"
+    APPLY_WC_WATCH_TIMEOUT_MIN: "115"
     MGMT_INITIAL_ADDITIONAL_VALUES: "serve-k8s-1.28-image.yml"
     MGMT_UPDATE_ADDITIONAL_VALUES: "dummy-rolling-update-trigger.yml"
     WC_INITIAL_ADDITIONAL_VALUES: "k8s-1.28.yml"
@@ -143,8 +143,8 @@ variables:
     WC_UPDATE_REVISION: "" # Use current commit
     # Increase default timers due to rolling upgrade
     MGMT_WATCH_TIMEOUT_MIN: "45"
-    APPLY_WATCH_TIMEOUT_MIN: "95"
-    APPLY_WC_WATCH_TIMEOUT_MIN: "95"
+    APPLY_WATCH_TIMEOUT_MIN: "115"
+    APPLY_WC_WATCH_TIMEOUT_MIN: "115"
 
 .scenario_sylva-upgrade-capm3:
   variables:
@@ -391,8 +391,8 @@ variables:
   variables:
     DOCKER_HOST: ""
     MGMT_WATCH_TIMEOUT_MIN: 35
-    APPLY_WATCH_TIMEOUT_MIN: 95
-    APPLY_WC_WATCH_TIMEOUT_MIN: 95
+    APPLY_WATCH_TIMEOUT_MIN: 115
+    APPLY_WC_WATCH_TIMEOUT_MIN: 115
 
 ☁capm3 🚀kadm 🐧ubuntu 🛠ha:
   extends: .capm3-virt
