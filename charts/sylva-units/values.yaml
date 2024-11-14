@@ -384,6 +384,9 @@ units:
   #     description: <short unit description>
   #     details: <more detailed data about unit purpose and usage>
   #     maturity: <level of integration in sylva stack of corresponding component>
+  #       - stable : the unit is used and tested in CI;
+  #       - beta : the unit is maintained but not tested in CI;
+  #       - experimental : the unit may be removed in futur releases;
   #     internal: true <for units fully defined in sylva-core/kustomize-units without relying on external resources>
   #     version: <force declarative version, not recommended>
   #   enabled: boolean or GoTPL
@@ -897,7 +900,7 @@ units:
   harbor-postgres:
     info:
       description: installs Postgresql for Harbor
-      maturity: stable
+      maturity: beta
     depends_on:
       namespace-defs: true
       harbor-init: '{{ tuple . "harbor-init" | include "unit-enabled" }}'  # conditional, because in workload clusters harbor-init isn't used
@@ -3950,7 +3953,7 @@ units:
   flux-webui:
     info:
       description: installs Weave GitOps Flux web GUI
-      maturity: stable
+      maturity: beta
     unit_templates:
     - base-deps
     depends_on:
@@ -4074,7 +4077,7 @@ units:
   monitoring-crd:
     info:
       description: installs monitoring stack CRDs
-      maturity: stable
+      maturity: beta
       hidden: true
     unit_templates:
     - base-deps
@@ -4130,7 +4133,7 @@ units:
   monitoring:
     info:
       description: installs monitoring stack
-      maturity: stable
+      maturity: beta
     unit_templates:
     - base-deps
     depends_on:
@@ -4448,7 +4451,7 @@ units:
   kepler:
     info:
       description: installs Kepler (Kubernetes-based Efficient Power Level Exporter) exporter for Prometheus
-      maturity: stable
+      maturity: beta
     enabled: false
     unit_templates:
     - base-deps
@@ -4702,7 +4705,7 @@ units:
   sriov-crd:
     info:
       description: installs CRDs for SR-IOV Network operator
-      maturity: stable
+      maturity: beta
       hidden: true
     unit_templates:
     - base-deps
@@ -4725,7 +4728,7 @@ units:
   sriov-network-operator:
     info:
       description: installs SR-IOV operator
-      maturity: stable
+      maturity: beta
     unit_templates:
     - base-deps
     enabled: '{{ tuple . "sriov" | include "unit-enabled" }}' # for backward compatibility
@@ -5312,7 +5315,7 @@ units:
   capo-contrail-bgpaas:
     info:
       description: installs CAPO Contrail BGPaaS controller
-      maturity: stable
+      maturity: experimental
     enabled: false
     repo: capo-contrail-bgpaas
     helm_chart_artifact_name: capo-contrail-bgpaas
@@ -5519,7 +5522,7 @@ units:
   gitea-redis:
     info:
       description: installs Redis cluster for Gitea
-      maturity: stable
+      maturity: experimental
     enabled_conditions:
     - '{{ tuple . "gitea" | include "unit-enabled" }}'
     unit_templates:
@@ -5554,7 +5557,7 @@ units:
   gitea-postgresql-ha:
     info:
       description: installs PostgreSQL HA cluster for Gitea
-      maturity: stable
+      maturity: experimental
     enabled_conditions:
     - '{{ tuple . "gitea" | include "unit-enabled" }}'
     unit_templates:
@@ -5592,7 +5595,7 @@ units:
   gitea:
     info:
       description: installs Gitea
-      maturity: stable
+      maturity: experimental
     enabled: false
     unit_templates:
     - base-deps
