@@ -1,7 +1,7 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
-  - https://github.com/kubernetes-sigs/cluster-api-provider-openstack/releases/download/v0.11.1/infrastructure-components.yaml
+  - https://github.com/kubernetes-sigs/cluster-api-provider-openstack/releases/download/v0.10.5/infrastructure-components.yaml
 
 # Add labels to enable clusterctl move to retrieve resources correponding to capo CRDs
 labels:
@@ -10,13 +10,13 @@ labels:
 
 patches:
 # we can't use ../common-kustomize-components/crd-remove-caBundle because
-# we need to make an exception for the openstackfloatingippools.infrastructure.cluster.x-k8s.io and openstackservers.infrastructure.cluster.x-k8s.io CRDs
+# we need to make an exception for the openstackfloatingippools.infrastructure.cluster.x-k8s.io CRD
 - target:
     group: apiextensions.k8s.io
     version: v1
     kind: CustomResourceDefinition
     annotationSelector: cert-manager.io/inject-ca-from
-    name: openstack[^fs].*  # carve an exception to not try this patch on openstackfloatingippools.infrastructure.cluster.x-k8s.io and openstackservers.infrastructure.cluster.x-k8s.io CRDs, for which it does not apply cleanly
+    name: openstack[^f].*  # carve an exception to not try this patch on openstackfloatingippools.infrastructure.cluster.x-k8s.io CRD, for which it does not apply cleanly
   patch: |-
     kind: CustomResourceDefinition
     metadata:
