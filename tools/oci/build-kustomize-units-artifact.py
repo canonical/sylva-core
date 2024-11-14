@@ -63,7 +63,7 @@ def process_kustomization(kustomization):
         }, new_file)
 
     logger.info("  locally rendering remote resources...")
-    kustomize_result = subprocess.run(["kubectl", "kustomize", kdir,
+    kustomize_result = subprocess.run(["kustomize", "build", kdir,
                                        "-o", f"{kdir}/local-resources.yaml"])
 
     if kustomize_result.returncode != 0:
