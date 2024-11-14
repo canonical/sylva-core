@@ -11,7 +11,10 @@ spec:
           image: postgres:13
           command: ["/bin/sh", "-c"]
           args:
-            - psql -h "$PGHOST" -U "$PGUSER" "$PGDATABASE" < "/data/$BACKUP_FILE";
+            - echo "Listing available backup file:"
+              ls -lrth /data;
+              echo "Staring restore process"
+              psql -h "$PGHOST" -U "$PGUSER" "$PGDATABASE" < "/data/$BACKUP_FILE";
               echo "Restore complete";
           volumeMounts:
             - mountPath: /data
