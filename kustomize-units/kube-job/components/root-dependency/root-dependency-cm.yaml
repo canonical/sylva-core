@@ -3,5 +3,8 @@ kind: ConfigMap
 metadata:
   name: ${JOB_NAME}-cm
   namespace: "${NAMESPACE:-sylva-system}"
+  labels:
+    sylva-units.unit: root-dependency
+    sylva-units.version: ${HELM_VERSION}
 data:
   empty-value: '{}'
