@@ -385,7 +385,7 @@ units:
   #     details: <more detailed data about unit purpose and usage>
   #     maturity: <level of integration in sylva stack of corresponding component>
   #       - stable : the unit is used and tested in CI;
-  #       - beta : the unit is maintained but not tested in CI;
+  #       - beta : the unit is maintained, it may be deployed in CI but is not tested in CI;
   #       - experimental : the unit may be removed in future releases;
   #     internal: true <for units fully defined in sylva-core/kustomize-units without relying on external resources>
   #     version: <force declarative version, not recommended>
