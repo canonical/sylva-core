@@ -2727,8 +2727,7 @@ units:
     - '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" }}'
     - '{{ .Values._internal.state.is_upgrade }}'
     depends_on:
-      kyverno: false
-      kyverno-policies: false
+      kyverno: true
     repo: sylva-core
     kustomization_spec:
       path: ./kustomize-units/kyverno-policies/cluster-prevent-rke2-helmcharts-calico-metallb
@@ -2743,8 +2742,7 @@ units:
     enabled_conditions:
     - '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" }}'
     depends_on:
-      kyverno: '{{ not .Values._internal.state.is_upgrade | ternary true false }}'
-      kyverno-policies: '{{ not .Values._internal.state.is_upgrade | ternary true false }}'
+      kyverno: true
       # on an upgrade we don't want this unit to be applied after 'cluster' unit reconciliation,
       # because we want the policy to be active during node rolling update
       # but on a fresh install, we setup this policy only after 'cluster' unit (the first
@@ -3196,8 +3194,6 @@ units:
     - '{{ .Values._internal.state.is_upgrade }}'
     depends_on:
       cluster-prevent-rke2-helmcharts-calico-metallb: true
-      kyverno: false
-      kyverno-policies: false
     kustomization_spec:
       targetNamespace: kube-system
       _patches:
@@ -3282,9 +3278,6 @@ units:
     unit_templates:
     - base-deps
     - kube-job
-    depends_on:
-      kyverno: false
-      kyverno-policies: false
     enabled_conditions:
     - '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" }}'
     - '{{ .Values._internal.state.is_upgrade }}'
