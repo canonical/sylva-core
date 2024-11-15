@@ -48,6 +48,12 @@ function migrate_cluster {
     local cluster_name=$2
     local rke2cp=$3
 
+    echo "--- annotate RKE2 CP with controlplane.cluster.x-k8s.io/legacy=yes"
+    kubectl annotate -n $ns RKE2ControlPlane $rke2cp --overwrite \
+            controlplane.cluster.x-k8s.io/legacy=yes
+
+    return 0
+
     # check if something needs to be done
     if (secret_exists $ns $cluster_name-etcd) && (secret_exists $ns $cluster_name-peer-etcd); then
         echo "--- <cluster_name>-etcd and <cluster_name>-peer-etcd Secrets already exist, nothing to do"
