@@ -2056,10 +2056,7 @@ units:
         createNamespace: true
       values:
         config:
-          webhooks:
-            - namespaceSelector: {}
           resourceFiltersExclude:
-          - "[*/*,kube-system,*]"
           - "[Node,*,*]"
           - "[Node/*,*,*]"
               # #####  how we exclude kube-system from Kyverno webhooks (but not completely)  ###########################
