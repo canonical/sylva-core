@@ -7241,7 +7241,7 @@ cluster:
     metallb: ""
     calico: ""
 
-  set_lb_class: '{{ and (eq (lookup "v1" "Service" "kube-system" "kubernetes-vip" | dig "spec" "loadBalancerClass" "") .Values.cluster.loadBalancerClass ) (ne .Values.cluster.capi_providers.infra_provider "capd") }}'
+  set_lb_class: '{{ ne .Values.cluster.capi_providers.infra_provider "capd" | include "as-bool" }}'
   # loadBalancerClass to be used in order to limit the services served by metallb/kube-vip and allow multiple lb to run in parallel
   loadBalancerClass: '{{ tuple .Values._internal.loadBalancerClass (tuple . .Values.cluster.set_lb_class | include "interpret-for-test") | include "set-only-if" }}'
 
