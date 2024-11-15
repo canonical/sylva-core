@@ -7449,7 +7449,7 @@ units:
           NAMESPACE: '{{ .Release.Namespace }}'
           CLUSTER_NAME: '{{ .Values.cluster.name }}'
           CLUSTER_VIRTUAL_IP: '{{ .Values.cluster_virtual_ip }}'
-          CLUSTER_OKD_BASE_DOMAIN: '{{ .Values.openshift.baseDomain }}'
+          CLUSTER_OKD_BASE_DOMAIN: '{{ .Values.cluster.openshift.baseDomain }}'
 
 
 ##### stuff related to the 'cluster' unit #####
