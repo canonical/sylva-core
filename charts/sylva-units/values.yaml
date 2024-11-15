@@ -3314,6 +3314,8 @@ units:
       targetNamespace: metallb-system
       install:
         createNamespace: true
+      upgrade:
+        force: true
       values:
         controller:
           nodeSelector:
@@ -3701,6 +3703,8 @@ units:
       targetNamespace: k8s-gateway
       install:
         createNamespace: true
+      upgrade:
+        force: true
       values:
         domain: '{{ .Values.cluster_domain }}'
         replicaCount: 3
@@ -3781,6 +3785,7 @@ units:
     - '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" }}'
     repo: sylva-core
     kustomization_spec:
+      force: true
       path: ./kustomize-units/cluster-vip
       wait: true
       prune: false
