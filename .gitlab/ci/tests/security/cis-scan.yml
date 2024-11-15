@@ -2,7 +2,7 @@
 # This test gather the cis scan report from the management cluster
 # and upload it as an artifact
 
-cis-scan-report:
+mgmt-cis-scan:
   stage: deployment-test
   extends:
     - .test-tags

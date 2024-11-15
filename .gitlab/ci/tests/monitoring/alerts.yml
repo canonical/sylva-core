@@ -18,7 +18,7 @@
         done
       fi
 
-thanos-alert-check:
+mgmt-thanos-alert:
   stage: deployment-test
   extends:
     - .test-tags

@@ -2,7 +2,7 @@
 # This defines jobs to check that we can't delete
 # key Sylva Flux and CAPI resources for the mgmt cluster
 
-test-avoid-mgmt-deletion-policies:
+mgmt-avoid-mgmt-deletion-policies:
   stage: deployment-test
   extends:
     - .test-tags
