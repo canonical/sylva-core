@@ -1,4 +1,4 @@
-GET https://{{vault_url}}/v1/secret/data/harbor
+GET https://{{vault_url}}/v1/secret/data/{{cluster_name}}/harbor-passwd
 X-Vault-Token: {{token}}
 HTTP 200
 [Captures]

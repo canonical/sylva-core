@@ -7,6 +7,8 @@ kind: ExternalSecret
 metadata:
   name: eso-gitea-oidc
   namespace: gitea
+  annotations:
+    kustomize.toolkit.fluxcd.io/force: Enabled
 spec:
   refreshInterval: 1h
   secretStoreRef:

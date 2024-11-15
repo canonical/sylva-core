@@ -3,6 +3,8 @@ apiVersion: external-secrets.io/v1beta1
 kind: ExternalSecret
 metadata:
    name: gitea-postgres-secrets
+   annotations:
+      kustomize.toolkit.fluxcd.io/force: Enabled
 spec:
    secretStoreRef:
       name: vault
@@ -14,17 +16,17 @@ spec:
    data:
    - secretKey: admin-password
      remoteRef:
-        key: secret/data/gitea-postgres-postgres
+        key: secret/data/${CLUSTER_NAME:management-cluster}/gitea-postgres-postgres-passwd
         property: password
    - secretKey: password
      remoteRef:
-        key: secret/data/gitea-postgres-gitea
+        key: secret/data/${CLUSTER_NAME:management-cluster}/gitea-postgres-gitea-passwd
         property: password
    - secretKey: postgres-password
      remoteRef:
-        key: secret/data/gitea-postgres-postgres
+        key: secret/data/${CLUSTER_NAME:management-cluster}/gitea-postgres-postgres-passwd
         property: password
    - secretKey: repmgr-password
      remoteRef:
-        key: secret/data/gitea-postgres-replication
+        key: secret/data/${CLUSTER_NAME:management-cluster}/gitea-postgres-replication-passwd
         property: password

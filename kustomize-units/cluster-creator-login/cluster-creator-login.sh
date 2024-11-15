@@ -16,7 +16,7 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
-CLUSTER_CREATOR_PASSWORD=$(kubectl get secrets -n sylva-system cluster-creator-secret -o jsonpath='{.data.password}' | base64 -d)
+CLUSTER_CREATOR_PASSWORD=$(kubectl get secrets -n sylva-system cluster-creator-secret-passwd -o jsonpath='{.data.password}' | base64 -d)
 if [ $? -ne 0 ]; then
   echo "Could not read the password of the cluster-creator user"
   exit 1
@@ -29,15 +29,21 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 echo "Obtained a token for the admin user"
+echo $ADMINTOKEN
+echo $RANCHER_API
+curl -k -s -H "Authorization: Bearer $ADMINTOKEN" $RANCHER_API/users -H 'content-type: application/json'
 
 # Check if cluster-creator is already created
 USER_CREATED=$(curl -k -s -H "Authorization: Bearer $ADMINTOKEN" $RANCHER_API/users -H 'content-type: application/json' | jq -r '.data[]|select(.username=="'$USERNAME'")|.id' | wc -l)
+echo "USER_CREATED"
 if [ $USER_CREATED -eq 0 ]; then
+  echo "Create the cluster-creator user"
   # Create the cluster-creator user
   USERID=$(curl -k -s -H "Authorization: Bearer $ADMINTOKEN" $RANCHER_API/users -H 'content-type: application/json' --data-binary '{"me":false,"mustChangePassword":false,"type":"user","username":"'$USERNAME'","password":"'$CLUSTER_CREATOR_PASSWORD'","name":"'$USERNAME'"}' | jq -r .id)
   echo "User $USERID created"
 else
   # The user is already created, we pick its id
+  echo "The user is already created, we pick its id"
   USERID=$(curl -k -s -H "Authorization: Bearer $ADMINTOKEN" $RANCHER_API/users -H 'content-type: application/json' | jq -r '.data[]|select(.username=="'$USERNAME'")|.id')
   echo "The user $USERNAME already exists with userid $USERID"
 fi

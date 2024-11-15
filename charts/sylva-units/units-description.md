@@ -163,6 +163,7 @@
 | **thanos-uninstall-pre-upgrade** | special unit to uninstall thanos before cluster upgrades<br/><br/>In 1.1.1 release, thanos was configured to use single-replica-storageclass, As this value can't be updated, and thanos data will be deleted in any case as minio tenant will be deleted, uninstall it prior to upgrade cluster and reinstall it with new values. |  | True | Kustomize | N/A |
 | **tigera-clusterrole** | is here to allow for upgrading Calico chart when upgrading cluster<br/><br/>For v1.25.x to v1.26.x, see https://gitlab.com/sylva-projects/sylva-core/-/issues/664 |  | True | Kustomize | N/A |
 | **two-replicas-storageclass** | Create a longhorn storage class with a two replicas |  | True | Kustomize | N/A |
+| **vault-migrate-secret** | migrate vault secret of the management cluster from secret/data to secret/data/${CLUSTER_NAME:management-cluster} |  | True | Kustomize | N/A |
 | **vault-oidc** | configures Vault to be used with OIDC |  | True | Kustomize | N/A |
 | **vault-secrets** | generates random secrets in vault, configure password policy, authentication backends, etc... |  | True | Kustomize | N/A |
 | **vsphere-cpi** | configures Vsphere Cloud controller manager |  | True | Helm | N/A |

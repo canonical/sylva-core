@@ -1,8 +1,10 @@
 apiVersion: redhatcop.redhat.io/v1alpha1
 kind: RandomSecret
 metadata:
-  name: ${TENANT_NAME}-user
+  name: ${TENANT_NAME}-user-passwd
   namespace: vault
+  annotations:
+    kustomize.toolkit.fluxcd.io/force: Enabled
 spec:
   connection:
     tLSConfig:
@@ -15,7 +17,7 @@ spec:
     serviceAccount:
       name: vault
   isKVSecretsEngineV2: true
-  path: secret/data
+  path: secret/data/${CLUSTER_NAME:management-cluster}
   secretKey: password
   secretFormat:
     passwordPolicyName: sylva-password-policy

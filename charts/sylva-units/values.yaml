@@ -268,6 +268,11 @@ unit_templates:
     # - then units on which the 'cluster' unit does not depend on, directly or indirectly, will
     #   reconcile after the "cluster-machines-ready" unit is ready
     depends_on:
+      vault-migrate-secret: >-
+        {{
+        and ( tuple . "vault-migrate-secret" | include "unit-enabled")
+            (not (.Values._internal.cluster_machines_ready_unit_deps | has .Values._unit_name_))
+        }}
       cluster-machines-ready: >-
         {{
         and (tuple . "cluster-machines-ready" | include "unit-enabled")
@@ -840,6 +845,7 @@ units:
     kustomization_spec:
       path: ./kustomize-units/harbor-init
       wait: true
+      force: true
       postBuild:
         substitute:
           HARBOR_DNS: '{{ .Values.external_hostnames.harbor }}'
@@ -849,6 +855,7 @@ units:
           CERTIFICATE_NAMESPACE: harbor
           CERT: '{{ .Values.external_certificates.harbor.cert | default "" | b64enc }}'
           CACERT: '{{ .Values.external_certificates.cacert | default "" | b64enc }}'
+          CLUSTER_NAME: '{{ .Values.cluster.name }}'
       _components:
         - '{{ ternary "../tls-components/tls-secret" "../tls-components/tls-certificate" (hasKey .Values.external_certificates.harbor "cert") }}'
         - "../tls-components/sylva-ca"
@@ -1059,6 +1066,47 @@ units:
           repository: ghcr.io/bank-vaults/vault-operator
           tag: '{{ .Values.source_templates | dig "vault-operator" "spec" "ref" "tag" "" | required "source_templates.vault-operator.spec.ref.tag is unset" }}'
 
+  vault-migrate-secret:
+    info:
+      description: migrate vault secret of the management cluster from secret/data to secret/data/${CLUSTER_NAME:management-cluster}
+      internal: true
+    unit_templates:
+    - kube-job
+    kustomization_spec:
+      targetNamespace: vault
+      _patches:
+      - target:
+          kind: Job
+        patch: |
+          - op: replace
+            path: /spec/template/spec/containers/0/image
+            value: registry.gitlab.com/sylva-projects/sylva-elements/container-images/hvac-client:0.0.0-test
+          - op: replace
+            path: /spec/backoffLimit
+            value: 15
+      - target:
+          kind: ConfigMap
+          labelSelector: kube-job=script
+        patch: |
+          - op: replace
+            path: /data/kube-job.sh
+            value: |
+              #!/bin/bash
+              set -e
+              echo "start migrate secret"
+              # set env
+              export VAULT_API_TOKEN=$(kubectl -n vault get secrets/vault-unseal-keys -o jsonpath='{.data.vault-root}' | base64 -d)
+              export VAULT_URL=$(kubectl get ingress -n vault vault -o jsonpath='{ .spec.tls[].hosts[] }')
+              export NEW_PATH={{ .Values.cluster.name }}
+              echo "migration"
+              # run migration script
+              python3 /opt/migrate_vault_secret.py
+              echo "migrate secret done"
+          - op: add
+            path: /data/migrate_vault_secret.py
+            value: |
+          {{ .Files.Get "scripts/migrate_vault_secret.py" | indent 4 }}
+
   vault:
     info:
       description: installs Vault
@@ -1196,6 +1244,10 @@ units:
     kustomization_spec:
       path: ./kustomize-units/vault-secrets
       wait: true
+      force: true
+      postBuild:
+        substitute:
+          CLUSTER_NAME: '{{ .Values.cluster.name }}'
       _components:
         - '{{ tuple "components/keycloak" (tuple . "keycloak" | include "unit-enabled") | include "set-only-if" }}'
 
@@ -1333,6 +1385,7 @@ units:
       KEY: '{{ .Values.external_certificates.neuvector.key | default "" | b64enc }}'
     kustomization_spec:
       path: ./kustomize-units/neuvector-init
+      force: true
       healthChecks:
         - apiVersion: v1
           kind: Secret
@@ -1351,6 +1404,7 @@ units:
           CERTIFICATE_NAMESPACE: neuvector
           CERT: '{{ .Values.external_certificates.neuvector.cert | default "" | b64enc }}'
           CACERT: '{{ .Values.external_certificates.cacert | default "" | b64enc }}'
+          CLUSTER_NAME: '{{ .Values.cluster.name }}'
       _components:
         - '{{ ternary "../tls-components/tls-secret" "../tls-components/tls-certificate" (hasKey .Values.external_certificates.neuvector "cert") }}'
         - "../tls-components/sylva-ca"
@@ -1558,13 +1612,16 @@ units:
     enabled_conditions:
     - '{{ tuple . "keycloak" | include "unit-enabled" }}'
     depends_on:
-      vault-secrets: true  # the credential-external-keycloak Secret use by the legacy operator is generated from ES/Vault secret/data/keycloak
+      vault-secrets: true  # the credential-external-keycloak Secret use by the legacy operator is generated from ES/Vault secret/data/${CLUSTER_NAME:management-cluster}/keycloak
       keycloak: true
     repo: sylva-core
     kustomization_spec:
       path: ./kustomize-units/keycloak-legacy-operator
       targetNamespace: keycloak
       wait: true
+      postBuild:
+        substitute:
+          CLUSTER_NAME: '{{ .Values.cluster.name }}'
       _patches:
         - patch: |
             apiVersion: apps/v1
@@ -3396,12 +3453,14 @@ units:
     repo: sylva-core
     kustomization_spec:
       path: ./kustomize-units/synchronize-secrets
+      force: true
       _components:
         - '{{ tuple "components/keycloak" (tuple . "keycloak" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/rancher" (tuple . "rancher" | include "unit-enabled") | include "set-only-if" }}'
       postBuild:
         substitute:
           FLUX_ADMIN_USERNAME: '{{ .Values.flux_webui.admin_user }}'
+          CLUSTER_NAME: '{{ .Values.cluster.name }}'
       healthChecks:
         - apiVersion: v1
           kind: Secret
@@ -3409,7 +3468,7 @@ units:
           namespace: flux-system
         - apiVersion: v1
           kind: Secret
-          name: cluster-creator-secret
+          name: cluster-creator-secret-passwd
           namespace: sylva-system
         - >-
           {{ tuple (dict
@@ -3452,6 +3511,7 @@ units:
       path: ./kustomize-units/rancher-init
       targetNamespace: cattle-system
       wait: true
+      force: true
       postBuild:
         substitute:
           SERVICE: rancher
@@ -5345,6 +5405,10 @@ units:
     kustomization_spec:
       path: ./kustomize-units/gitea/secrets
       wait: true
+      force: true
+      postBuild:
+        substitute:
+          CLUSTER_NAME: '{{ .Values.cluster.name }}'
 
   gitea-eso:
     info:
@@ -5366,6 +5430,7 @@ units:
     kustomization_spec:
       path: ./kustomize-units/gitea/eso
       wait: false
+      force: true
       healthChecks:
         - apiVersion: v1
           kind: Secret
@@ -5393,6 +5458,7 @@ units:
           SERVICE_DNS: '{{ .Values.external_hostnames.gitea }}'
           CERT: '{{ .Values.external_certificates.gitea.cert | default "" | b64enc }}'
           CACERT: '{{ .Values.external_certificates.cacert | default "" | b64enc }}'
+          CLUSTER_NAME: '{{ .Values.cluster.name }}'
       _components:
         - '{{ ternary "../../tls-components/tls-secret" "../../tls-components/tls-certificate" (hasKey .Values.external_certificates.gitea "cert") }}'
         - "../../tls-components/sylva-ca"
@@ -5832,6 +5898,7 @@ units:
     kustomization_spec:
       path: ./kustomize-units/minio-tenant-init
       wait: true
+      force: true
       postBuild:
         substitute:
           TENANT_NAME: minio-logging
@@ -5840,6 +5907,7 @@ units:
           CERTIFICATE_NAMESPACE: minio-logging
           CERT: '{{ .Values.external_certificates.minio_logging.cert | default "" | b64enc }}'
           CACERT: '{{ .Values.external_certificates.cacert | default "" | b64enc }}'
+          CLUSTER_NAME: '{{ .Values.cluster.name }}'
       _components:
         - '{{ ternary "../tls-components/tls-secret" "../tls-components/tls-certificate" (hasKey .Values.external_certificates.minio_logging "cert") }}'
         - "../tls-components/sylva-ca"
@@ -6038,12 +6106,12 @@ units:
         createNamespace: false
       values:
         secrets:
-          existingSecret: minio-monitoring-root
+          existingSecret: minio-monitoring-root-passwd
         tenant:
           name: monitoring
           # The Kubernetes secret name that contains MinIO environment variable configurations:
           configuration:
-            name: minio-monitoring-root
+            name: minio-monitoring-root-passwd
           # Array of Kubernetes secrets from which the Operator generates MinIO users during tenant provisioning:
           users:
             - name: minio-monitoring-user
@@ -6137,7 +6205,7 @@ units:
           namespace: minio-monitoring
         - apiVersion: v1
           kind: Secret
-          name: monitoring-tls
+          name: minio-monitoring-tls
           namespace: minio-monitoring
 
   thanos-init:
@@ -6157,6 +6225,7 @@ units:
     kustomization_spec:
       path: ./kustomize-units/thanos-init
       wait: true
+      force: true
       postBuild:
         substitute:
           SERVICE: thanos
@@ -6164,6 +6233,7 @@ units:
           THANOS_RECEIVE_DNS: '{{ .Values.external_hostnames.thanos_receive }}'
           THANOS_STOREGATEWAY_DNS: '{{ .Values.external_hostnames.thanos_storegateway }}'
           THANOS_QUERY_DNS: '{{ .Values.external_hostnames.thanos_query }}'
+          CLUSTER_NAME: '{{ .Values.cluster.name }}'
 
   thanos-credentials-secret:
     info:
@@ -6637,6 +6707,7 @@ units:
     kustomization_spec:
       path: ./kustomize-units/loki-init
       wait: true
+      force: true
       postBuild:
         substitute:
           SERVICE: loki
@@ -6644,6 +6715,7 @@ units:
           CERTIFICATE_NAMESPACE: loki
           CERT: '{{ .Values.external_certificates.loki.cert | default "" | b64enc }}'
           CACERT: '{{ .Values.external_certificates.cacert | default "" | b64enc }}'
+          CLUSTER_NAME: '{{ .Values.cluster.name }}'
       _components:
         - '{{ ternary "../tls-components/tls-secret" "../tls-components/tls-certificate" (hasKey .Values.external_certificates.loki "cert") }}'
         - "../tls-components/sylva-ca"
