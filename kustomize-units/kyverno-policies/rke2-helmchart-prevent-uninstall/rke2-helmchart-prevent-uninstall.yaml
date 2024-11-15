@@ -27,6 +27,7 @@ spec:
             kinds:
               - helm.cattle.io/*/HelmChart
             names:
+              - calico
               - rke2-calico
               - rke2-calico-crd
               - rke2-coredns

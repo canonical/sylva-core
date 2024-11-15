@@ -2742,6 +2742,9 @@ units:
     enabled_conditions:
     - '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" }}'
     - '{{ .Values._internal.state.is_upgrade }}'
+    depends_on:
+      kyverno: false
+      kyverno-policies: false
     repo: sylva-core
     kustomization_spec:
       path: ./kustomize-units/kyverno-policies/cluster-prevent-rke2-helmcharts-calico-metallb
@@ -2756,7 +2759,8 @@ units:
     enabled_conditions:
     - '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" }}'
     depends_on:
-      kyverno: true
+      kyverno: '{{ not .Values._internal.state.is_upgrade | ternary true false }}'
+      kyverno-policies: '{{ not .Values._internal.state.is_upgrade | ternary true false }}'
       # on an upgrade we don't want this unit to be applied after 'cluster' unit reconciliation,
       # because we want the policy to be active during node rolling update
       # but on a fresh install, we setup this policy only after 'cluster' unit (the first
@@ -3208,6 +3212,8 @@ units:
     - '{{ .Values._internal.state.is_upgrade }}'
     depends_on:
       cluster-prevent-rke2-helmcharts-calico-metallb: true
+      kyverno: false
+      kyverno-policies: false
     kustomization_spec:
       targetNamespace: kube-system
       _patches:
@@ -3238,8 +3244,8 @@ units:
     helm_repo_url: https://rke2-charts.rancher.io
     helm_chart_versions: *calico-chart-versions  # we use a YAML anchor rather than templating so that this file can be read by tools/generate_units_documentation.py
     helmrelease_spec:
-      releaseName: '{{ eq .Values.cluster.capi_providers.infra_provider "cabpk" | ternary "calico" "rke2-calico" }}'
-      targetNamespace: '{{ eq .Values.cluster.capi_providers.infra_provider "cabpk" | ternary "sylva-system" "kube-system" }}'
+      releaseName: '{{ eq .Values.cluster.capi_providers.bootstrap_provider "cabpk" | ternary "calico" "rke2-calico" }}'
+      targetNamespace: '{{ eq .Values.cluster.capi_providers.bootstrap_provider "cabpk" | ternary "sylva-system" "kube-system" }}'
       chart:
         spec:
           chart: rke2-calico
@@ -3292,6 +3298,9 @@ units:
     unit_templates:
     - base-deps
     - kube-job
+    depends_on:
+      kyverno: false
+      kyverno-policies: false
     enabled_conditions:
     - '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" }}'
     - '{{ .Values._internal.state.is_upgrade }}'
