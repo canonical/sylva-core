@@ -1985,22 +1985,6 @@ units:
         - '{{ tuple "components/thanos" (tuple . "thanos" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/check-images" .Values.security.upstream_images_signature.verify | include "set-only-if" }}'
 
-  kyverno-calico-annotations:
-    info:
-      description: Adds helm specific annotations to calico resources.
-      internal: true
-    unit_templates:
-      - base-deps
-    enabled_conditions:
-      - '{{ tuple . "calico" | include "unit-enabled" }}'
-      - '{{ eq .Values.cluster.capi_providers.bootstrap_provider "cabpr" }}'
-    depends_on:
-      kyverno: true
-    repo: sylva-core
-    kustomization_spec:
-      path: ./kustomize-units/kyverno-policies/felix-configuration-annotations
-      wait: true
-
   kyverno-metallb-annotations:
     info:
       description: Adds helm specific annotations to metallb resources. Should be removed in 1.2+ versions of Sylva
