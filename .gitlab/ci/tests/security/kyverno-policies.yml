@@ -27,13 +27,13 @@
     expire_in: 48 hour
     when: always
 
-PolicyReport:
+mgmt-policy-report:
   variables:
     RESOURCE: "policyreport"
   extends:
     - .check_kyverno_resource
 
-ClusterPolicyReport:
+mgmt-cluster-policy-report:
   variables:
     RESOURCE: "clusterpolicyreport"
   extends:
