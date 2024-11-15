@@ -386,7 +386,7 @@ units:
   #     maturity: <level of integration in sylva stack of corresponding component>
   #       - stable : the unit is used and tested in CI;
   #       - beta : the unit is maintained, it may be deployed in CI but is not tested in CI;
-  #       - experimental : the unit may be removed in future releases;
+  #       - experimental : the unit can be used for test purposes, be it may be removed in future releases;
   #     internal: true <for units fully defined in sylva-core/kustomize-units without relying on external resources>
   #     version: <force declarative version, not recommended>
   #   enabled: boolean or GoTPL
@@ -4077,7 +4077,7 @@ units:
   monitoring-crd:
     info:
       description: installs monitoring stack CRDs
-      maturity: beta
+      maturity: stable
       hidden: true
     unit_templates:
     - base-deps
@@ -4133,7 +4133,7 @@ units:
   monitoring:
     info:
       description: installs monitoring stack
-      maturity: beta
+      maturity: stable
     unit_templates:
     - base-deps
     depends_on:
