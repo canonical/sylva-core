@@ -10,6 +10,7 @@ metadata:
 spec:
   type: LoadBalancer
   loadBalancerIP: "${allocated_ip}"
+  loadBalancerClass: "${lb_class}"
   ports:
   - name: rke2-proxy
     port: 54321
