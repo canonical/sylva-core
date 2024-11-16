@@ -7700,8 +7700,15 @@
             "unit_templates": {
               "type": "array",
               "items": {
-                "type": "string",
-                "pattern": "^[a-z0-9][a-z0-9-]*[a-z0-9]$"
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/gotpl"
+                  },
+                  {
+                    "type": "string",
+                    "pattern": "^[a-z0-9][a-z0-9-]*[a-z0-9]$"
+                  }
+                ]
               }
             },
             "repo": {

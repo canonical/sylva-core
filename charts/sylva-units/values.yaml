@@ -2722,7 +2722,7 @@ units:
       description: Kyverno policy to prevent RKE2 HelmCharts from being recreated for MetaLB and Calico
       internal: true
     unit_templates:
-    - base-deps
+    - '{{ tuple "base-deps" (not .Values._internal.state.is_upgrade) | include "set-only-if" }}'
     enabled_conditions:
     - '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" }}'
     - '{{ .Values._internal.state.is_upgrade }}'
@@ -3144,7 +3144,7 @@ units:
       maturity: stable
       hidden: true
     unit_templates:
-    - base-deps
+      - '{{ tuple "base-deps" (not .Values._internal.state.is_upgrade) | include "set-only-if" }}'
     enabled_conditions:
     - '{{ tuple . "calico" | include "unit-enabled" }}'
     depends_on:
@@ -3174,7 +3174,7 @@ units:
         For v1.25.x to v1.26.x, see https://gitlab.com/sylva-projects/sylva-core/-/issues/664
       internal: true
     unit_templates:
-    - base-deps
+    - '{{ tuple "base-deps" (not .Values._internal.state.is_upgrade) | include "set-only-if" }}'
     enabled_conditions:
     - '{{ tuple . "calico" | include "unit-enabled" }}'
     repo: sylva-core
@@ -3217,7 +3217,7 @@ units:
       description: install Calico CNI
       maturity: stable
     unit_templates:
-    - base-deps
+      - '{{ tuple "base-deps" (not .Values._internal.state.is_upgrade) | include "set-only-if" }}'
     depends_on:
       calico-crd: true
       calico-rke2-chart-cleanup: '{{ tuple . "calico-rke2-chart-cleanup" | include "unit-enabled" }}'
