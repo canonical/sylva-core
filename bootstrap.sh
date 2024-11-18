@@ -47,7 +47,6 @@ sylvactl watch \
   --timeout $(ci_remaining_minutes_and_at_most ${BOOTSTRAP_WATCH_TIMEOUT_MIN:-30}) \
   ${SYLVACTL_SAVE:+--save bootstrap-timeline.html} \
   -n sylva-system \
-  --exit-condition="message=values don't meet the specifications of the schema" \
   Kustomization/sylva-system/management-sylva-units
 
 if kill $KUBECONFIG_PID &>/dev/null; then
@@ -58,7 +57,6 @@ fi
 echo_b "\U000023F3 Wait for units installed on management cluster to be ready"
 sylvactl watch \
   --reconcile \
-  --exit-condition="message=values don't meet the specifications of the schema" \
   --kubeconfig management-cluster-kubeconfig \
   --timeout $(ci_remaining_minutes_and_at_most ${MGMT_WATCH_TIMEOUT_MIN:-45}) \
   ${SYLVACTL_SAVE:+--save management-cluster-timeline.html} \
