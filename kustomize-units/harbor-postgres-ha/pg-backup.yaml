@@ -13,10 +13,10 @@ spec:
           args:
             - echo "Taking backup";
               pg_dump --help;
-              pg_dump -h "$PGHOST" -U "$PGUSER" "$PGDATABASE" > "/tmp/$BACKUP_FILE";
+              pg_dump -h "$PGHOST" -U "$PGUSER" "$PGDATABASE" > "$BACKUP_FILE";
               echo "Backup complete";
               echo "Backup file created - $BACKUP_FILE";
-              ls -lrth /tmp;
+              ls -lrth . ;
           volumeMounts:
             - mountPath: /data
               name: backup-storage
