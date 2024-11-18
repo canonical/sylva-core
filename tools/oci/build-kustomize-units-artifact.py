@@ -26,6 +26,7 @@ import yaml
 import atexit
 import artifact_utils
 import logging
+import sys
 
 BASE_DIR = os.path.realpath(os.path.join(os.path.dirname(__file__), '../..'))
 logger = logging.getLogger()
@@ -62,9 +63,14 @@ def process_kustomization(kustomization):
         }, new_file)
 
     logger.info("  locally rendering remote resources...")
-    subprocess.run(["kubectl", "kustomize", kdir, "-o", f"{kdir}/local-resources.yaml"],
-                   stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-    logger.info("OK")
+    kustomize_result = subprocess.run(["kustomize", "build", kdir,
+                                       "-o", f"{kdir}/local-resources.yaml"])
+
+    if kustomize_result.returncode != 0:
+        logger.error(f"Unable to flatten {kustomization} !")
+        sys.exit(1)
+
+    logger.info("  OK")
 
     shutil.move(orig_kustomization, kustomization)
 

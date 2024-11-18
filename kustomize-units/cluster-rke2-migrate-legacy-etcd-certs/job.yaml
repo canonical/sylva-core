@@ -1,0 +1,14 @@
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: _unused_
+spec:
+  backoffLimit: 20
+  template:
+    spec:
+      containers:
+      - name: run-script
+        env:
+        - name: pod_image
+          value: registry.gitlab.com/sylva-projects/sylva-elements/container-images/kube-job:v1.0.17

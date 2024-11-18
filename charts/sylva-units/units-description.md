@@ -1,10 +1,10 @@
 <!-- markdownlint-disable MD044 -->
 | name | full description | maturity | internal | source | version |
 | :----- | :----- | :----- | :----- | :----- | :----- |
-| **cabpk** | installs Kubeadm CAPI bootstrap provider | core-component |  | [Kustomize](https://github.com/kubernetes-sigs/cluster-api/releases/download/v1.7.4/bootstrap-components.yaml) | v1.7.4 |
-| **cabpr** | installs RKE2 CAPI bootstrap provider | core-component |  | [Kustomize](https://github.com/rancher/cluster-api-provider-rke2/releases/download/v0.6.0/bootstrap-components.yaml) | v0.6.0 |
-| **capd** | installs Docker CAPI infra provider | core-component |  | [Kustomize](https://github.com/kubernetes-sigs/cluster-api//test/infrastructure/docker/config/default/?ref=v1.7.4) | v1.7.4 |
-| **capi** | installs Cluster API core operator | core-component |  | [Kustomize](https://github.com/kubernetes-sigs/cluster-api/releases/download/v1.7.4/core-components.yaml) | v1.7.4 |
+| **cabpk** | installs Kubeadm CAPI bootstrap provider | core-component |  | [Kustomize](https://github.com/kubernetes-sigs/cluster-api/releases/download/v1.8.3/bootstrap-components.yaml) | v1.8.3 |
+| **cabpr** | installs RKE2 CAPI bootstrap provider | core-component |  | [Kustomize](https://github.com/rancher/cluster-api-provider-rke2/releases/download/v0.7.1/bootstrap-components.yaml) | v0.7.1 |
+| **capd** | installs Docker CAPI infra provider | core-component |  | [Kustomize](https://github.com/kubernetes-sigs/cluster-api//test/infrastructure/docker/config/default/?ref=v1.8.3) | v1.8.3 |
+| **capi** | installs Cluster API core operator | core-component |  | [Kustomize](https://github.com/kubernetes-sigs/cluster-api/releases/download/v1.8.3/core-components.yaml) | v1.8.3 |
 | **capm3** | installs Metal3 CAPI infra provider, for baremetal | core-component |  | [Kustomize](https://github.com/metal3-io/cluster-api-provider-metal3/releases/download/v1.7.2/infrastructure-components.yaml) | v1.7.2 |
 | **capo** | installs OpenStack CAPI infra provider | core-component |  | [Kustomize](https://github.com/kubernetes-sigs/cluster-api-provider-openstack/releases/download/v0.11.2/infrastructure-components.yaml) | v0.11.2 |
 | **capv** | installs vSphere CAPI infra provider | core-component |  | [Kustomize](https://github.com/kubernetes-sigs/cluster-api-provider-vsphere/releases/download/v1.11.2/infrastructure-components.yaml) | v1.11.2 |
@@ -94,6 +94,7 @@
 | **cluster-prevent-rke2-helmcharts-calico-metallb** | Kyverno policy to prevent RKE2 HelmCharts from being recreated for MetaLB and Calico |  | True | Kustomize | N/A |
 | **cluster-reachable** | ensure that created clusters are reachable, and make failure a bit more explicit if it is not the case<br/><br/>This unit will be enabled in bootstrap cluster to check connectivity to management cluster and in various workload-cluster namespaces in management cluster to check connectivity to workload clusters |  | True | Kustomize | N/A |
 | **cluster-ready** | unit to check readiness of cluster CAPI objects<br/><br/>the healthChecks on this unit complements the one done in the 'cluster' unit, which in some cases can't cover all CAPI resources |  | True | Kustomize | N/A |
+| **cluster-rke2-migrate-legacy-etcd-certs** | handles the migration of etcd secrets for all RKE2 clusters deployed with Sylva <=1.1.1 |  | True | Kustomize | N/A |
 | **cluster-vip** | Defines the cluster-vip Service for MetalLB load-balancing<br/><br/>MetalLB will only handle the VIP if it has a corresponding service with endpoints, but we don't want that the API access (6443) relies on kube-proxy, because on RKE2 agent nodes, kube-proxy uses RKE2 internal load-balancing proxy that may fall-back to the VIP to access the API, which could create a deadlock if endpoints are not up-to-date.<br/>The cluster-vip Service that plays this role. This unit manages this resource, taking over the control after the initial creation of this Service by a cloud-init post command on the first node). |  | True | Kustomize | N/A |
 | **coredns** | configures DNS inside cluster |  | True | Kustomize | N/A |
 | **descheduler** | install descheduler |  |  | [Helm](https://kubernetes-sigs.github.io/descheduler/) | 0.31.0 |
@@ -149,6 +150,7 @@
 | **rancher-monitoring-clusterid-inject** | injects Rancher cluster ID in Helm values of Rancher monitoring chart |  | True | Kustomize | N/A |
 | **refresh-metal3machinetemplates** | Recreate metal3machinetemplates resources via the reconciliation of cluster helmrelease |  | True | Kustomize | N/A |
 | **rke2-helmchart-prevent-uninstall** | Kyverno policy to prevent key Helm charts from being uninstalled by RKE2 HelmChart controller |  | True | Kustomize | N/A |
+| **rke2-metrics-server-fix-old-pods** | transition unit to smoothen RKE2 upgrades for k8s metrics server, fixing a mismatch between old pods and new service pod selector<br/><br/>see https://gitlab.com/sylva-projects/sylva-core/-/issues/1857 on motivations<br/><br/>this unit patches the rke2-metrics-server Deployment to ensure that its pods will have<br/>all the necessary labels to transition from version 2.11 of the chart to version<br/>3.12.x which is used in recent RKE2<br/><br/>this unit shouldn't be necessary to keep after Sylva 1.2 |  | True | Kustomize | N/A |
 | **root-dependency** | special unit ensuring ordered updates of all Kustomizations<br/><br/>All Kustomizations will depend on this Kustomization, whose name is `root-dependency-<n>` and changes at each update of the sylva-units Helm release. This Kustomization does not become ready before all other Kustomizations have been updated. All this ensures in a race-free way that during an update, units will be reconciled in an order matching dependency declarations. |  | True | Kustomize | N/A |
 | **sandbox-privileged-namespace** | creates the sandbox namespace used to perform privileged operations like debugging a node |  | True | Kustomize | N/A |
 | **shared-workload-clusters-settings** | manages parameters which would be shared between management and workload clusters |  | True | Kustomize | N/A |
