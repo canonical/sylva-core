@@ -13,10 +13,10 @@ spec:
           args:
             - echo "Taking backup";
               pg_dump --help;
-              pg_dump -h "$PGHOST" -U "$PGUSER" "$PGDATABASE" > "$BACKUP_FILE";
+              pg_dump -h "$PGHOST" -U "$PGUSER" "$PGDATABASE" > /data/harbor-backup.sql ;
               echo "Backup complete";
-              echo "Backup file created - $BACKUP_FILE";
-              ls -lrth . ;
+              echo "Backup file created - /data/harbor-backup.sql ;
+              ls -lrth /data ;
           volumeMounts:
             - mountPath: /data
               name: backup-storage

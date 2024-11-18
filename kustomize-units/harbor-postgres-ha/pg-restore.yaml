@@ -12,9 +12,9 @@ spec:
           command: ["/bin/sh", "-c"]
           args:
             - echo "Listing available backup file:"
-              ls -lrth . ;
+              ls -lrth /data ;
               echo "Staring restore process"
-              psql -h "$PGHOST" -U "$PGUSER" "$PGDATABASE" < "$BACKUP_FILE";
+              psql -h "$PGHOST" -U "$PGUSER" "$PGDATABASE" < /data/harbor-backup.sql ;
               echo "Restore complete";
           volumeMounts:
             - mountPath: /data
