@@ -12,9 +12,9 @@ spec:
           command: ["/bin/sh", "-c"]
           args:
             - echo "Listing available backup file:"
-              ls -lrth /data;
+              ls -lrth /tmp;
               echo "Staring restore process"
-              psql -h "$PGHOST" -U "$PGUSER" "$PGDATABASE" < "/data/$BACKUP_FILE";
+              psql -h "$PGHOST" -U "$PGUSER" "$PGDATABASE" < "/tmp/$BACKUP_FILE";
               echo "Restore complete";
           volumeMounts:
             - mountPath: /data

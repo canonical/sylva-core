@@ -11,12 +11,12 @@ spec:
           image: postgres:13  # Use a PostgreSQL-compatible image
           command: ["/bin/sh", "-c"]
           args:
-            - mkdir -p /data;
-              echo "Taking backup";
-              pg_dump -h "$PGHOST" -U "$PGUSER" "$PGDATABASE" > "/data/$BACKUP_FILE";
+            - echo "Taking backup";
+              pg_dump --help;
+              pg_dump -h "$PGHOST" -U "$PGUSER" "$PGDATABASE" > "/tmp/$BACKUP_FILE";
               echo "Backup complete";
-              echo "Backup file created:";
-              ls -lrth /data;
+              echo "Backup file created - $BACKUP_FILE";
+              ls -lrth /tmp;
           volumeMounts:
             - mountPath: /data
               name: backup-storage
