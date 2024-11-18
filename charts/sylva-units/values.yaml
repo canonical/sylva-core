@@ -1929,10 +1929,6 @@ units:
                       (eq .Values.cluster.capi_providers.bootstrap_provider "cabpr")
                   | include "set-only-if"
                 }}
-              - apiGroups: ["crd.projectcalico.org"]
-                resources:
-                  - felixconfigurations
-                verbs: ["get", "list", "watch", "patch", "update"]
           serviceMonitor:
             enabled: '{{ .Values._internal.monitoring.enabled | include "preserve-type" }}'
       _postRenderers:
@@ -2722,7 +2718,7 @@ units:
       description: Kyverno policy to prevent RKE2 HelmCharts from being recreated for MetaLB and Calico
       internal: true
     unit_templates:
-    - '{{ tuple "base-deps" (not .Values._internal.state.is_upgrade) | include "set-only-if" }}'
+    - '{{ tuple "base-deps" (not .Values._internal.state.is_upgrade ) | include "set-only-if" }}'
     enabled_conditions:
     - '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" }}'
     - '{{ .Values._internal.state.is_upgrade }}'
@@ -2738,11 +2734,11 @@ units:
       description: Kyverno policy to prevent key Helm charts from being uninstalled by RKE2 HelmChart controller
       internal: true
     unit_templates:
-    - '{{ tuple "base-deps" (not .Values._internal.state.is_upgrade) | include "set-only-if" }}'
+    - base-deps
     enabled_conditions:
     - '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" }}'
     depends_on:
-      kyverno: '{{ not .Values._internal.state.is_upgrade }}'
+      kyverno: true
       # on an upgrade we don't want this unit to be applied after 'cluster' unit reconciliation,
       # because we want the policy to be active during node rolling update
       # but on a fresh install, we setup this policy only after 'cluster' unit (the first

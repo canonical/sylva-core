@@ -415,6 +415,7 @@ units:
     # for workload cluster, to keep the rest of the base-deps, explicitly disabling kyverno
     depends_on:
       kyverno: false
+      calico-ready: '{{ not .Values._internal.state.is_upgrade }}'
     # in mgmt cluster, kyverno is part of base-deps, so cannot depend on itself, but here in workload-cluster we need it
     unit_templates:
     - base-deps
