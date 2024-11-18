@@ -23,4 +23,5 @@ spec:
       restartPolicy: Never
       volumes:
         - name: backup-storage
-          emptyDir: {}  # Replace with persistent volume if needed
+          persistentVolumeClaim:
+            claimName: backup-pvc

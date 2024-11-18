@@ -22,4 +22,5 @@ spec:
       restartPolicy: Never
       volumes:
         - name: backup-storage
-          emptyDir: {}  # Same volume as in the backup job
+          persistentVolumeClaim:
+            claimName: backup-pvc
