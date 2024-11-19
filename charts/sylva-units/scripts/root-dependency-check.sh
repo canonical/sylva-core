@@ -40,7 +40,7 @@ kubectl get Kustomization -l sylva-units.unit=root-dependency-helm -o json | jq 
 
 # this is a safeguard:
 echo "--- deleting leftover root-dependency-helm-<n> HelmReleases for older versions"
-kubectl get HelmReleases -o json | jq -r '.items[] | select((.metadata.labels."sylva-units.unit" == "root-dependency-helm") and (.metadata.labels."sylva-units.version" // "" != "'$HELM_REVISION'")) | .metadata.name' \
+kubectl get HelmReleases -o json -l sylva-units.unit=root-dependency-helm | jq -r '.items[] | select(.metadata.labels."sylva-units.version" // "" != "'$HELM_REVISION'") | .metadata.name' \
     | xargs -r kubectl delete ConfigMap || true
 
 # this is a safeguard only relevant when upgrading from a version of sylva before https://gitlab.com/sylva-projects/sylva-core/-/merge_requests/3318
