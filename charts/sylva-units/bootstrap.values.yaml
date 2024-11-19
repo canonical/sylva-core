@@ -170,6 +170,17 @@ units:
           {{- tuple . "cluster" | include "interpret" -}}
           {{ tuple .Values.cluster | include "find-cluster-image-selectors" | fromJsonArray | include "preserve-type" }}
 
+  spegel:
+    # overload spegel definition in bootstrap context to deploy in the management clusterr
+    depends_on:
+      cluster-reachable: true
+    helmrelease_spec:
+      kubeConfig:
+        secretRef:
+          name: '{{ .Values.cluster.name }}-kubeconfig'
+    labels:
+      suspend-on-pivot: "yes"  # this unit must be suspended before pivot
+
   calico-crd:
     # overload calico-crd definition in bootstrap context to deploy in the management cluster
     depends_on:
@@ -262,6 +273,7 @@ units:
     depends_on:
       '{{ .Values._internal.default_storage_class_unit_ref }}': true
       cluster-reachable: true
+      spegel: '{{ tuple . "spegel" | include "unit-enabled" }}'
       # FIXME; Flux wait/healthcheck on management cluster does not work as expected, it becomes ready as soon as manifests are applied
       # cluster readyness will actually be ensured by the retries on installations of this kustomization for now.
       # maybe cluster CRD is not compatible with kstatus? (see https://fluxcd.io/flux/units/kustomize/kustomization/#health-assessment)
@@ -595,6 +607,7 @@ units_override_enabled:
   - kyverno
   - kyverno-policies
   - kyverno-metal3-policies
+  - spegel
   - calico-crd
   - calico
   - calico-ready
