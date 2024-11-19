@@ -2370,6 +2370,22 @@ units:
         - ../exclude-kube-system  # needs to be last (needed for components above that use sylva.org/kyverno-exclude-kube-system annotation)
         - '{{ tuple "components/coredns-custom-hosts-import" (tuple . "cabpoa" | include "unit-enabled") | include "set-only-if" }}'
 
+  workload-kyverno-policies:
+    info:
+      description: configures Kyverno policies for workload clusters
+      internal: true
+	enabled: false
+    unit_templates:
+	- base-deps
+    enabled_conditions:
+    - '{{ tuple . "kyverno" | include "unit-enabled" }}'
+    depends_on:
+      kyverno: true
+    repo: sylva-core
+    kustomization_spec:
+      path: ./kustomize-units/workload-kyverno-policies
+      wait: true
+
   kyverno-policies-ready:
     info:
       description: additional delay to ensure that kyverno webhooks are properly installed in api-server
