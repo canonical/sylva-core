@@ -48,4 +48,3 @@ spec:
     validate:
       message: Using 'default' namespace is not allowed for Pod controllers.
       deny: {}
-
