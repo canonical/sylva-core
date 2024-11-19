@@ -416,6 +416,9 @@ units:
     unit_templates:
     - base-deps
 
+  workload-kyverno-policies:
+    enabled: true
+
   kyverno-policy-delete-kubernetes-vip-svc:
     enabled: true
     enabled_conditions:
