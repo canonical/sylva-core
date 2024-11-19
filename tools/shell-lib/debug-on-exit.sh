@@ -257,8 +257,6 @@ function cluster_info_dump() {
 
       echo "-- node $node"
 
-      set -vx
-
       remote_command $node ss -apnm > $node_sysinfo_dumpdir/ss-apnm.log
 
       remote_command $node iptables -t nat -nvL > $node_sysinfo_dumpdir/iptables-nat-1-before-clear-counters.log
