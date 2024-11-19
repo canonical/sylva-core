@@ -3317,6 +3317,7 @@ units:
       upgrade:
         force: true
       values:
+        loadBalancerClass: '{{ tuple . .Values.cluster.loadBalancerClass | include "interpret-as-string" }}'
         controller:
           nodeSelector:
             node-role.kubernetes.io/control-plane: '{{ .Values._internal.cp_node_label_value }}'
