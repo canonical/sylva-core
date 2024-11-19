@@ -1,7 +1,7 @@
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
-  name: kubevirt-manager-tls
+  name: kubevirt-manager-certificate
   namespace: kubevirt-manager
 spec:
   commonName: kubevirt-manager.sylva
@@ -17,7 +17,7 @@ spec:
     kind: ClusterIssuer
     name: ca-issuer
   renewBefore: 360h0m0s
-  secretName: keycloak-tls
+  secretName: kubevirt-manager-tls
   subject:
     countries:
     - eu
