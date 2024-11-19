@@ -1980,7 +1980,22 @@ units:
         - '{{ tuple "components/loki-aggregated-secrets" (tuple . "loki" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/thanos" (tuple . "thanos" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/check-images" .Values.security.upstream_images_signature.verify | include "set-only-if" }}'
-
+  workload-kyverno-policies:
+    info:
+      description: configures Kyverno policies for workload clusters
+      internal: true
+	enabled: false
+    unit_templates:
+	- base-deps
+    enabled_conditions:
+    - '{{ tuple . "kyverno" | include "unit-enabled" }}'
+    depends_on:
+      kyverno: true
+    repo: sylva-core
+    kustomization_spec:
+      path: ./kustomize-units/workload-kyverno-policies
+      wait: true
+   
   kyverno-metallb-annotations:
     info:
       description: Adds helm specific annotations to metallb resources. Should be removed in 1.2+ versions of Sylva
