@@ -75,6 +75,7 @@ unit_kustomization_spec_default:
 
 unit_helmrelease_spec_default:
   interval: 100000m
+  dependsOn: []  # this cancels the dependency on root-dependency-helm-nn which is set in values.yaml but does not apply to bootstrap
 
 units:
   cluster-bmh:

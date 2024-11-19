@@ -34,7 +34,16 @@ echo "--- deleting leftover root-dependency-<n> Kustomizations for older version
 kubectl get Kustomization -l sylva-units.unit=root-dependency -o json | jq -r '.items[] | select(.metadata.annotations."sylva-units-helm-revision" != "'$HELM_REVISION'") | .metadata.name' \
     | xargs -r kubectl delete Kustomization || true
 
+echo "--- deleting leftover root-dependency-helm-<n> Kustomizations for older versions"
+kubectl get Kustomization -l sylva-units.unit=root-dependency-helm -o json | jq -r '.items[] | select(.metadata.annotations."sylva-units-helm-revision" != "'$HELM_REVISION'") | .metadata.name' \
+    | xargs -r kubectl delete Kustomization || true
+
 # this is a safeguard:
+echo "--- deleting leftover root-dependency-helm-<n> HelmReleases for older versions"
+kubectl get HelmReleases -o json | jq -r '.items[] | select((.metadata.labels."sylva-units.unit" == "root-dependency-helm") and (.metadata.labels."sylva-units.version" // "" != "'$HELM_REVISION'")) | .metadata.name' \
+    | xargs -r kubectl delete ConfigMap || true
+
+# this is a safeguard only relevant when upgrading from a version of sylva before https://gitlab.com/sylva-projects/sylva-core/-/merge_requests/3318
 echo "--- deleting leftover root-dependency-<n>-cm ConfigMaps for older versions"
 kubectl get ConfigMap -o json | jq -r '.items[] | select((.metadata.name | startswith("root-dependency-")) and (.metadata.labels."sylva-units.version" // "" != "'$HELM_REVISION'")) | .metadata.name' \
     | xargs -r kubectl delete ConfigMap || true
