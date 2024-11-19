@@ -2374,9 +2374,9 @@ units:
     info:
       description: configures Kyverno policies for workload clusters
       internal: true
-	enabled: false
+    enabled: false
     unit_templates:
-	- base-deps
+    - base-deps
     enabled_conditions:
     - '{{ tuple . "kyverno" | include "unit-enabled" }}'
     depends_on:
