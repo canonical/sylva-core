@@ -2422,7 +2422,7 @@ units:
 
   cluster-rke2-migrate-legacy-etcd-certs:
     info:
-      description: handles the migration of etcd secrets for all RKE2 clusters deployed with Sylva <=1.1.1
+      description: handles the migration of etcd secrets for all RKE2 clusters deployed with Sylva (versions inferior or equal to 1.1.1)
       internal: true
     unit_templates:
     - kube-job
