@@ -102,12 +102,8 @@ units:
     enabled: on
     unit_templates:
     - kustomization-deployed-on-mgmt-cluster
-    - kube-job
-
-  root-dependency-helm:
-    enabled: on
-    unit_templates:
     - helmrelease-deployed-on-mgmt-cluster
+    - kube-job
 
   mgmt-cluster-ready:
     # all units (except 'root-dependency') depend on this unit
