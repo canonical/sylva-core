@@ -90,7 +90,7 @@ class K8sParser(object):
             self.nodes = self.api_core.list_node()
 
         except ConfigException as e:
-            raise RuntimeError(f"Failed to load kubeconfig from {kubeconfig}. Ensure file is present and correctly configured.") from e
+            raise RuntimeError("Failed to load kubeconfig. Ensure file is present and correctly configured.") from e
         except Exception as e:
             raise Exception(f"Error: {e}")
 
@@ -283,7 +283,7 @@ class K8sParser(object):
 
         This function lists all pods in all namespaces and inspects their metadata to determine their dependencies.
         It identifies the images used by each pod and traces their ancestry to determine the unit (ancestor) they belong to.
-        The function returns a dictionary where keys are image names and values are lists of dependency chains for each image.
+        The function returns a dictionary where keys are image names and values are nested dictionaries representing the dependency tree.
 
         :return: A dictionary containing the dependencies of Kubernetes resources, structured as image_dependencies.
         :rtype: dict
@@ -296,18 +296,26 @@ class K8sParser(object):
             ret = self.api_core.read_namespaced_pod(i.metadata.name, i.metadata.namespace, _preload_content=False)
             res = Resource.model_validate(json.loads(ret.read()))
 
-            images = [container.image for container in i.spec.containers or []]
-            images += [container.image for container in i.spec.init_containers or []]
-            images += [container.image for container in i.spec.ephemeral_containers or []]
+            containers = i.spec.containers or []
+            containers += i.spec.init_containers or []
+            containers += i.spec.ephemeral_containers or []
 
-            dependencies = self.look_for_unit(res)
-
-            for img in images:
+            for container in containers:
+                img = container.image
                 normalized_img = reference.Reference.parse_normalized_named(img).string()
-                if img in image_dependencies:
-                    image_dependencies[normalized_img].append(dependencies)
-                else:
-                    image_dependencies[normalized_img] = [dependencies]
+                if normalized_img not in image_dependencies:
+                    image_dependencies[normalized_img] = {}
+
+                dependencies = self.look_for_unit(res)
+                current_level = image_dependencies[normalized_img]
+                for dep in reversed(dependencies):
+                    kind_name = f"{dep['kind']}/{dep['namespace']}/{dep['name']}"
+                    if kind_name not in current_level:
+                        current_level[kind_name] = {}
+                    current_level = current_level[kind_name]
+
+                # Add container name to the final level
+                current_level['container'] = container.name
         return image_dependencies
 
     def get_images_per_unit(self, image_dependencies: dict):
@@ -319,14 +327,20 @@ class K8sParser(object):
         :rtype: dict
         """
         images_per_unit = {}
-        for img in image_dependencies:
-            for dependency in image_dependencies[img]:
-                if dependency[-1]['kind'] == 'Kustomization':
-                    unit_name = dependency[-1]['name']
-                    if unit_name in images_per_unit:
-                        images_per_unit[unit_name].add(img)
-                    else:
-                        images_per_unit[unit_name] = {img}
+        for img, dependencies in image_dependencies.items():
+            def traverse_dependencies(deps):
+                for key, value in deps.items():
+                    if key.startswith('Kustomization/'):
+                        unit_name = key.split('/')[-1]
+                        if unit_name in images_per_unit:
+                            images_per_unit[unit_name].add(img)
+                        else:
+                            images_per_unit[unit_name] = {img}
+                    if isinstance(value, dict):
+                        traverse_dependencies(value)
+
+            traverse_dependencies(dependencies)
+
         # Convert sets to lists
         images_per_unit = {k: list(v) for k, v in images_per_unit.items()}
         return images_per_unit
@@ -340,9 +354,9 @@ class K8sParser(object):
         :rtype: dict
         """
         image_without_unit_dependencies = {}
-        for img in image_dependencies:
-            for dependency in image_dependencies[img]:
-                if dependency[-1]['kind'] != 'Kustomization':
+        for img, dependencies in image_dependencies.items():
+            for dependency in dependencies:
+                if 'Kustomization' not in dependency:
                     if img in image_without_unit_dependencies:
                         image_without_unit_dependencies[img].append(dependency)
                     else:
