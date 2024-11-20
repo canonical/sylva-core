@@ -238,6 +238,8 @@ trap exit_trap EXIT
 
 function reconcile_sylva_units() {
   local namespace=${1:-sylva-system}
+  local skip_root_dependency_wait=${2:-}
+
   echo "trigger reconciliation of sylva-units HelmRelease..."
   RECONCILE_REQUEST_DATE=$(date -uIs | sed -e 's/+00:00//')
 
@@ -260,6 +262,12 @@ function reconcile_sylva_units() {
   sylvactl watch -n $namespace HelmRelease/$namespace/sylva-units --timeout ${SYLVA_UNITS_RECONCILE_TIMEOUT:-180s} --skip-inventory --reconcile \
     --exit-condition reason=UpgradeFailed \
     --exit-condition reason=InstallFailed
+
+  helm_release_version=$(kubectl get -n $namespace HelmRelease sylva-units -o yaml | yq -r '.status.history[0].version')
+  if ! [[ $skip_root_dependency_wait == "skip-root-dependency-wait" ]]; then
+    echo "waiting for root-dependency-$helm_release_version to become ready..."
+    sylvactl watch -n $namespace Kustomization/$namespace/root-dependency-$helm_release_version --timeout ${SYLVA_UNITS_RECONCILE_TIMEOUT:-180s} --skip-inventory --reconcile
+  fi
 }
 
 function define_source() {
@@ -363,7 +371,7 @@ EOF
   rm -Rf ${PREVIEW_DIR}
 
   # this is just to force-refresh in a dev environment with  refreshed parameters
-  reconcile_sylva_units sylva-units-preview
+  reconcile_sylva_units sylva-units-preview skip-root-dependency-wait
 
 }
 

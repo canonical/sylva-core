@@ -39,7 +39,7 @@ _kustomize ${ENV_PATH} | define_source | kubectl apply -f -
 echo_b "\U0001F3AF Trigger reconciliation of units"
 
 # this is just to force-refresh on refreshed parameters
-reconcile_sylva_units
+reconcile_sylva_units sylva-system
 
 echo_b "\U000023F3 Wait for units to be ready"
 
