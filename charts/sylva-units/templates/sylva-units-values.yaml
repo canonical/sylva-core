@@ -85,6 +85,8 @@ remote cluster */}}
         kind: ConfigMap
         metadata:
           name: sylva-units-status
+          annotations:
+            sylva.org/upgraded-from-1.1.1: ""
         data:
           release-revision: "{{ .Release.Revision }}"
           sylva-units-chart-version: "{{ .Chart.Version }}"
