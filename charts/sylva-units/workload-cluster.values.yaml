@@ -519,7 +519,7 @@ units:
       path: ./kustomize-units/rancher-init/components/webhook-ha
 
   workload-kyverno-policies:
-    enabled: true
+    enabled: true # enable Kyverno policies by default on workload clusters
 
   cluster-import:
     enabled: false  # overriden depending on whether Rancher is enabled or not (eg. via shared-workload-clusters-settings)
