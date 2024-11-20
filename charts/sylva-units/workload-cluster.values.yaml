@@ -417,7 +417,7 @@ units:
     - base-deps
 
   workload-kyverno-policies:
-    enabled: true
+    enabled: true # enable Kyverno policies by default on workload clusters
 
   kyverno-policy-delete-kubernetes-vip-svc:
     enabled: true
