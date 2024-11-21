@@ -149,7 +149,7 @@ def create_report():
             def _get_child_md(child):
                 duration_text = "unknown runtime"
                 if child.duration:
-                    duration_text = f"{child.duration/60.0:.0f}min"
+                    duration_text = f"{child.duration / 60.0:.0f}min"
                 ds_pipeline_summary = pipeline_summary(child.downstream_pipeline)
                 return (
                     f"[{duration_text} {get_status_icon(child)}]({child.web_url})<br/>{ds_pipeline_summary}"
