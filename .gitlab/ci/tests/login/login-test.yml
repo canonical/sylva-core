@@ -144,13 +144,18 @@ mgmt-login:
     - !reference [.test_scripts, edit_hosts_file]
     - export HURL_token=$(kubectl --kubeconfig management-cluster-kubeconfig -n vault get secrets/vault-unseal-keys -o jsonpath='{.data.vault-root}' | base64 -d)
     - export HURL_password_grafana=$(kubectl --kubeconfig management-cluster-kubeconfig get secrets sylva-units-values -o yaml | yq .data.values | base64 -d | yq ._internal.grafana_admin_password)
+    - export HURL_domain=$(kubectl --kubeconfig management-cluster-kubeconfig get secret sylva-units-values -oyaml | yq '.data.values | @base64d' | yq '.cluster_domain')
     - export HURL_flux_url=$(kubectl --kubeconfig management-cluster-kubeconfig get ingress -n flux-system flux-webui-weave-gitops -o jsonpath='{ .spec.tls[].hosts[] }')
     - export HURL_vault_url=$(kubectl --kubeconfig management-cluster-kubeconfig get ingress -n vault vault -o jsonpath='{ .spec.tls[].hosts[] }')
-    - export HURL_rancher_url=$(kubectl --kubeconfig management-cluster-kubeconfig get ingress -n cattle-system rancher -o jsonpath='{ .spec.tls[].hosts[] }'); export domain=$(echo $HURL_rancher_url | cut -f2 -d .)
+    - export HURL_rancher_url=$(kubectl --kubeconfig management-cluster-kubeconfig get ingress -n cattle-system rancher -o jsonpath='{ .spec.tls[].hosts[] }')
     - export HURL_keycloak_url=$(kubectl --kubeconfig management-cluster-kubeconfig  get ingress -n keycloak keycloak-ingress -o jsonpath='{ .spec.tls[].hosts[] }')
     - export HURL_harbor_url=$(kubectl --kubeconfig management-cluster-kubeconfig get ingress -n harbor harbor-ingress -o jsonpath='{ .spec.tls[].hosts[] }')
     - export HURL_neuvector_url=$(kubectl --kubeconfig management-cluster-kubeconfig get ingress -n neuvector neuvector-webui-ingress  -o jsonpath='{ .spec.tls[].hosts[] }')
     - export HURL_gitea_url=$(kubectl --kubeconfig management-cluster-kubeconfig get ingress -n gitea gitea -o jsonpath='{ .spec.tls[].hosts[] }')
+    - export HURL_password_thanos=$(kubectl --kubeconfig management-cluster-kubeconfig get secrets sylva-units-values -o yaml | yq .data.values | base64 -d | yq ._internal.thanos_password)
+    - export HURL_user_thanos=$(kubectl --kubeconfig management-cluster-kubeconfig get secrets sylva-units-values -o yaml | yq .data.values | base64 -d | yq ._internal.thanos_user)
+    - export HURL_password_kubevirt=$(kubectl --kubeconfig management-cluster-kubeconfig get secrets sylva-units-values -o yaml | yq .data.values | base64 -d | yq ._internal.kubevirt_admin_password)
+    - export HURL_kubevirt_url=$(kubectl --kubeconfig management-cluster-kubeconfig get ingress -n kubevirt-manager kubevirt-manager -o jsonpath='{ .spec.tls[].hosts[] }')
     - |
       if [ -n "${HURL_neuvector_url}" ]; then
           sleep 2;
@@ -169,7 +174,13 @@ mgmt-login:
       else
           rm -rf  ./tools/login-test/gitea-admin.hurl
       fi
-    - hurl -k ./tools/login-test/*.hurl --test --color --noproxy=".$domain"  --report-junit $HURL_JUNIT_REPORT --report-html ${CI_PROJECT_DIR}
+    - |
+      if [ -n "${HURL_kubevirt_url}" ]; then
+          sleep 2;
+      else
+          rm -rf  ./tools/login-test/kubevirt-admin.hurl
+      fi
+    - hurl -k ./tools/login-test/*.hurl --test --color --noproxy=".$HURL_domain"  --report-junit $HURL_JUNIT_REPORT --report-html ${CI_PROJECT_DIR}
 
 wkld-login:
   stage: deployment-test
