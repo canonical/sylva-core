@@ -20,12 +20,27 @@ if [[ -z ${HELM_NAME} ]]; then
   exit 1
 fi
 
-function helm() { $(/usr/bin/which helm) "$@" 2> >(grep -v 'found symbolic link' >&2); }
+# if a second parameter is passed, it will be used to filter
+# which tests are run (wildcards can be used)
+#
+# if not specified the test_filter is '*'
+#
+# example:
+#
+#   tools/validation/helm-template-yamllint.sh sylva-units capo*
+#
+# this is useful when you want to re-run a single test to reproduce
+# an issue or develop a new test
+#
+test_filter=${2:-*}  # optional
+
+function helm() { $(/usr/bin/which helm) "$@" 2> >(grep -Ev 'found symbolic link|destination for sylva-units._internal.previous_values is a table' >&2); }
 
 export BASE_DIR=$( cd "$(dirname "${BASH_SOURCE[0]}")/../.." ; pwd -P )
 
-chart_dir=${BASE_DIR}/charts/${HELM_NAME}
+cd $BASE_DIR
 
+chart_dir=charts/${HELM_NAME}
 
 # for sylva-units, specifically we want to ensure that
 # 'values.yaml' should not have any units.x.enabled fields, unless set to false
@@ -45,45 +60,39 @@ if [[ $HELM_NAME == "sylva-units" ]]; then
   fi
 fi
 
-echo -e "\e[0Ksection_start:`date +%s`:helm_dependency_build\r\e[0K--------------- helm dependency build"
+# some specific tests are only run if no test_filter was specified
+if [[ $test_filter == '*' ]]; then
 
-helm dependency update $chart_dir
+  echo -e "\e[0Ksection_start:`date +%s`:build_use-oci-artifacts-final\r\e[0K--------------- produce use-oci-artifacts-final.values.yaml"
 
-echo -e "\e[0Ksection_end:`date +%s`:helm_dependency_build\r\e[0K"
+  ONLY_PRODUCE_USE_OCI_ARTIFACTS_VALUES=1 ${BASE_DIR}/tools/oci/build-sylva-units-artifact.py
 
-echo -e "\e[0Ksection_start:`date +%s`:build_use-oci-artifacts-final\r\e[0K--------------- produce use-oci-artifacts-final.values.yaml"
+  echo -e "\e[0Ksection_end:`date +%s`:build_use-oci-artifacts-final\r\e[0K"
 
-ONLY_PRODUCE_USE_OCI_ARTIFACTS_VALUES=1 ${BASE_DIR}/tools/oci/build-sylva-units-artifact.py
+  echo -e "\e[0Ksection_start:`date +%s`:helm_base_values\r\e[0K--------------- Checking default values with 'helm template' and 'yamllint' (for sylva-units chart all units enabled) ..."
 
-echo -e "\e[0Ksection_end:`date +%s`:build_use-oci-artifacts-final\r\e[0K"
+  # This applies only to sylva-units chart where we want to check that templating
+  # works fine with all units enabled
+  yq eval '{"units": .units | ... comments="" | to_entries | map({"key":.key,"value":{"enabled":true,"enabled_conditions":[]}}) | from_entries}' $chart_dir/values.yaml > /tmp/all-units-enabled.yaml
 
-echo -e "\e[0Ksection_start:`date +%s`:helm_base_values\r\e[0K--------------- Checking default values with 'helm template' and 'yamllint' (for sylva-units chart all units enabled) ..."
+  helm template ${HELM_NAME} $chart_dir --values /tmp/all-units-enabled.yaml \
+  | yamllint - -d "$(cat < ${BASE_DIR}/.gitlab/ci/configuration/yamllint.yaml) $(cat < ${BASE_DIR}/.gitlab/ci/configuration/yamllint-helm-template-rules)"
 
-# This applies only to sylva-units chart where we want to check that templating
-# works fine with all units enabled
-yq eval '{"units": .units | ... comments="" | to_entries | map({"key":.key,"value":{"enabled":true,"enabled_conditions":[]}}) | from_entries}' $chart_dir/values.yaml > /tmp/all-units-enabled.yaml
+  echo OK
+  echo -e "\e[0Ksection_end:`date +%s`:helm_base_values\r\e[0K"
 
-helm template ${HELM_NAME} $chart_dir --values /tmp/all-units-enabled.yaml \
-| yamllint - -d "$(cat < ${BASE_DIR}/.gitlab/ci/configuration/yamllint.yaml) $(cat < ${BASE_DIR}/.gitlab/ci/configuration/yamllint-helm-template-rules)"
+fi
 
-echo OK
-echo -e "\e[0Ksection_end:`date +%s`:helm_base_values\r\e[0K"
-
-test_dirs=$(find $chart_dir/test-values -mindepth 1 -maxdepth 1 -type d)
+test_dirs=$(find $chart_dir/test-values -mindepth 1 -maxdepth 1 -type d -name "$test_filter")
 if [ -d $chart_dir/test-values ] && [ -n "$test_dirs" ] ; then
   for dir in $test_dirs ; do
 
-    # This checks whether `helm template` should be run with .Release.IsUpgrade set instead of .Release.IsInstall
-    if [[ -f $dir/test-spec.yaml && $(yq .release-is-upgrade $dir/test-spec.yaml) == "true" ]]; then
-        HELM_FLAG=" --is-upgrade"
-    else
-        HELM_FLAG=""
-    fi
-
     echo -e "\e[0Ksection_start:`date +%s`:helm_more_values\r\e[0K--------------- Checking values from test-values/$(basename $dir) with 'helm template ${HELM_FLAG}' and 'yamllint' ..."
 
+    helm_template_args="${HELM_NAME}${HELM_FLAG} $chart_dir $(ls $dir/*.y*ml | sort | grep -v test-spec.yaml | sed -e 's/^/ --values /' | tr -d '\n')"
+    echo "  running: helm template $helm_template_args"
     set +e
-    helm template ${HELM_NAME}${HELM_FLAG} $chart_dir $(ls $dir/*.y*ml | sort | grep -v test-spec.yaml | sed -e 's/^/--values /') \
+    helm template $helm_template_args \
       | yamllint - -d "$(cat < ${BASE_DIR}/.gitlab/ci/configuration/yamllint.yaml) $(cat < ${BASE_DIR}/.gitlab/ci/configuration/yamllint-helm-template-rules)"
     exit_code=$?
     set -e
@@ -113,7 +122,7 @@ fi
 # for sylva-units, we also want to ensure things about the default values
 # in particular that they use _patches, _components and _postRenderers
 # instead of their equivalents without the '_'
-if [[ $HELM_NAME == "sylva-units" ]]; then
+if [[ $HELM_NAME == "sylva-units" ]] && [[ $test_filter == '*' ]]; then
   for value_file in $chart_dir/values.yaml $(ls $chart_dir/*.values.yaml); do
     echo -e "\e[0Ksection_start:`date +%s`:additional_check_$value_file\r\e[0K--------------- checking patches/components/postRenderers in $value_file ..."
     echo "--- "
