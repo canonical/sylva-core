@@ -58,7 +58,7 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
     spec:
       url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-capi-cluster.git
       ref:
-        tag: 0.4.8
+        branch: test_set_command
 
   devnull:
     kind: GitRepository
@@ -2159,6 +2159,38 @@ units:
             value: |
               #!/bin/bash
               sleep 60
+
+  kyverno-policy-postcommand-node-annotation:
+    info:
+      description: check if all the postcommands are executed
+      internal: true
+    enabled_conditions:
+    - '{{ tuple . "kyverno" | include "unit-enabled"  }}'
+    depends_on:
+      kyverno: true
+    unit_templates:
+    - base-deps
+    repo: sylva-core
+    kustomization_spec:
+      path: ./kustomize-units/kyverno-policies/node-annotation-postcommandcheck
+      wait: true
+
+  kyverno-policy-delete-kubernetes-vip-svc:
+    info:
+      description: Kyverno policy to cleanup the deprecated kubernetes-vip service in the case of upgrade from Sylva versions prior to v1.2
+      internal: true
+    enabled_conditions:
+    - '{{ tuple . "kyverno" | include "unit-enabled"  }}'
+    - '{{ lookup "v1" "Service" "kube-system" "kubernetes-vip" | empty | not }}'
+    depends_on:
+      cluster-machines-ready: true
+      kyverno: true
+    unit_templates:
+    - base-deps
+    repo: sylva-core
+    kustomization_spec:
+      path: ./kustomize-units/kyverno-policies/remove-kubernetes-vip-svc
+      wait: true
 
   kyverno-metal3-policies:
     info:
