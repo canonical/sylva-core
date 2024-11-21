@@ -44,6 +44,11 @@ function create_secret {
 }
 
 function migrate_cluster {
+    if [[ $# -ne 3 ]]; then
+        echo " !! migrate_cluster requires 3 parameters, but only 2 were given: $*"
+        return 1
+    fi
+
     local ns=$1
     local cluster_name=$2
     local rke2cp=$3
