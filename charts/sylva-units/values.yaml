@@ -4048,13 +4048,6 @@ units:
       _postRenderers:
         - kustomize:
             patches:
-            # Disable drift detection for rancher-monitoring webhooks and PrometheusRule
-            - target:
-                kind: (ValidatingWebhookConfiguration|MutatingWebhookConfiguration|PrometheusRule)
-              patch: |
-                - op: add
-                  path: /metadata/annotations/helm.toolkit.fluxcd.io~1driftDetection
-                  value: disabled
             - '{{ .Values._internal.pdb_allow_unhealthy_pod_eviction | include "preserve-type" }}'
     helm_secret_values:
       grafana:
