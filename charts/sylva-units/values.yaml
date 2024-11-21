@@ -2858,6 +2858,20 @@ units:
           name: '{{ .Values._internal.cluster_unit_os_images_info_configmap }}'
           valuesKey: values.yaml
           optional: '{{ not (.Values.cluster.capi_providers.infra_provider | eq "capm3") | include "as-bool" }}'
+      _postRenderers:
+        - kustomize:
+            patches:
+            - target:
+                kind: DockerCluster
+              patch: |-
+                apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
+                kind: DockerCluster
+                metadata:
+                  name: not-used
+                spec:
+                  controlPlaneEndpoint:
+                    host: 172.18.0.100
+                    port: 6443
     # we pass everything that is under `cluster` to this unit that uses sylva-capi-cluster chart
     # (we do it via a secret because some of the values are credentials in many scenarios)
     helm_secret_values: '{{ .Values.cluster | include "preserve-type" }}'
