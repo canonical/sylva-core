@@ -8787,7 +8787,20 @@ _internal:
           | include "preserve-type"
       }}
 
-  k8s_version: '{{ include "interpret-as-string" (tuple . .Values.cluster.k8s_version) }}'
+  litmus:
+    pod_delete:
+      namespace: 'vault'
+      service_name: 'pod-delete-sa'
+      targetpods: 'vault-0'
+      podsaffectedpercentage: '100'
+      sequence: 'serial'
+      applabel: ''
+      appkind: ''
+      probe: ''
+      total_chaos_duration: 60
+      chaos_interval: 60
+      
+
   mgmt_cluster: false
 
   # compute the hash value for clouds_yaml
@@ -9234,19 +9247,6 @@ shared_workload_clusters_values:
       receive_url: "https://{{ .Values.external_hostnames.thanos_receive }}/api/v1/receive"
   logging:
     loki_url: "https://{{ .Values.external_hostnames.loki }}"
-
-  litmus:
-    pod_delete:
-      namespace: 'vault'
-      service_name: 'pod-delete-sa'
-      total_chaos_duration: 60
-      chaos_interval: 60
-      targetpods: 'vault-0'
-      podsaffectedpercentage: '100'
-      sequence: 'serial'
-      applabel: ''
-      appkind: ''
-      probe: ''
 
   _internal:
     workload_clusters_cluster_subdomain: wclusters.{{ .Values.cluster_domain }}  # workload clusters cluster_domain will all be under wclusters.<cluster_domain>
