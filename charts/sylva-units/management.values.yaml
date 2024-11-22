@@ -151,9 +151,6 @@ units:
   litmus-testcase-k8s-api-response:
     enabled: true
 
-  litmus-testcase-login-test:
-    enabled: false
-
   litmus-testcase-pod-delete:
     enabled: false
 

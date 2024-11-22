@@ -1,28 +1,15 @@
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: login-test-sa
-  namespace: "litmus"
-  labels:
-    name: login-test-sa
-    app.kubernetes.io/part-of: litmus
-
 ---
-
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: login-test-clusterrole
+  name: litmus-sa
+  labels:
+    name: litmus-sa
+    app.kubernetes.io/part-of: litmus
 rules:
-  - apiGroups: ["*"]
-    resources: ["*"]
-    verbs: ["*"]
   # Create and monitor the experiment & helper pods
   - apiGroups: [""]
     resources: ["pods"]
-    verbs: ["create","delete","get","list","patch","update", "deletecollection"]
-  - apiGroups: [""]
-    resources: ["persistentvolumeclaims"]
     verbs: ["create","delete","get","list","patch","update", "deletecollection"]
   # Performs CRUD operations on the events inside chaosengine and chaosresult
   - apiGroups: [""]
@@ -34,7 +21,7 @@ rules:
   # Fetch configmaps details and mount it to the experiment pod (if specified)
   - apiGroups: [""]
     resources: ["configmaps"]
-    verbs: ["get","list"]
+    verbs: ["get","list",]
   # Track and get the runner, experiment, and helper pods log
   - apiGroups: [""]
     resources: ["pods/log"]
@@ -50,26 +37,11 @@ rules:
   # for creation, status polling and deletion of litmus chaos resources used within a chaos workflow
   - apiGroups: ["litmuschaos.io"]
     resources: ["chaosengines","chaosexperiments","chaosresults"]
-    verbs: ["create","list","get","patch","update","delete"]
-  # for experiment to perform node status checks
-  - apiGroups: [""]
-    resources: ["nodes"]
-    verbs: ["get","list"]
+    verbs: ["create","list","get","patch","update","delete", "watch"]
   - apiGroups: [""]
     resources: ["secrets"]
     verbs: ["create", "delete", "get", "list", "patch", "update", "deletecollection"]
+  - apiGroups: ["networking.k8s.io"]
+    resources: ["ingresses"]
+    verbs: ["get", "list"]
 
----
-
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
-metadata:
-  name: login-test-clusterrolebinding
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: login-test-clusterrole
-subjects:
-- kind: ServiceAccount
-  name: login-test-sa
-  namespace: "litmus"
