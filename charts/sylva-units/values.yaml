@@ -860,20 +860,6 @@ units:
     kustomization_spec:
       path: ./kustomize-units/litmus-testcases/k8s-api-response
 
-  litmus-testcase-login-test:
-    info:
-      description: Runs API testcase
-      internal: true
-      maturity: stable
-    unit_templates:
-    - base-deps
-    depends_on:
-      sylva-ca: true
-      litmus-operator: true
-    repo: sylva-core
-    kustomization_spec:
-      path: ./kustomize-units/litmus-testcases/login-test
-
   litmus-testcase-pod-delete:
     info:
       description: Runs API testcase
@@ -887,6 +873,18 @@ units:
     repo: sylva-core
     kustomization_spec:
       path: ./kustomize-units/litmus-testcases/pod-delete
+      postBuild:
+        substitute:
+          TOTAL_CHAOS_DURATION: '{{ .Values._internal.litmus.pod_delete.total_chaos_duration | quote }}'
+          CHAOS_INTERVAL: '{{ .Values._internal.litmus.pod_delete.chaos_interval | quote }}'
+          TARGET_PODS: '{{ .Values._internal.litmus.pod_delete.targetpods | quote }}'
+          PODS_AFFECTED_PERC: '{{ .Values._internal.litmus.pod_delete.podsaffectedpercentage | quote }}'
+          SEQUENCE: '{{ .Values._internal.litmus.pod_delete.sequence | quote }}'
+          APP_LABEL: '{{ .Values._internal.litmus.pod_delete.applabel | quote }}'
+          APP_KIND: '{{ .Values._internal.litmus.pod_delete.appkind | quote }}'
+          PROBE: '{{ .Values._internal.litmus.pod_delete.probe | quote }}'
+          NAMESPACE: '{{ .Values._internal.litmus.pod_delete.namespace | quote }}'
+          SERVICE_NAME: '{{ .Values._internal.litmus.pod_delete.service_name | quote }}'
 
   kubevirt:
     info:
@@ -9236,6 +9234,19 @@ shared_workload_clusters_values:
       receive_url: "https://{{ .Values.external_hostnames.thanos_receive }}/api/v1/receive"
   logging:
     loki_url: "https://{{ .Values.external_hostnames.loki }}"
+
+  litmus:
+    pod_delete:
+      namespace: 'vault'
+      service_name: 'pod-delete-sa'
+      total_chaos_duration: 60
+      chaos_interval: 60
+      targetpods: 'vault-0'
+      podsaffectedpercentage: '100'
+      sequence: 'serial'
+      applabel: ''
+      appkind: ''
+      probe: ''
 
   _internal:
     workload_clusters_cluster_subdomain: wclusters.{{ .Values.cluster_domain }}  # workload clusters cluster_domain will all be under wclusters.<cluster_domain>

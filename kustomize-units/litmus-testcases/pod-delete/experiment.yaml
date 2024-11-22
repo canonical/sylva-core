@@ -4,8 +4,8 @@ description:
     Deletes a pod belonging to a deployment/statefulset/daemonset
 kind: ChaosExperiment
 metadata:
-  name: pod-delete-sa
-  namespace: vault
+  name: '${SERVICE_NAME}'
+  namespace: '${NAMESPACE}'
   labels:
     name: pod-delete
     app.kubernetes.io/part-of: litmus
@@ -57,7 +57,7 @@ spec:
     env:
 
     - name: TOTAL_CHAOS_DURATION
-      value: '30'
+      value: '${TOTAL_CHAOS_DURATION}'
 
     # Period to wait before and after injection of chaos in sec
 
@@ -68,10 +68,10 @@ spec:
       value: 'true'
 
     - name: CHAOS_INTERVAL
-      value: '10'
+      value: '${CHAOS_INTERVAL}'
 
     - name: TARGET_PODS
-      value: 'vault-0,vault-1,vault-2'
+      value: '${TARGET_PODS}'
 
     # pod failures without '--force' & default terminationGracePeriodSeconds
     - name: FORCE
@@ -79,7 +79,7 @@ spec:
 
     ## percentage of total pods to target
     - name: PODS_AFFECTED_PERC
-      value: '100'
+      value: '${PODS_AFFECTED_PERC}'
 
     - name: LIB
       value: 'litmus'
@@ -93,7 +93,7 @@ spec:
     ## it defines the sequence of chaos execution for multiple target pods
     ## supported values: serial, parallel
     - name: SEQUENCE
-      value: 'serial'
+      value: '${SEQUENCE}'
 
     labels:
       name: pod-delete
