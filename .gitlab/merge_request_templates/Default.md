@@ -17,21 +17,28 @@ Below you can choose test deployment variants to run in this MR's CI.
 
 **Legend:**
 
-| Icon | Meaning                  | Available values                                                          |
-|------|--------------------------|---------------------------------------------------------------------------|
-| ☁   | **Infra Provider**       | `capd`, `capo`, `capm3`                                                   |
-| 🚀  | **Bootstrap Provider**   | `kubeadm` (alias `kadm`), `rke2`                                          |
-| 🐧  | **Node OS**              | `ubuntu`, `suse`                                                          |
-| 🛠  | **Deployment Options**    | `light-deploy`, `oci`, `ha`, `misc`                                       |
-| 🎬  | **Pipeline Scenarios**   | `rolling-update`, `mgmt-rolling-update`, `k8s-upgrade`, `sylva-upgrade`, `sylva-upgrade-from-x.x.X`, `simple-update`, `preview` |
+| Icon | Meaning                  | Available values                                                          | Randomization                    |
+|------|--------------------------|---------------------------------------------------------------------------|----------------------------------|
+| ☁   | **Infra Provider**       | `capd`, `capo`, `capm3`                                                   | possible, use `random`            |
+| 🚀  | **Bootstrap Provider**   | `kadm`, `rke2`                                                            | possible, use `random`            |
+| 🐧  | **Node OS**              | `ubuntu`, `suse`                                                          | possible, use `random`            |
+| 🛠  | **Deployment Options**    | `light-deploy`, `oci`, `git`, `ha`, `misc`                                | possible for oci/git              |
+| 🎬  | **Pipeline Scenarios**   | `rolling-update`, `mgmt-rolling-update`, `k8s-upgrade`, `sylva-upgrade`, `sylva-upgrade-from-x.x.X`, `simple-update`, `preview` | no                     |
 
 <!-- DEPLOYMENT FLAVOR DEFINITION START -->
 
-* [x] 🎬preview ☁capd 🚀kadm 🐧ubuntu 🛠oci
+* [x] 🎬preview ☁random 🚀random 🐧random
+* [ ] 🎬preview ☁capd 🚀kadm 🐧ubuntu 🛠oci
 * [ ] 🎬preview ☁capo 🚀rke2 🐧suse
 * [ ] 🎬preview ☁capm3 🚀rke2 🐧ubuntu
 
-* [x] ☁capd 🚀kubeadm 🛠light-deploy 🐧ubuntu
+* [x] ☁random 🚀random 🐧random
+* [ ] ☁random 🚀random 🐧random 🎬mgmt-rolling-update
+* [ ] ☁random 🚀random 🐧random 🎬k8s-upgrade
+* [ ] ☁random 🚀random 🐧random 🎬rolling-update
+* [ ] ☁random 🚀random 🐧random 🎬sylva-upgrade
+
+* [ ] ☁capd 🚀kubeadm 🛠light-deploy 🐧ubuntu
 * [ ] ☁capd 🚀rke2 🛠oci,light-deploy 🐧suse
 
 * [ ] ☁capo 🚀rke2 🐧ubuntu
