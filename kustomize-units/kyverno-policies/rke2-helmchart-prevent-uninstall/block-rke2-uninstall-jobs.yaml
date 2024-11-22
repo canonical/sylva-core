@@ -8,8 +8,20 @@ metadata:
     policies.kyverno.io/description: >-
       block rke2 helmchart jobs if they try to uninstall critical components like calico, coredns, metallb
 spec:
-  background: true
+  background: false
   validationFailureAction: Enforce
+  webhookConfiguration:
+    matchConditions:
+    - name: is-create
+      expression: request.operation == "CREATE"
+    - name: is-calico-or-metallb
+      expression: >-
+        has(object.metadata) && object.metadata.name in [
+          "helm-delete-rke2-calico",
+          "helm-delete-rke2-calico-crd",
+          "helm-delete-rke2-coredns",
+          "helm-delete-metallb",
+        ]
   rules:
     - name: block-job
       match:
@@ -17,15 +29,6 @@ spec:
         - resources:
             kinds:
               - batch/v1/Job
-            names:
-              - helm-delete-rke2-calico
-              - helm-delete-rke2-calico-crd
-              - helm-delete-rke2-coredns
-              - helm-delete-metallb
       validate:
-        deny:
-          conditions:
-            - key: '{{request.operation}}'
-              operator: AnyIn
-              value:
-              - CREATE
+        message: Sylva prevents the deletion of Calico, MetalLB and CoreDNS by the RKE2 HelmCharts controller
+        deny: {}
