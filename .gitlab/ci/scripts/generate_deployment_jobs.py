@@ -22,17 +22,19 @@ TEMPLATE_FILE = os.path.abspath(f"{BASE_DIR}/.gitlab/ci/deployments-base.yml")
 PREDEFINED_PIPELINES_CONFIG_FILE = f"{BASE_DIR}/.gitlab/ci/configuration/predifined-pipelines-config.yaml"
 DEFAULT_MR_DESCRIPTION = f"{BASE_DIR}/.gitlab/merge_request_templates/Default.md"
 
-ALLOWED_INFRA = os.getenv("ALLOWED_DEPLOYMENT_INFRA", "capd,capo,capm3")
+ALLOWED_INFRA = os.getenv("ALLOWED_DEPLOYMENT_INFRA", "capd,capo,capm3").split(",")
+ALLOWED_BOOTSTRAP = os.getenv("ALLOWED_DEPLOYMENT_BOOTSTRAP", "kadm,rke2").split(",")
+ALLOWED_OS = os.getenv("ALLOWED_DEPLOYMENT_NODE_OS", "ubuntu,suse").split(",")
 ALLOWED_SCENARIOS = os.getenv(
     "ALLOWED_DEPLOYMENT_SCENARIO",
     "simple-update,rolling-update,mgmt-rolling-update,rolling-update,k8s-upgrade,sylva-upgrade,nightly,preview"
-)
+).split(",")
 
 # Max number of pipelines to be allowed for a MR
 DEPLOY_CHILD_PIPELINE_COUNT_LIMIT = int(os.getenv("DEPLOY_CHILD_PIPELINE_COUNT_LIMIT", "8"))
 
 # Make randomization stable for a single MR
-random.seed(os.getenv("CI_MERGE_REQUEST"))
+random.seed(os.getenv("CI_MERGE_REQUEST_ID"))
 
 
 def get_ci_configuration_from_context():
@@ -105,48 +107,127 @@ def get_default_ci_config():
     )
 
 
+def get_deploy_parameter(deploy_name, emoji_key, as_list=False, can_be_empty=False):
+    match = re.compile(emoji_key + r"([\w\d,\.-]+)").findall(deploy_name)
+    if len(match) != 1:
+        if len(match) == 0 and can_be_empty is False:
+            logging.error(f"unable to get {emoji_key} value from {deploy_name}")
+            sys.exit(1)
+        if len(match) > 1:
+            logging.error(f"multiple {emoji_key} values from {deploy_name}")
+            sys.exit(1)
+    if match:
+        if as_list is False:
+            return match[0]
+        else:
+            return match[0].split(",")
+    if as_list is True:
+        return []
+
+
+def check_deployments(deployments):
+    """
+    Draw random variant properties (stable on a MR) and
+    enforce various rules on selected deployment in order to limit uncompatibilities
+    """
+    # Limit number of generated child pipelines
+    if len(deployments) > DEPLOY_CHILD_PIPELINE_COUNT_LIMIT:
+        logging.error(f"Too many deployments combinations (count={len(deployments)})")
+        logging.error(f"Deployment list: {deployments}")
+        sys.exit(1)
+
+    for index, deploy_name in enumerate(deployments):
+
+        infra = get_deploy_parameter(deploy_name, "☁")
+        bootstrap = get_deploy_parameter(deploy_name, "🚀")
+        node_os = get_deploy_parameter(deploy_name, "🐧")
+        scenario = get_deploy_parameter(deploy_name, "🎬", can_be_empty=True)
+        options = get_deploy_parameter(deploy_name, "🛠", as_list=True, can_be_empty=True)
+        initial_options = get_deploy_parameter(deploy_name, "🛠", as_list=False, can_be_empty=True)
+
+        if infra == "random":
+            if scenario and scenario not in ["simple-update", "preview"]:
+                # capd cannot be chosen for HA required senarios
+                infra = random.choice([i for i in ALLOWED_INFRA if i != "capd"])
+            else:
+                infra = random.choice(ALLOWED_INFRA)
+        if infra not in ALLOWED_INFRA:
+            logging.error(f"deployment {deploy_name}: infra not allowed")
+            sys.exit(1)
+
+        if bootstrap == "random":
+            bootstrap = random.choice(ALLOWED_BOOTSTRAP)
+        if bootstrap not in ALLOWED_BOOTSTRAP:
+            logging.error(f"deployment {deploy_name}: bootstrap provider not allowed")
+            sys.exit(1)
+
+        if node_os == "random":
+            node_os = random.choice(ALLOWED_OS)
+        if node_os not in ALLOWED_OS:
+            logging.error(f"deployment {deploy_name}: bootstrap provider not allowed")
+            sys.exit(1)
+
+        if scenario:
+            if scenario not in ALLOWED_SCENARIOS:
+                logging.error(f"deployment {deploy_name}: scenario not allowed")
+                sys.exit(1)
+            if scenario not in ["simple-update", "preview"]:
+                options.append("ha")
+
+        if "oci" in options and "git" in options:
+            logging.error(f"deployment {deploy_name}: git and oci options are exclusive")
+            sys.exit(1)
+        if "oci" not in options and "git" not in options:
+            options.append(random.choice(["oci", "git"]))
+
+        deploy_name = deploy_name.replace("☁random", f"☁{infra}")
+        deploy_name = deploy_name.replace("🚀random", f"🚀{bootstrap}")
+        deploy_name = deploy_name.replace("🐧random", f"🐧{node_os}")
+        if "🛠" in deploy_name:
+            deploy_name = deploy_name.replace(f"🛠{initial_options}", f"🛠{",".join(options)}")
+        else:
+            deploy_name = f"{deploy_name} 🛠{",".join(options)}"
+        deployments[index] = deploy_name
+
+    logging.info("")
+    logging.info("Deployments flavors generated:")
+    [logging.info(f"* {d}") for d in deployments]
+
+    return deployments
+
+
 def generate_ci_job_struct(job_names):
     ci_jobs = {}
 
     for job in job_names:
-        infra = re.compile(r"☁([\w\d-]+)").findall(job)
-        if len(infra) != 1 or infra[0] not in ALLOWED_INFRA.split(","):
-            logging.error(f"deployment {job}: infra not allowed")
-            sys.exit(1)
-        ci_jobs[job] = {"extends": [f".{infra[0]}"]}
+        infra = get_deploy_parameter(job, "☁")
+
+        ci_jobs[job] = {"extends": [f".{infra}"]}
 
         if "skip-tests" in job:
             ci_jobs[job].setdefault("variables", {})
             ci_jobs[job]["variables"]["SKIP_TESTS"] = "true"
 
-        scenario = re.compile(r"🎬([\w\d\.-]+)").findall(job)
+        scenario = get_deploy_parameter(job, "🎬", can_be_empty=True)
         if scenario:
-            if scenario[0] in ALLOWED_SCENARIOS.split(","):
-                ci_jobs[job]["extends"].append(f".scenario_{scenario[0]}")
+            ci_jobs[job]["extends"].append(f".scenario_{scenario}")
 
-                # Special temporary exception for capm3 sylva-upgrade
-                if scenario[0] == "sylva-upgrade" and infra[0] in ["capm3", "capm3-virt"]:
-                    ci_jobs[job]["extends"].append(".scenario_sylva-upgrade-capm3")
-            else:
-                logging.error(f"deployment {job}: scenario not allowed")
-                sys.exit(1)
+            # Special temporary exception for capm3 sylva-upgrade
+            if scenario == "sylva-upgrade" and infra in ["capm3", "capm3-virt"]:
+                ci_jobs[job]["extends"].append(".scenario_sylva-upgrade-capm3")
 
-        option_match = re.compile(r"🛠([\w\d,-]+)").findall(job)
-
-        if option_match:
-            options = option_match[0].split(",")
-
+        options = get_deploy_parameter(job, "🛠", as_list=True, can_be_empty=True)
         if "oci" in options:
             ci_jobs[job]["extends"].append(".wait-publish-jobs")
 
-        if infra[0] == "capm3" and "single-node" not in options:
+        if infra == "capm3" and "single-node" not in options:
             ci_jobs[job].setdefault("variables", {})
             ci_jobs[job]["variables"]["EQUINIX_RUNNER_PLAN"] = "m3.large.x86"
 
         # For human triggered pipelines, make deployment jobs triggerable individually
         if os.getenv("CI_PIPELINE_SOURCE") in ["pipeline", "web", "merge_request_event", "push"] \
             and "renovate" not in os.getenv("CI_MERGE_REQUEST_LABELS", "") \
-                and not scenario or scenario[0] != "preview":
+                and scenario != "preview":
             ci_jobs[job]["when"] = "manual"
 
         if ("allow-failure" in job
@@ -161,19 +242,11 @@ def generate_ci_job_struct(job_names):
 def output_yaml_file_from_template(ci_jobs):
     with open(TEMPLATE_FILE, "r") as f:
         output = yaml.load(f, Loader=yaml.loader.SafeLoader)
-
     output.update(ci_jobs)
     yaml.dump(output, sys.stdout, indent=2, allow_unicode=True)
 
 
 if __name__ == "__main__":
-    selected_deployments = get_ci_configuration_from_context()
-
-    # Limit number of generated child pipelines
-    if len(selected_deployments) > DEPLOY_CHILD_PIPELINE_COUNT_LIMIT:
-        logging.error(f"Too many deployments combinations (count={len(selected_deployments)})")
-        logging.error(f"Deployment list: {selected_deployments}")
-        sys.exit(1)
-
+    selected_deployments = check_deployments(get_ci_configuration_from_context())
     ci_jobs = generate_ci_job_struct(selected_deployments)
     output_yaml_file_from_template(ci_jobs)
