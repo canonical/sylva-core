@@ -3,6 +3,7 @@ kind: Kustomization
 
 resources:
   - custom-pod.yaml
-  - rbac.yaml
+  - ../base-clusterrole
+  - ../testcase-components
   - experiment.yaml
   - chaosengine.yaml

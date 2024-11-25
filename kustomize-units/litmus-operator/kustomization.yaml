@@ -3,7 +3,12 @@ kind: Kustomization
 
 resources:
 - https://litmuschaos.github.io/litmus/litmus-operator-v3.10.0.yaml
+- chaos-exporter.yaml
 
 # Patches namespace priviledges and adding labels
 patches:
 - path: patch-namespace.yaml
+- target:
+    kind: Deployment
+    name: chaos-operator-ce
+  path: ./chaos-exporter-vars.yaml
