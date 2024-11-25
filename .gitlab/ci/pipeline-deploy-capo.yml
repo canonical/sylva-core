@@ -3,7 +3,7 @@ include:
   - local: .gitlab/ci/pipeline-deploy-base.yml
 
 variables:
-  CAPO_RUNNER_PLATFORM_TAG: capo-infra-rocket
+  CAPO_RUNNER_PLATFORM_TAG: ansible-managed-capo
   PRIVATE_RUNNER_CONTEXT: rocket
 
 # Default tag will be used for all deployments/updates jobs
