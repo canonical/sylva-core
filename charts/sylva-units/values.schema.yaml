@@ -55,7 +55,7 @@ description:
 $defs:
   gotpl:
     type: string
-    pattern: "^{{ .* }}$"
+    pattern: "^{{(.|\r?\n)*}}$"
 
   username-password:
     anyOf:
