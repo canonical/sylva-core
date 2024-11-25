@@ -58,7 +58,8 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
     spec:
       url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-capi-cluster.git
       ref:
-        tag: 0.4.10
+        #tag: 0.4.4
+        branch: cm/metallb-labels
 
   devnull:
     kind: GitRepository
@@ -2627,7 +2628,7 @@ units:
                     name: metal3-ironic
                   spec:
                     type: LoadBalancer
-                    loadBalancerClass: '{{ tuple . .Values.cluster.loadBalancerClass | include "interpret-as-string" }}'
+                    loadBalancerClass: '{{ .Values._internal.loadBalancerClass }}'
 
   metal3-pdb:
     info:
@@ -3317,7 +3318,7 @@ units:
       upgrade:
         force: true
       values:
-        loadBalancerClass: '{{ tuple . .Values.cluster.loadBalancerClass | include "interpret-as-string" }}'
+        loadBalancerClass: '{{ .Values._internal.loadBalancerClass }}'
         controller:
           nodeSelector:
             node-role.kubernetes.io/control-plane: '{{ .Values._internal.cp_node_label_value }}'
@@ -3745,7 +3746,7 @@ units:
                     name: k8s-gateway
                   spec:
                     type: LoadBalancer
-                    loadBalancerClass: '{{ tuple . .Values.cluster.loadBalancerClass | include "interpret-as-string" }}'
+                    loadBalancerClass: '{{ .Values._internal.loadBalancerClass }}'
               - patch: |
                   kind: Deployment
                   apiVersion: apps/v1
@@ -3796,7 +3797,7 @@ units:
           # except in the CAPO case where we don't know it beforehand in values and we take it
           # from capo-cluster-resources ConfigMap (see substituteFrom below)
           allocated_ip: '{{ tuple .Values.cluster_virtual_ip (not (.Values.cluster.capi_providers.infra_provider | eq "capo")) | include "set-only-if" }}'
-          lb_class: '{{ tuple . .Values.cluster.loadBalancerClass | include "interpret-as-string" }}'
+          lb_class: sylva.org/metallb-class
         substituteFrom:
         # see explanation above about allocated_ip / cluster_virtual_ip in CAPO case
         - kind: ConfigMap
@@ -3890,7 +3891,7 @@ units:
             node-role.kubernetes.io/control-plane: '{{ .Values._internal.cp_node_label_value }}'
           kind: DaemonSet
           service:
-            loadBalancerClass: '{{ tuple . .Values.cluster.loadBalancerClass | include "interpret-as-string" }}'
+            loadBalancerClass: '{{ .Values._internal.loadBalancerClass }}'
             enabled: true
             externalIPs:
             - '{{ .Values.cluster_virtual_ip }}'
@@ -7246,10 +7247,6 @@ cluster:
   helm_extra_ca_certs: # for an OCI-based deployment this is overridden in use-oci-artifacts.values.yaml
     metallb: ""
     calico: ""
-
-  set_lb_class: '{{ ne .Values.cluster.capi_providers.infra_provider "capd" | include "as-bool" }}'
-  # loadBalancerClass to be used in order to limit the services served by metallb/kube-vip and allow multiple lb to run in parallel
-  loadBalancerClass: '{{ tuple .Values._internal.loadBalancerClass (tuple . .Values.cluster.set_lb_class | include "interpret-for-test") | include "set-only-if" }}'
 
   capv:
     # image_name: # vSphere image name
