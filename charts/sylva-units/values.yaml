@@ -3877,6 +3877,7 @@ units:
           {{- else -}}
             30m
           {{- end -}}
+        force: true
       values:
         fullnameOverride: rke2-ingress-nginx
         controller:
