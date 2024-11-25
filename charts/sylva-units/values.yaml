@@ -3961,7 +3961,7 @@ units:
             storageSpec:
               volumeClaimTemplate:
                 spec:
-                  storageClassName: '{{ tuple . (tuple . "two-replicas-storageclass" | include "unit-enabled") "two-replicas-storageclass" .Values._internal.default_storage_class | include "interpret-ternary" }}'
+                  storageClassName: '{{ tuple . (tuple . "low-replicas-storageclass" | include "unit-enabled") "low-replicas-storageclass" .Values._internal.default_storage_class | include "interpret-ternary" }}'
                   accessModes: ["ReadWriteOnce"]
                   resources:
                     requests:
@@ -3995,7 +3995,7 @@ units:
             storage:
               volumeClaimTemplate:
                 spec:
-                  storageClassName: '{{ tuple . (tuple . "two-replicas-storageclass" | include "unit-enabled") "two-replicas-storageclass" .Values._internal.default_storage_class | include "interpret-ternary" }}'
+                  storageClassName: '{{ tuple . (tuple . "low-replicas-storageclass" | include "unit-enabled") "low-replicas-storageclass" .Values._internal.default_storage_class | include "interpret-ternary" }}'
                   accessModes: ["ReadWriteOnce"]
                   resources:
                     requests:
@@ -4731,6 +4731,8 @@ units:
           chart: longhorn
           version: 104.2.1+up1.7.2
       values:
+        persistence:
+          defaultClass: '{{ ge (int .Values._internal.longhorn_node_count) 3 }}'
         metrics:
           serviceMonitor:
             enabled: '{{ .Values._internal.monitoring.enabled | include "preserve-type" }}'
@@ -5692,8 +5694,8 @@ units:
       minio-operator: true
       minio-logging-init: true
       ingress-nginx: '{{ tuple . "ingress-nginx" | include "unit-enabled" }}'
-      two-replicas-storageclass: '{{ tuple . "two-replicas-storageclass" | include "unit-enabled" }}'
-      '{{ .Values._internal.default_storage_class_unit }}': '{{ not (tuple . "two-replicas-storageclass" | include "unit-enabled") }}'
+      low-replicas-storageclass: '{{ tuple . "low-replicas-storageclass" | include "unit-enabled" }}'
+      '{{ .Values._internal.default_storage_class_unit }}': '{{ not (tuple . "low-replicas-storageclass" | include "unit-enabled") }}'
     annotations:
       sylvactl/readyMessage: MinIO logging tenant console can be reached at https://{{ .Values.external_hostnames.minio_logging_console }} ({{ .Values.external_hostnames.minio_logging_console }} must resolve to {{ .Values.display_external_ip }})
     repo: minio-operator
@@ -5720,7 +5722,7 @@ units:
               name: pool-0
               volumesPerserver: 4
               size: 3Gi
-              storageClassName: '{{ tuple . (tuple . "two-replicas-storageclass" | include "unit-enabled") "two-replicas-storageclass" .Values._internal.default_storage_class | include "interpret-ternary" }}'
+              storageClassName: '{{ tuple . (tuple . "low-replicas-storageclass" | include "unit-enabled") "low-replicas-storageclass" .Values._internal.default_storage_class | include "interpret-ternary" }}'
               containerSecurityContext:
                 runAsUser: 1000
                 runAsGroup: 1000
@@ -5859,8 +5861,8 @@ units:
       minio-operator: true
       minio-monitoring-init: true
       ingress-nginx: '{{ tuple . "ingress-nginx" | include "unit-enabled" }}'
-      two-replicas-storageclass: '{{ tuple . "two-replicas-storageclass" | include "unit-enabled" }}'
-      '{{ .Values._internal.default_storage_class_unit }}': '{{ not (tuple . "two-replicas-storageclass" | include "unit-enabled") }}'
+      low-replicas-storageclass: '{{ tuple . "low-replicas-storageclass" | include "unit-enabled" }}'
+      '{{ .Values._internal.default_storage_class_unit }}': '{{ not (tuple . "low-replicas-storageclass" | include "unit-enabled") }}'
     annotations:
       sylvactl/readyMessage: MinIO monitoring tenant console can be reached at https://{{ .Values.external_hostnames.minio_monitoring_console }} ({{ .Values.external_hostnames.minio_monitoring_console }} must resolve to {{ .Values.display_external_ip }})
     repo: minio-operator
@@ -5887,7 +5889,7 @@ units:
               name: pool-0
               volumesPerserver: 4
               size: 10Gi
-              storageClassName: '{{ tuple . (tuple . "two-replicas-storageclass" | include "unit-enabled") "two-replicas-storageclass" .Values._internal.default_storage_class | include "interpret-ternary" }}'
+              storageClassName: '{{ tuple . (tuple . "low-replicas-storageclass" | include "unit-enabled") "low-replicas-storageclass" .Values._internal.default_storage_class | include "interpret-ternary" }}'
               containerSecurityContext:
                 runAsUser: 1000
                 runAsGroup: 1000
@@ -6143,7 +6145,7 @@ units:
                 cpu: "250m"
           persistence:
             enabled: true
-            storageClass: '{{ tuple . (tuple . "two-replicas-storageclass" | include "unit-enabled") "two-replicas-storageclass" .Values._internal.default_storage_class | include "interpret-ternary" }}'
+            storageClass: '{{ tuple . (tuple . "low-replicas-storageclass" | include "unit-enabled") "low-replicas-storageclass" .Values._internal.default_storage_class | include "interpret-ternary" }}'
             accessModes: ["ReadWriteOnce"]
             size: '{{  has .Values.env_type (list "dev" "ci") | ternary "2Gi" "4Gi" }}'
           evalInterval: 1m
@@ -6694,9 +6696,9 @@ units:
             parameters:
               numberOfReplicas: "1"
 
-  two-replicas-storageclass:
+  low-replicas-storageclass:
     info:
-      description: Create a longhorn storage class with a two replicas
+      description: Create a Longhorn storage class with less than 3 replicas
       internal: true
     repo: sylva-core
     unit_templates:
@@ -6711,7 +6713,7 @@ units:
       wait: true
       postBuild:
         substitute:
-          CLASS_NAME: two-replicas-storageclass
+          CLASS_NAME: low-replicas-storageclass
       _patches:
         - target:
             kind: StorageClass
@@ -6719,8 +6721,10 @@ units:
             kind: _unused_
             metadata:
               name: _unused_
+            annotations:
+              storageclass.kubernetes.io/is-default-class: '{{ .Values._internal.default_storage_class | eq "low-replicas-storageclass" }}'
             parameters:
-              numberOfReplicas: '{{ int .Values._internal.node_count | ge 2 | ternary 2 1 }}'
+              numberOfReplicas: '{{ (int .Values._internal.longhorn_node_count | min 2) | max 1 }}'
 
   sylva-prometheus-rules:
     info:
@@ -7546,6 +7550,14 @@ _internal:
 
   default_password: '{{ include "internalPersistentRandomPasswd" (tuple . "default_password") }}'
 
+  default_longhorn_storage_class: >-
+    {{- $nodeCount := int (tuple . .Values._internal.longhorn_node_count | include "interpret-as-string") -}}
+    {{- if ge $nodeCount 3 -}}
+      longhorn
+    {{- else -}}
+      low-replicas-storageclass
+    {{- end -}}
+
   default_storage_class: >-
     {{ if (tuple . "ceph-csi-cephfs" | include "unit-enabled") -}}
       cephfs-csi
@@ -7554,7 +7566,7 @@ _internal:
     {{- else if (tuple . "vsphere-csi-driver" | include "unit-enabled") -}}
       vsphere-csi
     {{- else if (tuple . "longhorn" | include "unit-enabled") -}}
-      longhorn
+      {{ .Values._internal.default_longhorn_storage_class}}
     {{- else -}}
       local-path
     {{- end -}}
@@ -7563,7 +7575,7 @@ _internal:
   # (a storage class does not need to appear in this map if the required unit has the same name)
   storage_class_unit_map:
     local-path: local-path-provisioner
-    longhorn: longhorn
+    '{{ .Values._internal.default_longhorn_storage_class}}': longhorn
     vsphere-csi: vsphere-csi-driver
     '{{ .Values.openstack.storageClass.name }}': cinder-csi
     cephfs-csi: ceph-csi-cephfs
@@ -7574,6 +7586,7 @@ _internal:
 
   storage_class_RWX_support:
     - longhorn
+    - low-replicas-storageclass
     - cephfs-csi
   default_storage_class_RWX_support: >-
     {{- $default_storage_class := tuple . .Values._internal.default_storage_class | include "interpret-as-string" -}}
@@ -7620,6 +7633,17 @@ _internal:
       {{- $n = add $n $md.replicas -}}
     {{- end -}}
     {{ $n | include "preserve-type" }}
+    '
+  # total number of longhorn nodes
+  longhorn_node_count:
+    '
+    {{- $count := 0 -}}
+    {{- range $key, $value := .Values.cluster.baremetal_hosts -}}
+      {{- if hasKey $value "longhorn_disk_config" -}}
+        {{- $count = add $count 1 -}}
+      {{- end -}}
+    {{- end -}}
+    {{- $count -}}
     '
 
   cluster_unit_os_images_info_configmap: os-images-info
@@ -7677,6 +7701,14 @@ _internal:
           _immutable_comment: "Underlying infrastructure of a running cluster can't be changed"
       _immutable: '{{ not .Values._internal.ha_cluster.is_ha | include "preserve-type" }}'
       _immutable_comment: "Cluster values can't be changed, as they would trigger a rolling upgrade that is not supported in non-HA mode"
+
+    longhorn:
+      helmrelease_spec:
+        values:
+          persistence:
+            defaultClassReplicaCount:
+              _immutable: true
+              _immutable_comment: "Default longhorn class replica count should not be changed as it impact longhorn upgrade"
 
   pdb_allow_unhealthy_pod_eviction:
     target:
