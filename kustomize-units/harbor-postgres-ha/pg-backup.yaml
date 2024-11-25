@@ -12,7 +12,6 @@ spec:
           command: ["/bin/sh", "-c"]
           args:
             - echo "Taking backup";
-              pg_dump --help;
               echo "pghost is - $PGHOST , user is - $PGUSER , database is - $PGDATABASE" ;
               pg_dump -h "$PGHOST" -U "$PGUSER" "$PGDATABASE" > /data/harbor-backup.sql ;
               echo "Backup complete";
