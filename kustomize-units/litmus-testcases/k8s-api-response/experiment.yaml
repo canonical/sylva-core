@@ -4,8 +4,8 @@ description:
     Deletes a pod belonging to a deployment/statefulset/daemonset
 kind: ChaosExperiment
 metadata:
-  name: k8s-api-response
-  namespace: litmus
+  name: '${SERVICE_NAME}'
+  namespace: '${NAMESPACE}'
   labels:
     name: k8s-api-response
     app.kubernetes.io/part-of: litmus
@@ -57,49 +57,19 @@ spec:
     env:
 
     - name: TOTAL_CHAOS_DURATION
-      value: '100'
+      value: '${TOTAL_CHAOS_DURATION}'
 
     # Period to wait before and after injection of chaos in sec
 
     - name: RAMP_TIME
       value: ''
 
-    - name: FORCE
-      value: 'true'
-
     - name: CHAOS_INTERVAL
-      value: '100'
-
-    - name: TARGET_PODS
-      value: 'custom-exp-pod'
+      value: '${CHAOS_INTERVAL}'
 
     # pod failures without '--force' & default terminationGracePeriodSeconds
     - name: FORCE
       value: 'false'
-
-    ## percentage of total pods to target
-    - name: PODS_AFFECTED_PERC
-      value: '100'
-
-    - name: CLUSTERID
-      value: 'sylva-cluster'
-
-    - name: WORKLOAD_CLUSTER_NAME
-      value: ''
-
-    - name: LIB
-      value: 'litmus'
-
-    - name: LIB_IMAGE
-      value: 'nikhilsethi31/go-runner:combined-image-v1.0.6'
-
-    - name: LIB_IMAGE_PULL_POLICY
-      value: 'IfNotPresent'
-
-    ## it defines the sequence of chaos execution for multiple target pods
-    ## supported values: serial, parallel
-    - name: SEQUENCE
-      value: 'serial'
 
     labels:
       name: k8s-api-response

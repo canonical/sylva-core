@@ -143,3 +143,10 @@ data:
             metric_relabel_configs:
             - regex: auth
               action: labeldrop
+          - job_name: 'chaos-monitor'
+            metrics_path: /metrics
+            follow_redirects: true
+            scrape_interval: 90s
+            scrape_timeout: 60s
+            static_configs:
+              - targets: ['chaos-monitor.litmus.svc.cluster.local:8080']
