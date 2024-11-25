@@ -1,10 +1,10 @@
 cluster:
   capi_providers:
     infra_provider: capv
-    bootstrap_provider: cabpk
+    bootstrap_provider: cabpr
   control_plane_replicas: 1
   capv:
-    image_name: "ubuntu-2004-kube-v1.24.10"
+    image_name: "tpl-ubuntu-2204-rke2-v1.24.12+rke2r1"
     dataCenter: # Datacenter to use
     networks:
       default:
