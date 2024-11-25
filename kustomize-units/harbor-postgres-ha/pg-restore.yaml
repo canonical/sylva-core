@@ -6,6 +6,20 @@ metadata:
 spec:
   template:
     spec:
+      initContainers:
+        - name: check-backup
+          image: bitnami/kubectl:latest
+          command:
+            - /bin/sh
+            - "-c"
+          args:
+            - |
+              status=$(kubectl get job harbor-db-backup -n harbor -o jsonpath='{.status.succeeded}');
+              if [ "$status" != "1" ]; then
+                echo "Backup Job did not succeed. Exiting.";
+                exit 1;
+              fi;
+              echo "Backup Job succeeded. Proceeding with restore.";
       containers:
         - name: pg-restore
           image: postgres:13
