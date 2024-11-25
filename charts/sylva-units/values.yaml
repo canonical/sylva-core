@@ -840,8 +840,6 @@ units:
       maturity: stable
     unit_templates:
     - base-deps
-    depends_on:
-      sylva-ca: true
     repo: sylva-core
     kustomization_spec:
       path: ./kustomize-units/litmus-operator
@@ -859,6 +857,12 @@ units:
     repo: sylva-core
     kustomization_spec:
       path: ./kustomize-units/litmus-testcases/k8s-api-response
+      postBuild:
+        substitute:
+          TOTAL_CHAOS_DURATION: '{{ .Values._internal.litmus.k8s_api_response.total_chaos_duration | quote }}'
+          CHAOS_INTERVAL: '{{ .Values._internal.litmus.k8s_api_response.chaos_interval | quote }}'
+          NAMESPACE: '{{ .Values._internal.litmus.k8s_api_response.namespace | quote }}'
+          SERVICE_NAME: '{{ .Values._internal.litmus.k8s_api_response.service_name | quote }}'
 
   litmus-testcase-pod-delete:
     info:
@@ -868,7 +872,6 @@ units:
     unit_templates:
     - base-deps
     depends_on:
-      sylva-ca: true
       litmus-operator: true
     repo: sylva-core
     kustomization_spec:
@@ -882,7 +885,6 @@ units:
           SEQUENCE: '{{ .Values._internal.litmus.pod_delete.sequence | quote }}'
           APP_LABEL: '{{ .Values._internal.litmus.pod_delete.applabel | quote }}'
           APP_KIND: '{{ .Values._internal.litmus.pod_delete.appkind | quote }}'
-          PROBE: '{{ .Values._internal.litmus.pod_delete.probe | quote }}'
           NAMESPACE: '{{ .Values._internal.litmus.pod_delete.namespace | quote }}'
           SERVICE_NAME: '{{ .Values._internal.litmus.pod_delete.service_name | quote }}'
 
@@ -8796,10 +8798,14 @@ _internal:
       sequence: 'serial'
       applabel: ''
       appkind: ''
-      probe: ''
       total_chaos_duration: 60
       chaos_interval: 60
-      
+    k8s_api_response:
+      namespace: 'litmus'
+      service_name: 'k8s-api-response'
+      podsaffectedpercentage: '100'
+      total_chaos_duration: 60
+      chaos_interval: 60
 
   mgmt_cluster: false
 

@@ -18,6 +18,18 @@ rules:
   - apiGroups: ["apps"]
     resources: ["deployments","statefulsets","replicasets", "daemonsets"]
     verbs: ["create", "delete", "get", "list", "update", "watch"]
+  # deriving the parent/owner details of the pod(if parent is deploymentConfig)
+  - apiGroups: ["apps.openshift.io"]
+    resources: ["deploymentconfigs"]
+    verbs: ["list","get"]
+  # deriving the parent/owner details of the pod(if parent is deploymentConfig)
+  - apiGroups: [""]
+    resources: ["replicationcontrollers"]
+    verbs: ["get","list"]
+  # deriving the parent/owner details of the pod(if parent is argo-rollouts)
+  - apiGroups: ["argoproj.io"]
+    resources: ["rollouts"]
+    verbs: ["list","get"]
   # Fetch configmaps details and mount it to the experiment pod (if specified)
   - apiGroups: [""]
     resources: ["configmaps"]
@@ -44,4 +56,3 @@ rules:
   - apiGroups: ["networking.k8s.io"]
     resources: ["ingresses"]
     verbs: ["get", "list"]
-

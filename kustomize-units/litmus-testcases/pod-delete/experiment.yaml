@@ -64,9 +64,6 @@ spec:
     - name: RAMP_TIME
       value: ''
 
-    - name: FORCE
-      value: 'true'
-
     - name: CHAOS_INTERVAL
       value: '${CHAOS_INTERVAL}'
 
@@ -80,15 +77,6 @@ spec:
     ## percentage of total pods to target
     - name: PODS_AFFECTED_PERC
       value: '${PODS_AFFECTED_PERC}'
-
-    - name: LIB
-      value: 'litmus'
-
-    - name: LIB_IMAGE
-      value: 'litmuschaos/go-runner:3.4.0'
-
-    - name: LIB_IMAGE_PULL_POLICY
-      value: 'IfNotPresent'
 
     ## it defines the sequence of chaos execution for multiple target pods
     ## supported values: serial, parallel
