@@ -162,7 +162,7 @@
 | **test-nfs-ganesha** | Perform testing for RWX enabled PVs created from NFS Ganesha |  | True | Kustomize | N/A |
 | **thanos-credentials-secret** | create a secret containing tenant's thanos credentials |  | True | Kustomize | N/A |
 | **thanos-init** | sets up thanos certificate<br/><br/>it generates a multiple CN certificate for all Thanos components |  | True | Kustomize | N/A |
-| **thanos-uninstall-pre-upgrade** | special unit to uninstall thanos before cluster upgrades<br/><br/>In 1.1.1 release, thanos was configured to use single-replica-storageclass, As this value can't be updated, and thanos data will be deleted in any case as minio tenant will be deleted, uninstall it prior to upgrade cluster and reinstall it with new values. |  | True | Kustomize | N/A |
+| **thanos-uninstall-pre-upgrade** | special unit to uninstall thanos before cluster upgrades<br/><br/>In 1.1.1 release, thanos was configured to use minio-monitoring-tenant tenant (and single-replica-storageclass when longhorn was used) This tenant is replaced by minio-monitoring-tenant. As this value can't be updated, and thanos data will be lost in any case, uninstall it prior to upgrade cluster and reinstall it with new values. |  | True | Kustomize | N/A |
 | **tigera-clusterrole** | is here to allow for upgrading Calico chart when upgrading cluster<br/><br/>For v1.25.x to v1.26.x, see https://gitlab.com/sylva-projects/sylva-core/-/issues/664 |  | True | Kustomize | N/A |
 | **two-replicas-storageclass** | Create a longhorn storage class with a two replicas |  | True | Kustomize | N/A |
 | **vault-oidc** | configures Vault to be used with OIDC |  | True | Kustomize | N/A |
