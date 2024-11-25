@@ -168,3 +168,4 @@
 | **vault-oidc** | configures Vault to be used with OIDC |  | True | Kustomize | N/A |
 | **vault-secrets** | generates random secrets in vault, configure password policy, authentication backends, etc... |  | True | Kustomize | N/A |
 | **vsphere-cpi** | configures Vsphere Cloud controller manager |  | True | Helm | N/A |
+| **workload-kyverno-policies** | configures Kyverno policies for workload clusters |  | True | Kustomize | N/A |
