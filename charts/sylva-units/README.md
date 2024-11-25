@@ -372,6 +372,34 @@ c: "{{ .Values.b }}"  # this is a templated value, _with_ "nesting" (ie. b is a 
 When doing nested templating, sometimes we want to force interpretation before manipulating the data.
 For this to be possible, you **must** use some helpers, as illustrated by the following examples:
 
+* using generic helper that forces the interpretation of a value (of any type) at provided path:
+
+  * this **DOES NOT WORK**:
+
+    ```yaml
+    a:
+      foo: bar
+    b: "{{ .Values.a }}"
+    # WRONG nested templating: it breaks because .Values.b.foo isn't a dict
+    d-broken: '{{ .Values.b.foo }}'  # WRONG, .Values.b is not a dict, it still is the '{{ .Values.a }}' string
+    debug-d: '{{ .Values.b | base64 }}'  # here you would get the base64 of the '{{ .Values.a }}' string
+    ```
+
+  * ... you should to do this instead:
+
+    ```yaml
+    a:
+      foo: bar
+    b: "{{ .Values.a }}"
+    # working version (gives "bar", thanks to the call to "interpret" which results in ".Values.b" being the dict from ".Values.a"):
+    d: >-
+      {{- tuple . "b" | include "interpret" -}}
+      {{- .Values.b.foo -}}
+    ```
+
+  This is required for structured data (dicts and lists), but there are dedicated helpers that can be more convenient
+  to use while working with simple types (see below).
+
 * processing a value that should be a _string_ after template evaluation:
 
   * this **DOES NOT WORK**:
