@@ -7634,6 +7634,17 @@ _internal:
     {{- end -}}
     {{ $n | include "preserve-type" }}
     '
+  # total number of longhorn nodes
+  longhorn_node_count:
+    '
+    {{- $count := 0 -}}
+    {{- range $key, $value := .Values.cluster.baremetal_hosts -}}
+      {{- if hasKey $value "longhorn_disk_config" -}}
+        {{- $count = add $count 1 -}}
+      {{- end -}}
+    {{- end -}}
+    {{- $count -}}
+    '
 
   # total number of longhorn nodes
   longhorn_node_count:
