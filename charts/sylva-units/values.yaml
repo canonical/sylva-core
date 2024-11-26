@@ -2899,6 +2899,35 @@ units:
           name: '{{ .Values._internal.cluster_unit_os_images_info_configmap }}'
           valuesKey: values.yaml
           optional: '{{ not (.Values.cluster.capi_providers.infra_provider | eq "capm3") | include "as-bool" }}'
+      _postRenderers:
+        - kustomize:
+            patches:
+              - target:
+                  kind: RKE2ControlPlane
+                patch: |
+                  kind: _unused_
+                  metadata:
+                    name: _unused_
+                  spec:
+                    serverConfig:
+                      kubeAPIServer:
+                        extraArgs:
+                        - feature-gates=ValidatingAdmissionPolicy=true
+                        - runtime-config=admissionregistration.k8s.io/v1beta1
+              - target:
+                  kind: KubeadmControlPlane
+                patch: |
+                  kind: _unused_
+                  metadata:
+                    name: _unused_
+                  spec:
+                    kubeadmConfigSpec:
+                      clusterConfiguration:
+                        apiServer:
+                          extraArgs:
+                            feature-gates: ValidatingAdmissionPolicy=true
+                            runtime-config: admissionregistration.k8s.io/v1beta1
+
     # we pass everything that is under `cluster` to this unit that uses sylva-capi-cluster chart
     # (we do it via a secret because some of the values are credentials in many scenarios)
     helm_secret_values: '{{ .Values.cluster | include "preserve-type" }}'
