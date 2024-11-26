@@ -5843,8 +5843,6 @@ units:
       postBuild:
         substitute:
           JOB_CHECKSUM: '{{ .Release.Revision }}'
-      _components:
-        - components/root-dependency
       _patches:
       - target:
           kind: ClusterRole
@@ -6280,8 +6278,6 @@ units:
       postBuild:
         substitute:
           JOB_CHECKSUM: '{{ .Release.Revision }}'
-      _components:
-        - components/root-dependency
       _patches:
       - target:
           kind: ClusterRole
