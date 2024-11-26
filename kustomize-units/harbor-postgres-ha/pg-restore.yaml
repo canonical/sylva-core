@@ -14,11 +14,16 @@ spec:
             - "-c"
           args:
             - |
-              status=$(kubectl get job harbor-db-backup -n harbor -o jsonpath='{.status.succeeded}');
-              if [ "$status" != "1" ]; then
-                echo "Backup Job did not succeed. Exiting.";
-                exit 1;
-              fi;
+              echo "Waiting for backup job to complete...";
+              while true; do
+                status=$(kubectl get job harbor-db-backup -n harbor -o jsonpath='{.status.succeeded}');
+                if [ "$status" == "1" ]; then
+                  echo "Backup job succeeded.";
+                  break;
+                fi;
+                echo "Backup job not completed yet. Retrying in 10 seconds...";
+                sleep 10;
+              done;
               echo "Backup Job succeeded. Proceeding with restore.";
       containers:
         - name: pg-restore
@@ -27,6 +32,11 @@ spec:
           args:
             - echo "Listing available backup file:"
               ls -lrth /data ;
+              if [ ! -f /data/harbor-backup.sql ]; then
+                echo "Backup file not found. Exiting.";
+                exit 1;
+              fi;
+              echo "Backup file found. Starting restore process...";
               echo "Staring restore process"
               psql -h "${PGHOST}" -U "${PGUSER}" "${PGDATABASE}" < /data/harbor-backup.sql ;
               echo "Restore complete";
