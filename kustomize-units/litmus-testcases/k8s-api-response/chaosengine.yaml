@@ -5,8 +5,8 @@ metadata:
   namespace: '${NAMESPACE}'
 spec:
   appinfo:
-    appns: '${NAMESPACE}'
-    applabel: '${APP_LABEL}'
+    appns: ''
+    applabel: ''
   ## It can be true/false
   annotationCheck: 'false'
   # It can be active/stop

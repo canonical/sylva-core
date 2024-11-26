@@ -792,7 +792,6 @@ units:
     unit_templates:
     - base-deps
     depends_on:
-      sylva-ca: true
       litmus-operator: true
     repo: sylva-core
     kustomization_spec:
@@ -813,6 +812,7 @@ units:
     - base-deps
     depends_on:
       litmus-operator: true
+      vault: true
     repo: sylva-core
     kustomization_spec:
       path: ./kustomize-units/litmus-testcases/pod-delete
