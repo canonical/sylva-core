@@ -3,5 +3,5 @@ kind: Kustomization
 
 resources:
   - backup-pvc.yaml
-  - pg-backup.yaml
+#  - pg-backup.yaml
   - pg-restore.yaml

@@ -30,15 +30,18 @@ spec:
           image: postgres:13
           command: ["/bin/sh", "-c"]
           args:
-            - echo "Listing available backup file:"
+            - echo "Taking backup";
+              echo "pghost is - ${PGHOST} , user is - ${PGUSER} , database is - ${PGDATABASE}" ;
+              pg_dump -h "${PGHOST}" -U "${PGUSER}" "${PGDATABASE}" > /data/harbor-backup.sql ;
+              echo "Backup complete";
+              echo "Backup file created - /data/harbor-backup.sql" ;
               ls -lrth /data ;
               if [ ! -f /data/harbor-backup.sql ]; then
                 echo "Backup file not found. Exiting.";
                 exit 1;
               fi;
               echo "Backup file found for restore. Starting restore process...";
-              echo "Staring restore process"
-              psql -h "${PGHOST}" -U "${PGUSER}" "${PGDATABASE}" < /data/harbor-backup.sql ;
+              psql -h "${PGHOSTHA}" -U "${PGUSER}" "${PGDATABASE}" < /data/harbor-backup.sql ;
               echo "Restore complete";
           volumeMounts:
             - mountPath: /data
