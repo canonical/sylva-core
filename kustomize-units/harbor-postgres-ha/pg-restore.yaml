@@ -6,25 +6,25 @@ metadata:
 spec:
   template:
     spec:
-      initContainers:
-        - name: check-backup
-          image: bitnami/kubectl:1.27.4
-          command:
-            - /bin/sh
-            - "-c"
-          args:
-            - |
-              echo "Waiting for backup job to complete...";
-              while true; do
-                status=$(kubectl get job harbor-db-backup -n harbor -o jsonpath='{.status.succeeded}');
-                if [ "$status" == "1" ]; then
-                  echo "Backup job succeeded.";
-                  break;
-                fi;
-                echo "Backup job not completed yet. Retrying in 10 seconds...";
-                sleep 10;
-              done;
-              echo "Proceeding with restore.";
+#      initContainers:
+#        - name: check-backup
+#          image: bitnami/kubectl:1.27.4
+#          command:
+#            - /bin/sh
+#            - "-c"
+#          args:
+#            - |
+#              echo "Waiting for backup job to complete...";
+#              while true; do
+#                status=$(kubectl get job harbor-db-backup -n harbor -o jsonpath='{.status.succeeded}');
+#                if [ "$status" == "1" ]; then
+#                  echo "Backup job succeeded.";
+#                  break;
+#                fi;
+#                echo "Backup job not completed yet. Retrying in 10 seconds...";
+#                sleep 10;
+#              done;
+#              echo "Proceeding with restore.";
       containers:
         - name: pg-restore
           image: postgres:13
