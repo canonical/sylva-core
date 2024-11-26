@@ -3847,6 +3847,34 @@ units:
             namespace: '{{ .Release.Namespace }}'
           cattle_agent_kustomize_path: ./cattle-kustomize
 
+  ingress-nginx-cleanup:
+    info:
+      description: remove rke2-ingress-nginx service from previous deployments
+      internal: true
+    unit_templates:
+    - base-deps
+    - kube-job
+    enabled_conditions:
+    - '{{ tuple . "ingress-nginx" | include "unit-enabled" }}'
+    - '{{ .Values._internal.state.is_upgrade }}'
+    - >-
+      {{- $nginxSvc := lookup "v1" "Service" "kube-system" "rke2-ingress-nginx-controller" -}}
+      {{ ne ($nginxSvc | dig "spec" "loadBalancerClass" "") .Values._internal.loadBalancerClass }}
+    depends_on:
+      metallb-resources: '{{ tuple . "metallb" | include "unit-enabled" }}'
+    kustomization_spec:
+      targetNamespace: kube-system
+      _patches:
+      - target:
+          kind: ConfigMap
+          labelSelector: kube-job=script
+        patch: |
+          - op: replace
+            path: /data/kube-job.sh
+            value: |
+              #!/bin/bash
+              kubectl -n kube-system delete service rke2-ingress-nginx-controller
+
   ingress-nginx:
     info:
       description: installs Nginx ingress controller
@@ -3856,6 +3884,7 @@ units:
     depends_on:
       metallb-resources: '{{ tuple . "metallb" | include "unit-enabled" }}'
       '{{ .Values._internal.calico_readiness_unit }}': '{{ tuple . "calico" | include "unit-enabled" }}'
+      ingress-nginx-cleanup: '{{ tuple . "ingress-nginx-cleanup" | include "unit-enabled" }}'
     helm_repo_url: https://rke2-charts.rancher.io
     helm_chart_versions:
       4.10.501: '{{ include "k8s-version-match" (tuple ">=1.28.0,<1.29.0" .Values._internal.k8s_version) }}'
