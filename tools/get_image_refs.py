@@ -314,8 +314,10 @@ class K8sParser(object):
                         current_level[kind_name] = {}
                     current_level = current_level[kind_name]
 
-                # Add container name to the final level
-                current_level['container'] = container.name
+                # Add container name to the final level as a list
+                if 'containers' not in current_level:
+                    current_level['containers'] = []
+                current_level['containers'].append(container.name)
         return image_dependencies
 
     def get_images_per_unit(self, image_dependencies: dict):
