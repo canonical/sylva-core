@@ -7752,7 +7752,7 @@ _internal:
   cp_node_label_value: '{{ (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpr") | ternary "true" "" }}'
 
   monitoring:
-    enabled: '{{ tuple . "monitoring" | include "unit-enabled" | include "as-bool" }}'
+    enabled: '{{ tuple . "monitoring-crd" | include "unit-enabled" | include "as-bool" }}'
     conditionals:
       longhorn:
         enabled: '{{ tuple . "longhorn" | include "unit-enabled" }}'
