@@ -6725,6 +6725,7 @@ units:
       kyverno-policies-ready: true
     enabled_conditions:
       - '{{ tuple . "logging" | include "unit-enabled" }}'
+      - '{{ tuple . "loki" | include "unit-enabled" }}'
     repo: sylva-core
     kustomization_substitute_secrets:
       PASSWORD: '{{ .Values._internal.loki_password }}'

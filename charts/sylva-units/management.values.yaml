@@ -252,6 +252,7 @@ units:
               basicAuthPassword: '{{ .Values._internal.loki_password }}'
 
   logging:
+    enabled: true
     depends_on:
       loki: '{{ tuple . "loki" | include "unit-enabled" }}'
 
