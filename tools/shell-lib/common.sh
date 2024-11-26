@@ -202,7 +202,7 @@ function cleanup_bootstrap_cluster() {
     libvirt_metal_ks=`KUBECONFIG= kubectl get ks -l sylva-units.unit=libvirt-metal -o yaml | yq '.items|length'`
     if [[ $CLEANUP_BOOTSTRAP_CLUSTER == 'yes' && $libvirt_metal_ks == "0" ]]; then
       echo_b "\U0001F5D1 Delete bootstrap cluster"
-      if [[ "$(kubectl get kustomization.kustomize.toolkit.fluxcd.io pivot -o jsonpath='{.status.conditions[?(@.type=="Ready")].status}' 2>/dev/null)" == "True" ]]; then
+      if kubectl wait job --for=jsonpath={.status.succeeded}=1 pivot; then
         kind delete cluster -n $KIND_CLUSTER_NAME
       else
         echo "Cannot delete bootstrap cluster as 'pivot' Kustomization is not ready."
