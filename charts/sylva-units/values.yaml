@@ -973,7 +973,7 @@ units:
       _patches:
         - target:
             kind: Job
-            name: pg-backup
+            name: harbor-db-backup
           patch: |-
             - op: add
               path: /spec/template/spec/containers/0/env
@@ -996,7 +996,7 @@ units:
                   value: "harbor_backup.sql"
         - target:
             kind: Job
-            name: pg-restore
+            name: harbor-db-restore
           patch: |-
             - op: add
               path: /spec/template/spec/containers/0/env
