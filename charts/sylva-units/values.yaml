@@ -1002,6 +1002,8 @@ units:
               path: /spec/template/spec/containers/0/env
               value:
                 - name: PGHOST
+                  value: harbor-postgres-primary.harbor.svc.cluster.local
+                - name: PGHOSTHA
                   value: harbor-postgres-ha-postgresql.harbor.svc.cluster.local
                 - name: PGUSER
                   valueFrom:
