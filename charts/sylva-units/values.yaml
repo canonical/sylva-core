@@ -4732,7 +4732,7 @@ units:
           version: 104.2.1+up1.7.2
       values:
         persistence:
-          defaultClass: '{{ ge (int .Values._internal.longhorn_node_count) 3 }}'
+          defaultClass: '{{ ge (int .Values._internal.longhorn_node_count) 3 | include "preserve-type" }}'
         metrics:
           serviceMonitor:
             enabled: '{{ .Values._internal.monitoring.enabled | include "preserve-type" }}'
