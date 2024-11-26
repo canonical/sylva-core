@@ -67,6 +67,9 @@ spec:
     - name: CHAOS_INTERVAL
       value: '${CHAOS_INTERVAL}'
 
+    - name: TARGET_PODS
+      value: '${TARGET_PODS}'
+
     # pod failures without '--force' & default terminationGracePeriodSeconds
     - name: FORCE
       value: 'false'

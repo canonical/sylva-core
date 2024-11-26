@@ -802,6 +802,7 @@ units:
           CHAOS_INTERVAL: '{{ .Values._internal.litmus.k8s_api_response.chaos_interval | quote }}'
           NAMESPACE: '{{ .Values._internal.litmus.k8s_api_response.namespace | quote }}'
           SERVICE_NAME: '{{ .Values._internal.litmus.k8s_api_response.service_name | quote }}'
+          TARGET_PODS: '{{ .Values._internal.litmus.k8s_api_response.targetpods | quote }}'
 
   litmus-testcase-pod-delete:
     info:
@@ -7692,6 +7693,7 @@ _internal:
       podsaffectedpercentage: '100'
       total_chaos_duration: 60
       chaos_interval: 60
+      targetpods: 'custom-exp-pod'
 
   mgmt_cluster: false
 

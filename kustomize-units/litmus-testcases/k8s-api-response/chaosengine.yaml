@@ -3,6 +3,9 @@ kind: ChaosEngine
 metadata:
   name: '${SERVICE_NAME}'
   namespace: '${NAMESPACE}'
+  annotations:
+    kustomize.toolkit.fluxcd.io/ssa: IfNotPresent
+
 spec:
   appinfo:
     appns: ''
