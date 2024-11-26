@@ -837,7 +837,8 @@ units:
     info:
       description: Deploys litmus core component as an unit
       internal: true
-      maturity: stable
+      test: true
+      maturity: beta
     unit_templates:
     - base-deps
     repo: sylva-core
@@ -846,28 +847,34 @@ units:
 
   litmus-testcase-k8s-api-response:
     info:
-      description: Runs API testcase
+      description: Runs k8s API Response testcase
       internal: true
-      maturity: stable
+      test: true
+      maturity: beta
     unit_templates:
     - base-deps
     depends_on:
       litmus-operator: true
     repo: sylva-core
     kustomization_spec:
+      targetNamespace: litmus
       path: ./kustomize-units/litmus-testcases/k8s-api-response
       postBuild:
         substitute:
-          TOTAL_CHAOS_DURATION: '{{ .Values._internal.litmus.k8s_api_response.total_chaos_duration | quote }}'
-          CHAOS_INTERVAL: '{{ .Values._internal.litmus.k8s_api_response.chaos_interval | quote }}'
-          NAMESPACE: '{{ .Values._internal.litmus.k8s_api_response.namespace | quote }}'
-          SERVICE_NAME: '{{ .Values._internal.litmus.k8s_api_response.service_name | quote }}'
+          QUOTE: '"'
+          UNIT_NAME: k8s-api-response
+          TOTAL_CHAOS_DURATION: "600"
+          CHAOS_INTERVAL: "600"
+          TARGET_PODS: custom-exp-pod
+          NAMESPACE: litmus
+          PROBE_DATA: '{{ .Values._internal.litmus.probe | toJson }}'
 
   litmus-testcase-pod-delete:
     info:
-      description: Runs API testcase
+      description: Runs Pod delete testcase
       internal: true
-      maturity: stable
+      test: true
+      maturity: beta
     unit_templates:
     - base-deps
     depends_on:
@@ -875,18 +882,21 @@ units:
       vault: true
     repo: sylva-core
     kustomization_spec:
+      targetNamespace: vault
       path: ./kustomize-units/litmus-testcases/pod-delete
       postBuild:
         substitute:
-          TOTAL_CHAOS_DURATION: '{{ .Values._internal.litmus.pod_delete.total_chaos_duration | quote }}'
-          CHAOS_INTERVAL: '{{ .Values._internal.litmus.pod_delete.chaos_interval | quote }}'
-          TARGET_PODS: '{{ .Values._internal.litmus.pod_delete.targetpods | quote }}'
-          PODS_AFFECTED_PERC: '{{ .Values._internal.litmus.pod_delete.podsaffectedpercentage | quote }}'
-          SEQUENCE: '{{ .Values._internal.litmus.pod_delete.sequence | quote }}'
-          APP_LABEL: '{{ .Values._internal.litmus.pod_delete.applabel | quote }}'
-          APP_KIND: '{{ .Values._internal.litmus.pod_delete.appkind | quote }}'
-          NAMESPACE: '{{ .Values._internal.litmus.pod_delete.namespace | quote }}'
-          SERVICE_NAME: '{{ .Values._internal.litmus.pod_delete.service_name | quote }}'
+          QUOTE: '"'
+          UNIT_NAME: pod-delete
+          TOTAL_CHAOS_DURATION: "60"
+          CHAOS_INTERVAL: "60"
+          TARGET_PODS: vault-0
+          PODS_AFFECTED_PERC: "100"
+          SEQUENCE: serial
+          APP_LABEL: app.kubernetes.io/name=vault
+          APP_KIND: statefulset
+          NAMESPACE: vault
+          PROBE_DATA: '{{ .Values._internal.litmus.probe | toJson }}'
 
   kubevirt:
     info:
@@ -8770,6 +8780,27 @@ metallb_helm_values:
 
 _internal:
 
+  litmus:
+    probe:
+      - name: "Execute Login Test Script"
+        type: "cmdProbe"
+        cmdProbe/inputs:
+          command: "/scripts/hurl.sh"
+          comparator:
+            type: "string"
+            criteria: "contains"
+            value: "Succeeded files:"
+          source:
+            image: enilegu/login-test:v1.0.3
+        mode: Continuous
+        runProperties:
+          stopOnFailure: false
+          probeTimeout: "30s"
+          interval: "60s"
+          retry: 10
+          initialDelaySeconds: 120
+          probePollingInterval: "30s"
+
   state:
     # is_upgrade reflects whether or not the currently processed release
     #   is an "upgrade", ie. a new release coming after a full installation
@@ -8789,24 +8820,7 @@ _internal:
           | include "preserve-type"
       }}
 
-  litmus:
-    pod_delete:
-      namespace: 'vault'
-      service_name: 'pod-delete-sa'
-      targetpods: 'vault-0'
-      podsaffectedpercentage: '100'
-      sequence: 'serial'
-      applabel: ''
-      appkind: ''
-      total_chaos_duration: 60
-      chaos_interval: 60
-    k8s_api_response:
-      namespace: 'litmus'
-      service_name: 'k8s-api-response'
-      podsaffectedpercentage: '100'
-      total_chaos_duration: 60
-      chaos_interval: 60
-
+  k8s_version: '{{ include "interpret-as-string" (tuple . .Values.cluster.k8s_version) }}'
   mgmt_cluster: false
 
   # compute the hash value for clouds_yaml
@@ -9329,3 +9343,4 @@ openshift:
     # serviceHostname: openshift-assisted-service.example.com
     # variable to specify the openshift assisted image service hostname
     # imageHostname: openshift-assisted-images.example.com
+

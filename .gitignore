@@ -19,9 +19,6 @@ reports/
 
 # Pipeline reports
 report_output.md
-<<<<<<< HEAD
 
 # Dump artifacts
 dumps/
-=======
->>>>>>> 17a433d39 (add testcase)

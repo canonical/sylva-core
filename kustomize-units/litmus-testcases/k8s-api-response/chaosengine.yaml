@@ -1,8 +1,10 @@
 apiVersion: litmuschaos.io/v1alpha1
 kind: ChaosEngine
 metadata:
-  name: '${SERVICE_NAME}'
+  name: '${UNIT_NAME}'
   namespace: '${NAMESPACE}'
+  annotations:
+    kustomize.toolkit.fluxcd.io/ssa: IfNotPresent
 spec:
   appinfo:
     appns: ''
@@ -11,21 +13,22 @@ spec:
   annotationCheck: 'false'
   # It can be active/stop
   engineState: 'active'
-  chaosServiceAccount: '${SERVICE_NAME}'
+  chaosServiceAccount: '${UNIT_NAME}'
   monitoring: false
   # It can be delete/retain
-  jobCleanUpPolicy: 'delete'
+  jobCleanUpPolicy: 'retain'
   experiments:
-    - name: '${SERVICE_NAME}'
+    - name: '${UNIT_NAME}'
       spec:
+        probe: '${PROBE_DATA}'
         components:
           env:
             - name: TOTAL_CHAOS_DURATION
-              value: '${TOTAL_CHAOS_DURATION}'
+              value: ${QUOTE}${TOTAL_CHAOS_DURATION}${QUOTE}
 
             # set chaos interval (in sec) as desired
             - name: CHAOS_INTERVAL
-              value: '${CHAOS_INTERVAL}'
+              value: ${QUOTE}${CHAOS_INTERVAL}${QUOTE}
 
             - name: APP_NAMESPACE
-              value: '${NAMESPACE}'
+              value: ${QUOTE}${NAMESPACE}${QUOTE}

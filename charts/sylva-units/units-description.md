@@ -93,6 +93,9 @@
 
 <!-- markdownlint-disable MD044 -->
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 375c2f8c1 (updated variables)
 | name | full description | source |
 | :----- | :----- | :----- |
 | **bootstrap-local-path** | installs localpath CSI in bootstrap cluster | Kustomization |
@@ -109,6 +112,7 @@
 | **cluster-machines-ready** | unit used to wait for all CAPI resources to be ready<br/><br/>This unit is here so that activity on all units is held off until all the CAPI resources are ready.<br/>This is a distinct unit from 'cluster-ready' because the readiness criteria is different: here<br/>we not only want the cluster to be ready to host some workload (which only requires some CAPI resources<br/>to be ready) we want all CAPI resources to be ready. | Kustomization |
 | **cluster-node-deletion-timeout-fix** | Kyverno policy to fix CAPI nodeDeletionTimeout (temporary fix)<br/><br/>This policy fixes Machine definitions to force their spec.nodeDeletionTimeout.<br/>This is primarily meant to set this timeout to 0 (interpreted as "do infinite retries"<br/>by CAPI Machine controller), to avoid corner case issues due to a failed node<br/>deletion. See https://gitlab.com/sylva-projects/sylva-core/-/issues/1431. | Kustomization |
 | **cluster-node-provider-id-blacklist** | Kyverno policy to prevent nodes from being recreated with a providerID that has already been used | Kustomization |
+<<<<<<< HEAD
 | **cluster-pause** | unit used to pause the Cluster resource of all clusters<br/><br/>This unit was introduced as a workaround https://github.com/rancher/cluster-api-provider-rke2/issues/596<br/><br/>The resume is done by a sylva-capi-cluster Helm post-upgrade hook. | Kustomization |
 | **cluster-reachable** | ensure that created clusters are reachable, and make failure a bit more explicit if it is not the case<br/><br/>This unit will be enabled in bootstrap cluster to check connectivity to management cluster and in various workload-cluster namespaces in management cluster to check connectivity to workload clusters | Kustomization |
 | **cluster-ready** | unit to check readiness of cluster CAPI objects<br/><br/>the healthChecks on this unit complements the one done in the 'cluster' unit, which in some cases can't cover all CAPI resources | Kustomization |
@@ -120,33 +124,59 @@
 | **eso-secret-stores** | defines External Secrets stores | Kustomization |
 | **first-login-rancher** | configure Rancher authentication for admin | Kustomization |
 | **flux-webui-init** | initializes and configures flux-webui | Kustomization |
+=======
+| **cluster-prevent-rke2-helmcharts-calico-metallb** | Kyverno policy to prevent RKE2 HelmCharts from being recreated for MetaLB and Calico | Kustomization |
+| **cluster-reachable** | ensure that created clusters are reachable, and make failure a bit more explicit if it is not the case<br/><br/>This unit will be enabled in bootstrap cluster to check connectivity to management cluster and in various workload-cluster namespaces in management cluster to check connectivity to workload clusters | Kustomization |
+| **cluster-ready** | unit to check readiness of cluster CAPI objects<br/><br/>the healthChecks on this unit complements the one done in the 'cluster' unit, which in some cases can't cover all CAPI resources | Kustomization |
+| **cluster-vip** | Defines the cluster-vip Service for MetalLB load-balancing<br/><br/>MetalLB will only handle the VIP if it has a corresponding service with endpoints, but we don't want that the API access (6443) relies on kube-proxy, because on RKE2 agent nodes, kube-proxy uses RKE2 internal load-balancing proxy that may fall-back to the VIP to access the API, which could create a deadlock if endpoints are not up-to-date.<br/>The cluster-vip Service that plays this role. This unit manages this resource, taking over the control after the initial creation of this Service by a cloud-init post command on the first node). | Kustomization |
+| **coredns** | configures DNS inside cluster | Kustomization |
+| **eso-secret-stores** | defines External Secrets stores | Kustomization |
+| **first-login-rancher** | configure Rancher authentication for admin | Kustomization |
+| **flux-webui-init** | initializes and configures flux-webui | Kustomization |
+| **get-openstack-images** | Automatically push openstack images to Glance<br/><br/>Pushes OS images to Glance, if needed, and retrieves their UUIDs for use in cluster unit | Kustomization |
+>>>>>>> 375c2f8c1 (updated variables)
 | **gitea-eso** | write secrets in gitea namespace in gitea expected format | Kustomization |
 | **gitea-keycloak-resources** | deploys Gitea OIDC client in Sylva's Keycloak realm | Kustomization |
 | **gitea-secrets** | create random secret that will be used by gitea application. secrets are sync with vault. | Kustomization |
 | **grafana-init** | sets up Grafana certificate for Keycloak OIDC integration | Kustomization |
 | **harbor-init** | sets up Harbor prerequisites<br/><br/>it generates namespace, certificate, admin password, OIDC configuration | Kustomization |
+<<<<<<< HEAD
 | **ingress-nginx-cleanup** | Remove rke2-ingress-nginx service from previous deployments (This unit should be removed after Sylva 1.3) | Kustomization |
 | **ingress-nginx-init** | creates the default certificate for the ingress-nginx controller | Kustomization |
 | **k8s-gateway-cleanup** | Remove k8s-gateway service from previous deployments (This unit should be removed after Sylva 1.3) | Kustomization |
+=======
+>>>>>>> 375c2f8c1 (updated variables)
 | **keycloak-add-client-scope** | configures Keycloak client-scope<br/><br/>a job to manually add a custom client-scope to sylva realm (on top of default ones) while CRD option does not yet provide good results (overrides defaults) | Kustomization |
 | **keycloak-add-realm-role** | Creates Keycloak realm role<br/><br/>a job to manually create a custom realm role to sylva realm (on top of default ones) and assigns it to sylva-admin while CRD option does not allow updates. | Kustomization |
 | **keycloak-add-truststore** | configures Keycloak truststore<br/><br/>a job to manually add a truststore to Keycloak instance, e.h. to enable LDAPS protocol when using user federation) | Kustomization |
 | **keycloak-oidc-external-secrets** | configures OIDC secrets for Keycloak | Kustomization |
+<<<<<<< HEAD
 | **keycloak-postgres** | Deploy Postgres cluster for Keycloak using Cloud Native PostgreSQL (CNPG) | Kustomization |
+=======
+>>>>>>> 375c2f8c1 (updated variables)
 | **keycloak-resources** | configures keycloak resources | Kustomization |
 | **kube-storage-version-migrator** | installs kube-storage-version-migrator to assist apiVersion migrations | Kustomization |
 | **kubevirt-manager** | deploys kubevirt-manager UI for kubevirt workloads | Kustomization |
 | **kubevirt-test-vms** | deploys kubevirt VMs for testing | Kustomization |
+<<<<<<< HEAD
 | **kunai-eso** | write secrets in kunai namespace in kunai expected format | Kustomization |
 | **kunai-postgres-cnpg** | Deploy Postgres cluster for Kunai using Cloud Native PostgreSQL (CNPG) | Kustomization |
 | **kunai-secrets** | create random secret that will be used by kunai application. secrets are sync with vault. | Kustomization |
+=======
+>>>>>>> 375c2f8c1 (updated variables)
 | **kyverno-metal3-policies** | kyverno policies specific to capm3-system | Kustomization |
 | **kyverno-policies** | configures Kyverno policies | Kustomization |
 | **kyverno-policies-ready** | additional delay to ensure that kyverno webhooks are properly installed in api-server | Kustomization |
 | **kyverno-policy-prevent-mgmt-cluster-delete** | Kyverno policies to prevent deletion of critical resources for mgmt cluster | Kustomization |
 | **kyverno-policy-rancher-webhook-ha** | Kyverno policy for rancher-webhook HA | Kustomization |
 | **kyverno-update-namespace-and-psa** | grants to Kyverno the permission to update namespaces using the "updatepsa" verb (Rancher-specific)<br/><br/>This unit allows Kyverno to define namespaces with specific PodSecurityAdmission levels. It is useful for situations where namespaces need to be mutated (with PSA labels) in order to accomodate privileged pods (for which PSA level restricted at cluster level is not enough), when namespace creation is not controlled | Kustomization |
+<<<<<<< HEAD
 | **kyverno-vault-restart-policy** | restart vault after certs renewal | Kustomization |
+=======
+| **litmus-operator** | Deploys litmus core component as an unit | Kustomization |
+| **litmus-testcase-k8s-api-response** | Runs k8s API Response testcase | Kustomization |
+| **litmus-testcase-pod-delete** | Runs Pod delete testcase | Kustomization |
+>>>>>>> 375c2f8c1 (updated variables)
 | **logging-config** | Configures rancher-logging to ship logs to Loki | Kustomization |
 | **loki-credentials-secret** | create a secret containing tenant's loki credentials | Kustomization |
 | **loki-init** | sets up Loki certificate<br/><br/>it generate certificate | Kustomization |
@@ -155,27 +185,42 @@
 | **management-cluster-configs** | copies configuration object in management cluster during bootstrap | Kustomization |
 | **management-cluster-flux** | installs flux in management cluster during bootstrap | Kustomization |
 | **management-flag** | dummy unit to identify management cluster<br/><br/>This unit will produce a configmap in management cluster that can be used by apply scripts to assert that they are properly targeting the management cluster | Kustomization |
+<<<<<<< HEAD
 | **management-namespace-defs** | creates required namespaces in management cluster | Kustomization |
+=======
+| **management-namespace-defs** | creates sylva-system namespace in management cluster | Kustomization |
+>>>>>>> 375c2f8c1 (updated variables)
 | **management-sylva-units** | installs sylva-units in management cluster during bootstrap | Helm chart |
 | **metal3-pdb** | add pdb to baremetal-operator pods | Kustomization |
 | **metal3-sylva-ca-init** | injects sylva-ca certificate in metal3<br/><br/>this certificate is needed to download baremetal os images via https | Kustomization |
 | **metallb-resources** | configures metallb resources | Helm chart |
 | **mgmt-cluster-ready** | (workload cluster) this unit reflects the readiness of the mgmt cluster<br/><br/>this unit acts as simple dependency lock to prevent deploying a workload cluster before the mgmt cluster is ready | Kustomization |
+<<<<<<< HEAD
 | **minio-logging-cleanup** | Recreates MinIO-logging StatefulSet to avoid upgrade failure (This unit will be removed after Sylva 1.4) | Kustomization |
 | **minio-logging-init** | sets up secrets and certificates for minio-logging | Kustomization |
 | **minio-monitoring-cleanup** | Recreates MinIO-monitoring StatefulSet to avoid upgrade failure (This unit will be removed after Sylva 1.4) | Kustomization |
+=======
+| **minio-logging-init** | sets up secrets and certificates for minio-logging | Kustomization |
+>>>>>>> 375c2f8c1 (updated variables)
 | **minio-monitoring-init** | sets up secrets and certificates for minio-monitoring | Kustomization |
 | **minio-operator-init** | sets up MinIO certificate for minio-operator<br/><br/>it generate certificate | Kustomization |
 | **multus-ready** | checks that Multus is ready<br/><br/>This unit only has dependencies, it does not create resources. It performs healthchecks outside of the multus unit, in order to properly target workload cluster when we deploy multus in it. | Kustomization |
 | **namespace-defs** | creates sylva-system namespace and other namespaces to be used by various units | Kustomization |
 | **neuvector-init** | sets up Neuvector prerequisites<br/><br/>it generates namespace, certificate, admin password, policy exception for using latest tag images (required for the pod managing the database of vulnerabilities since this DB is updated often) | Kustomization |
 | **nfs-ganesha-init** | Define persistent volume claim for NFS Ganesha | Kustomization |
+<<<<<<< HEAD
 | **openshift-security-context-constraints** | sets up openshift security context constraints for operators not installed via RedHat operator lifecycle manager(OLM) | Kustomization |
 | **os-images-info** | Creates a list of os images<br/><br/>This unit creates a configmap containing information on operating system images for use with CAPO and CAPM3. | Kustomization |
 | **pivot** | moves ClusterAPI objects from bootstrap cluster to management cluster | Kustomization |
 | **prometheus-custom-metrics** | Prometheus configuration for custom resource metrics<br/><br/>Adding podmonitors for flux controllers and create custom metrics for various resources by configuring kube-state-metrics | Kustomization |
 | **prometheus-resources** | Creates required ConfigMaps and Kyverno policies to enable SNMP monitoring by Prometheus | Kustomization |
 | **rancher-custom-roles** | configures custom roles for Rancher | Kustomization |
+=======
+| **os-images-info** | Creates a list of os images<br/><br/>This unit creates a configmap containing the os images (and their details in the case of Sylva diskimage-builder ones)<br/>to be further served by os-image-server | Kustomization |
+| **pivot** | moves ClusterAPI objects from bootstrap cluster to management cluster | Kustomization |
+| **prometheus-custom-metrics** | Prometheus configuration for custom resource metrics<br/><br/>Adding podmonitors for flux controllers and create custom metrics for various resources by configuring kube-state-metrics | Kustomization |
+| **prometheus-resources** | Creates required ConfigMaps and Kyverno policies to enable SNMP monitoring by Prometheus | Kustomization |
+>>>>>>> 375c2f8c1 (updated variables)
 | **rancher-default-roles** | Create Rancher role templates<br/><br/>This unit creates a set of additional role templates which are likely to be needed by many<br/>clusters. | Kustomization |
 | **rancher-init** | initializes and configures Rancher | Kustomization |
 | **rancher-keycloak-oidc-provider** | configures Rancher for Keycloak OIDC integration | Kustomization |
@@ -183,9 +228,15 @@
 | **refresh-metal3machinetemplates** | Recreate metal3machinetemplates resources via the reconciliation of cluster helmrelease | Kustomization |
 | **rke2-helmchart-prevent-uninstall** | Kyverno policy to prevent key Helm charts from being uninstalled by RKE2 HelmChart controller | Kustomization |
 | **root-dependency** | special unit ensuring ordered updates of all Kustomizations<br/><br/>All Kustomizations will depend on this Kustomization, whose name is `root-dependency-<n>` and changes at each update of the sylva-units Helm release. This Kustomization does not become ready before all other Kustomizations have been updated.<br/>This unit also manages the `root-dependency-<n>` HelmRelease that acts as a lock to prevent HelmReleases from reconciling before units they depend on are ready.<br/>All this ensures in a race-free way that during an update, units will be reconciled in an order matching dependency declarations. | Helm chart |
+<<<<<<< HEAD
 | **sandbox-privileged-namespace** | creates the sandbox namespace used to perform privileged operations like debugging a node. It cannot be enabled when env_type=prod | Kustomization |
 | **shared-workload-clusters-settings** | manages parameters which would be shared between management and workload clusters | Kustomization |
 | **single-replica-storageclass** | Defines a Longhorn storage class with a single replica | Kustomization |
+=======
+| **sandbox-privileged-namespace** | creates the sandbox namespace used to perform privileged operations like debugging a node | Kustomization |
+| **shared-workload-clusters-settings** | manages parameters which would be shared between management and workload clusters | Kustomization |
+| **single-replica-storageclass** | DEPRECATED longhorn storage class with a single replica<br/><br/>This unit is preserved for migration purposes, it will be removed after sylva 1.2 release<br/>Single replicas PVC were causing data replication churn during rolling updates of nodes<br/>See https://gitlab.com/sylva-projects/sylva-core/-/issues/1648 | Kustomization |
+>>>>>>> 375c2f8c1 (updated variables)
 | **sriov** | obsolete - replaced by sriov-network-operator<br/><br/>dummy unit which only enables sriov-network-operator for backwark compatibility | Kustomization |
 | **sriov-resources** | configures SRIOV resources | Helm chart |
 | **sylva-ca** | configures the Certificate Authority for units of the Sylva stack | Kustomization |
@@ -193,6 +244,7 @@
 | **test-nfs-ganesha** | Perform testing for RWX enabled PVs created from NFS Ganesha | Kustomization |
 | **thanos-credentials-secret** | create a secret containing tenant's thanos credentials | Kustomization |
 | **thanos-init** | sets up thanos certificate<br/><br/>it generates a multiple CN certificate for all Thanos components | Kustomization |
+<<<<<<< HEAD
 | **two-replicas-storageclass** | Defines a Longhorn storage class with two replicas | Kustomization |
 | **validating-admission-policies** | configures validating admission policies | Kustomization |
 | **vault-oidc** | configures Vault to be used with OIDC | Kustomization |
@@ -372,3 +424,9 @@
 | **vault-secrets** | generates random secrets in vault, configure password policy, authentication backends, etc... |  | True | Kustomize | N/A |
 | **vsphere-cpi** | configures Vsphere Cloud controller manager |  | True | Helm | N/A |
 >>>>>>> f3c7fa6f5 (updated unit documentation for litmus)
+=======
+| **two-replicas-storageclass** | Create a longhorn storage class with a two replicas | Kustomization |
+| **vault-oidc** | configures Vault to be used with OIDC | Kustomization |
+| **vault-secrets** | generates random secrets in vault, configure password policy, authentication backends, etc... | Kustomization |
+| **vsphere-cpi** | configures Vsphere Cloud controller manager | Helm chart |
+>>>>>>> 375c2f8c1 (updated variables)

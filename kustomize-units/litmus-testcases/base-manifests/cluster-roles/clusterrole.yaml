@@ -1,0 +1,34 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: '${UNIT_NAME}'
+  labels:
+    name: '${UNIT_NAME}'
+    app.kubernetes.io/part-of: litmus
+rules:
+  # Create and monitor the experiment & helper pods
+  - apiGroups: [""]
+    resources: ["nodes"]
+    verbs: ["get","list"]
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["get", "list"]
+  - apiGroups: ["networking.k8s.io"]
+    resources: ["ingresses"]
+    verbs: ["get", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: '${UNIT_NAME}'
+  labels:
+    name: '${UNIT_NAME}'
+    app.kubernetes.io/part-of: litmus
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: '${UNIT_NAME}'
+subjects:
+  - kind: ServiceAccount
+    name: '${UNIT_NAME}'
+    namespace: '${NAMESPACE}'
