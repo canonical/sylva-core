@@ -24,7 +24,7 @@ spec:
                 echo "Backup job not completed yet. Retrying in 10 seconds...";
                 sleep 10;
               done;
-              echo "Backup Job succeeded. Proceeding with restore.";
+              echo "Proceeding with restore.";
       containers:
         - name: pg-restore
           image: postgres:13
@@ -36,7 +36,7 @@ spec:
                 echo "Backup file not found. Exiting.";
                 exit 1;
               fi;
-              echo "Backup file found. Starting restore process...";
+              echo "Backup file found for restore. Starting restore process...";
               echo "Staring restore process"
               psql -h "${PGHOST}" -U "${PGUSER}" "${PGDATABASE}" < /data/harbor-backup.sql ;
               echo "Restore complete";
