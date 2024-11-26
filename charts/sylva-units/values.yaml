@@ -983,12 +983,12 @@ units:
                 - name: PGUSER
                   valueFrom:
                     secretKeyRef:
-                      name: harbor-db
+                      name: harbor-postgres-secrets
                       key: username
                 - name: PGPASSWORD
                   valueFrom:
                     secretKeyRef:
-                      name: harbor-db
+                      name: harbor-postgres-secrets
                       key: password
                 - name: PGDATABASE
                   value: harbor
