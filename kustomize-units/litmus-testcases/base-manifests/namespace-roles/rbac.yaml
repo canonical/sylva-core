@@ -2,25 +2,23 @@
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: '${SERVICE_NAME}'
-  namespace: '${NAMESPACE}'
+  name: '${UNIT_NAME}'
   labels:
-    name: '${SERVICE_NAME}'
+    name: '${UNIT_NAME}'
     app.kubernetes.io/part-of: litmus
 ---
 apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
+kind: RoleBinding
 metadata:
-  name: '${SERVICE_NAME}'
+  name: '${UNIT_NAME}'
   labels:
-    name: '${SERVICE_NAME}'
+    name: '${UNIT_NAME}'
     app.kubernetes.io/part-of: litmus
 roleRef:
   apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: litmus-sa
+  kind: Role
+  name: '${UNIT_NAME}'
 subjects:
   - kind: ServiceAccount
-    name: '${SERVICE_NAME}'
+    name: '${UNIT_NAME}'
     namespace: '${NAMESPACE}'
-

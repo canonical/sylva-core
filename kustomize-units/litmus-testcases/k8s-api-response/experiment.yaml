@@ -4,13 +4,12 @@ description:
     Deletes a pod belonging to a deployment/statefulset/daemonset
 kind: ChaosExperiment
 metadata:
-  name: '${SERVICE_NAME}'
-  namespace: '${NAMESPACE}'
+  name: '${UNIT_NAME}'
   labels:
-    name: k8s-api-response
+    name: '${UNIT_NAME}'
     app.kubernetes.io/part-of: litmus
     app.kubernetes.io/component: chaosexperiment
-    app.kubernetes.io/version: 3.4.0
+    app.kubernetes.io/version: 3.10.0
 spec:
   definition:
     scope: Namespaced
@@ -47,7 +46,7 @@ spec:
           - "update"
           - "delete"
           - "deletecollection"
-    image: 'nikhilsethi31/go-runner:combined-image-v1.0.6'
+    image: 'enilegu/k8s-api-response:v1.0.1'
     imagePullPolicy: 'IfNotPresent'
     args:
     - -c
@@ -56,16 +55,12 @@ spec:
     - /bin/bash
     env:
 
-    - name: TOTAL_CHAOS_DURATION
-      value: '${TOTAL_CHAOS_DURATION}'
-
     # Period to wait before and after injection of chaos in sec
-
     - name: RAMP_TIME
       value: ''
 
-    - name: CHAOS_INTERVAL
-      value: '${CHAOS_INTERVAL}'
+    - name: TARGET_PODS
+      value: '${TARGET_PODS}'
 
     # pod failures without '--force' & default terminationGracePeriodSeconds
     - name: FORCE
@@ -75,4 +70,4 @@ spec:
       name: k8s-api-response
       app.kubernetes.io/part-of: litmus
       app.kubernetes.io/component: experiment-job
-      app.kubernetes.io/version: 3.4.0
+      app.kubernetes.io/version: 3.10.0

@@ -152,7 +152,7 @@ units:
     enabled: true
 
   litmus-testcase-pod-delete:
-    enabled: false
+    enabled: true
 
   kubevirt:
     enabled: false

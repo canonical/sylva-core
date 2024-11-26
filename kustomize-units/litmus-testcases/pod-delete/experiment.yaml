@@ -4,13 +4,12 @@ description:
     Deletes a pod belonging to a deployment/statefulset/daemonset
 kind: ChaosExperiment
 metadata:
-  name: '${SERVICE_NAME}'
-  namespace: '${NAMESPACE}'
+  name: '${UNIT_NAME}'
   labels:
-    name: pod-delete
+    name: '${UNIT_NAME}'
     app.kubernetes.io/part-of: litmus
     app.kubernetes.io/component: chaosexperiment
-    app.kubernetes.io/version: 3.4.0
+    app.kubernetes.io/version: 3.10.0
 spec:
   definition:
     scope: Namespaced
@@ -56,27 +55,16 @@ spec:
     - /bin/bash
     env:
 
-    - name: TOTAL_CHAOS_DURATION
-      value: '${TOTAL_CHAOS_DURATION}'
-
     # Period to wait before and after injection of chaos in sec
-
     - name: RAMP_TIME
       value: ''
 
-    - name: CHAOS_INTERVAL
-      value: '${CHAOS_INTERVAL}'
-
     - name: TARGET_PODS
-      value: '${TARGET_PODS}'
+      value: ${QUOTE}${TARGET_PODS}${QUOTE}
 
     # pod failures without '--force' & default terminationGracePeriodSeconds
     - name: FORCE
       value: 'false'
-
-    ## percentage of total pods to target
-    - name: PODS_AFFECTED_PERC
-      value: '${PODS_AFFECTED_PERC}'
 
     ## it defines the sequence of chaos execution for multiple target pods
     ## supported values: serial, parallel
@@ -84,7 +72,7 @@ spec:
       value: '${SEQUENCE}'
 
     labels:
-      name: pod-delete
+      name: '${UNIT_NAME}'
       app.kubernetes.io/part-of: litmus
       app.kubernetes.io/component: experiment-job
-      app.kubernetes.io/version: 3.4.0
+      app.kubernetes.io/version: 3.10.0
