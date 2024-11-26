@@ -6072,6 +6072,36 @@ units:
           name: logging-tls
           namespace: minio-logging
 
+
+  minio-monitoring-console-init:
+    info:
+      description: sets up MinIO certificate for minio-monitoring-console
+      internal: true
+    unit_templates:
+    - base-deps
+    enabled_conditions:
+      - '{{ tuple . "minio-monitoring-console" | include "unit-enabled" }}'
+    depends_on:
+      namespace-defs: true
+      sylva-ca: true
+    repo: sylva-core
+    kustomization_substitute_secrets:
+      KEY: '{{ .Values.external_certificates.minio_monitoring_console.key | default "" | b64enc }}'
+    kustomization_spec:
+      path: ./kustomize-units/minio-monitoring-console-init
+      wait: true
+      postBuild:
+        substitute:
+          SERVICE: minio-monitoring-tenant-console
+          SERVICE_DNS: '{{ .Values.external_hostnames.minio_monitoring_console }}'
+          CERTIFICATE_NAMESPACE: minio-monitoring-tenant
+          CERT: '{{ .Values.external_certificates.minio_monitoring_console.cert | default "" | b64enc }}'
+          CACERT: '{{ .Values.external_certificates.cacert | default "" | b64enc }}'
+      _components:
+        - '{{ ternary "../tls-components/tls-secret" "../tls-components/tls-certificate" (hasKey .Values.external_certificates.minio_monitoring_console "cert") }}'
+        - "../tls-components/sylva-ca"
+
+
   minio-monitoring-init:
     info:
       description: sets up secrets and certificates for minio-monitoring
@@ -6116,6 +6146,7 @@ units:
       namespace-defs: true
       minio-operator: true
       minio-monitoring-init: true
+      minio-monitoring-console-init: true
       ingress-nginx: '{{ tuple . "ingress-nginx" | include "unit-enabled" }}'
       two-replicas-storageclass: '{{ tuple . "two-replicas-storageclass" | include "unit-enabled" }}'
       '{{ .Values._internal.default_storage_class_unit }}': '{{ not (tuple . "two-replicas-storageclass" | include "unit-enabled") }}'
@@ -7455,6 +7486,7 @@ external_certificates:
   minio_operator: {}
   minio_monitoring: {}
   minio_logging: {}
+  minio_monitoring_console: {}
   thanos: {}
   loki: {}
   grafana: {}
