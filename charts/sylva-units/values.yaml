@@ -431,7 +431,7 @@ units:
         and changes at each update of the sylva-units Helm release. This Kustomization does not become
         ready before all other Kustomizations have been updated.
 
-        This unit also manages the root-dependency-<n> HelmRelease that acts as a lock to prevent
+        This unit also manages the `root-dependency-<n>` HelmRelease that acts as a lock to prevent
         HelmReleases from reconciling before units they depend on are ready.
 
         All this ensures in a race-free way that during an update, units will be reconciled in an
