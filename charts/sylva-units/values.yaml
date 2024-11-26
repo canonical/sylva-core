@@ -981,10 +981,7 @@ units:
                 - name: PGHOST
                   value: harbor-postgres-primary.harbor.svc.cluster.local
                 - name: PGUSER
-                  valueFrom:
-                    secretKeyRef:
-                      name: harbor-postgres-secrets
-                      key: username
+                  value: harbor
                 - name: PGPASSWORD
                   valueFrom:
                     secretKeyRef:
@@ -1006,10 +1003,7 @@ units:
                 - name: PGHOSTHA
                   value: harbor-postgres-ha-postgresql.harbor.svc.cluster.local
                 - name: PGUSER
-                  valueFrom:
-                    secretKeyRef:
-                      name: harbor-postgres-secrets
-                      key: username
+                  value: harbor
                 - name: PGPASSWORD
                   valueFrom:
                     secretKeyRef:
