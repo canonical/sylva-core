@@ -52,7 +52,7 @@ variables:
   SYLVA_CI_VALUES_FOLDER: environment-values/sylva-core-ci-values
   # Reference to checkout for CI values, by default we use the same for all stages but it can be overriden
   # eg: if we have a breaking change during an upgrade we could use a different branch for the deployment and update
-  SYLVA_CI_VALUES_REVISION: 0.4.22
+  SYLVA_CI_VALUES_REVISION: prepare_1-2_values
 
   # Use CI values for specific version
   # If not specified $GIT_REVISION if set is used or "current" otherwise
@@ -121,6 +121,17 @@ variables:
     WC_UPDATE_ADDITIONAL_VALUES: "k8s-1.29.yml"
 
 .scenario_sylva-upgrade:
+  variables:
+    MGMT_INITIAL_REVISION: "1.2.0"
+    MGMT_UPDATE_REVISION: "" # Use current commit
+    WC_INITIAL_REVISION: "1.2.0"
+    WC_UPDATE_REVISION: "" # Use current commit
+    # Increase default timers due to rolling upgrade
+    MGMT_WATCH_TIMEOUT_MIN: "45"
+    APPLY_WATCH_TIMEOUT_MIN: "95"
+    APPLY_WC_WATCH_TIMEOUT_MIN: "95"
+
+.scenario_sylva-upgrade-1.1.1:
   variables:
     MGMT_INITIAL_REVISION: "1.1.1-ci-tweaks"
     MGMT_UPDATE_REVISION: "" # Use current commit

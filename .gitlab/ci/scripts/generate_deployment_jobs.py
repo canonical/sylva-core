@@ -25,7 +25,7 @@ DEFAULT_MR_DESCRIPTION = f"{BASE_DIR}/.gitlab/merge_request_templates/Default.md
 ALLOWED_INFRA = os.getenv("ALLOWED_DEPLOYMENT_INFRA", "capd,capo,capm3")
 ALLOWED_SCENARIOS = os.getenv(
     "ALLOWED_DEPLOYMENT_SCENARIO",
-    "simple-update,rolling-update,mgmt-rolling-update,rolling-update,k8s-upgrade,sylva-upgrade,nightly,preview"
+    "simple-update,rolling-update,mgmt-rolling-update,rolling-update,k8s-upgrade,sylva-upgrade,sylva-upgrade-1.1.1,nightly,preview"
 )
 
 # Max number of pipelines to be allowed for a MR
@@ -123,13 +123,13 @@ def generate_ci_job_struct(job_names):
             ci_jobs[job].setdefault("variables", {})
             ci_jobs[job]["variables"]["SKIP_TESTS"] = "true"
 
-        scenario = re.compile(r"🎬([\w\d-]+)").findall(job)
+        scenario = re.compile(r"🎬([\w\d\.-]+)").findall(job)
         if scenario:
             if scenario[0] in ALLOWED_SCENARIOS.split(","):
                 ci_jobs[job]["extends"].append(f".scenario_{scenario[0]}")
 
                 # Special temporary exception for capm3 sylva-upgrade
-                if scenario[0] == "sylva-upgrade" and infra[0] in ["capm3", "capm3-virt"]:
+                if scenario[0] == "sylva-upgrade-1.1.1" and infra[0] in ["capm3", "capm3-virt"]:
                     ci_jobs[job]["extends"].append(".scenario_sylva-upgrade-capm3")
             else:
                 logging.error(f"deployment {job}: scenario not allowed")

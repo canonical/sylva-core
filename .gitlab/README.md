@@ -60,7 +60,7 @@ Each pipeline entry should adhere to this format:
 | ☁    | **Infrastructure Provider**  | `capd`, `capo`, `capm3`                                                              |
 | 🚀    | **Bootstrap Provider**      | `kubeadm` (or `kadm`), `rke2`                                                        |
 | 🎸    | **Operating System**        | `ubuntu`, `suse`                                                                     |
-| 🎬    | **Pipeline Scenarios**      | `rolling-update`, `mgmt-rolling-update`, `sylva-upgrade`, `simple-update`, `preview` |
+| 🎬    | **Pipeline Scenarios**      | `rolling-update`, `mgmt-rolling-update`, `sylva-upgrade`, `sylva-upgrade-1.1.1`, `simple-update`, `preview` |
 | 🛠    | **Deployment Options**      | `light-deploy`, `oci`, `ha`, `misc`                                                   |
 
 **Note**: You can freely combine these components, but certain combinations may be incompatible (e.g., `capd` deployments do not support updates). The script does not currently manage all incompatibility rules.
