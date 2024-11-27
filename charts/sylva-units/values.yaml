@@ -3686,6 +3686,34 @@ units:
           AUTH_USER_INFO_RESYNC_CRON: '{{ .Values.rancher.auth_user_info_resync_cron | quote }}'
       wait: true
 
+  k8s-gateway-cleanup:
+    info:
+      description: Remove k8s-gateway service from previous deployments (This unit should be removed after Sylva 1.3)
+      internal: true
+    unit_templates:
+    - base-deps
+    - kube-job
+    enabled_conditions:
+    - '{{ tuple . "k8s-gateway" | include "unit-enabled" }}'
+    - '{{ .Values._internal.state.is_upgrade }}'
+    - >-
+      {{- $nginxSvc := lookup "v1" "Service" "k8s-gateway" "k8s-gateway" -}}
+      {{ ne ($nginxSvc | dig "spec" "loadBalancerClass" "") .Values._internal.loadBalancerClass }}
+    depends_on:
+      metallb-resources: '{{ tuple . "metallb" | include "unit-enabled" }}'
+    kustomization_spec:
+      targetNamespace: k8s-gateway
+      _patches:
+      - target:
+          kind: ConfigMap
+          labelSelector: kube-job=script
+        patch: |
+          - op: replace
+            path: /data/kube-job.sh
+            value: |
+              #!/bin/bash
+              kubectl -n k8s-gateway delete service k8s-gateway
+
   k8s-gateway:
     info:
       description: installs k8s gateway (coredns + plugin to resolve external service names to ingress IPs)
@@ -3696,6 +3724,7 @@ units:
     - base-deps
     depends_on:
       metallb-resources: '{{ tuple . "metallb" | include "unit-enabled" }}'
+      k8s-gateway-cleanup: '{{ tuple . "k8s-gateway-cleanup" | include "unit-enabled" }}'
     helm_repo_url: https://ori-edge.github.io/k8s_gateway/
     helmrelease_spec:
       chart:
@@ -3849,7 +3878,7 @@ units:
 
   ingress-nginx-cleanup:
     info:
-      description: remove rke2-ingress-nginx service from previous deployments
+      description: Remove rke2-ingress-nginx service from previous deployments (This unit should be removed after Sylva 1.3)
       internal: true
     unit_templates:
     - base-deps
