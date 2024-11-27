@@ -27,7 +27,7 @@ spec:
 #              echo "Proceeding with restore.";
       containers:
         - name: pg-restore
-          image: postgres:13
+          image: postgres:16
           command: ["/bin/sh", "-c"]
           args:
             - echo "Taking backup";
