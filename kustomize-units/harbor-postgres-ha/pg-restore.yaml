@@ -30,7 +30,11 @@ spec:
           image: postgres:16
           command: ["/bin/sh", "-c"]
           args:
-            - echo "Taking backup";
+            - echo "Checking schema of postgres"
+              psql -h "${PGHOST}" -U "${PGUSER}" -d "${PGDATABASE}" -c "\dt"
+              echo "Checking schema of postgres-ha"
+              psql -h "${PGHOSTHA}" -U "${PGUSER}" -d "${PGDATABASE}" -c "\dt"
+              echo "Taking backup from postgres";
               echo "pghost is - ${PGHOST} , user is - ${PGUSER} , database is - ${PGDATABASE}" ;
               pg_dump -h "${PGHOST}" -U "${PGUSER}" "${PGDATABASE}" > /data/harbor-backup.sql ;
               echo "Backup complete";
@@ -43,6 +47,8 @@ spec:
               echo "Backup file found for restore. Starting restore process...";
               psql -h "${PGHOSTHA}" -U "${PGUSER}" "${PGDATABASE}" < /data/harbor-backup.sql ;
               echo "Restore complete";
+              echo "Verifying the restore by getting the schema"
+              psql -h "${PGHOSTHA}" -U "${PGUSER}" -d "${PGDATABASE}" -c "\dt"
           volumeMounts:
             - mountPath: /data
               name: backup-storage
