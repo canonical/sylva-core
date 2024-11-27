@@ -1783,7 +1783,6 @@ units:
     - base-deps
     - kube-job
     enabled_conditions:
-    - '{{ tuple . "flux-webui" | include "unit-enabled" }}'
     - '{{ tuple . "keycloak" | include "unit-enabled" }}'
     depends_on:
       keycloak-resources: true
