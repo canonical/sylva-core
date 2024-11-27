@@ -2,7 +2,7 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
 resources:
-  - minio-monitoring-root-vault-create.yaml
-  - minio-monitoring-root-secret.yaml
-  - minio-monitoring-user-vault-create.yaml
-  - minio-monitoring-user-secret.yaml
+  - minio-tenant-root-random-secret.yaml
+  - minio-tenant-root-external-secret.yaml
+  - minio-tenant-user-random-secret.yaml
+  - minio-tenant-user-external-secret.yaml

@@ -55,7 +55,7 @@ description:
 $defs:
   gotpl:
     type: string
-    pattern: "^{{ .* }}$"
+    pattern: "^{{(.|\r?\n)*}}$"
 
   username-password:
     anyOf:
@@ -566,6 +566,11 @@ properties:
                           kustomization_spec:
                             required:
                               - path
+                    - properties:
+                        kustomization_spec:
+                          properties:
+                            path:
+                              const: ./kustomize-units/helmrelease-generic
 
   cluster:  # -------------------------------
     # the values are values of the sylva-capi-cluster chart

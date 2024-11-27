@@ -21,6 +21,28 @@ SYLVA_UNITS_VALUES_FILE = f"{CHART_DIR}/values.yaml"
 TARGET_DOC_FILE = f"{CHART_DIR}/units-description.md"
 
 
+# Add forbidden character validation and replacement function
+def validate_and_replace_markdown_syntax(description, unit_name):
+    """
+    Validates and replaces Markdown syntax that might raise issues in the unit description.
+    """
+    # Define a dict of forbidden characters and their replacements
+    replacements = {
+        '<=': '\u2264',
+        '<': '\ufe64',
+        '>=': '\u2265',
+        '>': '\ufe65'
+    }
+
+    # Replace forbidden characters with their equivalent
+    for char, replacement in replacements.items():
+        if char in description:
+            print(f"Replacing '{char}' in unit {unit_name} with unicode equivalent '{replacement}'")
+            description = description.replace(char, replacement)
+
+    return description
+
+
 def get_or_empty(dict, *keys):
     try:
         result = dict
@@ -193,10 +215,13 @@ def generate_units_metadata():
     for unit_name, unit in units.items():
         try:
             version_and_source = get_version_and_source(main_values, unit_name, unit)
+            description = get_or_empty(unit, "info", "description")
+            if description:
+                description = validate_and_replace_markdown_syntax(description, unit_name)
             units_data.append(
                 {
                     "name": unit_name,
-                    "description": get_or_empty(unit, "info", "description"),
+                    "description": description,
                     "details": get_or_empty(unit, "info", "details"),
                     "maturity": get_or_empty(unit, "info", "maturity"),
                     "internal": get_or_empty(unit, "info", "internal"),

@@ -3173,7 +3173,7 @@
     },
     "gotpl": {
       "type": "string",
-      "pattern": "^{{ .* }}$"
+      "pattern": "^{{(.|\r?\n)*}}$"
     },
     "username-password": {
       "anyOf": [
@@ -8019,6 +8019,17 @@
                                   "required": [
                                     "path"
                                   ]
+                                }
+                              }
+                            }
+                          },
+                          {
+                            "properties": {
+                              "kustomization_spec": {
+                                "properties": {
+                                  "path": {
+                                    "const": "./kustomize-units/helmrelease-generic"
+                                  }
                                 }
                               }
                             }

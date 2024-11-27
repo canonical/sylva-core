@@ -38,7 +38,7 @@ fi
 
 echo_b "\U0001F4DC Install a sylva-units Helm release for workload cluster $wc_namespace"
 
-fix_sylva_units_existing_source $wc_namespace
+fix_sylva_units $wc_namespace
 
 _kustomize ${ENV_PATH} | define_source | set_wc_namespace | kubectl apply -f -
 
@@ -51,7 +51,6 @@ echo_b "\U000023F3 Wait for units to be ready"
 sylvactl watch \
   --kubeconfig management-cluster-kubeconfig \
   --reconcile \
-  --exit-condition="message=values don't meet the specifications of the schema" \
   --timeout $(ci_remaining_minutes_and_at_most ${APPLY_WC_WATCH_TIMEOUT_MIN:-30}) \
   ${SYLVACTL_SAVE:+--save apply-workload-cluster-timeline.html} \
   -n $wc_namespace \
