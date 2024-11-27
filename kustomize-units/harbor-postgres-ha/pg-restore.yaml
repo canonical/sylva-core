@@ -30,10 +30,14 @@ spec:
           image: postgres:16
           command: ["/bin/sh", "-c"]
           args:
-            - echo "Checking schema of postgres"
-              psql -h "${PGHOST}" -U "${PGUSER}" -d "${PGDATABASE}" -c "\dt"
-              echo "Checking schema of postgres-ha"
-              psql -h "${PGHOSTHA}" -U "${PGUSER}" -d "${PGDATABASE}" -c "\dt"
+            - echo "Checking schema of postgres";
+              psql -h "${PGHOST}" -U "${PGUSER}" -d "${PGDATABASE}" -c "\dt";
+              echo "Creating test table in postgres";
+              psql -h "${PGHOST}" -U "${PGUSER}" "${PGDATABASE}" -c "CREATE TABLE IF NOT EXISTS test_table_migrate (id SERIAL PRIMARY KEY, name TEXT NOT NULL);";
+              psql -h "${PGHOST}" -U "${PGUSER}" "${PGDATABASE}" -c "INSERT INTO test_table_migrate (name) VALUES ('AkTest1'), ('AkTest2');";
+              echo "Test table created with sample data.";
+              echo "Checking schema of postgres-ha";
+              psql -h "${PGHOSTHA}" -U "${PGUSER}" -d "${PGDATABASE}" -c "\dt";
               echo "Taking backup from postgres";
               echo "pghost is - ${PGHOST} , user is - ${PGUSER} , database is - ${PGDATABASE}" ;
               pg_dump -h "${PGHOST}" -U "${PGUSER}" "${PGDATABASE}" > /data/harbor-backup.sql ;
@@ -47,8 +51,10 @@ spec:
               echo "Backup file found for restore. Starting restore process...";
               psql -h "${PGHOSTHA}" -U "${PGUSER}" "${PGDATABASE}" < /data/harbor-backup.sql ;
               echo "Restore complete";
-              echo "Verifying the restore by getting the schema"
-              psql -h "${PGHOSTHA}" -U "${PGUSER}" -d "${PGDATABASE}" -c "\dt"
+              echo "Verifying the restore by getting the schema";
+              psql -h "${PGHOSTHA}" -U "${PGUSER}" -d "${PGDATABASE}" -c "\dt";
+              echo "Verifying test table data";
+              psql -h "${PGHOSTHA}" -U "${PGUSER}" -d "${PGDATABASE}" -t -c "SELECT * FROM test_table_migrate;";
           volumeMounts:
             - mountPath: /data
               name: backup-storage
