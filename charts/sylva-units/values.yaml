@@ -3328,6 +3328,7 @@ units:
                 kubectl -n metallb-system delete cm chart-content-metallb
                 kubectl -n metallb-system delete secret chart-values-metallb
                 kubectl -n metallb-system delete secret -l name=metallb,owner=helm
+                kubectl -n metallb-system patch helmchart --type merge -p '{"metadata":{"finalizers": [], "annotations":{"helmcharts.helm.cattle.io/unmanaged":""}}}' metallb
                 kubectl -n metallb-system delete helmchart.helm.cattle.io metallb
               fi
 
