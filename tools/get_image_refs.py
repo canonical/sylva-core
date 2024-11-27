@@ -11,7 +11,6 @@ from kubernetes.config.config_exception import ConfigException
 from kubernetes.client.rest import ApiException
 from kubernetes import client, config
 from pydantic import BaseModel
-from merge_image_refs import update_images_ref
 
 logging.basicConfig(level=logging.WARNING)
 logger = logging.getLogger(__name__)
@@ -553,11 +552,6 @@ def main():
                         required=False,
                         default=None,
                         help='Directory to dump artifact. Created if it doesn\'t exist')
-    parser.add_argument('-i', '--input',
-                        nargs='+',
-                        required=False,
-                        default=None,
-                        help='Path to a previous list to merge with the new output.')
     # Crictl related args
     parser.add_argument('-s', '--ssh-key',
                         required=False,
@@ -610,16 +604,6 @@ def main():
         images_ref['crictl_images'] = list(crictl_images_set)
         images_ref['images_in_crictl_not_in_pods'] = list(crictl_images_set - images_set)
         images_ref['images_in_pods_not_in_crictl'] = list(images_set - crictl_images_set)
-
-    # Merge with previous list if provided
-    if args.input:
-        for input_file in args.input:
-            try:
-                with open(input_file, "r", encoding="utf-8") as in_file:
-                    previous_data = json.load(in_file)
-                    images_ref = update_images_ref(previous_data, images_ref)
-            except Exception as e:
-                print(f"Error reading input file {args.input}: {e}")
 
     # Output to file or stdout
     if args.output:
