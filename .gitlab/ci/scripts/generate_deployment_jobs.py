@@ -56,10 +56,6 @@ def get_ci_configuration_from_context():
             logging.info(f"{configured_deployments}")
             return configured_deployments
 
-    # in case of cross-project pipeline, variant are default ones except if overridden
-    if os.getenv("CI_PIPELINE_SOURCE") == "pipeline":
-        return get_default_ci_config()
-
     # otherwise check MR description
     if os.getenv("CI_MERGE_REQUEST_DESCRIPTION"):
         return get_ci_config_from_mr_desription()
@@ -123,7 +119,7 @@ def generate_ci_job_struct(job_names):
             ci_jobs[job].setdefault("variables", {})
             ci_jobs[job]["variables"]["SKIP_TESTS"] = "true"
 
-        scenario = re.compile(r"🎬([\w\d-]+)").findall(job)
+        scenario = re.compile(r"🎬([\w\d\.-]+)").findall(job)
         if scenario:
             if scenario[0] in ALLOWED_SCENARIOS.split(","):
                 ci_jobs[job]["extends"].append(f".scenario_{scenario[0]}")
