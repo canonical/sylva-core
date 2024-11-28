@@ -268,7 +268,7 @@ units:
     # postgress passwords are not handled with Vault/ExternalSecret
     enabled_conditions: [false]
 
-  harbor-postgres:
+  harbor-postgres-ha:
     enabled: true
     helmrelease_spec:
       values:

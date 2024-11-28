@@ -1,0 +1,27 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: harbor-db-backup
+  namespace: harbor
+spec:
+  template:
+    spec:
+      containers:
+        - name: pg-backup
+          image: postgres:13  # Use a PostgreSQL-compatible image
+          command: ["/bin/sh", "-c"]
+          args:
+            - echo "Taking backup";
+              echo "pghost is - ${PGHOST} , user is - ${PGUSER} , database is - ${PGDATABASE}" ;
+              pg_dump -h "${PGHOST}" -U "${PGUSER}" "${PGDATABASE}" > /data/harbor-backup.sql ;
+              echo "Backup complete";
+              echo "Backup file created - /data/harbor-backup.sql" ;
+              ls -lrth /data ;
+          volumeMounts:
+            - mountPath: /data
+              name: backup-storage
+      restartPolicy: Never
+      volumes:
+        - name: backup-storage
+          persistentVolumeClaim:
+            claimName: backup-pvc

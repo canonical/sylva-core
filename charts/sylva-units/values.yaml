@@ -938,6 +938,35 @@ units:
           extendedConfiguration: |-
             huge_pages = off
           replicaCount: '{{ .Values._internal.ha_cluster.is_ha | ternary 3 1 }}'
+
+  harbor-postgres-ha:
+    info:
+      description: installs Postgresql in HA for Harbor
+      maturity: stable
+    depends_on:
+      namespace-defs: true
+      harbor-init: '{{ tuple . "harbor-init" | include "unit-enabled" }}'  # conditional, because in workload clusters harbor-init isn't used
+      '{{ .Values._internal.default_storage_class_unit }}': true
+    unit_templates:
+    - base-deps
+    enabled_conditions:
+      - '{{ tuple . "harbor" | include "unit-enabled" }}'
+    helm_repo_url: https://charts.bitnami.com/bitnami
+    helmrelease_spec:
+      chart:
+        spec:
+          chart: postgresql-ha
+          version: 14.2.30
+      targetNamespace: harbor
+      values:
+        global:
+          storageClass: "{{ .Values._internal.default_storage_class }}"
+        postgresql:
+          username: harbor
+          database: harbor
+          existingSecret: harbor-postgres-secrets
+          pdb:
+            create: true
           affinity:
             podAntiAffinity:
               requiredDuringSchedulingIgnoredDuringExecution:
@@ -946,10 +975,88 @@ units:
                       app.kubernetes.io/name: postgres
                       app.kubernetes.io/component: read
                   topologyKey: kubernetes.io/hostname
+#         configuration: |-
+#           huge_pages=off
+          pgHbaTrustAll: true
+          livenessProbe:
+            failureThreshold: 10
+            initialDelaySeconds: 120
+            periodSeconds: 60
+          readinessProbe:
+            failureThreshold: 10
+            initialDelaySeconds: 120
+            periodSeconds: 60
+        nameOverride: postgres
+        serviceAccount:
+          create: true
+          name: postgresql
+        pgpool:
+          existingSecret: harbor-postgres-secrets
+          useLoadBalancing: false
+          disableLoadBalancingOnWrite: always
       _postRenderers:
         - kustomize:
             patches:
             - '{{ .Values._internal.pdb_allow_unhealthy_pod_eviction | include "preserve-type" }}'
+
+  harbor-db-migrate:
+    info:
+      description: Migrates Harbor database from PostgreSQL to PostgreSQL-HA
+      maturity: experimental
+      internal: true
+    depends_on:
+      harbor: '{{ tuple . "harbor" | include "unit-enabled" }}'
+      harbor-postgres-ha: true
+    unit_templates:
+    - base-deps
+    repo: sylva-core
+    kustomization_spec:
+      path: ./kustomize-units/harbor-postgres-ha
+      wait: true
+      targetNamespace: harbor
+      _patches:
+        - target:
+            kind: Job
+            name: harbor-db-backup
+          patch: |-
+            - op: add
+              path: /spec/template/spec/containers/0/env
+              value:
+                - name: PGHOST
+                  value: harbor-postgres-primary.harbor.svc.cluster.local
+                - name: PGUSER
+                  value: harbor
+                - name: PGPASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: harbor-postgres-secrets
+                      key: password
+                - name: PGDATABASE
+                  value: harbor
+                - name: BACKUP_FILE
+                  value: "harbor_backup.sql"
+        - target:
+            kind: Job
+            name: harbor-db-restore
+          patch: |-
+            - op: add
+              path: /spec/template/spec/containers/0/env
+              value:
+                - name: PGHOST
+                  value: harbor-postgres-primary.harbor.svc.cluster.local
+                - name: PGHOSTHA
+                  value: harbor-postgres-ha-postgresql.harbor.svc.cluster.local
+                - name: PGUSER
+                  value: harbor
+                - name: PGPASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: harbor-postgres-secrets
+                      key: password
+                - name: PGDATABASE
+                  value: harbor
+                - name: BACKUP_FILE
+                  value: "harbor_backup.sql"
 
   harbor:
     info:
@@ -963,6 +1070,7 @@ units:
       harbor-init: '{{ tuple . "harbor-init" | include "unit-enabled" }}'
       '{{ .Values._internal.default_storage_class_unit }}': true
       harbor-postgres: true
+      harbor-postgres-ha: true
     annotations:
       sylvactl/readyMessage: "Harbor UI can be reached at https://{{ .Values.external_hostnames.harbor }} ({{ .Values.external_hostnames.harbor }} must resolve to {{ .Values.display_external_ip }})"
     helm_repo_url: https://helm.goharbor.io
@@ -1009,7 +1117,7 @@ units:
         database:
           type: external
           external:
-            host: harbor-postgres-primary.harbor.svc.cluster.local
+            host: harbor-postgres-ha-postgresql.harbor.svc.cluster.local
             port: "5432"
             username: "harbor"
             coreDatabase: "harbor"

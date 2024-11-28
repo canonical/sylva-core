@@ -1,0 +1,71 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: harbor-db-restore
+  namespace: harbor
+spec:
+  template:
+    spec:
+#      initContainers:
+#        - name: check-backup
+#          image: bitnami/kubectl:1.27.4
+#          command:
+#            - /bin/sh
+#            - "-c"
+#          args:
+#            - |
+#              echo "Waiting for backup job to complete...";
+#              while true; do
+#                status=$(kubectl get job harbor-db-backup -n harbor -o jsonpath='{.status.succeeded}');
+#                if [ "$status" == "1" ]; then
+#                  echo "Backup job succeeded.";
+#                  break;
+#                fi;
+#                echo "Backup job not completed yet. Retrying in 10 seconds...";
+#                sleep 10;
+#              done;
+#              echo "Proceeding with restore.";
+      containers:
+        - name: pg-restore
+          image: postgres:16
+          command: ["/bin/sh", "-c"]
+          args:
+            - echo "Checking schema of postgres";
+              psql -h "${PGHOST}" -U "${PGUSER}" -d "${PGDATABASE}" -c "\dt";
+              echo "Creating test table in postgres";
+              psql -h "${PGHOST}" -U "${PGUSER}" "${PGDATABASE}" -c "CREATE TABLE IF NOT EXISTS test_table_migrate (id SERIAL PRIMARY KEY, name TEXT NOT NULL);";
+              psql -h "${PGHOST}" -U "${PGUSER}" "${PGDATABASE}" -c "INSERT INTO test_table_migrate (name) VALUES ('AkTest1'), ('AkTest2');";
+              echo "Test table created with sample data.";
+              echo "Checking schema of postgres again to confirm test_table_migrate";
+              psql -h "${PGHOST}" -U "${PGUSER}" -d "${PGDATABASE}" -c "\dt";
+              echo "Checking schema of postgres-ha";
+              psql -h "${PGHOSTHA}" -U "${PGUSER}" -d "${PGDATABASE}" -c "\dt";
+              echo "Taking backup from postgres";
+              echo "pghost is - ${PGHOST} , user is - ${PGUSER} , database is - ${PGDATABASE}" ;
+              pg_dump -h "${PGHOST}" -U "${PGUSER}" "${PGDATABASE}" > /data/harbor-backup.sql ;
+              echo "Backup complete";
+              echo "Backup file created - /data/harbor-backup.sql" ;
+              ls -lrth /data ;
+              if [ ! -f /data/harbor-backup.sql ]; then
+                echo "Backup file not found. Exiting.";
+                exit 1;
+              fi;
+              echo "Backup file found for restore. Starting restore process...";
+              echo "Turning off default read-only mode";
+              psql -h "${PGHOSTHA}" -U "${PGUSER}" "${PGDATABASE}" -c "set transaction read write;";
+              psql -h "${PGHOSTHA}" -U "${PGUSER}" "${PGDATABASE}" -c "alter database exercises set default_transaction_read_only = off;";
+              echo "Turned off default read-only mode, Triggering restore";
+              psql -h "${PGHOSTHA}" -U "${PGUSER}" "${PGDATABASE}" < /data/harbor-backup.sql ;
+              echo "Restore complete";
+              echo "Verifying the restore by getting the schema";
+              psql -h "${PGHOSTHA}" -U "${PGUSER}" -d "${PGDATABASE}" -c "\dt";
+              echo "Verifying test table data";
+              psql -h "${PGHOSTHA}" -U "${PGUSER}" -d "${PGDATABASE}" -c "SELECT * FROM test_table_migrate;";
+          volumeMounts:
+            - mountPath: /data
+              name: backup-storage
+      restartPolicy: Never
+      volumes:
+        - name: backup-storage
+          persistentVolumeClaim:
+            claimName: backup-pvc
