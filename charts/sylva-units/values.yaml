@@ -3697,8 +3697,8 @@ units:
     - '{{ tuple . "k8s-gateway" | include "unit-enabled" }}'
     - '{{ .Values._internal.state.is_upgrade }}'
     - >-
-      {{- $nginxSvc := lookup "v1" "Service" "k8s-gateway" "k8s-gateway" -}}
-      {{ ne ($nginxSvc | dig "spec" "loadBalancerClass" "") .Values._internal.loadBalancerClass }}
+      {{- $k8sGwSvc := lookup "v1" "Service" "k8s-gateway" "k8s-gateway" -}}
+      {{ ne ($k8sGwSvc | dig "spec" "loadBalancerClass" "") .Values._internal.loadBalancerClass }}
     depends_on:
       metallb-resources: '{{ tuple . "metallb" | include "unit-enabled" }}'
     kustomization_spec:
@@ -3887,8 +3887,8 @@ units:
     - '{{ tuple . "ingress-nginx" | include "unit-enabled" }}'
     - '{{ .Values._internal.state.is_upgrade }}'
     - >-
-      {{- $nginxSvc := lookup "v1" "Service" "kube-system" "rke2-ingress-nginx-controller" -}}
-      {{ ne ($nginxSvc | dig "spec" "loadBalancerClass" "") .Values._internal.loadBalancerClass }}
+      {{- $current_config := lookup "v1" "Secret" .Release.Namespace "sylva-units-values" | dig "data" "values" "" | b64dec | fromYaml | default dict -}}
+      {{- ne (dig "units" "ingress-nginx" "helmrelease_spec" "values" "controller" "service" "loadBalancerClass" "" $current_config) .Values._internal.loadBalancerClass -}}
     depends_on:
       metallb-resources: '{{ tuple . "metallb" | include "unit-enabled" }}'
     kustomization_spec:
