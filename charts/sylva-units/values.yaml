@@ -3324,7 +3324,7 @@ units:
             path: /data/kube-job.sh
             value: |
               #!/bin/bash
-              if kubectl -n metallb-system get cm chart-content-metallb; then
+              if kubectl -n metallb-system get helmchart.helm.cattle.io metallb; then
                 kubectl -n metallb-system delete cm chart-content-metallb
                 kubectl -n metallb-system delete secret chart-values-metallb
                 kubectl -n metallb-system delete secret -l name=metallb,owner=helm
