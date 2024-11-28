@@ -1,8 +1,7 @@
 apiVersion: kyverno.io/v1
-kind: Policy
+kind: ClusterPolicy
 metadata:
   name: rke2-helmchart-prevent-uninstall
-  namespace: kube-system
   annotations:
     kustomize.toolkit.fluxcd.io/force: Enabled
     policies.kyverno.io/title: patch some RKE2 HelmCharts to set a safe failurePolicy
@@ -31,6 +30,9 @@ spec:
               - rke2-calico-crd
               - rke2-coredns
               - metallb
+            namespaces:
+              - kube-system
+              - metallb-system
       mutate:
         targets:
           - apiVersion: helm.cattle.io/v1
