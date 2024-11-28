@@ -7634,15 +7634,22 @@ _internal:
     {{- end -}}
     {{ $n | include "preserve-type" }}
     '
+
   # total number of longhorn nodes
   longhorn_node_count:
     '
     {{- $count := 0 -}}
-    {{- range $key, $value := .Values.cluster.baremetal_hosts -}}
-      {{- if hasKey $value "longhorn_disk_config" -}}
-        {{- $count = add $count 1 -}}
+      {{- if hasKey .Values.cluster "baremetal_host_default" -}}
+        {{- if hasKey .Values.cluster.baremetal_host_default "longhorn_disk_config" -}}
+          {{- $count = len .Values.cluster.baremetal_hosts -}}
+        {{- end -}}
+      {{- else -}}
+        {{- range $key, $value := .Values.cluster.baremetal_hosts -}}
+          {{- if hasKey $value "longhorn_disk_config" -}}
+            {{- $count = add $count 1 -}}
+          {{- end -}}
+        {{- end -}}
       {{- end -}}
-    {{- end -}}
     {{- $count -}}
     '
 
