@@ -950,6 +950,8 @@ units:
           name: postgresql
         pgpool:
           existingSecret: harbor-postgres-secrets
+          useLoadBalancing: false
+          disableLoadBalancingOnWrite: always
       _postRenderers:
         - kustomize:
             patches:
