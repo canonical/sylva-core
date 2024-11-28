@@ -301,11 +301,11 @@ def generate_full_md_table():
     external_software_units = [u for u in units_data
                                if not u['internal'] and '/sylva-projects/' not in u['source_url']]
     return (f"## Units for software components integrated into Sylva\n\n"
-            f"{convert_to_markdown_table(external_software_units, ["name", "full description", "maturity", "source", "version"], sort_by_maturity)}"
+            f"{convert_to_markdown_table(external_software_units, ['name', 'full description', 'maturity', 'source', 'version'], sort_by_maturity)}"
             f"\n## Units for operators, tools or Helm charts maintained in Sylva project\n\n"
-            f"{convert_to_markdown_table(sylva_maintained_units, ["name", "full description", "source", "version"], sort_by_maturity)}"
+            f"{convert_to_markdown_table(sylva_maintained_units, ['name', 'full description', 'source', 'version'], sort_by_maturity)}"
             f"\n## Units internal to Sylva\n\n"
-            f"{convert_to_markdown_table(sylva_core_internal_units, ["name", "full description", "source"])}")
+            f"{convert_to_markdown_table(sylva_core_internal_units, ['name', 'full description', 'source'])}")
 
 
 if __name__ == "__main__":
