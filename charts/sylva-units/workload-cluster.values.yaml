@@ -306,6 +306,9 @@ units:
     kustomization_spec:
       targetNamespace: null  # cancel the targetNamespace set in unit_kustomization_spec_default
 
+  ingress-nginx-cleanup:
+    enabled: true
+
   ingress-nginx:
     enabled: true
     depends_on:
