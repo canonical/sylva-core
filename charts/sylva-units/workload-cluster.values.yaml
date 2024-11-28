@@ -304,6 +304,9 @@ units:
   cluster-vip:
     enabled: true
 
+  ingress-nginx-cleanup:
+    enabled: true
+
   ingress-nginx:
     enabled: true
     depends_on:
