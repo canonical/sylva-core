@@ -2869,7 +2869,7 @@ units:
     helmrelease_spec:
 # Disable drift for cluster HR till https://gitlab.com/sylva-projects/sylva-core/-/issues/1812 is solved.
       driftDetection:
-        mode: disabled
+        mode: warn
       uninstall:
         timeout: '{{ mul .Values.cluster.timeouts.cluster_delete_hook_job_timeout 1.2 }}s'
       targetNamespace: '{{ .Release.Namespace }}'
@@ -3261,7 +3261,7 @@ units:
     helmrelease_spec:
 # Disable drift for calico till https://gitlab.com/sylva-projects/sylva-core/-/issues/1814 is solved.
       driftDetection:
-        mode: disabled
+        mode: warn
       chart:
         spec:
           chart: rke2-calico
@@ -3361,7 +3361,7 @@ units:
     helmrelease_spec:
 # Disable drift for metallb till https://gitlab.com/sylva-projects/sylva-core/-/issues/1814 is solved.
       driftDetection:
-        mode: disabled
+        mode: warn
       chart:
         spec:
           chart: metallb
@@ -3418,7 +3418,7 @@ units:
           chart: .
       targetNamespace: metallb-system
       driftDetection:
-        mode: enabled
+        mode: warn
       values: >-
         {{- $resources := dict }}
         {{- tuple $resources .Values.cluster.metallb .Values._internal.metallb | include "merge-append" }}
