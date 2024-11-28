@@ -3600,7 +3600,6 @@ units:
         # negative value will deploy 1 to abs(replicas) depending on available number of nodes
         replicas: -3
         features: embedded-cluster-api=false,provisioningv2=true
-        debug: true
         proxy: '{{ get .Values.proxies "https_proxy" }}'
         noProxy: '{{ include "sylva-units.no_proxy" (tuple .) }}'
         postDelete:
