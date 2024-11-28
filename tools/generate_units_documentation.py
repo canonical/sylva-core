@@ -66,9 +66,9 @@ def get_version_and_source(values, unit_name, unit):
 
     helmrelease_spec = get_or_empty(unit, "helmrelease_spec")
     if helmrelease_spec:
-        source_type = "Helm"
+        source_type = "Helm chart"
     else:
-        source_type = "Kustomize"
+        source_type = "Kustomization"
 
     unit_internal = get_or_empty(unit, "info", "internal")
     if unit_internal:
@@ -294,8 +294,18 @@ def generate_full_md_table():
         unit["full description"] = f"{unit['description']}"
         if unit['details']:
             unit["full description"] += f"<br/><br/>{unit['details']}"
-    headers = ["name", "full description", "maturity", "internal", "source", "version"]
-    return convert_to_markdown_table(units_data, headers, sort_by_maturity)
+    sylva_core_internal_units = [u for u in units_data
+                                 if u['internal']]
+    sylva_maintained_units = [u for u in units_data
+                              if not u['internal'] and '/sylva-projects/' in u['source_url']]
+    external_software_units = [u for u in units_data
+                               if not u['internal'] and '/sylva-projects/' not in u['source_url']]
+    return (f"## Units for software components integrated into Sylva\n\n"
+            f"{convert_to_markdown_table(external_software_units, ["name", "full description", "maturity", "source", "version"], sort_by_maturity)}"
+            f"\n## Units for operators, tools or Helm charts maintained in Sylva project\n\n"
+            f"{convert_to_markdown_table(sylva_maintained_units, ["name", "full description", "source", "version"], sort_by_maturity)}"
+            f"\n## Units internal to Sylva\n\n"
+            f"{convert_to_markdown_table(sylva_core_internal_units, ["name", "full description", "source"])}")
 
 
 if __name__ == "__main__":
