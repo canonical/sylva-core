@@ -1,8 +1,8 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
-  - https://github.com/rancher/cluster-api-provider-rke2/releases/download/v0.7.1/bootstrap-components.yaml
-  - https://github.com/rancher/cluster-api-provider-rke2/releases/download/v0.7.1/control-plane-components.yaml
+  - https://github.com/rancher/cluster-api-provider-rke2/releases/download/v0.12.0/bootstrap-components.yaml
+  - https://github.com/rancher/cluster-api-provider-rke2/releases/download/v0.12.0/control-plane-components.yaml
 
 components:
   - ../common-kustomize-components/crd-remove-caBundle
@@ -13,7 +13,7 @@ labels:
       clusterctl.cluster.x-k8s.io: ""
 
 images:
-- name: ghcr.io/rancher/cluster-api-provider-rke2-controlplane:v0.7.1
+- name: ghcr.io/rancher/cluster-api-provider-rke2-controlplane
   newName: registry.gitlab.com/sylva-projects/sylva-elements/container-images/sandbox-registry/cluster-api-provider-rke2-controlplane-amd64
-  newTag: 0.7.1-skip-etcd-membership-removal-3
+  newTag: 0.12.0-skip-etcd-membership-removal
 
