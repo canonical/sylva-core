@@ -136,6 +136,7 @@
 | **loki-init** | sets up Loki certificate<br/><br/>it generate certificate | Kustomization |
 | **longhorn-engine-image-cleanup** | kyverno cleanup policy to delete old Longhorn engineimages that are left-over after upgrade | Kustomization |
 | **longhorn-instance-manager-cleanup** | cronjob to cleanup Longhorn instance-manager pods that are preventing node drain | Kustomization |
+| **low-replicas-storageclass** | Create a Longhorn storage class with less than 3 replicas | Kustomization |
 | **management-cluster-configs** | copies configuration object in management cluster during bootstrap | Kustomization |
 | **management-cluster-flux** | installs flux in management cluster during bootstrap | Kustomization |
 | **management-flag** | dummy unit to identify management cluster<br/><br/>This unit will produce a configmap in management cluster that can be used by apply scripts to assert that they are properly targeting the management cluster | Kustomization |
