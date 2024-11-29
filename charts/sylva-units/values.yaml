@@ -3696,9 +3696,7 @@ units:
     enabled_conditions:
     - '{{ tuple . "k8s-gateway" | include "unit-enabled" }}'
     - '{{ .Values._internal.state.is_upgrade }}'
-    - >-
-      {{- $k8sGwSvc := lookup "v1" "Service" "k8s-gateway" "k8s-gateway" -}}
-      {{ ne ($k8sGwSvc | dig "spec" "loadBalancerClass" "") .Values._internal.loadBalancerClass }}
+    - '{{ .Values._internal.state.needs_loadbalancer_class }}'
     depends_on:
       metallb-resources: '{{ tuple . "metallb" | include "unit-enabled" }}'
     kustomization_spec:
@@ -3886,9 +3884,7 @@ units:
     enabled_conditions:
     - '{{ tuple . "ingress-nginx" | include "unit-enabled" }}'
     - '{{ .Values._internal.state.is_upgrade }}'
-    - >-
-      {{- $current_config := lookup "v1" "Secret" .Release.Namespace "sylva-units-values" | dig "data" "values" "" | b64dec | fromYaml | default dict -}}
-      {{- ne (dig "units" "ingress-nginx" "helmrelease_spec" "values" "controller" "service" "loadBalancerClass" "" $current_config) .Values._internal.loadBalancerClass -}}
+    - '{{ .Values._internal.needs_loadbalancer_class }}'
     depends_on:
       metallb-resources: '{{ tuple . "metallb" | include "unit-enabled" }}'
     kustomization_spec:
@@ -7825,6 +7821,9 @@ _internal:
       {{ gt (lookup "kustomize.toolkit.fluxcd.io/v1" "Kustomization" .Release.Namespace "sylva-units-status" | dig "status" "inventory" "entries" list | len) 0
           | include "preserve-type"
       }}
+    needs_loadbalancer_class: >-
+      {{- $current_config := lookup "v1" "Secret" .Release.Namespace "sylva-units-values" | dig "data" "values" "" | b64dec | fromYaml | default dict -}}
+      {{- ne (dig "units" "ingress-nginx" "helmrelease_spec" "values" "controller" "service" "loadBalancerClass" "" $current_config) .Values._internal.loadBalancerClass -}}
 
   k8s_version: '{{ include "interpret-as-string" (tuple . .Values.cluster.k8s_version) }}'
   mgmt_cluster: false
