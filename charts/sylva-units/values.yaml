@@ -7909,6 +7909,12 @@ _internal:
       {{- if hasKey .Values.cluster "baremetal_host_default" -}}
         {{- if hasKey .Values.cluster.baremetal_host_default "longhorn_disk_config" -}}
           {{- $count = len .Values.cluster.baremetal_hosts -}}
+        {{- else -}}
+          {{- range $key, $value := .Values.cluster.baremetal_hosts -}}
+            {{- if hasKey $value "longhorn_disk_config" -}}
+              {{- $count = add $count 1 -}}
+            {{- end -}}
+          {{- end -}}
         {{- end -}}
       {{- else -}}
         {{- range $key, $value := .Values.cluster.baremetal_hosts -}}
