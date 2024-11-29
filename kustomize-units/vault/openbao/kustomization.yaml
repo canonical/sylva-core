@@ -13,7 +13,11 @@ patches:
       metadata:
         name: vault
       spec:
-        image: ghcr.io/openbao/openbao:2.0.3
+        image: ghcr.io/openbao/openbao:2.0.0
+        securityContext:
+          fsGroup: 1000
+          runAsGroup: 1000
+          runAsUser: 100
 
   - patch: |
       - op: add
@@ -21,6 +25,23 @@ patches:
         value:
           name: BAO_K8S_POD_NAME
           value: $(POD_NAME)
+      - op: add
+        path: /spec/vaultEnvsConfig/-
+        value:
+          name: BAO_CACERT
+          value: /vault/tls/ca.crt
+      - op: add
+        path: /spec/vaultEnvsConfig/-
+        value:
+          name: BAO_CLUSTER_ADDR
+          value: http://$(POD_NAME):8201
+      - op: add
+        path: /spec/vaultEnvsConfig/-
+        value:
+          name: SKIP_CHOWN
+          value: "true"
+      - op: remove
+        path: /spec/securityContext/runAsNonRoot
 
     target:
       kind: Vault
