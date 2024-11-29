@@ -1174,6 +1174,7 @@ units:
           CERT: '{{ .Values.external_certificates.vault.cert | default "" | b64enc }}'
           CACERT: '{{ .Values.external_certificates.cacert | default "" | b64enc }}'
           VO_VAULT_ACCESS_KEY: '{{ .Values.vault.access_key }}'
+          VAULT_IMAGE: '{{ .Values.vault.image }}'
         substituteFrom:
         - kind: ConfigMap
           name: proxy-env-vars
@@ -8027,6 +8028,7 @@ vault:
   variant: ""
   access_key: ""
   secret_key: ""
+  image: hashicorp/vault:1.13.13
 # Sample snmp configuration as it needs to be added in the secrets.yaml file
 # snmp:
 #   devices:

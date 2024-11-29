@@ -9304,6 +9304,9 @@
         },
         "secret_key": {
           "type": "string"
+        },
+        "image": {
+          "type": "string"
         }
       }
     }

@@ -13,7 +13,6 @@ patches:
       metadata:
         name: vault
       spec:
-        image: 172.20.129.169/alain.thioliere/vo_vault:0.0.16
         unsealConfig:
           options:
             secretShares: 0
