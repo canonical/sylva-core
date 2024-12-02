@@ -1,0 +1,39 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: mutate-job-security-context
+  annotations:
+    kustomize.toolkit.fluxcd.io/force: Enabled
+spec:
+  rules:
+    - name: add-security-context
+      match:
+        resources:
+          kinds:
+            - Job
+          names:
+            - rke2-machineconfig-cleanup-cronjob-*
+            - fleet-cleanup-gitrepo-jobs-*
+      mutate:
+        patchStrategicMerge:
+          spec:
+            template:
+              spec:
+                containers:
+                  - (name): "*"
+                    securityContext:
+                      allowPrivilegeEscalation: false
+                      capabilities:
+                        drop:
+                          - ALL
+                      runAsNonRoot: true
+                      runAsUser: 1000
+                      runAsGroup: 1000
+                      privileged: false
+                      seccompProfile:
+                        type: RuntimeDefault
+                securityContext:
+                  runAsNonRoot: true
+                  seccompProfile:
+                    type: RuntimeDefault
+
