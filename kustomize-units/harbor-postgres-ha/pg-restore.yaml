@@ -42,7 +42,7 @@ spec:
               psql -h "${PGHOSTHA}" -U "${PGUSER}" -d "${PGDATABASE}" -c "\dt";
               echo "Taking backup from postgres";
               echo "pghost is - ${PGHOST} , user is - ${PGUSER} , database is - ${PGDATABASE}" ;
-              pg_dump --clean --if-exists -h "${PGHOST}" -U "${PGUSER}" "${PGDATABASE}" > /data/harbor-backup.sql ;
+              pg_dump -h "${PGHOST}" -U "${PGUSER}" "${PGDATABASE}" > /data/harbor-backup.sql ;
               echo "Backup complete";
               echo "Backup file created - /data/harbor-backup.sql" ;
               ls -lrth /data ;
@@ -51,6 +51,10 @@ spec:
                 exit 1;
               fi;
               echo "Backup file found for restore. Starting restore process...";
+              echo "Recreating db" ;
+              psql -h "${PGHOSTHA}" -U "${PGUSER}" -c "DROP DATABASE ${PGDATABASE};"
+              psql -h "${PGHOSTHA}" -U "${PGUSER}" -c "CREATE DATABASE ${PGDATABASE};"
+              echo "Recreated db" ;
               echo "Turning off default read-only mode";
               psql -h "${PGHOSTHA}" -U "${PGUSER}" "${PGDATABASE}" -c "set transaction read write;";
               psql -h "${PGHOSTHA}" -U "${PGUSER}" "${PGDATABASE}" -c "alter database exercises set default_transaction_read_only = off;";
