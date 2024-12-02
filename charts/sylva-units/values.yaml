@@ -5293,7 +5293,7 @@ units:
           tls:
             - secretName: os-image-server-tls
               hosts:
-               - "{{ .Values.external_hostnames.os_image_server }}"
+                - "{{ .Values.external_hostnames.os_image_server }}"
           hosts:
             - host: "{{ .Values.external_hostnames.os_image_server }}"
         osImagePersistenceDefaults:
