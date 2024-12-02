@@ -46,7 +46,7 @@ variables:
   SYLVA_CI_VALUES_FOLDER: environment-values/sylva-core-ci-values
   # Reference to checkout for CI values, by default we use the same for all stages but it can be overriden
   # eg: if we have a breaking change during an upgrade we could use a different branch for the deployment and update
-  SYLVA_CI_VALUES_REVISION: 0.4.22
+  SYLVA_CI_VALUES_REVISION: 0.4.23
 
   # Use CI values for specific version
   # If not specified $GIT_REVISION if set is used or "current" otherwise
@@ -70,7 +70,7 @@ variables:
     when: never
   - if: $CI_MERGE_REQUEST_LABELS =~ /ci-feature::mgmt-rolling-update/
     when: never
-  - if: $CI_MERGE_REQUEST_LABELS =~ /ci-feature::test-upgrade-from-1.1.1/
+  - if: $CI_MERGE_REQUEST_LABELS =~ /ci-feature::test-upgrade-from-1.2.1/
     when: never
   - if: $CI_MERGE_REQUEST_LABELS =~ /renovate/ && $CAPO_TAG
     allow_failure: true
@@ -137,24 +137,14 @@ variables:
 
 .scenario_sylva-upgrade:
   variables:
-    MGMT_INITIAL_REVISION: "1.1.1-ci-tweaks"
+    MGMT_INITIAL_REVISION: "1.2.1"
     MGMT_UPDATE_REVISION: "" # Use current commit
-    WC_INITIAL_REVISION: "1.1.1-ci-tweaks"
+    WC_INITIAL_REVISION: "1.2.1"
     WC_UPDATE_REVISION: "" # Use current commit
     # Increase default timers due to rolling upgrade
     MGMT_WATCH_TIMEOUT_MIN: "45"
     APPLY_WATCH_TIMEOUT_MIN: "115"
     APPLY_WC_WATCH_TIMEOUT_MIN: "115"
-
-.scenario_sylva-upgrade-capm3:
-  variables:
-    # libvirt-metal-no-bond.yaml file is added to updates values as a temporary fix for capm3 upgrades from 1.1.1,
-    # it can be removed after next release, see https://gitlab.com/sylva-projects/sylva-core/-/issues/1581
-    MGMT_ADDITIONAL_VALUES: libvirt-metal-no-bond.yaml
-    MGMT_UPDATE_ADDITIONAL_VALUES: disable-interface-mappings-mgmt.yaml
-    WC_ADDITIONAL_VALUES: libvirt-metal-no-bond.yaml
-    WC_UPDATE_ADDITIONAL_VALUES: disable-interface-mappings-wc.yaml
-
 
 .wait-publish-jobs:
   needs:
@@ -317,32 +307,32 @@ variables:
 ☁capo 🚀rke2 🐧ubuntu 🛠oci,ha 🎬sylva-upgrade:
   extends: [.capo, .wait-publish-jobs, .scenario_sylva-upgrade]
   rules:
-    - if: '$CI_PIPELINE_SOURCE == "schedule" && $CI_DEPLOYMENTS && $DEPLOYMENT_DESCRIPTION == "Nightly - Upgrade from 1.1.1 to main"'
-    - if: $CI_MERGE_REQUEST_LABELS =~ /ci-feature::test-upgrade-from-1.1.1/
+    - if: '$CI_PIPELINE_SOURCE == "schedule" && $CI_DEPLOYMENTS && $DEPLOYMENT_DESCRIPTION == "Nightly - Upgrade from 1.2.1 to main"'
+    - if: $CI_MERGE_REQUEST_LABELS =~ /ci-feature::test-upgrade-from-1.2.1/
       when: manual
       allow_failure: true
 
 ☁capo 🚀kadm 🐧ubuntu 🛠oci,ha 🎬sylva-upgrade:
   extends: [.capo, .wait-publish-jobs, .scenario_sylva-upgrade]
   rules:
-    - if: '$CI_PIPELINE_SOURCE == "schedule" && $CI_DEPLOYMENTS && $DEPLOYMENT_DESCRIPTION == "Nightly - Upgrade from 1.1.1 to main"'
-    - if: $CI_MERGE_REQUEST_LABELS =~ /ci-feature::test-upgrade-from-1.1.1/
+    - if: '$CI_PIPELINE_SOURCE == "schedule" && $CI_DEPLOYMENTS && $DEPLOYMENT_DESCRIPTION == "Nightly - Upgrade from 1.2.1 to main"'
+    - if: $CI_MERGE_REQUEST_LABELS =~ /ci-feature::test-upgrade-from-1.2.1/
       when: manual
       allow_failure: true
 
 ☁capo 🚀kadm 🐧ubuntu 🛠oci,ha,misc 🎬sylva-upgrade:
   extends: [.capo, .wait-publish-jobs, .scenario_sylva-upgrade]
   rules:
-    - if: '$CI_PIPELINE_SOURCE == "schedule" && $CI_DEPLOYMENTS && $DEPLOYMENT_DESCRIPTION == "Nightly - Upgrade from 1.1.1 to main"'
-    - if: $CI_MERGE_REQUEST_LABELS =~ /ci-feature::test-upgrade-from-1.1.1/
+    - if: '$CI_PIPELINE_SOURCE == "schedule" && $CI_DEPLOYMENTS && $DEPLOYMENT_DESCRIPTION == "Nightly - Upgrade from 1.2.1 to main"'
+    - if: $CI_MERGE_REQUEST_LABELS =~ /ci-feature::test-upgrade-from-1.2.1/
       when: manual
       allow_failure: true
 
 ☁capo 🚀rke2 🐧suse 🛠oci,ha 🎬sylva-upgrade:
   extends: [.capo, .wait-publish-jobs, .scenario_sylva-upgrade]
   rules:
-    - if: '$CI_PIPELINE_SOURCE == "schedule" && $CI_DEPLOYMENTS && $DEPLOYMENT_DESCRIPTION == "Nightly - Upgrade from 1.1.1 to main"'
-    - if: $CI_MERGE_REQUEST_LABELS =~ /ci-feature::test-upgrade-from-1.1.1/
+    - if: '$CI_PIPELINE_SOURCE == "schedule" && $CI_DEPLOYMENTS && $DEPLOYMENT_DESCRIPTION == "Nightly - Upgrade from 1.2.1 to main"'
+    - if: $CI_MERGE_REQUEST_LABELS =~ /ci-feature::test-upgrade-from-1.2.1/
       when: manual
       allow_failure: true
 
@@ -444,42 +434,42 @@ variables:
     - if: '$CI_PIPELINE_SOURCE == "schedule" && $CI_DEPLOYMENTS && $DEPLOYMENT_DESCRIPTION == "Nightly - CAPM3 HA Suse"'
 
 ☁capm3 🚀rke2 🐧ubuntu 🛠oci,ha 🎬sylva-upgrade:
-  extends: [.capm3-virt, .wait-publish-jobs, .scenario_sylva-upgrade, .scenario_sylva-upgrade-capm3]
+  extends: [.capm3-virt, .wait-publish-jobs, .scenario_sylva-upgrade]
   rules:
-    - if: '$CI_PIPELINE_SOURCE == "schedule" && $CI_DEPLOYMENTS && $DEPLOYMENT_DESCRIPTION == "Nightly - Upgrade from 1.1.1 to main"'
-    - if: $CI_MERGE_REQUEST_LABELS =~ /ci-feature::test-upgrade-from-1.1.1/
+    - if: '$CI_PIPELINE_SOURCE == "schedule" && $CI_DEPLOYMENTS && $DEPLOYMENT_DESCRIPTION == "Nightly - Upgrade from 1.2.1 to main"'
+    - if: $CI_MERGE_REQUEST_LABELS =~ /ci-feature::test-upgrade-from-1.2.1/
       when: manual
       allow_failure: true
 
 ☁capm3 🚀kadm 🐧ubuntu 🛠ha 🎬sylva-upgrade:
-  extends: [.capm3-virt, .scenario_sylva-upgrade, .scenario_sylva-upgrade-capm3]
+  extends: [.capm3-virt, .scenario_sylva-upgrade]
   rules:
-    - if: '$CI_PIPELINE_SOURCE == "schedule" && $CI_DEPLOYMENTS && $DEPLOYMENT_DESCRIPTION == "Nightly - Upgrade from 1.1.1 to main"'
-    - if: $CI_MERGE_REQUEST_LABELS =~ /ci-feature::test-upgrade-from-1.1.1/
+    - if: '$CI_PIPELINE_SOURCE == "schedule" && $CI_DEPLOYMENTS && $DEPLOYMENT_DESCRIPTION == "Nightly - Upgrade from 1.2.1 to main"'
+    - if: $CI_MERGE_REQUEST_LABELS =~ /ci-feature::test-upgrade-from-1.2.1/
       when: manual
       allow_failure: true
 
 ☁capm3 🚀kadm 🐧suse 🛠ha 🎬sylva-upgrade:
-  extends: [.capm3-virt, .scenario_sylva-upgrade, .scenario_sylva-upgrade-capm3]
+  extends: [.capm3-virt, .scenario_sylva-upgrade]
   rules:
-    - if: '$CI_PIPELINE_SOURCE == "schedule" && $CI_DEPLOYMENTS && $DEPLOYMENT_DESCRIPTION == "Nightly - Upgrade from 1.1.1 to main"'
-    - if: $CI_MERGE_REQUEST_LABELS =~ /ci-feature::test-upgrade-from-1.1.1/
+    - if: '$CI_PIPELINE_SOURCE == "schedule" && $CI_DEPLOYMENTS && $DEPLOYMENT_DESCRIPTION == "Nightly - Upgrade from 1.2.1 to main"'
+    - if: $CI_MERGE_REQUEST_LABELS =~ /ci-feature::test-upgrade-from-1.2.1/
       when: manual
       allow_failure: true
 
 ☁capm3 🚀rke2 🐧suse 🛠oci,ha 🎬sylva-upgrade:
-  extends: [.capm3-virt, .wait-publish-jobs, .scenario_sylva-upgrade, .scenario_sylva-upgrade-capm3]
+  extends: [.capm3-virt, .wait-publish-jobs, .scenario_sylva-upgrade]
   rules:
-    - if: '$CI_PIPELINE_SOURCE == "schedule" && $CI_DEPLOYMENTS && $DEPLOYMENT_DESCRIPTION == "Nightly - Upgrade from 1.1.1 to main"'
-    - if: $CI_MERGE_REQUEST_LABELS =~ /ci-feature::test-upgrade-from-1.1.1/
+    - if: '$CI_PIPELINE_SOURCE == "schedule" && $CI_DEPLOYMENTS && $DEPLOYMENT_DESCRIPTION == "Nightly - Upgrade from 1.2.1 to main"'
+    - if: $CI_MERGE_REQUEST_LABELS =~ /ci-feature::test-upgrade-from-1.2.1/
       when: manual
       allow_failure: true
 
 ☁capm3 🚀rke2 🐧ubuntu 🛠oci,ha,misc 🎬sylva-upgrade:
-  extends: [.capm3-virt, .wait-publish-jobs, .scenario_sylva-upgrade, .scenario_sylva-upgrade-capm3]
+  extends: [.capm3-virt, .wait-publish-jobs, .scenario_sylva-upgrade]
   rules:
-    - if: '$CI_PIPELINE_SOURCE == "schedule" && $CI_DEPLOYMENTS && $DEPLOYMENT_DESCRIPTION == "Nightly - Upgrade from 1.1.1 to main"'
-    - if: $CI_MERGE_REQUEST_LABELS =~ /ci-feature::test-upgrade-from-1.1.1/
+    - if: '$CI_PIPELINE_SOURCE == "schedule" && $CI_DEPLOYMENTS && $DEPLOYMENT_DESCRIPTION == "Nightly - Upgrade from 1.2.1 to main"'
+    - if: $CI_MERGE_REQUEST_LABELS =~ /ci-feature::test-upgrade-from-1.2.1/
       when: manual
       allow_failure: true
 
