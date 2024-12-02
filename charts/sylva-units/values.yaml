@@ -2575,7 +2575,7 @@ units:
       targetNamespace: metal3-system
       values:
         global:
-          ironicKernelParams: "console=ttyS0, hosts.append={{ .Values.display_external_ip }}_{{ .Values.external_hostnames.os_image_server }}"
+          ironicKernelParams: "console=tty1, suse.autologin=tty1, hosts.append={{ .Values.display_external_ip }}_{{ .Values.external_hostnames.os_image_server }}"
           additionalTrustedCAs: true
           ironicIP: '{{ .Values.display_external_ip }}'
           provisioningInterface: eth0
@@ -5212,6 +5212,7 @@ units:
     depends_on:
       namespace-defs: true
       sylva-ca: true
+      kyverno-policies: true
     repo: sylva-core
     kustomization_spec:
       path: ./kustomize-units/os-image-server-init
