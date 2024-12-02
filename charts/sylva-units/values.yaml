@@ -6685,6 +6685,7 @@ units:
       loki-init: true
       loki-credentials-secret: true
       minio-logging: true
+      logging-crd: '{{ tuple . "monitoring" | include "unit-enabled" }}'
     enabled_conditions:
       - '{{ tuple . "logging" | include "unit-enabled" }}'
     annotations:
@@ -6759,7 +6760,19 @@ units:
             enabled: false
             grafanaAgent:
               installOperator: false
+          serviceMonitor:
+            enabled: '{{ .Values._internal.monitoring.enabled | include "preserve-type" }}'
+            relabelings:
+            # drop loki-gateway endpoints from scraping as basicAuth config for serviceMonitor
+            # is not supported. See: https://github.com/grafana/loki/issues/14141
+            - sourceLabels:
+              - job
+              regex: "loki/loki-gateway"
+              action: drop
+          dashboards:
+            enabled: '{{ .Values._internal.monitoring.enabled | include "preserve-type" }}'
           rules:
+            enabled: '{{ .Values._internal.monitoring.enabled | include "preserve-type" }}'
             additionalGroups:
               - name: additional-loki-rules
                 rules:
