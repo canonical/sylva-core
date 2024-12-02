@@ -2509,6 +2509,47 @@ units:
           name: assisted-service
           namespace: assisted-installer
 
+  metal3-additionalcert-init:
+    info:
+      description: creates the tls-ca-additional certificate in metal3-system namespace, from the os-image-server-tls secret
+      internal: true
+    unit_templates:
+    - base-deps
+    - kube-job
+    enabled_conditions:
+    - '{{ tuple . "metal3" | include "unit-enabled" }}'
+    - '{{ tuple . "os-image-server" | include "unit-enabled" }}'
+    depends_on:
+      namespace-defs: true
+      os-image-server-init: true
+    kustomization_spec:
+      targetNamespace: metal3-system
+      _patches:
+      - target:
+          kind: ConfigMap
+          labelSelector: kube-job=script
+        patch: |
+          - op: replace
+            path: /data/kube-job.sh
+            value: |
+              #!/bin/bash
+              set -e
+
+              # Fetch the ca.crt from the os-image-server-tls secret in os-images namespace
+              CA_CERT=$(kubectl get secret os-image-server-tls -n metal3-system -o jsonpath='{.data.ca\.crt}')
+
+              # Create or update the tls-ca-additional secret in the metal3-system namespace
+              kubectl apply -f - <<EOF
+              apiVersion: v1
+              kind: Secret
+              metadata:
+                name: tls-ca-additional
+                namespace: metal3-system
+              type: Opaque
+              data:
+                ca-additional.crt: $CA_CERT
+              EOF
+
   metal3:
     info:
       description: installs SUSE-maintained Metal3 operator
@@ -5155,7 +5196,7 @@ units:
           kind: ConfigMap
           name: os-images-info
           namespace: '{{ .Release.Namespace }}'
-  
+
   os-image-server-init:
     info:
       description: sets up os-images namespace and the certificate for TLS integration
@@ -5181,7 +5222,7 @@ units:
           kind: Secret
           name: os-image-server-tls
           namespace: os-images
-          
+
   os-image-server:
     info:
       description: >
@@ -5196,7 +5237,7 @@ units:
       ingress-nginx: '{{ tuple . "ingress-nginx" | include "unit-enabled" }}'
       '{{ .Values._internal.default_storage_class_unit }}': true
       os-images-info: true
-      os-image-server-init: '{{ tuple . "os-image-server-init" | include "unit-enabled" }}'  
+      os-image-server-init: '{{ tuple . "os-image-server-init" | include "unit-enabled" }}'
     repo: os-image-server
     annotations:
       sylvactl/readyMessage: |
