@@ -448,25 +448,6 @@ def run_command_via_ssh(hostname, username, key_file, command):
     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
     try:
-        # We could use subprocess in this function, but I wanted to try establishing ssh connection with Python (no real reason to that)
-        # ssh_command = [
-        #     'ssh',
-        #     '-i', key_file,
-        #     f'{username}@{hostname}',
-        #     command
-        #     ]
-        # try:
-        #    except subprocess.CalledProcessError as e:
-        #    print(f"Command execution failed: {e}")
-        #    raise
-
-        #    result = subprocess.run(ssh_command, capture_output=True, text=True, check=True)
-        #    output = result.stdout
-        #    error = result.stderr
-        # except subprocess.CalledProcessError as e:
-        #    print(f"Command execution failed: {e}")
-        #    raise
-
         # Load the private key
         private_key = paramiko.RSAKey.from_private_key_file(key_file)
 
@@ -481,12 +462,6 @@ def run_command_via_ssh(hostname, username, key_file, command):
         # Read output and error streams
         output = stdout.read().decode()
         error = stderr.read().decode()
-
-        # Print the output
-        # if output:
-        #     print("Output:\n", output)
-        # if error:
-        #     print("Error:\n", error)
 
     except paramiko.SSHException as ssh_exception:
         print(f"SSH error: {ssh_exception}")
