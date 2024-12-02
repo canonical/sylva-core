@@ -42,7 +42,7 @@ spec:
               psql -h "${PGHOSTHA}" -U "${PGUSER}" -d "${PGDATABASE}" -c "\dt";
               echo "Taking backup from postgres";
               echo "pghost is - ${PGHOST} , user is - ${PGUSER} , database is - ${PGDATABASE}" ;
-              pg_dump -h "${PGHOST}" -U "${PGUSER}" "${PGDATABASE}" > /data/harbor-backup.sql ;
+              pg_dump --clean --if-exists -h "${PGHOST}" -U "${PGUSER}" "${PGDATABASE}" > /data/harbor-backup.sql ;
               echo "Backup complete";
               echo "Backup file created - /data/harbor-backup.sql" ;
               ls -lrth /data ;
