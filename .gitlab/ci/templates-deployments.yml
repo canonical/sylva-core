@@ -142,7 +142,8 @@ include:
 .setup_docker:
   - |
     # Configure docker for bootstrap cluster
-    if [ -n "$DOCKER_HOST" ]; then
+    if [[ $SKIP_DOCKER_SERVICE != "true" ]]; then
+      echo "Configuring docker networking"
       docker network create --attachable kind || true
       export DOCKER_IP=$(getent ahostsv4 docker | awk '{print $1}' | sort -u)
       KIND_PREFIX=$(docker network inspect kind -f '{{ (index .IPAM.Config 0).Subnet }}')
@@ -167,7 +168,7 @@ include:
     export MANAGEMENT_CLUSTER_NAME="mgmt-${ENV_TAG}"
     export WORKLOAD_CLUSTER_NAME="wc-${ENV_TAG}"
 
-    if [[ ${DEPLOYMENT_OPTIONS} == *"oci"* ]] && [[ ${DEPLOYMENT_OPTIONS} != *"no-oci"* ]]; then
+    if [[ ${DEPLOYMENT_OPTIONS} == *"oci"* ]]; then
       export OCI_TAG="$OCI_TAG_FORMAT"
     fi
   - |
@@ -251,7 +252,9 @@ include:
     options=$(echo $DEPLOYMENT_OPTIONS | tr "," "\n")
     for option in $options; do
       if [[ $option == "oci" ]]; then
-        echo "OCI will be configured later"
+        echo "Artifacts are configured to be provided by OCI (will be configured later)"
+      elif [[ $option == "git" ]]; then
+        echo "Artifacts are configured to be provided by git"
       elif [[ $option == "misc" ]]; then
         if [[ "$DEPLOYMENT_INFRA_PROV" == "capo" ]] && [[ "${CLUSTER_TYPE}" == "management" ]]; then
           update_values_file misc-units-in-capo.yml

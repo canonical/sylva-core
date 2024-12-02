@@ -70,7 +70,8 @@ default:
 deployment-success:cleanup:
   extends: .cleanup-openstack
   rules:
-    - when: on_success
+    - if: $DEPLOY_MGMT_CLUSTER == "true"
+      when: on_success
 
 deployment-failure:cleanup:
   extends: .cleanup-openstack
@@ -81,4 +82,5 @@ deployment-failure:cleanup:
         DELAY_CAPO_CLEANUP="true"
       fi
   rules:
-    - when: on_failure
+    - if: $DEPLOY_MGMT_CLUSTER == "true"
+      when: on_failure
