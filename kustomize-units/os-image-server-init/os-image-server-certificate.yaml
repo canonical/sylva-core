@@ -24,7 +24,7 @@ spec:
     - DEV
   dnsNames:
   - localhost
-  - ${OS_IMAGE_SERVER_DNS}  
+  - ${OS_IMAGE_SERVER_DNS}
   ipAddresses:
   - 127.0.0.1
   - ${OS_IMAGE_SERVER_IP}
