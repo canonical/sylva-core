@@ -111,6 +111,8 @@ $defs:
         type: string
       internal:
         type: boolean
+      test:
+        type: boolean
       maturity:
         type: string
         enum: ["core-component", "stable", "beta", "experimental"]
