@@ -700,6 +700,26 @@ units:
         - '{{ tuple "components/kepler" (tuple . "kepler" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/kube-system" (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpr") | include "set-only-if" }}'
 
+  cnpg-operator:
+    info:
+      description: Cloud Native PostgreSQL (CNPG) Operator
+      maturity: stable
+    enabled_conditions:
+      - '{{ or (tuple . "keycloak" | include "unit-enabled")
+            (tuple . "harbor" | include "unit-enabled")
+            (tuple . "gitea" | include "unit-enabled") }}'
+    unit_templates:
+      - base-deps
+    helm_repo_url: https://cloudnative-pg.github.io/charts
+    helmrelease_spec:
+      install:
+        createNamespace: true
+      chart:
+        spec:
+          chart: cloudnative-pg
+          version: 0.22.1
+      targetNamespace: cnpg-system
+
   postgres:
     info:
       description: installs Postgresql for Keycloak
