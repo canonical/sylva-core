@@ -52,8 +52,8 @@ spec:
               fi;
               echo "Backup file found for restore. Starting restore process...";
               echo "Recreating db" ;
-              psql -h "${PGHOSTHA}" -U "${PGUSER}" -c "DROP DATABASE ${PGDATABASE};"
-              psql -h "${PGHOSTHA}" -U "${PGUSER}" -c "CREATE DATABASE ${PGDATABASE};"
+              psql -h "${PGHOSTHA}" -U "${PGUSER}" -c "DROP DATABASE ${PGDATABASE};" ;
+              psql -h "${PGHOSTHA}" -U "${PGUSER}" -c "CREATE DATABASE ${PGDATABASE};" ;
               echo "Recreated db" ;
               echo "Turning off default read-only mode";
               psql -h "${PGHOSTHA}" -U "${PGUSER}" "${PGDATABASE}" -c "set transaction read write;";
