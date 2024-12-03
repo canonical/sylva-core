@@ -3236,6 +3236,7 @@ units:
                (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpr") }}'
     depends_on:
       '{{ .Values._internal.calico_readiness_unit }}': '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpk" }}'
+      cluster-vip: '{{ and (tuple . "cluster-vip" | include "unit-enabled") .Values._internal.state.is_upgrade }}'
     helm_repo_url: https://metallb.github.io/metallb
     helmrelease_spec:
       chart:
@@ -3737,6 +3738,7 @@ units:
       internal: true
     unit_templates:
     - base-deps
+    - kube-job
     enabled_conditions:
     - '{{ tuple . "metallb" | include "unit-enabled" }}'
     - '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" }}'
@@ -3758,6 +3760,16 @@ units:
         - kind: ConfigMap
           name: capo-cluster-resources
           optional: '{{ not (.Values.cluster.capi_providers.infra_provider | eq "capo") | include "as-bool" }}'
+      _patches:
+      - target:
+          kind: ClusterRole
+        patch: |
+          - op: replace
+            path: /rules
+            value:
+              - apiGroups: [ "*" ]
+                resources: [ "deployments", "daemonsets" ]
+                verbs: [ "list", "get" , "patch" ]
 
   capi-rancher-import:
     info:
