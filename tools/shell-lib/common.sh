@@ -7,7 +7,7 @@ export BASE_DIR="$(realpath $(dirname $0))"
 export PATH=${BASE_DIR}/bin:${PATH}
 export KIND_CLUSTER_NAME=${KIND_CLUSTER_NAME:-sylva}
 
-SYLVACTL_VERSION=0.0.0-git-00fb7eaa
+SYLVACTL_VERSION=0.0.0-git-8fb90cd3
 SYLVA_BASE_OCI_REGISTRY=${SYLVA_BASE_OCI_REGISTRY:-registry.gitlab.com/sylva-projects}
 SYLVA_TOOLBOX_VERSION=${SYLVA_TOOLBOX_VERSION:-"v0.5.18"}
 SYLVA_TOOLBOX_IMAGE=${SYLVA_TOOLBOX_IMAGE:-container-images/sylva-toolbox}
@@ -263,7 +263,7 @@ function fix_sylva_units_helm_releases_root_dep {
 
 function reconcile_sylva_units() {
   local namespace=${1:-sylva-system}
-  local _options=${2:-}
+  local skip_root_dependency_wait=${2:-}
 
   echo "trigger reconciliation of sylva-units HelmRelease..."
   RECONCILE_REQUEST_DATE=$(date -uIs | sed -e 's/+00:00//')
@@ -284,20 +284,15 @@ function reconcile_sylva_units() {
       $FORCE_RECONCILE_ANNOTATION \
     | sed -e 's/^/  /'
 
-  resume_suspended="--resume-suspended"
-  if [[ $_options == *"skip-resume-suspended"* ]]; then
-    echo "not using --resume-suspended"
-    resume_suspended=""
-  fi
-
   sylvactl watch -n $namespace HelmRelease/$namespace/sylva-units --timeout ${SYLVA_UNITS_RECONCILE_TIMEOUT:-180s} --skip-inventory \
     --log \
-    --reconcile $resume_suspended \
+    --reconcile \
+    --resume-suspended \
     --exit-condition reason=UpgradeFailed \
     --exit-condition reason=InstallFailed
 
   helm_release_version=$(kubectl get -n $namespace HelmRelease sylva-units -o yaml | yq -r '.status.history[0].version')
-  if ! [[ $_options == *"skip-root-dependency-wait"* ]]; then
+  if ! [[ $skip_root_dependency_wait == "skip-root-dependency-wait" ]]; then
     echo "waiting for root-dependency-$helm_release_version to become ready..."
     sylvactl watch -n $namespace Kustomization/$namespace/root-dependency-$helm_release_version --timeout ${SYLVA_UNITS_RECONCILE_TIMEOUT:-180s} --skip-inventory --reconcile
 
@@ -432,7 +427,7 @@ EOF
   rm -Rf ${PREVIEW_DIR}
 
   # this is just to force-refresh in a dev environment with  refreshed parameters
-  reconcile_sylva_units sylva-units-preview skip-root-dependency-wait,skip-resume-suspended
+  reconcile_sylva_units sylva-units-preview skip-root-dependency-wait
 
 }
 
