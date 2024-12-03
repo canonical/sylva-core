@@ -2166,7 +2166,27 @@ units:
         - '{{ tuple "components/check-images" .Values.security.upstream_images_signature.verify | include "set-only-if" }}'
         - '{{ tuple "components/mutate-job-security-context" (tuple . "rancher" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/neuvector-policies" (tuple . "neuvector" | include "unit-enabled") | include "set-only-if" }}'
+        - '{{ tuple "components/clone-os-images-secret" (tuple . "os-image-server" | include "unit-enabled") | include "set-only-if" }}'
         - ../exclude-kube-system  # needs to be last (needed for components above that use sylva.org/kyverno-exclude-kube-system annotation)
+
+  kyverno-metallb-annotations:
+    info:
+      description: Adds helm specific annotations to metallb resources. Should be removed in 1.2+ versions of Sylva
+      internal: true
+    unit_templates:
+      - base-deps
+    enabled_conditions:
+      - '{{ eq .Values.cluster.capi_providers.bootstrap_provider "cabpr" }}'
+      - '{{ ne .Values.cluster.capi_providers.infra_provider "capd" }}'
+      - '{{ .Values._internal.state.is_upgrade }}'
+    depends_on:
+      kyverno: true
+    repo: sylva-core
+    kustomization_spec:
+      path: ./kustomize-units/kyverno-policies/metallb-resources-annotations
+      wait: true
+>>>>>>> 150ce5ef (Modify logic for the Kyverno policy and enabled conditions on Metal3 unit)
+>>>>>>> 8171977b (Modify logic for the Kyverno policy and enabled conditions on Metal3 unit)
 
   kyverno-policies-ready:
     info:
@@ -2559,7 +2579,7 @@ units:
     unit_templates:
     - base-deps
     depends_on:
-      metal3-additionalcert-init: true
+      metal3-additionalcert-init: '{{ tuple . "metal3-additionalcert-init" | include "unit-enabled" }}'
       namespace-defs: true
       cert-manager: true
       '{{ .Values._internal.default_storage_class_unit }}': true
