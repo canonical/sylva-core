@@ -5,4 +5,5 @@ _internal:
     capi: true
     cabpk: true
     capd: true
+    cabpr: true
 

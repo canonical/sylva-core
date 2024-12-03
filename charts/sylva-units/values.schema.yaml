@@ -55,7 +55,7 @@ description:
 $defs:
   gotpl:
     type: string
-    pattern: "^{{ .* }}$"
+    pattern: "^{{(.|\r?\n)*}}$"
 
   username-password:
     anyOf:
@@ -110,6 +110,8 @@ $defs:
       details:
         type: string
       internal:
+        type: boolean
+      test:
         type: boolean
       maturity:
         type: string
@@ -566,6 +568,11 @@ properties:
                           kustomization_spec:
                             required:
                               - path
+                    - properties:
+                        kustomization_spec:
+                          properties:
+                            path:
+                              const: ./kustomize-units/helmrelease-generic
 
   cluster:  # -------------------------------
     # the values are values of the sylva-capi-cluster chart
@@ -1300,8 +1307,13 @@ properties:
   shared_workload_clusters_secret_values:
     type: object
 
-  workload_cluster_teams:
+  workload_clusters:
     type: object
+    properties:
+      sylva_source:
+        type: object
+      teams:
+        type: object
 
   snmp:
     type: object

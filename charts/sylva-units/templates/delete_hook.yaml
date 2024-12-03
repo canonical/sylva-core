@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: delete-hook
-        image: registry.gitlab.com/sylva-projects/sylva-elements/container-images/kube-job:v1.0.10
+        image: registry.gitlab.com/sylva-projects/sylva-elements/container-images/kube-job:v1.0.17
         command:
           - "/bin/bash"
           - "-c"
@@ -81,7 +81,7 @@ spec:
                     '
                 ); do
                 log_event PrepareForDeletion "Disable pruning" Kustomization/$KUST
-                _kubectl patch kustomization $KUST --type=merge --patch='{"spec":{"prune":false}}' >/dev/null
+                _kubectl patch kustomization $KUST --field-manager delete-hook --type=merge --patch='{"spec":{"prune":false}}' >/dev/null
             done
 
             echo "=== Disabling the pruning of helmreleases installed on workload cluster ==="
@@ -94,7 +94,7 @@ spec:
                     '
                 ); do
                 log_event PrepareForDeletion "Suspending helmrelease" HelmRelease/$RELEASE
-                _kubectl patch helmrelease $RELEASE --type=merge --patch='{"spec":{"suspend":true}}' >/dev/null
+                _kubectl patch helmrelease $RELEASE --field-manager delete-hook --type=merge --patch='{"spec":{"suspend":true}}' >/dev/null
             done
 
             ALL_KS=$(_kubectl get kustomizations -l app.kubernetes.io/instance=$NAME -o json)

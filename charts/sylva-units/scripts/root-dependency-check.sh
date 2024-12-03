@@ -14,23 +14,23 @@
 set -e
 set -o pipefail
 
+echo "--- deleting leftover root-dependency-<n> Kustomizations for older versions"
+kubectl get Kustomization -l sylva-units.unit=root-dependency -o json | jq -r '.items[] | select(.metadata.annotations."sylva-units-helm-revision" != "'$HELM_REVISION'") | .metadata.name' \
+    | xargs -r kubectl delete Kustomization || true
 
-# how long to wait for all Kustomizations to meet the criteria
-# (we shouldn't need to wait for long, except that if k8s API is slow
-#  it may require some time for kubectl to see all Kustomizations, and
-#  unfortunately it may declare that a Kustomization didn't meet the wait
-#  criteria even if just didn't had time to see it)
-WAIT_TIMEOUT=${WAIT_TIMEOUT:-60s}
+# this is a safeguard:
+echo "--- deleting leftover root-dependency-<n> HelmReleases for older versions"
+kubectl get HelmReleases -o json -l sylva-units.unit=root-dependency | jq -r '.items[] | select((.metadata.labels."sylva-units.version" // "") != "'$HELM_REVISION'") | .metadata.name' \
+    | xargs -r kubectl delete HelmRelease || true
 
-# we setup an exit trap to display the status of all Kustomization
-# if one of the 'kubectl wait' fails
-function error_trap() {
-    echo "--- summary of resources"
-    kubectl get Kustomizations -l sylva-units/root-dependency-wait
-}
-trap error_trap ERR
+# this is a safeguard only relevant when upgrading from a version of sylva before https://gitlab.com/sylva-projects/sylva-core/-/merge_requests/3318
+echo "--- deleting leftover root-dependency-<n>-cm ConfigMaps for older versions"
+kubectl get ConfigMap -o json | jq -r '.items[] | select((.metadata.name | startswith("root-dependency-")) and (.metadata.labels."sylva-units.version" // "" != "'$HELM_REVISION'")) | .metadata.name' \
+    | xargs -r kubectl delete ConfigMap || true
 
 echo "--- waiting for Kustomizations to be labeled with sylva-units-helm-revision=$HELM_REVISION"
 
-kubectl wait Kustomization -l sylva-units/root-dependency-wait --timeout $WAIT_TIMEOUT \
-  --for=jsonpath="{.metadata.annotations.sylva-units-helm-revision}=$HELM_REVISION"
+kubectl get Kustomizations -o name -l sylva-units/root-dependency-wait \
+ | xargs -n1 -P500 \
+     kubectl wait --timeout 10s \
+                  --for=jsonpath="{.metadata.annotations.sylva-units-helm-revision}=$HELM_REVISION"

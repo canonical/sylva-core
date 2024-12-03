@@ -62,7 +62,7 @@
     - kubectl --kubeconfig $KUBE_CONFIG_FILE apply -f test-resources-pki-signed.yaml
     - kubectl wait --for=condition=Ready certificate/pki-signed-cert --kubeconfig $KUBE_CONFIG_FILE -n cert-manager-test  --timeout=30s
 
-test_cert_manager_management_cluster:
+mgmt-cert-manager:
   stage: deployment-test
   variables:
     KUBE_CONFIG_FILE: "management-cluster-kubeconfig"
@@ -74,7 +74,7 @@ test_cert_manager_management_cluster:
     - download_artifact deploy-management-cluster management-cluster-kubeconfig
     - !reference [.test_cert_manager_scripts, common_test_suite]
 
-test_cert_manager_workload_cluster:
+wkld-cert-manager:
   stage: deployment-test
   extends:
     - .test-tags

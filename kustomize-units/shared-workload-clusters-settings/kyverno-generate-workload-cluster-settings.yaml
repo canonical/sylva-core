@@ -45,22 +45,3 @@ spec:
       clone:
         name: shared-workload-clusters-settings
         namespace: sylva-system
-  - name: generate-surt
-    skipBackgroundRequests: false
-    match:
-      any:
-      - resources:
-          kinds:
-          - Namespace
-          selector:
-            matchLabels:
-              sylva-project.org/shared-workload-cluster-settings: ""
-    generate:
-      kind: SylvaUnitsReleaseTemplate
-      apiVersion: unitsoperator.sylva/v1alpha1
-      name: default
-      namespace: "{{request.object.metadata.name}}"
-      synchronize: true
-      clone:
-        name: default
-        namespace: sylva-system

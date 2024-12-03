@@ -1310,23 +1310,6 @@
                 }
               ]
             },
-            "automatedCleaningMode": {
-              "anyOf": [
-                {
-                  "type": "string",
-                  "enum": [
-                    "disabled",
-                    "metadata"
-                  ]
-                },
-                {
-                  "$ref": "#/$defs/string-with-gotpl"
-                },
-                {
-                  "type": "null"
-                }
-              ]
-            },
             "networkData": {
               "anyOf": [
                 {
@@ -1552,23 +1535,6 @@
               "anyOf": [
                 {
                   "type": "boolean"
-                },
-                {
-                  "$ref": "#/$defs/string-with-gotpl"
-                },
-                {
-                  "type": "null"
-                }
-              ]
-            },
-            "automatedCleaningMode": {
-              "anyOf": [
-                {
-                  "type": "string",
-                  "enum": [
-                    "disabled",
-                    "metadata"
-                  ]
                 },
                 {
                   "$ref": "#/$defs/string-with-gotpl"
@@ -3207,7 +3173,7 @@
     },
     "gotpl": {
       "type": "string",
-      "pattern": "^{{ .* }}$"
+      "pattern": "^{{(.|\r?\n)*}}$"
     },
     "username-password": {
       "anyOf": [
@@ -3429,6 +3395,19 @@
                     {
                       "type": "string",
                       "format": "ipv4"
+                    },
+                    {
+                      "$ref": "#/$defs/string-with-gotpl"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "pullSecret": {
+                  "anyOf": [
+                    {
+                      "type": "string"
                     },
                     {
                       "$ref": "#/$defs/string-with-gotpl"
@@ -4441,23 +4420,6 @@
                   "anyOf": [
                     {
                       "type": "boolean"
-                    },
-                    {
-                      "$ref": "#/$defs/string-with-gotpl"
-                    },
-                    {
-                      "type": "null"
-                    }
-                  ]
-                },
-                "automatedCleaningMode": {
-                  "anyOf": [
-                    {
-                      "type": "string",
-                      "enum": [
-                        "disabled",
-                        "metadata"
-                      ]
                     },
                     {
                       "$ref": "#/$defs/string-with-gotpl"
@@ -7191,6 +7153,9 @@
         "internal": {
           "type": "boolean"
         },
+        "test": {
+          "type": "boolean"
+        },
         "maturity": {
           "type": "string",
           "enum": [
@@ -7253,6 +7218,189 @@
           ]
         }
       ]
+    },
+    "sriov-resources-values": {
+      "$schema": "https://json-schema.org/draft-07/schema#",
+      "title": "Schema for sriov-resources chart values",
+      "additionalProperties": false,
+      "properties": {
+        "defaults": {
+          "anyOf": [
+            {
+              "type": "object"
+            },
+            {
+              "$ref": "#/$defs/string-with-gotpl"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "node_policies": {
+          "anyOf": [
+            {
+              "type": "object",
+              "patternProperties": {
+                "^(?:/([a-zA-Z0-9/.-]+)|(?:[a-z0-9][a-z0-9-]*[a-z0-9]))$": {
+                  "anyOf": [
+                    {
+                      "additionalProperties": true,
+                      "type": "object",
+                      "properties": {
+                        "nicSelector": {
+                          "anyOf": [
+                            {
+                              "type": "object",
+                              "properties": {
+                                "deviceID": {
+                                  "anyOf": [
+                                    {
+                                      "type": "string"
+                                    },
+                                    {
+                                      "$ref": "#/$defs/string-with-gotpl"
+                                    },
+                                    {
+                                      "type": "null"
+                                    }
+                                  ]
+                                },
+                                "netFilter": {
+                                  "anyOf": [
+                                    {
+                                      "type": "string"
+                                    },
+                                    {
+                                      "$ref": "#/$defs/string-with-gotpl"
+                                    },
+                                    {
+                                      "type": "null"
+                                    }
+                                  ]
+                                },
+                                "pfNames": {
+                                  "anyOf": [
+                                    {
+                                      "type": "array",
+                                      "items": {
+                                        "type": "string"
+                                      }
+                                    },
+                                    {
+                                      "$ref": "#/$defs/string-with-gotpl"
+                                    },
+                                    {
+                                      "type": "null"
+                                    }
+                                  ]
+                                },
+                                "rootDevices": {
+                                  "anyOf": [
+                                    {
+                                      "type": "array",
+                                      "items": {
+                                        "type": "string"
+                                      }
+                                    },
+                                    {
+                                      "$ref": "#/$defs/string-with-gotpl"
+                                    },
+                                    {
+                                      "type": "null"
+                                    }
+                                  ]
+                                },
+                                "vendor": {
+                                  "anyOf": [
+                                    {
+                                      "type": "string"
+                                    },
+                                    {
+                                      "$ref": "#/$defs/string-with-gotpl"
+                                    },
+                                    {
+                                      "type": "null"
+                                    }
+                                  ]
+                                }
+                              }
+                            },
+                            {
+                              "$ref": "#/$defs/string-with-gotpl"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "nodeSelector": {
+                          "anyOf": [
+                            {
+                              "type": "object"
+                            },
+                            {
+                              "$ref": "#/$defs/string-with-gotpl"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "numVfs": {
+                          "anyOf": [
+                            {
+                              "minimum": 0,
+                              "type": "integer"
+                            },
+                            {
+                              "$ref": "#/$defs/string-with-gotpl"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "resourceName": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "$ref": "#/$defs/string-with-gotpl"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        }
+                      },
+                      "required": [
+                        "nicSelector",
+                        "nodeSelector",
+                        "numVfs",
+                        "resourceName"
+                      ]
+                    },
+                    {
+                      "$ref": "#/$defs/string-with-gotpl"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "$ref": "#/$defs/string-with-gotpl"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
     }
   },
   "additionalProperties": false,
@@ -7874,6 +8022,17 @@
                                   "required": [
                                     "path"
                                   ]
+                                }
+                              }
+                            }
+                          },
+                          {
+                            "properties": {
+                              "kustomization_spec": {
+                                "properties": {
+                                  "path": {
+                                    "const": "./kustomize-units/helmrelease-generic"
+                                  }
                                 }
                               }
                             }
@@ -9030,8 +9189,16 @@
     "shared_workload_clusters_secret_values": {
       "type": "object"
     },
-    "workload_cluster_teams": {
-      "type": "object"
+    "workload_clusters": {
+      "type": "object",
+      "properties": {
+        "sylva_source": {
+          "type": "object"
+        },
+        "teams": {
+          "type": "object"
+        }
+      }
     },
     "snmp": {
       "type": "object",

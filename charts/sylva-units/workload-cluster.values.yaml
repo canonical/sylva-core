@@ -102,6 +102,7 @@ units:
     enabled: on
     unit_templates:
     - kustomization-deployed-on-mgmt-cluster
+    - helmrelease-deployed-on-mgmt-cluster
     - kube-job
 
   mgmt-cluster-ready:
@@ -178,6 +179,9 @@ units:
     enabled: true
 
   cluster-prevent-rke2-helmcharts-calico-metallb:
+    enabled: true
+
+  rke2-helmchart-prevent-uninstall:
     enabled: true
 
   cluster-bmh:

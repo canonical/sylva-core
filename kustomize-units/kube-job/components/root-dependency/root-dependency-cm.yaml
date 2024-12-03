@@ -1,7 +1,0 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: ${JOB_NAME}-cm
-  namespace: "${NAMESPACE:-sylva-system}"
-data:
-  empty-value: '{}'

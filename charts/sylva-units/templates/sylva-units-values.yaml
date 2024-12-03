@@ -38,6 +38,7 @@ type: Opaque
 stringData:
   values: |
 {{ $dumpValues | toYaml| indent 4 }}
+
 ---
 {{/*
 
@@ -48,46 +49,57 @@ This Kustomization produced a ConfigMap which will be updated at the end
 of a deployment with information about the revision and values of the sylva-units Helm release.
 
 */}}
-{{- $deps := list -}}
-{{- range $unit_name, $unit_def := $envAll.Values.units -}}
-  {{- if include "unit-enabled" (tuple $envAll $unit_name) -}}
-    {{- $deps = append $deps (dict "name" (include "kustomization-name" (tuple $envAll $unit_name))) -}}
-  {{- end -}}
-{{- end }}
-{{- $deps = append $deps (dict "name" "cluster") -}}
-{{- $time := now }}
+{{- range $unit_status_name := list "sylva-units-tests-status" "sylva-units-status" }}
+  {{- $is_test := eq $unit_status_name "sylva-units-tests-status" -}}
+  {{- $deps := list -}}
+  {{- range $unit_name, $unit_def := $envAll.Values.units -}}
+    {{- $unit_enabled := include "unit-enabled" (tuple $envAll $unit_name) -}}
+    {{- $is_test_unit := dig "test" false $unit_def.info -}}
+    {{- if and $unit_enabled (eq $is_test $is_test_unit) -}}
+      {{- $deps = append $deps (dict "name" (include "kustomization-name" (tuple $envAll $unit_name))) -}}
+    {{- end -}}
+  {{- end }}
+  {{- $deps = append $deps (dict "name" "cluster") -}}
+  {{- $time := now }}
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
-  name: sylva-units-status
+  name: {{ $unit_status_name }}
   labels: {{ include "sylva-units.labels" $envAll | nindent 4 }}
     sylva-units/root-dependency-wait: ""
   annotations:
-    sylva-units-helm-revision: '{{ .Release.Revision }}'
-    target-release-revision: "{{ .Release.Revision }}"
-    target-sylva-units-chart-version: "{{ .Chart.Version }}"
+    sylva-units-helm-revision: '{{ $envAll.Release.Revision }}'
+    target-release-revision: "{{ $envAll.Release.Revision }}"
+    target-sylva-units-chart-version: "{{ $envAll.Chart.Version }}"
     target-values-checksum: "{{ $values_checksum }}"
     release-time: "{{ $time }}"
 spec:
 {{/* omitting 'targetNamespace' and 'kubeConfig' keys is necessary or else we inherit those which
 in the context of workload-cluster.values.yaml results in deploying the ConfigMap in the
 remote cluster */}}
-{{ omit .Values.unit_kustomization_spec_default "targetNamespace" "kubeConfig" | toYaml | indent 2 }}
-  sourceRef: {{ .Values.unit_helmrelease_kustomization_spec_default.sourceRef | toYaml | nindent 4 }}
+{{ omit $envAll.Values.unit_kustomization_spec_default "targetNamespace" "kubeConfig" | toYaml | indent 2 }}
+  sourceRef: {{ $envAll.Values.unit_helmrelease_kustomization_spec_default.sourceRef | toYaml | nindent 4 }}
   path: ./kustomize-units/sylva-units-status
   dependsOn: {{ $deps | toYaml | nindent 4 }}
   wait: true
-  targetNamespace: {{ .Release.Namespace }}
+  targetNamespace: {{ $envAll.Release.Namespace }}
+  postBuild:
+    substitute:
+      NAME: {{ $unit_status_name }}
   patches:
     - target:
         kind: ConfigMap
       patch: |
         kind: ConfigMap
         metadata:
-          name: sylva-units-status
+          name: _unused_
+          annotations:
+            sylva.org/ignore-migrations-from-1.1.1: ""
         data:
-          release-revision: "{{ .Release.Revision }}"
-          sylva-units-chart-version: "{{ .Chart.Version }}"
+          release-revision: "{{ $envAll.Release.Revision }}"
+          sylva-units-chart-version: "{{ $envAll.Chart.Version }}"
           release-time: "{{ $time }}"
           values-checksum: "{{ $values_checksum }}"
-          additional-info: | {{ .Values.additional_sylva_units_status_info | toYaml | nindent 12 }}
+          additional-info: | {{ $envAll.Values.additional_sylva_units_status_info | toYaml | nindent 12 }}
+---
+{{- end }}

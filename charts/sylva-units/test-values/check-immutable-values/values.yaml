@@ -2,12 +2,7 @@
   # ._internal.immutable_values and expected to fail given the default `.cluster.name: management-cluster` value
 _internal:
 
-  state: # simulate an upgrade scenario
-    is_upgrade: true
-
   previous_values:
     cluster:
       name: old-management-cluster
-      capi_providers:
-        bootstrap_provider: cabpk
-        infra_provider: capd
+

@@ -35,7 +35,7 @@ _kustomize ${ENV_PATH} | \
 
 echo_b "\U0001F3AF Trigger reconciliation of units"
 # this is just to force-refresh on refreshed parameters
-reconcile_sylva_units
+reconcile_sylva_units sylva-system skip-root-dependency-wait
 
 # Attempt to retrieve management-cluster-kubeconfig in background
 retrieve_kubeconfig &
@@ -62,5 +62,16 @@ sylvactl watch \
   ${SYLVACTL_SAVE:+--save management-cluster-timeline.html} \
   -n sylva-system \
   Kustomization/sylva-system/sylva-units-status
+
+echo_b "\U000023F3 Wait for test units installed on management cluster to be ready"
+
+sylvactl watch \
+  --kubeconfig management-cluster-kubeconfig \
+  --reconcile \
+  --exit-condition="message=values don't meet the specifications of the schema" \
+  --timeout $(ci_remaining_minutes_and_at_most ${MGMT_WATCH_TIMEOUT_MIN:-20}) \
+  ${SYLVACTL_SAVE:+--save apply-management-cluster-timeline.html} \
+  -n sylva-system \
+  Kustomization/sylva-system/sylva-units-tests-status
 
 display_final_messages

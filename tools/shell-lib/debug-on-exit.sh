@@ -16,9 +16,11 @@ additional_resources="
   ClusterRoleBindings
   ServiceAccounts
   CustomResourceDefinitions
+  MutatingWebhookConfigurations
+  ValidatingWebhookConfigurations
   HelmReleases
   HelmRepositories
-  HelmCharts
+  HelmCharts.*source.toolkit.fluxcd.io
   GitRepositories
   OCIRepositories
   Kustomizations
@@ -66,6 +68,10 @@ additional_resources="
   Metal3DataTemplates
   Metal3Datas
   Metal3DataClaims
+  TigeraStatuses.*operator.tigera.io
+  Installations.*operator.tigera.io
+  IPPools.*crd.projectcalico.org
+  FelixConfigurations.*crd.projectcalico.org
   IPAddresses.*ipam.metal3.io
   IPClaims.*ipam.metal3.io
   IPPools.*ipam.metal3.io
@@ -89,6 +95,7 @@ additional_resources="
   PolicyReports.*wgpolicyk8s.io
   ClusterPolicyReports.*wgpolicyk8s.io
   Tenants.*minio.min.io
+  HelmCharts.*helm.cattle.io
 "
 
 function dump_additional_resources() {
@@ -98,7 +105,7 @@ function dump_additional_resources() {
     # shellcheck disable=SC2068
     for cr in $@; do
       if ! [[  ${cr} =~ ^[A-Z][A-Za-z0-9]*s($|\.\*.*) ]]; then
-          echo '${cr} does not match the expected pattern, you should provide the capiatalised (plural) NAME of the resource, not the KIND'
+          echo "dump_additional_resources issue: '${cr}' does not match the expected pattern, you should provide the capitalized (plural) NAME of the resource, not the KIND"
           echo 'For example, provided following results:'
           echo '$ k api-resources | grep "NAME\|clusterpolicies"'
           echo 'NAME                                         SHORTNAMES              APIVERSION                                   NAMESPACED   KIND'
@@ -163,6 +170,28 @@ function crust_gather_collect() {
   return 0
 }
 
+
+function remote_command {
+    if [[ $IN_CI -eq 0 ]]; then
+      echo "'remote_command' is available only from CI environments" >&2
+      return 1
+    fi
+
+    local node=$1
+    shift
+
+    echo "running '$*' on $node ... " >&2
+
+    # we assume that the 'sandbox-privileged-namespace' unit is enabled
+    kubectl -n sandbox debug node/$node \
+      --request-timeout=5s \
+      --profile=sysadmin \
+      --image registry.gitlab.com/sylva-projects/sylva-elements/container-images/kube-job:v1.0.17 \
+      -i -q -- \
+      chroot /host \
+      "$@"
+}
+
 function cluster_info_dump() {
   local cluster=$1
   local dump_dir=$cluster-cluster-dump
@@ -206,9 +235,12 @@ function cluster_info_dump() {
   # dump pods
   kubectl get pods -o wide -A > $dump_dir/pods.summary.txt
 
+  # dump CAPI infra secrets
+  kubectl get secret -A --field-selector=type=infrastructure.cluster.x-k8s.io/secret                               > $dump_dir/Secrets-capi-infra.summary.txt
+  kubectl get secret -A --field-selector=type=infrastructure.cluster.x-k8s.io/secret -o yaml --show-managed-fields > $dump_dir/Secrets-capi-infra.yaml
   # dump CAPI secrets
-  kubectl get secret -A --field-selector=type=infrastructure.cluster.x-k8s.io/secret                               > $dump_dir/Secrets-capi.summary.txt
-  kubectl get secret -A --field-selector=type=infrastructure.cluster.x-k8s.io/secret -o yaml --show-managed-fields > $dump_dir/Secrets-capi.yaml
+  kubectl get secret -A --field-selector=type=cluster.x-k8s.io/secret                               > $dump_dir/Secrets-capi.summary.txt
+  kubectl get secret -A --field-selector=type=cluster.x-k8s.io/secret -o yaml --show-managed-fields > $dump_dir/Secrets-capi.yaml
 
   # list secrets
   kubectl get secret -A > $dump_dir/Secrets.summary.txt
@@ -216,6 +248,28 @@ function cluster_info_dump() {
 
   # dump RKE2 node-password secrets
   kubectl -n kube-system get secrets -o yaml | yq '.items=[.items[] | select(.metadata.name | contains(".node-password.rke2"))]' > $dump_dir/Secrets-rke2-node-passwords.yaml
+
+  # dump per-node system information
+  echo "Dumping per-node system information..."
+  for node in $(kubectl get nodes -o custom-columns='CLUSTER:.metadata.name' --no-headers); do
+      node_sysinfo_dumpdir=$dump_dir/system-info/$node
+      mkdir -p $node_sysinfo_dumpdir
+
+      echo "-- node $node"
+
+      remote_command $node ss -apnm > $node_sysinfo_dumpdir/ss-apnm.log
+
+      remote_command $node iptables -t nat -nvL > $node_sysinfo_dumpdir/iptables-nat-1-before-clear-counters.log
+      # zeroing iptables counters (we'll retrieve counters below after waiting a bit)
+      remote_command $node iptables -t nat -Z
+      sleep 10
+      remote_command $node iptables -t nat -nvL > $node_sysinfo_dumpdir/iptables-nat-2-after-clear-counters.log
+
+      remote_command $node cat /var/log/syslog  > $node_sysinfo_dumpdir/var-log-syslog
+      remote_command $node cat /var/log/messages  > $node_sysinfo_dumpdir/var-log-messages
+      remote_command $node journalctl -xeu rke2-server > $node_sysinfo_dumpdir/rke2-server.log
+      remote_command $node journalctl -xeu rke2-agent > $node_sysinfo_dumpdir/rke2-agent.log
+  done
 
   echo -e "\nDisplay cluster resources usage per node"
   # From https://github.com/kubernetes/kubernetes/issues/17512

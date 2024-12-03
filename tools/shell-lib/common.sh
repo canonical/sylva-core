@@ -8,7 +8,7 @@ export PATH=${BASE_DIR}/bin:${PATH}
 export KIND_CLUSTER_NAME=${KIND_CLUSTER_NAME:-sylva}
 
 SYLVA_BASE_OCI_REGISTRY=${SYLVA_BASE_OCI_REGISTRY:-registry.gitlab.com/sylva-projects}
-SYLVA_TOOLBOX_VERSION=${SYLVA_TOOLBOX_VERSION:-"v0.5.17"}
+SYLVA_TOOLBOX_VERSION=${SYLVA_TOOLBOX_VERSION:-"v0.5.18"}
 SYLVA_TOOLBOX_IMAGE=${SYLVA_TOOLBOX_IMAGE:-container-images/sylva-toolbox}
 SYLVA_TOOLBOX_REGISTRY=${SYLVA_TOOLBOX_REGISTRY:-${SYLVA_BASE_OCI_REGISTRY}/sylva-elements}
 export KIND_POD_SUBNET=${KIND_POD_SUBNET:-100.100.0.0/16}
@@ -197,16 +197,21 @@ function cleanup_bootstrap_cluster() {
   CALLER_SCRIPT_NAME=$(basename $0)
   kind_clusters=`kind get clusters -q`
 
-  # if caller script is bootstrap.sh or apply.sh and if current bootstrap-cluster contains sylva bootstrap-cluster - then delete it
+  # if caller script is bootstrap.sh or apply.sh, current bootstrap-cluster contains sylva bootstrap-cluster and pivot was successful - then delete it
   if [[ $CALLER_SCRIPT_NAME =~ "bootstrap.sh"|"apply.sh" && ${kind_clusters} =~ $KIND_CLUSTER_NAME ]]; then
     libvirt_metal_ks=`KUBECONFIG= kubectl get ks -l sylva-units.unit=libvirt-metal -o yaml | yq '.items|length'`
     if [[ $CLEANUP_BOOTSTRAP_CLUSTER == 'yes' && $libvirt_metal_ks == "0" ]]; then
       echo_b "\U0001F5D1 Delete bootstrap cluster"
-      kind delete cluster -n $KIND_CLUSTER_NAME
+      if KUBECONFIG= kubectl wait job --for=jsonpath={.status.succeeded}=1 pivot; then
+        kind delete cluster -n $KIND_CLUSTER_NAME
+      else
+        echo "Cannot delete bootstrap cluster as 'pivot' Kustomization is not ready."
+        echo "To delete the bootstrap cluster, you can re-run apply.sh anytime after fixing this."
+        exit 1
+      fi
       end_section
     fi
   fi
-
 }
 
 function exit_trap() {
@@ -231,8 +236,34 @@ function exit_trap() {
 }
 trap exit_trap EXIT
 
+# we'll be able to clean this up from 'main' after 1.2.x (https://gitlab.com/sylva-projects/sylva-core/-/issues/1880)
+function fix_sylva_units_helm_releases_root_dep {
+  # When upgrading from a Sylva version < 1.2.1, the way we ensure that "old" HelmReleases (the ones
+  # not yet updates) do not reconcile before their parent Kustomization is ready changes:
+  # - before: old HelmReleases can't merge because it has a valuesFrom on a root-dependency-<n-1>-cm configmap
+  #           which is removed when the update starts
+  # - after: old HelmReleases can't merge because they have a dependsOn on a root-dependency-<n-1> HelmRelease
+  #          which is removed when the update starts
+  #
+  # This function patches the old HelmReleases to ensure that their reconciliations
+  # is blocked by a missing dependency. This is the only way to ensure that sylvactl
+  # will reliably identify that they are not ready to be looked at, and in particular
+  # that it will not exit on an exit-condition on them.
+
+  local namespace=$1
+
+  echo "  if needed, patch HelmReleases not yet having the root dependency dependsOn..."
+  kubectl -n $namespace get HelmRelease -l app.kubernetes.io/name=sylva-units -o yaml \
+    | yq '.items[] | select(.spec.dependsOn == null or .spec.dependsOn == []) | select(.metadata.labels."sylva-units.unit" != "root-dependency") | .metadata.name' \
+    | xargs --no-run-if-empty \
+      kubectl -n $namespace patch HelmReleases --type=merge --patch='{"spec":{"dependsOn":[{"name":"transition-root-dependency"}]}}'
+}
+
+
 function reconcile_sylva_units() {
   local namespace=${1:-sylva-system}
+  local skip_root_dependency_wait=${2:-}
+
   echo "trigger reconciliation of sylva-units HelmRelease..."
   RECONCILE_REQUEST_DATE=$(date -uIs | sed -e 's/+00:00//')
 
@@ -255,6 +286,16 @@ function reconcile_sylva_units() {
   sylvactl watch -n $namespace HelmRelease/$namespace/sylva-units --timeout ${SYLVA_UNITS_RECONCILE_TIMEOUT:-180s} --skip-inventory --reconcile \
     --exit-condition reason=UpgradeFailed \
     --exit-condition reason=InstallFailed
+
+  helm_release_version=$(kubectl get -n $namespace HelmRelease sylva-units -o yaml | yq -r '.status.history[0].version')
+  if ! [[ $skip_root_dependency_wait == "skip-root-dependency-wait" ]]; then
+    echo "waiting for root-dependency-$helm_release_version to become ready..."
+    sylvactl watch -n $namespace Kustomization/$namespace/root-dependency-$helm_release_version --timeout ${SYLVA_UNITS_RECONCILE_TIMEOUT:-180s} --skip-inventory --reconcile
+
+    # transition code when migrating from < 1.2.1
+    # we'll be able to clean this up from 'main' after 1.2.x (https://gitlab.com/sylva-projects/sylva-core/-/issues/1880)
+    fix_sylva_units_helm_releases_root_dep $namespace
+  fi
 }
 
 function define_source() {
@@ -264,16 +305,29 @@ function define_source() {
 }
 
 
-function fix_sylva_units_existing_source {
+function fix_sylva_units {
   # This function is necessary only to transition from past Sylva release where
-  # sylva-units Helm release value was using "source_templates.sylva-core.existing_source"
-  # to newer versions where this setting does not exist any longer, and where the sylva-core
-  # GitRepository is generated by the sylva-units Helm chart.
+  # sylva-units HelmRelease was generated differently.
+  #
+  # * values were using "source_templates.sylva-core.existing_source"
+  #   to newer versions where this setting does not exist any longer, and where the sylva-core
+  #   GitRepository is generated by the sylva-units Helm chart.
+  #
+  # * "install" and "upgrade" remediation settings were defined (https://gitlab.com/sylva-projects/sylva-core/-/issues/1885)
   #
   # TODO: future cleanup after Sylva 1.2 Gitlab issue: https://gitlab.com/sylva-projects/sylva-core/-/issues/1530
   ns=${1:-sylva-system}
 
+  # check if sylva-units HelmRelease needs to be patched for install/upgrade remediation settings
+  if [[ -n $(kubectl -n $ns get helmreleases.helm.toolkit.fluxcd.io sylva-units -o 'jsonpath={.spec.install}{.spec.upgrade}' 2>/dev/null || true) ]]; then
+    echo "Patching sylva-units HelmRelease to stop using old install/upgrade remediation settings..."
+
+    kubectl -n $ns patch helmreleases.helm.toolkit.fluxcd.io sylva-units --type=merge \
+        --patch='{"spec":{"install":null,"upgrade":null}}'
+  fi
+
   # check if HelmRelease exists and needs to be patched
+  # for source_templates.sylva-core.existing_source
   if [[ -n $(kubectl -n $ns get helmreleases.helm.toolkit.fluxcd.io sylva-units -o 'jsonpath={.spec.values.source_templates.sylva-core.existing_source}' 2>/dev/null || true) ]]; then
     echo "Patching sylva-units HelmRelease to stop using old existing_source setting..."
 
@@ -358,7 +412,7 @@ EOF
   rm -Rf ${PREVIEW_DIR}
 
   # this is just to force-refresh in a dev environment with  refreshed parameters
-  reconcile_sylva_units sylva-units-preview
+  reconcile_sylva_units sylva-units-preview skip-root-dependency-wait
 
 }
 
@@ -381,14 +435,27 @@ function ci_remaining_minutes_and_at_most() {
     # ... and we never return more than at_most seconds
     ci_job_started_at_epoch=$(date +%s --date=$CI_JOB_STARTED_AT)
     current_time_epoch=$(date +%s)
-    debug_on_exit_max_duration_seconds=200
+    debug_on_exit_max_duration_seconds=450
 
     # here we compute how much seconds are left before the CI job times out
     # (minus debug_on_exit_max_duration_seconds)
     ci_remaining_time=$((ci_job_started_at_epoch+CI_JOB_TIMEOUT-current_time_epoch-debug_on_exit_max_duration_seconds))
     ci_remaining_time=$((ci_remaining_time > 0 ? ci_remaining_time : 0))
     ci_remaining_min=$((ci_remaining_time/60))
-    echo $((ci_remaining_min > at_most ? at_most : ci_remaining_min))m
+
+    result=$((ci_remaining_min > at_most ? at_most : ci_remaining_min))m
+    echo $result
+
+    cat >&2 <<EOC
+debug automatic computation of sylvactl --timeout (ci_remaining_minutes_and_at_most):
+- at_most=$at_most
+- CI_JOB_TIMEOUT=$CI_JOB_TIMEOUT
+- ci_job_started_at_epoch=$ci_job_started_at_epoch
+- current_time_epoch=$current_time_epoch
+- debug_on_exit_max_duration_seconds=$debug_on_exit_max_duration_seconds
+- ci_remaining_min=$ci_remaining_min
+- result of timeout computation: $result
+EOC
   fi
 }
 

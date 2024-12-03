@@ -66,7 +66,7 @@ variables:
     paths:
       - ${DUMP_FOLDER}-kube-score-results
 
-kube-score-management-cluster:
+mgmt-kube-score:
   extends:
     - .kube-score-base
     - .rules:need-management-cluster
@@ -75,7 +75,7 @@ kube-score-management-cluster:
   variables:
     DUMP_FOLDER: management-cluster-dump
 
-kube-score-workload-cluster:
+wkld-kube-score:
   extends:
     - .kube-score-base
     - .rules:need-workload-cluster

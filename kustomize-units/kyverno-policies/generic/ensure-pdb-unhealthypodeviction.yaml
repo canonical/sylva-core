@@ -17,6 +17,12 @@ metadata:
         sylvaproject.org/unhealthy-pod-eviction-policy: any
 spec:
   validationFailureAction: Audit
+  webhookConfiguration:
+    matchConditions:
+    - name: 'is-create-or-update'
+      expression: 'request.operation in ["CREATE", "UPDATE"]'
+    - name: 'exclude-namespaces' # Exclude calico-system namespaces where PDBs are modified too frequently
+      expression: '!(request.namespace in ["calico-system","longhorn-system","kubevirt"])'
   rules:
 
     - name: pdb-unhealthypodeviction
