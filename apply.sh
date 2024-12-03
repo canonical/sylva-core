@@ -51,4 +51,15 @@ sylvactl watch \
   -n sylva-system \
   Kustomization/sylva-system/sylva-units-status
 
+echo_b "\U000023F3 Wait for test units to be ready"
+
+sylvactl watch \
+  --kubeconfig management-cluster-kubeconfig \
+  --reconcile \
+  --exit-condition="message=values don't meet the specifications of the schema" \
+  --timeout $(ci_remaining_minutes_and_at_most ${APPLY_WATCH_TIMEOUT_MIN:-20}) \
+  ${SYLVACTL_SAVE:+--save apply-management-cluster-timeline.html} \
+  -n sylva-system \
+  Kustomization/sylva-system/sylva-units-tests-status
+
 display_final_messages

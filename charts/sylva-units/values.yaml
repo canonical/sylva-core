@@ -785,6 +785,7 @@ units:
     info:
       description: deploys kubevirt VMs for testing
       internal: true
+      test: true
     unit_templates:
     - base-deps
     depends_on:
@@ -4851,6 +4852,7 @@ units:
     info:
       description: Perform testing for RWX enabled PVs created from NFS Ganesha
       internal: true
+      test: true
     unit_templates:
     - base-deps
     depends_on:

@@ -7153,6 +7153,9 @@
         "internal": {
           "type": "boolean"
         },
+        "test": {
+          "type": "boolean"
+        },
         "maturity": {
           "type": "string",
           "enum": [
