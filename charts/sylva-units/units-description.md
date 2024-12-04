@@ -44,7 +44,6 @@
 | **cabpoa** | installs OKD/OpenShift CAPI bootstrap/controlplane provider | experimental | [Kustomization](https://github.com/openshift-assisted/cluster-api-agent/releases/download/v0.1.5/bootstrap-components.yaml) | v0.1.5 |
 | **ceph-csi-cephfs** | Installs Ceph-CSI | beta | [Helm chart](https://ceph.github.io/csi-charts) | 3.12.2 |
 | **harbor** | installs Harbor | beta | [Helm chart](https://helm.goharbor.io) | 1.15.1 |
-| **kube-storage-version-migrator** | installs kube-storage-version-migrator to assist apiVersion migrations | beta | [Kustomization](https://github.com/kubernetes-sigs/kube-storage-version-migrator/manifests?ref=v0.0.5) | v0.0.5 |
 | **kubevirt** | installs kubevirt | beta | [Helm chart](https://suse-edge.github.io/charts) | 0.4.0 |
 | **kubevirt-cdi** | manages Kubevirt CDI - Container Data Importer | beta | [Helm chart](https://suse-edge.github.io/charts) | 0.4.0 |
 | **logging** | installs Rancher Fluentbit/Fluentd logging stack, for log collecting and shipping | beta | [Helm chart](https://charts.rancher.io/) | 103.1.2+up4.4.0 |
@@ -92,9 +91,6 @@
 | **capi-rancher-import** | installs the capi-rancher-import operator, which let's us import Cluster AIP workload clusters in management cluster's Rancher | Helm chart |
 | **capo-cloud-config** | creates CAPO cloud-config used to produce Heat stack | Kustomization |
 | **capo-cluster-resources** | installs OpenStack Heat stack for CAPO cluster prerequisites | Kustomization |
-| **capo-v1alpha8-clear** | handles CAPO apiVersion v1alpha8 issues (clear CRD)<br/><br/>fixes CAPO CRDs to clear v1alpha8 from stored versions | Kustomization |
-| **capo-v1alpha8-fix-crd** | handles CAPO apiVersion v1alpha8 issues (fix CRD)<br/><br/>fixes CAPO CRDs to use v1alpha7 as storage version | Kustomization |
-| **capo-v1alpha8-fix-resources** | handles CAPO apiVersion v1alpha8 issues (fix resources)<br/><br/>migrates CAPO CRs from v1alpha8 back to v1alpha7 | Kustomization |
 | **cis-operator-scan** | allows for running a CIS scan for management cluster<br/><br/>it generates a report which can be viewed and downloaded in CSV from the Rancher UI, at https://rancher.sylva/dashboard/c/local/cis/cis.cattle.io.clusterscan | Kustomization |
 | **cluster-creator-login** | configures Rancher account used for workload cluster imports | Kustomization |
 | **cluster-creator-policy** | Kyverno policy for cluster creator<br/><br/>This units defines a Kyverno policy to distribute the Kubeconfig of cluster creator<br/>in all workload cluster namespaces, to allow the import of workload clusters in<br/>Rancher. | Kustomization |
@@ -123,6 +119,7 @@
 | **keycloak-add-truststore** | configures Keycloak truststore<br/><br/>a job to manually add a truststore to Keycloak instance, e.h. to enable LDAPS protocol when using user federation) | Kustomization |
 | **keycloak-oidc-external-secrets** | configures OIDC secrets for Keycloak | Kustomization |
 | **keycloak-resources** | configures keycloak resources | Kustomization |
+| **kube-storage-version-migrator** | installs kube-storage-version-migrator to assist apiVersion migrations | Kustomization |
 | **kubevirt-manager** | deploys kubevirt-manager UI for kubevirt workloads | Kustomization |
 | **kubevirt-test-vms** | deploys kubevirt VMs for testing | Kustomization |
 | **kyverno-metal3-policies** | kyverno policies specific to capm3-system | Kustomization |
