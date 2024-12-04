@@ -264,11 +264,6 @@ function cluster_info_dump() {
       remote_command $node iptables -t nat -Z
       sleep 10
       remote_command $node iptables -t nat -nvL > $node_sysinfo_dumpdir/iptables-nat-2-after-clear-counters.log
-
-      remote_command $node cat /var/log/syslog  > $node_sysinfo_dumpdir/var-log-syslog
-      remote_command $node cat /var/log/messages  > $node_sysinfo_dumpdir/var-log-messages
-      remote_command $node journalctl -xeu rke2-server > $node_sysinfo_dumpdir/rke2-server.log
-      remote_command $node journalctl -xeu rke2-agent > $node_sysinfo_dumpdir/rke2-agent.log
   done
 
   echo -e "\nDisplay cluster resources usage per node"
