@@ -127,7 +127,6 @@
 | **kubevirt-manager** | deploys kubevirt-manager UI for kubevirt workloads | Kustomization |
 | **kubevirt-test-vms** | deploys kubevirt VMs for testing | Kustomization |
 | **kyverno-metal3-policies** | kyverno policies specific to capm3-system | Kustomization |
-| **kyverno-metallb-annotations** | Adds helm specific annotations to metallb resources. Should be removed in 1.2+ versions of Sylva | Kustomization |
 | **kyverno-policies** | configures Kyverno policies | Kustomization |
 | **kyverno-policies-ready** | additional delay to ensure that kyverno webhooks are properly installed in api-server | Kustomization |
 | **kyverno-policy-delete-kubernetes-vip-svc** | Kyverno policy to cleanup the deprecated kubernetes-vip service in the case of upgrade from Sylva versions prior to v1.2 | Kustomization |
@@ -145,7 +144,6 @@
 | **management-sylva-units** | installs sylva-units in management cluster during bootstrap | Helm chart |
 | **metal3-pdb** | add pdb to baremetal-operator pods | Kustomization |
 | **metallb-resources** | configures metallb resources | Helm chart |
-| **metallb-rke2-chart-cleanup** | remove rke2-deployed HelmChart resources for MetalLB | Kustomization |
 | **mgmt-cluster-ready** | (workload cluster) this unit reflects the readiness of the mgmt cluster<br/><br/>this unit acts as simple dependency lock to prevent deploying a workload cluster before the mgmt cluster is ready | Kustomization |
 | **minio-logging-init** | sets up secrets and certificates for minio-logging | Kustomization |
 | **minio-monitoring-init** | sets up secrets and certificates for minio-monitoring | Kustomization |
