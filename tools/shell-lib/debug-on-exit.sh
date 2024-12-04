@@ -207,6 +207,8 @@ function cluster_info_dump() {
 
   mkdir $dump_dir
 
+  echo "Dumping data for $cluster cluster in $dump_dir"
+
   # dump CAPI cluster state
   echo "Dumping clusterctl describe..."
   KUBECONFIG=$MGMT_KUBECONFIG clusterctl describe cluster \
@@ -219,7 +221,8 @@ function cluster_info_dump() {
     echo "$cluster cluster is unreachable - aborting dump"
     return 0
   fi
-  echo "Dumping resources for $cluster cluster in $dump_dir"
+
+  KUBECONFIG=$MGMT_KUBECONFIG helm get manifest -n $capi_cluster_namespace sylva-units | yq 'select(.kind!="Secret")' > $dump_dir/sylva-units-helm-release-manifest.yaml
 
   kubectl cluster-info dump -A -o yaml --show-managed-fields --output-directory=$dump_dir
 
