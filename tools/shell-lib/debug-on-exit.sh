@@ -98,6 +98,21 @@ additional_resources="
   HelmCharts.*helm.cattle.io
 "
 
+dump_command() {
+  command=$1
+  file=$2
+  if [ ! -e "$file" ]; then
+      touch "$file"
+  fi
+  if [[ $CONTEXT == "CI" ]]; then
+      result=$(eval "$command")
+      echo "$result" | tee "$file"
+  else
+      result=$(eval "$command")
+      echo "$result" >> "$file"
+  fi
+}
+
 function dump_additional_resources() {
     local cluster_dir=$1
     shift
@@ -130,7 +145,6 @@ function dump_additional_resources() {
       fi
     done
 }
-
 
 function format_and_sort_events() {
   # this sorts events by lastTimestamp (when defined)
@@ -165,7 +179,7 @@ function crust_gather_collect() {
   echo "Crust-gathering $cluster cluster in crust-gather/$cluster"
 
   mkdir -p "crust-gather/$cluster"
-  crustgather collect --exclude-group="catalog.cattle.io" --exclude-kind=Secret -f crust-gather/$cluster &> "crust-gather/$cluster/crustgather.log"
+  crust-gather collect --exclude-group="catalog.cattle.io" --exclude-kind=Secret -f crust-gather/$cluster &> "crust-gather/$cluster/crustgather.log"
 
   return 0
 }
@@ -195,6 +209,8 @@ function remote_command {
 function cluster_info_dump() {
   local cluster=$1
   local dump_dir=$cluster-cluster-dump
+  echo "cluster  $cluster"
+  echo "dump_dir $dump_dir "
 
   if [[ $cluster == "workload" ]]; then
     capi_cluster_namespace=$2
@@ -204,46 +220,43 @@ function cluster_info_dump() {
     capi_cluster_name=${MANAGEMENT_CLUSTER_NAME:-management-cluster}
   fi
 
+  if [ ! -e "$dump_dir" ]; then
   mkdir $dump_dir
+  fi
 
-  # dump CAPI cluster state
+  # Dump CAPI cluster state
   echo "Dumping clusterctl describe..."
-  KUBECONFIG=$MGMT_KUBECONFIG clusterctl describe cluster \
-    -n $capi_cluster_namespace $capi_cluster_name \
+  echo "MGMT_KUBECONFIG $MGMT_KUBECONFIG"
+  KUBECONFIG="$MGMT_KUBECONFIG" clusterctl describe cluster \
+    -n "$capi_cluster_namespace" "$capi_cluster_name" \
     --grouping=false --show-conditions all --echo \
-    > $dump_dir/clusterctl-describe.txt
+    > "$dump_dir/clusterctl-describe.txt"
 
   echo "Checking if $cluster cluster is reachable"
   if ! timeout 10s kubectl get nodes > /dev/null 2>&1 ;then
     echo "$cluster cluster is unreachable - aborting dump"
     return 0
   fi
+
   echo "Dumping resources for $cluster cluster in $dump_dir"
 
-  kubectl cluster-info dump -A -o yaml --show-managed-fields --output-directory=$dump_dir
+  dump_command "kubectl cluster-info dump -A -o yaml  --output-directory=$dump_dir" "$dump_dir/cluster-info.txt"
 
   # produce a readable ordered log of events for each namespace
   for events_yaml in $(find $dump_dir -name events.yaml); do
     format_and_sort_events < $events_yaml > ${events_yaml//.yaml}.log
   done
 
-  # same in a single file
-  kubectl get events -A -o yaml | format_and_sort_events include-ns > $dump_dir/events.log
+  dump_command "kubectl get events -A -o yaml | format_and_sort_events include-ns" "$dump_dir/events.log"
 
   dump_additional_resources $dump_dir $additional_resources
 
-  # dump pods
-  kubectl get pods -o wide -A > $dump_dir/pods.summary.txt
+  dump_command "kubectl get pods -o wide -A" "$dump_dir/pods.summary.txt"
+  dump_command "kubectl get secret -A --field-selector=type=cluster.x-k8s.io/secret" "$dump_dir/Secrets-capi.summary.txt"
+  dump_command "kubectl get secret -A --field-selector=type=infrastructure.cluster.x-k8s.io/secret" "$dump_dir/Secrets-capi.summary.txt"
 
-  # dump CAPI infra secrets
-  kubectl get secret -A --field-selector=type=infrastructure.cluster.x-k8s.io/secret                               > $dump_dir/Secrets-capi-infra.summary.txt
-  kubectl get secret -A --field-selector=type=infrastructure.cluster.x-k8s.io/secret -o yaml --show-managed-fields > $dump_dir/Secrets-capi-infra.yaml
-  # dump CAPI secrets
-  kubectl get secret -A --field-selector=type=cluster.x-k8s.io/secret                               > $dump_dir/Secrets-capi.summary.txt
-  kubectl get secret -A --field-selector=type=cluster.x-k8s.io/secret -o yaml --show-managed-fields > $dump_dir/Secrets-capi.yaml
-
+kubectl get secret -A > $dump_dir/Secrets.summary.txt
   # list secrets
-  kubectl get secret -A > $dump_dir/Secrets.summary.txt
   kubectl get secret -A -o yaml --show-managed-fields | yq '.items[].data="secrets data is purposefully not dumped" | .items[].metadata.annotations="secrets data is purposefully not dumped"' > $dump_dir/Secrets-censored.yaml
 
   # dump RKE2 node-password secrets
@@ -271,79 +284,121 @@ function cluster_info_dump() {
       remote_command $node journalctl -xeu rke2-agent > $node_sysinfo_dumpdir/rke2-agent.log
   done
 
+
+  # dump CAPI sensitive secrets not in CI context
+  if [ $CONTEXT == "STANDALONE" ]; then
+    dump_command "kubectl get secret -A --field-selector=type=cluster.x-k8s.io/secret -o yaml --show-managed-fields | tee -a $dump_dir/Secrets-capi.yaml" "$dump_dir/Secrets-capi.summary.txt"
+    dump_command "kubectl get secret -A --field-selector=type=infrastructure.cluster.x-k8s.io/secret -o yaml --show-managed-fields | tee -a $dump_dir/Secrets-capi.yaml" "$dump_dir/Secrets-capi.summary.txt"
+    dump_command "kubectl get secret -A" "$dump_dir/Secrets.summary.txt"
+    # list secrets
+    dump_command "kubectl get secret -A -o yaml --show-managed-fields | yq '.items[].data |= \"secrets data is purposefully not dumped\" | .items[].metadata.annotations |= \"secrets data is purposefully not dumped\"'" "$dump_dir/Secrets-censored.yaml"
+    # dump RKE2 node-password secrets
+    dump_command "kubectl -n kube-system get secrets -o yaml | yq '.items = [.items[] | select(.metadata.name | contains(\".node-password.rke2\"))]'" "$dump_dir/Secrets-rke2-node-passwords.yaml"
+
+  fi
+  # list secrets
+  dump_command "kubectl get secret -A" "$dump_dir/Secrets-capi.summary.txt"
+  echo "note: secrets are purposefully not dumped" > $dump_dir/Secrets-censored.yaml
   echo -e "\nDisplay cluster resources usage per node"
   # From https://github.com/kubernetes/kubernetes/issues/17512
-  kubectl get nodes --no-headers | awk '{print $1}' | xargs -I {} sh -c 'echo {} ; kubectl describe node {} | grep Allocated -A 5 | grep -ve Event -ve Allocated -ve percent -ve -- ; echo '
+  dump_command "kubectl get nodes --no-headers | awk '{print \$1}' | xargs -I {} sh -c 'echo {} ; kubectl describe node {} | grep Allocated -A 5 | grep -ve Event -ve Allocated -ve percent -ve -- ; echo '\ > \"$dump_dir/cluster-resources.txt\"" "$dump_dir/cluster-resources.txt"
 }
 
-echo "Start debug-on-exit at: $(date -Iseconds)"
+create_env_dump_boot(){
+  if [ ! -e "${BASE_DIR}/bootstrap-cluster-dump" ]; then
+    mkdir $BASE_DIR/bootstrap-cluster-dump
+  fi
+  dump_dir=$BASE_DIR/bootstrap-cluster-dump
+  dump_command "echo -e 'Start debug-on-exit at: $(date -Iseconds)\n'" "$dump_dir/Env-info.txt"
+  dump_command "echo -e '\nDocker containers'" "$dump_dir/Env-info.txt"
+  dump_command "docker ps" "$dump_dir/Env-info.txt"
+  dump_command "echo -e '\nDocker containers resources usage'" "$dump_dir/Env-info.txt"
+  dump_command "docker stats --no-stream --all" "$dump_dir/Env-info.txt"
+  dump_command "echo -e '\nSystem info'" "$dump_dir/Env-info.txt"
+  dump_command "free -h && df -h || true" "$dump_dir/Env-info.txt"
+  # Unset KUBECONFIG to make sure that we are targetting kind cluster
+  unset KUBECONFIG
+}
 
-echo -e "\nDocker containers"
-docker ps
-echo -e "\nDocker containers resources usage"
-docker stats --no-stream --all
+create_dump_boot(){
+  if [[ $(kind get clusters) =~ $KIND_CLUSTER_NAME ]]; then
+    crust_gather_collect bootstrap
+    cluster_info_dump bootstrap
+    echo -e "\nDump bootstrap node logs"
+    dump_command "docker ps -q -f name=control-plane* | xargs -I % -r docker exec % journalctl " "bootstrap-cluster-dump/bootstrap_node.log"
+  fi
+}
 
-echo -e "\nSystem info"
-free -h
-df -h || true
 
-# Unset KUBECONFIG to make sure that we are targetting kind cluster
-unset KUBECONFIG
+create_dump_cluster(){
+  MGMT_KUBECONFIG=${BASE_DIR}/management-cluster-kubeconfig
+  if [[ -f $MGMT_KUBECONFIG ]]; then
+      export KUBECONFIG=${MGMT_KUBECONFIG}
+      crust_gather_collect management
+      echo -e "\nGet nodes in management cluster"
+      dump_command "kubectl --request-timeout=3s get nodes" "$BASE_DIR/management-cluster-dump/nodes.txt"
 
-if [[ $(kind get clusters) =~ $KIND_CLUSTER_NAME ]]; then
-  crust_gather_collect bootstrap
-  cluster_info_dump bootstrap
-  echo -e "\nDump bootstrap node logs"
-  docker ps -q -f name=control-plane* | xargs -I % -r docker exec % journalctl -e > bootstrap-cluster-dump/bootstrap_node.log
-fi
+      cluster_info_dump management
+      workload_cluster_name=$(kubectl --request-timeout=3s get cluster.cluster -A -o jsonpath='{.items[0].metadata.name}')
+      if [[ -z "$workload_cluster_name" ]]; then
+          echo -e "There's no workload cluster namespace for this deployment. All done"
+      else
+          workload_cluster_namespace=$(kubectl --request-timeout=3s get cluster.cluster -A -o jsonpath='{ $.items[?(@.metadata.namespace != "sylva-system")].metadata.name }')
+          kubectl -n $workload_cluster_namespace get secret $workload_cluster_name-kubeconfig -o jsonpath='{.data.value}' | base64 -d  > $BASE_DIR/workload-cluster-kubeconfig
+          if timeout 10s kubectl --kubeconfig=$BASE_DIR/workload-cluster-kubeconfig get nodes > /dev/null 2>&1; then
+            export KUBECONFIG=$BASE_DIR/workload-cluster-kubeconfig
+          else
+            # in case of baremetal emulation workload cluster is only accessible from Rancher
+            # and rancher API certificates does not match expected (so kubectl must be used with insecure-skip-tls-verify)
+            echo "get-wc-kubeconfig-from-rancher"
+            $BASE_DIR/tools/shell-lib/get-wc-kubeconfig-from-rancher.sh $workload_cluster_name > $BASE_DIR/workload-cluster-kubeconfig-rancher
+            yq -i e '.clusters[].cluster.insecure-skip-tls-verify = true' $BASE_DIR/workload-cluster-kubeconfig-rancher
+            yq -i e 'del(.clusters[].cluster.certificate-authority-data)' $BASE_DIR/workload-cluster-kubeconfig-rancher
+            export KUBECONFIG=$BASE_DIR/workload-cluster-kubeconfig-rancher
+          fi
+          crust_gather_collect workload
+          cluster_info_dump workload $workload_cluster_namespace $workload_cluster_name
+      fi
+  fi
+}
 
-# Try to guess management-cluster-kubeconfig path:
+create_archive() {
+  if [[ -d "crust-gather" ]]
+    then
+    tar -czf crust-gather.tar.gz crust-gather
+    [[ $IN_CI ]] && echo -e "Exec following command to serve crust-gather:\n\t./tools/serve-crustgather-artifact.sh -j $CI_JOB_ID"
+  fi
+  if [[ $CONTEXT == "STANDALONE" ]]; then
+    TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
+    TAR_OUTPUT="sylva_dump_$TIMESTAMP.tar.gz"
+    find . -maxdepth 1 -type d -name bootstrap-cluster-dump -o -name management-cluster-dump -o -name workload-cluster-dump  -o -name crust-gather | xargs -o -r tar cfz $TAR_OUTPUT
+    [ -f "$TAR_OUTPUT" ] && echo "The archive $TAR_OUTPUT has been successfully created." || echo "Error: The archive could not be created."
+  fi
+}
+
+
+set_context() {
+  # Try to guess management-cluster-kubeconfig path:
 # - Use first argument if provided
 # - Use BASE_DIR environment value if it is set (it is usually done by common.sh in CI)
 # - Use relative path to current script location as BASE_DIR as a last option
+  BASE_DIR=${BASE_DIR:-$(realpath $(dirname $0)/../../)}
+  MGMT_KUBECONFIG=${1:-${BASE_DIR}/management-cluster-kubeconfig}
+  MGMT_KUBECONFIG=""
+  if [[ -z "${CI_JOB_NAME:-}" ]]; then
+    CONTEXT="STANDALONE"
+  else
+    CONTEXT="CI"
+  fi
+  echo $CONTEXT
+}
 
-BASE_DIR=${BASE_DIR:-$(realpath $(dirname $0)/../../)}
-MGMT_KUBECONFIG=${1:-${BASE_DIR}/management-cluster-kubeconfig}
+main() {
+  set_context "$@"
+  create_env_dump_boot
+  create_dump_boot
+  create_dump_cluster
+  create_archive
+}
 
-if [[ -f $MGMT_KUBECONFIG ]]; then
-    export KUBECONFIG=${MGMT_KUBECONFIG}
-
-    crust_gather_collect management
-
-    echo -e "\nGet nodes in management cluster"
-    kubectl --request-timeout=3s get nodes
-
-    cluster_info_dump management
-
-    workload_cluster_name=$(kubectl --request-timeout=3s get cluster.cluster -A -o jsonpath='{ $.items[?(@.metadata.namespace != "sylva-system")].metadata.name }')
-    if [[ -z "$workload_cluster_name" ]]; then
-        echo -e "There's no workload cluster for this deployment. All done"
-    else
-        echo -e "We'll check next workload cluster $workload_cluster_name"
-        workload_cluster_namespace=$(kubectl get cluster.cluster --all-namespaces -o=custom-columns=NAME:.metadata.name,NAMESPACE:.metadata.namespace | grep "$workload_cluster_name" | awk -F ' ' '{print $2}')
-        kubectl -n $workload_cluster_namespace get secret $workload_cluster_name-kubeconfig -o jsonpath='{.data.value}' | base64 -d > $BASE_DIR/workload-cluster-kubeconfig
-
-        if timeout 10s kubectl --kubeconfig=$BASE_DIR/workload-cluster-kubeconfig get nodes > /dev/null 2>&1; then
-          export KUBECONFIG=$BASE_DIR/workload-cluster-kubeconfig
-        else
-          echo "failed to access cluster k8s API directly (this is expected with libvirt-metal) will try via Rancher..."
-          # in case of baremetal emulation workload cluster is only accessible from Rancher
-          # and rancher API certificates does not match expected (so kubectl must be used with insecure-skip-tls-verify)
-          $BASE_DIR/tools/shell-lib/get-wc-kubeconfig-from-rancher.sh $workload_cluster_name $BASE_DIR/workload-cluster-kubeconfig-rancher
-          yq -i e '.clusters[].cluster.insecure-skip-tls-verify = true' $BASE_DIR/workload-cluster-kubeconfig-rancher
-          yq -i e 'del(.clusters[].cluster.certificate-authority-data)' $BASE_DIR/workload-cluster-kubeconfig-rancher
-          export KUBECONFIG=$BASE_DIR/workload-cluster-kubeconfig-rancher
-        fi
-
-        crust_gather_collect workload
-
-        cluster_info_dump workload $workload_cluster_namespace $workload_cluster_name
-    fi
-fi
-
-if [[ -d "crust-gather" ]]
-then
-  tar -czf crust-gather.tar.gz crust-gather
-
-  [[ $IN_CI ]] && echo -e "Exec following command to serve crust-gather:\n\t./tools/serve-crustgather-artifact.sh -j $CI_JOB_ID"
-fi
+main "$@"
