@@ -8,7 +8,7 @@ export PATH=${BASE_DIR}/bin:${PATH}
 export KIND_CLUSTER_NAME=${KIND_CLUSTER_NAME:-sylva}
 
 SYLVA_BASE_OCI_REGISTRY=${SYLVA_BASE_OCI_REGISTRY:-registry.gitlab.com/sylva-projects}
-SYLVA_TOOLBOX_VERSION=${SYLVA_TOOLBOX_VERSION:-"v0.5.18"}
+SYLVA_TOOLBOX_VERSION=${SYLVA_TOOLBOX_VERSION:-"v0.6.0"}
 SYLVA_TOOLBOX_IMAGE=${SYLVA_TOOLBOX_IMAGE:-container-images/sylva-toolbox}
 SYLVA_TOOLBOX_REGISTRY=${SYLVA_TOOLBOX_REGISTRY:-${SYLVA_BASE_OCI_REGISTRY}/sylva-elements}
 export KIND_POD_SUBNET=${KIND_POD_SUBNET:-100.100.0.0/16}
@@ -262,7 +262,7 @@ function fix_sylva_units_helm_releases_root_dep {
 
 function reconcile_sylva_units() {
   local namespace=${1:-sylva-system}
-  local skip_root_dependency_wait=${2:-}
+  local _options=${2:-}
 
   echo "trigger reconciliation of sylva-units HelmRelease..."
   RECONCILE_REQUEST_DATE=$(date -uIs | sed -e 's/+00:00//')
@@ -283,12 +283,20 @@ function reconcile_sylva_units() {
       $FORCE_RECONCILE_ANNOTATION \
     | sed -e 's/^/  /'
 
-  sylvactl watch -n $namespace HelmRelease/$namespace/sylva-units --timeout ${SYLVA_UNITS_RECONCILE_TIMEOUT:-180s} --skip-inventory --reconcile \
+  resume_suspended="--resume-suspended"
+  if [[ $_options == *"skip-resume-suspended"* ]]; then
+    echo "not using --resume-suspended"
+    resume_suspended=""
+  fi
+
+  sylvactl watch -n $namespace HelmRelease/$namespace/sylva-units --timeout ${SYLVA_UNITS_RECONCILE_TIMEOUT:-180s} --skip-inventory \
+    --log \
+    --reconcile $resume_suspended \
     --exit-condition reason=UpgradeFailed \
     --exit-condition reason=InstallFailed
 
   helm_release_version=$(kubectl get -n $namespace HelmRelease sylva-units -o yaml | yq -r '.status.history[0].version')
-  if ! [[ $skip_root_dependency_wait == "skip-root-dependency-wait" ]]; then
+  if ! [[ $_options == *"skip-root-dependency-wait"* ]]; then
     echo "waiting for root-dependency-$helm_release_version to become ready..."
     sylvactl watch -n $namespace Kustomization/$namespace/root-dependency-$helm_release_version --timeout ${SYLVA_UNITS_RECONCILE_TIMEOUT:-180s} --skip-inventory --reconcile
 
@@ -304,6 +312,17 @@ function define_source() {
     sed "s,SYLVA_BASE_OCI_REGISTRY,${SYLVA_BASE_OCI_REGISTRY},g" "$@"
 }
 
+function suspend_sylva_units {
+  local ns=${1:-sylva-system}
+
+  if [[ $(kubectl -n $ns get helmreleases.helm.toolkit.fluxcd.io sylva-units 2>&1 > /dev/null) =~ '"sylva-units" not found$' ]]; then
+    echo "no sylva-units HelmRelease found, nothing to suspend"
+  else
+    echo -e "\U000023F8 Suspend sylva-units HelmRelease/HelmChart"
+    kubectl -n $ns patch helmreleases.helm.toolkit.fluxcd.io sylva-units       --type=merge --patch='{"spec":{"suspend":true}}'
+    kubectl -n $ns patch helmcharts.source.toolkit.fluxcd.io ${ns}-sylva-units --type=merge --patch='{"spec":{"suspend":true}}'
+  fi
+}
 
 function fix_sylva_units {
   # This function is necessary only to transition from past Sylva release where
@@ -412,7 +431,7 @@ EOF
   rm -Rf ${PREVIEW_DIR}
 
   # this is just to force-refresh in a dev environment with  refreshed parameters
-  reconcile_sylva_units sylva-units-preview skip-root-dependency-wait
+  reconcile_sylva_units sylva-units-preview skip-root-dependency-wait,skip-resume-suspended
 
 }
 
