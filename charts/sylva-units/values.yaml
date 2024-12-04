@@ -2196,23 +2196,6 @@ units:
               #!/bin/bash
               sleep 60
 
-  kyverno-policy-delete-kubernetes-vip-svc:
-    info:
-      description: Kyverno policy to cleanup the deprecated kubernetes-vip service in the case of upgrade from Sylva versions prior to v1.2
-      internal: true
-    enabled_conditions:
-    - '{{ tuple . "kyverno" | include "unit-enabled"  }}'
-    - '{{ lookup "v1" "Service" "kube-system" "kubernetes-vip" | empty | not }}'
-    depends_on:
-      cluster-machines-ready: true
-      kyverno: true
-    unit_templates:
-    - base-deps
-    repo: sylva-core
-    kustomization_spec:
-      path: ./kustomize-units/kyverno-policies/remove-kubernetes-vip-svc
-      wait: true
-
   kyverno-metal3-policies:
     info:
       description: kyverno policies specific to capm3-system

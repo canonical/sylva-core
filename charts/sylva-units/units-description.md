@@ -126,7 +126,6 @@
 | **kyverno-metal3-policies** | kyverno policies specific to capm3-system | Kustomization |
 | **kyverno-policies** | configures Kyverno policies | Kustomization |
 | **kyverno-policies-ready** | additional delay to ensure that kyverno webhooks are properly installed in api-server | Kustomization |
-| **kyverno-policy-delete-kubernetes-vip-svc** | Kyverno policy to cleanup the deprecated kubernetes-vip service in the case of upgrade from Sylva versions prior to v1.2 | Kustomization |
 | **kyverno-policy-prevent-mgmt-cluster-delete** | Kyverno policies to prevent deletion of critical resources for mgmt cluster | Kustomization |
 | **kyverno-policy-rancher-webhook-ha** | Kyverno policy for rancher-webhook HA | Kustomization |
 | **kyverno-update-namespace-and-psa** | grants to Kyverno the permission to update namespaces using the "updatepsa" verb (Rancher-specific)<br/><br/>This unit allows Kyverno to define namespaces with specific PodSecurityAdmission levels. It is useful for situations where namespaces need to be mutated (with PSA labels) in order to accomodate privileged pods (for which PSA level restricted at cluster level is not enough), when namespace creation is not controlled | Kustomization |
