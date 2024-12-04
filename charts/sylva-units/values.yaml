@@ -2046,23 +2046,6 @@ units:
         - '{{ tuple "components/check-images" .Values.security.upstream_images_signature.verify | include "set-only-if" }}'
         - '{{ tuple "components/mutate-job-security-context" (tuple . "rancher" | include "unit-enabled") | include "set-only-if" }}'
 
-  kyverno-metallb-annotations:
-    info:
-      description: Adds helm specific annotations to metallb resources. Should be removed in 1.2+ versions of Sylva
-      internal: true
-    unit_templates:
-      - base-deps
-    enabled_conditions:
-      - '{{ eq .Values.cluster.capi_providers.bootstrap_provider "cabpr" }}'
-      - '{{ ne .Values.cluster.capi_providers.infra_provider "capd" }}'
-      - '{{ .Values._internal.state.is_upgrade }}'
-    depends_on:
-      kyverno: true
-    repo: sylva-core
-    kustomization_spec:
-      path: ./kustomize-units/kyverno-policies/metallb-resources-annotations
-      wait: true
-
   kyverno-policies-ready:
     info:
       description: additional delay to ensure that kyverno webhooks are properly installed in api-server
@@ -3121,37 +3104,6 @@ units:
           kind: Installation
           name: default
 
-  metallb-rke2-chart-cleanup:
-    info:
-      description: remove rke2-deployed HelmChart resources for MetalLB
-      internal: true
-    unit_templates:
-    - base-deps
-    - kube-job
-    enabled_conditions:
-    - '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" }}'
-    - '{{ .Values._internal.state.is_upgrade }}'
-    depends_on:
-      cluster-prevent-rke2-helmcharts-calico-metallb: true
-    kustomization_spec:
-      targetNamespace: metallb-system
-      _patches:
-      - target:
-          kind: ConfigMap
-          labelSelector: kube-job=script
-        patch: |
-          - op: replace
-            path: /data/kube-job.sh
-            value: |
-              #!/bin/bash
-              if kubectl -n metallb-system get helmchart.helm.cattle.io metallb; then
-                kubectl -n metallb-system delete cm chart-content-metallb
-                kubectl -n metallb-system delete secret chart-values-metallb
-                kubectl -n metallb-system delete secret -l name=metallb,owner=helm
-                kubectl -n metallb-system patch helmchart --type merge -p '{"metadata":{"finalizers": [], "annotations":{"helmcharts.helm.cattle.io/unmanaged":""}}}' metallb
-                kubectl -n metallb-system delete helmchart.helm.cattle.io metallb
-              fi
-
   metallb:
     info:
       description: installs MetalLB operator
@@ -3163,7 +3115,6 @@ units:
                (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpr") }}'
     depends_on:
       '{{ .Values._internal.calico_readiness_unit }}': '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpk" }}'
-      metallb-rke2-chart-cleanup: '{{ tuple . "metallb-rke2-chart-cleanup" | include "unit-enabled" }}'
     helm_repo_url: https://metallb.github.io/metallb
     helmrelease_spec:
       chart:
