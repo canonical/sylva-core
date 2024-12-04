@@ -290,7 +290,6 @@ function reconcile_sylva_units() {
   fi
 
   sylvactl watch -n $namespace HelmRelease/$namespace/sylva-units --timeout ${SYLVA_UNITS_RECONCILE_TIMEOUT:-180s} --skip-inventory \
-    --log \
     --reconcile $resume_suspended \
     --exit-condition reason=UpgradeFailed \
     --exit-condition reason=InstallFailed
