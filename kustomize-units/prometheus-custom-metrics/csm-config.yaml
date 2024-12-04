@@ -1,5 +1,6 @@
 # this file contains values overrides for the rancher-monitoring Helm chart, for prometheus
 # it's content comes from https://fluxcd.io/flux/monitoring/custom-metrics/#adding-custom-metrics
+# and create custom metrics related to clusters on k8s and rancher level
 kube-state-metrics:
   rbac:
     extraRules:
@@ -8,6 +9,8 @@ kube-state-metrics:
           - kustomize.toolkit.fluxcd.io
           - helm.toolkit.fluxcd.io
           - notification.toolkit.fluxcd.io
+          - cluster.x-k8s.io
+          - provisioning.cattle.io
         resources:
           - gitrepositories
           - helmrepositories
@@ -18,12 +21,45 @@ kube-state-metrics:
           - alerts
           - providers
           - receivers
+          - clusters
         verbs: [ "list", "watch" ]
   customResourceState:
     enabled: true
     config:
       spec:
         resources:
+          - groupVersionKind:
+              group: cluster.x-k8s.io
+              version: v1beta1
+              kind: Cluster
+            metricNamePrefix: capi_cluster
+            metrics:
+              - name: "info"
+                help: "The current state of CAPI cluster resources in K8s."
+                each:
+                  type: Info
+                  info:
+                    labelsFromPath:
+                      capi_cluster_name: [ metadata, name ]
+                labelsFromPath:
+                  capi_cluster_namespace: [ metadata, namespace ]
+                  status: [ status, phase ]
+          - groupVersionKind:
+              group: provisioning.cattle.io
+              version: v1
+              kind: Cluster
+            metricNamePrefix: rancher_cluster
+            metrics:
+              - name: "info"
+                help: "The current state of rancher provisioned clusters."
+                each:
+                  type: Info
+                  info:
+                    labelsFromPath:
+                      rancher_cluster_name: [ metadata, name ]
+                labelsFromPath:
+                  cluster_namespace: [ metadata, namespace ]
+                  ready: [ status, ready ]
           - groupVersionKind:
               group: kustomize.toolkit.fluxcd.io
               version: v1
@@ -46,7 +82,7 @@ kube-state-metrics:
                   source_name: [ spec, sourceRef, name ]
           - groupVersionKind:
               group: helm.toolkit.fluxcd.io
-              version: v2beta2
+              version: v2
               kind: HelmRelease
             metricNamePrefix: gotk
             metrics:
@@ -87,7 +123,7 @@ kube-state-metrics:
                   url: [ spec, url ]
           - groupVersionKind:
               group: source.toolkit.fluxcd.io
-              version: v1beta2
+              version: v1
               kind: HelmRepository
             metricNamePrefix: gotk
             metrics:
@@ -107,7 +143,7 @@ kube-state-metrics:
                   url: [ spec, url ]
           - groupVersionKind:
               group: source.toolkit.fluxcd.io
-              version: v1beta2
+              version: v1
               kind: HelmChart
             metricNamePrefix: gotk
             metrics:
