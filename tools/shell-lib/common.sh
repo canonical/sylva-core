@@ -54,7 +54,10 @@ export -f _kustomize
 
 function set_wc_namespace() {
   local WORKLOAD_CLUSTER_NAMESPACE=$(basename ${ENV_PATH})
-  sed "s/WORKLOAD_CLUSTER_NAMESPACE/${WORKLOAD_CLUSTER_NAMESPACE}/g"
+  local INFRA_PROVIDER=$(yq eval-all '.cluster.capi_providers.infra_provider' ${ENV_PATH}/values.yaml)
+  
+  sed -e "s/WORKLOAD_CLUSTER_NAMESPACE/${WORKLOAD_CLUSTER_NAMESPACE}/g" \
+      -e "s/CHECK_INFRA_PROVIDER/${INFRA_PROVIDER}/g"
 }
 
 function check_apply_kustomizations() {
