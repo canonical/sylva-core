@@ -58,7 +58,7 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
     spec:
       url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-capi-cluster.git
       ref:
-        tag: 0.4.4
+        tag: 0.4.5
 
   devnull:
     kind: GitRepository
@@ -3078,7 +3078,7 @@ units:
                   {{- else if (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpr") }}
                   RKE2ControlPlane
                   {{- else if (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpoa") }}
-                  AgentControlPlane
+                  OpenshiftAssistedControlPlane
                   {{- end }}
       - target:
           kind: ConfigMap

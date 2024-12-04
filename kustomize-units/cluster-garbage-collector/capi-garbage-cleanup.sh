@@ -8,7 +8,7 @@ set -o pipefail
 TEMPLATE_TYPES_CR="
 KubeadmConfigTemplate.*bootstrap.cluster.x-k8s.io
 RKE2ConfigTemplate.*bootstrap.cluster.x-k8s.io
-AgentBootstrapConfigTemplate.*bootstrap.cluster.x-k8s.io
+OpenshiftAssistedConfigTemplate.*bootstrap.cluster.x-k8s.io
 DockerMachineTemplate.*infrastructure.cluster.x-k8s.io
 VSphereMachineTemplate.*infrastructure.cluster.x-k8s.io
 OpenStackMachineTemplate.*infrastructure.cluster.x-k8s.io
@@ -34,7 +34,7 @@ for TEMPLATE_CR in ${TEMPLATE_TYPES_CR[@]}; do
             CLONED_TEMPLATE_RESOURCE_SHORT=${CLONED_TEMPLATE_RESOURCE/.*/}
 
             echo -e "\n Inspecting all $TEMPLATE_RESOURCE_SHORT resource instances/names for
-- usage as (RKE2ControlPlane.spec|KubeadmControlPlane.spec.machineTemplate|AgentControlPlane.spec.machineTemplate).infrastructureRef.name
+- usage as (RKE2ControlPlane.spec|KubeadmControlPlane.spec.machineTemplate|OpenshiftAssistedControlPlane.spec.machineTemplate).infrastructureRef.name
 - usage as (MachineDeployment|MachineSet).spec.template.spec.infrastructureRef.name
 - presence of $CLONED_TEMPLATE_RESOURCE_SHORT resources having the annotation cluster.x-k8s.io/cloned-from-name=<$TEMPLATE_RESOURCE_SHORT resource instance>"
 
@@ -70,7 +70,7 @@ for TEMPLATE_CR in ${TEMPLATE_TYPES_CR[@]}; do
 
                     # Check there's no KubeadmControlPlane.spec.machineTemplate.infrastructureRef.name
                     # or RKE2ControlPlane.spec.infrastructureRef.name
-                    # or AgentControlPlane.spec.machineTemplate.infrastructureRef.name
+                    # or OpenshiftAssistedControlPlane.spec.machineTemplate.infrastructureRef.name
                     # usage for the template resource instance
                     if kubectl api-resources | grep -i KubeadmControlPlane > /dev/null ; then
                         kubectl -n "$TARGET_NAMESPACE" get KubeadmControlPlane -o=custom-columns=KIND:.kindNAME:.metadata.name,INFRASTRUCTURE_REF_NAME:.spec.machineTemplate.infrastructureRef.name,INFRASTRUCTURE_REF_KIND:.spec.machineTemplate.infrastructureRef.kind --no-headers >> /tmp/template_resources_consumers.txt
@@ -78,8 +78,8 @@ for TEMPLATE_CR in ${TEMPLATE_TYPES_CR[@]}; do
                     if kubectl api-resources | grep -i RKE2ControlPlane > /dev/null; then
                         kubectl -n "$TARGET_NAMESPACE" get RKE2ControlPlane -o=custom-columns=KIND:.kind,NAME:.metadata.name,INFRASTRUCTURE_REF_NAME:.spec.infrastructureRef.name,INFRASTRUCTURE_REF_KIND:.spec.infrastructureRef.kind --no-headers >> /tmp/template_resources_consumers.txt
                     fi
-                    if kubectl api-resources | grep -i AgentControlPlane > /dev/null; then
-                        kubectl -n "$TARGET_NAMESPACE" get AgentControlPlane -o=custom-columns=KIND:.kind,NAME:.metadata.name,INFRASTRUCTURE_REF_NAME:.spec.machineTemplate.infrastructureRef.name,INFRASTRUCTURE_REF_KIND:.spec.machineTemplate.infrastructureRef.kind --no-headers >> /tmp/template_resources_consumers.txt
+                    if kubectl api-resources | grep -i OpenshiftAssistedControlPlane > /dev/null; then
+                        kubectl -n "$TARGET_NAMESPACE" get OpenshiftAssistedControlPlane -o=custom-columns=KIND:.kind,NAME:.metadata.name,INFRASTRUCTURE_REF_NAME:.spec.machineTemplate.infrastructureRef.name,INFRASTRUCTURE_REF_KIND:.spec.machineTemplate.infrastructureRef.kind --no-headers >> /tmp/template_resources_consumers.txt
                     fi
 
                     # Check there's no MachineSet.spec.template.spec.infrastructureRef.name usage for the template resource instance
