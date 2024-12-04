@@ -2810,8 +2810,6 @@ units:
       cluster-node-provider-id-blacklist: '{{ tuple . "cluster-node-provider-id-blacklist" | include "unit-enabled" }}'
       cluster-rke2-migrate-legacy-etcd-certs: '{{ tuple . "cluster-rke2-migrate-legacy-etcd-certs" | include "unit-enabled" }}'
       longhorn-instance-manager-cleanup: '{{ tuple . "longhorn-instance-manager-cleanup" | include "unit-enabled" }}'
-      thanos-uninstall-pre-upgrade: '{{ tuple . "thanos-uninstall-pre-upgrade" | include "unit-enabled" }}'
-      minio-cleanup-pre-upgrade: '{{ tuple . "minio-cleanup-pre-upgrade" | include "unit-enabled" }}'
       cluster-prevent-rke2-helmcharts-calico-metallb: '{{ tuple . "cluster-prevent-rke2-helmcharts-calico-metallb" | include "unit-enabled" }}'
       rke2-helmchart-prevent-uninstall: '{{ and (tuple . "rke2-helmchart-prevent-uninstall" | include "unit-enabled") .Values._internal.state.is_upgrade }}'
       metallb: '{{ and (tuple . "metallb" | include "unit-enabled") .Values._internal.state.is_upgrade }}'
@@ -5828,52 +5826,6 @@ units:
           name: sts-tls
           namespace: minio-operator
 
-  minio-cleanup-pre-upgrade:
-    info:
-      description: special unit to delete left-over minio PVCs before cluster upgrades
-      details: >-
-        In 1.1.1 release, minio-monitoring-tenant was configured to use single-replica-storageclass,
-        this tenant will be deleted during upgrade, but we have to delete the PVC that will be left over
-      internal: true
-    unit_templates:
-    - kube-job
-    enabled_conditions:
-      - '{{ lookup "v1" "PersistentVolumeClaim" "minio-monitoring-tenant" "" | dig "items" list | len | ne 0 }}'
-    kustomization_spec:
-      postBuild:
-        substitute:
-          JOB_CHECKSUM: '{{ .Release.Revision }}'
-      _patches:
-      - target:
-          kind: ClusterRole
-        patch: |
-          - op: replace
-            path: /rules
-            value:
-              - apiGroups: [""]
-                resources: [pods]
-                verbs: [list, get]
-              - apiGroups: [""]
-                resources: [persistentvolumeclaims]
-                verbs: [list, get, delete]
-      - target:
-          kind: ConfigMap
-          labelSelector: kube-job=script
-        patch: |
-          - op: replace
-            path: /data/kube-job.sh
-            value: |
-              set -e
-
-              echo "-- Ensure that all minio-monitoring-tenant pods are deleted"
-              kubectl wait --for=delete pod --all -n minio-monitoring-tenant --timeout=300s
-
-              echo "-- Delete any pvc that would have been left over"
-              kubectl delete pvc -n minio-monitoring-tenant --all --timeout=300s
-
-              echo "-- Ensure that there are no more minio-monitoring-tenant PVCs using single-replica-storageclass"
-              kubectl get pvc -n minio-monitoring-tenant -o yaml | yq -e '[.items[] | select (.spec.storageClassName == "single-replica-storageclass")] | length == 0'  2>/dev/null
-
   minio-logging-init:
     info:
       description: sets up secrets and certificates for minio-logging
@@ -6255,63 +6207,6 @@ units:
         kind: Secret
         namespace: sylva-system
         name: thanos-secrets
-
-  thanos-uninstall-pre-upgrade:
-    info:
-      description: special unit to uninstall thanos before cluster upgrades
-      details: >-
-        In 1.1.1 release, thanos was configured to use minio-monitoring-tenant tenant (and single-replica-storageclass when longhorn was used)
-        This tenant is replaced by minio-monitoring-tenant. As this value can't be updated, and thanos data will be lost in any case,
-        uninstall it prior to upgrade cluster and reinstall it with new values.
-      internal: true
-    unit_templates:
-    - kube-job
-    enabled_conditions:
-      - '{{ tuple . "thanos" | include "unit-enabled" }}'
-      - >-
-        {{ lookup "v1" "Secret" "thanos" "thanos-objstore-secret"
-           | dig "data" "objstore.yml" ""
-           | b64dec | fromYaml | default dict
-           | dig "config" "endpoint" "" | eq "minio.minio-monitoring-tenant.svc.cluster.local"
-        }}
-    kustomization_spec:
-      postBuild:
-        substitute:
-          JOB_CHECKSUM: '{{ .Release.Revision }}'
-      _patches:
-      - target:
-          kind: ClusterRole
-        patch: |
-          - op: replace
-            path: /rules
-            value:
-              - apiGroups: [""]
-                resources: [pods]
-                verbs: [list, get]
-              - apiGroups: [""]
-                resources: [persistentvolumeclaims]
-                verbs: [list, get, delete]
-      - target:
-          kind: ConfigMap
-          labelSelector: kube-job=script
-        patch: |
-          - op: replace
-            path: /data/kube-job.sh
-            value: |
-              echo "-- Unsuspend thanos Kustomizations and HelmReleases if needed"
-              kubectl patch kustomization thanos --type=json --patch '[{"op": "remove", "path": "/spec/suspend"}]' &>/dev/null
-              kubectl patch helmrelease thanos --type=json --patch '[{"op": "remove", "path": "/spec/suspend"}]' &>/dev/null
-
-              echo "-- Delete thanos HelmRelease"
-              kubectl delete helmrelease thanos --timeout=300s
-
-              set -e
-
-              echo "-- Ensure that all thanos pods are deleted"
-              kubectl wait --for=delete pod --all -n thanos --timeout=300s
-
-              echo "-- Delete any pvc that would have been left over"
-              kubectl delete pvc -n thanos --all --timeout=300s
 
   thanos:
     info:

@@ -146,7 +146,6 @@
 | **metallb-resources** | configures metallb resources | Helm chart |
 | **metallb-rke2-chart-cleanup** | remove rke2-deployed HelmChart resources for MetalLB | Kustomization |
 | **mgmt-cluster-ready** | (workload cluster) this unit reflects the readiness of the mgmt cluster<br/><br/>this unit acts as simple dependency lock to prevent deploying a workload cluster before the mgmt cluster is ready | Kustomization |
-| **minio-cleanup-pre-upgrade** | special unit to delete left-over minio PVCs before cluster upgrades<br/><br/>In 1.1.1 release, minio-monitoring-tenant was configured to use single-replica-storageclass, this tenant will be deleted during upgrade, but we have to delete the PVC that will be left over | Kustomization |
 | **minio-logging-init** | sets up secrets and certificates for minio-logging | Kustomization |
 | **minio-monitoring-init** | sets up secrets and certificates for minio-monitoring | Kustomization |
 | **minio-operator-init** | sets up MinIO certificate for minio-operator<br/><br/>it generate certificate | Kustomization |
@@ -175,7 +174,6 @@
 | **test-nfs-ganesha** | Perform testing for RWX enabled PVs created from NFS Ganesha | Kustomization |
 | **thanos-credentials-secret** | create a secret containing tenant's thanos credentials | Kustomization |
 | **thanos-init** | sets up thanos certificate<br/><br/>it generates a multiple CN certificate for all Thanos components | Kustomization |
-| **thanos-uninstall-pre-upgrade** | special unit to uninstall thanos before cluster upgrades<br/><br/>In 1.1.1 release, thanos was configured to use minio-monitoring-tenant tenant (and single-replica-storageclass when longhorn was used) This tenant is replaced by minio-monitoring-tenant. As this value can't be updated, and thanos data will be lost in any case, uninstall it prior to upgrade cluster and reinstall it with new values. | Kustomization |
 | **tigera-clusterrole** | is here to allow for upgrading Calico chart when upgrading cluster<br/><br/>For v1.25.x to v1.26.x, see https://gitlab.com/sylva-projects/sylva-core/-/issues/664 | Kustomization |
 | **two-replicas-storageclass** | Create a longhorn storage class with a two replicas | Kustomization |
 | **vault-oidc** | configures Vault to be used with OIDC | Kustomization |
