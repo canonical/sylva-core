@@ -183,7 +183,8 @@ function remote_command {
     echo "running '$*' on $node ... " >&2
 
     # we assume that the 'sandbox-privileged-namespace' unit is enabled
-    kubectl -n sandbox debug node/$node \
+    timeout 30s \
+      kubectl -n sandbox debug node/$node \
       --request-timeout=5s \
       --profile=sysadmin \
       --image registry.gitlab.com/sylva-projects/sylva-elements/container-images/kube-job:v1.0.17 \
