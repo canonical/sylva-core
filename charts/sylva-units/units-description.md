@@ -174,6 +174,9 @@
 | **minio-operator-init** | sets up MinIO certificate for minio-operator<br/><br/>it generate certificate | Kustomization |
 | **multus-ready** | checks that Multus is ready<br/><br/>This unit only has dependencies, it does not create resources. It performs healthchecks outside of the multus unit, in order to properly target workload cluster when we deploy multus in it. | Kustomization |
 | **namespace-defs** | creates sylva-system namespace and other namespaces to be used by various units | Kustomization |
+| **neuvector-assign-fedadmin-role** | configures Neuvector fedAdmin role<br/><br/>a job to manually add fedAdmin role to sylva infra-admins group | Kustomization |
+| **neuvector-federation-generate-workload-config** | generate a Neuvector federation workload config with join token<br/><br/>a job to define the federation config for workload cluster | Kustomization |
+| **neuvector-federation-tls** | configures Neuvector federation TLS<br/><br/>enable TLS protocol when using Neuvector federation | Kustomization |
 | **neuvector-init** | sets up Neuvector prerequisites<br/><br/>it generates certificate, admin password, policy exception for using latest tag images (required for the pod managing the database of vulnerabilities since this DB is updated often) | Kustomization |
 | **neuvector-tls** | configures Neuvector TLS<br/><br/>enable TLS protocol when using Neuvector | Kustomization |
 | **nfs-ganesha-init** | Define persistent volume claim for NFS Ganesha | Kustomization |

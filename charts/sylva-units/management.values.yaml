@@ -336,6 +336,96 @@ units:
                                     key: CONFIG_OVERWRITE_JSON
                                     name: "harbor-oidc"
 
+  neuvector-federation-tls:
+    info:
+      description: configures Neuvector federation TLS
+      details: enable TLS protocol when using Neuvector federation
+      internal: true
+    unit_templates:
+    - base-deps
+    enabled_conditions:
+    - '{{ tuple . "neuvector" | include "unit-enabled" }}'
+    repo: sylva-core
+    kustomization_substitute_secrets:
+      KEY: '{{ .Values.external_certificates.neuvector_federation_master.key | default "" | b64enc }}'
+    depends_on:
+      sylva-ca: true
+      namespace-defs: true
+    kustomization_spec:
+      path: ./kustomize-units/dummy/base
+      postBuild:
+        substitute:
+          SERVICE: neuvector-federation
+          SERVICE_DNS: '{{ .Values.external_hostnames.neuvector_federation_master }}'
+          CERTIFICATE_NAMESPACE: neuvector
+          CERT: '{{ .Values.external_certificates.neuvector_federation_master.cert | default "" | b64enc }}'
+          CACERT: '{{ .Values.external_certificates.cacert | default "" | b64enc }}'
+      _components:
+        - '{{ hasKey .Values.external_certificates.neuvector_federation_master "cert" | ternary "../../tls-components/tls-secret" "../../tls-components/tls-certificate" }}'
+
+  neuvector:
+    helmrelease_spec:
+      values:
+        controller:
+          apisvc:
+            type: ClusterIP
+          federation:
+            mastersvc:
+              type: ClusterIP
+              ingress:
+                enabled: true
+                host: '{{ .Values.external_hostnames.neuvector_federation_master }}'
+                ingressClassName: nginx
+                path: /
+                annotations:
+                  nginx.ingress.kubernetes.io/backend-protocol: https
+                tls: true
+                secretName: neuvector-federation-tls
+          configmap:
+            enabled: true
+            data:
+              fedinitcfg.yaml: |
+                cluster_name: {{ .Values.cluster.name }}
+                primary_rest_info:
+                  server: {{ .Values.external_hostnames.neuvector_federation_master }}
+                  port: 443
+                join_token: {{ .Values._internal.neuvector_join_token }}
+
+  neuvector-assign-fedadmin-role:
+    info:
+      description: configures Neuvector fedAdmin role
+      details: >
+        a job to manually add fedAdmin role to sylva infra-admins group
+      internal: true
+    unit_templates:
+    - base-deps
+    - kube-job
+    enabled_conditions:
+    - '{{ tuple . "neuvector" | include "unit-enabled" }}'
+    depends_on:
+      neuvector: true
+    kustomization_spec:
+      targetNamespace: neuvector
+      _patches:
+      - target:
+          kind: Job
+        patch: |
+          - op: replace
+            path: /spec/backoffLimit
+            value: 15
+      - target:
+          kind: ConfigMap
+          labelSelector: kube-job=script
+        patch: |
+          - op: replace
+            path: /data/kube-job.sh
+            value: |
+          {{ .Files.Get "scripts/neuvector-assign-fedadmin-role.sh" | indent 4 }}
+
+  neuvector-federation-generate-workload-config:
+    # this unit is for workload clusters only
+    enabled: false
+
   management-flag:
     info:
       internal: true

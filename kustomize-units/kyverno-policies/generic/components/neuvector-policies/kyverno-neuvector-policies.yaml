@@ -89,3 +89,56 @@ spec:
                 - name: keycloak-ca
                   secret:
                     secretName: sylva-ca.crt
+---
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: reconcile-neuvector-helmrelease
+  namespace: sylva-system
+  annotations:
+    kustomize.toolkit.fluxcd.io/force: Enabled
+    policies.kyverno.io/title: Reconcile Neuvector HelmRelease
+    policies.kyverno.io/minversion: 1.12.0
+    policies.kyverno.io/description: >-
+      Reconcile neuvector HelmRelease when neuvector-federation-* is created, excluding sylva-system namespace
+spec:
+  mutateExistingOnPolicyUpdate: true
+  rules:
+    - name: reconcile-neuvector-helmrelease
+      match:
+        any:
+          - resources:
+              kinds:
+              - HelmRelease
+              names:
+              - neuvector
+              namespaces:
+              - "*"
+      exclude:
+        any:
+          - resources:
+              namespaces:
+                - sylva-system
+      context:
+        - name: configMapData
+          apiCall:
+            urlPath: "/api/v1/namespaces/neuvector/configmaps?labelSelector=kustomize.toolkit.fluxcd.io/name=neuvector-federation-generate-workload-config,kustomize.toolkit.fluxcd.io/namespace={{ request.namespace }}"
+            jmesPath: "items[0]"
+      mutate:
+        targets:
+          - apiVersion: helm.toolkit.fluxcd.io/v2
+            kind: HelmRelease
+            name: neuvector
+            namespace: "{{ request.namespace }}"
+        patchStrategicMerge:
+          metadata:
+            annotations:
+              reconcile.fluxcd.io/requestedAt: "{{ time_now_utc() }}"
+              kyverno.reconcile-neuvector-helmrelease/requestedAt: "{{ time_now_utc() }}"
+          spec:
+            values:
+              controller:
+                configmap:
+                  data:
+                    fedinitcfg.yaml: |
+                      {{ configMapData.data.fedinitcfg }}

@@ -1525,6 +1525,32 @@ units:
         - '{{ ternary "../tls-components/tls-secret" "../tls-components/tls-certificate" (hasKey .Values.external_certificates.neuvector "cert") }}'
         - "../tls-components/sylva-ca"
 
+
+  neuvector-federation-generate-workload-config:
+    info:
+      description: generate a Neuvector federation workload config with join token
+      details: >
+        a job to define the federation config for workload cluster
+      internal: true
+    unit_templates:
+    - base-deps
+    enabled_conditions:
+    - '{{ tuple . "neuvector" | include "unit-enabled" }}'
+    repo: sylva-core
+    depends_on:
+      neuvector: true
+    kustomization_spec:
+      path: ./kustomize-units/neuvector-federation-workload-config
+      targetNamespace: neuvector
+      postBuild:
+        substitute:
+          CONFIGMAP_NAME: 'neuvector-federation-{{ .Values.cluster.name }}'
+          CLUSTER_NAME: '{{ .Values.cluster.name }}'
+          MGMT_NEUVECTOR_FEDERATION_MASTER_HOSTNAME: '{{ .Values._internal.mgmt_neuvector_federation_master }}'
+          NEUVECTOR_FEDERATION_MANAGED_HOSTNAME: '{{ .Values.external_hostnames.neuvector_federation_managed }}'
+          NEUVECTOR_JOIN_TOKEN: '{{ .Values._internal.neuvector_join_token }}'
+
+
   neuvector:
     info:
       description: installs Neuvector
@@ -8302,6 +8328,7 @@ external_hostnames:
   keycloak: 'keycloak.{{ .Values.cluster_domain }}'
   flux: 'flux.{{ .Values.cluster_domain }}'
   neuvector: 'neuvector.{{ .Values.cluster_domain }}'
+  neuvector_federation_master: 'federation-master.neuvector.{{ .Values.cluster_domain }}'
   harbor: 'harbor.{{ .Values.cluster_domain }}'
   os_image_server: ''
   gitea: 'gitea.{{ .Values.cluster_domain }}'
@@ -8329,6 +8356,8 @@ external_certificates:
   keycloak: {}
   flux: {}
   neuvector: {}
+  neuvector_federation_master: {}
+  neuvector_federation_managed: {}
   harbor: {}
   os_image_server: {}
   gitea: {}
@@ -9031,6 +9060,8 @@ _internal:
   kubevirt_admin_user: 'admin'
   kubevirt_admin_password: '{{ include "internalPersistentRandomPasswd" (tuple . "kubevirt_admin_password") }}'
 
+  neuvector_join_token: '{{ include "internalPersistentRandomPasswd" (tuple . "neuvector_join_token") }}'
+
   default_password: '{{ include "internalPersistentRandomPasswd" (tuple . "default_password") }}'
 
   default_longhorn_storage_class: >-
@@ -9429,10 +9460,13 @@ mgmt_cluster_state_values:
                                 "rancher"
                                 "thanos_receive"
                                 "harbor"
+                                "neuvector_federation_master"
                            ) -}}
            {{- $hostname }}{{print " "}}
          {{- end -}}
        {{- end -}}
+    mgmt_neuvector_federation_master: '{{ .Values.external_hostnames.neuvector_federation_master }}'
+    neuvector_join_token: '{{ .Values._internal.neuvector_join_token }}'
 
 workload_clusters:
   teams: {}
