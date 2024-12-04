@@ -311,6 +311,33 @@ units:
                                     key: CONFIG_OVERWRITE_JSON
                                     name: "harbor-oidc"
 
+  neuvector-federation-tls:
+    info:
+      description: configures Neuvector federation TLS
+      details: enable TLS protocol when using Neuvector federation
+      internal: true
+    unit_templates:
+    - base-deps
+    enabled_conditions:
+    - '{{ tuple . "neuvector" | include "unit-enabled" }}'
+    repo: sylva-core
+    kustomization_substitute_secrets:
+      KEY: '{{ .Values.external_certificates.neuvector_federation_master.key | default "" | b64enc }}'
+    depends_on:
+      sylva-ca: true
+      namespace-defs: true
+    kustomization_spec:
+      path: ./kustomize-units/tls-components/sylva-ca
+      postBuild:
+        substitute:
+          SERVICE: neuvector-federation
+          SERVICE_DNS: '{{ .Values.external_hostnames.neuvector_federation_master }}'
+          CERTIFICATE_NAMESPACE: neuvector
+          CERT: '{{ .Values.external_certificates.neuvector_federation_master.cert | default "" | b64enc }}'
+          CACERT: '{{ .Values.external_certificates.cacert | default "" | b64enc }}'
+      _components:
+        - '{{ hasKey .Values.external_certificates.neuvector_federation_master "cert" | ternary "../tls-secret" "../tls-certificate" }}'
+
   neuvector:
     helmrelease_spec:
       values:
@@ -322,20 +349,20 @@ units:
               type: ClusterIP
               ingress:
                 enabled: true
-                host: '{{ .Values.external_hostnames.neuvector_master_hostname }}'
+                host: '{{ .Values.external_hostnames.neuvector_federation_master }}'
                 ingressClassName: nginx
                 path: /
                 annotations:
                   nginx.ingress.kubernetes.io/backend-protocol: https
                 tls: true
-                secretName: neuvector-mastersvc-tls
+                secretName: neuvector-federation-tls
           configmap:
             enabled: true
             data:
               fedinitcfg.yaml: |
                 cluster_name: {{ .Values.cluster.name }}
                 primary_rest_info:
-                  server: {{ .Values.external_hostnames.neuvector_master_hostname }}
+                  server: {{ .Values.external_hostnames.neuvector_federation_master }}
                   port: 443
                 join_token: {{ .Values._internal.neuvector_join_token }}
 

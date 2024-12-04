@@ -8524,7 +8524,7 @@
             }
           ]
         },
-        "neuvector_master_hostname": {
+        "neuvector_federation_master": {
           "anyOf": [
             {
               "type": "string",
@@ -8535,7 +8535,7 @@
             }
           ]
         },
-        "neuvector_managed_hostname": {
+        "neuvector_federation_managed": {
           "anyOf": [
             {
               "type": "string",
@@ -8825,6 +8825,12 @@
           "$ref": "#/$defs/cert-and-key"
         },
         "neuvector": {
+          "$ref": "#/$defs/cert-and-key"
+        },
+        "neuvector_federation_master": {
+          "$ref": "#/$defs/cert-and-key"
+        },
+        "neuvector_federation_managed": {
           "$ref": "#/$defs/cert-and-key"
         },
         "harbor": {
