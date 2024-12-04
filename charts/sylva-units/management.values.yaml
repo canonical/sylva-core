@@ -135,7 +135,7 @@ units:
   kubevirt-test-vms:
     enabled: false
 
-  prometheus-flux:
+  prometheus-custom-metrics:
     depends_on:
       monitoring-crd: true
 

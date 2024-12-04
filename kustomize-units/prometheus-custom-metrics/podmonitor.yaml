@@ -2,11 +2,8 @@ apiVersion: monitoring.coreos.com/v1
 kind: PodMonitor
 metadata:
   name: flux-system
-  namespace: sylva-system
+  namespace: flux-system
 spec:
-  namespaceSelector:
-    matchNames:
-      - flux-system
   selector:
     matchExpressions:
       - key: app
@@ -20,7 +17,3 @@ spec:
           - image-reflector-controller
   podMetricsEndpoints:
     - port: http-prom
-      relabelings:
-        - sourceLabels: [__meta_kubernetes_pod_phase]
-          action: keep
-          regex: Running

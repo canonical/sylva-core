@@ -4026,10 +4026,10 @@ units:
                             seccompProfile:
                               type: RuntimeDefault
 
-  prometheus-flux:
+  prometheus-custom-metrics:
     info:
-      description: Prometheus configuration for Flux controllers & resources
-      details: Adding podmonitors for flux controllers and custom labels to the flux resource metrics by configuring kube-state-metrics
+      description: Prometheus configuration for custom resource metrics
+      details: Adding podmonitors for flux controllers and create custom metrics for various resources by configuring kube-state-metrics
       internal: true
     unit_templates:
     - base-deps
@@ -4037,7 +4037,7 @@ units:
     enabled_conditions:
     - '{{ tuple . "monitoring" | include "unit-enabled" }}'
     kustomization_spec:
-      path: ./kustomize-units/prometheus-flux
+      path: ./kustomize-units/prometheus-custom-metrics
       wait: false
       force: true
 
@@ -4197,8 +4197,8 @@ units:
             minAvailable: '{{ .Values._internal.ha_cluster.is_ha | ternary 1 0 }}'
       valuesFrom:
         - kind: ConfigMap
-          name: flux-custom-resource-state-config # this configmap is a byproduct of the prometheus-flux unit
-          optional: '{{ not (tuple . "prometheus-flux" | include "unit-enabled") | include "as-bool" }}'
+          name: custom-resource-state-config # this configmap is a byproduct of the prometheus-custom-metrics unit
+          optional: '{{ not (tuple . "prometheus-custom-metrics" | include "unit-enabled") | include "as-bool" }}'
         - kind: ConfigMap
           name: prometheus-config-values # this configmap is a byproduct of the prometheus-resources unit
           optional: '{{ not (tuple . "prometheus-resources" | include "unit-enabled") | include "as-bool" }}'
