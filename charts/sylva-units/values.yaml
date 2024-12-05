@@ -3072,11 +3072,11 @@ units:
     helm_repo_url: https://rke2-charts.rancher.io
     helm_chart_versions: &calico-chart-versions
       v3.27.300: >-
-        {{ or       (include "k8s-version-match" (tuple . ">=1.27.13,<1.28.0"))
-                    (include "k8s-version-match" (tuple . ">=1.28.9,<1.29.0"))
+        {{ or       (include "k8s-version-match" (tuple ">=1.27.13,<1.28.0" .Values._internal.k8s_version))
+                    (include "k8s-version-match" (tuple ">=1.28.9,<1.29.0" .Values._internal.k8s_version))
         }}
       v3.28.100: >-
-        {{ include "k8s-version-match" (tuple . ">=1.29.0") }}
+        {{ include "k8s-version-match" (tuple ">=1.29.0" .Values._internal.k8s_version) }}
 
     helmrelease_spec:
       releaseName: rke2-calico-crd
@@ -3682,8 +3682,9 @@ units:
       '{{ .Values._internal.calico_readiness_unit }}': '{{ tuple . "calico" | include "unit-enabled" }}'
     helm_repo_url: https://rke2-charts.rancher.io
     helm_chart_versions:
-      4.10.102: '{{ include "k8s-version-match" (tuple . ">=1.27.16,<1.29.0") }}'  # also for 1.28.12
-      4.10.401: '{{ include "k8s-version-match" (tuple . ">=1.29.0") }}'
+      4.10.102: '{{ include "k8s-version-match" (tuple ">=1.27.16,<1.29.0" .Values._internal.k8s_version) }}'  # also for 1.28.12
+      4.10.401: '{{ include "k8s-version-match" (tuple ">=1.29.0,<=1.29.9" .Values._internal.k8s_version) }}'
+      4.10.402: '{{ include "k8s-version-match" (tuple ">=1.30.0" .Values._internal.k8s_version) }}'
     helmrelease_spec:
       releaseName: rke2-ingress-nginx
       targetNamespace: kube-system
@@ -5181,9 +5182,10 @@ units:
       - '{{ eq .Values.cluster.capi_providers.infra_provider "capv" }}'
     helm_repo_url: https://kubernetes.github.io/cloud-provider-vsphere
     helm_chart_versions:
-      1.27.0: '{{ include "k8s-version-match" (tuple . ">=1.27.0,<1.28.0") }}'
-      1.28.0: '{{ include "k8s-version-match" (tuple . ">=1.28.0,<1.29.0") }}'
-      1.29.0: '{{ include "k8s-version-match" (tuple . ">=1.29.0") }}'
+      1.27.0: '{{ include "k8s-version-match" (tuple ">=1.27.0,<1.28.0" .Values._internal.k8s_version) }}'
+      1.28.0: '{{ include "k8s-version-match" (tuple ">=1.28.0,<1.29.0" .Values._internal.k8s_version) }}'
+      1.29.0: '{{ include "k8s-version-match" (tuple ">=1.29.0,<1.30.0" .Values._internal.k8s_version) }}'
+      v1.30.0: '{{ include "k8s-version-match" (tuple ">=1.30.0" .Values._internal.k8s_version) }}'
     helmrelease_spec:
       chart:
         spec:
@@ -5199,7 +5201,7 @@ units:
           datacenter: '{{ .Values.cluster.capv.dataCenter }}'
           thumbprint: '{{ .Values.cluster.capv.tlsThumbprint }}'
         daemonset:
-          image: '{{ include "k8s-version-match" (tuple . ">=1.27.0,<1.28.0") | eq "true" | ternary "registry.gitlab.com/sylva-projects/sylva-elements/container-images/sandbox-registry/cloud-provider-vsphere-cpi-release-manager" "registry.k8s.io/cloud-pv-vsphere/cloud-provider-vsphere" }}'
+          image: '{{ include "k8s-version-match" (tuple ">=1.27.0,<1.28.0" .Values._internal.k8s_version) | eq "true" | ternary "registry.gitlab.com/sylva-projects/sylva-elements/container-images/sandbox-registry/cloud-provider-vsphere-cpi-release-manager" "registry.k8s.io/cloud-pv-vsphere/cloud-provider-vsphere" }}'
       _postRenderers:
         - kustomize:
             patches:
@@ -7328,22 +7330,27 @@ os_images_oci_registries:
     tag: '{{ .Values.sylva_diskimagebuilder_version }}'
     cosign_publickey: '{{ .Values.security.os_images.cosign_public_key }}'
 
-k8s_version_short: "1.29"
+k8s_version_short: "1.30"
 
 # Renovate Bot needs additional information to detect sylva diskimage-builder version
 # renovate: depName=sylva-projects/sylva-elements/diskimage-builder
-sylva_diskimagebuilder_version: 0.3.3
+sylva_diskimagebuilder_version: 0.3.4
 
 sylva_diskimagebuilder_images:
-  ubuntu-jammy-hardened-rke2-1-29-9:
+  ubuntu-jammy-hardened-rke2-1-30-5:
     default_enabled: true
+  ubuntu-jammy-hardened-rke2-1-29-9: {}
+  ubuntu-jammy-hardened-rke2-1-28-14: {}
+  ubuntu-jammy-plain-rke2-1-30-5: {}
   ubuntu-jammy-plain-rke2-1-29-9: {}
   ubuntu-jammy-plain-rke2-1-28-14: {}
   ubuntu-jammy-plain-rke2-1-27-16: {}
   ubuntu-jammy-hardened-rke2-1-27-16: {}
+  opensuse-15-6-plain-rke2-1-30-5: {}
   opensuse-15-6-plain-rke2-1-29-9: {}
   opensuse-15-6-plain-rke2-1-28-14: {}
   opensuse-15-6-plain-rke2-1-27-16: {}
+  opensuse-15-6-hardened-rke2-1-30-5: {}
   opensuse-15-6-hardened-rke2-1-29-9: {}
   opensuse-15-6-hardened-rke2-1-28-14: {}
   opensuse-15-6-hardened-rke2-1-27-16: {}
@@ -7487,6 +7494,7 @@ _internal:
           | include "preserve-type"
       }}
 
+  k8s_version: '{{ include "interpret-as-string" (tuple . .Values.cluster.k8s_version) }}'
   mgmt_cluster: false
 
   # 'cluster_machines_ready_unit_deps' contains all the dependencies of the 'cluster' unit, direct and indirect,
@@ -7644,6 +7652,7 @@ _internal:
     1.27: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" | ternary "v1.27.16+rke2r2" "v1.27.16" }}'
     1.28: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" | ternary "v1.28.14+rke2r1" "v1.28.14" }}'
     1.29: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" | ternary "v1.29.9+rke2r1" "v1.29.9" }}'
+    "1.30": '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" | ternary "v1.30.5+rke2r1" "v1.30.5" }}'
 
   # total number of nodes in this cluster
   node_count:
