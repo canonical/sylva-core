@@ -443,7 +443,7 @@ units:
       healthChecks:
         # this resource is created by capi-rancher-import based on the existence of
         # the Cluster.provisioning.cattle.io produced by the kustomization
-        - apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+        - apiVersion: kustomize.toolkit.fluxcd.io/v1
           kind: Kustomization
           name: "cattle-agent-{{ .Values.cluster.name }}"
           namespace: '{{ .Release.Namespace }}'

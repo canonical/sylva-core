@@ -27,7 +27,7 @@
 
   {{- if ($repo_def.kind | eq "GitRepository") }}
 apiVersion: source.toolkit.fluxcd.io/v1
-  {{- else }}
+  {{- else }}{{/* OCIRepository */}}
 apiVersion: source.toolkit.fluxcd.io/v1beta2
   {{- end }}
 kind: {{ $repo_def.kind }}
