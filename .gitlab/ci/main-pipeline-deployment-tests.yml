@@ -121,19 +121,19 @@ variables:
     MGMT_WATCH_TIMEOUT_MIN: "45"
     APPLY_WATCH_TIMEOUT_MIN: "115"
     APPLY_WC_WATCH_TIMEOUT_MIN: "115"
-    MGMT_INITIAL_ADDITIONAL_VALUES: "serve-k8s-1.28-image.yml"
-    WC_INITIAL_ADDITIONAL_VALUES: "k8s-1.28.yml"
-    WC_UPDATE_ADDITIONAL_VALUES: "k8s-1.29.yml"
+    MGMT_INITIAL_ADDITIONAL_VALUES: "serve-k8s-1.29-image.yml"
+    WC_INITIAL_ADDITIONAL_VALUES: "k8s-1.29.yml"
+    WC_UPDATE_ADDITIONAL_VALUES: "k8s-1.30.yml"
 
 .scenario_nightly:  # mix mgmt_rolling-update & k8s-upgrade
   variables:
     MGMT_WATCH_TIMEOUT_MIN: "45"
     APPLY_WATCH_TIMEOUT_MIN: "115"
     APPLY_WC_WATCH_TIMEOUT_MIN: "115"
-    MGMT_INITIAL_ADDITIONAL_VALUES: "serve-k8s-1.28-image.yml"
+    MGMT_INITIAL_ADDITIONAL_VALUES: "serve-k8s-1.29-image.yml"
     MGMT_UPDATE_ADDITIONAL_VALUES: "dummy-rolling-update-trigger.yml"
-    WC_INITIAL_ADDITIONAL_VALUES: "k8s-1.28.yml"
-    WC_UPDATE_ADDITIONAL_VALUES: "k8s-1.29.yml"
+    WC_INITIAL_ADDITIONAL_VALUES: "k8s-1.29.yml"
+    WC_UPDATE_ADDITIONAL_VALUES: "k8s-1.30.yml"
 
 .scenario_sylva-upgrade:
   variables:
