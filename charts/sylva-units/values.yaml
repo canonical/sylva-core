@@ -3022,22 +3022,6 @@ units:
           chart: rke2-calico-crd
           version: "" # will be defined by helm_chart_versions
 
-  tigera-clusterrole:
-    info:
-      description: is here to allow for upgrading Calico chart when upgrading cluster
-      details: |
-        For v1.25.x to v1.26.x, see https://gitlab.com/sylva-projects/sylva-core/-/issues/664
-      internal: true
-    unit_templates:
-    - base-deps
-    enabled_conditions:
-    - '{{ tuple . "calico" | include "unit-enabled" }}'
-    repo: sylva-core
-    kustomization_spec:
-      path: ./kustomize-units/tigera-clusterrole
-      wait: true
-      force: true
-
   calico:
     info:
       description: install Calico CNI
