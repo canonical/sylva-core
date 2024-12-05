@@ -240,14 +240,6 @@ units:
     depends_on:
       calico-ready: false
 
-  tigera-clusterrole:
-    enabled: true
-    unit_templates:
-    - base-deps
-    # some dependencies of base-deps are inherited, but don't apply here:
-    depends_on:
-      calico-ready: false
-
   calico:
     enabled: true
     unit_templates:

@@ -184,14 +184,6 @@ units:
     labels:
       suspend-on-pivot: "yes"  # this unit must be suspended before pivot
 
-  tigera-clusterrole:
-    depends_on:
-      cluster-reachable: true
-    kustomization_spec:
-      kubeConfig:
-        secretRef:
-          name: '{{ .Values.cluster.name }}-kubeconfig'
-
   management-namespace-defs:
     info:
       description: creates sylva-system namespace in management cluster
@@ -525,7 +517,6 @@ units_override_enabled:
   - calico-crd
   - calico
   - calico-ready
-  - tigera-clusterrole
   - management-cluster-flux
   - management-cluster-configs
   - management-sylva-units
