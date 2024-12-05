@@ -314,7 +314,7 @@ function define_source() {
 function suspend_sylva_units {
   local ns=${1:-sylva-system}
 
-  if [[ $(kubectl -n $ns get helmreleases.helm.toolkit.fluxcd.io sylva-units 2>&1 > /dev/null) =~ '"sylva-units" not found$' ]]; then
+  if [[ $(kubectl -n $ns get helmreleases.helm.toolkit.fluxcd.io sylva-units 2>&1 || true) == *"not found" ]]; then
     echo "no sylva-units HelmRelease found, nothing to suspend"
   else
     echo -e "\U000023F8 Suspend sylva-units HelmRelease/HelmChart"
