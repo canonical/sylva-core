@@ -3016,9 +3016,7 @@ units:
     helm_repo_url: https://rke2-charts.rancher.io
     helm_chart_versions: &calico-chart-versions
       v3.27.300: >-
-        {{ or       (include "k8s-version-match" (tuple ">=1.27.13,<1.28.0" .Values._internal.k8s_version))
-                    (include "k8s-version-match" (tuple ">=1.28.9,<1.29.0" .Values._internal.k8s_version))
-        }}
+        {{ include "k8s-version-match" (tuple ">=1.28.9,<1.29.0" .Values._internal.k8s_version) }}
       v3.28.100: >-
         {{ include "k8s-version-match" (tuple ">=1.29.0" .Values._internal.k8s_version) }}
 
@@ -3610,7 +3608,7 @@ units:
       '{{ .Values._internal.calico_readiness_unit }}': '{{ tuple . "calico" | include "unit-enabled" }}'
     helm_repo_url: https://rke2-charts.rancher.io
     helm_chart_versions:
-      4.10.102: '{{ include "k8s-version-match" (tuple ">=1.27.16,<1.29.0" .Values._internal.k8s_version) }}'  # also for 1.28.12
+      4.10.102: '{{ include "k8s-version-match" (tuple ">=1.28.0,<1.29.0" .Values._internal.k8s_version) }}'  # also for 1.28.12
       4.10.401: '{{ include "k8s-version-match" (tuple ">=1.29.0,<=1.29.9" .Values._internal.k8s_version) }}'
       4.10.402: '{{ include "k8s-version-match" (tuple ">=1.30.0" .Values._internal.k8s_version) }}'
     helmrelease_spec:
@@ -5110,7 +5108,6 @@ units:
       - '{{ eq .Values.cluster.capi_providers.infra_provider "capv" }}'
     helm_repo_url: https://kubernetes.github.io/cloud-provider-vsphere
     helm_chart_versions:
-      1.27.0: '{{ include "k8s-version-match" (tuple ">=1.27.0,<1.28.0" .Values._internal.k8s_version) }}'
       1.28.0: '{{ include "k8s-version-match" (tuple ">=1.28.0,<1.29.0" .Values._internal.k8s_version) }}'
       1.29.0: '{{ include "k8s-version-match" (tuple ">=1.29.0,<1.30.0" .Values._internal.k8s_version) }}'
       v1.30.0: '{{ include "k8s-version-match" (tuple ">=1.30.0" .Values._internal.k8s_version) }}'
@@ -5129,7 +5126,7 @@ units:
           datacenter: '{{ .Values.cluster.capv.dataCenter }}'
           thumbprint: '{{ .Values.cluster.capv.tlsThumbprint }}'
         daemonset:
-          image: '{{ include "k8s-version-match" (tuple ">=1.27.0,<1.28.0" .Values._internal.k8s_version) | eq "true" | ternary "registry.gitlab.com/sylva-projects/sylva-elements/container-images/sandbox-registry/cloud-provider-vsphere-cpi-release-manager" "registry.k8s.io/cloud-pv-vsphere/cloud-provider-vsphere" }}'
+          image: registry.k8s.io/cloud-pv-vsphere/cloud-provider-vsphere
       _postRenderers:
         - kustomize:
             patches:
@@ -7297,16 +7294,12 @@ sylva_diskimagebuilder_images:
   ubuntu-jammy-plain-rke2-1-30-5: {}
   ubuntu-jammy-plain-rke2-1-29-9: {}
   ubuntu-jammy-plain-rke2-1-28-14: {}
-  ubuntu-jammy-plain-rke2-1-27-16: {}
-  ubuntu-jammy-hardened-rke2-1-27-16: {}
   opensuse-15-6-plain-rke2-1-30-5: {}
   opensuse-15-6-plain-rke2-1-29-9: {}
   opensuse-15-6-plain-rke2-1-28-14: {}
-  opensuse-15-6-plain-rke2-1-27-16: {}
   opensuse-15-6-hardened-rke2-1-30-5: {}
   opensuse-15-6-hardened-rke2-1-29-9: {}
   opensuse-15-6-hardened-rke2-1-28-14: {}
-  opensuse-15-6-hardened-rke2-1-27-16: {}
 
 # this dict can be enriched at deployment time to feed additional information
 # into the sylva-units-status ConfigMap
@@ -7589,7 +7582,6 @@ _internal:
   bootstrap_node_ip: '{{ lookup "v1" "ConfigMap" "sylva-system" "cluster-public-endpoint" | dig "data" "address" "not_found" | default "not_found" }}'
 
   k8s_version_map:
-    1.27: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" | ternary "v1.27.16+rke2r2" "v1.27.16" }}'
     1.28: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" | ternary "v1.28.14+rke2r1" "v1.28.14" }}'
     1.29: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" | ternary "v1.29.9+rke2r1" "v1.29.9" }}'
     "1.30": '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" | ternary "v1.30.5+rke2r1" "v1.30.5" }}'
