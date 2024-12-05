@@ -1435,6 +1435,7 @@ units:
     - base-deps
     depends_on:
       neuvector-init: true
+      kyverno-policies-ready: true
       ingress-nginx: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpk" }}'
     annotations:
       sylvactl/readyMessage: "Neuvector UI can be reached at https://{{ .Values.external_hostnames.neuvector }} ({{ .Values.external_hostnames.neuvector }} must resolve to {{ .Values.display_external_ip }})"
@@ -2051,6 +2052,7 @@ units:
         - '{{ tuple "components/thanos" (tuple . "thanos" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/check-images" .Values.security.upstream_images_signature.verify | include "set-only-if" }}'
         - '{{ tuple "components/mutate-job-security-context" (tuple . "rancher" | include "unit-enabled") | include "set-only-if" }}'
+        - '{{ tuple "components/neuvector-policies" (tuple . "neuvector" | include "unit-enabled") | include "set-only-if" }}'
 
   kyverno-policies-ready:
     info:
