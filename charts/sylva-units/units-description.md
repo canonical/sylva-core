@@ -175,7 +175,6 @@
 | **test-nfs-ganesha** | Perform testing for RWX enabled PVs created from NFS Ganesha | Kustomization |
 | **thanos-credentials-secret** | create a secret containing tenant's thanos credentials | Kustomization |
 | **thanos-init** | sets up thanos certificate<br/><br/>it generates a multiple CN certificate for all Thanos components | Kustomization |
-| **tigera-clusterrole** | is here to allow for upgrading Calico chart when upgrading cluster<br/><br/>For v1.25.x to v1.26.x, see https://gitlab.com/sylva-projects/sylva-core/-/issues/664 | Kustomization |
 | **two-replicas-storageclass** | Create a longhorn storage class with a two replicas | Kustomization |
 | **vault-oidc** | configures Vault to be used with OIDC | Kustomization |
 | **vault-secrets** | generates random secrets in vault, configure password policy, authentication backends, etc... | Kustomization |
