@@ -1898,7 +1898,7 @@ units:
       chart:
         spec:
           chart: kyverno
-          version: 3.2.7
+          version: 3.3.3
       targetNamespace: kyverno
       install:
         createNamespace: true
@@ -1915,6 +1915,12 @@ units:
             enabled: true
         admissionController:
           replicas: '{{ .Values._internal.default_replicas | include "preserve-type" }}'
+          rbac:
+            coreClusterRole:
+              extraResources:
+              - apiGroups: ["*"]
+                resources: ["*"]
+                verbs: ["get", "list", "watch"]
           resources:
             limits:
               memory: 1024Mi
@@ -1938,6 +1944,12 @@ units:
             enabled: '{{ .Values._internal.monitoring.enabled | include "preserve-type" }}'
         reportsController:
           replicas: '{{ .Values._internal.default_replicas | include "preserve-type" }}'
+          rbac:
+            coreClusterRole:
+              extraResources:
+              - apiGroups: ["*"]
+                resources: ["*"]
+                verbs: ["get", "list", "watch"]
           serviceMonitor:
             enabled: '{{ .Values._internal.monitoring.enabled | include "preserve-type" }}'
         backgroundController:
@@ -1946,6 +1958,34 @@ units:
             limits:
               memory: 1024Mi
           rbac:
+            coreClusterRole:
+              extraResources:
+              - apiGroups:
+                  - '*'
+                resources:
+                  - '*'
+                verbs: ["get", "list", "watch"]
+              - apiGroups:
+                  - networking.k8s.io
+                resources:
+                  - ingresses
+                  - ingressclasses
+                  - networkpolicies
+                verbs: ["create", "update", "patch", "delete"]
+              - apiGroups:
+                  - rbac.authorization.k8s.io
+                resources:
+                  - rolebindings
+                  - roles
+                verbs: ["create", "update", "patch", "delete"]
+              - apiGroups:
+                  - ''
+                resources:
+                  - configmaps
+                  - secrets
+                  - resourcequotas
+                  - limitranges
+                verbs: ["create", "update", "patch", "delete"]
             clusterRole:
               extraResources:
               - apiGroups: ["batch"]
@@ -2007,22 +2047,6 @@ units:
       _postRenderers:
         - kustomize:
             patches:
-              - patch: |-
-                  kind: CronJob
-                  apiVersion: batch/v1
-                  metadata:
-                    name: kyverno-cleanup-cluster-admission-reports
-                    namespace: kyverno
-                  spec:
-                    startingDeadlineSeconds: 180
-              - patch: |-
-                  kind: CronJob
-                  apiVersion: batch/v1
-                  metadata:
-                    name: kyverno-cleanup-admission-reports
-                    namespace: kyverno
-                  spec:
-                    startingDeadlineSeconds: 180
               - '{{ .Values._internal.pdb_allow_unhealthy_pod_eviction | include "preserve-type" }}'
 
   kyverno-policies:
