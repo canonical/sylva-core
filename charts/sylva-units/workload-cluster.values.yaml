@@ -406,6 +406,22 @@ units:
     - '{{ tuple . "kyverno" | include "unit-enabled"  }}'
     - '{{ .Values._internal.state.is_upgrade }}'
 
+  kyverno-policy-rancher-webhook-ha:
+    enabled: true
+    info:
+      description: Kyverno policy for rancher-webhook HA
+      maturity: beta
+      internal: true
+    enabled_conditions:
+      - '{{ tuple . "cluster-import" | include "unit-enabled" }}'
+    depends_on:
+      kyverno: true
+    unit_templates:
+      - base-deps
+    repo: sylva-core
+    kustomization_spec:
+      path: ./kustomize-units/rancher-init/components/webhook-ha
+
   cluster-import:
     enabled: false  # overriden depending on whether Rancher is enabled or not (eg. via shared-workload-clusters-settings)
     info:
