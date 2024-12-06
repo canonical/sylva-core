@@ -1,6 +1,7 @@
 ---
 cluster:
   capi_providers:
+    infra_provider: capm3
     bootstrap_provider: cabpk
 
   kubeadm:
