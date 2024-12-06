@@ -1015,9 +1015,10 @@ units:
               #size: 32Gi
               accessMode: '{{ .Values._internal.harbor_storage_access_mode }}'
             jobservice:
-              storageClass: '{{ .Values._internal.default_storage_class }}'
-              #size: 8Gi
-              accessMode: '{{ .Values._internal.harbor_storage_access_mode }}'
+              jobLog:
+                storageClass: '{{ .Values._internal.default_storage_class }}'
+                #size: 8Gi
+                accessMode: '{{ .Values._internal.harbor_storage_access_mode }}'
             redis:
               storageClass: '{{ .Values._internal.default_storage_class }}'
               #size: 8Gi
