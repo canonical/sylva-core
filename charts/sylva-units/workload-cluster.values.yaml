@@ -338,7 +338,7 @@ units:
     unit_templates:
     - kustomization-deployed-on-mgmt-cluster
     kustomization_spec:
-      healthChecks: null # Remove healthChecks targeting sylva-system namespace
+      healthChecks: [] # Remove healthChecks targeting sylva-system namespace
 
   kubevirt:
     # can be enabled at runtime if desired
@@ -486,7 +486,7 @@ units:
     unit_templates:
     - kustomization-deployed-on-mgmt-cluster
     kustomization_spec:
-      healthChecks: null # Remove healthChecks targeting sylva-system namespace
+      healthChecks: [] # Remove healthChecks targeting sylva-system namespace
 
   sylva-prometheus-rules:
     enabled: true
