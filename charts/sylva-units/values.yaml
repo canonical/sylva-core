@@ -2556,6 +2556,11 @@ units:
               #!/bin/bash
               set -e
 
+              # Wait for the os-image-server-tls secret to exist in the metal3-system namespace
+              until kubectl get secret os-image-server-tls -n metal3-system &> /dev/null; do
+                echo "Waiting for os-image-server-tls secret to be created..."
+                sleep 5
+              done
               # Fetch the ca.crt from the os-image-server-tls secret in os-images namespace
               CA_CERT=$(kubectl get secret os-image-server-tls -n metal3-system -o jsonpath='{.data.ca\.crt}')
 
