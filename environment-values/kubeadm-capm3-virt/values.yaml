@@ -1,4 +1,8 @@
 ---
+sylva_diskimagebuilder_images:
+  ubuntu-jammy-plain-kubeadm-1-30-5:
+    enabled: true
+
 cluster:
   capi_providers:
     bootstrap_provider: cabpk
