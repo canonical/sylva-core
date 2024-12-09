@@ -51,6 +51,8 @@ spec:
                 exit 1;
               fi;
               echo "Backup file found for restore. Starting restore process...";
+              echo "Checking recovery mode of db , if true then it is in recovery mode" ;
+              psql -h "${PGHOSTHA}" -U "${PGUSER}" -c "SELECT pg_is_in_recovery();" ;
               echo "Recreating db" ;
               psql -h "${PGHOSTHA}" -U "${PGUSER}" -c "DROP DATABASE ${PGDATABASE} WITH (FORCE);" ;
               psql -h "${PGHOSTHA}" -U "${PGUSER}" -c "CREATE DATABASE ${PGDATABASE};" ;
