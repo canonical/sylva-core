@@ -2363,18 +2363,6 @@ units:
       _components:
         - '{{ tuple "components/ha" (.Values._internal.ha_cluster.is_ha) | include "set-only-if" }}'
 
-  cluster-rke2-migrate-legacy-etcd-certs:
-    info:
-      description: handles the migration of etcd secrets for all RKE2 clusters deployed with Sylva (versions inferior or equal to 1.1.1)
-      internal: true
-    unit_templates:
-    - kube-job
-    enabled_conditions:
-    - '{{ .Values._internal.state.is_upgrade }}'
-    - '{{ tuple . "cabpr" | include "unit-enabled" }}'
-    kustomization_spec:
-      path: ./kustomize-units/cluster-rke2-migrate-legacy-etcd-certs
-
   cabpr:
     info:
       description: installs RKE2 CAPI bootstrap provider
@@ -2384,7 +2372,6 @@ units:
     - base-deps
     depends_on:
       cert-manager: true
-      cluster-rke2-migrate-legacy-etcd-certs: '{{ tuple . "cluster-rke2-migrate-legacy-etcd-certs" | include "unit-enabled" }}'
     kustomization_spec:
       path: ./kustomize-units/cabpr
       wait: true
@@ -2708,7 +2695,6 @@ units:
       cluster-bmh: '{{ .Values.cluster.capi_providers.infra_provider | eq "capm3" }}'
       cluster-node-deletion-timeout-fix: '{{ tuple . "cluster-node-deletion-timeout-fix" | include "unit-enabled" }}'
       cluster-node-provider-id-blacklist: '{{ tuple . "cluster-node-provider-id-blacklist" | include "unit-enabled" }}'
-      cluster-rke2-migrate-legacy-etcd-certs: '{{ tuple . "cluster-rke2-migrate-legacy-etcd-certs" | include "unit-enabled" }}'
       longhorn-instance-manager-cleanup: '{{ tuple . "longhorn-instance-manager-cleanup" | include "unit-enabled" }}'
       cluster-prevent-rke2-helmcharts-calico-metallb: '{{ tuple . "cluster-prevent-rke2-helmcharts-calico-metallb" | include "unit-enabled" }}'
       rke2-helmchart-prevent-uninstall: '{{ and (tuple . "rke2-helmchart-prevent-uninstall" | include "unit-enabled") .Values._internal.state.is_upgrade }}'
