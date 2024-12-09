@@ -6975,7 +6975,7 @@ cluster:
 
   capo:
     # flavor_name: m1.large # Openstack flavor name
-    # image_key: # key of an image in os_images or sylva_diskimage_builder
+    # image_key: # key of an image in os_images or sylva_diskimagebuilder_images
     # image_name: # (deprecated, please use image_key instead) - OpenStack image name (one of image_key and image_name must be set, but not both)
     # ssh_key_name: # OpenStack VM SSH key
     # network_id: # OpenStack network used for nodes and VIP port
