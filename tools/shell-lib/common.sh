@@ -236,30 +236,6 @@ function exit_trap() {
 }
 trap exit_trap EXIT
 
-# we'll be able to clean this up from 'main' after 1.2.x (https://gitlab.com/sylva-projects/sylva-core/-/issues/1880)
-function fix_sylva_units_helm_releases_root_dep {
-  # When upgrading from a Sylva version < 1.2.1, the way we ensure that "old" HelmReleases (the ones
-  # not yet updates) do not reconcile before their parent Kustomization is ready changes:
-  # - before: old HelmReleases can't merge because it has a valuesFrom on a root-dependency-<n-1>-cm configmap
-  #           which is removed when the update starts
-  # - after: old HelmReleases can't merge because they have a dependsOn on a root-dependency-<n-1> HelmRelease
-  #          which is removed when the update starts
-  #
-  # This function patches the old HelmReleases to ensure that their reconciliations
-  # is blocked by a missing dependency. This is the only way to ensure that sylvactl
-  # will reliably identify that they are not ready to be looked at, and in particular
-  # that it will not exit on an exit-condition on them.
-
-  local namespace=$1
-
-  echo "  if needed, patch HelmReleases not yet having the root dependency dependsOn..."
-  kubectl -n $namespace get HelmRelease -l app.kubernetes.io/name=sylva-units -o yaml \
-    | yq '.items[] | select(.spec.dependsOn == null or .spec.dependsOn == []) | select(.metadata.labels."sylva-units.unit" != "root-dependency") | .metadata.name' \
-    | xargs --no-run-if-empty \
-      kubectl -n $namespace patch HelmReleases --type=merge --patch='{"spec":{"dependsOn":[{"name":"transition-root-dependency"}]}}'
-}
-
-
 function reconcile_sylva_units() {
   local namespace=${1:-sylva-system}
   local _options=${2:-}
@@ -298,10 +274,6 @@ function reconcile_sylva_units() {
   if ! [[ $_options == *"skip-root-dependency-wait"* ]]; then
     echo "waiting for root-dependency-$helm_release_version to become ready..."
     sylvactl watch -n $namespace Kustomization/$namespace/root-dependency-$helm_release_version --timeout ${SYLVA_UNITS_RECONCILE_TIMEOUT:-180s} --skip-inventory --reconcile
-
-    # transition code when migrating from < 1.2.1
-    # we'll be able to clean this up from 'main' after 1.2.x (https://gitlab.com/sylva-projects/sylva-core/-/issues/1880)
-    fix_sylva_units_helm_releases_root_dep $namespace
   fi
 }
 
