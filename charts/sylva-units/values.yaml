@@ -3896,7 +3896,7 @@ units:
     enabled_conditions:
     - '{{ tuple . "ingress-nginx" | include "unit-enabled" }}'
     - '{{ .Values._internal.state.is_upgrade }}'
-    - '{{ .Values._internal.needs_loadbalancer_class }}'
+    - '{{ .Values._internal.state.needs_loadbalancer_class }}'
     depends_on:
       metallb-resources: '{{ tuple . "metallb" | include "unit-enabled" }}'
     kustomization_spec:
