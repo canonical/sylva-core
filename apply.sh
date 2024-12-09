@@ -32,6 +32,7 @@ ensure_flux
 
 echo_b "\U0001F4DC Update sylva-units Helm release and associated resources"
 
+suspend_sylva_units
 fix_sylva_units
 
 _kustomize ${ENV_PATH} | define_source | kubectl apply -f -
@@ -50,5 +51,16 @@ sylvactl watch \
   ${SYLVACTL_SAVE:+--save apply-management-cluster-timeline.html} \
   -n sylva-system \
   Kustomization/sylva-system/sylva-units-status
+
+echo_b "\U000023F3 Wait for test units to be ready"
+
+sylvactl watch \
+  --kubeconfig management-cluster-kubeconfig \
+  --reconcile \
+  --exit-condition="message=values don't meet the specifications of the schema" \
+  --timeout $(ci_remaining_minutes_and_at_most ${APPLY_WATCH_TIMEOUT_MIN:-20}) \
+  ${SYLVACTL_SAVE:+--save apply-management-cluster-timeline.html} \
+  -n sylva-system \
+  Kustomization/sylva-system/sylva-units-tests-status
 
 display_final_messages

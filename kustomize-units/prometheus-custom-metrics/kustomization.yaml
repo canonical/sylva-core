@@ -4,7 +4,7 @@ resources:
   - podmonitor.yaml
 
 configMapGenerator:
-- name: 'flux-custom-resource-state-config'
+- name: 'custom-resource-state-config'
   namespace: sylva-system
   options:
     disableNameSuffixHash: true

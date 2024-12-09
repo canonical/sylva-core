@@ -184,9 +184,6 @@ units:
   rke2-helmchart-prevent-uninstall:
     enabled: true
 
-  rke2-metrics-server-fix-old-pods:
-    enabled: true
-
   cluster-bmh:
     enabled: true
     unit_templates:
@@ -236,14 +233,6 @@ units:
       targetNamespace: null  # if we don't do this, there are errors because namespaces are a non-namespaced resource
 
   calico-crd:
-    enabled: true
-    unit_templates:
-    - base-deps
-    # some dependencies of base-deps are inherited, but don't apply here:
-    depends_on:
-      calico-ready: false
-
-  tigera-clusterrole:
     enabled: true
     unit_templates:
     - base-deps
@@ -307,12 +296,6 @@ units:
   metallb-resources:
     enabled: true
 
-  metallb-rke2-chart-cleanup:
-    enabled: true
-
-  kyverno-metallb-annotations:
-    enabled: true
-
   cluster-vip:
     enabled: true
 
@@ -355,7 +338,7 @@ units:
     unit_templates:
     - kustomization-deployed-on-mgmt-cluster
     kustomization_spec:
-      healthChecks: null # Remove healthChecks targeting sylva-system namespace
+      healthChecks: [] # Remove healthChecks targeting sylva-system namespace
 
   kubevirt:
     # can be enabled at runtime if desired
@@ -423,6 +406,22 @@ units:
     - '{{ tuple . "kyverno" | include "unit-enabled"  }}'
     - '{{ .Values._internal.state.is_upgrade }}'
 
+  kyverno-policy-rancher-webhook-ha:
+    enabled: true
+    info:
+      description: Kyverno policy for rancher-webhook HA
+      maturity: beta
+      internal: true
+    enabled_conditions:
+      - '{{ tuple . "cluster-import" | include "unit-enabled" }}'
+    depends_on:
+      kyverno: true
+    unit_templates:
+      - base-deps
+    repo: sylva-core
+    kustomization_spec:
+      path: ./kustomize-units/rancher-init/components/webhook-ha
+
   cluster-import:
     enabled: false  # overriden depending on whether Rancher is enabled or not (eg. via shared-workload-clusters-settings)
     info:
@@ -452,7 +451,7 @@ units:
       healthChecks:
         # this resource is created by capi-rancher-import based on the existence of
         # the Cluster.provisioning.cattle.io produced by the kustomization
-        - apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+        - apiVersion: kustomize.toolkit.fluxcd.io/v1
           kind: Kustomization
           name: "cattle-agent-{{ .Values.cluster.name }}"
           namespace: '{{ .Release.Namespace }}'
@@ -487,7 +486,7 @@ units:
     unit_templates:
     - kustomization-deployed-on-mgmt-cluster
     kustomization_spec:
-      healthChecks: null # Remove healthChecks targeting sylva-system namespace
+      healthChecks: [] # Remove healthChecks targeting sylva-system namespace
 
   sylva-prometheus-rules:
     enabled: true

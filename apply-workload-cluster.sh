@@ -35,9 +35,9 @@ if ! (kubectl -n sylva-system get cm sylva-units-status > /dev/null); then
    exit 1
 fi
 
-
 echo_b "\U0001F4DC Install a sylva-units Helm release for workload cluster $wc_namespace"
 
+suspend_sylva_units $wc_namespace
 fix_sylva_units $wc_namespace
 
 _kustomize ${ENV_PATH} | define_source | set_wc_namespace | kubectl apply -f -
@@ -55,5 +55,16 @@ sylvactl watch \
   ${SYLVACTL_SAVE:+--save apply-workload-cluster-timeline.html} \
   -n $wc_namespace \
   Kustomization/$wc_namespace/sylva-units-status
+
+echo_b "\U000023F3 Wait for test units to be ready"
+
+sylvactl watch \
+  --kubeconfig management-cluster-kubeconfig \
+  --reconcile \
+  --exit-condition="message=values don't meet the specifications of the schema" \
+  --timeout $(ci_remaining_minutes_and_at_most ${APPLY_WC_WATCH_TIMEOUT_MIN:-20}) \
+  ${SYLVACTL_SAVE:+--save apply-management-cluster-timeline.html} \
+  -n sylva-system \
+  Kustomization/sylva-system/sylva-units-tests-status
 
 display_final_messages
