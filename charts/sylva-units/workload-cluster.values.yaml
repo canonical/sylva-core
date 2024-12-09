@@ -183,6 +183,8 @@ units:
 
   rke2-helmchart-prevent-uninstall:
     enabled: true
+    kustomization_spec:
+      targetNamespace: null  # cancel targetNamespace set in unit_kustomization_spec_default
 
   cluster-bmh:
     enabled: true
