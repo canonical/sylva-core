@@ -15,6 +15,7 @@ metadata:
       it may prevent voluntary disruptions including Node drains which may impact routine maintenance
       tasks and disrupt operations. This policy checks incoming Deployments and StatefulSets which have
       a matching PodDisruptionBudget to ensure these two values do not match.
+    sylva.org/kyverno-exclude-kube-system: add-matchCondition
 spec:
   validationFailureAction: Enforce
   background: true

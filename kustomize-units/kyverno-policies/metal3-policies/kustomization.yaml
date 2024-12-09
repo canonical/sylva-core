@@ -5,3 +5,8 @@ resources:
   - patch-bond-policy.yaml
   - bmh-interface-mappings.yaml
   - bmh-disable-automatedcleaningmode.yaml
+
+components:
+  # the exclude-kube-system component will patch Policies and ClusterPolicies
+  # having the sylva.org/kyverno-exclude-kube-system=add-matchCondition annotation:
+  - ../exclude-kube-system

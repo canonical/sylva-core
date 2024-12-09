@@ -1972,7 +1972,36 @@ units:
           resourceFiltersExclude:
           - "[Node,*,*]"
           - "[Node/*,*,*]"
-          - "[*/*,kube-system,*]"  # necessary for rke2-helmchart-prevent-uninstall policy
+              # #####  how we exclude kube-system from Kyverno webhooks (but not completely)  ###########################
+              #                                                                                                         #
+              # It is a generalized safeguard to not let Kyverno define webhooks on kube-system namespace.              #
+              # This is the default Kyverno chart configuration (namespaceSelector under config.webhook).               #
+              #                                                                                                         #
+              # In Sylva we have policy for which we *need* some validation webhooks in kube-system:                    #
+              # * rke2-helmchart-prevent-uninstall                                                                      #
+              # * block-rke2-uninstall-jobs policies                                                                    #
+              # * prevent-rke2-helmcharts-calico-metallb                                                                :
+              #                                                                                                         .
+              # This comment groups the different things done to allow excluding the kube-system namespace
+              # except for Jobs.
+              #
+              # Instead of using a 'namespaceSelector' we use global 'matchConditions'.
+              #  .
+              # /!\ There is however a side effect: policies that use spec.webhookConfiguration.matchConditions
+              #     will **not** exclude kube-system (this field overrides the global 'matchConditions').
+              #     So any policy using spec.webhookConfiguration.matchConditions needs to include a CEL expression
+              #     to exclude the kube-system namespace.
+              #
+          - "[*/*,kube-system,*]"  # cancels this entry which is present in chart default resourceFilters
+              #
+          webhooks: []       # cancels the namespaceSelector present in default values that excludes
+              #              # the kube-system namespace ...                                                            .
+          matchConditions:   # ... and readds it via matchConditions to exclude kube-system                             :
+              #              # but, as said above, this applies only to policies that do not set webhookConfiguration   #
+              #              # (CEL expression below tests ns exclusion except for non-namespaced resources)            #
+            - expression: 'has(request.namespace) ? (request.namespace != "kube-system") : true'                        #
+              name: ns-not-kube-system-global                                                                           #
+              # #########################################################################################################
         webhooksCleanup:
           enabled: false
         features:
@@ -2144,6 +2173,7 @@ units:
         - '{{ tuple "components/check-images" .Values.security.upstream_images_signature.verify | include "set-only-if" }}'
         - '{{ tuple "components/mutate-job-security-context" (tuple . "rancher" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/neuvector-policies" (tuple . "neuvector" | include "unit-enabled") | include "set-only-if" }}'
+        - ../exclude-kube-system  # needs to be last (needed for components above that use sylva.org/kyverno-exclude-kube-system annotation)
 
   kyverno-policies-ready:
     info:

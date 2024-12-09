@@ -8,6 +8,7 @@ metadata:
     kustomize.toolkit.fluxcd.io/force: Enabled
     policies.kyverno.io/title: Patch metal3 networkdata to add bond_miimon option
     policies.kyverno.io/minversion: 1.12.0
+    sylva.org/kyverno-exclude-kube-system: add-matchCondition
 spec:
   webhookConfiguration:
     matchConditions:
