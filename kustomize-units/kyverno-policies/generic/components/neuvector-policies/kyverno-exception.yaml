@@ -7,9 +7,9 @@ spec:
   exceptions:
   - policyName: disallow-latest-and-main-tag
     ruleNames:
-    - validate-image-tag
-    - autogen-validate-image-tag
-    - autogen-cronjob-validate-image-tag
+    - require-valid-image-tag
+    - autogen-require-valid-image-tag
+    - autogen-cronjob-require-valid-image-tag
   match:
     any:
     - resources:
