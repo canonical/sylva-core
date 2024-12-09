@@ -48,3 +48,5 @@ rules:
 
   new-line-at-end-of-file: enable
 
+  new-lines:
+    type: unix
