@@ -3731,6 +3731,8 @@ units:
           chart: k8s-gateway
           version: 2.4.0
       targetNamespace: k8s-gateway
+      driftDetection:
+        mode: enabled
       install:
         createNamespace: true
       upgrade:
@@ -8010,9 +8012,6 @@ _internal:
                 values:
                   - sso
           topologyKey: kubernetes.io/hostname
-
-  # loadBalancerClass to be used in order to limit the services served by metallb/kube-vip and allow multiple lb to run in parallel
-  loadBalancerClass: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" | ternary "sylva.org/metallb-class" "kube-vip.io/kube-vip-class" }}'
 
   # this is used in use-oci-artifacts.values.yaml
   # and in a few other places
