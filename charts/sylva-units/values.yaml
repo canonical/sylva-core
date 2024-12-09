@@ -5713,6 +5713,13 @@ units:
                 runAsNonRoot: true
                 seccompProfile:
                   type: RuntimeDefault
+              resources:
+                limits:
+                  cpu: 500m
+                  memory: 512Mi
+                requests:
+                  cpu: 100m
+                  memory: 128Mi
               affinity:
                 podAntiAffinity:
                   requiredDuringSchedulingIgnoredDuringExecution:
@@ -5880,6 +5887,13 @@ units:
                 runAsNonRoot: true
                 seccompProfile:
                   type: RuntimeDefault
+              resources:
+                limits:
+                  cpu: 500m
+                  memory: 512Mi
+                requests:
+                  cpu: 100m
+                  memory: 128Mi
               affinity:
                 podAntiAffinity:
                   requiredDuringSchedulingIgnoredDuringExecution:
