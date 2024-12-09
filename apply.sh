@@ -33,7 +33,6 @@ ensure_flux
 echo_b "\U0001F4DC Update sylva-units Helm release and associated resources"
 
 suspend_sylva_units
-fix_sylva_units
 
 _kustomize ${ENV_PATH} | define_source | kubectl apply -f -
 
