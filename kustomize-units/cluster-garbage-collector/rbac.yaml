@@ -9,13 +9,10 @@ rules:
       - get
       - list
     resources:
-      - machinedeployments
-      - machinesets
+      - '*'
   - apiGroups:
       - infrastructure.cluster.x-k8s.io
     verbs:
-      - get
-      - list
       - delete
     resources:
       - dockermachinetemplates
@@ -28,29 +25,29 @@ rules:
       - get
       - list
     resources:
-      - dockermachines
-      - vspheremachines
-      - openstackmachines
-      - metal3machines
+      - '*'
   - apiGroups:
       - controlplane.cluster.x-k8s.io
     verbs:
       - get
       - list
     resources:
-      - kubeadmcontrolplanes
-      - rke2controlplanes
-      - agentcontrolplanes
+      - '*'
   - apiGroups:
       - bootstrap.cluster.x-k8s.io
     verbs:
       - get
       - list
+    resources:
+      - '*'
+  - apiGroups:
+      - bootstrap.cluster.x-k8s.io
+    verbs:
       - delete
     resources:
       - kubeadmconfigtemplates
       - rke2configtemplates
-      - agentbootstrapconfigtemplates
+      - openshiftassistedconfigtemplates
   - apiGroups: [""]
     verbs:
       - get
