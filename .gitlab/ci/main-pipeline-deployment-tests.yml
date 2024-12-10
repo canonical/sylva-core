@@ -522,6 +522,27 @@ variables:
       when: manual
       allow_failure: true
 
+☁capm3 🚀kubeadm 🐧ubuntu 🛠oci,ha 🎬mgmt-rolling-update:
+  extends: [.capm3-virt, .scenario_mgmt_rolling-update]
+  rules:
+    - if: $CI_MERGE_REQUEST_LABELS =~ /ci-feature::mgmt-rolling-update/
+      when: manual
+      allow_failure: true
+
+☁capm3 🚀rke2 🐧suse 🛠oci,ha 🎬mgmt-rolling-update:
+  extends: [.capm3-virt, .scenario_mgmt_rolling-update]
+  rules:
+    - if: $CI_MERGE_REQUEST_LABELS =~ /ci-feature::mgmt-rolling-update/
+      when: manual
+      allow_failure: true
+
+☁capm3 🚀rke2 🐧ubuntu 🛠oci,ha 🎬mgmt-rolling-update:
+  extends: [.capm3-virt, .scenario_mgmt_rolling-update]
+  rules:
+    - if: $CI_MERGE_REQUEST_LABELS =~ /ci-feature::mgmt-rolling-update/
+      when: manual
+      allow_failure: true
+
 ☁capm3 🚀rke2 🐧ubuntu 🛠oci,ha,misc 🎬mgmt-rolling-update:
   extends: [.capm3-virt, .wait-publish-jobs, .scenario_mgmt_rolling-update]
   rules:
