@@ -1147,6 +1147,20 @@ properties:
     type: object
     additionalProperties: false
     properties:
+      external_x509_issuer: # -------------------------------
+        type: object
+        additionalProperties: false
+        properties:
+          issuer_type: # -------------------------------
+            type: string
+            pattern: "^(acme|vault)$"
+          vault_token: # -------------------------------
+            type: string
+          server: # -------------------------------
+            type: string
+            pattern: "^(https?://.*|)$"
+          vault_path: # -------------------------------
+            type: string
       default_cosign_public_key:
         type: string
         pattern: ^-----BEGIN PUBLIC KEY-----

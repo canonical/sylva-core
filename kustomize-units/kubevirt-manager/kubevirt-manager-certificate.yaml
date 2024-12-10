@@ -15,7 +15,7 @@ spec:
   - 127.0.0.1
   issuerRef:
     kind: ClusterIssuer
-    name: ca-issuer
+    name: certificate-issuer
   renewBefore: 360h0m0s
   secretName: kubevirt-manager-tls
   subject:

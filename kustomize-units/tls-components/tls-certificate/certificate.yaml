@@ -8,11 +8,8 @@ metadata:
   namespace: ${CERTIFICATE_NAMESPACE:=default}
 spec:
   secretName: ${SERVICE}-tls
-  # Currently the certificate is trusted by the Sylva CA by referring to the ca-issuer.
-  # It is possible to leverage an external authority by referring a vault-issuer or an acme-issuer.
-  # In this case, configure the issuer according to the spec of the external authority and update issuerRef below
   issuerRef:
-    name: ca-issuer
+    name: certificate-issuer
     kind: ClusterIssuer
   commonName: ${SERVICE_DNS}
   duration: 2160h # 90d
