@@ -220,7 +220,7 @@ function fetch_longhorn_support_bundle {
     SUPPORT_BUNDLE_NAME=$( yq -p json -r '.name' <<< ${REQUEST_SUPPORT_BUNDLE} )
     echo "Creating support bundle ${SUPPORT_BUNDLE_NAME} on Node ${ID}"
 
-    count=0
+    cnt=0
     while [[ $(curl -sSX GET http://${BACKEND_URL}/v1/supportbundles/${ID}/${SUPPORT_BUNDLE_NAME} | yq -p json -r '.state' ) != "ReadyForDownload" ]]; do
       echo "Progress: $(curl -sSX GET http://${BACKEND_URL}/v1/supportbundles/${ID}/${SUPPORT_BUNDLE_NAME} | yq -p json -r '.progressPercentage' )%"
       sleep 5s
