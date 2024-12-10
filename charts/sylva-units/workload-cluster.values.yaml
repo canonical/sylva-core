@@ -510,6 +510,11 @@ units:
           CA_NAME: '{{ .Values.cluster.name }}-selfsigned-ca'
           CA_COMMON_NAME: '{{ .Values.cluster.name }} CA'
           CA_O_NAME: '{{ .Values.cluster.name }}'
+      _components:
+        - '{{ tuple "components/acme-issuer" (eq .Values.security.external_x509_issuer.issuer_type "acme") | include "set-only-if" }}'
+        - '{{ tuple "components/vault-issuer" (eq .Values.security.external_x509_issuer.issuer_type "vault") | include "set-only-if"}}'
+        - '{{ tuple "components/ca-issuer" (not (hasKey .Values.security.external_x509_issuer "issuer_type")) | include "set-only-if" }}'
+
 
 cluster_domain: '{{ .Values.cluster.name }}.{{ .Values._internal.workload_clusters_cluster_subdomain }}'
 

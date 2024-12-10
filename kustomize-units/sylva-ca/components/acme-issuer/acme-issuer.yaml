@@ -1,0 +1,13 @@
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: certificate-issuer
+spec:
+  acme:
+    server: ${ISSUER_SERVER}
+    privateKeySecretRef:        # Name of a secret used to store the ACME account private key
+      name: acme-secret
+    solvers:        # Enable the HTTP-01 challenge provider
+      - http01:
+          ingress:
+            class: nginx

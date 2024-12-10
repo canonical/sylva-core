@@ -4,6 +4,5 @@ kind: Kustomization
 namespace: cert-manager
 
 resources:
-- sylva-ca.yaml
-- ca-issuer.yaml
 - extra-cert.yaml
+- internal-ca.yaml

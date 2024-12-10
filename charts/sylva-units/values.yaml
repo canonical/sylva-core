@@ -541,6 +541,9 @@ units:
       values:
         crds:
           enabled: true
+        http_proxy: '{{ tuple .Values.proxies.http_proxy (hasKey .Values.security.external_x509_issuer "issuer_type") | include "set-only-if" }}' #proxy setting is required to reach external cert issuers
+        https_proxy: '{{ tuple .Values.proxies.https_proxy (hasKey .Values.security.external_x509_issuer "issuer_type") | include "set-only-if" }}'
+        no_proxy: '{{ tuple .Values.proxies.no_proxy (hasKey .Values.security.external_x509_issuer "issuer_type") | include "set-only-if" }}'
         replicaCount: >-
           {{ .Values._internal.ha_cluster.is_ha | ternary 2 1 }}
         affinity:
@@ -654,22 +657,23 @@ units:
 
   sylva-ca:
     info:
-      description: provides a Certificate Authority for units of the Sylva stack
+      description: configures the Certificate Authority for units of the Sylva stack
       internal: true
     unit_templates:
     - base-deps
     depends_on:
       cert-manager: true
     repo: sylva-core
+    kustomization_substitute_secrets:
+      VAULT_TOKEN: '{{ .Values.security.external_x509_issuer.vault_token | default "" | b64enc }}'
     kustomization_spec:
       path: ./kustomize-units/sylva-ca
       wait: true
       postBuild:
         substitute:
-          CACERT: '{{ .Values.external_certificates.cacert | default "" | b64enc }}'
-          CA_NAME: 'default-selfsigned-ca'
-          CA_COMMON_NAME: 'default CA'
-          CA_O_NAME: 'default'
+          CA_CHAIN: '{{ .Values.external_certificates.cacert | default "" | b64enc }}'
+          ISSUER_SERVER: '{{ .Values.security.external_x509_issuer.server }}'
+          VAULT_PATH: '{{ .Values.security.external_x509_issuer.vault_path }}'
 
   namespace-defs:
     info:
@@ -7416,6 +7420,11 @@ os_images_default_download_storage_space: 30Gi
 get_openstack_images_per_image_timeout_minutes: 30
 
 security:
+  external_x509_issuer: {}
+   # issuer_type:  acme or vault
+   # vault_token:  authent token for vault,
+   # server: e.g. https://vault.external-domain:8200
+   # vault_path: e.g. /pki/sylva, only when using vault issuer
   default_cosign_public_key: | # the default public key in PEM format to be used to verify cosign signatures
     -----BEGIN PUBLIC KEY-----
     MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEcuuLszwy0u7y394KY6GW1BgjfaU6

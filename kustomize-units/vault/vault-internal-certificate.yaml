@@ -5,11 +5,8 @@ metadata:
   name: vault-internal-certificate
 spec:
   secretName: vault-internal-tls
-  # Currently the certificate is trusted by the Sylva CA by referring to the ca-issuer.
-  # It is possible to leverage an external authority by referring a vault-issuer or an acme-issuer.
-  # In this case, configure the issuer according to the spec of the external authority and update issuerRef below
   issuerRef:
-    name: ca-issuer
+    name: internal-certificate-issuer
     kind: ClusterIssuer
   commonName: vault
   duration: 2160h # 90d

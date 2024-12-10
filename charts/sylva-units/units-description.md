@@ -167,7 +167,7 @@
 | **single-replica-storageclass** | DEPRECATED longhorn storage class with a single replica<br/><br/>This unit is preserved for migration purposes, it will be removed after sylva 1.2 release<br/>Single replicas PVC were causing data replication churn during rolling updates of nodes<br/>See https://gitlab.com/sylva-projects/sylva-core/-/issues/1648 | Kustomization |
 | **sriov** | obsolete - replaced by sriov-network-operator<br/><br/>dummy unit which only enables sriov-network-operator for backwark compatibility | Kustomization |
 | **sriov-resources** | configures SRIOV resources | Helm chart |
-| **sylva-ca** | provides a Certificate Authority for units of the Sylva stack | Kustomization |
+| **sylva-ca** | configures the Certificate Authority for units of the Sylva stack | Kustomization |
 | **synchronize-secrets** | allows secrets from Vault to be consumed other units, relies on ExternalSecrets | Kustomization |
 | **test-nfs-ganesha** | Perform testing for RWX enabled PVs created from NFS Ganesha | Kustomization |
 | **thanos-credentials-secret** | create a secret containing tenant's thanos credentials | Kustomization |
