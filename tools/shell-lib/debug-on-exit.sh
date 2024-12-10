@@ -199,6 +199,8 @@ function remote_command {
 function fetch_longhorn_support_bundle {
   local dump_dir=$1
 
+  echo "==== fetching Longhorn support bundle ========"
+
   echo "starting longhorn-backend kubectl port-forward"
   kubectl -n longhorn-system port-forward service/longhorn-backend 5440:manager &
   port_forward_pid=$!
@@ -214,15 +216,28 @@ function fetch_longhorn_support_bundle {
   REQUEST_SUPPORT_BUNDLE=$(curl -sSX POST -H 'Content-Type: application/json' -d '{ "issueURL": "'"${ISSUE_URL}"'", "description": "'"${ISSUE_DESCRIPTION}"'" }' http://${BACKEND_URL}/v1/supportbundles)
 
   ID=$( yq -p json -r '.id' <<< ${REQUEST_SUPPORT_BUNDLE} )
-  SUPPORT_BUNDLE_NAME=$( yq -p json -r '.name' <<< ${REQUEST_SUPPORT_BUNDLE} )
-  echo "Creating support bundle ${SUPPORT_BUNDLE_NAME} on Node ${ID}"
+  if [[ $ID != "null" ]]; then
+    SUPPORT_BUNDLE_NAME=$( yq -p json -r '.name' <<< ${REQUEST_SUPPORT_BUNDLE} )
+    echo "Creating support bundle ${SUPPORT_BUNDLE_NAME} on Node ${ID}"
 
-  while [ $(curl -sSX GET http://${BACKEND_URL}/v1/supportbundles/${ID}/${SUPPORT_BUNDLE_NAME} | yq -p json -r '.state' ) != "ReadyForDownload" ]; do
-    echo "Progress: $(curl -sSX GET http://${BACKEND_URL}/v1/supportbundles/${ID}/${SUPPORT_BUNDLE_NAME} | yq -p json -r '.progressPercentage' )%"
-    sleep 1s
-  done
+    count=0
+    while [[ $(curl -sSX GET http://${BACKEND_URL}/v1/supportbundles/${ID}/${SUPPORT_BUNDLE_NAME} | yq -p json -r '.state' ) != "ReadyForDownload" ]]; do
+      echo "Progress: $(curl -sSX GET http://${BACKEND_URL}/v1/supportbundles/${ID}/${SUPPORT_BUNDLE_NAME} | yq -p json -r '.progressPercentage' )%"
+      sleep 5s
 
-  curl -X GET http://${BACKEND_URL}/v1/supportbundles/${ID}/${SUPPORT_BUNDLE_NAME}/download --output $dump_dir/longhorn-support-bundle.zip
+      if [[ $cnt -ge 20 ]]; then
+        echo "stopping, waited for too long for support bundle to be ready to download"
+        exit_too_long=1
+        break
+      fi
+      cnt=$((cnt+1))
+    done
+
+    if [[ $exit_too_long != 1 ]]; then
+      echo "downloading support bundle to $dump_dir/longhorn-support-bundle.zip"
+      curl -X GET http://${BACKEND_URL}/v1/supportbundles/${ID}/${SUPPORT_BUNDLE_NAME}/download --output $dump_dir/longhorn-support-bundle.zip
+    fi
+  fi
 
   echo "killing longhorn-backend kubectl port-forward"
   kill -9 $port_forward_pid
