@@ -402,12 +402,6 @@ units:
     unit_templates:
     - base-deps
 
-  kyverno-policy-delete-kubernetes-vip-svc:
-    enabled: true
-    enabled_conditions:
-    - '{{ tuple . "kyverno" | include "unit-enabled"  }}'
-    - '{{ .Values._internal.state.is_upgrade }}'
-
   kyverno-policy-rancher-webhook-ha:
     enabled: true
     info:
