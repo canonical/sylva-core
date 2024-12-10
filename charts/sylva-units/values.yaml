@@ -4579,7 +4579,7 @@ units:
       maturity: stable
     unit_templates:
     - base-deps
-    enabled: '{{ tuple . "sriov" | include "unit-enabled" }}' # for backward compatibility
+    enabled: '{{ or (tuple . "sriov" | include "unit-enabled") (not (empty .Values.sriov.node_policies)) }}' # for backward compatibility
     depends_on:
       namespace-defs: true
       sriov-crd: true
