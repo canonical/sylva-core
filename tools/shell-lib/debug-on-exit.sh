@@ -196,6 +196,37 @@ function remote_command {
       "$@"
 }
 
+function fetch_longhorn_support_bundle {
+  local dump_dir=$1
+
+  echo "starting longhorn-backend kubectl port-forward"
+  kubectl -n longhorn-system port-forward service/longhorn-backend 5440:manager &
+  port_forward_pid=$!
+
+  # code borrowed from https://longhorn.io/kb/troubleshooting-create-support-bundle-with-curl/
+  ISSUE_URL=https://gitlab.com/sylva-projects/sylva-core/-/jobs/$CI_JOB_ID
+  ISSUE_DESCRIPTION="Support bundle for Sylva CI Gitlab Job $CI_JOB_ID"
+  BACKEND_URL="127.0.0.1:5440"
+
+  # Request to create the support bundle
+  echo "Requesting support bundle..."
+  REQUEST_SUPPORT_BUNDLE=$(curl -sSX POST -H 'Content-Type: application/json' -d '{ "issueURL": "'"${ISSUE_URL}"'", "description": "'"${ISSUE_DESCRIPTION}"'" }' http://${BACKEND_URL}/v1/supportbundles)
+
+  ID=$( jq -r '.id' <<< ${REQUEST_SUPPORT_BUNDLE} )
+  SUPPORT_BUNDLE_NAME=$( jq -r '.name' <<< ${REQUEST_SUPPORT_BUNDLE} )
+  echo "Creating support bundle ${SUPPORT_BUNDLE_NAME} on Node ${ID}"
+
+  while [ $(curl -sSX GET http://${BACKEND_URL}/v1/supportbundles/${ID}/${SUPPORT_BUNDLE_NAME} | jq -r '.state' ) != "ReadyForDownload" ]; do
+    echo "Progress: $(curl -sSX GET http://${BACKEND_URL}/v1/supportbundles/${ID}/${SUPPORT_BUNDLE_NAME} | jq -r '.progressPercentage' )%"
+    sleep 1s
+  done
+
+  curl -X GET http://${BACKEND_URL}/v1/supportbundles/${ID}/${SUPPORT_BUNDLE_NAME}/download --output $dump_dir/longhorn-support-bundle.zip
+
+  echo "killing longhorn-backend kubectl port-forward"
+  kill -9 $port_forward_pid
+}
+
 function cluster_info_dump() {
   local cluster=$1
   local dump_dir=$cluster-cluster-dump
@@ -276,6 +307,10 @@ function cluster_info_dump() {
   done
 
   wait
+
+  if [[ $(kubectl get ns longhorn-system -o name || true) == "namespace/longhorn-system" ]]; then
+    fetch_longhorn_support_bundle $dump_dir
+  fi
 
   echo -e "\nDisplay cluster resources usage per node"
   # From https://github.com/kubernetes/kubernetes/issues/17512
