@@ -22,10 +22,6 @@ echo "CronJob Test Report - $(date)" > "${REPORT_FILE}"
 echo "------------------------------------" >> "${REPORT_FILE}"
 export SHORT_UUID=$(uuidgen | cut -c1-8)
 
-# Fetch all cronjobs from all namespaces
-echo "Fetching all cronjobs from all namespaces..."
-CRONJOBS=$(kubectl get cronjobs --all-namespaces -o custom-columns="NAMESPACE:.metadata.namespace,NAME:.metadata.name" --no-headers)
-
 # Array to track background process IDs
 declare -a JOB_PIDS
 
@@ -62,15 +58,15 @@ trigger_and_wait_for_job() {
 # Export the function to make it available in subshells
 export -f trigger_and_wait_for_job
 
-# Process each CronJob in parallel
-while read -r line; do
-  NAMESPACE=$(echo "${line}" | awk '{print $1}')
-  CRONJOB_NAME=$(echo "${line}" | awk '{print $2}')
+# Fetch all cronjobs from all namespaces and 
+# process them in parallel
+while read NAMESPACE CRONJOB_NAME; do
   # Generate a short UUID and create a unique job name within 63 characters (k8s limitation)
   # Run the job trigger and wait function in the background
   trigger_and_wait_for_job "${NAMESPACE}" "${CRONJOB_NAME}" &
   JOB_PIDS+=("$!") # Save the process ID of the background job
-done < <(echo "${CRONJOBS}")
+done < <(kubectl get cronjobs --all-namespaces -o custom-columns="NAMESPACE:.metadata.namespace,NAME:.metadata.name" --no-headers)
+
 
 # Wait for all background jobs to finish
 for PID in "${JOB_PIDS[@]}"; do
