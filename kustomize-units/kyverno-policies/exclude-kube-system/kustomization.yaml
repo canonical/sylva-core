@@ -1,0 +1,13 @@
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
+
+patches:
+- target:
+    kind: (Policy|ClusterPolicy)
+    annotationSelector: sylva.org/kyverno-exclude-kube-system=add-matchCondition
+  patch: |
+    - op: add
+      path: /spec/webhookConfiguration/matchConditions/0
+      value:
+        name: ns-is-not-kube-system
+        expression: 'has(request.namespace) ? (request.namespace != "kube-system") : true'

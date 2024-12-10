@@ -104,6 +104,7 @@ function dump_additional_resources() {
     kubectl api-resources > $cluster_dir/api-resources.txt
     # shellcheck disable=SC2068
     for cr in $@; do
+      {
       if ! [[  ${cr} =~ ^[A-Z][A-Za-z0-9]*s($|\.\*.*) ]]; then
           echo "dump_additional_resources issue: '${cr}' does not match the expected pattern, you should provide the capitalized (plural) NAME of the resource, not the KIND"
           echo 'For example, provided following results:'
@@ -128,7 +129,9 @@ function dump_additional_resources() {
 
         kubectl get $kind -A -o yaml --show-managed-fields > $base_filename.yaml
       fi
+      } &
     done
+    wait
 }
 
 
@@ -183,7 +186,8 @@ function remote_command {
     echo "running '$*' on $node ... " >&2
 
     # we assume that the 'sandbox-privileged-namespace' unit is enabled
-    kubectl -n sandbox debug node/$node \
+    timeout 30s \
+      kubectl -n sandbox debug node/$node \
       --request-timeout=5s \
       --profile=sysadmin \
       --image registry.gitlab.com/sylva-projects/sylva-elements/container-images/kube-job:v1.0.17 \
@@ -206,6 +210,8 @@ function cluster_info_dump() {
 
   mkdir $dump_dir
 
+  echo "Dumping data for $cluster cluster in $dump_dir"
+
   # dump CAPI cluster state
   echo "Dumping clusterctl describe..."
   KUBECONFIG=$MGMT_KUBECONFIG clusterctl describe cluster \
@@ -218,7 +224,8 @@ function cluster_info_dump() {
     echo "$cluster cluster is unreachable - aborting dump"
     return 0
   fi
-  echo "Dumping resources for $cluster cluster in $dump_dir"
+
+  KUBECONFIG=$MGMT_KUBECONFIG helm get manifest -n $capi_cluster_namespace sylva-units | yq 'select(.kind!="Secret")' > $dump_dir/sylva-units-helm-release-manifest.yaml
 
   kubectl cluster-info dump -A -o yaml --show-managed-fields --output-directory=$dump_dir
 
@@ -252,6 +259,7 @@ function cluster_info_dump() {
   # dump per-node system information
   echo "Dumping per-node system information..."
   for node in $(kubectl get nodes -o custom-columns='CLUSTER:.metadata.name' --no-headers); do
+    {
       node_sysinfo_dumpdir=$dump_dir/system-info/$node
       mkdir -p $node_sysinfo_dumpdir
 
@@ -264,12 +272,10 @@ function cluster_info_dump() {
       remote_command $node iptables -t nat -Z
       sleep 10
       remote_command $node iptables -t nat -nvL > $node_sysinfo_dumpdir/iptables-nat-2-after-clear-counters.log
-
-      remote_command $node cat /var/log/syslog  > $node_sysinfo_dumpdir/var-log-syslog
-      remote_command $node cat /var/log/messages  > $node_sysinfo_dumpdir/var-log-messages
-      remote_command $node journalctl -xeu rke2-server > $node_sysinfo_dumpdir/rke2-server.log
-      remote_command $node journalctl -xeu rke2-agent > $node_sysinfo_dumpdir/rke2-agent.log
+    } &
   done
+
+  wait
 
   echo -e "\nDisplay cluster resources usage per node"
   # From https://github.com/kubernetes/kubernetes/issues/17512
@@ -291,10 +297,12 @@ df -h || true
 unset KUBECONFIG
 
 if [[ $(kind get clusters) =~ $KIND_CLUSTER_NAME ]]; then
-  crust_gather_collect bootstrap
+  crust_gather_collect bootstrap &
   cluster_info_dump bootstrap
   echo -e "\nDump bootstrap node logs"
   docker ps -q -f name=control-plane* | xargs -I % -r docker exec % journalctl -e > bootstrap-cluster-dump/bootstrap_node.log
+
+  wait
 fi
 
 # Try to guess management-cluster-kubeconfig path:
@@ -308,7 +316,7 @@ MGMT_KUBECONFIG=${1:-${BASE_DIR}/management-cluster-kubeconfig}
 if [[ -f $MGMT_KUBECONFIG ]]; then
     export KUBECONFIG=${MGMT_KUBECONFIG}
 
-    crust_gather_collect management
+    crust_gather_collect management &
 
     echo -e "\nGet nodes in management cluster"
     kubectl --request-timeout=3s get nodes
@@ -335,10 +343,12 @@ if [[ -f $MGMT_KUBECONFIG ]]; then
           export KUBECONFIG=$BASE_DIR/workload-cluster-kubeconfig-rancher
         fi
 
-        crust_gather_collect workload
+        crust_gather_collect workload &
 
         cluster_info_dump workload $workload_cluster_namespace $workload_cluster_name
     fi
+
+  wait
 fi
 
 if [[ -d "crust-gather" ]]

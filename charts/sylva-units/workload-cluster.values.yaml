@@ -183,6 +183,8 @@ units:
 
   rke2-helmchart-prevent-uninstall:
     enabled: true
+    kustomization_spec:
+      targetNamespace: null  # cancel targetNamespace set in unit_kustomization_spec_default
 
   cluster-bmh:
     enabled: true
@@ -233,14 +235,6 @@ units:
       targetNamespace: null  # if we don't do this, there are errors because namespaces are a non-namespaced resource
 
   calico-crd:
-    enabled: true
-    unit_templates:
-    - base-deps
-    # some dependencies of base-deps are inherited, but don't apply here:
-    depends_on:
-      calico-ready: false
-
-  tigera-clusterrole:
     enabled: true
     unit_templates:
     - base-deps
@@ -304,12 +298,6 @@ units:
   metallb-resources:
     enabled: true
 
-  metallb-rke2-chart-cleanup:
-    enabled: true
-
-  kyverno-metallb-annotations:
-    enabled: true
-
   cluster-vip:
     enabled: true
 
@@ -352,7 +340,7 @@ units:
     unit_templates:
     - kustomization-deployed-on-mgmt-cluster
     kustomization_spec:
-      healthChecks: null # Remove healthChecks targeting sylva-system namespace
+      healthChecks: [] # Remove healthChecks targeting sylva-system namespace
 
   kubevirt:
     # can be enabled at runtime if desired
@@ -414,11 +402,21 @@ units:
     unit_templates:
     - base-deps
 
-  kyverno-policy-delete-kubernetes-vip-svc:
+  kyverno-policy-rancher-webhook-ha:
     enabled: true
+    info:
+      description: Kyverno policy for rancher-webhook HA
+      maturity: beta
+      internal: true
     enabled_conditions:
-    - '{{ tuple . "kyverno" | include "unit-enabled"  }}'
-    - '{{ .Values._internal.state.is_upgrade }}'
+      - '{{ tuple . "cluster-import" | include "unit-enabled" }}'
+    depends_on:
+      kyverno: true
+    unit_templates:
+      - base-deps
+    repo: sylva-core
+    kustomization_spec:
+      path: ./kustomize-units/rancher-init/components/webhook-ha
 
   cluster-import:
     enabled: false  # overriden depending on whether Rancher is enabled or not (eg. via shared-workload-clusters-settings)
@@ -449,7 +447,7 @@ units:
       healthChecks:
         # this resource is created by capi-rancher-import based on the existence of
         # the Cluster.provisioning.cattle.io produced by the kustomization
-        - apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+        - apiVersion: kustomize.toolkit.fluxcd.io/v1
           kind: Kustomization
           name: "cattle-agent-{{ .Values.cluster.name }}"
           namespace: '{{ .Release.Namespace }}'
@@ -484,7 +482,7 @@ units:
     unit_templates:
     - kustomization-deployed-on-mgmt-cluster
     kustomization_spec:
-      healthChecks: null # Remove healthChecks targeting sylva-system namespace
+      healthChecks: [] # Remove healthChecks targeting sylva-system namespace
 
   sylva-prometheus-rules:
     enabled: true
@@ -512,6 +510,11 @@ units:
           CA_NAME: '{{ .Values.cluster.name }}-selfsigned-ca'
           CA_COMMON_NAME: '{{ .Values.cluster.name }} CA'
           CA_O_NAME: '{{ .Values.cluster.name }}'
+      _components:
+        - '{{ tuple "components/acme-issuer" (eq .Values.security.external_x509_issuer.issuer_type "acme") | include "set-only-if" }}'
+        - '{{ tuple "components/vault-issuer" (eq .Values.security.external_x509_issuer.issuer_type "vault") | include "set-only-if"}}'
+        - '{{ tuple "components/ca-issuer" (not (hasKey .Values.security.external_x509_issuer "issuer_type")) | include "set-only-if" }}'
+
 
 cluster_domain: '{{ .Values.cluster.name }}.{{ .Values._internal.workload_clusters_cluster_subdomain }}'
 

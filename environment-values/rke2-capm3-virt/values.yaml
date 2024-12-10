@@ -1,4 +1,8 @@
 ---
+sylva_diskimagebuilder_images:
+  ubuntu-jammy-hardened-rke2-1-30-6:
+    enabled: true
+
 cluster:
   capi_providers:
     bootstrap_provider: cabpr

@@ -58,7 +58,7 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
     spec:
       url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-capi-cluster.git
       ref:
-        tag: 0.4.4
+        tag: 0.4.5
 
   devnull:
     kind: GitRepository
@@ -72,7 +72,7 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
     spec:
       url: https://github.com/rancher/local-path-provisioner.git
       ref:
-        tag: v0.0.29
+        tag: v0.0.30
 
   sriov-resources:
     kind: GitRepository
@@ -142,7 +142,14 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
     spec:
       url: https://github.com/grafana/loki.git
       ref:
-        tag: v3.2.0
+        tag: v3.2.2
+
+  sylva-logging-flows:
+    kind: GitRepository
+    spec:
+      url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-logging-flows.git
+      ref:
+        tag: 0.0.1
 
   sylva-prometheus-rules:
     kind: GitRepository
@@ -527,13 +534,16 @@ units:
       chart:
         spec:
           chart: cert-manager
-          version: v1.15.3
+          version: v1.15.4
       targetNamespace: cert-manager
       install:
         createNamespace: true
       values:
         crds:
           enabled: true
+        http_proxy: '{{ tuple .Values.proxies.http_proxy (hasKey .Values.security.external_x509_issuer "issuer_type") | include "set-only-if" }}' #proxy setting is required to reach external cert issuers
+        https_proxy: '{{ tuple .Values.proxies.https_proxy (hasKey .Values.security.external_x509_issuer "issuer_type") | include "set-only-if" }}'
+        no_proxy: '{{ tuple .Values.proxies.no_proxy (hasKey .Values.security.external_x509_issuer "issuer_type") | include "set-only-if" }}'
         replicaCount: >-
           {{ .Values._internal.ha_cluster.is_ha | ternary 2 1 }}
         affinity:
@@ -590,9 +600,11 @@ units:
             - '{{ .Values._internal.pdb_allow_unhealthy_pod_eviction | include "preserve-type" }}'
 
   kube-storage-version-migrator:
+    enabled: false
     info:
       description: installs kube-storage-version-migrator to assist apiVersion migrations
       maturity: beta
+      internal: true
     unit_templates:
     - base-deps
     repo: sylva-core
@@ -645,22 +657,23 @@ units:
 
   sylva-ca:
     info:
-      description: provides a Certificate Authority for units of the Sylva stack
+      description: configures the Certificate Authority for units of the Sylva stack
       internal: true
     unit_templates:
     - base-deps
     depends_on:
       cert-manager: true
     repo: sylva-core
+    kustomization_substitute_secrets:
+      VAULT_TOKEN: '{{ .Values.security.external_x509_issuer.vault_token | default "" | b64enc }}'
     kustomization_spec:
       path: ./kustomize-units/sylva-ca
       wait: true
       postBuild:
         substitute:
-          CACERT: '{{ .Values.external_certificates.cacert | default "" | b64enc }}'
-          CA_NAME: 'default-selfsigned-ca'
-          CA_COMMON_NAME: 'default CA'
-          CA_O_NAME: 'default'
+          CA_CHAIN: '{{ .Values.external_certificates.cacert | default "" | b64enc }}'
+          ISSUER_SERVER: '{{ .Values.security.external_x509_issuer.server }}'
+          VAULT_PATH: '{{ .Values.security.external_x509_issuer.vault_path }}'
 
   namespace-defs:
     info:
@@ -699,6 +712,7 @@ units:
         - '{{ tuple "components/loki" (tuple . "loki" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/kepler" (tuple . "kepler" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/kube-system" (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpr") | include "set-only-if" }}'
+        - '{{ tuple "components/neuvector" (tuple . "neuvector" | include "unit-enabled") | include "set-only-if" }}'
 
   cnpg-operator:
     info:
@@ -1005,9 +1019,10 @@ units:
               #size: 32Gi
               accessMode: '{{ .Values._internal.harbor_storage_access_mode }}'
             jobservice:
-              storageClass: '{{ .Values._internal.default_storage_class }}'
-              #size: 8Gi
-              accessMode: '{{ .Values._internal.harbor_storage_access_mode }}'
+              jobLog:
+                storageClass: '{{ .Values._internal.default_storage_class }}'
+                #size: 8Gi
+                accessMode: '{{ .Values._internal.harbor_storage_access_mode }}'
             redis:
               storageClass: '{{ .Values._internal.default_storage_class }}'
               #size: 8Gi
@@ -1384,6 +1399,7 @@ units:
     enabled_conditions:
     - '{{ tuple . "neuvector" | include "unit-enabled" }}'
     depends_on:
+      namespace-defs: true
       sylva-ca: true
       vault: true
       vault-config-operator: true
@@ -1426,6 +1442,7 @@ units:
     - base-deps
     depends_on:
       neuvector-init: true
+      kyverno-policies-ready: true
       ingress-nginx: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpk" }}'
     annotations:
       sylvactl/readyMessage: "Neuvector UI can be reached at https://{{ .Values.external_hostnames.neuvector }} ({{ .Values.external_hostnames.neuvector }} must resolve to {{ .Values.display_external_ip }})"
@@ -1710,7 +1727,6 @@ units:
     - base-deps
     - kube-job
     enabled_conditions:
-    - '{{ tuple . "flux-webui" | include "unit-enabled" }}'
     - '{{ tuple . "keycloak" | include "unit-enabled" }}'
     depends_on:
       keycloak-resources: true
@@ -1887,7 +1903,7 @@ units:
       chart:
         spec:
           chart: kyverno
-          version: 3.2.7
+          version: 3.3.3
       targetNamespace: kyverno
       install:
         createNamespace: true
@@ -1896,7 +1912,36 @@ units:
           resourceFiltersExclude:
           - "[Node,*,*]"
           - "[Node/*,*,*]"
-          - "[*/*,kube-system,*]"  # necessary for rke2-helmchart-prevent-uninstall policy
+              # #####  how we exclude kube-system from Kyverno webhooks (but not completely)  ###########################
+              #                                                                                                         #
+              # It is a generalized safeguard to not let Kyverno define webhooks on kube-system namespace.              #
+              # This is the default Kyverno chart configuration (namespaceSelector under config.webhook).               #
+              #                                                                                                         #
+              # In Sylva we have policy for which we *need* some validation webhooks in kube-system:                    #
+              # * rke2-helmchart-prevent-uninstall                                                                      #
+              # * block-rke2-uninstall-jobs policies                                                                    #
+              # * prevent-rke2-helmcharts-calico-metallb                                                                :
+              #                                                                                                         .
+              # This comment groups the different things done to allow excluding the kube-system namespace
+              # except for Jobs.
+              #
+              # Instead of using a 'namespaceSelector' we use global 'matchConditions'.
+              #  .
+              # /!\ There is however a side effect: policies that use spec.webhookConfiguration.matchConditions
+              #     will **not** exclude kube-system (this field overrides the global 'matchConditions').
+              #     So any policy using spec.webhookConfiguration.matchConditions needs to include a CEL expression
+              #     to exclude the kube-system namespace.
+              #
+          - "[*/*,kube-system,*]"  # cancels this entry which is present in chart default resourceFilters
+              #
+          webhooks: []       # cancels the namespaceSelector present in default values that excludes
+              #              # the kube-system namespace ...                                                            .
+          matchConditions:   # ... and readds it via matchConditions to exclude kube-system                             :
+              #              # but, as said above, this applies only to policies that do not set webhookConfiguration   #
+              #              # (CEL expression below tests ns exclusion except for non-namespaced resources)            #
+            - expression: 'has(request.namespace) ? (request.namespace != "kube-system") : true'                        #
+              name: ns-not-kube-system-global                                                                           #
+              # #########################################################################################################
         webhooksCleanup:
           enabled: false
         features:
@@ -1904,6 +1949,12 @@ units:
             enabled: true
         admissionController:
           replicas: '{{ .Values._internal.default_replicas | include "preserve-type" }}'
+          rbac:
+            coreClusterRole:
+              extraResources:
+              - apiGroups: ["*"]
+                resources: ["*"]
+                verbs: ["get", "list", "watch"]
           resources:
             limits:
               memory: 1024Mi
@@ -1927,6 +1978,12 @@ units:
             enabled: '{{ .Values._internal.monitoring.enabled | include "preserve-type" }}'
         reportsController:
           replicas: '{{ .Values._internal.default_replicas | include "preserve-type" }}'
+          rbac:
+            coreClusterRole:
+              extraResources:
+              - apiGroups: ["*"]
+                resources: ["*"]
+                verbs: ["get", "list", "watch"]
           serviceMonitor:
             enabled: '{{ .Values._internal.monitoring.enabled | include "preserve-type" }}'
         backgroundController:
@@ -1935,6 +1992,34 @@ units:
             limits:
               memory: 1024Mi
           rbac:
+            coreClusterRole:
+              extraResources:
+              - apiGroups:
+                  - '*'
+                resources:
+                  - '*'
+                verbs: ["get", "list", "watch"]
+              - apiGroups:
+                  - networking.k8s.io
+                resources:
+                  - ingresses
+                  - ingressclasses
+                  - networkpolicies
+                verbs: ["create", "update", "patch", "delete"]
+              - apiGroups:
+                  - rbac.authorization.k8s.io
+                resources:
+                  - rolebindings
+                  - roles
+                verbs: ["create", "update", "patch", "delete"]
+              - apiGroups:
+                  - ''
+                resources:
+                  - configmaps
+                  - secrets
+                  - resourcequotas
+                  - limitranges
+                verbs: ["create", "update", "patch", "delete"]
             clusterRole:
               extraResources:
               - apiGroups: ["batch"]
@@ -1996,22 +2081,6 @@ units:
       _postRenderers:
         - kustomize:
             patches:
-              - patch: |-
-                  kind: CronJob
-                  apiVersion: batch/v1
-                  metadata:
-                    name: kyverno-cleanup-cluster-admission-reports
-                    namespace: kyverno
-                  spec:
-                    startingDeadlineSeconds: 180
-              - patch: |-
-                  kind: CronJob
-                  apiVersion: batch/v1
-                  metadata:
-                    name: kyverno-cleanup-admission-reports
-                    namespace: kyverno
-                  spec:
-                    startingDeadlineSeconds: 180
               - '{{ .Values._internal.pdb_allow_unhealthy_pod_eviction | include "preserve-type" }}'
 
   kyverno-policies:
@@ -2043,23 +2112,8 @@ units:
         - '{{ tuple "components/thanos" (tuple . "thanos" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/check-images" .Values.security.upstream_images_signature.verify | include "set-only-if" }}'
         - '{{ tuple "components/mutate-job-security-context" (tuple . "rancher" | include "unit-enabled") | include "set-only-if" }}'
-
-  kyverno-metallb-annotations:
-    info:
-      description: Adds helm specific annotations to metallb resources. Should be removed in 1.2+ versions of Sylva
-      internal: true
-    unit_templates:
-      - base-deps
-    enabled_conditions:
-      - '{{ eq .Values.cluster.capi_providers.bootstrap_provider "cabpr" }}'
-      - '{{ ne .Values.cluster.capi_providers.infra_provider "capd" }}'
-      - '{{ .Values._internal.state.is_upgrade }}'
-    depends_on:
-      kyverno: true
-    repo: sylva-core
-    kustomization_spec:
-      path: ./kustomize-units/kyverno-policies/metallb-resources-annotations
-      wait: true
+        - '{{ tuple "components/neuvector-policies" (tuple . "neuvector" | include "unit-enabled") | include "set-only-if" }}'
+        - ../exclude-kube-system  # needs to be last (needed for components above that use sylva.org/kyverno-exclude-kube-system annotation)
 
   kyverno-policies-ready:
     info:
@@ -2081,23 +2135,6 @@ units:
             value: |
               #!/bin/bash
               sleep 60
-
-  kyverno-policy-delete-kubernetes-vip-svc:
-    info:
-      description: Kyverno policy to cleanup the deprecated kubernetes-vip service in the case of upgrade from Sylva versions prior to v1.2
-      internal: true
-    enabled_conditions:
-    - '{{ tuple . "kyverno" | include "unit-enabled"  }}'
-    - '{{ lookup "v1" "Service" "kube-system" "kubernetes-vip" | empty | not }}'
-    depends_on:
-      cluster-machines-ready: true
-      kyverno: true
-    unit_templates:
-    - base-deps
-    repo: sylva-core
-    kustomization_spec:
-      path: ./kustomize-units/kyverno-policies/remove-kubernetes-vip-svc
-      wait: true
 
   kyverno-metal3-policies:
     info:
@@ -2224,175 +2261,6 @@ units:
       _components:
         - '{{ tuple "components/ha" (.Values._internal.ha_cluster.is_ha) | include "set-only-if" }}'
 
-  # this unit and the capo-v1alpha8-fix fix an issue we have with CAPO CRDs apiVersion
-  #
-  # in sylva 1.0.0 we used a custom build of intermediate version of CAPO, somewhere between 0.9.x and 0.10.x,
-  # to include an important fix, but we didn't realize that we would implicitely upgrade all CAPO resources to v1alpha8
-  # and because v1alpha8 is not present anymore in the final 0.10.x, we can't upgrade to 0.10.x
-  # without first fixing our CAPO resources to have them be stored into v1alpha7 (which exists in 0.9.x and 0.10.x)
-  #
-  # here is how this fix works:
-  # - we introduce the community kube-storage-version-migrator
-  # - we run a job that fixes the CRDs to indicate that the desired storage version is v1alpha7 (instead of v1alpha8)
-  #   note that this does not change any CAPO resource, only the CRD
-  # - (the capo unit won't reconcile in the background, because its got a dependsOn on capo-v1alpha8-fix)
-  # - we install a kube-storage-version-migrator resource to tell that tool to migrate all CAPO resources to v1alpha7
-  # - we run another job to remove v1lapha8 from the status.storedVersions of the CAPO CRDs
-  #   (this is necessary or else k8s will prevent us from installing the update of the CRD resource
-  #    from CAPO 0.12.3 that does not include v1alpha8 anymore)
-  # - the capo unit will then reconcile and install CAPO 0.10.x, including the new CRDs
-  #
-  # these units will be removed when not relevant anymore (e.g in the sylva release following the one in which they'll have been released)
-  capo-v1alpha8-fix-crd:
-    info:
-      description: handles CAPO apiVersion v1alpha8 issues (fix CRD)
-      details: fixes CAPO CRDs to use v1alpha7 as storage version
-      internal: true
-    unit_templates:
-    - base-deps
-    - kube-job
-    enabled_conditions:
-    - '{{ .Values._internal.capo_need_v1alpha8_fix }}'
-    kustomization_spec:
-      _patches:
-      - target:
-          kind: ClusterRole
-        patch: |
-          - op: replace
-            path: /rules
-            value:
-              - apiGroups: [apiextensions.k8s.io]
-                resources: [customresourcedefinitions]
-                verbs: [list, get, patch]
-      - target:
-          kind: ConfigMap
-          labelSelector: kube-job=script
-        patch: |
-          - op: replace
-            path: /data/kube-job.sh
-            value: |
-              #!/bin/bash
-              set -e
-
-              if ! (kubectl get crd kustomizations.kustomize.toolkit.fluxcd.io >/dev/null); then
-                echo "can't access CRDs, failing (service account issue)"
-                exit 1
-              fi
-
-              if ! (kubectl get crd openstackclusters.infrastructure.cluster.x-k8s.io >/dev/null); then
-                echo "CAPO not installed yet, this is a fresh install, nothing to do"
-                exit 0
-              fi
-
-              for kind in openstackmachines openstackmachinetemplates openstackclusters openstackclustertemplates; do
-                crd="$kind.infrastructure.cluster.x-k8s.io"
-                echo ------------- $crd -----------------
-
-                if (kubectl get crd $crd -o json | jq -e '.spec.versions[] | select(.name == "v1alpha8") | length == 0' &> /dev/null); then
-                  echo "no v1alpha8 in $crd, skipping"
-                  continue
-                fi
-
-                kubectl get crd $crd -o json | jq -e '.spec.versions | length == 4' || continue
-
-                echo "-- setting v1alpha7 as storage version for $crd"
-                kubectl patch crd $crd --type=json --patch='[{"op":"replace","path":"/spec/versions/3/storage","value":false},{"op":"replace","path":"/spec/versions/2/storage","value":true}]'
-
-                echo -n "-- ensuring that storage version for $crd has been set to v1alpha7: "
-                kubectl get crd $crd -o json | jq -e '.spec.versions[] | select(.storage) | .name == "v1alpha7"'
-
-              done
-
-  capo-v1alpha8-fix-resources:
-    info:
-      description: handles CAPO apiVersion v1alpha8 issues (fix resources)
-      details: migrates CAPO CRs from v1alpha8 back to v1alpha7
-      internal: true
-    enabled_conditions:
-    - '{{ .Values._internal.capo_need_v1alpha8_fix }}'
-    unit_templates:
-    - base-deps
-    depends_on:
-      capo-v1alpha8-fix-crd: true
-      kube-storage-version-migrator: true
-    repo: sylva-core
-    kustomization_spec:
-      path: ./kustomize-units/capo-v1alpha8-fix
-      wait: true
-
-  capo-v1alpha8-clear:
-    info:
-      description: handles CAPO apiVersion v1alpha8 issues (clear CRD)
-      details: fixes CAPO CRDs to clear v1alpha8 from stored versions
-      internal: true
-    unit_templates:
-    - base-deps
-    - kube-job
-    enabled_conditions:
-    - '{{ .Values._internal.capo_need_v1alpha8_fix }}'
-    depends_on:
-      capo-v1alpha8-fix-resources: true
-      kube-storage-version-migrator: true
-    kustomization_spec:
-      _patches:
-      - target:
-          kind: ClusterRole
-        patch: |
-          - op: replace
-            path: /rules
-            value:
-              - apiGroups: [apiextensions.k8s.io]
-                resources: [customresourcedefinitions, customresourcedefinitions/status]
-                verbs: [list, get, patch]
-              - apiGroups: [migration.k8s.io]
-                resources: [storageversionmigrations]
-                verbs: [list, get, watch]
-      - target:
-          kind: ConfigMap
-          labelSelector: kube-job=script
-        patch: |
-          - op: replace
-            path: /data/kube-job.sh
-            value: |
-              #!/bin/bash
-              set -e
-
-              if ! (kubectl get crd kustomizations.kustomize.toolkit.fluxcd.io >/dev/null); then
-                echo "can't access CRDs, failing (service account issue)"
-                exit 1
-              fi
-
-              if ! (kubectl get crd openstackclusters.infrastructure.cluster.x-k8s.io >/dev/null); then
-                echo "CAPO not installed yet, this is a fresh install, nothing to do"
-                exit 0
-              fi
-
-              # we explicitly wait for the migration to be done, because since StorageVersionMigration isn't kstatus-compliant
-              # the readiness of the capo-v1alpha8-fix-resources unit isn't sufficient to guarantee that all resources
-              # were migrated
-              #
-              for kind in openstackmachines openstackmachinetemplates openstackclusters openstackclustertemplates; do
-                crd="$kind.infrastructure.cluster.x-k8s.io"
-                echo ------------- $crd, wait for all resources to have been migrated -----------------
-
-                echo "wait for all resources to have been migrated..."
-                kubectl wait StorageVersionMigration capo-v1alpha8-fix-$kind --timeout 60s \
-                  --for='jsonpath={.status.conditions[?(@.type=="Succeeded")].status}=True'
-              done
-
-              for kind in openstackmachines openstackmachinetemplates openstackclusters openstackclustertemplates; do
-                crd="$kind.infrastructure.cluster.x-k8s.io"
-                echo ------------- $crd, cleaning storedVersions -----------------
-
-                if (kubectl get crd $crd -o json | jq -e '.spec.versions[] | select(.name == "v1alpha8") | length == 0' &> /dev/null); then
-                  echo "no v1alpha8 in $crd, skipping"
-                  continue
-                fi
-
-                echo "cleaning v1alpha8 from .status.storedVersions"
-                kubectl patch crd $crd --type=json --patch='[{"op":"replace","path":"/status/storedVersions","value":["v1alpha7"]}]' --subresource=status
-              done
-
   capo:
     info:
       description: installs OpenStack CAPI infra provider
@@ -2401,7 +2269,6 @@ units:
     unit_templates:
     - base-deps
     depends_on:
-      capo-v1alpha8-clear: '{{ .Values._internal.capo_need_v1alpha8_fix }}'
       cert-manager: true
     kustomization_spec:
       path: ./kustomize-units/capo
@@ -2483,18 +2350,6 @@ units:
       _components:
         - '{{ tuple "components/ha" (.Values._internal.ha_cluster.is_ha) | include "set-only-if" }}'
 
-  cluster-rke2-migrate-legacy-etcd-certs:
-    info:
-      description: handles the migration of etcd secrets for all RKE2 clusters deployed with Sylva (versions inferior or equal to 1.1.1)
-      internal: true
-    unit_templates:
-    - kube-job
-    enabled_conditions:
-    - '{{ .Values._internal.state.is_upgrade }}'
-    - '{{ tuple . "cabpr" | include "unit-enabled" }}'
-    kustomization_spec:
-      path: ./kustomize-units/cluster-rke2-migrate-legacy-etcd-certs
-
   cabpr:
     info:
       description: installs RKE2 CAPI bootstrap provider
@@ -2504,7 +2359,6 @@ units:
     - base-deps
     depends_on:
       cert-manager: true
-      cluster-rke2-migrate-legacy-etcd-certs: '{{ tuple . "cluster-rke2-migrate-legacy-etcd-certs" | include "unit-enabled" }}'
     kustomization_spec:
       path: ./kustomize-units/cabpr
       wait: true
@@ -2828,10 +2682,7 @@ units:
       cluster-bmh: '{{ .Values.cluster.capi_providers.infra_provider | eq "capm3" }}'
       cluster-node-deletion-timeout-fix: '{{ tuple . "cluster-node-deletion-timeout-fix" | include "unit-enabled" }}'
       cluster-node-provider-id-blacklist: '{{ tuple . "cluster-node-provider-id-blacklist" | include "unit-enabled" }}'
-      cluster-rke2-migrate-legacy-etcd-certs: '{{ tuple . "cluster-rke2-migrate-legacy-etcd-certs" | include "unit-enabled" }}'
       longhorn-instance-manager-cleanup: '{{ tuple . "longhorn-instance-manager-cleanup" | include "unit-enabled" }}'
-      thanos-uninstall-pre-upgrade: '{{ tuple . "thanos-uninstall-pre-upgrade" | include "unit-enabled" }}'
-      minio-cleanup-pre-upgrade: '{{ tuple . "minio-cleanup-pre-upgrade" | include "unit-enabled" }}'
       cluster-prevent-rke2-helmcharts-calico-metallb: '{{ tuple . "cluster-prevent-rke2-helmcharts-calico-metallb" | include "unit-enabled" }}'
       rke2-helmchart-prevent-uninstall: '{{ and (tuple . "rke2-helmchart-prevent-uninstall" | include "unit-enabled") .Values._internal.state.is_upgrade }}'
       metallb: '{{ and (tuple . "metallb" | include "unit-enabled") .Values._internal.state.is_upgrade }}'
@@ -3016,7 +2867,7 @@ units:
                   {{- else if (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpr") }}
                   RKE2ControlPlane
                   {{- else if (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpoa") }}
-                  AgentControlPlane
+                  OpenshiftAssistedControlPlane
                   {{- end }}
       - target:
           kind: ConfigMap
@@ -3194,13 +3045,8 @@ units:
       namespace-defs: true
     helm_repo_url: https://rke2-charts.rancher.io
     helm_chart_versions: &calico-chart-versions
-      v3.27.300: >-
-        {{ or       (include "k8s-version-match" (tuple . ">=1.27.13,<1.28.0"))
-                    (include "k8s-version-match" (tuple . ">=1.28.9,<1.29.0"))
-        }}
-      v3.28.100: >-
-        {{ include "k8s-version-match" (tuple . ">=1.29.0") }}
-
+      v3.28.200: >-
+        {{ include "k8s-version-match" (tuple ">=1.28.0" .Values._internal.k8s_version) }}
     helmrelease_spec:
       releaseName: rke2-calico-crd
       targetNamespace: kube-system
@@ -3208,22 +3054,6 @@ units:
         spec:
           chart: rke2-calico-crd
           version: "" # will be defined by helm_chart_versions
-
-  tigera-clusterrole:
-    info:
-      description: is here to allow for upgrading Calico chart when upgrading cluster
-      details: |
-        For v1.25.x to v1.26.x, see https://gitlab.com/sylva-projects/sylva-core/-/issues/664
-      internal: true
-    unit_templates:
-    - base-deps
-    enabled_conditions:
-    - '{{ tuple . "calico" | include "unit-enabled" }}'
-    repo: sylva-core
-    kustomization_spec:
-      path: ./kustomize-units/tigera-clusterrole
-      wait: true
-      force: true
 
   calico:
     info:
@@ -3291,37 +3121,6 @@ units:
           kind: Installation
           name: default
 
-  metallb-rke2-chart-cleanup:
-    info:
-      description: remove rke2-deployed HelmChart resources for MetalLB
-      internal: true
-    unit_templates:
-    - base-deps
-    - kube-job
-    enabled_conditions:
-    - '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" }}'
-    - '{{ .Values._internal.state.is_upgrade }}'
-    depends_on:
-      cluster-prevent-rke2-helmcharts-calico-metallb: true
-    kustomization_spec:
-      targetNamespace: metallb-system
-      _patches:
-      - target:
-          kind: ConfigMap
-          labelSelector: kube-job=script
-        patch: |
-          - op: replace
-            path: /data/kube-job.sh
-            value: |
-              #!/bin/bash
-              if kubectl -n metallb-system get helmchart.helm.cattle.io metallb; then
-                kubectl -n metallb-system delete cm chart-content-metallb
-                kubectl -n metallb-system delete secret chart-values-metallb
-                kubectl -n metallb-system delete secret -l name=metallb,owner=helm
-                kubectl -n metallb-system patch helmchart --type merge -p '{"metadata":{"finalizers": [], "annotations":{"helmcharts.helm.cattle.io/unmanaged":""}}}' metallb
-                kubectl -n metallb-system delete helmchart.helm.cattle.io metallb
-              fi
-
   metallb:
     info:
       description: installs MetalLB operator
@@ -3333,7 +3132,6 @@ units:
                (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpr") }}'
     depends_on:
       '{{ .Values._internal.calico_readiness_unit }}': '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpk" }}'
-      metallb-rke2-chart-cleanup: '{{ tuple . "metallb-rke2-chart-cleanup" | include "unit-enabled" }}'
     helm_repo_url: https://metallb.github.io/metallb
     helmrelease_spec:
       chart:
@@ -3837,8 +3635,7 @@ units:
       '{{ .Values._internal.calico_readiness_unit }}': '{{ tuple . "calico" | include "unit-enabled" }}'
     helm_repo_url: https://rke2-charts.rancher.io
     helm_chart_versions:
-      4.10.102: '{{ include "k8s-version-match" (tuple . ">=1.27.16,<1.29.0") }}'  # also for 1.28.12
-      4.10.401: '{{ include "k8s-version-match" (tuple . ">=1.29.0") }}'
+      4.10.501: '{{ include "k8s-version-match" (tuple ">=1.28.0" .Values._internal.k8s_version) }}'
     helmrelease_spec:
       releaseName: rke2-ingress-nginx
       targetNamespace: kube-system
@@ -4046,10 +3843,10 @@ units:
                             seccompProfile:
                               type: RuntimeDefault
 
-  prometheus-flux:
+  prometheus-custom-metrics:
     info:
-      description: Prometheus configuration for Flux controllers & resources
-      details: Adding podmonitors for flux controllers and custom labels to the flux resource metrics by configuring kube-state-metrics
+      description: Prometheus configuration for custom resource metrics
+      details: Adding podmonitors for flux controllers and create custom metrics for various resources by configuring kube-state-metrics
       internal: true
     unit_templates:
     - base-deps
@@ -4057,7 +3854,7 @@ units:
     enabled_conditions:
     - '{{ tuple . "monitoring" | include "unit-enabled" }}'
     kustomization_spec:
-      path: ./kustomize-units/prometheus-flux
+      path: ./kustomize-units/prometheus-custom-metrics
       wait: false
       force: true
 
@@ -4217,8 +4014,8 @@ units:
             minAvailable: '{{ .Values._internal.ha_cluster.is_ha | ternary 1 0 }}'
       valuesFrom:
         - kind: ConfigMap
-          name: flux-custom-resource-state-config # this configmap is a byproduct of the prometheus-flux unit
-          optional: '{{ not (tuple . "prometheus-flux" | include "unit-enabled") | include "as-bool" }}'
+          name: custom-resource-state-config # this configmap is a byproduct of the prometheus-custom-metrics unit
+          optional: '{{ not (tuple . "prometheus-custom-metrics" | include "unit-enabled") | include "as-bool" }}'
         - kind: ConfigMap
           name: prometheus-config-values # this configmap is a byproduct of the prometheus-resources unit
           optional: '{{ not (tuple . "prometheus-resources" | include "unit-enabled") | include "as-bool" }}'
@@ -4496,7 +4293,7 @@ units:
       chart:
         spec:
           chart: kepler
-          version: 0.5.9
+          version: 0.5.11
       install:
         createNamespace: false
       values:
@@ -4763,7 +4560,7 @@ units:
       maturity: stable
     unit_templates:
     - base-deps
-    enabled: '{{ tuple . "sriov" | include "unit-enabled" }}' # for backward compatibility
+    enabled: '{{ or (tuple . "sriov" | include "unit-enabled") (not (empty .Values.sriov.node_policies)) }}' # for backward compatibility
     depends_on:
       namespace-defs: true
       sriov-crd: true
@@ -4915,7 +4712,7 @@ units:
       chart:
         spec:
           chart: ceph-csi-cephfs
-          version: 3.12.2
+          version: 3.12.3
       values:
         provisioner:
           replicaCount: '{{ .Values.cluster.control_plane_replicas }}'
@@ -5381,9 +5178,9 @@ units:
       - '{{ eq .Values.cluster.capi_providers.infra_provider "capv" }}'
     helm_repo_url: https://kubernetes.github.io/cloud-provider-vsphere
     helm_chart_versions:
-      1.27.0: '{{ include "k8s-version-match" (tuple . ">=1.27.0,<1.28.0") }}'
-      1.28.0: '{{ include "k8s-version-match" (tuple . ">=1.28.0,<1.29.0") }}'
-      1.29.0: '{{ include "k8s-version-match" (tuple . ">=1.29.0") }}'
+      1.28.0: '{{ include "k8s-version-match" (tuple ">=1.28.0,<1.29.0" .Values._internal.k8s_version) }}'
+      1.29.0: '{{ include "k8s-version-match" (tuple ">=1.29.0,<1.30.0" .Values._internal.k8s_version) }}'
+      v1.30.0: '{{ include "k8s-version-match" (tuple ">=1.30.0" .Values._internal.k8s_version) }}'
     helmrelease_spec:
       chart:
         spec:
@@ -5399,7 +5196,7 @@ units:
           datacenter: '{{ .Values.cluster.capv.dataCenter }}'
           thumbprint: '{{ .Values.cluster.capv.tlsThumbprint }}'
         daemonset:
-          image: '{{ include "k8s-version-match" (tuple . ">=1.27.0,<1.28.0") | eq "true" | ternary "registry.gitlab.com/sylva-projects/sylva-elements/container-images/sandbox-registry/cloud-provider-vsphere-cpi-release-manager" "registry.k8s.io/cloud-pv-vsphere/cloud-provider-vsphere" }}'
+          image: registry.k8s.io/cloud-pv-vsphere/cloud-provider-vsphere
       _postRenderers:
         - kustomize:
             patches:
@@ -5893,52 +5690,6 @@ units:
           name: sts-tls
           namespace: minio-operator
 
-  minio-cleanup-pre-upgrade:
-    info:
-      description: special unit to delete left-over minio PVCs before cluster upgrades
-      details: >-
-        In 1.1.1 release, minio-monitoring-tenant was configured to use single-replica-storageclass,
-        this tenant will be deleted during upgrade, but we have to delete the PVC that will be left over
-      internal: true
-    unit_templates:
-    - kube-job
-    enabled_conditions:
-      - '{{ lookup "v1" "PersistentVolumeClaim" "minio-monitoring-tenant" "" | dig "items" list | len | ne 0 }}'
-    kustomization_spec:
-      postBuild:
-        substitute:
-          JOB_CHECKSUM: '{{ .Release.Revision }}'
-      _patches:
-      - target:
-          kind: ClusterRole
-        patch: |
-          - op: replace
-            path: /rules
-            value:
-              - apiGroups: [""]
-                resources: [pods]
-                verbs: [list, get]
-              - apiGroups: [""]
-                resources: [persistentvolumeclaims]
-                verbs: [list, get, delete]
-      - target:
-          kind: ConfigMap
-          labelSelector: kube-job=script
-        patch: |
-          - op: replace
-            path: /data/kube-job.sh
-            value: |
-              set -e
-
-              echo "-- Ensure that all minio-monitoring-tenant pods are deleted"
-              kubectl wait --for=delete pod --all -n minio-monitoring-tenant --timeout=300s
-
-              echo "-- Delete any pvc that would have been left over"
-              kubectl delete pvc -n minio-monitoring-tenant --all --timeout=300s
-
-              echo "-- Ensure that there are no more minio-monitoring-tenant PVCs using single-replica-storageclass"
-              kubectl get pvc -n minio-monitoring-tenant -o yaml | yq -e '[.items[] | select (.spec.storageClassName == "single-replica-storageclass")] | length == 0'  2>/dev/null
-
   minio-logging-init:
     info:
       description: sets up secrets and certificates for minio-logging
@@ -6031,6 +5782,13 @@ units:
                 runAsNonRoot: true
                 seccompProfile:
                   type: RuntimeDefault
+              resources:
+                limits:
+                  cpu: 500m
+                  memory: 512Mi
+                requests:
+                  cpu: 100m
+                  memory: 128Mi
               affinity:
                 podAntiAffinity:
                   requiredDuringSchedulingIgnoredDuringExecution:
@@ -6198,6 +5956,13 @@ units:
                 runAsNonRoot: true
                 seccompProfile:
                   type: RuntimeDefault
+              resources:
+                limits:
+                  cpu: 500m
+                  memory: 512Mi
+                requests:
+                  cpu: 100m
+                  memory: 128Mi
               affinity:
                 podAntiAffinity:
                   requiredDuringSchedulingIgnoredDuringExecution:
@@ -6320,63 +6085,6 @@ units:
         kind: Secret
         namespace: sylva-system
         name: thanos-secrets
-
-  thanos-uninstall-pre-upgrade:
-    info:
-      description: special unit to uninstall thanos before cluster upgrades
-      details: >-
-        In 1.1.1 release, thanos was configured to use minio-monitoring-tenant tenant (and single-replica-storageclass when longhorn was used)
-        This tenant is replaced by minio-monitoring-tenant. As this value can't be updated, and thanos data will be lost in any case,
-        uninstall it prior to upgrade cluster and reinstall it with new values.
-      internal: true
-    unit_templates:
-    - kube-job
-    enabled_conditions:
-      - '{{ tuple . "thanos" | include "unit-enabled" }}'
-      - >-
-        {{ lookup "v1" "Secret" "thanos" "thanos-objstore-secret"
-           | dig "data" "objstore.yml" ""
-           | b64dec | fromYaml | default dict
-           | dig "config" "endpoint" "" | eq "minio.minio-monitoring-tenant.svc.cluster.local"
-        }}
-    kustomization_spec:
-      postBuild:
-        substitute:
-          JOB_CHECKSUM: '{{ .Release.Revision }}'
-      _patches:
-      - target:
-          kind: ClusterRole
-        patch: |
-          - op: replace
-            path: /rules
-            value:
-              - apiGroups: [""]
-                resources: [pods]
-                verbs: [list, get]
-              - apiGroups: [""]
-                resources: [persistentvolumeclaims]
-                verbs: [list, get, delete]
-      - target:
-          kind: ConfigMap
-          labelSelector: kube-job=script
-        patch: |
-          - op: replace
-            path: /data/kube-job.sh
-            value: |
-              echo "-- Unsuspend thanos Kustomizations and HelmReleases if needed"
-              kubectl patch kustomization thanos --type=json --patch '[{"op": "remove", "path": "/spec/suspend"}]' &>/dev/null
-              kubectl patch helmrelease thanos --type=json --patch '[{"op": "remove", "path": "/spec/suspend"}]' &>/dev/null
-
-              echo "-- Delete thanos HelmRelease"
-              kubectl delete helmrelease thanos --timeout=300s
-
-              set -e
-
-              echo "-- Ensure that all thanos pods are deleted"
-              kubectl wait --for=delete pod --all -n thanos --timeout=300s
-
-              echo "-- Delete any pvc that would have been left over"
-              kubectl delete pvc -n thanos --all --timeout=300s
 
   thanos:
     info:
@@ -6744,6 +6452,31 @@ units:
           LOKI_URL: '{{ .Values.logging.loki_url }}'
           CLUSTER_NAME: '{{ .Values.cluster.name }}'
       wait: true
+
+  sylva-logging-flows:
+    info:
+      description: configures logging flows and output to export the platform logs to an external server
+      maturity: beta
+      internal: false
+    unit_templates:
+    - base-deps
+    enabled: false
+    depends_on:
+      logging: true
+    repo: sylva-logging-flows
+    helm_chart_artifact_name: sylva-logging-flows
+    # flow, clusterflows, outputs and clusteroutputs values are documented in the sylva-logging-flow helmchart https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-logging-flows
+    helmrelease_spec:
+      chart:
+        spec:
+          chart: .
+      targetNamespace: cattle-logging-system
+      values:
+        flows: '{{ .Values.logging.flows | include "preserve-type" }}'
+        clusterflows: '{{ .Values.logging.clusterflows | include "preserve-type" }}'
+    helm_secret_values:
+      outputs: '{{ .Values.logging.outputs | include "preserve-type" }}'
+      clusteroutputs: '{{ .Values.logging.clusteroutputs | include "preserve-type" }}'
 
   loki-init:
     info:
@@ -7224,7 +6957,7 @@ cluster:
   images:
     kube_vip:
       repository: ghcr.io/kube-vip/kube-vip
-      tag: "v0.8.6"
+      tag: "v0.8.7"
 
   # Nodes number for control-plane
   control_plane_replicas: 3
@@ -7235,7 +6968,7 @@ cluster:
 
   capo:
     # flavor_name: m1.large # Openstack flavor name
-    # image_key: # key of an image in os_images or sylva_diskimage_builder
+    # image_key: # key of an image in os_images or sylva_diskimagebuilder_images
     # image_name: # (deprecated, please use image_key instead) - OpenStack image name (one of image_key and image_name must be set, but not both)
     # ssh_key_name: # OpenStack VM SSH key
     # network_id: # OpenStack network used for nodes and VIP port
@@ -7619,7 +7352,7 @@ sylva_base_oci_registry:
   '{{
   regexReplaceAll
     "/sylva-core/?$"
-    (lookup "source.toolkit.fluxcd.io/v1beta2" "HelmRepository" .Release.Namespace "sylva-units" | dig "spec" "url" "")
+    (lookup "source.toolkit.fluxcd.io/v1" "HelmRepository" .Release.Namespace "sylva-units" | dig "spec" "url" "")
     ""
   | default "oci://registry.gitlab.com/sylva-projects"
   }}'
@@ -7631,25 +7364,25 @@ os_images_oci_registries:
     tag: '{{ .Values.sylva_diskimagebuilder_version }}'
     cosign_publickey: '{{ .Values.security.os_images.cosign_public_key }}'
 
-k8s_version_short: "1.29"
+k8s_version_short: "1.30"
 
 # Renovate Bot needs additional information to detect sylva diskimage-builder version
 # renovate: depName=sylva-projects/sylva-elements/diskimage-builder
-sylva_diskimagebuilder_version: 0.3.3
+sylva_diskimagebuilder_version: 0.3.7
 
 sylva_diskimagebuilder_images:
-  ubuntu-jammy-hardened-rke2-1-29-9:
-    default_enabled: true
-  ubuntu-jammy-plain-rke2-1-29-9: {}
-  ubuntu-jammy-plain-rke2-1-28-14: {}
-  ubuntu-jammy-plain-rke2-1-27-16: {}
-  ubuntu-jammy-hardened-rke2-1-27-16: {}
-  opensuse-15-6-plain-rke2-1-29-9: {}
-  opensuse-15-6-plain-rke2-1-28-14: {}
-  opensuse-15-6-plain-rke2-1-27-16: {}
-  opensuse-15-6-hardened-rke2-1-29-9: {}
-  opensuse-15-6-hardened-rke2-1-28-14: {}
-  opensuse-15-6-hardened-rke2-1-27-16: {}
+  ubuntu-jammy-hardened-rke2-1-30-6: {}
+  ubuntu-jammy-hardened-rke2-1-29-10: {}
+  ubuntu-jammy-hardened-rke2-1-28-15: {}
+  ubuntu-jammy-plain-rke2-1-30-6: {}
+  ubuntu-jammy-plain-rke2-1-29-10: {}
+  ubuntu-jammy-plain-rke2-1-28-15: {}
+  opensuse-15-6-plain-rke2-1-30-6: {}
+  opensuse-15-6-plain-rke2-1-29-10: {}
+  opensuse-15-6-plain-rke2-1-28-15: {}
+  opensuse-15-6-hardened-rke2-1-30-6: {}
+  opensuse-15-6-hardened-rke2-1-29-10: {}
+  opensuse-15-6-hardened-rke2-1-28-15: {}
 
 # this dict can be enriched at deployment time to feed additional information
 # into the sylva-units-status ConfigMap
@@ -7668,6 +7401,11 @@ os_images_default_download_storage_space: 30Gi
 get_openstack_images_per_image_timeout_minutes: 30
 
 security:
+  external_x509_issuer: {}
+   # issuer_type:  acme or vault
+   # vault_token:  authent token for vault,
+   # server: e.g. https://vault.external-domain:8200
+   # vault_path: e.g. /pki/sylva, only when using vault issuer
   default_cosign_public_key: | # the default public key in PEM format to be used to verify cosign signatures
     -----BEGIN PUBLIC KEY-----
     MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEcuuLszwy0u7y394KY6GW1BgjfaU6
@@ -7748,6 +7486,13 @@ logging:
   # - for workload clusters, this is overridden via shared_workload_clusters_values.logging.loki_url
   #   to point to the mgmt cluster Loki
   loki_url: http://loki-gateway.loki.svc.cluster.local
+  # the following values are mapped into sylva-logging-flows Helm unit values
+  # (see https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-logging-flows)
+  flows: {}
+  clusterflows: {}
+  outputs: {}
+  clusteroutputs: {}
+
 
 _internal:
 
@@ -7770,6 +7515,7 @@ _internal:
           | include "preserve-type"
       }}
 
+  k8s_version: '{{ include "interpret-as-string" (tuple . .Values.cluster.k8s_version) }}'
   mgmt_cluster: false
 
   # 'cluster_machines_ready_unit_deps' contains all the dependencies of the 'cluster' unit, direct and indirect,
@@ -7924,9 +7670,9 @@ _internal:
   bootstrap_node_ip: '{{ lookup "v1" "ConfigMap" "sylva-system" "cluster-public-endpoint" | dig "data" "address" "not_found" | default "not_found" }}'
 
   k8s_version_map:
-    1.27: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" | ternary "v1.27.16+rke2r2" "v1.27.16" }}'
-    1.28: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" | ternary "v1.28.14+rke2r1" "v1.28.14" }}'
-    1.29: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" | ternary "v1.29.9+rke2r1" "v1.29.9" }}'
+    1.28: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" | ternary "v1.28.15+rke2r1" "v1.28.15" }}'
+    1.29: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" | ternary "v1.29.10+rke2r1" "v1.29.10" }}'
+    "1.30": '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" | ternary "v1.30.6+rke2r1" "v1.30.6" }}'
 
   # total number of nodes in this cluster
   node_count:
@@ -7967,11 +7713,6 @@ _internal:
               {{- else -}}
                 {{- dict | include "preserve-type" -}}
               {{- end }}
-
-  capo_need_v1alpha8_fix: >-
-    {{
-    .Capabilities.APIVersions | has "infrastructure.cluster.x-k8s.io/v1alpha8/OpenStackCluster" | include "preserve-type"
-    }}
 
   metallb_service_annotations:
     '{{
