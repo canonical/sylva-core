@@ -202,6 +202,7 @@ function fetch_longhorn_support_bundle {
   echo "starting longhorn-backend kubectl port-forward"
   kubectl -n longhorn-system port-forward service/longhorn-backend 5440:manager &
   port_forward_pid=$!
+  sleep 5
 
   # code borrowed from https://longhorn.io/kb/troubleshooting-create-support-bundle-with-curl/
   ISSUE_URL=https://gitlab.com/sylva-projects/sylva-core/-/jobs/$CI_JOB_ID
@@ -212,12 +213,12 @@ function fetch_longhorn_support_bundle {
   echo "Requesting support bundle..."
   REQUEST_SUPPORT_BUNDLE=$(curl -sSX POST -H 'Content-Type: application/json' -d '{ "issueURL": "'"${ISSUE_URL}"'", "description": "'"${ISSUE_DESCRIPTION}"'" }' http://${BACKEND_URL}/v1/supportbundles)
 
-  ID=$( jq -r '.id' <<< ${REQUEST_SUPPORT_BUNDLE} )
-  SUPPORT_BUNDLE_NAME=$( jq -r '.name' <<< ${REQUEST_SUPPORT_BUNDLE} )
+  ID=$( yq -p json -r '.id' <<< ${REQUEST_SUPPORT_BUNDLE} )
+  SUPPORT_BUNDLE_NAME=$( yq -p json -r '.name' <<< ${REQUEST_SUPPORT_BUNDLE} )
   echo "Creating support bundle ${SUPPORT_BUNDLE_NAME} on Node ${ID}"
 
-  while [ $(curl -sSX GET http://${BACKEND_URL}/v1/supportbundles/${ID}/${SUPPORT_BUNDLE_NAME} | jq -r '.state' ) != "ReadyForDownload" ]; do
-    echo "Progress: $(curl -sSX GET http://${BACKEND_URL}/v1/supportbundles/${ID}/${SUPPORT_BUNDLE_NAME} | jq -r '.progressPercentage' )%"
+  while [ $(curl -sSX GET http://${BACKEND_URL}/v1/supportbundles/${ID}/${SUPPORT_BUNDLE_NAME} | yq -p json -r '.state' ) != "ReadyForDownload" ]; do
+    echo "Progress: $(curl -sSX GET http://${BACKEND_URL}/v1/supportbundles/${ID}/${SUPPORT_BUNDLE_NAME} | yq -p json -r '.progressPercentage' )%"
     sleep 1s
   done
 
