@@ -58,7 +58,7 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
     spec:
       url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-capi-cluster.git
       ref:
-        tag: 0.4.5
+        tag: 0.4.6
 
   devnull:
     kind: GitRepository
@@ -2699,7 +2699,7 @@ units:
       description: Kyverno policy to prevent RKE2 HelmCharts from being recreated for MetaLB and Calico
       internal: true
     unit_templates:
-    - base-deps
+    - '{{ tuple "base-deps" (not .Values._internal.state.is_upgrade ) | include "set-only-if" }}'
     enabled_conditions:
     - '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" }}'
     - '{{ .Values._internal.state.is_upgrade }}'
@@ -2715,7 +2715,7 @@ units:
       description: Kyverno policy to prevent key Helm charts from being uninstalled by RKE2 HelmChart controller
       internal: true
     unit_templates:
-    - base-deps
+    - '{{ tuple "base-deps" (not .Values._internal.state.is_upgrade ) | include "set-only-if" }}'
     enabled_conditions:
     - '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" }}'
     depends_on:
@@ -2750,6 +2750,8 @@ units:
       cluster-prevent-rke2-helmcharts-calico-metallb: '{{ tuple . "cluster-prevent-rke2-helmcharts-calico-metallb" | include "unit-enabled" }}'
       rke2-helmchart-prevent-uninstall: '{{ and (tuple . "rke2-helmchart-prevent-uninstall" | include "unit-enabled") .Values._internal.state.is_upgrade }}'
       metallb: '{{ and (tuple . "metallb" | include "unit-enabled") .Values._internal.state.is_upgrade }}'
+      calico: '{{ .Values._internal.state.is_upgrade }}'
+      calico-ready: '{{ .Values._internal.state.is_upgrade }}'
     kustomization_spec:
       prune: '{{ not (eq .Release.Namespace "sylva-system") | include "preserve-type" }}'
       # we wait on all important resources built by sylva-capi-cluster,
@@ -2804,6 +2806,17 @@ units:
           name: '{{ .Values._internal.cluster_unit_os_images_info_configmap }}'
           valuesKey: values.yaml
           optional: '{{ not (.Values.cluster.capi_providers.infra_provider | eq "capm3") | include "as-bool" }}'
+        - |
+          {{-
+          tuple
+            (dict "kind" "ConfigMap"
+                  "name" "capo-cluster-resources"
+                  "valuesKey" "allocated_ip"
+                  "targetPath" "cni.calico.helm_values.installation.calicoNetwork.nodeAddressAutodetectionV4.canReach"
+            )
+            .Values._internal.capo_calico_autodetection_method_use_canReach_vip
+          | include "set-only-if"
+          -}}
       _postRenderers:
         - kustomize:
             patches:
@@ -3102,11 +3115,12 @@ units:
       maturity: stable
       hidden: true
     unit_templates:
-    - base-deps
+      - '{{ tuple "base-deps" (not .Values._internal.state.is_upgrade) | include "set-only-if" }}'
     enabled_conditions:
     - '{{ tuple . "calico" | include "unit-enabled" }}'
     depends_on:
       namespace-defs: true
+      calico-rke2-chart-cleanup: '{{ tuple . "calico-rke2-chart-cleanup" | include "unit-enabled" }}'
     helm_repo_url: https://rke2-charts.rancher.io
     helm_chart_versions: &calico-chart-versions
       v3.28.200: >-
@@ -3119,46 +3133,70 @@ units:
           chart: rke2-calico-crd
           version: "" # will be defined by helm_chart_versions
 
+  calico-rke2-chart-cleanup:
+    info:
+      description: remove rke2-deployed HelmChart resources for Calico
+      internal: true
+    unit_templates:
+    - kube-job
+    enabled_conditions:
+    - '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" }}'
+    - '{{ .Values._internal.state.is_upgrade }}'
+    depends_on:
+      cluster-prevent-rke2-helmcharts-calico-metallb: true
+      rke2-helmchart-prevent-uninstall: true
+    kustomization_spec:
+      targetNamespace: kube-system
+      _patches:
+      - target:
+          kind: ConfigMap
+          labelSelector: kube-job=script
+        patch: |
+          - op: replace
+            path: /data/kube-job.sh
+            value: |
+              #!/bin/bash
+              if kubectl -n kube-system get helmchart.helm.cattle.io rke2-calico || kubectl -n kube-system get helmchart.helm.cattle.io rke2-calico-crd; then
+                kubectl -n kube-system delete cm chart-content-rke2-calico chart-content-rke2-calico-crd
+                kubectl -n kube-system delete secret chart-values-rke2-calico chart-values-rke2-calico-crd
+                kubectl -n kube-system delete secret -l 'name in (rke2-calico, rke2-calico-crd)',owner=helm
+                kubectl -n kube-system patch helmchart --type merge -p '{"metadata":{"finalizers": [], "annotations":{"helmcharts.helm.cattle.io/unmanaged":""}}}' rke2-calico rke2-calico-crd
+                kubectl -n kube-system delete helmchart.helm.cattle.io rke2-calico rke2-calico-crd
+              fi
+
   calico:
     info:
       description: install Calico CNI
       maturity: stable
-    enabled_conditions:
-    - '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpk" }}'  # installed by RKE2 when RKE2 is used
     unit_templates:
-    - base-deps
+      - '{{ tuple "base-deps" (not .Values._internal.state.is_upgrade) | include "set-only-if" }}'
     depends_on:
       calico-crd: true
+      calico-rke2-chart-cleanup: '{{ tuple . "calico-rke2-chart-cleanup" | include "unit-enabled" }}'
     helm_repo_url: https://rke2-charts.rancher.io
     helm_chart_versions: *calico-chart-versions  # we use a YAML anchor rather than templating so that this file can be read by tools/generate_units_documentation.py
     helmrelease_spec:
+      releaseName: '{{ eq .Values.cluster.capi_providers.bootstrap_provider "cabpk" | ternary "calico" "rke2-calico" }}'
+      targetNamespace: '{{ eq .Values.cluster.capi_providers.bootstrap_provider "cabpk" | ternary "sylva-system" "kube-system" }}'
       chart:
         spec:
           chart: rke2-calico
           version: "" # will be defined by helm_chart_versions
-      values:
-        tolerations:
-        - effect: NoExecute
-          key: node.kubernetes.io/not-ready
-          operator: Exists
-        - effect: NoSchedule
-          key: node.kubernetes.io/not-ready
-          operator: Exists
-        global:
-          clusterCIDR: '{{ first .Values.cluster.cluster_pods_cidrs }}'
-          clusterCIDRv4: '{{ first .Values.cluster.cluster_pods_cidrs }}'
-          # for clusterDNS, take the .10 of the first subnet of cluster.cluster_services_cidrs
-          # FIXME: this will not work for subnets not starting at 0 (e.g. 192.168.1.128/25)
-          clusterDNS: '{{ regexReplaceAll "[.]0/.*" (first .Values.cluster.cluster_services_cidrs) ".10" }}'
-          clusterDomain: cluster.local
-          serviceCIDR: '{{ first .Values.cluster.cluster_services_cidrs }}'
-        installation:
-          calicoNetwork:
-            bgp: Enabled
-            nodeAddressAutodetectionV4: '{{ .Values.cluster.cni.calico.autodetection_method | include "preserve-type"}}'
-          registry: UseDefault
-        felixConfiguration:
-          wireguardEnabled: '{{ .Values.security.calico_wireguard_enabled | include "preserve-type" }}'
+      values: '{{ .Values.calico_helm_values | include "preserve-type" }}'
+      valuesFrom:
+        # For Calico nodeAddressAutodetection, for RKE2 on CAPO, we need to pass the cluster VIP in calico values
+        # as installation.calicoNetwork.nodeAddressAutodetectionV4.canReach
+        #
+        # this address is read from the ConfigMap produced by capo-cluster-resources unit
+        # which allocates the VIP
+        '{{ tuple
+            (list (dict "kind" "ConfigMap"
+                  "name" "capo-cluster-resources"
+                  "valuesKey" "allocated_ip"
+                  "targetPath" "installation.calicoNetwork.nodeAddressAutodetectionV4.canReach")
+            )
+            .Values._internal.capo_calico_autodetection_method_use_canReach_vip
+          | include "set-only-if" }}'
 
   calico-ready:
     info:
@@ -7043,8 +7081,7 @@ cluster:
     - 100.72.0.0/16
   cni:
     calico:
-      wireguard_enabled: '{{ .Values.security.calico_wireguard_enabled | include "preserve-type" }}'
-      autodetection_method: '{{ .Values._internal.default_calico_autodetection_method | include "preserve-type" }}'
+      helm_values: '{{ .Values.calico_helm_values | include "preserve-type" }}'
 
   ntp: '{{ .Values.ntp | include "preserve-type" }}'
   proxies:
@@ -7054,9 +7091,17 @@ cluster:
 
   registry_mirrors: '{{ .Values.registry_mirrors | include "preserve-type" }}'
 
-  metallb_helm_oci_url: ""  # for an OCI-based deployment this is overridden in use-oci-artifacts.values.yaml
-  metallb_helm_version: '{{ .Values.units.metallb.helmrelease_spec.chart.spec.version }}'
-  metallb_helm_extra_ca_certs: ""  # for an OCI-based deployment this is overridden in use-oci-artifacts.values.yaml
+  helm_oci_url: # for an OCI-based deployment this is overridden in use-oci-artifacts.values.yaml
+    metallb: ""
+    calico-crd: ""
+    calico: ""
+  helm_versions:
+    metallb: '{{ .Values.units.metallb.helmrelease_spec.chart.spec.version }}'
+    calico-crd: '{{ tuple . "calico-crd" (index .Values.units "calico-crd") | include "get-helm-version" }}'
+    calico: '{{ tuple . "calico" .Values.units.calico | include "get-helm-version" }}'
+  helm_extra_ca_certs: # for an OCI-based deployment this is overridden in use-oci-artifacts.values.yaml
+    metallb: ""
+    calico: ""
 
   capv:
     # image_name: # vSphere image name
@@ -7513,6 +7558,41 @@ logging:
   clusteroutputs: {}
 
 
+calico_helm_values:
+  tolerations:
+  - effect: NoExecute
+    key: node.kubernetes.io/not-ready
+    operator: Exists
+  - effect: NoSchedule
+    key: node.kubernetes.io/not-ready
+    operator: Exists
+  - effect: NoSchedule
+    key: node.cloudprovider.kubernetes.io/uninitialized
+    operator: Exists
+  - effect: NoSchedule
+    key: node.kubernetes.io/network-unavailable
+    operator: Exists
+  global:
+    clusterCIDR: '{{ .Values._internal.calico.clusterCIDR }}'
+    clusterCIDRv4: '{{ .Values._internal.calico.clusterCIDRv4 }}'
+    clusterDNS: '{{ .Values._internal.calico.clusterDNS }}'
+    clusterDomain: '{{ .Values._internal.calico.clusterDomain }}'
+    serviceCIDR: '{{ .Values._internal.calico.serviceCIDR }}'
+  installation:
+    calicoNetwork:
+      bgp: Enabled
+      mtu: '{{ tuple .Values.cluster.capm3.network_interfaces.mtu (and (.Values.cluster.capi_providers.infra_provider | eq "capm3") .Values.cluster.capm3.network_interfaces.mtu) | include "set-only-if" }}'
+      nodeAddressAutodetectionV4:
+        '{{
+        tuple
+          .Values._internal.default_calico_autodetection_method
+          (not .Values._internal.capo_calico_autodetection_method_use_canReach_vip)
+        | include "set-only-if"
+        }}'
+    registry: UseDefault
+  felixConfiguration:
+    wireguardEnabled: '{{ .Values.security.calico_wireguard_enabled | include "preserve-type" }}'
+
 _internal:
 
   litmus:
@@ -7725,14 +7805,19 @@ _internal:
 
   cluster_unit_os_images_info_configmap: os-images-info
 
-  # default value for cabpr is computed in s-c-c due to https://gitlab.com/sylva-projects/sylva-core/-/issues/1477
-  # canReach: not (empty .Values.cluster.mgmt_cluster_ip) | ternary .Values.cluster.mgmt_cluster_ip .Values.cluster.cluster_virtual_ip
   default_calico_autodetection_method: >-
     {{- if .Values.cluster.capi_providers.bootstrap_provider | eq "cabpk" }}
       {{- dict "kubernetes" "NodeInternalIP" | include "preserve-type" -}}
     {{- else -}}
-      {{- dict | include "preserve-type" -}}
+      {{- dict "canReach" (not (empty .Values.cluster.mgmt_cluster_ip) | ternary .Values.cluster.mgmt_cluster_ip .Values.cluster_virtual_ip) | include "preserve-type" -}}
     {{- end -}}
+
+  capo_calico_autodetection_method_use_canReach_vip:
+    '{{
+      and (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpr")
+          (.Values.cluster.capi_providers.infra_provider | eq "capo")
+          (empty .Values.cluster.mgmt_cluster_ip) | include "preserve-type"
+    }}'
 
   calico_readiness_unit: "calico"
 
@@ -7789,6 +7874,15 @@ _internal:
         name: not-used
       spec:
         unhealthyPodEvictionPolicy: AlwaysAllow
+
+  calico:
+    clusterCIDR: '{{ first .Values.cluster.cluster_pods_cidrs }}'
+    clusterCIDRv4: '{{ first .Values.cluster.cluster_pods_cidrs }}'
+    # for clusterDNS, take the .10 of the first subnet of cluster.cluster_services_cidrs
+    # FIXME: this will not work for subnets not starting at 0 (e.g. 192.168.1.128/25)
+    clusterDNS: '{{ regexReplaceAll "[.]0/.*" (first .Values.cluster.cluster_services_cidrs) ".10" }}'
+    clusterDomain: cluster.local
+    serviceCIDR: '{{ first .Values.cluster.cluster_services_cidrs }}'
 
 shared_workload_clusters_values:
   ntp: '{{ .Values.ntp | include "set-if-defined" }}'

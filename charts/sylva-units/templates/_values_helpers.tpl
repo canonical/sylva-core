@@ -97,3 +97,20 @@ are not equal to previous revision (positional arg $old_values) set
   {{- end -}}
 {{- end -}}
 {{- end -}}
+
+{{- define "get-helm-version" -}}
+  {{- $envAll := index . 0 -}}
+  {{- $unit_name := index . 1 -}}
+  {{- $unit_def := index . 2 -}}
+  {{- $helm_chart_versions_selection := "" -}}
+  {{- range $ver, $enabled := (index (tuple $envAll $unit_def | include "interpret-inner-gotpl" | fromJson) "result" | dig "helm_chart_versions" "")  -}}
+    {{- if $enabled -}}
+      {{- if $helm_chart_versions_selection -}}
+        {{- fail (printf "unit '%s' has 'true' set on more than one version inside 'helm_chart_versions':\n%s" $unit_name ($unit_def.helm_chart_versions | toYaml)) -}}
+      {{- else -}}
+        {{- $helm_chart_versions_selection = $ver -}}
+      {{- end -}}
+    {{- end -}}
+  {{- end -}}
+  {{ $helm_chart_versions_selection }}
+{{- end -}}
