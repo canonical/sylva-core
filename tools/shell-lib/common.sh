@@ -161,6 +161,9 @@ function ensure_flux {
             yq -i ".data[\"extra-ca-certs.pem\"]=\"$B64_CERTS\"" ${BASE_DIR}/kustomize-units/flux-system/components/extra-ca/certs.yaml
         fi
         if [ "$(yq '.security.oci_artifacts.skip_signing_check' ${BASE_DIR}/charts/sylva-units/values.yaml)" = "false" ]; then
+            if ! yq -e '.components[] | select(. == "../components/cosign")' ${BASE_DIR}/kustomize-units/flux-system/offline/kustomization.yaml &> /dev/null; then
+                yq -i '.components += ["../components/cosign"]' ${BASE_DIR}/kustomize-units/flux-system/offline/kustomization.yaml
+            fi
             COSIGN_PUBLIC_KEY_B64=$(yq '.security.oci_artifacts.cosign_public_key | @base64' ${BASE_DIR}/charts/sylva-units/values.yaml)
             yq -i ".data[\"cosign.pub\"]=\"$COSIGN_PUBLIC_KEY_B64\"" ${BASE_DIR}/kustomize-units/flux-system/components/cosign/cosign-public-keys.yaml
         fi
