@@ -243,11 +243,7 @@ include:
     # Apply values for requested options
     yq -i '.cluster.name = strenv(CLUSTER_CI_NAME)' $values_file
     update_values_file all-ci-deployments.yml
-    if [[ $DEPLOYMENT_OS == "suse" ]]; then
-      update_values_file node-os-suse.yml
-    else  # ubuntu
-      update_values_file node-os-ubuntu.yml
-    fi
+    update_values_file node-os-${DEPLOYMENT_OS}.yml
     options=$(echo $DEPLOYMENT_OPTIONS | tr "," "\n")
     for option in $options; do
       if [[ $option == "oci" ]]; then
