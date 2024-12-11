@@ -1,0 +1,29 @@
+apiVersion: kyverno.io/v1
+kind: Policy
+metadata:
+  name: openbao-force-configmap-path
+  namespace: vault
+  annotations:
+    policies.kyverno.io/title: Change mountpoint of the openbao config dir
+    policies.kyverno.io/category: config
+    policies.kyverno.io/severity: medium
+    policies.kyverno.io/description: >-
+      Replaces the mount of vault-config to /vault/config to a mount of vault-config to /openbao/config
+spec:
+  background: false
+  rules:
+  - name: fix-mountpoint
+    match:
+      any:
+      - resources:
+          kinds:
+          - StatefulSet
+          names:
+          - vault
+    mutate:
+      patchesJson6902: |-
+        - path: "/spec/template/spec/containers/0/volumeMounts/1"
+          op: replace
+          value:
+            mountPath: /openbao/config
+            name: vault-config

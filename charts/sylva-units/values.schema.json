@@ -9032,6 +9032,19 @@
               ]
             }
           }
+        },
+        "secret_manager": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "variant": {
+              "type": "string",
+              "enum": [
+                "vault",
+                "openbao"
+              ]
+            }
+          }
         }
       }
     },

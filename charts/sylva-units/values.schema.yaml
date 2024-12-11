@@ -1197,6 +1197,13 @@ properties:
               - type: string
                 pattern: ^-----BEGIN PUBLIC KEY-----
               - ref: "#/$defs/string-with-gotpl"
+      secret_manager:
+        type: object
+        additionalProperties: false
+        properties:
+          variant:
+            type: string
+            enum: ["vault", "openbao"]
 
   monitoring:  # -------------------------------
     type: object

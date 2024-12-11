@@ -1136,6 +1136,25 @@ units:
           repository: ghcr.io/bank-vaults/vault-operator
           tag: '{{ .Values.source_templates | dig "vault-operator" "spec" "ref" "tag" "" | required "source_templates.vault-operator.spec.ref.tag is unset" }}'
 
+  openbao-force-configmap-path:
+    info:
+      description: Kyverno policy to adapt the mountpath to the one required by openbao
+      details: |
+        This policy modifies the mount path set on the statefulset by the vault operator from
+        /vault/config to /openbao/config, to make it available at the path forced by the entrypoint
+        of the openbao official image
+      internal: true
+    unit_templates:
+    - base-deps
+    enabled_conditions:
+    - '{{ tuple . "kyverno" | include "unit-enabled" }}'
+    depends_on:
+      kyverno: true
+    repo: sylva-core
+    kustomization_spec:
+      path: ./kustomize-units/kyverno-policies/openbao-force-configmap-path
+      wait: true
+
   vault:
     info:
       description: installs Vault
@@ -1149,6 +1168,7 @@ units:
       ingress-nginx: '{{ tuple . "ingress-nginx" | include "unit-enabled" }}'
       '{{ .Values._internal.default_storage_class_unit }}': true
       vault-operator: true
+      openbao-force-configmap-path: true
     annotations:
       sylvactl/readyMessage: "Vault UI can be reached at https://{{ .Values.external_hostnames.vault }} ({{ .Values.external_hostnames.vault }} must resolve to {{ .Values.display_external_ip }})"
     repo: sylva-core
@@ -1156,7 +1176,7 @@ units:
       ADMIN_PASSWORD: '{{ .Values.admin_password }}'
       KEY: '{{ .Values.external_certificates.vault.key | default "" | b64enc }}'
     kustomization_spec:
-      path: ./kustomize-units/vault
+      path: '{{ ternary (print "./kustomize-units/vault/" .Values.security.secret_manager.variant) "./kustomize-units/vault/base" (ne .Values.security.secret_manager.variant "vault") }}'
       _patches:
         # Create a list of ACL and read roles, one per team expected to deploy workload clusters. The loop over .Values.workloadcluster.team is done in the Helm template
         - target:
@@ -1208,10 +1228,13 @@ units:
           SERVICE_DNS: '{{ .Values.external_hostnames.vault }}'
           CERT: '{{ .Values.external_certificates.vault.cert | default "" | b64enc }}'
           CACERT: '{{ .Values.external_certificates.cacert | default "" | b64enc }}'
+        substituteFrom:
+        - kind: ConfigMap
+          name: proxy-env-vars
       _components:
         # generate certificate for external communitation
-        - '{{ ternary "../tls-components/tls-secret" "../tls-components/tls-certificate" (hasKey .Values.external_certificates.vault "cert") }}'
-        - "../tls-components/sylva-ca"
+        - '{{ ternary "../../tls-components/tls-secret" "../../tls-components/tls-certificate" (hasKey .Values.external_certificates.vault "cert") }}'
+        - "../../tls-components/sylva-ca"
       healthChecks:  # sometimes this kustomization seems correctly applied while vault pod is not running, see https://gitlab.com/sylva-projects/sylva-core/-/issues/250
       # so we replace wait:true by checking for the Vault components health
         - apiVersion: apps/v1
@@ -7380,6 +7403,8 @@ security:
   os_images:
     skip_signing_check: false
     cosign_public_key: '{{ .Values.security.default_cosign_public_key }}'
+  secret_manager:
+    variant: vault
 
 monitoring:
   platform_tag: Sylva
