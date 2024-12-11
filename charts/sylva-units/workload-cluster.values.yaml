@@ -72,7 +72,7 @@ unit_templates:
     depends_on:
       cluster-reachable: true
       namespace-defs: true
-      calico-ready: '{{ tuple . "calico-ready" | include "unit-enabled" }}'
+      calico-ready: '{{ and (tuple . "calico-ready" | include "unit-enabled") (not .Values._internal.state.is_upgrade) }}'
 
   # used for units which are deployed on mgmt cluster itself
   kustomization-deployed-on-mgmt-cluster:
@@ -233,6 +233,9 @@ units:
       calico-ready: false
     kustomization_spec:
       targetNamespace: null  # if we don't do this, there are errors because namespaces are a non-namespaced resource
+
+  calico-rke2-chart-cleanup:
+    enabled: true
 
   calico-crd:
     enabled: true
@@ -398,6 +401,8 @@ units:
     # for workload cluster, to keep the rest of the base-deps, explicitly disabling kyverno
     depends_on:
       kyverno: false
+      cluster-reachable: '{{ not .Values._internal.state.is_upgrade }}'
+      monitoring-crd: '{{ not .Values._internal.state.is_upgrade }}'
     # in mgmt cluster, kyverno is part of base-deps, so cannot depend on itself, but here in workload-cluster we need it
     unit_templates:
     - base-deps

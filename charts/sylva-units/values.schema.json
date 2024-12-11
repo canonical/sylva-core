@@ -3607,96 +3607,10 @@
                       "type": "object",
                       "additionalProperties": true,
                       "properties": {
-                        "wireguard_enabled": {
+                        "helm_values": {
                           "anyOf": [
                             {
-                              "type": "boolean"
-                            },
-                            {
-                              "$ref": "#/$defs/string-with-gotpl"
-                            },
-                            {
-                              "type": "null"
-                            }
-                          ]
-                        },
-                        "autodetection_method": {
-                          "anyOf": [
-                            {
-                              "type": "object",
-                              "additionalProperties": false,
-                              "properties": {
-                                "kubernetes": {
-                                  "anyOf": [
-                                    {
-                                      "type": "string",
-                                      "pattern": "NodeInternalIP"
-                                    },
-                                    {
-                                      "$ref": "#/$defs/string-with-gotpl"
-                                    },
-                                    {
-                                      "type": "null"
-                                    }
-                                  ]
-                                },
-                                "cidrs": {
-                                  "anyOf": [
-                                    {
-                                      "type": "array",
-                                      "items": {
-                                        "$ref": "#/$defs/ipv4-cidr"
-                                      }
-                                    },
-                                    {
-                                      "$ref": "#/$defs/string-with-gotpl"
-                                    },
-                                    {
-                                      "type": "null"
-                                    }
-                                  ]
-                                },
-                                "canReach": {
-                                  "anyOf": [
-                                    {
-                                      "type": "string",
-                                      "format": "ipv4"
-                                    },
-                                    {
-                                      "$ref": "#/$defs/string-with-gotpl"
-                                    },
-                                    {
-                                      "type": "null"
-                                    }
-                                  ]
-                                },
-                                "interface": {
-                                  "anyOf": [
-                                    {
-                                      "type": "string"
-                                    },
-                                    {
-                                      "$ref": "#/$defs/string-with-gotpl"
-                                    },
-                                    {
-                                      "type": "null"
-                                    }
-                                  ]
-                                },
-                                "skipInterface": {
-                                  "anyOf": [
-                                    {
-                                      "type": "string"
-                                    },
-                                    {
-                                      "$ref": "#/$defs/string-with-gotpl"
-                                    },
-                                    {
-                                      "type": "null"
-                                    }
-                                  ]
-                                }
-                              }
+                              "type": "object"
                             },
                             {
                               "$ref": "#/$defs/string-with-gotpl"
@@ -4855,14 +4769,64 @@
             }
           ]
         },
-        "metallb_helm_oci_url": {
-          "type": "string",
+        "helm_oci_url": {
           "anyOf": [
             {
-              "pattern": "^oci://.*"
-            },
-            {
-              "const": ""
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "metallb": {
+                  "type": "string",
+                  "anyOf": [
+                    {
+                      "pattern": "^oci://.*"
+                    },
+                    {
+                      "const": ""
+                    },
+                    {
+                      "$ref": "#/$defs/string-with-gotpl"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "calico-crd": {
+                  "type": "string",
+                  "anyOf": [
+                    {
+                      "pattern": "^oci://.*"
+                    },
+                    {
+                      "const": ""
+                    },
+                    {
+                      "$ref": "#/$defs/string-with-gotpl"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "calico": {
+                  "type": "string",
+                  "anyOf": [
+                    {
+                      "pattern": "^oci://.*"
+                    },
+                    {
+                      "const": ""
+                    },
+                    {
+                      "$ref": "#/$defs/string-with-gotpl"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              }
             },
             {
               "$ref": "#/$defs/string-with-gotpl"
@@ -4872,10 +4836,52 @@
             }
           ]
         },
-        "metallb_helm_version": {
+        "helm_versions": {
           "anyOf": [
             {
-              "type": "string"
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "metallb": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "$ref": "#/$defs/string-with-gotpl"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "calico-crd": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "$ref": "#/$defs/string-with-gotpl"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "calico": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "$ref": "#/$defs/string-with-gotpl"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              }
             },
             {
               "$ref": "#/$defs/string-with-gotpl"
@@ -4885,10 +4891,52 @@
             }
           ]
         },
-        "metallb_helm_extra_ca_certs": {
+        "helm_extra_ca_certs": {
           "anyOf": [
             {
-              "type": "string"
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "default": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "$ref": "#/$defs/string-with-gotpl"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "metallb": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "$ref": "#/$defs/string-with-gotpl"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "calico": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "$ref": "#/$defs/string-with-gotpl"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              }
             },
             {
               "$ref": "#/$defs/string-with-gotpl"
@@ -7668,8 +7716,15 @@
             "unit_templates": {
               "type": "array",
               "items": {
-                "type": "string",
-                "pattern": "^[a-z0-9][a-z0-9-]*[a-z0-9]$"
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/gotpl"
+                  },
+                  {
+                    "type": "string",
+                    "pattern": "^[a-z0-9][a-z0-9-]*[a-z0-9]$"
+                  }
+                ]
               }
             },
             "repo": {
@@ -9462,6 +9517,9 @@
           }
         }
       }
+    },
+    "calico_helm_values": {
+      "type": "object"
     },
     "_internal": {
       "type": "object",
