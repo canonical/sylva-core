@@ -222,8 +222,8 @@ clusterctl-check-versions:
    # - clusterctl version in kube-job image
   extends: [.lint-base, .docker-service]
   script:
-    - capi_version=$(yq '.resources[0] | capture("/(?P<version>v[^/]+)/") | .version' kustomize-units/capi/kustomization.yaml)
-    - clusterctl_kubejob_version=$(docker run --rm $(yq eval 'select(documentIndex==0).spec.template.spec.containers[0].image' kustomize-units/kube-job/job.yaml) sh -c 'clusterctl version | grep -o "GitVersion:\"[^\"]*" | cut -d"\"" -f2')
+    - capi_version=$(yq '.resources[0] | capture("/(?P<version>v[^/]+)/") | .version' kustomize-units/capi/kustomization.yaml | sed -Ee 's/(v[0-9]+[.][0-9]+)[.].*/\1.x/')
+    - clusterctl_kubejob_version=$(docker run --rm $(yq eval 'select(documentIndex==0).spec.template.spec.containers[0].image' kustomize-units/kube-job/job.yaml) sh -c 'clusterctl version | grep -o "GitVersion:\"[^\"]*" | cut -d"\"" -f2' | sed -Ee 's/(v[0-9]+[.][0-9]+)[.].*/\1.x/')
     - |
       if [[ $capi_version != $clusterctl_kubejob_version ]]; then
         echo
