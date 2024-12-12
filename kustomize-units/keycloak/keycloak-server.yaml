@@ -6,24 +6,26 @@ metadata:
     app: sso
 spec:
   db:
+    database: app
     vendor: postgres
-    host: postgres-primary
+    host: cnpg-keycloak-rw
     usernameSecret:
-      name: keycloak-db-secret
+      name: cnpg-keycloak-app
       key: username
     passwordSecret:
-      name: postgres
-      key: postgres-password
+      name: cnpg-keycloak-app
+      key: password
   hostname:
     hostname: https://${KEYCLOAK_DNS}
   http:
     tlsSecret: keycloak-internal-tls
   ingress:
     enabled: false
-  instances: 1
+  instances: ${KEYCLOAK_REPLICAS}
   unsupported:
     podTemplate:
       spec:
+        affinity: ${AFFINITY}
         serviceAccountName: keycloak
         containers:
           - securityContext:

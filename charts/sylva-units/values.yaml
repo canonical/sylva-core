@@ -734,6 +734,26 @@ units:
           version: 0.22.1
       targetNamespace: cnpg-system
 
+  keycloak-postgres:
+    info:
+      description: Deploy Postgres cluster for Keycloak using Cloud Native PostgreSQL (CNPG)
+      maturity: stable
+      internal: true
+    unit_templates:
+      - base-deps
+    repo: sylva-core
+    depends_on:
+      cnpg-operator: true
+    kustomization_spec:
+      postBuild:
+        substitute:
+          storageClass: '{{ .Values._internal.default_storage_class }}'
+          podAntiAffinityType: '{{ .Values._internal.ha_cluster.is_ha | ternary "required" "preferred" }}'
+      path: ./kustomize-units/keycloak-postgres
+      wait: true
+      _components:
+        - '{{ tuple "./components/keycloak-upgrade-db" (and .Values._internal.state.is_upgrade (tuple . "keycloak" | include "unit-enabled")) | include "set-only-if" }}'
+
   postgres:
     info:
       description: installs Postgresql for Keycloak
@@ -1628,7 +1648,7 @@ units:
       sylva-ca: true
       ingress-nginx: '{{ tuple . "ingress-nginx" | include "unit-enabled" }}'
       keycloak-add-truststore: '{{ tuple . "keycloak-add-truststore" | include "unit-enabled" }}'
-      postgres: true
+      keycloak-postgres: true
       synchronize-secrets: true # make sure that the secret keycloak-initial-admin is ready to be consummed
     annotations:
       sylvactl/readyMessage: "Keycloak admin console can be reached at https://{{ .Values.external_hostnames.keycloak }}/admin/master/console, user 'admin', password in Vault at secret/keycloak ({{ .Values.external_hostnames.keycloak }} must resolve to {{ .Values.display_external_ip }})"
@@ -1640,6 +1660,8 @@ units:
       targetNamespace: keycloak
       postBuild:
         substitute:
+          KEYCLOAK_REPLICAS: '{{ .Values._internal.ha_cluster.is_ha | ternary 3 1 }}'
+          AFFINITY: '{{ .Values._internal.ha_cluster.is_ha | ternary (.Values._internal.keycloak_affinity | toJson) "{}" }}'
           KEYCLOAK_DNS: '{{ .Values.external_hostnames.keycloak }}'
           SERVICE: keycloak
           SERVICE_DNS: '{{ .Values.external_hostnames.keycloak }}'
@@ -7788,6 +7810,17 @@ _internal:
           topologyKey: kubernetes.io/hostname
 
   vault_no_affinity: {}
+
+  keycloak_affinity:
+    podAntiAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        - labelSelector:
+            matchExpressions:
+              - key: app
+                operator: In
+                values:
+                  - sso
+          topologyKey: kubernetes.io/hostname
 
   # this is used in use-oci-artifacts.values.yaml
   # and in a few other places

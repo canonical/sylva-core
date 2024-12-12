@@ -1,0 +1,31 @@
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  labels:
+    cnpg.io/cluster: cnpg-keycloak
+  name: cnpg-keycloak
+  namespace: keycloak
+spec:
+  minAvailable: 1
+  unhealthyPodEvictionPolicy: AlwaysAllow
+  selector:
+    matchLabels:
+      cnpg.io/cluster: cnpg-keycloak
+      cnpg.io/instanceRole: replica
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  labels:
+    cnpg.io/cluster: cnpg-keycloak
+  name: cnpg-keycloak-primary
+  namespace: keycloak
+spec:
+  minAvailable: 1
+  unhealthyPodEvictionPolicy: AlwaysAllow
+  selector:
+    matchLabels:
+      cnpg.io/cluster: cnpg-keycloak
+      cnpg.io/instanceRole: primary
+
