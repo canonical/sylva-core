@@ -1,6 +1,6 @@
 ---
 sylva_diskimagebuilder_images:
-  ubuntu-jammy-hardened-rke2-1-30-6:
+  ubuntu-jammy-hardened-rke2-1-30-7:
     enabled: true
 
 cluster:
