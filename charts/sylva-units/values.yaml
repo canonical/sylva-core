@@ -7489,6 +7489,14 @@ security:
   os_images:
     skip_signing_check: false
     cosign_public_key: '{{ .Values.security.default_cosign_public_key }}'
+  oci_artifacts:
+    skip_signing_check: false
+    cosign_public_key: | # the OCI public key is not the default public key used to verify sylva elements, e.g. os_images
+      -----BEGIN PUBLIC KEY-----
+      MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEEN6LNycNA/OB8/dtqTPZcPDuLnxW
+      hR0Rskmno7Lx1WqBl2ylN/sfkLEAPfCkizceHiu/fw8lnsPq9uSGlAICeQ==
+      -----END PUBLIC KEY-----
+
 
 monitoring:
   platform_tag: Sylva

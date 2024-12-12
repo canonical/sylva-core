@@ -108,7 +108,7 @@ logger.info("Preparing use-oci-artifacts.values.yaml values override file...")
 # Here we build a values override file for sylva-units to allow to conveniently
 # use sylva-units from OCI registry artifacts.
 
-# The URLs used here match the location at which the script tools/oci/push-helm-charts-artifact.sh
+# The URLs used here match the location at which the script tools/oci/push-helm-charts-artifact.py
 # creates them
 
 # ********* Helm-based units relying on 'helm_repo_url' *********

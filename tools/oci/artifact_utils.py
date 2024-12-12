@@ -150,12 +150,17 @@ def sign(artifact_name, digest):
     if cosign_priv_key:
         if cosign_password:
             logger.info(f"Signing {artifact_name} artifact to OCI registry...")
-
             subprocess.run(
+                f"cosign login {CI_REGISTRY} -u {os.getenv('CI_REGISTRY_USER')} -p {os.getenv('CI_REGISTRY_PASSWORD')}", shell=True,
+                stdout=subprocess.PIPE, stderr=subprocess.STDOUT
+            )
+            result = subprocess.run(
                 f"cosign sign -y --tlog-upload=false --key  env://COSIGN_PRIVATE_KEY "
                 f"{REGISTRY_URI}/{artifact_name}@{digest}", shell=True,
                 stdout=subprocess.PIPE, stderr=subprocess.STDOUT
             )
+            if result.returncode != 0:
+                logger.error(f"Unable to sign the {artifact_name}:{result.stdout.decode()}")
         else:
             logger.warning(f"Unable to sign the {artifact_name}, the private key password is not available")
     else:
