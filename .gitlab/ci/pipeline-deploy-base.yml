@@ -37,8 +37,7 @@ default:
 
 # ----------------------------------------------------------
 .test-tags:
-  dependencies: []
-
+  interruptible: true
 # ----------------------------------------------------------
 
 # Rules reusable in tests definition

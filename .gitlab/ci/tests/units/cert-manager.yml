@@ -63,26 +63,19 @@
     - kubectl wait --for=condition=Ready certificate/pki-signed-cert --kubeconfig $KUBE_CONFIG_FILE -n cert-manager-test  --timeout=30s
 
 mgmt-cert-manager:
-  stage: deployment-test
   variables:
     KUBE_CONFIG_FILE: "management-cluster-kubeconfig"
   extends:
-    - .test-tags
-    - .rules:need-management-cluster
+    - .test-base-management-cluster
   script:
-    - !reference [.import_functions]
-    - download_artifact deploy-management-cluster management-cluster-kubeconfig
     - !reference [.test_cert_manager_scripts, common_test_suite]
 
 wkld-cert-manager:
-  stage: deployment-test
+  variables:
+    KUBE_CONFIG_FILE: "workload-cluster-kubeconfig"
   extends:
-    - .test-tags
-    - .rules:need-workload-cluster
+    - .test-base-workload-cluster
   script:
-    - !reference [.import_functions]
-    - download_artifact deploy-management-cluster management-cluster-kubeconfig
+    - unset https_proxy http_proxy
     - !reference [.test_scripts, edit_hosts_file]
-    - !reference [.test_scripts, test_no_sso] # Get workload cluster kubeconfig
-    - export KUBE_CONFIG_FILE="$WORKLOAD_CLUSTER_NAME-rancher.yaml"
     - !reference [.test_cert_manager_scripts, common_test_suite]
