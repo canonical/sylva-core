@@ -1,9 +1,0 @@
----
-apiVersion: v1
-kind: Secret
-metadata:
-  name: cosign-public-keys
-  namespace: flux-system
-type: Opaque
-data:
-  cosign.pub: ${COSIGN_PUBLIC_KEY}
