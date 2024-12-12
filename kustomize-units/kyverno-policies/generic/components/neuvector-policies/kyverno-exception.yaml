@@ -17,9 +17,11 @@ spec:
         - Pod
         - Deployment
         - ReplicaSet
+        - DaemonSet
+        - StatefulSet
         - CronJob
+        - Job
         namespaces:
         - neuvector
         names:
-        - neuvector-scanner*
-        - neuvector-updater*
+        - neuvector-*
