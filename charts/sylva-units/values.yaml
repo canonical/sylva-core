@@ -1477,6 +1477,17 @@ units:
           version: 2.8.2
       targetNamespace: neuvector
       values:
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
+          privileged: false
+          runAsNonRoot: true
+          runAsGroup: 10000
+          runAsUser: 10000
+          seccompProfile:
+            type: RuntimeDefault
         leastPrivilege: true
         internal:
           certmanager:

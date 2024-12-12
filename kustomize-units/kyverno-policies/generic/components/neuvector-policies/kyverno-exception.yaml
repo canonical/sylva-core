@@ -24,4 +24,5 @@ spec:
         namespaces:
         - neuvector
         names:
-        - neuvector-*
+        - neuvector-scanner*
+        - neuvector-updater*
