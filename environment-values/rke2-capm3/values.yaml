@@ -2,7 +2,7 @@
 # a Sylva two-node (1 control-plane + 1 worker) mgmt baremetal cluster
 
 sylva_diskimagebuilder_images:
-  ubuntu-jammy-hardened-rke2-1-30-6:
+  ubuntu-jammy-hardened-rke2-1-30-7:
     enabled: true
 
 cluster_virtual_ip: 10.188.36.149
@@ -29,7 +29,7 @@ cluster:
               - ssh-rsa AAAA...... YOUR KEY HERE ....UqnQ==
 
   capm3:
-    image_key: ubuntu-jammy-hardened-rke2-1-30-6
+    image_key: ubuntu-jammy-hardened-rke2-1-30-7
     primary_pool_network: 10.188.36.128
     primary_pool_gateway: 10.188.36.129
     primary_pool_start: 10.188.36.148
