@@ -148,6 +148,10 @@ $defs:
     type: string
     pattern: "[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12}"  # an OpenStack UUID
 
+  pub-key:
+    type: string
+    pattern: ^-----BEGIN PUBLIC KEY-----
+
 # lines with '# -------------------------------' correspond to keys in values.yaml
 # (the rest being the JSONSchema language itself)
 
@@ -298,6 +302,35 @@ properties:
                           type: string
                         commit:  # -------------------------------
                           const: '{{ tuple "(unused)" false | include "set-only-if" }}'  # particular case to allow key deletion (see use-oci-artifacts.values.yaml)
+                    verify:  # -------------------------------
+                      anyOf:
+                        - $ref: "#/$defs/gotpl"
+                        - type: object
+                          properties:
+                            provider:  # -------------------------------
+                              type: object
+                              additionalProperties: false
+                              anyOf:
+                                - required:
+                                    - secretRef
+                                - required:
+                                    - matchOIDCIdentity
+                              patternProperties:
+                                secretRef:
+                                  type: object
+                                  properties:
+                                    name:
+                                      type: string
+                                matchOIDCIdentity:
+                                  type: array
+                                  items:
+                                    type: object
+                                    properties:
+                                      issuer:
+                                        type: string
+                                      subject:
+                                        type: string
+                        - type: "null"
 
   helm_repo_spec_default:  # -------------------------------
     type: object
@@ -1036,8 +1069,7 @@ properties:
             type: string
           cosign_publickey:
             anyOf:
-              - type: string
-                pattern: ^-----BEGIN PUBLIC KEY-----
+              - ref: "#/$defs/pub-key"
               - ref: "#/$defs/string-with-gotpl"
 
   oci_registry_extra_ca_certs:  # -------------------------------
@@ -1164,8 +1196,7 @@ properties:
           vault_path: # -------------------------------
             type: string
       default_cosign_public_key:
-        type: string
-        pattern: ^-----BEGIN PUBLIC KEY-----
+        ref: "#/$defs/pub-key"
       upstream_images_signature:
         type: object
         additionalProperties: false
@@ -1179,8 +1210,7 @@ properties:
             type: string
           cosign_public_key:
             anyOf:
-              - type: string
-                pattern: ^-----BEGIN PUBLIC KEY-----
+              - ref: "#/$defs/pub-key"
               - ref: "#/$defs/string-with-gotpl"
           images_list:
             type: array
@@ -1196,8 +1226,17 @@ properties:
             type: boolean
           cosign_public_key:
             anyOf:
-              - type: string
-                pattern: ^-----BEGIN PUBLIC KEY-----
+              - ref: "#/$defs/pub-key"
+              - ref: "#/$defs/string-with-gotpl"
+      oci_artifacts:
+        type: object
+        additionalProperties: false
+        properties:
+          skip_signing_check:
+            type: boolean
+          cosign_public_key:
+            anyOf:
+              - ref: "#/$defs/pub-key"
               - ref: "#/$defs/string-with-gotpl"
 
   monitoring:  # -------------------------------
