@@ -2,7 +2,6 @@
 # This job tests cronjob behavior
 
 .cronjob-testing:
-  stage: deployment-test
   artifacts:
     expire_in: 48 hour
     when: always
@@ -16,23 +15,16 @@
 mgmt-cronjob-testing:
   extends:
     - .cronjob-testing
-    - .test-tags
-    - .rules:need-management-cluster
+    - .test-base-management-cluster
   script:
-    - !reference [.import_functions]
-    - download_artifact deploy-management-cluster management-cluster-kubeconfig
     - export KUBECONFIG=management-cluster-kubeconfig
     - .gitlab/ci/scripts/cronjob-test.sh
 
 wkld-cronjob-testing:
   extends:
     - .cronjob-testing
-    - .test-tags
-    - .rules:need-workload-cluster
+    - .test-base-workload-cluster
   script:
-    - !reference [.import_functions]
-    - download_artifact deploy-management-cluster management-cluster-kubeconfig
     - !reference [.test_scripts, edit_hosts_file]
-    - !reference [.test_scripts, test_no_sso] # Get workload cluster kubeconfig
-    - export KUBECONFIG="$WORKLOAD_CLUSTER_NAME-rancher.yaml"
+    - export KUBECONFIG=workload-cluster-kubeconfig
     - .gitlab/ci/scripts/cronjob-test.sh

@@ -4,6 +4,7 @@
   stage: deployment-test
   variables:
     NAMESPACE: sylva-system
+  dependencies: [] # We don't need the debug on exit dump for theses tests
   extends:
     - .test-tags
   script:

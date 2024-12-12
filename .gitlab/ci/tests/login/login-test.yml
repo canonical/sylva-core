@@ -19,13 +19,6 @@
           echo $access_ip $i >> /etc/hosts
         done
       fi
-  test_no_sso:
-    - unset https_proxy http_proxy
-    - export KUBECONFIG=management-cluster-kubeconfig
-    - ./tools/shell-lib/get-wc-kubeconfig-from-rancher.sh $WORKLOAD_CLUSTER_NAME $WORKLOAD_CLUSTER_NAME-rancher.yaml
-    # For capm3 job we need to modify the $WORKLOAD_CLUSTER_NAME-rancher.yaml to remove the certificate and use an insecure option
-    - !reference [.capm3-virt-kubeconfig]
-
   test_sso:
     - echo -e "\e[1m\e[0Ksection_start:`date +%s`:gitlab_ci_test_loging[collapsed=true]\r\e[0KGet ingress saved into /etc/hosts and set variables\e[0m"
     - export flux_url=$(kubectl --kubeconfig management-cluster-kubeconfig get ingress -n flux-system flux-webui-weave-gitops -o jsonpath='{ .spec.tls[].hosts[] }')
@@ -47,10 +40,8 @@
     - !reference [.capm3-virt-kubeconfig]
 
 wkld-sso-kubeconfig:
-  stage: deployment-test
   extends:
-    - .test-tags
-    - .rules:need-workload-cluster
+    - .test-base-workload-cluster
   retry:
     max: 2
   variables:
@@ -61,8 +52,6 @@ wkld-sso-kubeconfig:
     paths:
       - $SCREENSHOTS
   script:
-    - !reference [.import_functions]
-    - download_artifact deploy-management-cluster management-cluster-kubeconfig
     - !reference [.test_scripts, edit_hosts_file]
     - !reference [.test_scripts, test_sso]
     - echo "-- Testing workload cluster. Job started at '$CI_JOB_STARTED_AT'."
@@ -78,9 +67,8 @@ wkld-sso-kubeconfig:
     - echo "-- All done"
 
 mgmt-sso:
-  stage: deployment-test
   extends:
-    - .test-tags
+    - .test-base
   retry:
     max: 2
   variables:
@@ -91,8 +79,6 @@ mgmt-sso:
     paths:
       - $SCREENSHOTS
   script:
-    - !reference [.import_functions]
-    - download_artifact deploy-management-cluster management-cluster-kubeconfig
     - !reference [.test_scripts, edit_hosts_file]
     - !reference [.test_scripts, test_sso]
   rules:
@@ -100,32 +86,26 @@ mgmt-sso:
       when: never
 
 wkld-no-sso-kubeconfig:
-  stage: deployment-test
   extends:
-    - .test-tags
-    - .rules:need-workload-cluster
+    - .test-base-workload-cluster
   script:
-    - !reference [.import_functions]
-    - download_artifact deploy-management-cluster management-cluster-kubeconfig
+    - unset https_proxy http_proxy
     - !reference [.test_scripts, edit_hosts_file]
-    - !reference [.test_scripts, test_no_sso]
     - echo "-- Testing workload cluster. Job started at '$CI_JOB_STARTED_AT'."
     # the $WORKLOAD_CLUSTER_NAME-rancher.yaml file below is the kubeconfig previously downloaded from Rancher server through Rancher API
     - |
       attempts=0; max_attempts=5
-      until kubectl run test-no-sso --image=registry.k8s.io/pause:3.9 --kubeconfig $WORKLOAD_CLUSTER_NAME-rancher.yaml --overrides='{"apiVersion": "v1","spec": {"containers": [{"name": "test","image": "registry.k8s.io/pause:3.9","securityContext": {"allowPrivilegeEscalation": false,"capabilities": {"drop": ["ALL"]},"runAsNonRoot": true,"runAsGroup": 1000,"runAsUser": 1000,"seccompProfile": {"type": "RuntimeDefault"}}}]}}'; do
+      until kubectl run test-no-sso --image=registry.k8s.io/pause:3.9 --kubeconfig workload-cluster-kubeconfig --overrides='{"apiVersion": "v1","spec": {"containers": [{"name": "test","image": "registry.k8s.io/pause:3.9","securityContext": {"allowPrivilegeEscalation": false,"capabilities": {"drop": ["ALL"]},"runAsNonRoot": true,"runAsGroup": 1000,"runAsUser": 1000,"seccompProfile": {"type": "RuntimeDefault"}}}]}}'; do
         sleep 3
         ((attempts++)) && ((attempts==max_attempts)) && exit -1
       done
     - echo "-- Wait for test-no-sso pod to be created"
-    - kubectl wait --for=condition=Ready pod/test-no-sso --kubeconfig $WORKLOAD_CLUSTER_NAME-rancher.yaml --timeout=60s
+    - kubectl wait --for=condition=Ready pod/test-no-sso --kubeconfig workload-cluster-kubeconfig --timeout=60s
     - echo "-- All done"
 
 mgmt-login:
-  stage: deployment-test
   extends:
-    - .test-tags
-    - .rules:need-management-cluster
+    - .test-base-management-cluster
   variables:
     HURL_JUNIT_REPORT: ${CI_PROJECT_DIR}/login_junit_report.xml
   artifacts:
@@ -139,8 +119,6 @@ mgmt-login:
       junit:
       - $HURL_JUNIT_REPORT
   script:
-    - !reference [.import_functions]
-    - download_artifact deploy-management-cluster management-cluster-kubeconfig
     - !reference [.test_scripts, edit_hosts_file]
     - export HURL_token=$(kubectl --kubeconfig management-cluster-kubeconfig -n vault get secrets/vault-unseal-keys -o jsonpath='{.data.vault-root}' | base64 -d)
     - export HURL_password_grafana=$(kubectl --kubeconfig management-cluster-kubeconfig get secrets sylva-units-values -o yaml | yq .data.values | base64 -d | yq ._internal.grafana_admin_password)
@@ -205,10 +183,8 @@ mgmt-login:
     - hurl -k ./tools/login-test/*.hurl --test --color --noproxy=".$HURL_domain"  --report-junit $HURL_JUNIT_REPORT --report-html ${CI_PROJECT_DIR}
 
 wkld-login:
-  stage: deployment-test
   extends:
-    - .test-tags
-    - .rules:need-workload-cluster
+    - .test-base-workload-cluster
   variables:
     HURL_JUNIT_REPORT: ${CI_PROJECT_DIR}/login_junit_report.xml
   artifacts:
@@ -222,8 +198,6 @@ wkld-login:
       junit:
       - $HURL_JUNIT_REPORT
   script:
-    - !reference [.import_functions]
-    - download_artifact deploy-management-cluster management-cluster-kubeconfig
     - !reference [.test_scripts, edit_hosts_file]
     - export HURL_token=$(kubectl --kubeconfig management-cluster-kubeconfig -n vault get secrets/vault-unseal-keys -o jsonpath='{.data.vault-root}' | base64 -d)
     - export HURL_vault_url=$(kubectl --kubeconfig management-cluster-kubeconfig get ingress -n vault vault -o jsonpath='{ .spec.tls[].hosts[] }')

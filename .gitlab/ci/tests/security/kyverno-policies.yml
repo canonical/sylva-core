@@ -4,14 +4,10 @@
 # to display the result and dump it into a file before failing
 
 .check_kyverno_resource:
-  stage: deployment-test
   extends:
-    - .test-tags
-    - .rules:need-management-cluster
+    - .test-base-management-cluster
   script:
     - echo -e "\e[1m\e[0Ksection_start:`date +%s`:kyverno[collapsed=true]\r\e[0KChecking Kyverno ${RESOURCE}s\e[0m"
-    - !reference [.import_functions]
-    - download_artifact deploy-management-cluster management-cluster-kubeconfig
     - |
       error=0
       while read -r NAMESPACE NAME; do
