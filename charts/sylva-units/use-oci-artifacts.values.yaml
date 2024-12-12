@@ -3,12 +3,12 @@
 # NOTE WELL: This file is NOT usable as-is !
 #
 # For a deployment from OCI registry artifacts, the sylva-units Helm chart
-# must be deployed from the OCI artifact built by a tool (tools/oci/build-sylva-units-artifact.sh)
+# must be deployed from the OCI artifact built by a tool (tools/oci/build-sylva-units-artifact.py)
 # which augments this file to override Helm-based units definition to let them
 # use OCI artifacts.
 #
 # In such a context the 'sylva-units' chart is deployed from an OCI registry artifact
-# built by tools/oci/build-sylva-units-artifact.sh, and this tool also
+# built by tools/oci/build-sylva-units-artifact.py, and this tool also
 # populates this file so that all external sources definitions (from source_templates and helm_repo_url)
 # will point to OCI Registry artifacts.
 #
@@ -90,6 +90,8 @@ source_templates:
         # the Helm release iteration, so we need to remove it)
         commit: '{{ tuple "(unused)" false | include "set-only-if" }}'  # hack to ensure that this field is absent from the manifest we build (see https://gitlab.com/sylva-projects/sylva-core/-/merge_requests/472#note_1530500014)
         tag: '{{ .Values._internal.sylva_core_version }}'
+      verify: '{{ (tuple (dict "provider" "cosign" "secretRef" (dict "name" "cosign-public-keys")) (not .Values.security.oci_artifacts.skip_signing_check)) | include "set-only-if" }}'
+
 
   capi-rancher-import:
     spec:
@@ -152,5 +154,6 @@ cluster:
     default: '{{ .Values.oci_registry_extra_ca_certs | include "set-if-defined" }}'
 
 ###########################################################################################################
-#### actual content produced at OCI-artifact buildind time by tools/oci/build-sylva-units-artifact.sh  ####
+#### actual content produced at OCI-artifact building time by tools/oci/build-sylva-units-artifact.py  ####
 ###########################################################################################################
+

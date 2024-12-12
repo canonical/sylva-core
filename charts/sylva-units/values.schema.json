@@ -7267,6 +7267,10 @@
         }
       ]
     },
+    "pub-key": {
+      "type": "string",
+      "pattern": "^-----BEGIN PUBLIC KEY-----"
+    },
     "sriov-resources-values": {
       "$schema": "https://json-schema.org/draft-07/schema#",
       "title": "Schema for sriov-resources chart values",
@@ -7661,6 +7665,61 @@
                                 "const": "{{ tuple \"(unused)\" false | include \"set-only-if\" }}"
                               }
                             }
+                          },
+                          "verify": {
+                            "anyOf": [
+                              {
+                                "$ref": "#/$defs/gotpl"
+                              },
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "provider": {
+                                    "type": "object",
+                                    "additionalProperties": false,
+                                    "anyOf": [
+                                      {
+                                        "required": [
+                                          "secretRef"
+                                        ]
+                                      },
+                                      {
+                                        "required": [
+                                          "matchOIDCIdentity"
+                                        ]
+                                      }
+                                    ],
+                                    "patternProperties": {
+                                      "secretRef": {
+                                        "type": "object",
+                                        "properties": {
+                                          "name": {
+                                            "type": "string"
+                                          }
+                                        }
+                                      },
+                                      "matchOIDCIdentity": {
+                                        "type": "array",
+                                        "items": {
+                                          "type": "object",
+                                          "properties": {
+                                            "issuer": {
+                                              "type": "string"
+                                            },
+                                            "subject": {
+                                              "type": "string"
+                                            }
+                                          }
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
                           }
                         }
                       }
@@ -8842,8 +8901,7 @@
             "cosign_publickey": {
               "anyOf": [
                 {
-                  "type": "string",
-                  "pattern": "^-----BEGIN PUBLIC KEY-----"
+                  "ref": "#/$defs/pub-key"
                 },
                 {
                   "ref": "#/$defs/string-with-gotpl"
@@ -9029,8 +9087,7 @@
           }
         },
         "default_cosign_public_key": {
-          "type": "string",
-          "pattern": "^-----BEGIN PUBLIC KEY-----"
+          "ref": "#/$defs/pub-key"
         },
         "upstream_images_signature": {
           "type": "object",
@@ -9049,8 +9106,7 @@
             "cosign_public_key": {
               "anyOf": [
                 {
-                  "type": "string",
-                  "pattern": "^-----BEGIN PUBLIC KEY-----"
+                  "ref": "#/$defs/pub-key"
                 },
                 {
                   "ref": "#/$defs/string-with-gotpl"
@@ -9078,8 +9134,26 @@
             "cosign_public_key": {
               "anyOf": [
                 {
-                  "type": "string",
-                  "pattern": "^-----BEGIN PUBLIC KEY-----"
+                  "ref": "#/$defs/pub-key"
+                },
+                {
+                  "ref": "#/$defs/string-with-gotpl"
+                }
+              ]
+            }
+          }
+        },
+        "oci_artifacts": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "skip_signing_check": {
+              "type": "boolean"
+            },
+            "cosign_public_key": {
+              "anyOf": [
+                {
+                  "ref": "#/$defs/pub-key"
                 },
                 {
                   "ref": "#/$defs/string-with-gotpl"
