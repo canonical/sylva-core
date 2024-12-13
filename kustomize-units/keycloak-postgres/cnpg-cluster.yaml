@@ -35,6 +35,3 @@ spec:
       dataChecksums: true
       # Sets WAL segment size to 32MB
       walSegmentSize: 32
-      # Defines the import strategy, using the microservice
-      # method to import a single database
-      database: keycloak
