@@ -697,7 +697,6 @@ units:
         - '{{ tuple "components/longhorn" (tuple . "longhorn" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/keycloak" (tuple . "keycloak" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/harbor" (tuple . "harbor" | include "unit-enabled") | include "set-only-if" }}'
-        - '{{ tuple "components/neuvector" (tuple . "neuvector" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/vault" (tuple . "vault" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/rancher" (tuple . "rancher" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/sriov" (tuple . "sriov-network-operator" | include "unit-enabled") | include "set-only-if" }}'
@@ -1464,7 +1463,6 @@ units:
     depends_on:
       neuvector-init: '{{ tuple . "neuvector-init" | include "unit-enabled" }}'
       kyverno-policies-ready: true
-      namespace-defs: true
       ingress-nginx: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpk" }}'
     annotations:
       sylvactl/readyMessage: "Neuvector UI can be reached at https://{{ .Values.external_hostnames.neuvector }} ({{ .Values.external_hostnames.neuvector }} must resolve to {{ .Values.display_external_ip }})"
