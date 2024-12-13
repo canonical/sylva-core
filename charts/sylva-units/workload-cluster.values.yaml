@@ -358,7 +358,7 @@ units:
       sylva-ca: true
       namespace-defs: true
     kustomization_spec:
-      path: '{{ ternary "./kustomize-units/tls-components/tls-secret" "./kustomize-units/tls-components/tls-certificate" (hasKey .Values.external_certificates.neuvector "cert") }}'
+      path: ./kustomize-units/dummy/base
       targetNamespace: neuvector
       postBuild:
         substitute:
@@ -367,6 +367,8 @@ units:
           CERTIFICATE_NAMESPACE: neuvector
           CERT: '{{ .Values.external_certificates.neuvector.cert | default "" | b64enc }}'
           CACERT: '{{ .Values.external_certificates.cacert | default "" | b64enc }}'
+      _components:
+        - '{{ hasKey .Values.external_certificates.neuvector_federation_master "cert" | ternary "../../tls-components/tls-secret" "../../tls-components/tls-certificate" }}'
 
   neuvector-federation-tls:
     enabled: true
@@ -386,7 +388,7 @@ units:
       sylva-ca: true
       namespace-defs: true
     kustomization_spec:
-      path: '{{ ternary "./kustomize-units/tls-components/tls-secret" "./kustomize-units/tls-components/tls-certificate" (hasKey .Values.external_certificates.neuvector_federation_managed "cert") }}'
+      path: ./kustomize-units/dummy/base
       targetNamespace: neuvector
       postBuild:
         substitute:
@@ -395,6 +397,8 @@ units:
           CERTIFICATE_NAMESPACE: neuvector
           CERT: '{{ .Values.external_certificates.neuvector_federation_managed.cert | default "" | b64enc }}'
           CACERT: '{{ .Values.external_certificates.cacert | default "" | b64enc }}'
+      _components:
+        - '{{ hasKey .Values.external_certificates.neuvector_federation_master "cert" | ternary "../../tls-components/tls-secret" "../../tls-components/tls-certificate" }}'
 
   neuvector:
     # can be enabled at runtime if desired

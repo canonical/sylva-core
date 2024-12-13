@@ -327,7 +327,7 @@ units:
       sylva-ca: true
       namespace-defs: true
     kustomization_spec:
-      path: ./kustomize-units/tls-components/sylva-ca
+      path: ./kustomize-units/dummy/base
       postBuild:
         substitute:
           SERVICE: neuvector-federation
@@ -336,7 +336,7 @@ units:
           CERT: '{{ .Values.external_certificates.neuvector_federation_master.cert | default "" | b64enc }}'
           CACERT: '{{ .Values.external_certificates.cacert | default "" | b64enc }}'
       _components:
-        - '{{ hasKey .Values.external_certificates.neuvector_federation_master "cert" | ternary "../tls-secret" "../tls-certificate" }}'
+        - '{{ hasKey .Values.external_certificates.neuvector_federation_master "cert" | ternary "../../tls-components/tls-secret" "../../tls-components/tls-certificate" }}'
 
   neuvector:
     helmrelease_spec:

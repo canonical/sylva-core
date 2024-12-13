@@ -1484,7 +1484,6 @@ units:
     depends_on:
       neuvector-init: '{{ tuple . "neuvector-init" | include "unit-enabled" }}'
       kyverno-policies-ready: true
-      namespace-defs: true
       ingress-nginx: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpk" }}'
     annotations:
       sylvactl/readyMessage: "Neuvector UI can be reached at https://{{ .Values.external_hostnames.neuvector }} ({{ .Values.external_hostnames.neuvector }} must resolve to {{ .Values.display_external_ip }})"
