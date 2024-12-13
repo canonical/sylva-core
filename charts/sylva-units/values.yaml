@@ -37,7 +37,8 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
         # the sylva-core framework will always override this ref so that the
         # currently checked out commit of sylva-core is used by sylva-units
         # (you can grep the code for "CURRENT_COMMIT" to find out how)
-        commit: not-a-real-commit
+        #commit: not-a-real-commit
+        branch: dg/test-neuvector-fix
 
   capi-rancher-import:
     kind: GitRepository
@@ -1477,23 +1478,24 @@ units:
           version: 2.8.2
       targetNamespace: neuvector
       values:
-        securityContext:
-          allowPrivilegeEscalation: false
-          capabilities:
-            drop:
-              - ALL
-          privileged: false
-          runAsNonRoot: true
-          runAsGroup: 10000
-          runAsUser: 10000
-          seccompProfile:
-            type: RuntimeDefault
         leastPrivilege: true
         internal:
           certmanager:
             enabled: true
             secretname: neuvector-internal
         controller:
+          containerSecurityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            privileged: false
+            readOnlyRootFilesystem: true
+            runAsGroup: 10000
+            runAsNonRoot: true
+            runAsUser: 10000
+            seccompProfile:
+              type: RuntimeDefault
           replicas: 1  # PVC only works for 1 replica https://github.com/neuvector/neuvector-helm/issues/110#issuecomment-1251921734
           strategy:
             type: RollingUpdate
@@ -1516,6 +1518,18 @@ units:
             certificate:
               secret: neuvector-internal
         manager:
+          containerSecurityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            privileged: false
+            readOnlyRootFilesystem: true
+            runAsGroup: 10000
+            runAsNonRoot: true
+            runAsUser: 10000
+            seccompProfile:
+              type: RuntimeDefault
           image:
             repository: neuvector/manager
           runAsUser: "10000"
@@ -1534,6 +1548,18 @@ units:
             image:
               repository: neuvector/updater
           scanner:
+            containerSecurityContext:
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop:
+                  - ALL
+              privileged: false
+              readOnlyRootFilesystem: true
+              runAsGroup: 10000
+              runAsNonRoot: true
+              runAsUser: 10000
+              seccompProfile:
+                type: RuntimeDefault
             enabled: '{{ .Values.security.neuvector_scanning_enabled | include "preserve-type" }}'
             image:
               repository: neuvector/scanner
