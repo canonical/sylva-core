@@ -3,7 +3,7 @@
 
 variables:
   KUBE_SCORE_OPTIONS: >-
-    --kubernetes-version=1.29
+    --kubernetes-version=1.30
   KUBE_SCORE_TESTS_WHITELIST: >-
     container-cpu-requests-equal-limits
     container-ephemeral-storage-request-equals-limit
@@ -52,7 +52,7 @@ variables:
     - .test-tags
   dependencies: null
   script:
-    - wget -q https://github.com/zegl/kube-score/releases/download/v1.17.0/kube-score_1.17.0_linux_amd64 -O /usr/local/bin/kube-score
+    - wget -q https://github.com/zegl/kube-score/releases/download/v1.18.0/kube-score_1.18.0_linux_amd64 -O /usr/local/bin/kube-score
     - chmod +x /usr/local/bin/kube-score
     # Gather all available kube-score tests
     - kube-score list | awk -F, '{ print  $1 }' | sort > kube-score-tests
