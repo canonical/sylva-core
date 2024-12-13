@@ -741,6 +741,8 @@ units:
       internal: true
     unit_templates:
       - base-deps
+    enabled_conditions:
+      - '{{ tuple . "keycloak" | include "unit-enabled" }}'
     repo: sylva-core
     depends_on:
       cnpg-operator: true
