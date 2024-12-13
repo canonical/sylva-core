@@ -1483,7 +1483,7 @@ units:
             enabled: true
             secretname: neuvector-internal
         controller:
-          containerSecurityContext:
+          securityContext:
             allowPrivilegeEscalation: false
             capabilities:
               drop:
@@ -1517,7 +1517,7 @@ units:
             certificate:
               secret: neuvector-internal
         manager:
-          containerSecurityContext:
+          securityContext:
             allowPrivilegeEscalation: false
             capabilities:
               drop:
@@ -1547,7 +1547,7 @@ units:
             image:
               repository: neuvector/updater
           scanner:
-            containerSecurityContext:
+            securityContext:
               allowPrivilegeEscalation: false
               capabilities:
                 drop:
