@@ -4,10 +4,11 @@ metadata:
   name: kubevirt-manager-certificate
   namespace: kubevirt-manager
 spec:
-  commonName: kubevirt-manager.sylva
+  commonName: ${KUBEVIRT_MANAGER_DNS}
   dnsNames:
   - kubevirt-manager.sylva
   - localhost
+  - ${KUBEVIRT_MANAGER_DNS}
   duration: 2160h0m0s
   emailAddresses:
   - surname.name@sylva.org
