@@ -1590,7 +1590,7 @@ units:
                   value:
                     runAsNonRoot: true
                     runAsGroup: 10000
-                    runAsUser: 10000 
+                    runAsUser: 10000
                     seccompProfile:
                       type: RuntimeDefault
                     allowPrivilegeEscalation: false
@@ -1603,7 +1603,7 @@ units:
         {{- list ($cronJobPatch | fromYaml) ($securityPatch | fromYaml) | include "preserve-type" -}}
         {{- else -}}
         {{- list ($securityPatch | fromYaml) | include "preserve-type" -}}
-        {{- end -}}          
+        {{- end -}}
     kustomization_spec:
       healthChecks:
         - apiVersion: apps/v1
