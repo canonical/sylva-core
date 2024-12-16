@@ -1447,6 +1447,7 @@ units:
       kyverno: true
       keycloak-add-client-scope: true
       keycloak-oidc-external-secrets: true
+      kyverno-policies-ready: true
     repo: sylva-core
     kustomization_substitute_secrets:
       KEY: '{{ .Values.external_certificates.neuvector.key | default "" | b64enc }}'
@@ -1483,7 +1484,6 @@ units:
     - base-deps
     depends_on:
       neuvector-init: '{{ tuple . "neuvector-init" | include "unit-enabled" }}'
-      kyverno-policies-ready: true
       ingress-nginx: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpk" }}'
     annotations:
       sylvactl/readyMessage: "Neuvector UI can be reached at https://{{ .Values.external_hostnames.neuvector }} ({{ .Values.external_hostnames.neuvector }} must resolve to {{ .Values.display_external_ip }})"
