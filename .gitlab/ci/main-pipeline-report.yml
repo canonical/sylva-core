@@ -7,7 +7,7 @@ generate-report:
   stage: report
   needs: []
   image:
-    name: registry.gitlab.com/python-gitlab/python-gitlab:v5.0.0-alpine
+    name: registry.gitlab.com/python-gitlab/python-gitlab:v5.2.0-alpine
     entrypoint: [""]
   rules:
     - if: '$CI_PIPELINE_SOURCE == "schedule" && $CI_REPORT'
