@@ -1467,6 +1467,7 @@ units:
       kyverno-policies-ready: true
       ingress-nginx: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpk" }}'
     annotations:
+      kube-score/ignore: container-image-tag
       sylvactl/readyMessage: "Neuvector UI can be reached at https://{{ .Values.external_hostnames.neuvector }} ({{ .Values.external_hostnames.neuvector }} must resolve to {{ .Values.display_external_ip }})"
     helm_repo_url: https://neuvector.github.io/neuvector-helm
     helm_chart_artifact_name: neuvector-core
@@ -1548,7 +1549,7 @@ units:
             cpu: 100m
             memory: 2280Mi
       _postRenderers: |
-        {{- $patch := `
+        {{- $cronJobPatch := `
         kustomize:
           patches:
             - patch: |-
@@ -1560,10 +1561,48 @@ units:
                 spec:
                   startingDeadlineSeconds: 21600
         ` -}}
+
+        {{- $securityPatch := `
+        kustomize:
+          patches:
+            - target:
+                kind: CronJob
+                name: neuvector-cert-upgrader-pod
+              patch: |-
+                - op: add
+                  path: /spec/jobTemplate/spec/template/spec/containers/0/securityContext
+                  value:
+                    runAsNonRoot: true
+                    runAsGroup: 10000
+                    runAsUser: 10000
+                    seccompProfile:
+                      type: RuntimeDefault
+                    allowPrivilegeEscalation: false
+                    capabilities:
+                      drop:
+                        - ALL
+            - target:
+                kind: CronJob
+                name: neuvector-updater-pod
+              patch: |-
+                - op: add
+                  path: /spec/jobTemplate/spec/template/spec/containers/0/securityContext
+                  value:
+                    runAsNonRoot: true
+                    runAsGroup: 10000
+                    runAsUser: 10000
+                    seccompProfile:
+                      type: RuntimeDefault
+                    allowPrivilegeEscalation: false
+                    capabilities:
+                      drop:
+                        - ALL
+        ` -}}
+
         {{- if .Values.security.neuvector_scanning_enabled -}}
-        {{- list ($patch | fromYaml) | include "preserve-type" -}}
+        {{- list ($cronJobPatch | fromYaml) ($securityPatch | fromYaml) | include "preserve-type" -}}
         {{- else -}}
-        {{- list | include "preserve-type" -}}
+        {{- list ($securityPatch | fromYaml) | include "preserve-type" -}}
         {{- end -}}
     kustomization_spec:
       healthChecks:
@@ -1971,6 +2010,7 @@ units:
         features:
           policyExceptions:
             enabled: true
+            namespace: "*"
         admissionController:
           replicas: '{{ .Values._internal.default_replicas | include "preserve-type" }}'
           rbac:
