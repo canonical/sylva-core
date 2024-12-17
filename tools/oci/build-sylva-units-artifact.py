@@ -287,7 +287,6 @@ if os.getenv("ONLY_PRODUCE_USE_OCI_ARTIFACTS_VALUES", ""):
 
 # ############################## wrap up Helm packaging  #######################################
 os.chdir(chart_dest_dir)  # Ensure we are in the correct directory
-subprocess.run(["helm", "dependency", "update"], check=True,
 run_command(
     ["helm", "package", "--version", helm_chart_version, str(chart_dest_dir)]
 )
