@@ -28,6 +28,9 @@ import logging
 import sys
 import time
 
+# pylama:ignore=W0401
+from artifact_utils import *
+
 
 class ExitHandler(logging.StreamHandler):
     def emit(self, record):
@@ -145,30 +148,38 @@ def process_chart_in_git(repo, chart_path, chart_name):
         raise Exception(f"git revision could not be identified from <repo>.spec.ref ({repo['spec']['ref']})")
 
     tgz_file = f"{artifact_utils.ARTIFACT_DIR}/{chart_name}-{chart_version}.tgz"
-    if subprocess.run(f"git clone -q --depth 1 --branch {git_revision} {git_repo_url} {artifact_utils.ARTIFACT_DIR}",
-                      shell=True, cwd=artifact_utils.ARTIFACT_DIR,
-                      stdout=subprocess.PIPE, stderr=subprocess.STDOUT):
-        subprocess.run(f"helm dep update {artifact_utils.ARTIFACT_DIR}/{chart_path}",
-                       shell=True, cwd=artifact_utils.ARTIFACT_DIR,
-                       stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        with open(f"{artifact_utils.ARTIFACT_DIR}/{chart_path}/Chart.yaml", 'r+') as f:
-            chart = yaml.safe_load(f)
-            chart['name'] = chart_name
-            f.seek(0)
-            yaml.safe_dump(chart, f)
-            f.truncate()
-        subprocess.run(f"helm package --version {chart_version} {artifact_utils.ARTIFACT_DIR}/{chart_path}"
-                       f" -d {artifact_utils.ARTIFACT_DIR}",
-                       shell=True, cwd=artifact_utils.ARTIFACT_DIR,
-                       stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        if os.path.exists(tgz_file):
-            artifact_utils.process_artifact_helm(chart_name, chart_version, tgz_file)
-        else:
-            error_message = f"The {tgz_file} is not present after the 'helm package' " \
-                f"operation, check that the chart version is correct."
-            logging.error(error_message)
+    try:
+        run_command(f"git clone -c advice.detachedHead=false -q --depth 1 --branch {git_revision} {git_repo_url} {artifact_utils.ARTIFACT_DIR}")
+    except subprocess.CalledProcessError:
+        logger.error(f"The git repository {git_repo_url} revision {git_revision} can't be cloned.")
+
+    do_helm_dep_update = True
+    if os.path.exists(f"{artifact_utils.ARTIFACT_DIR}/{chart_path}/Chart.lock"):
+        logger.info("Chart.lock exists, trying 'helm build dependencies'")
+        try:
+            run_command(f"helm dep build --skip-refresh {artifact_utils.ARTIFACT_DIR}/{chart_path}",
+                        cwd=artifact_utils.ARTIFACT_DIR)
+            do_helm_dep_update = False
+        except Exception as e:
+            logger.info(f"'helm dep build' failed ({e}), but maybe 'helm dep update' will work")
+
+    if do_helm_dep_update:
+        run_command(f"helm dep update {artifact_utils.ARTIFACT_DIR}/{chart_path}",
+                    cwd=artifact_utils.ARTIFACT_DIR)
+
+    with open(f"{artifact_utils.ARTIFACT_DIR}/{chart_path}/Chart.yaml", 'r+') as f:
+        chart = yaml.safe_load(f)
+        chart['name'] = chart_name
+        f.seek(0)
+        yaml.safe_dump(chart, f)
+        f.truncate()
+    run_command(f"helm package --version {chart_version} {artifact_utils.ARTIFACT_DIR}/{chart_path}"
+                f" -d {artifact_utils.ARTIFACT_DIR}")
+    if os.path.exists(tgz_file):
+        artifact_utils.process_artifact_helm(chart_name, chart_version, tgz_file)
     else:
-        error_message = f"The git repository {git_repo_url} revision {git_revision} can't be cloned."
+        error_message = f"The {tgz_file} is not present after the 'helm package' " \
+            f"operation, check that the chart version is correct."
         logging.error(error_message)
 
 
