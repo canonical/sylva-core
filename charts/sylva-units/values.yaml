@@ -179,6 +179,34 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
       ref:
         tag: 0.1.1
 
+  bitnami-postgresql:
+    kind: GitRepository
+    spec:
+      url: https://github.com/bitnami/charts.git
+      ref:
+        tag: postgresql/15.5.36
+
+  bitnami-postgresql-ha:
+    kind: GitRepository
+    spec:
+      url: https://github.com/bitnami/charts.git
+      ref:
+        tag: postgresql-ha/14.2.30
+
+  bitnami-thanos:
+    kind: GitRepository
+    spec:
+      url: https://github.com/bitnami/charts.git
+      ref:
+        tag: thanos/15.8.0
+
+  bitnami-redis-cluster:
+    kind: GitRepository
+    spec:
+      url: https://github.com/bitnami/charts.git
+      ref:
+        tag: redis-cluster/11.0.8
+
 helm_repo_spec_default:
   interval: 60m0s
 
@@ -767,12 +795,11 @@ units:
     depends_on:
       namespace-defs: true
       '{{ .Values._internal.default_storage_class_unit }}': true
-    helm_repo_url: https://charts.bitnami.com/bitnami
+    repo: bitnami-postgresql
     helmrelease_spec:
       chart:
         spec:
-          chart: postgresql
-          version: 15.5.36
+          chart: bitnami/postgresql
       targetNamespace: keycloak
       values:
         architecture: replication
@@ -1027,12 +1054,11 @@ units:
     - base-deps
     enabled_conditions:
       - '{{ tuple . "harbor" | include "unit-enabled" }}'
-    helm_repo_url: https://charts.bitnami.com/bitnami
+    repo: bitnami-postgresql
     helmrelease_spec:
       chart:
         spec:
-          chart: postgresql
-          version: 15.5.36
+          chart: bitnami/postgresql
       targetNamespace: harbor
       values:
         auth:
@@ -5447,12 +5473,11 @@ units:
       gitea-keycloak-resources: true
       gitea-secrets: true
       '{{ .Values._internal.default_storage_class_unit }}': true
-    helm_repo_url: https://charts.bitnami.com/bitnami
+    repo: bitnami-redis-cluster
     helmrelease_spec:
       chart:
         spec:
-          chart: redis-cluster
-          version: 11.0.8
+          chart: bitnami/redis-cluster
       targetNamespace: gitea
       releaseName: gitea-redis
       values:
@@ -5482,12 +5507,11 @@ units:
       gitea-keycloak-resources: true
       gitea-secrets: true
       '{{ .Values._internal.default_storage_class_unit }}': true
-    helm_repo_url: https://charts.bitnami.com/bitnami
+    repo: bitnami-postgresql-ha
     helmrelease_spec:
       chart:
         spec:
-          chart: postgresql-ha
-          version: 14.2.30
+          chart: bitnami/postgresql-ha
       targetNamespace: gitea
       releaseName: gitea-postgres
       values:
@@ -6187,15 +6211,14 @@ units:
       ingress-nginx: '{{ tuple . "ingress-nginx" | include "unit-enabled" }}'
     annotations:
       sylvactl/readyMessage: Thanos UI can be reached at https://{{ .Values.external_hostnames.thanos }} ({{ .Values.external_hostnames.thanos }} must resolve to {{ .Values.display_external_ip }})
-    helm_repo_url: https://charts.bitnami.com/bitnami
+    repo: bitnami-thanos
     helmrelease_spec:
       targetNamespace: thanos
       install:
         createNamespace: false
       chart:
         spec:
-          chart: thanos
-          version: 15.8.0
+          chart: bitnami/thanos
       values:
         fullnameOverride: "thanos"
         metrics:
