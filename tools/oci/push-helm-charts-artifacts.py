@@ -78,17 +78,15 @@ def check_invalid_semver_tag(chart_name, version, rewrite_chart=False):
             if rewrite_chart:
                 logger.info("rewriting version in Chart.yaml")
                 tgz_file = f"{chart_name}-{version}.tgz"
-                subprocess.run(f"tar -xzf {tgz_file}", shell=True, cwd=artifact_utils.ARTIFACT_DIR,
-                               stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                run_command(f"tar -xzf {tgz_file}", cwd=artifact_utils.ARTIFACT_DIR)
                 with open(f"{artifact_utils.ARTIFACT_DIR}/{chart_name}/Chart.yaml", 'r+') as f:
                     chart = yaml.safe_load(f)
                     chart['version'] = new_version
                     f.seek(0)
                     yaml.safe_dump(chart, f)
                     f.truncate()
-                subprocess.run(f"tar -czf {chart_name}-{new_version}.tgz {chart_name}/",
-                               shell=True, cwd=artifact_utils.ARTIFACT_DIR,
-                               stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                run_command(f"tar -czf {chart_name}-{new_version}.tgz {chart_name}/",
+                            cwd=artifact_utils.ARTIFACT_DIR)
                 shutil.rmtree(f"{artifact_utils.ARTIFACT_DIR}/{chart_name}")
                 os.remove(f"{artifact_utils.ARTIFACT_DIR}/{tgz_file}")
             return new_version
@@ -96,27 +94,24 @@ def check_invalid_semver_tag(chart_name, version, rewrite_chart=False):
 
 
 def process_chart_in_helm_repo(helm_repo, chart_name, chart_version, artifact_name, version_to_check):
+
     tgz_file = f"{artifact_utils.ARTIFACT_DIR}/{chart_name}-{chart_version}.tgz"
-    logger.info(f"helm pull --repo {helm_repo} --version {chart_version} {chart_name}"
-                f" -d {artifact_utils.ARTIFACT_DIR}")
-    if subprocess.run(f"helm pull --repo {helm_repo} --version {chart_version} {chart_name}"
-                      f" -d {artifact_utils.ARTIFACT_DIR}", shell=True, cwd=artifact_utils.ARTIFACT_DIR,
-                      stdout=subprocess.PIPE, stderr=subprocess.STDOUT):
+    if run_command(f"helm pull --repo {helm_repo} --version {chart_version} {chart_name}"
+                   f" -d {artifact_utils.ARTIFACT_DIR}", cwd=artifact_utils.ARTIFACT_DIR):
         if os.path.exists(tgz_file):
             chart_version = check_invalid_semver_tag(artifact_name, chart_version, rewrite_chart=True)
             tgz_file = f"{artifact_utils.ARTIFACT_DIR}/{chart_name}-{chart_version}.tgz"
             if artifact_name != chart_name:
                 new_tgz_file = f"{artifact_utils.ARTIFACT_DIR}/{artifact_name}-{chart_version}.tgz"
-                subprocess.run(f"tar -xzvf {tgz_file}", shell=True, cwd=artifact_utils.ARTIFACT_DIR,
-                               stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                run_command(f"tar -xzvf {tgz_file}", cwd=artifact_utils.ARTIFACT_DIR)
                 with open(f"{artifact_utils.ARTIFACT_DIR}/{chart_name}/Chart.yaml", 'r+') as f:
                     chart = yaml.safe_load(f)
                     chart['name'] = artifact_name
                     f.seek(0)
                     yaml.safe_dump(chart, f)
                     f.truncate()
-                subprocess.run(f"tar -czvf {new_tgz_file} {chart_name}/", shell=True, cwd=artifact_utils.ARTIFACT_DIR,
-                               stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                run_command(f"tar -czvf {new_tgz_file} {chart_name}/",
+                            cwd=artifact_utils.ARTIFACT_DIR)
                 shutil.rmtree(f"{artifact_utils.ARTIFACT_DIR}/{chart_name}")
                 os.remove(tgz_file)
                 tgz_file = new_tgz_file

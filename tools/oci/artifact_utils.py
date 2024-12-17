@@ -90,7 +90,7 @@ def chart_version_from_repo(repo):
 
 def diff(artifact_name, source_dir, dest_dir):
     logger.info("---------- make a diff --------------")
-    result = subprocess.run(
+    result = run_command(
         [
             "diff",
             "-wur",
@@ -100,7 +100,8 @@ def diff(artifact_name, source_dir, dest_dir):
             ".git",
             f"{source_dir}/",
             f"{dest_dir}/"
-        ])
+        ],
+        check=False)
 
     if result.returncode != 0:
         raise ValueError(f"[ERROR] {artifact_name} content differs from the content of "
@@ -114,9 +115,9 @@ def fail_if_existing_artifact_differs(artifact_name, artifact_version, artifact_
         f"Checking the integrity of the existing artifact {artifact_name}:{artifact_version} :: "
         f"{artifact_url}")
     if tgz_file and Path(tgz_file).is_file():
-        subprocess.run(["tar", "-xzf", tgz_file, "-C", TGZ_ARTIFACT_DIR])
-        subprocess.run(["tar", "-xzf", f"{PULLED_ARTIFACT_DIR}/{artifact_name}-{artifact_version}.tgz", "-C",
-                        PULLED_ARTIFACT_DIR])
+        run_command(["tar", "-xzf", tgz_file, "-C", TGZ_ARTIFACT_DIR])
+        run_command(["tar", "-xzf", f"{PULLED_ARTIFACT_DIR}/{artifact_name}-{artifact_version}.tgz", "-C",
+                     PULLED_ARTIFACT_DIR])
         os.remove(f"{PULLED_ARTIFACT_DIR}/{artifact_name}-{artifact_version}.tgz")
         diff(artifact_name, TGZ_ARTIFACT_DIR, PULLED_ARTIFACT_DIR)
     else:
@@ -125,12 +126,10 @@ def fail_if_existing_artifact_differs(artifact_name, artifact_version, artifact_
 
 
 def signature_is_valid(artifact_name):
-    result = subprocess.run(
+    result = run_command(
         f"cosign verify --insecure-ignore-tlog=true --insecure-ignore-sct=true "
         f"--key env://COSIGN_PUBLIC_KEY {REGISTRY_URI}/{artifact_name}@{ARTIFACT_DIGEST}",
-        shell=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT
+        check=False
     )
 
     if result.returncode != 0:
@@ -145,10 +144,8 @@ def push_and_sign_with_helm(tgz_file, artifact_name):
     if CI_REGISTRY:
         registry_login()
 
-    result = subprocess.run(["helm", "push", tgz_file, OCI_REGISTRY], check=True,
-                            stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-    digest = re.search(r'.*Digest:\s+(.*)', result.stdout.decode('utf-8'), flags=re.M).group(1)
-
+    result = run_command(["helm", "push", tgz_file, OCI_REGISTRY])
+    digest = re.search(r'.*Digest:\s+(.*)', result.stderr, flags=re.M).group(1)
     sign(artifact_name, digest)
 
 
@@ -160,14 +157,15 @@ def push_and_sign_with_flux(artifact_name, artifact_version, artifact_source, ar
         "--path", ".", "--source", artifact_source, "--revision", artifact_revision
     ]
     # if we run in a gitlab CI job, then we use the credentials provided by gitlab job environment
+    logger.info(f"command: {" ".join(cmd)}")
     if CI_REGISTRY:
         ci_registry_user = os.getenv('CI_REGISTRY_USER')
         ci_registry_password = os.getenv('CI_REGISTRY_PASSWORD')
         cmd.append("--creds")
         creds = f"{ci_registry_user}:{ci_registry_password}"
         cmd.append(creds)
-    result = subprocess.run(cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-    digest = re.search('.*@+(.*)', result.stdout.decode('utf-8'), flags=re.M).group(1)
+    result = run_command(cmd, hide_command=True)
+    digest = re.search('.*@+(.*)', result.stderr, flags=re.M).group(1)
 
     sign(artifact_name, digest)
 
@@ -179,17 +177,16 @@ def sign(artifact_name, digest):
     if cosign_priv_key:
         if cosign_password:
             logger.info(f"Signing {artifact_name} artifact to OCI registry...")
-            subprocess.run(
-                f"cosign login {CI_REGISTRY} -u {os.getenv('CI_REGISTRY_USER')} -p {os.getenv('CI_REGISTRY_PASSWORD')}", shell=True,
-                stdout=subprocess.PIPE, stderr=subprocess.STDOUT
+            run_command(
+                f"cosign login {CI_REGISTRY} -u {os.getenv('CI_REGISTRY_USER')} -p {os.getenv('CI_REGISTRY_PASSWORD')}"
             )
-            result = subprocess.run(
-                f"cosign sign -y --tlog-upload=false --key  env://COSIGN_PRIVATE_KEY "
-                f"{REGISTRY_URI}/{artifact_name}@{digest}", shell=True,
-                stdout=subprocess.PIPE, stderr=subprocess.STDOUT
-            )
-            if result.returncode != 0:
-                logger.error(f"Unable to sign the {artifact_name}:{result.stdout.decode()}")
+            try:
+                run_command(
+                    f"cosign sign -y --tlog-upload=false --key  env://COSIGN_PRIVATE_KEY "
+                    f"{REGISTRY_URI}/{artifact_name}@{digest}"
+                )
+            except subprocess.CalledProcessError:
+                logger.error(f"!! Unable to sign the {artifact_name} !!")
         else:
             logger.warning(f"Unable to sign the {artifact_name}, the private key password is not available")
     else:
@@ -199,33 +196,30 @@ def sign(artifact_name, digest):
 def registry_login():
     ci_registry_user = os.getenv('CI_REGISTRY_USER')
     ci_registry_password = os.getenv('CI_REGISTRY_PASSWORD')
-    subprocess.run(
+    run_command(
         f"echo '{ci_registry_password}' | helm registry login -u '{ci_registry_user}' '{CI_REGISTRY}' "
-        f"--password-stdin",
-        shell=True,
-        stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        f"--password-stdin"
+    )
 
 
 def artifact_exists_with_flux(artifact_name, artifact_version, artifact_url):
     logger.info(f"Checking if OCI artifact exists: {artifact_name}:{artifact_version} :: {artifact_url}")
-    logger.info(f"flux pull artifact {artifact_url} -o {PULLED_ARTIFACT_DIR}")
-    result = subprocess.run(["flux", "pull", "artifact", artifact_url, "-o", PULLED_ARTIFACT_DIR],
-                            stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    result = run_command(["flux", "pull", "artifact", artifact_url, "-o", PULLED_ARTIFACT_DIR],
+                         check=False)
     if result.returncode == 0:
         global ARTIFACT_DIGEST
-        ARTIFACT_DIGEST = re.search('.*@+(.*)', result.stdout.decode('utf-8'), flags=re.M).group(1)
+        ARTIFACT_DIGEST = re.search('.*@+(.*)', result.stdout, flags=re.M).group(1)
         return True
     return False
 
 
 def artifact_exists_with_helm(artifact_name, artifact_version, artifact_url):
     logger.info(f"Checking if OCI artifact exists: {artifact_name}:{artifact_version} :: {artifact_url}")
-    logger.info(f"helm pull {artifact_url} --version {artifact_version} -d {PULLED_ARTIFACT_DIR}")
-    result = subprocess.run(["helm", "pull", artifact_url, "--version", artifact_version, "-d", PULLED_ARTIFACT_DIR],
-                            stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    result = run_command(["helm", "pull", artifact_url, "--version", artifact_version, "-d", PULLED_ARTIFACT_DIR],
+                         check=False)
     if result.returncode == 0:
         global ARTIFACT_DIGEST
-        ARTIFACT_DIGEST = re.search(r'.*Digest:\s+(.*)', result.stdout.decode('utf-8'), flags=re.M).group(1)
+        ARTIFACT_DIGEST = re.search(r'.*Digest:\s+(.*)', result.stderr, flags=re.M).group(1)
         return True
     return False
 

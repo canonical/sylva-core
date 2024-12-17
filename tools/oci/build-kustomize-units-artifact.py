@@ -28,6 +28,10 @@ import artifact_utils
 import logging
 import sys
 
+# pylama:ignore=W0401
+from artifact_utils import *
+
+
 BASE_DIR = os.path.realpath(os.path.join(os.path.dirname(__file__), '../..'))
 logger = logging.getLogger()
 
@@ -63,8 +67,9 @@ def process_kustomization(kustomization):
         }, new_file)
 
     logger.info("  locally rendering remote resources...")
-    kustomize_result = subprocess.run(["kustomize", "build", kdir,
-                                       "-o", f"{kdir}/local-resources.yaml"])
+    kustomize_result = run_command(["kustomize", "build", kdir,
+                                    "-o", f"{kdir}/local-resources.yaml"],
+                                   check=False)
 
     if kustomize_result.returncode != 0:
         logger.error(f"Unable to flatten {kustomization} !")
@@ -86,14 +91,11 @@ artifact_name = "kustomize-units"
 if os.getenv('CI_REPOSITORY_URL'):
     artifact_source = re.sub('gitlab-ci-token.*@', '', os.getenv('CI_REPOSITORY_URL'))
 else:
-    artifact_source = subprocess.run(["git", "config", "--get", "remote.origin.url"],
-                                     capture_output=True).stdout.decode('utf-8')
+    artifact_source = run_command(["git", "config", "--get", "remote.origin.url"]).stdout
 
-artifact_branch = subprocess.run(['git', 'branch', '--show-current'], capture_output=True)\
-    .stdout.decode('utf-8').strip()
+artifact_branch = run_command(['git', 'branch', '--show-current']).stdout
 
-artifact_tag = subprocess.run(['git', 'rev-parse', '--short', 'HEAD'], capture_output=True)\
-    .stdout.decode('utf-8').strip()
+artifact_tag = run_command(['git', 'rev-parse', '--short', 'HEAD']).stdout
 
 artifact_revision = artifact_branch + "/" + artifact_tag
 
@@ -118,11 +120,11 @@ for kustomization in kustomizations:
     else:
         logger.info(f"* {os.path.dirname(kustomization)}: no remote resource, skipping")
 
-remaining_urls = subprocess.run(["find", ".", "-type", "f", "-name", "'kustomization.y*ml'", "-exec", "grep",
-                                 "-nsE", "--", "'- +(https?|ssh)://'", "{}", "+"])
-if remaining_urls.returncode != 0:
-    logger.info("There are remaining remote URLs in some kustomization!")
-    exit(1)
+try:
+    run_command(["find", ".", "-type", "f", "-name", "'kustomization.y*ml'", "-exec", "grep",
+                 "-nsE", "--", "'- +(https?|ssh)://'", "{}", "+"])
+except subprocess.CalledProcessError:
+    logger.error("There are remaining remote URLs in some kustomization!")
 
 atexit.register(artifact_utils.cleanup)
 

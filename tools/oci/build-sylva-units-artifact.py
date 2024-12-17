@@ -20,7 +20,6 @@
 # a 'helm registry login registry.gitlab.com' with suitable credentials.
 
 import os
-import subprocess
 import shutil
 import yaml
 import re
@@ -29,6 +28,9 @@ import atexit
 import artifact_utils
 import logging
 import sys
+
+# pylama:ignore=W0401
+from artifact_utils import *
 
 
 # Set up environment and variables
@@ -39,7 +41,7 @@ logger = logging.getLogger()
 
 helm_chart_version = os.getenv(
     "HELM_CHART_VERSION",
-    f"0.0.0-git-{subprocess.check_output(['git', 'rev-parse', 'HEAD']).decode().strip()[0:8]}",
+    f"0.0.0-git-{run_command(['git', 'rev-parse', 'HEAD']).stdout[0:8]}",
 )
 logger.info(f'helm_chart_version: {helm_chart_version}')
 
@@ -286,11 +288,8 @@ if os.getenv("ONLY_PRODUCE_USE_OCI_ARTIFACTS_VALUES", ""):
 # ############################## wrap up Helm packaging  #######################################
 os.chdir(chart_dest_dir)  # Ensure we are in the correct directory
 subprocess.run(["helm", "dependency", "update"], check=True,
-               stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-subprocess.run(
-    ["helm", "package", "--version", helm_chart_version, str(chart_dest_dir)],
-    check=True,
-    stdout=subprocess.PIPE, stderr=subprocess.STDOUT
+run_command(
+    ["helm", "package", "--version", helm_chart_version, str(chart_dest_dir)]
 )
 
 # ############################## pushing the artifact to registry ###################################################
