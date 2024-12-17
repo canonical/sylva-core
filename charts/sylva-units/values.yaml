@@ -4834,7 +4834,7 @@ units:
       chart:
         spec:
           chart: longhorn-crd
-          version: 104.1.1+up1.6.3
+          version: 104.2.1+up1.7.2
 
   longhorn:
     info:
@@ -4856,14 +4856,14 @@ units:
       chart:
         spec:
           chart: longhorn
-          version: 104.1.1+up1.6.3
+          version: 104.2.1+up1.7.2
       values:
         metrics:
           serviceMonitor:
             enabled: '{{ .Values._internal.monitoring.enabled | include "preserve-type" }}'
         defaultSettings:
           createDefaultDiskLabeledNodes: true
-          allowVolumeCreationWithDegradedAvailability: false
+          allowVolumeCreationWithDegradedAvailability: true # tentative workaround of https://gitlab.com/sylva-projects/sylva-core/-/issues/1921
           storageMinimalAvailablePercentage: 10
           replicaReplenishmentWaitInterval: '{{ .Values.cluster.capi_providers.infra_provider | eq "capm3" | ternary 3600 600 | include "preserve-type" }}'
           nodeDrainPolicy: block-for-eviction-if-contains-last-replica

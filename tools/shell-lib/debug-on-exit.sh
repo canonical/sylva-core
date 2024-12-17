@@ -33,6 +33,7 @@ additional_resources="
   Nodes
   Services
   Endpoints
+  EndpointSlices
   Ingresses
   IngressClasses
   StorageClasses
@@ -196,6 +197,82 @@ function remote_command {
       "$@"
 }
 
+function fetch_longhorn_support_bundle {
+  local dump_dir=$1
+
+  echo "==== Longhorn support bundle ========"
+
+  if [[ -z $CI_JOB_ID ]]; then
+    echo "(not in CI, not fetching Longhorn support bundle)"
+    return
+  fi
+
+  echo "-- building an Ingress to access longhorn-backend ..."
+
+  external_ip=$(KUBECONFIG= kubectl get services -n default kubernetes-external -o yaml | yq '.spec.externalIPs[0]')
+  if [[ -z $external_ip ]]; then
+    echo "!!!! failed to get external_ip"
+    return
+  fi
+
+  longhorn_backend_hostname="longhorn-backend.$external_ip.nip.io"
+
+  kubectl apply -f - <<EOB
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: longhorn-backend
+  namespace: longhorn-system
+spec:
+  rules:
+  - host: $longhorn_backend_hostname
+    http:
+      paths:
+      - backend:
+          service:
+            name: longhorn-backend
+            port:
+              number: 9500
+        path: /
+        pathType: Prefix
+EOB
+
+  # code borrowed from https://longhorn.io/kb/troubleshooting-create-support-bundle-with-curl/
+  ISSUE_URL=https://gitlab.com/sylva-projects/sylva-core/-/jobs/$CI_JOB_ID
+  ISSUE_DESCRIPTION="Support bundle for Sylva CI Gitlab Job $CI_JOB_ID"
+  BACKEND_URL_BASE="http://$longhorn_backend_hostname"
+
+  echo "-- requesting a Longhorn support bundle via Longhorn API ($BACKEND_URL_BASE)..."
+
+  # Request to create the support bundle
+  echo "Requesting support bundle..."
+  REQUEST_SUPPORT_BUNDLE=$(curl --retry 5 --retry-all-errors -sSX POST -H 'Content-Type: application/json' -d '{ "issueURL": "'"${ISSUE_URL}"'", "description": "'"${ISSUE_DESCRIPTION}"'" }' ${BACKEND_URL_BASE}/v1/supportbundles)
+
+  ID=$( yq -p json -r '.id' <<< ${REQUEST_SUPPORT_BUNDLE} )
+  if [[ $ID == "null" ]]; then
+    echo "!!!! failed API call to create Longhorn support bundle (ID: $ID)"
+    return
+  fi
+
+  SUPPORT_BUNDLE_NAME=$( yq -p json -r '.name' <<< ${REQUEST_SUPPORT_BUNDLE} )
+  echo "Creating support bundle ${SUPPORT_BUNDLE_NAME} on Node ${ID}"
+
+  cnt=0
+  while [[ $(curl -sSX GET ${BACKEND_URL_BASE}/v1/supportbundles/${ID}/${SUPPORT_BUNDLE_NAME} | yq -p json -r '.state' ) != "ReadyForDownload" ]]; do
+    echo "Progress: $(curl -sSX GET ${BACKEND_URL_BASE}/v1/supportbundles/${ID}/${SUPPORT_BUNDLE_NAME} | yq -p json -r '.progressPercentage' )%"
+    sleep 5s
+
+    if [[ $cnt -ge 20 ]]; then
+      echo "stopping, waited for too long for support bundle to be ready to download"
+      return
+    fi
+    cnt=$((cnt+1))
+  done
+
+  echo "downloading support bundle to $dump_dir/longhorn-support-bundle.zip"
+  curl -X GET ${BACKEND_URL_BASE}/v1/supportbundles/${ID}/${SUPPORT_BUNDLE_NAME}/download --output $dump_dir/longhorn-support-bundle.zip
+}
+
 function cluster_info_dump() {
   local cluster=$1
   local dump_dir=$cluster-cluster-dump
@@ -276,6 +353,10 @@ function cluster_info_dump() {
   done
 
   wait
+
+  if [[ $(kubectl get ns longhorn-system -o name || true) == "namespace/longhorn-system" ]]; then
+    fetch_longhorn_support_bundle $dump_dir
+  fi
 
   echo -e "\nDisplay cluster resources usage per node"
   # From https://github.com/kubernetes/kubernetes/issues/17512
