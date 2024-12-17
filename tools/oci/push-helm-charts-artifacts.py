@@ -119,9 +119,8 @@ def process_chart_in_helm_repo(helm_repo, chart_name, chart_version, artifact_na
             artifact_utils.process_artifact_helm(artifact_name, version_to_check, tgz_file)
 
         else:
-            error_message = f"The {tgz_file} file was expected but no {chart_name}*tgz file" \
-                f" was produced by 'helm pull'."
-            logging.error(error_message)
+            logging.error(f"The {tgz_file} file was expected but wasn't found")
+            run_command(f"ls -l {artifact_utils.ARTIFACT_DIR}")
     else:
         error_message = f"The chart {chart_name}:{chart_version} from {helm_repo} can't be pulled locally."
         logging.error(error_message)
