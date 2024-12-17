@@ -30,6 +30,34 @@ logger = logging.getLogger(__name__)
 logger.info(f"(working in {ARTIFACT_DIR})")
 
 
+def run_command(command, hide_command=False, **kwargs):
+    if not isinstance(command, list):
+        kwargs['shell'] = True
+        log_command = command
+    else:
+        log_command = " ".join([str(arg) for arg in command])
+
+    kwargs['capture_output'] = True
+    kwargs['text'] = True
+
+    # remember 'check' parameter
+    check = kwargs.get('check', True)
+    # .. then unset it
+    kwargs['check'] = False
+
+    if not hide_command:
+        logger.info(f"  running: {log_command}")
+
+    process = subprocess.run(command, **kwargs)
+    for line in process.stdout.splitlines():
+        logger.info(f"    stdout: {line}")
+    for line in process.stderr.splitlines():
+        logger.warning(f"    !stderr: {line}")
+    if check:
+        process.check_returncode()
+    return process
+
+
 def chart_version_from_repo(repo):
     """Produces a string which will be used as Helm chart version
     from a source_templates.xxx repo
