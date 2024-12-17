@@ -68,7 +68,8 @@ def chart_version_from_repo(repo):
     repo_ref = repo["spec"]["ref"]
 
     if "tag" in repo_ref:
-        return repo_ref["tag"]
+        # remove any "xxxxx/" prefix
+        return re.sub("^.*/", "", repo_ref["tag"])
 
     # if the source_templates repo entry points to a branch
     # we'll generate an OCI artifact with a version containing the branch name and the CI pipeline id
