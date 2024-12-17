@@ -6,7 +6,7 @@ import re
 import logging
 from pathlib import Path
 
-OCI_REGISTRY = os.getenv("OCI_REGISTRY", "oci://registry.gitlab.com/sylva-projects/sylva-core/")
+OCI_REGISTRY = os.getenv("OCI_REGISTRY", "oci://registry.gitlab.com/sylva-projects/sylva-core")
 REGISTRY_URI = OCI_REGISTRY.replace("oci://", "")
 CI_REGISTRY = os.getenv('CI_REGISTRY')
 ARTIFACT_DIGEST = None
