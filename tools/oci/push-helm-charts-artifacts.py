@@ -93,36 +93,36 @@ def check_invalid_semver_tag(chart_name, version, rewrite_chart=False):
 
 
 def process_chart_in_helm_repo(helm_repo, chart_name, chart_version, artifact_name, version_to_check):
+    try:
+        run_command(f"helm pull --repo {helm_repo} --version {chart_version} {chart_name}"
+                    f" -d {ARTIFACT_DIR}", cwd=ARTIFACT_DIR)
+    except subprocess.CalledProcessError:
+        logging.error(f"The chart {chart_name}:{chart_version} from {helm_repo} can't be pulled locally.")
 
     tgz_file = f"{ARTIFACT_DIR}/{chart_name}-{chart_version}.tgz"
-    if run_command(f"helm pull --repo {helm_repo} --version {chart_version} {chart_name}"
-                   f" -d {ARTIFACT_DIR}", cwd=ARTIFACT_DIR):
-        if os.path.exists(tgz_file):
-            chart_version = check_invalid_semver_tag(artifact_name, chart_version, rewrite_chart=True)
-            tgz_file = f"{ARTIFACT_DIR}/{chart_name}-{chart_version}.tgz"
-            if artifact_name != chart_name:
-                new_tgz_file = f"{ARTIFACT_DIR}/{artifact_name}-{chart_version}.tgz"
-                run_command(f"tar -xzvf {tgz_file}", cwd=ARTIFACT_DIR)
-                with open(f"{ARTIFACT_DIR}/{chart_name}/Chart.yaml", 'r+') as f:
-                    chart = yaml.safe_load(f)
-                    chart['name'] = artifact_name
-                    f.seek(0)
-                    yaml.safe_dump(chart, f)
-                    f.truncate()
-                run_command(f"tar -czvf {new_tgz_file} {chart_name}/",
-                            cwd=ARTIFACT_DIR)
-                shutil.rmtree(f"{ARTIFACT_DIR}/{chart_name}")
-                os.remove(tgz_file)
-                tgz_file = new_tgz_file
+    if os.path.exists(tgz_file):
+        chart_version = check_invalid_semver_tag(artifact_name, chart_version, rewrite_chart=True)
+        tgz_file = f"{ARTIFACT_DIR}/{chart_name}-{chart_version}.tgz"
+        if artifact_name != chart_name:
+            new_tgz_file = f"{ARTIFACT_DIR}/{artifact_name}-{chart_version}.tgz"
+            run_command(f"tar -xzvf {tgz_file}", cwd=ARTIFACT_DIR)
+            with open(f"{ARTIFACT_DIR}/{chart_name}/Chart.yaml", 'r+') as f:
+                chart = yaml.safe_load(f)
+                chart['name'] = artifact_name
+                f.seek(0)
+                yaml.safe_dump(chart, f)
+                f.truncate()
+            run_command(f"tar -czvf {new_tgz_file} {chart_name}/",
+                        cwd=ARTIFACT_DIR)
+            shutil.rmtree(f"{ARTIFACT_DIR}/{chart_name}")
+            os.remove(tgz_file)
+            tgz_file = new_tgz_file
 
-            process_artifact_helm(artifact_name, version_to_check, tgz_file)
+        process_artifact_helm(artifact_name, version_to_check, tgz_file)
 
-        else:
-            logging.error(f"The {tgz_file} file was expected but wasn't found")
-            run_command(f"ls -l {ARTIFACT_DIR}")
     else:
-        error_message = f"The chart {chart_name}:{chart_version} from {helm_repo} can't be pulled locally."
-        logging.error(error_message)
+        logging.error(f"The {tgz_file} file was expected but wasn't found")
+        run_command(f"ls -l {ARTIFACT_DIR}")
 
 
 def process_chart_in_git(repo, chart_path, chart_name):
