@@ -1038,7 +1038,7 @@ units:
           persistentVolumeClaim:
             registry:
               storageClass: '{{ .Values._internal.default_storage_class }}'
-              size: 25Gi
+              size: 20Gi
               accessMode: '{{ .Values._internal.harbor_storage_access_mode }}'
             jobservice:
               jobLog:
