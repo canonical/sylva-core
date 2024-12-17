@@ -24,7 +24,6 @@ import subprocess
 import shutil
 import yaml
 import atexit
-import artifact_utils
 import logging
 import sys
 
@@ -103,12 +102,12 @@ artifact_version = os.getenv('ARTIFACT_VERSION', f"0.0.0-git-{artifact_tag}")
 logger.info(f'artifact_version: {artifact_version}')
 
 
-shutil.copytree(os.path.join(BASE_DIR, 'kustomize-units'), os.path.join(artifact_utils.ARTIFACT_DIR, 'kustomize-units'),
+shutil.copytree(os.path.join(BASE_DIR, 'kustomize-units'), os.path.join(ARTIFACT_DIR, 'kustomize-units'),
                 dirs_exist_ok=True)
 
-os.chdir(artifact_utils.ARTIFACT_DIR)
+os.chdir(ARTIFACT_DIR)
 
-kustomizations = find_kustomization_files(artifact_utils.ARTIFACT_DIR)
+kustomizations = find_kustomization_files(ARTIFACT_DIR)
 
 for kustomization in kustomizations:
     with open(kustomization) as kustomization_file:
@@ -126,25 +125,25 @@ try:
 except subprocess.CalledProcessError:
     logger.error("There are remaining remote URLs in some kustomization!")
 
-atexit.register(artifact_utils.cleanup)
+atexit.register(cleanup)
 
 
-artifact_url = f"{artifact_utils.OCI_REGISTRY}/{artifact_name}:{artifact_version}"
-if artifact_utils.artifact_exists_with_flux(artifact_name, artifact_version, artifact_url):
+artifact_url = f"{OCI_REGISTRY}/{artifact_name}:{artifact_version}"
+if artifact_exists_with_flux(artifact_name, artifact_version, artifact_url):
 
-    artifact_utils.fail_if_existing_artifact_differs(artifact_name, artifact_version, artifact_url)
+    fail_if_existing_artifact_differs(artifact_name, artifact_version, artifact_url)
 
     # artifact content hasn't changed, but we may want to sign it
     if 'COSIGN_PUBLIC_KEY' in os.environ:
         logger.info(f"Check if artifact {artifact_url} is signed with the correct key")
 
         try:
-            artifact_utils.signature_is_valid(artifact_name)
+            signature_is_valid(artifact_name)
             logger.info(f"Artifact {artifact_url} exists and is already signed with the correct key")
         except ValueError:
             logger.info(f"Artifact {artifact_url} exists and needs to be signed")
-            artifact_utils.sign(artifact_name, artifact_utils.ARTIFACT_DIGEST)
+            sign(artifact_name, ARTIFACT_DIGEST)
     else:
         logger.warning("Unable to sign the kustomize-units, signing material is not set")
 else:
-    artifact_utils.push_and_sign_with_flux(artifact_name, artifact_version, artifact_source, artifact_revision)
+    push_and_sign_with_flux(artifact_name, artifact_version, artifact_source, artifact_revision)

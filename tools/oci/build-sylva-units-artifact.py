@@ -25,7 +25,6 @@ import yaml
 import re
 from pathlib import Path
 import atexit
-import artifact_utils
 import logging
 import sys
 
@@ -47,7 +46,7 @@ logger.info(f'helm_chart_version: {helm_chart_version}')
 
 # Copy the chart directory to the artifact directory and change into it
 chart_source_dir = base_dir / 'charts' / 'sylva-units'
-chart_dest_dir = artifact_utils.ARTIFACT_DIR / 'sylva-units'
+chart_dest_dir = ARTIFACT_DIR / 'sylva-units'
 shutil.copytree(chart_source_dir, chart_dest_dir, ignore=shutil.ignore_patterns('test-values'))
 os.chdir(chart_dest_dir)
 
@@ -261,7 +260,7 @@ for unit in default_values_units:
                     "helmrelease_spec": {
                         "chart": {
                             "spec": {
-                                "version": artifact_utils.chart_version_from_repo(
+                                "version": chart_version_from_repo(
                                     default_values_source_templates[
                                         default_values_units[unit]["repo"]])
                             }
@@ -296,6 +295,6 @@ tgz_file = f"sylva-units-{helm_chart_version}.tgz"
 artifact_name = "sylva-units"
 artifact_version = helm_chart_version
 
-atexit.register(artifact_utils.cleanup)
+atexit.register(cleanup)
 
-artifact_utils.process_artifact_helm(artifact_name, artifact_version, tgz_file)
+process_artifact_helm(artifact_name, artifact_version, tgz_file)
