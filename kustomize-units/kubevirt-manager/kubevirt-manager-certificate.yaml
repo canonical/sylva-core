@@ -6,7 +6,6 @@ metadata:
 spec:
   commonName: ${KUBEVIRT_MANAGER_DNS}
   dnsNames:
-  - kubevirt-manager.sylva
   - localhost
   - ${KUBEVIRT_MANAGER_DNS}
   duration: 2160h0m0s
