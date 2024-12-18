@@ -6098,10 +6098,10 @@ units:
               resources:
                 limits:
                   cpu: 500m
-                  memory: 512Mi
+                  memory: '{{  has .Values.env_type (list "dev" "ci") | ternary "512Mi" "2Gi" }}'
                 requests:
                   cpu: 100m
-                  memory: 128Mi
+                  memory: '{{  has .Values.env_type (list "dev" "ci") | ternary "128Mi" "1Gi" }}'
               affinity:
                 podAntiAffinity:
                   requiredDuringSchedulingIgnoredDuringExecution:
