@@ -3202,6 +3202,50 @@ units:
               echo "--- waiting for all machines to have a nodeRef (reflects the fact that the Node has joined the cluster)..."
               kubectl wait Machine -l cluster.x-k8s.io/cluster-name={{ .Values.cluster.name }} --for=jsonpath='{.status.nodeRef.name}' --timeout $WAIT_TIMEOUT
 
+  post-command-annotation-check:
+    info:
+      description: check if all the postcommands has been successfully executed by waiting until the annotation is set on a node
+      internal: true
+    enabled_conditions:
+    - '{{ tuple . "cluster" | include "unit-enabled" }}'
+    depends_on:
+      cluster-machines-ready: true
+    unit_templates:
+    - kube-job
+    kustomization_spec:
+      _patches:
+      - target:
+          kind: ConfigMap
+          labelSelector: kube-job=script
+        patch: |
+          - op: replace
+            path: /data/kube-job.sh
+            value: |
+              #!/bin/bash
+              # Get the list of nodes
+              nodes=$(kubectl get nodes -A --kubeconfig management-cluster-kubeconfig -o jsonpath='{.items[*].metadata.name}')
+
+              # Function to check annotations for all nodes
+              check_annotations() {
+                for node in $nodes; do
+                  # Fetch the annotation value for the current node
+                  annotation=$(kubectl get node "$node" --kubeconfig management-cluster-kubeconfig -o jsonpath='{.metadata.annotations.post-commands-executed}')
+                  if [ "$annotation" != "true" ]; then
+                    return 1 # Exit the function with failure
+                  fi
+                done
+                return 0 # All nodes have the annotation set to true
+              }
+
+              # Wait until all nodes have the annotation set to true
+              echo "Checking post command annotations for all nodes..."
+
+              while ! check_annotations; do
+                echo -n "..."
+              done
+
+              echo "All nodes have the annotation 'post-commands-executed' set to true."
+
   heat-operator:
     info:
       description: installs OpenStack Heat operator

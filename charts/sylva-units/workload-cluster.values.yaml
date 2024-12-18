@@ -438,10 +438,8 @@ units:
     kustomization_spec:
       path: ./kustomize-units/rancher-init/components/webhook-ha
 
-  kyverno-policy-postcommand-node-annotation:
+  post-command-annotation-check:
     enabled: true
-    enabled_conditions:
-    - '{{ tuple . "kyverno" | include "unit-enabled"  }}'
 
   cluster-import:
     enabled: false  # overriden depending on whether Rancher is enabled or not (eg. via shared-workload-clusters-settings)
