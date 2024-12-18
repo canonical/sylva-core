@@ -60,6 +60,7 @@
 | **thanos** | installs Thanos | beta | [Helm chart](https://charts.bitnami.com/bitnami) | 15.8.0 |
 | **trivy-operator** | installs Trivy operator | beta | [Helm chart](https://aquasecurity.github.io/helm-charts/) | 0.24.1 |
 | **descheduler** | install descheduler |  | [Helm chart](https://kubernetes-sigs.github.io/descheduler/) | 0.31.0 |
+| **post-command-annotation-check** |  |  | Kustomization |  |
 
 ## Units for operators, tools or Helm charts maintained in Sylva project
 
@@ -128,7 +129,6 @@
 | **kyverno-metal3-policies** | kyverno policies specific to capm3-system | Kustomization |
 | **kyverno-policies** | configures Kyverno policies | Kustomization |
 | **kyverno-policies-ready** | additional delay to ensure that kyverno webhooks are properly installed in api-server | Kustomization |
-| **kyverno-policy-postcommand-node-annotation** | check if all the postcommands are executed | Kustomization |
 | **kyverno-policy-prevent-mgmt-cluster-delete** | Kyverno policies to prevent deletion of critical resources for mgmt cluster | Kustomization |
 | **kyverno-policy-rancher-webhook-ha** | Kyverno policy for rancher-webhook HA | Kustomization |
 | **kyverno-update-namespace-and-psa** | grants to Kyverno the permission to update namespaces using the "updatepsa" verb (Rancher-specific)<br/><br/>This unit allows Kyverno to define namespaces with specific PodSecurityAdmission levels. It is useful for situations where namespaces need to be mutated (with PSA labels) in order to accomodate privileged pods (for which PSA level restricted at cluster level is not enough), when namespace creation is not controlled | Kustomization |
