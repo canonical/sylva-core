@@ -93,6 +93,7 @@
 | :----- | :----- | :----- |
 | **bootstrap-local-path** | installs localpath CSI in bootstrap cluster | Kustomization |
 | **calico-ready** | ensure Calico resources created by the Tigera operator are ready before running further steps<br/><br/>This unit will be enabled in bootstrap cluster to confirm management cluster CNI readiness and in various workload-cluster namespaces in management cluster to do the same for workload clusters | Kustomization |
+| **calico-rke2-chart-cleanup** | remove rke2-deployed HelmChart resources for Calico | Kustomization |
 | **capi-providers-pivot-ready** | checks if management cluster is ready for pivot<br/><br/>This unit only has dependencies, but does not create resources. It is here only to have a single thing to look at to determine if everything is ready for pivot (see bootstrap.values.yaml pivot unit) | Kustomization |
 | **capi-rancher-import** | installs the capi-rancher-import operator, which let's us import Cluster AIP workload clusters in management cluster's Rancher | Helm chart |
 | **capo-cloud-config** | creates CAPO cloud-config used to produce Heat stack | Kustomization |
