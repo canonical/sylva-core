@@ -4434,7 +4434,7 @@ units:
       chart:
         spec:
           chart: kepler
-          version: 0.5.11
+          version: 0.5.12
       install:
         createNamespace: false
       values:
