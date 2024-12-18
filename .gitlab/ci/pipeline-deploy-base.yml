@@ -46,9 +46,19 @@ default:
     - if: $DEPLOY_MGMT_CLUSTER == "true"
       when: on_success
 
+.rules:need-management-cluster-update:
+  rules:
+    - if: $DEPLOY_MGMT_CLUSTER == "true" && $UPDATE_MGMT_CLUSTER == "true"
+      when: on_success
+
 .rules:need-workload-cluster:
   rules:
     - if: $DEPLOY_WORKLOAD_CLUSTER == "true"
+      when: on_success
+
+.rules:need-workload-cluster-update:
+  rules:
+    - if: $DEPLOY_WORKLOAD_CLUSTER == "true" && $UPDATE_WORKLOAD_CLUSTER == "true"
       when: on_success
 
 # ----------------------------------------------------------
@@ -71,9 +81,7 @@ deploy-management-cluster:
       optional: true
   extends:
     - .deploy-management
-  rules:
-    - if: $DEPLOY_MGMT_CLUSTER == "true"
-      when: always
+    - .rules:need-management-cluster
 
 # ----------------------------------------------------------
 
@@ -84,9 +92,7 @@ deploy-workload-cluster:
       optional: true
   extends:
     - .deploy-workload
-  rules:
-    - if: $DEPLOY_WORKLOAD_CLUSTER == "true"
-      when: on_success
+    - .rules:need-workload-cluster
 
 # ----------------------------------------------------------
 
@@ -99,9 +105,7 @@ update-management-cluster:
       optional: true
   extends:
     - .update-management
-  rules:
-    - if: $DEPLOY_MGMT_CLUSTER == "true" && $UPDATE_MGMT_CLUSTER == "true"
-      when: on_success
+    - .rules:need-management-cluster-update
 
 # ----------------------------------------------------------
 
@@ -114,9 +118,7 @@ update-workload-cluster:
       optional: true
   extends:
     - .update-workload
-  rules:
-    - if: $DEPLOY_WORKLOAD_CLUSTER == "true" && $UPDATE_WORKLOAD_CLUSTER == "true"
-      when: on_success
+    - .rules:need-workload-cluster-update
 
 # ----------------------------------------------------------
 
