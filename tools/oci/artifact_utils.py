@@ -208,7 +208,7 @@ def artifact_exists_with_flux(artifact_name, artifact_version, artifact_url):
                          check=False)
     if result.returncode == 0:
         global ARTIFACT_DIGEST
-        ARTIFACT_DIGEST = re.search('.*@+(.*)', result.stdout, flags=re.M).group(1)
+        ARTIFACT_DIGEST = re.search('.*@+(.*)', result.stderr, flags=re.M).group(1)
         return True
     return False
 
