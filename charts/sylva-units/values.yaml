@@ -3400,6 +3400,21 @@ units:
             allowVolumeExpansion: true
             parameters:
               type: "{{ .Values.openstack.storageClass.type }}"
+      _postRenderers:
+        - kustomize:
+            patches:
+              - target:
+                  kind: Deployment
+                  name: openstack-cinder-csi-controllerplugin
+                patch: |
+                  kind: Deployment
+                  metadata:
+                    name: openstack-cinder-csi-controllerplugin
+                  spec:
+                    template:
+                      metadata:
+                        annotations:
+                          clouds-yaml-hash: '{{ .Values._internal.clouds_yaml_hash }}'
     helm_secret_values:
       secret:
         enabled: "true"
@@ -7710,6 +7725,14 @@ _internal:
 
   k8s_version: '{{ include "interpret-as-string" (tuple . .Values.cluster.k8s_version) }}'
   mgmt_cluster: false
+
+  # compute the hash value for clouds_yaml
+
+  clouds_yaml_hash: >-
+    {{
+    .Values.cluster | dig "capo" "clouds_yaml" "clouds" dict | toYaml
+      | sha256sum | trunc 8
+    }}
 
   # 'cluster_machines_ready_unit_deps' contains all the dependencies of the 'cluster' unit, direct and indirect,
   # except the ones set due to depending on cluster-machines-ready.
