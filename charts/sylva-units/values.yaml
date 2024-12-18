@@ -3754,6 +3754,7 @@ units:
     kustomization_spec:
       path: ./kustomize-units/cluster-vip
       wait: true
+      prune: false
       postBuild:
         substitute:
           # in the general case, the cluster VIP is taken from .Values.cluster_virtual_ip

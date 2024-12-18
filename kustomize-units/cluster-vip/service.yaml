@@ -6,6 +6,7 @@ metadata:
   namespace: kube-system
   annotations:
     metallb.universe.tf/allow-shared-ip: cluster-external-ip
+    kustomize.toolkit.fluxcd.io/prune: disabled
 spec:
   type: LoadBalancer
   loadBalancerIP: "${allocated_ip}"
