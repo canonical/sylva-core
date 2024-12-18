@@ -5,4 +5,4 @@ metadata:
   namespace: cert-manager
 type: Opaque
 data:
-  cacert: ${CACERT}
+  cacert: ${CA_CHAIN}
