@@ -507,6 +507,7 @@ units_override_enabled:
   - cluster-bmh
   - cluster
   - cluster-ready
+  - post-command-annotation-check
   - cluster-machines-ready
   - cluster-reachable
   - namespace-defs
