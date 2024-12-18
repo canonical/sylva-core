@@ -155,6 +155,7 @@
 | **pivot** | moves ClusterAPI objects from bootstrap cluster to management cluster | Kustomization |
 | **prometheus-custom-metrics** | Prometheus configuration for custom resource metrics<br/><br/>Adding podmonitors for flux controllers and create custom metrics for various resources by configuring kube-state-metrics | Kustomization |
 | **prometheus-resources** | Creates required ConfigMaps and Kyverno policies to enable SNMP monitoring by Prometheus | Kustomization |
+| **rancher-custom-roles** | configures custom roles for Rancher | Kustomization |
 | **rancher-default-roles** | Create Rancher role templates<br/><br/>This unit creates a set of additional role templates which are likely to be needed by many<br/>clusters. | Kustomization |
 | **rancher-init** | initializes and configures Rancher | Kustomization |
 | **rancher-keycloak-oidc-provider** | configures Rancher for Keycloak OIDC integration | Kustomization |
