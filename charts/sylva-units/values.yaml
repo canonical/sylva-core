@@ -2323,7 +2323,7 @@ units:
       metal3: true
     repo: sylva-core
     kustomization_spec:
-      path: ./kustomize-units/kyverno-policies/metal3-policies
+      path: ./kustomize-units/kyverno-policies/components/metal3-policies
       wait: true
 
   kyverno-update-namespace-and-psa:
@@ -2890,7 +2890,7 @@ units:
       kyverno: true
     repo: sylva-core
     kustomization_spec:
-      path: ./kustomize-units/kyverno-policies/cluster-node-provider-id-blacklist
+      path: ./kustomize-units/kyverno-policies/components/cluster-node-provider-id-blacklist
       wait: true
       postBuild:
         substitute:
@@ -2915,7 +2915,7 @@ units:
                        (tuple . "cluster" | include "unit-enabled") }}'
     repo: sylva-core
     kustomization_spec:
-      path: ./kustomize-units/kyverno-policies/rke2-helmchart-prevent-uninstall
+      path: ./kustomize-units/kyverno-policies/components/rke2-helmchart-prevent-uninstall
       wait: true
 
   cluster:
@@ -5261,7 +5261,7 @@ units:
     - base-deps
     repo: sylva-core
     kustomization_spec:
-      path: ./kustomize-units/kyverno-policies/longhorn-engine-image-cleanup
+      path: ./kustomize-units/kyverno-policies/components/longhorn-engine-image-cleanup
 
   longhorn-instance-manager-cleanup:
     info:
