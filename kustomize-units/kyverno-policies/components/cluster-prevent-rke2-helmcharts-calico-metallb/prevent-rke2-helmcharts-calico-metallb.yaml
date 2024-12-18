@@ -1,0 +1,47 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: prevent-rke2-helmcharts-calico-metallb
+  annotations:
+    kustomize.toolkit.fluxcd.io/force: Enabled
+    policies.kyverno.io/title: Prevent recreation of RKE2 HelmCharts for Calico and MetalLB
+    policies.kyverno.io/subject: HelmChart
+    policies.kyverno.io/description: >-
+      This policy prevents the creation of HelmChart.helm.cattle.io resources for
+      Calico and MetalLB.
+
+      Context: With Sylva, Calico and MetalLB are managed by FluxCD not by RKE2,
+      the creation of RKE2 HelmCharts for those is hence blocked. This is required
+      to ensure that when we transition from the old way (when those were managed by RKE2)
+      and the new way, we don't have old RKE2 nodes recreating these HelmChart resources.
+spec:
+  validationFailureAction: Enforce
+  background: false
+  webhookConfiguration:
+    matchConditions:
+    # This policy purposefully targets the kube-system namespace, so we don't exclude it
+    - name: is-create
+      expression: request.operation == "CREATE"
+    - name: is-calico-or-metallb
+      expression: >-
+        has(object.metadata) && object.metadata.name in [
+          "rke2-calico-crd",
+          "rke2-calico",
+          "metallb",
+        ]
+    - name: namespace
+      expression: >-
+        request.namespace in [
+          "kube-system",
+          "metallb-system"
+        ]
+  rules:
+  - name: prevent-metallb-calico
+    match:
+      any:
+      - resources:
+          kinds:
+          - helm.cattle.io/*/HelmChart
+    validate:
+      message: With Sylva, Calico and MetalLB are managed by FluxCD not by RKE2, the creation of RKE2 HelmCharts for those is hence blocked.
+      deny: {}
