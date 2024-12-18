@@ -2969,7 +2969,9 @@ units:
               kubectl wait Machine -l cluster.x-k8s.io/cluster-name={{ .Values.cluster.name }} --for=jsonpath='{.status.nodeRef.name}' --timeout $WAIT_TIMEOUT
 
   post-command-annotation-check:
-    info: check if all the postcommands has been successfully executed by waiting until the annotation is set on a node
+    info: 
+      description: check if all the postcommands has been successfully executed by waiting until the annotation is set on a node
+      internal: true
     enabled_conditions:
     - '{{ tuple . "cluster" | include "unit-enabled" }}'
     depends_on:
