@@ -95,6 +95,7 @@
 | **bootstrap-local-path** | installs localpath CSI in bootstrap cluster | Kustomization |
 | **cabpr-cluster-pause** | unit used to pause the Cluster resource of all clusters<br/><br/>This unit was introduced as a workaround https://github.com/rancher/cluster-api-provider-rke2/issues/596<br/><br/>The resume is done by a sylva-capi-cluster Helm post-upgrade hook. | Kustomization |
 | **calico-ready** | ensure Calico resources created by the Tigera operator are ready before running further steps<br/><br/>This unit will be enabled in bootstrap cluster to confirm management cluster CNI readiness and in various workload-cluster namespaces in management cluster to do the same for workload clusters | Kustomization |
+| **calico-rke2-chart-cleanup** | remove rke2-deployed HelmChart resources for Calico | Kustomization |
 | **capi-providers-pivot-ready** | checks if management cluster is ready for pivot<br/><br/>This unit only has dependencies, but does not create resources. It is here only to have a single thing to look at to determine if everything is ready for pivot (see bootstrap.values.yaml pivot unit) | Kustomization |
 | **capi-rancher-import** | installs the capi-rancher-import operator, which let's us import Cluster AIP workload clusters in management cluster's Rancher | Helm chart |
 | **capo-cloud-config** | creates CAPO cloud-config used to produce Heat stack | Kustomization |
@@ -130,7 +131,6 @@
 | **keycloak-oidc-external-secrets** | configures OIDC secrets for Keycloak | Kustomization |
 | **keycloak-postgres** | Deploy Postgres cluster for Keycloak using Cloud Native PostgreSQL (CNPG) | Kustomization |
 | **keycloak-resources** | configures keycloak resources | Kustomization |
-| **kube-storage-version-migrator** | installs kube-storage-version-migrator to assist apiVersion migrations | Kustomization |
 | **kubevirt-manager** | deploys kubevirt-manager UI for kubevirt workloads | Kustomization |
 | **kubevirt-test-vms** | deploys kubevirt VMs for testing | Kustomization |
 | **kunai-eso** | write secrets in kunai namespace in kunai expected format | Kustomization |
@@ -140,6 +140,7 @@
 | **kyverno-policies** | configures Kyverno policies | Kustomization |
 | **kyverno-policies-ready** | additional delay to ensure that kyverno webhooks are properly installed in api-server | Kustomization |
 | **kyverno-policy-prevent-mgmt-cluster-delete** | Kyverno policies to prevent deletion of critical resources for mgmt cluster | Kustomization |
+| **kyverno-policy-rancher-webhook-ha** | Kyverno policy for rancher-webhook HA | Kustomization |
 | **kyverno-policy-rancher-webhook-ha** | Kyverno policy for rancher-webhook HA | Kustomization |
 | **kyverno-update-namespace-and-psa** | grants to Kyverno the permission to update namespaces using the "updatepsa" verb (Rancher-specific)<br/><br/>This unit allows Kyverno to define namespaces with specific PodSecurityAdmission levels. It is useful for situations where namespaces need to be mutated (with PSA labels) in order to accomodate privileged pods (for which PSA level restricted at cluster level is not enough), when namespace creation is not controlled | Kustomization |
 | **kyverno-vault-restart-policy** | restart vault after certs renewal | Kustomization |
