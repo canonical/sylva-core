@@ -16,11 +16,13 @@
       else
         NAMESPACE=sylva-system
       fi
-      sylvactl watch \
-      --kubeconfig management-cluster-kubeconfig \
-      --timeout 2m \
-      -n $NAMESPACE \
-      Kustomization/$NAMESPACE/sylva-units-tests-status
+      if kubectl --kubeconfig management-cluster-kubeconfig get -n $NAMESPACE Kustomization sylva-units-tests-status; then
+        sylvactl watch \
+        --kubeconfig management-cluster-kubeconfig \
+        --timeout 2m \
+        -n $NAMESPACE \
+        Kustomization/$NAMESPACE/sylva-units-tests-status
+      fi
 
 mgmt-test-units:
   variables:
