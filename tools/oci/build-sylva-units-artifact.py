@@ -20,15 +20,16 @@
 # a 'helm registry login registry.gitlab.com' with suitable credentials.
 
 import os
-import subprocess
 import shutil
 import yaml
 import re
 from pathlib import Path
 import atexit
-import artifact_utils
 import logging
 import sys
+
+# pylama:ignore=W0401
+from artifact_utils import *
 
 
 # Set up environment and variables
@@ -39,13 +40,13 @@ logger = logging.getLogger()
 
 helm_chart_version = os.getenv(
     "HELM_CHART_VERSION",
-    f"0.0.0-git-{subprocess.check_output(['git', 'rev-parse', 'HEAD']).decode().strip()[0:8]}",
+    f"0.0.0-git-{run_command(['git', 'rev-parse', 'HEAD']).stdout[0:8]}",
 )
 logger.info(f'helm_chart_version: {helm_chart_version}')
 
 # Copy the chart directory to the artifact directory and change into it
 chart_source_dir = base_dir / 'charts' / 'sylva-units'
-chart_dest_dir = artifact_utils.ARTIFACT_DIR / 'sylva-units'
+chart_dest_dir = ARTIFACT_DIR / 'sylva-units'
 shutil.copytree(chart_source_dir, chart_dest_dir, ignore=shutil.ignore_patterns('test-values'))
 os.chdir(chart_dest_dir)
 
@@ -259,7 +260,7 @@ for unit in default_values_units:
                     "helmrelease_spec": {
                         "chart": {
                             "spec": {
-                                "version": artifact_utils.chart_version_from_repo(
+                                "version": chart_version_from_repo(
                                     default_values_source_templates[
                                         default_values_units[unit]["repo"]])
                             }
@@ -285,12 +286,8 @@ if os.getenv("ONLY_PRODUCE_USE_OCI_ARTIFACTS_VALUES", ""):
 
 # ############################## wrap up Helm packaging  #######################################
 os.chdir(chart_dest_dir)  # Ensure we are in the correct directory
-subprocess.run(["helm", "dependency", "update"], check=True,
-               stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-subprocess.run(
-    ["helm", "package", "--version", helm_chart_version, str(chart_dest_dir)],
-    check=True,
-    stdout=subprocess.PIPE, stderr=subprocess.STDOUT
+run_command(
+    ["helm", "package", "--version", helm_chart_version, str(chart_dest_dir)]
 )
 
 # ############################## pushing the artifact to registry ###################################################
@@ -298,6 +295,6 @@ tgz_file = f"sylva-units-{helm_chart_version}.tgz"
 artifact_name = "sylva-units"
 artifact_version = helm_chart_version
 
-atexit.register(artifact_utils.cleanup)
+atexit.register(cleanup)
 
-artifact_utils.process_artifact_helm(artifact_name, artifact_version, tgz_file)
+process_artifact_helm(artifact_name, artifact_version, tgz_file)
