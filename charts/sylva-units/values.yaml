@@ -4927,6 +4927,8 @@ units:
           replicaReplenishmentWaitInterval: '{{ .Values.cluster.capi_providers.infra_provider | eq "capm3" | ternary 3600 600 | include "preserve-type" }}'
           nodeDrainPolicy: block-for-eviction-if-contains-last-replica
           concurrentAutomaticEngineUpgradePerNodeLimit: 3
+        persistence:
+          defaultClass: '{{ .Values._internal.default_storage_class | eq "longhorn" | include "preserve-type" }}'
 
   longhorn-engine-image-cleanup:
     info:
