@@ -142,10 +142,10 @@ apiVersion: v1
 kind: Event
 metadata:
   name: capi-garbage-cleanup.delete.$(printf "%0000x%0000x" $RANDOM $RANDOM)
-  namespace: $TARGET_NAMESPACE
+  namespace: sylva-system
 type: Normal
 reportingComponent: capi-garbage-cleanup
-message: capi-garbage-cleanup deleted $TEMPLATE_RESOURCE/$TEMPLATE_RESOURCE_INSTANCE
+message: capi-garbage-cleanup deleted $TEMPLATE_RESOURCE/$TEMPLATE_RESOURCE_INSTANCE in $TARGET_NAMESPACE namespace
 reason: capi-garbage-cleanup determined that this object isn't referred to anymore
 firstTimestamp: $(date -Iseconds -u | sed 's/+00:00/Z/')
 involvedObject:
