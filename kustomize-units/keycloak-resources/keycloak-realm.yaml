@@ -29,6 +29,13 @@ spec:
         realm-management:
           - view-users
     - name: infra-restricted-admins
+      clientRoles:
+        realm-management:
+          - view-users
+    - name: all-clusters-owners
+      clientRoles:
+        realm-management:
+          - view-users
     - name: infra-standard-users
     - name: infra-base-users
 ---

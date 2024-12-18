@@ -3605,6 +3605,21 @@ units:
           name: rancher-webhook
           namespace: cattle-system
 
+  rancher-custom-roles:
+    info:
+      description: configures custom roles for Rancher
+      internal: true
+    unit_templates:
+    - base-deps
+    enabled_conditions:
+    - '{{ tuple . "rancher" | include "unit-enabled" }}'
+    repo: sylva-core
+    depends_on:
+      rancher: true
+    kustomization_spec:
+      path: ./kustomize-units/rancher-custom-roles
+      wait: true
+
   rancher-keycloak-oidc-provider:
     info:
       description: configures Rancher for Keycloak OIDC integration
@@ -3617,6 +3632,7 @@ units:
     repo: sylva-core
     depends_on:
       rancher: true
+      rancher-custom-roles: true
       keycloak: true
       keycloak-resources: true
       keycloak-oidc-external-secrets: true

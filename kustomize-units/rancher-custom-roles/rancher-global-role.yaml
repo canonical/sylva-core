@@ -1,0 +1,8 @@
+---
+apiVersion: management.cattle.io/v3
+kind: GlobalRole
+displayName: All Downstream Owner
+metadata:
+  name: all-clusters-owner
+inheritedClusterRoles:
+- cluster-owner

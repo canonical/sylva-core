@@ -17,10 +17,15 @@ metadata:
   annotations:
     cleanup.cattle.io/grbUpgradeCluster: "true"
     lifecycle.cattle.io/create.mgmt-auth-grb-controller: "true"
-  finalizers:
-  - controller.cattle.io/mgmt-auth-grb-controller
 globalRoleName: restricted-admin
 groupPrincipalName: keycloakoidc_group://infra-restricted-admins
+---
+apiVersion: management.cattle.io/v3
+kind: GlobalRoleBinding
+metadata:
+  name: grb-all-clusters-owners-all-clusters-owner
+globalRoleName: all-clusters-owner
+groupPrincipalName: keycloakoidc_group://all-clusters-owners
 ---
 apiVersion: management.cattle.io/v3
 kind: GlobalRoleBinding
