@@ -17,6 +17,7 @@ export KIND_SVC_SUBNET=${KIND_SVC_SUBNET:-100.96.0.0/16}
 if [[ -n "${CI_JOB_NAME:-}" ]]; then
   export IN_CI=1
   SYLVACTL_SAVE=1
+  CHECK_TEST_UNITS=1
 else
   export IN_CI=0
 fi
