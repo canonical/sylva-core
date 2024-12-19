@@ -2,6 +2,8 @@
 # it's content comes from https://fluxcd.io/flux/monitoring/custom-metrics/#adding-custom-metrics
 # and create custom metrics related to clusters on k8s and rancher level
 kube-state-metrics:
+  extraArgs:
+  - --metric-labels-allowlist=namespaces=[field.cattle.io/projectId]
   rbac:
     extraRules:
       - apiGroups:
@@ -11,6 +13,7 @@ kube-state-metrics:
           - notification.toolkit.fluxcd.io
           - cluster.x-k8s.io
           - provisioning.cattle.io
+          - management.cattle.io
         resources:
           - gitrepositories
           - helmrepositories
@@ -22,12 +25,30 @@ kube-state-metrics:
           - providers
           - receivers
           - clusters
+          - projects
         verbs: [ "list", "watch" ]
   customResourceState:
     enabled: true
     config:
       spec:
         resources:
+          - groupVersionKind:
+              group: management.cattle.io
+              version: v3
+              kind: Project
+            metricNamePrefix: rancher_project
+            metrics:
+              - name: "info"
+                help: "List of current projects in Rancher"
+                each:
+                  type: Info
+                  info:
+                    labelsFromPath:
+                      project_name: [ spec, displayName ]
+                labelsFromPath:
+                  project_id: [ metadata, name ]
+                  rancher_cluster_id: [ spec, clusterName ]
+                  description: [ spec, description ]
           - groupVersionKind:
               group: cluster.x-k8s.io
               version: v1beta1
@@ -59,6 +80,7 @@ kube-state-metrics:
                       rancher_cluster_name: [ metadata, name ]
                 labelsFromPath:
                   cluster_namespace: [ metadata, namespace ]
+                  rancher_cluster_id: [ status, clusterName ]
                   ready: [ status, ready ]
           - groupVersionKind:
               group: kustomize.toolkit.fluxcd.io
