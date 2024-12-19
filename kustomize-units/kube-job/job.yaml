@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: run-script
-        image: registry.gitlab.com/sylva-projects/sylva-elements/container-images/kube-job:v1.0.17
+        image: registry.gitlab.com/sylva-projects/sylva-elements/container-images/kube-job:v1.1.0
         command: ["/bin/sh", "-c", "/opt/kube-job.sh"]
         securityContext:
           allowPrivilegeEscalation: false
