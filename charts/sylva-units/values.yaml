@@ -2061,6 +2061,7 @@ units:
         features:
           policyExceptions:
             enabled: true
+            namespace: "*"
         admissionController:
           replicas: '{{ .Values._internal.default_replicas | include "preserve-type" }}'
           rbac:
