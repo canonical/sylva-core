@@ -397,6 +397,10 @@ units:
             value: |
           {{ .Files.Get "scripts/neuvector-assign-fedadmin-role.sh" | indent 4 }}
 
+  neuvector-federation-generate-workload-config:
+    # this unit is for workload clusters only
+    enabled: false
+
   management-flag:
     info:
       internal: true

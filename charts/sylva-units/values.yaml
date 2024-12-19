@@ -1475,6 +1475,32 @@ units:
         - '{{ ternary "../tls-components/tls-secret" "../tls-components/tls-certificate" (hasKey .Values.external_certificates.neuvector "cert") }}'
         - "../tls-components/sylva-ca"
 
+
+  neuvector-federation-generate-workload-config:
+    info:
+      description: generate a Neuvector federation workload config with join token
+      details: >
+        a job to define the federation config for workload cluster
+      internal: true
+    unit_templates:
+    - base-deps
+    enabled_conditions:
+    - '{{ tuple . "neuvector" | include "unit-enabled" }}'
+    repo: sylva-core
+    depends_on:
+      neuvector: true
+    kustomization_spec:
+      path: ./kustomize-units/neuvector-federation-workload-config
+      targetNamespace: neuvector
+      postBuild:
+        substitute:
+          CONFIGMAP_NAME: 'neuvector-federation-{{ .Values.cluster.name }}'
+          CLUSTER_NAME: '{{ .Values.cluster.name }}'
+          MGMT_NEUVECTOR_FEDERATION_MASTER_HOSTNAME: '{{ .Values._internal.mgmt_neuvector_federation_master }}'
+          NEUVECTOR_FEDERATION_MANAGED_HOSTNAME: '{{ .Values.external_hostnames.neuvector_federation_managed }}'
+          NEUVECTOR_JOIN_TOKEN: '{{ .Values._internal.neuvector_join_token }}'
+
+
   neuvector:
     info:
       description: installs Neuvector
@@ -8512,7 +8538,6 @@ _internal:
   kubevirt_admin_user: 'admin'
   kubevirt_admin_password: '{{ include "internalPersistentRandomPasswd" (tuple . "kubevirt_admin_password") }}'
 
-  # neuvector join token for cluster federation
   neuvector_join_token: '{{ include "internalPersistentRandomPasswd" (tuple . "neuvector_join_token") }}'
 
   default_password: '{{ include "internalPersistentRandomPasswd" (tuple . "default_password") }}'

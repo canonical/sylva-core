@@ -400,11 +400,26 @@ units:
       _components:
         - '{{ hasKey .Values.external_certificates.neuvector_federation_master "cert" | ternary "../../tls-components/tls-secret" "../../tls-components/tls-certificate" }}'
 
+  neuvector-federation-generate-workload-config:
+    enabled: true
+    enabled_conditions:
+      - '{{ tuple . "neuvector" | include "unit-enabled" }}'
+      - '{{ .Values._internal.sylva_mgmt_enabled_units.neuvector }}'
+    repo: sylva-core
+    depends_on:
+      neuvector: false
+    unit_templates:
+    - kustomization-deployed-on-mgmt-cluster
+    kustomization_spec:
+      healthChecks: [] # Remove healthChecks targeting sylva-system namespace
+
+
   neuvector:
     # can be enabled at runtime if desired
     enabled: false
     depends_on:
       neuvector-federation-tls: '{{ tuple . "neuvector-federation-tls" | include "unit-enabled" }}'
+      neuvector-federation-generate-workload-config: '{{ tuple . "neuvector-federation-generate-workload-config" | include "unit-enabled" }}'
     helmrelease_spec:
       values:
         controller:
@@ -449,15 +464,6 @@ units:
                   Role: admin
                   username: admin
                   Password: {{ .Values._internal.neuvector_admin_password }}
-              fedinitcfg.yaml: |
-                cluster_name: {{ .Values.cluster.name }}
-                primary_rest_info:
-                  server: {{ .Values._internal.mgmt_neuvector_federation_master }}
-                  port: 443
-                managed_rest_info:
-                  server: {{ .Values.external_hostnames.neuvector_federation_managed }}
-                  port: 443
-                join_token: {{ .Values._internal.neuvector_join_token }}
 
 
   thanos-credentials-secret:
