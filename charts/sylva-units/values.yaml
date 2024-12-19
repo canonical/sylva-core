@@ -1566,6 +1566,14 @@ units:
         kustomize:
           patches:
             - target:
+                kind: Deployment
+                name: neuvector-scanner-pod
+              patch: |-
+                - op: add
+                  path: /spec/template/metadata/annotations
+                  value:
+                    kube-score/ignore: container-image-tag
+            - target:
                 kind: CronJob
                 name: neuvector-cert-upgrader-pod
               patch: |-
