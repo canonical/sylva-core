@@ -55,7 +55,7 @@ sylvactl watch \
   -n $wc_namespace \
   Kustomization/$wc_namespace/sylva-units-status
 
-if [[ -n $CHECK_TEST_UNITS ]]; then
+if [[ -n ${CHECK_TEST_UNITS:-""} ]]; then
     echo_b "\U000023F3 Wait for test units to be ready"
 
     sylvactl watch \
