@@ -3,6 +3,7 @@
   "extends": [
     "gitlab>sylva-projects/sylva-elements/renovate-config:default"
   ],
+  "ignorePaths": [],
   "addLabels": [
     "renovate"
   ],
@@ -206,6 +207,15 @@
     }
   ],
   "customManagers": [
+    {
+      "description": "Generic regex to match variable ending in _VERSION in kubescore yaml file",
+      "customType": "regex",
+      "fileMatch": ".gitlab/ci/tests/security/kubescore.yml",
+      "matchStrings": [
+        "# renovate: datasource=(?<datasource>.*?) depName=(?<depName>.*?)( VersionTemplate=(?<VersionTemplate>.*?))?\\s+.*?_VERSION.\\s\"?(?<currentValue>[^\"\\n]+)\"?\\n"
+      ],
+      "extractVersionTemplate": "{{#if VersionTemplate}}^{{{VersionTemplate}}}(?<version>.*)${{/if}}"
+    },
     {
       "description": "Update Pylama in GitLab CI pipeline",
       "customType": "regex",
