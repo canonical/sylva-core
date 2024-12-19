@@ -1586,6 +1586,9 @@ units:
                 name: neuvector-updater-pod
               patch: |-
                 - op: add
+                  path: /metadata/annotations/kube-score~1ignore
+                  value: container-image-tag
+                - op: add
                   path: /spec/jobTemplate/spec/template/spec/containers/0/securityContext
                   value:
                     runAsNonRoot: true
