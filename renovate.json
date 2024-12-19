@@ -329,9 +329,10 @@
     {
       "description": "Match generic comment in values file, used to detect version change in kustomize patch",
       "customType": "regex",
-      "fileMatch": "charts/sylva-units/values.yaml",
+      "fileMatch": ["charts/sylva-units/values.yaml",
+                    "charts/sylva-units/templates/delete_hook.yaml"],
       "matchStrings": [
-        "#\\s?renovate: datasource=(?<datasource>.*?)\\n[\\w\\W]*?value: (?<registryUrl>.*)\/(?<depName>.*):(?<currentValue>.*)"
+        "#\\s?renovate: datasource=(?<datasource>.*?)\\n\\s+.*?:\\s*(?<registryUrl>.*)\/(?<depName>.*):(?<currentValue>.*)"
       ],
       "registryUrlTemplate": "https://{{{ registryUrl }}}"
     }
