@@ -480,6 +480,10 @@ units:
     kustomization_spec:
       targetNamespace: "cattle-logging-system"
 
+  loki:
+    # this unit isn't designed to work in workload clusters
+    enabled_conditions: [false]
+
   loki-credentials-secret:
     enabled: true
     depends_on:

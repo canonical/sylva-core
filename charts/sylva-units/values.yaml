@@ -6680,7 +6680,6 @@ units:
         name: loki-secrets
 
   loki:
-    enabled: false
     info:
       description: installs Loki log storage
       details: installs Loki log storage in simple scalable mode
