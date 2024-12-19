@@ -63,7 +63,7 @@ sylvactl watch \
   -n sylva-system \
   Kustomization/sylva-system/sylva-units-status
 
-if [[ -n $CHECK_TEST_UNITS ]]; then
+if [[ -n ${CHECK_TEST_UNITS:-""} ]]; then
     echo_b "\U000023F3 Wait for test units installed on management cluster to be ready"
     sylvactl watch \
       --kubeconfig management-cluster-kubeconfig \
