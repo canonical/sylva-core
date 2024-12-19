@@ -1,4 +1,4 @@
-apiVersion: kyverno.io/v2beta1
+apiVersion: kyverno.io/v2
 kind: PolicyException
 metadata:
   name: neuvector-exception
@@ -17,7 +17,10 @@ spec:
         - Pod
         - Deployment
         - ReplicaSet
+        - DaemonSet
+        - StatefulSet
         - CronJob
+        - Job
         namespaces:
         - neuvector
         names:
