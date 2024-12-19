@@ -64,6 +64,7 @@ whitelist_secret = {
     "gitea": ["config_environment.sh"],
     # https://gitlab.com/sylva-projects/sylva-core/-/issues/1665
     "gitea-postgres-replication": ["password"],
+    "cnpg-keycloak-app": ["user", "port", "host", "dbname"],
 }
 
 whitelist_secret_without_prefix_and_suffix = {
