@@ -6234,6 +6234,9 @@ units:
           extraFlags:
           - --query.config-file=/etc/thanos/ruler-queries.yaml
           - --label=platform_tag="{{ .Values.monitoring.platform_tag }}"
+          - --enable-auto-gomemlimit
+          - --tsdb.retention=12h
+          - --tsdb.wal-compression
           extraVolumes:
           - name: thanos-ruler-queries-config
             secret:
@@ -6310,6 +6313,9 @@ units:
             - --query.auto-downsampling
             - --query.replica-label=prometheus_replica
             - --query.replica-label=prometheus
+            - --enable-auto-gomemlimit
+            - --query.max-concurrent=20
+            - --query.max-concurrent-select=4
           ingress:
             enabled: true
             ingressClassName: "nginx"
@@ -6350,6 +6356,8 @@ units:
                   - '{{ .Values.external_hostnames.thanos_storegateway }}'
                 secretName: thanos-tls
         compactor:
+          persistence:
+            enabled: false
           enabled: true
           logLevel: debug
           extraFlags:
@@ -6376,6 +6384,11 @@ units:
               memory: 6144Mi
           persistence:
             enabled: false
+          tsdbRetention: 12h
+          extraFlags:
+          - --enable-auto-gomemlimit
+          - --tsdb.max-retention-bytes=12GB
+          - --tsdb.wal-compression
           ingress:
             enabled: true
             ingressClassName: "nginx"
