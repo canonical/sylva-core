@@ -151,6 +151,11 @@
       "allowedVersions": "<105"
     },
     {
+      "description": "Regroup kube-job updates",
+      "matchPackagePatterns": ".*kube-job.*",
+      "groupName": "kube-job"
+    },
+    {
       "description": "Regroup workload-cluster-operator updates",
       "matchPackagePatterns": ".*workload-cluster-operator.*",
       "groupName": "workload-cluster-operator"
