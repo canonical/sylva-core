@@ -399,7 +399,7 @@ variables:
 ☁capm3 🚀rke2 🐧suse 🛠ha:
   extends: .capm3-virt
   rules:
-    - if: $CI_MERGE_REQUEST_LABELS =~ /renovate/
+    - if: $CI_MERGE_REQUEST_LABELS =~ /renovate/ && $CI_MERGE_REQUEST_LABELS !~ /renovate::configuration/
     - !reference [.deployment_rules]
 
 ☁capm3 🚀rke2 🐧suse 🛠oci,ha:
