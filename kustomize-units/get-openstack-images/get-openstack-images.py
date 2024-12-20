@@ -304,10 +304,9 @@ logger.info(f"os_images: {os_images}")
 conn = openstack.connect(cloud=cloud_name, verify=False)
 openstack_user_project_id = conn.current_project_id
 
-# Initialize oras class
-oras_client = MyProvider(tls_verify=tls_verify)
-
 for os_name, os_image_info in os_images.items():
+    # Initialize oras class inside the for in order to retrieve a new token
+    oras_client = MyProvider(tls_verify=tls_verify)
     artifact = os_image_info["uri"]
     md5_checksum = os_image_info['md5']
     image_format = os_image_info['image-format']
