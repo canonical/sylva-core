@@ -5,7 +5,7 @@ Ensure that no_proxy covers everything that we need by adding the values defined
 {{- define "sylva-units.no_proxy" -}}
   {{- $envAll := index . 0 -}}
 
-  {{- if (or  ($envAll.Values.http_proxy) ($envAll.Values.https_proxy)) -}}
+  {{- if (or  ($envAll.Values.proxies.http_proxy) ($envAll.Values.proxies.https_proxy)) -}}
     {{/* this function accepts an optional second parameter to override entries from no_proxy_additional) */}}
     {{- $overrides := dict -}}
     {{- if gt (len .) 1 -}}
