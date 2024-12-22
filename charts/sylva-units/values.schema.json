@@ -5437,12 +5437,6 @@
                                             "items": {
                                               "type": "string"
                                             }
-                                          },
-                                          "password": {
-                                            "type": "string"
-                                          },
-                                          "passwordSecret": {
-                                            "type": "string"
                                           }
                                         }
                                       }
