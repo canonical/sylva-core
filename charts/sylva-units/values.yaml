@@ -777,6 +777,7 @@ units:
     kustomization_spec:
       postBuild:
         substitute:
+          KEYCLOAK_POSTGRES_REPLICAS: '{{ .Values._internal.ha_cluster.is_ha | ternary 3 1 }}'
           storageClass: '{{ .Values._internal.default_storage_class }}'
           podAntiAffinityType: '{{ .Values._internal.ha_cluster.is_ha | ternary "required" "preferred" }}'
       path: ./kustomize-units/keycloak-postgres

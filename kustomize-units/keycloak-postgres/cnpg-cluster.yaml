@@ -5,7 +5,7 @@ metadata:
   namespace: keycloak
 spec:
   # One primary and two standby servers
-  instances: 3
+  instances: ${KEYCLOAK_POSTGRES_REPLICAS}
   # Sets Postgres shared buffers to 1GB
   postgresql:
     parameters:
