@@ -2109,10 +2109,10 @@ units:
         admissionController:
           replicas: '{{ .Values._internal.default_replicas | include "preserve-type" }}'
           rbac:
-            coreClusterRole:
+            clusterRole:
               extraResources:
               - apiGroups: ["*"]
-                resources: ["*"]
+                resources: [ "secrets" ]
                 verbs: ["get", "list", "watch"]
           resources:
             limits:
@@ -2137,14 +2137,14 @@ units:
             enabled: '{{ .Values._internal.monitoring.enabled | include "preserve-type" }}'
         reportsController:
           replicas: '{{ .Values._internal.default_replicas | include "preserve-type" }}'
+          serviceMonitor:
+            enabled: '{{ .Values._internal.monitoring.enabled | include "preserve-type" }}'
           rbac:
-            coreClusterRole:
+            clusterRole:
               extraResources:
               - apiGroups: ["*"]
                 resources: ["*"]
                 verbs: ["get", "list", "watch"]
-          serviceMonitor:
-            enabled: '{{ .Values._internal.monitoring.enabled | include "preserve-type" }}'
         backgroundController:
           replicas: '{{ .Values._internal.default_replicas | include "preserve-type" }}'
           resources:
@@ -2154,36 +2154,16 @@ units:
               memory: 256Mi
 
           rbac:
-            coreClusterRole:
-              extraResources:
-              - apiGroups:
-                  - '*'
-                resources:
-                  - '*'
-                verbs: ["get", "list", "watch"]
-              - apiGroups:
-                  - networking.k8s.io
-                resources:
-                  - ingresses
-                  - ingressclasses
-                  - networkpolicies
-                verbs: ["create", "update", "patch", "delete"]
-              - apiGroups:
-                  - rbac.authorization.k8s.io
-                resources:
-                  - rolebindings
-                  - roles
-                verbs: ["create", "update", "patch", "delete"]
-              - apiGroups:
-                  - ''
-                resources:
-                  - configmaps
-                  - secrets
-                  - resourcequotas
-                  - limitranges
-                verbs: ["create", "update", "patch", "delete"]
             clusterRole:
               extraResources:
+              - apiGroups: ["*"]
+                resources:
+                  - "secrets"
+                verbs: ["get", "list", "patch", "update", "watch", "create", "delete"]
+              - apiGroups: ["provisioning.cattle.io"]
+                resources:
+                  - "clusters"
+                verbs: ["get", "list", "watch"]
               - apiGroups: ["batch"]
                 resources:
                   - "cronjobs"
