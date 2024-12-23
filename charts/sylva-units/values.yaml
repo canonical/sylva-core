@@ -6582,7 +6582,6 @@ units:
     kustomization_substitute_secrets:
       LOKI_USERNAME: '{{ .Values._internal.loki_user }}'
       LOKI_PASSWORD: '{{ .Values._internal.loki_password }}'
-      NAMESPACE: '{{ tuple . (tuple . "upstream-logging" | include "unit-enabled") "upstream-logging" "cattle-logging-system" | include "interpret-ternary" }}'
     kustomization_spec:
       path: ./kustomize-units/logging
       postBuild:
@@ -6590,6 +6589,7 @@ units:
           # we must use external name in order to work also for workload clusters
           LOKI_URL: '{{ .Values.logging.loki_url }}'
           CLUSTER_NAME: '{{ .Values.cluster.name }}'
+          NAMESPACE: '{{ tuple . (tuple . "upstream-logging" | include "unit-enabled") "upstream-logging" "cattle-logging-system" | include "interpret-ternary" }}'
       wait: true
 
   sylva-logging-flows:
