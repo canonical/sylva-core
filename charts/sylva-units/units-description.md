@@ -17,7 +17,7 @@
 | **cinder-csi** | installs OpenStack Cinder CSI | stable | [Helm chart](https://kubernetes.github.io/cloud-provider-openstack) | 2.31.2 |
 | **cis-operator** | install CIS operator | stable | [Helm chart](https://charts.rancher.io) | 105.0.0+up7.0.0 |
 | **cnpg-operator** | Cloud Native PostgreSQL (CNPG) Operator | stable | [Helm chart](https://cloudnative-pg.github.io/charts) | 0.22.1 |
-| **external-secrets-operator** | installs the External Secrets operator | stable | [Helm chart](https://charts.external-secrets.io) | 0.10.4 |
+| **external-secrets-operator** | installs the External Secrets operator | stable | [Helm chart](https://charts.external-secrets.io) | 0.10.7 |
 | **flux-webui** | installs Weave GitOps Flux web GUI | stable | [Helm chart](https://github.com/weaveworks/weave-gitops.git) | v0.38.0 |
 | **gitea** | installs Gitea | stable | [Helm chart](https://dl.gitea.com/charts/) | 10.4.1 |
 | **gitea-postgresql-ha** | installs PostgreSQL HA cluster for Gitea | stable | [Helm chart](https://github.com/bitnami/charts.git) | postgresql-ha/14.2.30 |
