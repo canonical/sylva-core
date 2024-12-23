@@ -1,0 +1,15 @@
+apiVersion: logging-extensions.banzaicloud.io/v1alpha1
+kind: HostTailer
+metadata:
+  name: kubeadm-logs
+  namespace: kube-logging
+spec:
+  workloadMetaOverrides:
+    labels:
+      cluster: sylva
+  systemdTailers:
+  - maxEntries: 100
+    name: kubelet-logs
+    systemdFilter: kubelet.service
+    path: ${PATH}
+    disabled: false

@@ -288,12 +288,12 @@ units:
             secureJsonData:
               basicAuthPassword: '{{ .Values._internal.loki_password }}'
 
-  logging:
+  kube-logging:
     depends_on:
       loki: '{{ tuple . "loki" | include "unit-enabled" }}'
 
   loki:
-    enabled: '{{ tuple . "logging" | include "unit-enabled" }}'
+    enabled: '{{ tuple . "kube-logging" | include "unit-enabled" }}'
 
   snmp-exporter:
     enabled: '{{ tuple . "capm3" | include "unit-enabled" }}'
