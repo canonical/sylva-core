@@ -6498,7 +6498,8 @@ units:
                 Time_Keep    "On"
             inputTail:
               Parser: crilog
-              Path_Key: "logpath"
+              Path_Key: "log_file_path"
+              Path: /var/log/containers/*,/var/log/journal/*
         image:
           tag: 4.11.4
         securityContext:
