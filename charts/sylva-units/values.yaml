@@ -6474,19 +6474,6 @@ units:
       values:
         logging:
           enabled: true
-          hostTailer:
-            enabled: true
-            workloadMetaOverrides:
-              labels:
-                cluster: "sylva"
-            fileTailers:
-            - name: audit_log
-              path: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" | ternary "/var/lib/rancher/rke2/server/logs/audit.log" "" }}'
-              enabled: '{{ and (gt (int .Values.audit_log.level) 0) (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" ) | include "as-bool" }}'
-            systemdTailers:
-            - name: journal
-              systemdFilter: "*.service"
-              enabled: true
           fluentbit:
             customParsers: |
               [PARSER]
