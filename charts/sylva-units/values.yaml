@@ -6579,6 +6579,8 @@ units:
           CLUSTER_NAME: '{{ .Values.cluster.name }}'
           NAMESPACE: '{{ tuple . (tuple . "upstream-logging" | include "unit-enabled") "upstream-logging" "cattle-logging-system" | include "interpret-ternary" }}'
       wait: true
+      _components:
+        - '{{ tuple "components/host-tailer-rke2" (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" | include "as-bool") | include "set-only-if" }}'
 
   sylva-logging-flows:
     info:
