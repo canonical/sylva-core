@@ -2,31 +2,11 @@
 
 # Retrieve alerts from Thanos
 
-
-#### To be mutualized with login-tests
-
-.test_scripts:
-  edit_hosts_file:
-    - domain=$(kubectl --kubeconfig management-cluster-kubeconfig get secret sylva-units-values -oyaml | yq '.data.values | @base64d' | yq '.cluster_domain')
-    - |
-      echo $domain
-      if [[ $domain == "sylva" ]]; then
-        echo "-- Get ingress saved into /etc/hosts"
-        access_ip=$(kubectl --kubeconfig management-cluster-kubeconfig -n sylva-system get secrets/sylva-units-values -o jsonpath='{.data.values}' | base64 -d | yq -r .display_external_ip)
-        for i in $(kubectl --kubeconfig management-cluster-kubeconfig get ingress -A -o custom-columns=:.spec.tls[].hosts[] | grep -v "<none>"); do
-          echo $access_ip $i >> /etc/hosts
-        done
-      fi
-
 mgmt-thanos-alert:
-  stage: deployment-test
   extends:
-    - .test-tags
-    - .rules:need-management-cluster
+    - .test-base-management-cluster
   script:
     - pip install jtbl --break-system-packages
-    - !reference [.import_functions]
-    - download_artifact deploy-management-cluster management-cluster-kubeconfig
     - !reference [.test_scripts, edit_hosts_file]
     - |
       if [ ${thanos_url=$(kubectl --kubeconfig management-cluster-kubeconfig get ingress -n thanos thanos-query -o jsonpath='{ .spec.tls[0].hosts[0] }' )} ]; then

@@ -49,9 +49,6 @@ variables:
 # StatefulSet has ServiceName
 
 .kube-score-base:
-  stage: deployment-test
-  extends:
-    - .test-tags
   dependencies: null
   script:
     - wget -q https://github.com/zegl/kube-score/releases/download/v${KUBESCORE_VERSION}/kube-score_${KUBESCORE_VERSION}_linux_amd64 -O /usr/local/bin/kube-score
@@ -71,7 +68,7 @@ variables:
 mgmt-kube-score:
   extends:
     - .kube-score-base
-    - .rules:need-management-cluster
+    - .test-base-management-cluster
   needs:
     - deploy-management-cluster
   variables:
@@ -80,7 +77,7 @@ mgmt-kube-score:
 wkld-kube-score:
   extends:
     - .kube-score-base
-    - .rules:need-workload-cluster
+    - .test-base-workload-cluster
   needs:
     - deploy-workload-cluster
   variables:
