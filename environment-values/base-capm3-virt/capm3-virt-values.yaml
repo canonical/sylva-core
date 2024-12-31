@@ -104,11 +104,6 @@ cluster:
         sylvaproject.org/snmp-auth: foo
         sylvaproject.org/snmp-hw-type: dell_idrac
         sylvaproject.org/snmp-endpoint: http://192.168.133.1:5432
-        # note: `sylvaproject.org/default-longhorn-disks-config` annotation should be considered legacy
-        # you should use `(baremetal_host_default|baremetal_hosts).longhorn_disk_config` instead
-        sylvaproject.org/default-longhorn-disks-config: >-
-          [{"path":"/var/longhorn/disks/disk_by-path_pci-0000:00:0a.0", "storageReserved":0, "allowScheduling":true, "tags":[ "vhdd", "fast"] },
-           {"path":"/var/longhorn/disks/disk_by-path_pci-0000:00:0b.0", "storageReserved":0, "allowScheduling":true, "tags":[ "vhdd", "fast"] }]
     bmh_spec:
       online: false
       description: management cluster node
