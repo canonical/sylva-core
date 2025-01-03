@@ -759,7 +759,7 @@ units:
       chart:
         spec:
           chart: cloudnative-pg
-          version: 0.22.1
+          version: 0.23.0
       targetNamespace: cnpg-system
 
   keycloak-postgres:
