@@ -48,6 +48,7 @@ variables:
   # eg: if we have a breaking change during an upgrade we could use a different branch for the deployment and update
   SYLVA_CI_VALUES_REVISION: 0.4.27
 
+
   # Use CI values for specific version
   # If not specified $GIT_REVISION if set is used or "current" otherwise
   SYLVA_CI_VERSIONNED_CI_VALUES_FOLDER: ""
