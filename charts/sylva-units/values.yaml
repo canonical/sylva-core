@@ -2509,6 +2509,21 @@ units:
           name: assisted-service
           namespace: assisted-installer
 
+  openshift-security-context-constraints:
+    info:
+      description: sets up openshift security context constraints for operators not installed via RedHat operator lifecycle manager(OLM)
+      internal: true
+    unit_templates:
+    - base-deps
+    enabled: '{{ eq .Values.cluster.capi_providers.bootstrap_provider "cabpoa" }}'
+    repo: sylva-core
+    kustomization_spec:
+      path: ./kustomize-units/openshift-security-context-constraints
+      wait: true
+      prune: false
+      _components:
+        - '{{ tuple "components/ceph-csi-cephfs" (tuple . "ceph-csi-cephfs" | include "unit-enabled") | include "set-only-if" }}'
+
   metal3:
     info:
       description: installs SUSE-maintained Metal3 operator
@@ -4786,6 +4801,7 @@ units:
     - base-deps
     depends_on:
       namespace-defs: true
+      openshift-security-context-constraints: '{{ eq .Values.cluster.capi_providers.bootstrap_provider "cabpoa" }}'
     helm_repo_url: https://ceph.github.io/csi-charts
     helmrelease_spec:
       targetNamespace: ceph-csi-cephfs
