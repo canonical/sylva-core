@@ -155,7 +155,7 @@
       "allowedVersions": "<1.14"
     },
     {
-      "description": "Prevent helm rancher update to over 104 for compatibility with rancher 2.9",
+      "description": "Prevent helm rancher update to over 105 for compatibility with rancher 2.10",
       "matchPackageNames": [
         "rancher-logging",
         "rancher-logging-crd",
@@ -164,7 +164,7 @@
         "longhorn-crd",
         "longhorn"
       ],
-      "allowedVersions": "<105"
+      "allowedVersions": "<106"
     },
     {
       "description": "Regroup kube-job updates",
