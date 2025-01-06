@@ -30,6 +30,8 @@ variables:
     stable-version
     statefulset-has-host-podantiaffinity
     statefulset-pod-selector-labels-match-template-metadata-labels
+  # renovate: datasource=github-releases depName=zegl/kube-score VersionTemplate=v
+  KUBESCORE_VERSION: "1.17.0"
 
 # The following test were removed from the Whitelist:
 
@@ -52,7 +54,7 @@ variables:
     - .test-tags
   dependencies: null
   script:
-    - wget -q https://github.com/zegl/kube-score/releases/download/v1.17.0/kube-score_1.17.0_linux_amd64 -O /usr/local/bin/kube-score
+    - wget -q https://github.com/zegl/kube-score/releases/download/v${KUBESCORE_VERSION}/kube-score_${KUBESCORE_VERSION}_linux_amd64 -O /usr/local/bin/kube-score
     - chmod +x /usr/local/bin/kube-score
     # Gather all available kube-score tests
     - kube-score list | awk -F, '{ print  $1 }' | sort > kube-score-tests

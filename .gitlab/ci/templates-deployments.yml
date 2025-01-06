@@ -243,11 +243,7 @@ include:
     # Apply values for requested options
     yq -i '.cluster.name = strenv(CLUSTER_CI_NAME)' $values_file
     update_values_file all-ci-deployments.yml
-    if [[ $DEPLOYMENT_OS == "suse" ]]; then
-      update_values_file node-os-suse.yml
-    else  # ubuntu
-      update_values_file node-os-ubuntu.yml
-    fi
+    update_values_file node-os-${DEPLOYMENT_OS}.yml
     options=$(echo $DEPLOYMENT_OPTIONS | tr "," "\n")
     for option in $options; do
       if [[ $option == "oci" ]]; then
@@ -297,6 +293,11 @@ include:
       echo -e "Applying OCI configuration for tag: ${OCI_TAG}"
       if [ $(yq '.components | length' $ENV_PATH/kustomization.yaml) -eq "0" ]; then
         yq -i '.components = []' $ENV_PATH/kustomization.yaml
+      fi
+      # Check if OCI_TAG starts with "0.0.0-git" as OCI artifacts are only signed on protected branch and for tagged release
+      if [[ "${OCI_TAG}" == 0.0.0-git* ]]; then
+        # Disabled OCI verification for dev branches
+        yq -i '.security.oci_artifacts.skip_signing_check = true' "$ENV_PATH/values.yaml"
       fi
       yq -i '.components += strenv(OCI_COMPONENT_PATH)' $ENV_PATH/kustomization.yaml
     cat <<EOF>> $ENV_PATH/kustomization.yaml

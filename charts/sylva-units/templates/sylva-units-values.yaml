@@ -59,7 +59,14 @@ of a deployment with information about the revision and values of the sylva-unit
       {{- $deps = append $deps (dict "name" (include "kustomization-name" (tuple $envAll $unit_name))) -}}
     {{- end -}}
   {{- end }}
-  {{- $deps = append $deps (dict "name" "cluster") -}}
+  {{/* we always add a dependency on 'cluster' unit for sylva-units-status, 
+       because in the specific case where it isn't yet enabled in the mgmt cluster because we're
+       before the pivot, we want to ensure that sylva-units-status will
+       not prematurely become ready
+  */}}
+  {{- if (not $is_test) -}}
+    {{- $deps = append $deps (dict "name" "cluster") -}}
+  {{- end -}}
   {{- $time := now }}
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
