@@ -55,24 +55,20 @@
   common_test_suite:
     - echo "Testing self signed certificates"
     - !reference [.test_cert_manager_scripts, self_signed]
-    - kubectl --kubeconfig $KUBE_CONFIG_FILE apply -f test-resources-self-signed.yaml
-    - kubectl wait --for=condition=Ready certificate/selfsigned-cert --kubeconfig $KUBE_CONFIG_FILE -n cert-manager-test  --timeout=30s
+    - kubectl apply -f test-resources-self-signed.yaml
+    - kubectl wait --for=condition=Ready certificate/selfsigned-cert  -n cert-manager-test  --timeout=30s
     - echo "Testing pki signed certificates"
     - !reference [.test_cert_manager_scripts, pki_signed]
-    - kubectl --kubeconfig $KUBE_CONFIG_FILE apply -f test-resources-pki-signed.yaml
-    - kubectl wait --for=condition=Ready certificate/pki-signed-cert --kubeconfig $KUBE_CONFIG_FILE -n cert-manager-test  --timeout=30s
+    - kubectl apply -f test-resources-pki-signed.yaml
+    - kubectl wait --for=condition=Ready certificate/pki-signed-cert -n cert-manager-test  --timeout=30s
 
 mgmt-cert-manager:
-  variables:
-    KUBE_CONFIG_FILE: "management-cluster-kubeconfig"
   extends:
     - .test-base-management-cluster
   script:
     - !reference [.test_cert_manager_scripts, common_test_suite]
 
 wkld-cert-manager:
-  variables:
-    KUBE_CONFIG_FILE: "workload-cluster-kubeconfig"
   extends:
     - .test-base-workload-cluster
   script:
