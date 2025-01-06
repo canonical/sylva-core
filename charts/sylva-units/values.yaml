@@ -3539,7 +3539,7 @@ units:
           # When changing the major or minor version of rancher, make sure that renovate is
           # also updated to accept the corresponding versions of the other rancher charts (monitory, sriov, longhorn)
           # See https://github.com/rancher/charts/blob/dev-v2.9/README.md
-          version: 2.9.3
+          version: 2.10.1
       targetNamespace: cattle-system
       interval: 10m0s
       values:

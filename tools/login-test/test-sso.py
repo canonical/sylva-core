@@ -130,8 +130,8 @@ def rancher_sso(endpoint, username, password, workload_name):
         print(browser.current_url)
         print("Getting kubeconfig for " + workload_name)
         browser.find_elements(
-            By.XPATH, '//button[@class="btn header-btn role-tertiary has-tooltip"]'
-        )[2].click()
+            By.XPATH, '//button[@data-testid="btn-download-kubeconfig"]'
+        )[0].click()
         rancher_config = workload_name + "-rancher" + ".yaml"
         file = cluster + ".yaml"
         while not os.path.exists(file):
