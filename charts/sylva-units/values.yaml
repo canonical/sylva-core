@@ -60,6 +60,13 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
       ref:
         tag: 0.4.8
 
+  sync-openstack-images:
+    kind: GitRepository
+    spec:
+      url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sync-openstack-images.git
+      ref:
+        branch: first-revision
+
   devnull:
     kind: GitRepository
     spec:
@@ -2730,7 +2737,7 @@ units:
       # see management.values.yaml and workload-cluster.values.yaml to see how
       # we handle the fact that this unit depends on the CAPI-related components being ready
       capo-cluster-resources: '{{ .Values.cluster.capi_providers.infra_provider | eq "capo" }}'
-      get-openstack-images: '{{ .Values.cluster.capi_providers.infra_provider | eq "capo" }}'
+      sync-openstack-images: '{{ .Values.cluster.capi_providers.infra_provider | eq "capo" }}'
       cluster-bmh: '{{ .Values.cluster.capi_providers.infra_provider | eq "capm3" }}'
       cluster-node-deletion-timeout-fix: '{{ tuple . "cluster-node-deletion-timeout-fix" | include "unit-enabled" }}'
       cluster-node-provider-id-blacklist: '{{ tuple . "cluster-node-provider-id-blacklist" | include "unit-enabled" }}'
@@ -2786,7 +2793,7 @@ units:
           targetPath: machine_deployment_default.capo.server_group_id
           optional: '{{ not (.Values.cluster.capi_providers.infra_provider | eq "capo") | include "as-bool" }}'
         - kind: ConfigMap
-          name: openstack-images-uuids  ## this ConfigMap is a byproduct of the get-openstack-images job
+          name: openstack-images-uuids  ## this ConfigMap is a byproduct of the sync-openstack-images job
           optional: '{{ not (.Values.cluster.capi_providers.infra_provider | eq "capo") | include "as-bool" }}'
         - kind: ConfigMap
           # this configmap is a byproduct of the os-images-info unit, a different configmap is used for capm3 workload clusters
@@ -6903,33 +6910,40 @@ units:
         spec:
           chart: .
 
-  get-openstack-images:
+  sync-openstack-images:
     info:
       description: Automatically push openstack images to Glance
       details: Pushes OS images to Glance, if needed, and retrieves their UUIDs for use in cluster unit
-      internal: true
     unit_templates:
     - base-deps
     depends_on:
       os-images-info: true
-      capo-cloud-config: true
     enabled_conditions:
       - '{{ eq .Values.cluster.capi_providers.infra_provider "capo" }}'
-    repo: sylva-core
-    kustomization_spec:
-      path: ./kustomize-units/get-openstack-images
-      wait: true
-      force: true
-      _components:
-      - '{{ tuple "./certs" (and (not .Values.oci_registry_insecure) (.Values.oci_registry_extra_ca_certs)) | include "set-only-if" }}'
+    repo: sync-openstack-images
+    helm_chart_artifact_name: sync-openstack-images
+    helmrelease_spec:
+      chart:
+        spec:
+          chart: .
       targetNamespace: '{{ .Release.Namespace }}'
-      postBuild:
-        substituteFrom:
-          - kind: ConfigMap
-            name: os-images-info-max-size
-        substitute:
-          JOB_INSECURE_CLIENT: '{{ .Values.oci_registry_insecure | quote }}'
-          JOB_CHECKSUM: |-
+      install:
+        createNamespace: false
+      valuesFrom:
+        - kind: ConfigMap
+          name: os-images-info-max-size
+          valuesKey: MAX_IMAGE_SIZE
+          targetPath: max_image_size
+      values:
+        downloader:
+          insecure_client: '{{ .Values.oci_registry_insecure }}'
+          proxy: '{{ .Values.proxies.https_proxy }}'
+          no_proxy: '{{ include "sylva-units.no_proxy" (tuple .) }}'
+          extra_ca_certs: '{{ tuple (.Values.oci_registry_extra_ca_certs | default "") (not .Values.oci_registry_insecure) | include "set-only-if" }}'
+        job:
+          # compute total timeout based on per-image timeout and number of images
+          activeDeadlineSeconds: '{{ mul .Values.get_openstack_images_per_image_timeout_minutes 60 (include "generate-os-images" . | fromYaml | dig "os_images" dict | len) }}'
+          checksum: |-
             {{
             tuple . (list
               .Values._internal.sylva_core_version
@@ -6939,12 +6953,9 @@ units:
               .Values.proxies
             ) | include "interpret-and-hash"
             }}
-          httpProxy: '{{ .Values.proxies.https_proxy }}'
-          httpsProxy: '{{ .Values.proxies.https_proxy }}'
-          noProxy: '{{ include "sylva-units.no_proxy" (tuple .) }}'
-          # compute total timeout based on per-image timeout and number of images
-          ACTIVE_DEADLINE_SECONDS: '{{ mul .Values.get_openstack_images_per_image_timeout_minutes 60 (include "generate-os-images" . | fromYaml | dig "os_images" dict | len) }}'
-          EXTRA_CA_CERTS: '{{ tuple (.Values.oci_registry_extra_ca_certs | default "" | b64enc) (not .Values.oci_registry_insecure) | include "set-only-if" }}'
+        # the Job today will read the os-images-info ConfigMap produced by the os-images-info unit
+    helm_secret_values:
+      openstack_clouds_yaml: '{{ .Values.cluster.capo.clouds_yaml | include "preserve-type" }}'
 
   descheduler:
     info:
