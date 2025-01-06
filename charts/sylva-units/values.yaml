@@ -3293,7 +3293,7 @@ units:
       chart:
         spec:
           chart: metallb
-          version: 0.14.8
+          version: 0.14.9
       targetNamespace: metallb-system
       install:
         createNamespace: true
