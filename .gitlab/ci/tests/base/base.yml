@@ -39,8 +39,12 @@ prepare-tests-env:
   extends:
     - .test-base
     - .rules:need-management-cluster
+  variables:
+    KUBECONFIG: management-cluster-kubeconfig
 
 .test-base-workload-cluster:
   extends:
     - .test-base
     - .rules:need-workload-cluster
+  variables:
+    KUBECONFIG: workload-cluster-kubeconfig

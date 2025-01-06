@@ -37,7 +37,8 @@ default:
 
 # ----------------------------------------------------------
 .test-tags:
-  interruptible: true
+  # Just to avoid test-tags to be empty in some cases which lead to syntax error
+  variables:
 # ----------------------------------------------------------
 
 # Rules reusable in tests definition
