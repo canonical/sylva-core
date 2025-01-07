@@ -6829,7 +6829,7 @@ units:
 
   two-replicas-storageclass:
     info:
-      description: Create a Longhorn storage class with a two replicas
+      description: Create a Longhorn storage class with two replicas
       internal: true
     repo: sylva-core
     unit_templates:
