@@ -1482,6 +1482,40 @@ units:
         namespace: sylva-system
         name: neuvector-secrets
 
+  neuvector-fedadmin-token:
+    info:
+      description: generate a Neuvector federation token
+      details: >
+        a job to manually add fedAdmin role to sylva infra-admins group
+      internal: true
+    unit_templates:
+    - base-deps
+    - kube-job
+    enabled_conditions:
+    - '{{ tuple . "neuvector" | include "unit-enabled" }}'
+    depends_on:
+      neuvector: true
+    kustomization_spec:
+      targetNamespace: neuvector
+      postBuild:
+        substitute:
+          CLUSTER_NAME: '{{ .Values.cluster.name }}'
+      _patches:
+      - target:
+          kind: Job
+        patch: |
+          - op: replace
+            path: /spec/backoffLimit
+            value: 15
+      - target:
+          kind: ConfigMap
+          labelSelector: kube-job=script
+        patch: |
+          - op: replace
+            path: /data/kube-job.sh
+            value: |
+          {{ .Files.Get "scripts/neuvector-generate-federation-token.sh" | indent 4 }}
+
   neuvector:
     info:
       description: installs Neuvector
@@ -7933,7 +7967,7 @@ shared_workload_clusters_values:
          {{- end -}}
        {{- end -}}'
     mgmt_neuvector_federation_master: '{{ .Values.external_hostnames.neuvector_federation_master }}'
-    neuvector_join_token: '{{ .Values._internal.neuvector_join_token }}'
+    # TODO test aggregate neuvector_join_token: '{{ .Values._internal.neuvector_join_token }}'
 
 shared_workload_clusters_secret_values: {}
 
