@@ -2,9 +2,25 @@
 include:
   - local: .gitlab/ci/pipeline-deploy-base.yml
   - project: 'sylva-projects/sylva-elements/ci-tooling/runner-aas'
-    ref: 1.1.0
+    ref: test
     file:
       - ci-templates/equinix-runner-request-template.yml
+
+create-runner:
+  script:
+    - glab config set -g check_update false
+    - >
+      glab ci run-trig
+      --token="$RUNNER_AAS_TOKEN"
+      --branch "test"
+      --variables "TARGET_REF:$RUNNER_AAS_TARGET_REF"
+      --variables "REQUEST:$REQUEST"
+      --variables "SOURCE_JWT_TOKEN:$JOB_ID_TOKEN"
+      --variables "RUNNER_PLAN:$RUNNER_PLAN"
+      --variables "RUNNER_OS:$RUNNER_OS"
+      --variables "RUNNER_ADDITIONAL_TAGS:$RUNNER_ADDITIONAL_TAGS"
+      --repo "sylva-projects/sylva-elements/ci-tooling/runner-aas-interface" | tee pipeline.json
+
 
 variables:
   EQUINIX_RUNNER_PLAN: "m3.large.x86"
