@@ -3,6 +3,7 @@
 set -e
 set -o pipefail
 
+secret_federation_token_file=/tmp/neuvector-federation.yaml
 
 NEUVECTOR_BASE_URL="https://neuvector-svc-controller-api.neuvector.svc.cluster.local:10443"
 NEUVECTOR_USERNAME="admin"
@@ -25,6 +26,11 @@ echo "-- Generate federation token"
 FEDERATION_TOKEN=$(curl -s -k -H 'Content-Type: application/json' -H "X-Auth-Token: ${ACCESS_TOKEN}" \
     ${NEUVECTOR_BASE_URL}/join_token | jq -r .join_token)
 
+if [ -z "${FEDERATION_TOKEN-unset}" ]; then
+    echo "FEDERATION_TOKEN is set to the empty string, will try again"
+    exit 1
+fi
+
 cat <<EOF >> $secret_federation_token_file
 ---
 apiVersion: v1
@@ -37,7 +43,7 @@ data:
 EOF
 
 # Update secret
-echo "Updating os-images-info secret"
+echo "Creating neuvector-federation secret"
 kubectl apply -f $secret_federation_token_file
 
 
