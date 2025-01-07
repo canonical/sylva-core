@@ -157,7 +157,6 @@ function format_and_sort_events() {
       | @tsv"
 }
 
-
 function crust_gather_collect() {
   local cluster=$1
 
