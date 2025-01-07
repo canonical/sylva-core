@@ -1497,9 +1497,6 @@ units:
       neuvector: true
     kustomization_spec:
       targetNamespace: neuvector
-      postBuild:
-        substitute:
-          CLUSTER_NAME: '{{ .Values.cluster.name }}'
       _patches:
       - target:
           kind: Job
@@ -1514,7 +1511,61 @@ units:
           - op: replace
             path: /data/kube-job.sh
             value: |
-          {{ .Files.Get "scripts/neuvector-generate-federation-token.sh" | indent 4 }}
+              #!/bin/bash
+
+              set -e
+              set -o pipefail
+
+              secret_federation_token_file=/tmp/neuvector-federation.yaml
+
+              NEUVECTOR_BASE_URL="https://neuvector-svc-controller-api.neuvector.svc.cluster.local:10443"
+              NEUVECTOR_USERNAME="admin"
+
+              echo "-- Retrieve Neuvector admin initial password"
+              NEUVECTOR_PASSWORD=`kubectl -n neuvector get secret neuvector-init -o jsonpath='{.data.userinitcfg\.yaml}' | base64 -d | yq eval '.users[0].Password'`
+
+              echo "-- Retrieve Neuvector access token"
+              ACCESS_TOKEN=$(curl -k -s -X POST \
+                  -H "Content-Type: application/json" \
+                  -d '{"password": {"username":"'${NEUVECTOR_USERNAME}'", "password":"'${NEUVECTOR_PASSWORD}'"}}' \
+                  ${NEUVECTOR_BASE_URL}/v1/auth | jq -r '.token.token')
+
+              if [ -z "${ACCESS_TOKEN-unset}" ]; then
+                  echo "ACCESS_TOKEN is set to the empty string, will try again"
+                  exit 1
+              fi
+
+              echo "-- Generate federation token"
+              FEDERATION_TOKEN=$(curl -s -k -H 'Content-Type: application/json' -H "X-Auth-Token: ${ACCESS_TOKEN}" \
+                  ${NEUVECTOR_BASE_URL}/join_token | jq -r .join_token)
+
+
+              echo $FEDERATION_TOKEN
+              echo "--- test ---"
+
+              if [ -z "${FEDERATION_TOKEN-unset}" ]; then
+                  echo "FEDERATION_TOKEN is set to the empty string, will try again"
+                  exit 1
+              fi
+
+              cat <<EOF >> $secret_federation_token_file
+              ---
+              apiVersion: v1
+              kind: Secret
+              metadata:
+                name: neuvector-federation
+              data:
+                join_token: ${FEDERATION_TOKEN}
+                cluster_name: {{ .Values.cluster.name }}
+              EOF
+
+              # Update secret
+              echo "Creating neuvector-federation secret"
+              kubectl apply -f $secret_federation_token_file
+
+
+              echo "-- All done"
+
 
   neuvector:
     info:
