@@ -6799,11 +6799,7 @@ units:
 
   single-replica-storageclass:
     info:
-      description: DEPRECATED longhorn storage class with a single replica
-      details: |
-        This unit is preserved for migration purposes, it will be removed after sylva 1.2 release
-        Single replicas PVC were causing data replication churn during rolling updates of nodes
-        See https://gitlab.com/sylva-projects/sylva-core/-/issues/1648
+      description: Create a Longhorn storage class with a single replica
       internal: true
     repo: sylva-core
     unit_templates:
@@ -6831,7 +6827,7 @@ units:
 
   two-replicas-storageclass:
     info:
-      description: Create a Longhorn storage class with less than 3 replicas
+      description: Create a Longhorn storage class with a two replicas
       internal: true
     repo: sylva-core
     unit_templates:
@@ -6857,7 +6853,7 @@ units:
               annotations:
                 storageclass.kubernetes.io/is-default-class: '{{ .Values._internal.default_storage_class | eq "two-replicas-storageclass" }}'
             parameters:
-              numberOfReplicas: '{{ (int .Values._internal.longhorn_node_count | min 2) | max 1 }}'
+              numberOfReplicas: "2"
 
   sylva-prometheus-rules:
     info:
@@ -7748,10 +7744,12 @@ _internal:
 
   default_longhorn_storage_class: >-
     {{- $nodeCount := int (tuple . .Values._internal.longhorn_node_count | include "interpret-as-string") -}}
-    {{- if ge $nodeCount 3 -}}
-      longhorn
-    {{- else -}}
+    {{- if eq $nodeCount 1 -}}
+      single-replica-storageclass
+    {{- else if eq $nodeCount 2 -}}
       two-replicas-storageclass
+    {{- else -}}
+      longhorn
     {{- end -}}
 
   default_storage_class: >-
