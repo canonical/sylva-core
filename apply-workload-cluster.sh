@@ -52,6 +52,7 @@ sylvactl watch \
   --reconcile \
   --timeout $(ci_remaining_minutes_and_at_most ${APPLY_WC_WATCH_TIMEOUT_MIN:-30}) \
   ${SYLVACTL_SAVE:+--save apply-workload-cluster-timeline.html} \
+  ${SYLVACTL_RECORD:+--record apply-workload-cluster-record.yaml} \
   -n $wc_namespace \
   Kustomization/$wc_namespace/sylva-units-status
 
