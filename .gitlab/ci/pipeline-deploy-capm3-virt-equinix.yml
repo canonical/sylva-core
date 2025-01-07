@@ -8,17 +8,20 @@ include:
 
 variables:
   EQUINIX_RUNNER_PLAN: "m3.large.x86"
+  RUNNER_TAG: test
 
 # Default tag will be used for all deployments/updates jobs
 default:
   tags:
-    - $CI_PIPELINE_IID
+    - $RUNNER_TAG
+    - $CI_PIPELINE_NAME
     - equinix
     - shell
 
 # test-tags will be used to run the tests jobs in a docker executor based runner
 .test-tags:
   tags:
-    - $CI_PIPELINE_IID
+    - $RUNNER_TAG
+    - $CI_PIPELINE_NAME
     - equinix
     - docker
