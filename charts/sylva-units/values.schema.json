@@ -2048,19 +2048,7 @@
                     "annotations": {
                       "anyOf": [
                         {
-                          "allOf": [
-                            {
-                              "$ref": "#/$defs/dict-with-strings"
-                            },
-                            {
-                              "not": {
-                                "type": "object",
-                                "properties": {
-                                  "sylvaproject.org/default-longhorn-disks-config": {}
-                                }
-                              }
-                            }
-                          ]
+                          "$ref": "#/$defs/dict-with-strings"
                         },
                         {
                           "$ref": "#/$defs/string-with-gotpl"
