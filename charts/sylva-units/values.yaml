@@ -1516,6 +1516,13 @@ units:
               set -e
               set -o pipefail
 
+              NAMESPACE_EXISTS=`kubectl get ns neuvector -o jsonpath='{.metadata}' | jq -r '.name'`
+
+              if [ -z "${NAMESPACE_EXISTS}-unset" ];
+                echo "not in workload cluster deployment"
+                echo "-- All done"
+                exit 0
+              fi;
               secret_federation_token_file=/tmp/neuvector-federation.yaml
 
               NEUVECTOR_BASE_URL="https://neuvector-svc-controller-api.neuvector.svc.cluster.local:10443"
@@ -1546,7 +1553,7 @@ units:
 
               # Update secret
               echo "Creating neuvector-federation secret"
-              kubectl create secret generic neuvector-federation --from-literal=join_token="$FEDERATION_TOKEN" --from-literal=cluster_name={{ .Values.cluster.name }} -n sylva-system
+              kubectl create secret generic neuvector-federation --from-literal=join_token="$FEDERATION_TOKEN" --from-literal=cluster_name={{ .Values.cluster.name }} -n neuvector # {{ .Values.cluster.name }}
 
               echo "-- All done"
 
