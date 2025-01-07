@@ -7783,6 +7783,7 @@ _internal:
   storage_class_RWX_support:
     - longhorn
     - two-replicas-storageclass
+    - single-replica-storageclass
     - cephfs-csi
   default_storage_class_RWX_support: >-
     {{- $default_storage_class := tuple . .Values._internal.default_storage_class | include "interpret-as-string" -}}
