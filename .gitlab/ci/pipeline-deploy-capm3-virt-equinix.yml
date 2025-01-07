@@ -28,6 +28,6 @@ default:
   - echo Runner tags = $CI_RUNNER_TAGS  /  Pipeline IID = $CI_PIPELINE_IID
   - >
     if [[ $CI_RUNNER_TAGS != *${CI_PIPELINE_IID}* ]]; then
-      echo "Wrong runner :(";
+      echo "Wrong runner ¯\_(ツ)_/¯ ";
       exit 100;
     fi
