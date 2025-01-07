@@ -1539,30 +1539,14 @@ units:
               FEDERATION_TOKEN=$(curl -s -k -H 'Content-Type: application/json' -H "X-Auth-Token: ${ACCESS_TOKEN}" \
                   ${NEUVECTOR_BASE_URL}/v1/fed/join_token | jq -r .join_token)
 
-
-              echo $FEDERATION_TOKEN
-              echo "--- test ---"
-
               if [ -z "${FEDERATION_TOKEN-unset}" ]; then
                   echo "FEDERATION_TOKEN is set to the empty string, will try again"
                   exit 1
               fi
 
-              cat <<EOF >> $secret_federation_token_file
-              ---
-              apiVersion: v1
-              kind: Secret
-              metadata:
-                name: neuvector-federation
-              data:
-                join_token: ${FEDERATION_TOKEN}
-                cluster_name: {{ .Values.cluster.name }}
-              EOF
-
               # Update secret
               echo "Creating neuvector-federation secret"
-              kubectl apply -f $secret_federation_token_file
-
+              kubectl create secret generic neuvector-federation --from-literal=join_token="$FEDERATION_TOKEN" --from-literal=cluster_name={{ .Values.cluster.name }} -n sylva-system
 
               echo "-- All done"
 
