@@ -6822,6 +6822,8 @@ units:
             kind: _unused_
             metadata:
               name: _unused_
+              annotations:
+                storageclass.kubernetes.io/is-default-class: '{{ .Values._internal.default_storage_class | eq "single-replica-storageclass" }}'
             parameters:
               numberOfReplicas: "1"
 
