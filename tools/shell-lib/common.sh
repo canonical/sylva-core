@@ -180,6 +180,8 @@ function ensure_sylva_toolbox {
 }
 ensure_sylva_toolbox
 
+SYLVACTL_VERSION=0.0.0-git-dca27033
+
 function ensure_sylvactl {
     if [[ -n ${SYLVACTL_VERSION:-} ]] && [[ ${SYLVACTL_VERSION} != $(${BASE_DIR}/bin/sylvactl version 2>&1) ]]; then
         SYLVACTL_RELEASE_NAME="sylvactl"
@@ -267,6 +269,7 @@ function reconcile_sylva_units() {
   fi
 
   sylvactl watch -n $namespace HelmRelease/$namespace/sylva-units --timeout ${SYLVA_UNITS_RECONCILE_TIMEOUT:-180s} --skip-inventory \
+    --record reconcile-su-$namespace-record.yaml \
     --reconcile $resume_suspended \
     --exit-condition reason=UpgradeFailed \
     --exit-condition reason=InstallFailed
