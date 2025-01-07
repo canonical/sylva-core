@@ -15,6 +15,7 @@ metadata:
       AlwaysAllow avoids this.
       A label can be added on the pdb to skip this rule :
         sylvaproject.org/unhealthy-pod-eviction-policy: any
+    sylva.org/kyverno-exclude-kube-system: add-matchCondition
 spec:
   validationFailureAction: Audit
   webhookConfiguration:

@@ -23,10 +23,12 @@ import re
 import subprocess
 import shutil
 import yaml
-import artifact_utils
 import logging
 import sys
 import time
+
+# pylama:ignore=W0401
+from artifact_utils import *
 
 
 class ExitHandler(logging.StreamHandler):
@@ -75,63 +77,57 @@ def check_invalid_semver_tag(chart_name, version, rewrite_chart=False):
             if rewrite_chart:
                 logger.info("rewriting version in Chart.yaml")
                 tgz_file = f"{chart_name}-{version}.tgz"
-                subprocess.run(f"tar -xzf {tgz_file}", shell=True, cwd=artifact_utils.ARTIFACT_DIR,
-                               stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-                with open(f"{artifact_utils.ARTIFACT_DIR}/{chart_name}/Chart.yaml", 'r+') as f:
+                run_command(f"tar -xzf {tgz_file}", cwd=ARTIFACT_DIR)
+                with open(f"{ARTIFACT_DIR}/{chart_name}/Chart.yaml", 'r+') as f:
                     chart = yaml.safe_load(f)
                     chart['version'] = new_version
                     f.seek(0)
                     yaml.safe_dump(chart, f)
                     f.truncate()
-                subprocess.run(f"tar -czf {chart_name}-{new_version}.tgz {chart_name}/",
-                               shell=True, cwd=artifact_utils.ARTIFACT_DIR,
-                               stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-                shutil.rmtree(f"{artifact_utils.ARTIFACT_DIR}/{chart_name}")
-                os.remove(f"{artifact_utils.ARTIFACT_DIR}/{tgz_file}")
+                run_command(f"tar -czf {chart_name}-{new_version}.tgz {chart_name}/",
+                            cwd=ARTIFACT_DIR)
+                shutil.rmtree(f"{ARTIFACT_DIR}/{chart_name}")
+                os.remove(f"{ARTIFACT_DIR}/{tgz_file}")
             return new_version
     return version
 
 
 def process_chart_in_helm_repo(helm_repo, chart_name, chart_version, artifact_name, version_to_check):
-    tgz_file = f"{artifact_utils.ARTIFACT_DIR}/{chart_name}-{chart_version}.tgz"
-    logger.info(f"helm pull --repo {helm_repo} --version {chart_version} {chart_name}"
-                f" -d {artifact_utils.ARTIFACT_DIR}")
-    if subprocess.run(f"helm pull --repo {helm_repo} --version {chart_version} {chart_name}"
-                      f" -d {artifact_utils.ARTIFACT_DIR}", shell=True, cwd=artifact_utils.ARTIFACT_DIR,
-                      stdout=subprocess.PIPE, stderr=subprocess.STDOUT):
-        if os.path.exists(tgz_file):
-            chart_version = check_invalid_semver_tag(artifact_name, chart_version, rewrite_chart=True)
-            tgz_file = f"{artifact_utils.ARTIFACT_DIR}/{chart_name}-{chart_version}.tgz"
-            if artifact_name != chart_name:
-                new_tgz_file = f"{artifact_utils.ARTIFACT_DIR}/{artifact_name}-{chart_version}.tgz"
-                subprocess.run(f"tar -xzvf {tgz_file}", shell=True, cwd=artifact_utils.ARTIFACT_DIR,
-                               stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-                with open(f"{artifact_utils.ARTIFACT_DIR}/{chart_name}/Chart.yaml", 'r+') as f:
-                    chart = yaml.safe_load(f)
-                    chart['name'] = artifact_name
-                    f.seek(0)
-                    yaml.safe_dump(chart, f)
-                    f.truncate()
-                subprocess.run(f"tar -czvf {new_tgz_file} {chart_name}/", shell=True, cwd=artifact_utils.ARTIFACT_DIR,
-                               stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-                shutil.rmtree(f"{artifact_utils.ARTIFACT_DIR}/{chart_name}")
-                os.remove(tgz_file)
-                tgz_file = new_tgz_file
+    try:
+        run_command(f"helm pull --repo {helm_repo} --version {chart_version} {chart_name}"
+                    f" -d {ARTIFACT_DIR}", cwd=ARTIFACT_DIR)
+    except subprocess.CalledProcessError:
+        logging.error(f"The chart {chart_name}:{chart_version} from {helm_repo} can't be pulled locally.")
 
-            artifact_utils.process_artifact_helm(artifact_name, version_to_check, tgz_file)
+    tgz_file = f"{ARTIFACT_DIR}/{chart_name}-{chart_version}.tgz"
+    if os.path.exists(tgz_file):
+        chart_version = check_invalid_semver_tag(artifact_name, chart_version, rewrite_chart=True)
+        tgz_file = f"{ARTIFACT_DIR}/{chart_name}-{chart_version}.tgz"
+        if artifact_name != chart_name:
+            new_tgz_file = f"{ARTIFACT_DIR}/{artifact_name}-{chart_version}.tgz"
+            run_command(f"tar -xzvf {tgz_file}", cwd=ARTIFACT_DIR)
+            with open(f"{ARTIFACT_DIR}/{chart_name}/Chart.yaml", 'r+') as f:
+                chart = yaml.safe_load(f)
+                chart['name'] = artifact_name
+                f.seek(0)
+                yaml.safe_dump(chart, f)
+                f.truncate()
+            run_command(f"tar -czvf {new_tgz_file} {chart_name}/",
+                        cwd=ARTIFACT_DIR)
+            shutil.rmtree(f"{ARTIFACT_DIR}/{chart_name}")
+            os.remove(tgz_file)
+            tgz_file = new_tgz_file
 
-        else:
-            error_message = f"The {tgz_file} file was expected but no {chart_name}*tgz file" \
-                f" was produced by 'helm pull'."
-            logging.error(error_message)
+        process_artifact_helm(artifact_name, version_to_check, tgz_file)
+
     else:
-        error_message = f"The chart {chart_name}:{chart_version} from {helm_repo} can't be pulled locally."
-        logging.error(error_message)
+        logging.error(f"The {tgz_file} file was expected but wasn't found")
+        run_command(f"ls -l {ARTIFACT_DIR}")
 
 
 def process_chart_in_git(repo, chart_path, chart_name):
 
-    chart_version = artifact_utils.chart_version_from_repo(repo)
+    chart_version = chart_version_from_repo(repo)
 
     git_repo_url = repo['spec']['url']
 
@@ -144,35 +140,43 @@ def process_chart_in_git(repo, chart_path, chart_name):
     if not git_revision:
         raise Exception(f"git revision could not be identified from <repo>.spec.ref ({repo['spec']['ref']})")
 
-    tgz_file = f"{artifact_utils.ARTIFACT_DIR}/{chart_name}-{chart_version}.tgz"
-    if subprocess.run(f"git clone -q --depth 1 --branch {git_revision} {git_repo_url} {artifact_utils.ARTIFACT_DIR}",
-                      shell=True, cwd=artifact_utils.ARTIFACT_DIR,
-                      stdout=subprocess.PIPE, stderr=subprocess.STDOUT):
-        subprocess.run(f"helm dep update {artifact_utils.ARTIFACT_DIR}/{chart_path}",
-                       shell=True, cwd=artifact_utils.ARTIFACT_DIR,
-                       stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        with open(f"{artifact_utils.ARTIFACT_DIR}/{chart_path}/Chart.yaml", 'r+') as f:
-            chart = yaml.safe_load(f)
-            chart['name'] = chart_name
-            f.seek(0)
-            yaml.safe_dump(chart, f)
-            f.truncate()
-        subprocess.run(f"helm package --version {chart_version} {artifact_utils.ARTIFACT_DIR}/{chart_path}"
-                       f" -d {artifact_utils.ARTIFACT_DIR}",
-                       shell=True, cwd=artifact_utils.ARTIFACT_DIR,
-                       stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        if os.path.exists(tgz_file):
-            artifact_utils.process_artifact_helm(chart_name, chart_version, tgz_file)
-        else:
-            error_message = f"The {tgz_file} is not present after the 'helm package' " \
-                f"operation, check that the chart version is correct."
-            logging.error(error_message)
+    tgz_file = f"{ARTIFACT_DIR}/{chart_name}-{chart_version}.tgz"
+    try:
+        run_command(f"git clone -c advice.detachedHead=false -q --depth 1 --branch {git_revision} {git_repo_url} {ARTIFACT_DIR}")
+    except subprocess.CalledProcessError:
+        logger.error(f"The git repository {git_repo_url} revision {git_revision} can't be cloned.")
+
+    do_helm_dep_update = True
+    if os.path.exists(f"{ARTIFACT_DIR}/{chart_path}/Chart.lock"):
+        logger.info("Chart.lock exists, trying 'helm build dependencies'")
+        try:
+            run_command(f"helm dep build --skip-refresh {ARTIFACT_DIR}/{chart_path}",
+                        cwd=ARTIFACT_DIR)
+            do_helm_dep_update = False
+        except Exception as e:
+            logger.info(f"'helm dep build' failed ({e}), but maybe 'helm dep update' will work")
+
+    if do_helm_dep_update:
+        run_command(f"helm dep update {ARTIFACT_DIR}/{chart_path}",
+                    cwd=ARTIFACT_DIR)
+
+    with open(f"{ARTIFACT_DIR}/{chart_path}/Chart.yaml", 'r+') as f:
+        chart = yaml.safe_load(f)
+        chart['name'] = chart_name
+        f.seek(0)
+        yaml.safe_dump(chart, f)
+        f.truncate()
+    run_command(f"helm package --version {chart_version} {ARTIFACT_DIR}/{chart_path}"
+                f" -d {ARTIFACT_DIR}")
+    if os.path.exists(tgz_file):
+        process_artifact_helm(chart_name, chart_version, tgz_file)
     else:
-        error_message = f"The git repository {git_repo_url} revision {git_revision} can't be cloned."
+        error_message = f"The {tgz_file} is not present after the 'helm package' " \
+            f"operation, check that the chart version is correct."
         logging.error(error_message)
 
 
-atexit.register(artifact_utils.cleanup)
+atexit.register(cleanup)
 
 with open(VALUES_FILE, 'r') as f:
     values = yaml.safe_load(f)
@@ -207,9 +211,9 @@ for unit_name in sorted(units.keys()):
             repo = unit.get('repo')
             process_chart_in_git(source_templates[repo], chart, chart_name)
             end_section(unit_name)
-    artifact_utils.delete_temp_files()
+    delete_temp_files()
 
-logger.info(f"All Helm charts have been correctly synchronized to {artifact_utils.OCI_REGISTRY}")
+logger.info(f"All Helm charts have been correctly synchronized to {OCI_REGISTRY}")
 end = time.time()
 hours, rem = divmod(end - start, 3600)
 minutes, seconds = divmod(rem, 60)

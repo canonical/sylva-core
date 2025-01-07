@@ -15,6 +15,7 @@ metadata:
       requirement and keep security compliance test suites happy is to not allow pod creation in 'default' namespace.
       This policy validates that Pods specify a Namespace name other than `default`.
       should not be used. This policy validates that Pods specify a Namespace name other than `default`.
+    sylva.org/kyverno-exclude-kube-system: add-matchCondition
 spec:
   validationFailureAction: Enforce
   background: false # validation is moved from Kyverno policy engine to kube-api server

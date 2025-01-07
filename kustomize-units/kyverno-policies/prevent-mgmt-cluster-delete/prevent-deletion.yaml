@@ -4,6 +4,7 @@ metadata:
   name: avoid-delete-mgmt-resources-flux
   annotations:
     kustomize.toolkit.fluxcd.io/force: Enabled
+    sylva.org/kyverno-exclude-kube-system: add-matchCondition
 spec:
   background: false
   webhookConfiguration:
@@ -35,6 +36,7 @@ metadata:
   name: avoid-delete-mgmt-resources-capi
   annotations:
     kustomize.toolkit.fluxcd.io/force: Enabled
+    sylva.org/kyverno-exclude-kube-system: add-matchCondition
 spec:
   background: false
   webhookConfiguration:

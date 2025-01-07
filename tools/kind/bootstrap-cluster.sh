@@ -6,12 +6,14 @@
 # - If environment values files is passed as argument, or found at ${ENV_PATH}/values.yaml path, it will be parsed to
 #     - mount /var/lib/docker.sock in kind cluster if capd is used
 #     - instruct kind to use registry mirrors according to registry_mirrors configuration
+# If a specific Kind cluster K8s version is needed, set the ENV variable KIND_CLUSTER_K8S_VERSION at runtime of bootstrap.sh
 
 set -ue
 set -o pipefail
 
 export BASE_DIR="$(realpath $(dirname ${BASH_SOURCE[0]})/../..)"
 export PATH=${BASE_DIR}/bin:${PATH}
+KIND_CLUSTER_K8S_VERSION=${KIND_CLUSTER_K8S_VERSION:-}
 
 for BINARY in kubectl kind helm yq; do
     if ! command -v $BINARY &>/dev/null; then
@@ -98,16 +100,28 @@ elif echo "$EXTRACTED_VALUES" | yq -e '.cluster.capi_providers.infra_provider ==
 fi
 
 echo -e "Creating kind cluster with following config:\n$KIND_CONFIG"
-if  echo "$EXTRACTED_VALUES" | yq -e '.registry_mirrors.hosts_config."docker.io".[0].mirror_url' &>/dev/null; then
+
+if echo "$EXTRACTED_VALUES" | yq -e '.registry_mirrors.hosts_config."docker.io".[0].mirror_url' &>/dev/null; then
     DOCKER_REGISTRY_MIRROR=$(echo "$EXTRACTED_VALUES" | yq -e '.registry_mirrors.hosts_config."docker.io".[0].mirror_url' | sed 's~http[s]*://~~g')
-    # remove version path from mirror url if present
+
+    # Remove version path from mirror url if present
     if [[ $DOCKER_REGISTRY_MIRROR =~ /v[0-9]+/ ]]; then
-      DOCKER_REGISTRY_MIRROR=$(echo "$DOCKER_REGISTRY_MIRROR" | sed 's~/v[0-9]\+/~/~g')
+        DOCKER_REGISTRY_MIRROR=$(echo "$DOCKER_REGISTRY_MIRROR" | sed 's~/v[0-9]\+/~/~g')
     fi
-    KINDEST_VERSION=$(strings $(which kind) |grep kindest/node:v | sed -e 's~.*\(kindest/node:.*\)@.*~\1~')
-    DOCKER_IMAGE_PARAM="--image $(echo $DOCKER_REGISTRY_MIRROR/$KINDEST_VERSION)"
 fi
-echo "$KIND_CONFIG" | kind create cluster --name $KIND_CLUSTER_NAME ${DOCKER_IMAGE_PARAM:-} --config=-
+if [[ -n "$KIND_CLUSTER_K8S_VERSION" ]]; then
+    if [[ ! "$KIND_CLUSTER_K8S_VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+        echo -e "Error: KIND_CLUSTER_K8S_VERSION must match pattern 'vX.Y.Z' (e.g., v1.31.0)."
+        exit 1
+    fi
+    KIND_IMAGE="${DOCKER_REGISTRY_MIRROR:+$DOCKER_REGISTRY_MIRROR/}kindest/node:$KIND_CLUSTER_K8S_VERSION"
+else
+    KINDEST_VERSION=$(strings $(which kind) |grep kindest/node:v | sed -e 's~.*\(kindest/node:.*\)@.*~\1~')
+    KIND_IMAGE="${DOCKER_REGISTRY_MIRROR:+$DOCKER_REGISTRY_MIRROR/}$KINDEST_VERSION"
+fi
+
+echo "$KIND_CONFIG" | kind create cluster --name "$KIND_CLUSTER_NAME" ${KIND_IMAGE:+--image "$KIND_IMAGE"} --config=-
+
 
 if [[ -n ${LIBVIRT_METAL_ENABLED:-} ]]; then
     docker exec ${KIND_CLUSTER_NAME}-control-plane systemctl --now enable nomasquerade.service

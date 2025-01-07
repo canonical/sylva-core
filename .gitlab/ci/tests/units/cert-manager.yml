@@ -47,7 +47,7 @@
           - pki
         secretName: pki-signed-cert-tls
         issuerRef:
-          name: ca-issuer
+          name: certificate-issuer
           kind: ClusterIssuer
       EOF
     - cat test-resources-pki-signed.yaml

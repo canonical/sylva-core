@@ -44,7 +44,7 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
     spec:
       url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/capi-rancher-import.git
       ref:
-        tag: 0.1.7
+        tag: 0.1.10
 
   weave-gitops:
     kind: GitRepository
@@ -58,7 +58,7 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
     spec:
       url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-capi-cluster.git
       ref:
-        tag: 0.4.5
+        tag: 0.4.8
 
   devnull:
     kind: GitRepository
@@ -86,7 +86,7 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
     spec:
       url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/metallb-resources.git
       ref:
-        tag: 0.0.2
+        tag: 0.0.4
 
   os-image-server:
     kind: GitRepository
@@ -114,14 +114,14 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
     spec:
       url: https://github.com/bank-vaults/vault-operator.git
       ref:
-        tag: v1.22.3
+        tag: v1.22.5
 
   sylva-dashboards:
     kind: GitRepository
     spec:
       url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-dashboards.git
       ref:
-        tag: 0.0.13
+        tag: 0.0.14
 
   minio-operator:
     kind: GitRepository
@@ -142,7 +142,7 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
     spec:
       url: https://github.com/grafana/loki.git
       ref:
-        tag: v3.2.0
+        tag: v3.3.2
 
   sylva-logging-flows:
     kind: GitRepository
@@ -163,7 +163,7 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
     spec:
       url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-thanos-rules.git
       ref:
-        tag: 0.0.1
+        tag: 0.0.2
 
   sylva-alertmanager-resources:
     kind: GitRepository
@@ -178,6 +178,34 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
       url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/workload-team-defs.git
       ref:
         tag: 0.1.1
+
+  bitnami-postgresql:
+    kind: GitRepository
+    spec:
+      url: https://github.com/bitnami/charts.git
+      ref:
+        tag: postgresql/15.5.36
+
+  bitnami-postgresql-ha:
+    kind: GitRepository
+    spec:
+      url: https://github.com/bitnami/charts.git
+      ref:
+        tag: postgresql-ha/14.2.30
+
+  bitnami-thanos:
+    kind: GitRepository
+    spec:
+      url: https://github.com/bitnami/charts.git
+      ref:
+        tag: thanos/15.8.0
+
+  bitnami-redis-cluster:
+    kind: GitRepository
+    spec:
+      url: https://github.com/bitnami/charts.git
+      ref:
+        tag: redis-cluster/11.0.8
 
 helm_repo_spec_default:
   interval: 60m0s
@@ -541,6 +569,9 @@ units:
       values:
         crds:
           enabled: true
+        http_proxy: '{{ tuple .Values.proxies.http_proxy (hasKey .Values.security.external_x509_issuer "issuer_type") | include "set-only-if" }}' #proxy setting is required to reach external cert issuers
+        https_proxy: '{{ tuple .Values.proxies.https_proxy (hasKey .Values.security.external_x509_issuer "issuer_type") | include "set-only-if" }}'
+        no_proxy: '{{ tuple .Values.proxies.no_proxy (hasKey .Values.security.external_x509_issuer "issuer_type") | include "set-only-if" }}'
         replicaCount: >-
           {{ .Values._internal.ha_cluster.is_ha | ternary 2 1 }}
         affinity:
@@ -654,22 +685,23 @@ units:
 
   sylva-ca:
     info:
-      description: provides a Certificate Authority for units of the Sylva stack
+      description: configures the Certificate Authority for units of the Sylva stack
       internal: true
     unit_templates:
     - base-deps
     depends_on:
       cert-manager: true
     repo: sylva-core
+    kustomization_substitute_secrets:
+      VAULT_TOKEN: '{{ .Values.security.external_x509_issuer.vault_token | default "" | b64enc }}'
     kustomization_spec:
       path: ./kustomize-units/sylva-ca
       wait: true
       postBuild:
         substitute:
-          CACERT: '{{ .Values.external_certificates.cacert | default "" | b64enc }}'
-          CA_NAME: 'default-selfsigned-ca'
-          CA_COMMON_NAME: 'default CA'
-          CA_O_NAME: 'default'
+          CA_CHAIN: '{{ .Values.external_certificates.cacert | default "" | b64enc }}'
+          ISSUER_SERVER: '{{ .Values.security.external_x509_issuer.server }}'
+          VAULT_PATH: '{{ .Values.security.external_x509_issuer.vault_path }}'
 
   namespace-defs:
     info:
@@ -727,8 +759,31 @@ units:
       chart:
         spec:
           chart: cloudnative-pg
-          version: 0.22.1
+          version: 0.23.0
       targetNamespace: cnpg-system
+
+  keycloak-postgres:
+    info:
+      description: Deploy Postgres cluster for Keycloak using Cloud Native PostgreSQL (CNPG)
+      maturity: stable
+      internal: true
+    unit_templates:
+      - base-deps
+    enabled_conditions:
+      - '{{ tuple . "keycloak" | include "unit-enabled" }}'
+    repo: sylva-core
+    depends_on:
+      cnpg-operator: true
+    kustomization_spec:
+      postBuild:
+        substitute:
+          KEYCLOAK_POSTGRES_REPLICAS: '{{ .Values._internal.ha_cluster.is_ha | ternary 3 1 }}'
+          storageClass: '{{ .Values._internal.default_storage_class }}'
+          podAntiAffinityType: '{{ .Values._internal.ha_cluster.is_ha | ternary "required" "preferred" }}'
+      path: ./kustomize-units/keycloak-postgres
+      wait: true
+      _components:
+        - '{{ tuple "./components/keycloak-upgrade-db" (and .Values._internal.state.is_upgrade (tuple . "keycloak" | include "unit-enabled")) | include "set-only-if" }}'
 
   postgres:
     info:
@@ -741,12 +796,11 @@ units:
     depends_on:
       namespace-defs: true
       '{{ .Values._internal.default_storage_class_unit }}': true
-    helm_repo_url: https://charts.bitnami.com/bitnami
+    repo: bitnami-postgresql
     helmrelease_spec:
       chart:
         spec:
-          chart: postgresql
-          version: 15.5.36
+          chart: bitnami/postgresql
       targetNamespace: keycloak
       values:
         architecture: replication
@@ -937,12 +991,11 @@ units:
     - base-deps
     enabled_conditions:
       - '{{ tuple . "harbor" | include "unit-enabled" }}'
-    helm_repo_url: https://charts.bitnami.com/bitnami
+    repo: bitnami-postgresql
     helmrelease_spec:
       chart:
         spec:
-          chart: postgresql
-          version: 15.5.36
+          chart: bitnami/postgresql
       targetNamespace: harbor
       values:
         auth:
@@ -1001,7 +1054,7 @@ units:
       chart:
         spec:
           chart: harbor
-          version: 1.15.1
+          version: 1.15.2
       targetNamespace: harbor
       values:
         updateStrategy:
@@ -1304,7 +1357,7 @@ units:
       chart:
         spec:
           chart: external-secrets
-          version: 0.10.4
+          version: 0.10.7
       targetNamespace: external-secrets
       install:
         createNamespace: true
@@ -1448,7 +1501,7 @@ units:
       chart:
         spec:
           chart: core
-          version: 2.8.2
+          version: 2.8.3
       targetNamespace: neuvector
       values:
         leastPrivilege: true
@@ -1560,7 +1613,7 @@ units:
       sylva-ca: true
       ingress-nginx: '{{ tuple . "ingress-nginx" | include "unit-enabled" }}'
       keycloak-add-truststore: '{{ tuple . "keycloak-add-truststore" | include "unit-enabled" }}'
-      postgres: true
+      keycloak-postgres: true
       synchronize-secrets: true # make sure that the secret keycloak-initial-admin is ready to be consummed
     annotations:
       sylvactl/readyMessage: "Keycloak admin console can be reached at https://{{ .Values.external_hostnames.keycloak }}/admin/master/console, user 'admin', password in Vault at secret/keycloak ({{ .Values.external_hostnames.keycloak }} must resolve to {{ .Values.display_external_ip }})"
@@ -1572,6 +1625,8 @@ units:
       targetNamespace: keycloak
       postBuild:
         substitute:
+          KEYCLOAK_REPLICAS: '{{ .Values._internal.ha_cluster.is_ha | ternary 3 1 }}'
+          AFFINITY: '{{ .Values._internal.ha_cluster.is_ha | ternary (.Values._internal.keycloak_affinity | toJson) "{}" }}'
           KEYCLOAK_DNS: '{{ .Values.external_hostnames.keycloak }}'
           SERVICE: keycloak
           SERVICE_DNS: '{{ .Values.external_hostnames.keycloak }}'
@@ -1899,7 +1954,7 @@ units:
       chart:
         spec:
           chart: kyverno
-          version: 3.3.3
+          version: 3.3.4
       targetNamespace: kyverno
       install:
         createNamespace: true
@@ -1908,12 +1963,42 @@ units:
           resourceFiltersExclude:
           - "[Node,*,*]"
           - "[Node/*,*,*]"
-          - "[*/*,kube-system,*]"  # necessary for rke2-helmchart-prevent-uninstall policy
+              # #####  how we exclude kube-system from Kyverno webhooks (but not completely)  ###########################
+              #                                                                                                         #
+              # It is a generalized safeguard to not let Kyverno define webhooks on kube-system namespace.              #
+              # This is the default Kyverno chart configuration (namespaceSelector under config.webhook).               #
+              #                                                                                                         #
+              # In Sylva we have policy for which we *need* some validation webhooks in kube-system:                    #
+              # * rke2-helmchart-prevent-uninstall                                                                      #
+              # * block-rke2-uninstall-jobs policies                                                                    #
+              # * prevent-rke2-helmcharts-calico-metallb                                                                :
+              #                                                                                                         .
+              # This comment groups the different things done to allow excluding the kube-system namespace
+              # except for Jobs.
+              #
+              # Instead of using a 'namespaceSelector' we use global 'matchConditions'.
+              #  .
+              # /!\ There is however a side effect: policies that use spec.webhookConfiguration.matchConditions
+              #     will **not** exclude kube-system (this field overrides the global 'matchConditions').
+              #     So any policy using spec.webhookConfiguration.matchConditions needs to include a CEL expression
+              #     to exclude the kube-system namespace.
+              #
+          - "[*/*,kube-system,*]"  # cancels this entry which is present in chart default resourceFilters
+              #
+          webhooks: []       # cancels the namespaceSelector present in default values that excludes
+              #              # the kube-system namespace ...                                                            .
+          matchConditions:   # ... and readds it via matchConditions to exclude kube-system                             :
+              #              # but, as said above, this applies only to policies that do not set webhookConfiguration   #
+              #              # (CEL expression below tests ns exclusion except for non-namespaced resources)            #
+            - expression: 'has(request.namespace) ? (request.namespace != "kube-system") : true'                        #
+              name: ns-not-kube-system-global                                                                           #
+              # #########################################################################################################
         webhooksCleanup:
           enabled: false
         features:
           policyExceptions:
             enabled: true
+            namespace: "*"
         admissionController:
           replicas: '{{ .Values._internal.default_replicas | include "preserve-type" }}'
           rbac:
@@ -2080,6 +2165,7 @@ units:
         - '{{ tuple "components/check-images" .Values.security.upstream_images_signature.verify | include "set-only-if" }}'
         - '{{ tuple "components/mutate-job-security-context" (tuple . "rancher" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/neuvector-policies" (tuple . "neuvector" | include "unit-enabled") | include "set-only-if" }}'
+        - ../exclude-kube-system  # needs to be last (needed for components above that use sylva.org/kyverno-exclude-kube-system annotation)
 
   kyverno-policies-ready:
     info:
@@ -2101,23 +2187,6 @@ units:
             value: |
               #!/bin/bash
               sleep 60
-
-  kyverno-policy-delete-kubernetes-vip-svc:
-    info:
-      description: Kyverno policy to cleanup the deprecated kubernetes-vip service in the case of upgrade from Sylva versions prior to v1.2
-      internal: true
-    enabled_conditions:
-    - '{{ tuple . "kyverno" | include "unit-enabled"  }}'
-    - '{{ lookup "v1" "Service" "kube-system" "kubernetes-vip" | empty | not }}'
-    depends_on:
-      cluster-machines-ready: true
-      kyverno: true
-    unit_templates:
-    - base-deps
-    repo: sylva-core
-    kustomization_spec:
-      path: ./kustomize-units/kyverno-policies/remove-kubernetes-vip-svc
-      wait: true
 
   kyverno-metal3-policies:
     info:
@@ -2333,18 +2402,6 @@ units:
       _components:
         - '{{ tuple "components/ha" (.Values._internal.ha_cluster.is_ha) | include "set-only-if" }}'
 
-  cluster-rke2-migrate-legacy-etcd-certs:
-    info:
-      description: handles the migration of etcd secrets for all RKE2 clusters deployed with Sylva (versions inferior or equal to 1.1.1)
-      internal: true
-    unit_templates:
-    - kube-job
-    enabled_conditions:
-    - '{{ .Values._internal.state.is_upgrade }}'
-    - '{{ tuple . "cabpr" | include "unit-enabled" }}'
-    kustomization_spec:
-      path: ./kustomize-units/cluster-rke2-migrate-legacy-etcd-certs
-
   cabpr:
     info:
       description: installs RKE2 CAPI bootstrap provider
@@ -2354,7 +2411,6 @@ units:
     - base-deps
     depends_on:
       cert-manager: true
-      cluster-rke2-migrate-legacy-etcd-certs: '{{ tuple . "cluster-rke2-migrate-legacy-etcd-certs" | include "unit-enabled" }}'
     kustomization_spec:
       path: ./kustomize-units/cabpr
       wait: true
@@ -2631,7 +2687,7 @@ units:
       description: Kyverno policy to prevent RKE2 HelmCharts from being recreated for MetaLB and Calico
       internal: true
     unit_templates:
-    - base-deps
+    - '{{ tuple "base-deps" (not .Values._internal.state.is_upgrade ) | include "set-only-if" }}'
     enabled_conditions:
     - '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" }}'
     - '{{ .Values._internal.state.is_upgrade }}'
@@ -2647,7 +2703,7 @@ units:
       description: Kyverno policy to prevent key Helm charts from being uninstalled by RKE2 HelmChart controller
       internal: true
     unit_templates:
-    - base-deps
+    - '{{ tuple "base-deps" (not .Values._internal.state.is_upgrade ) | include "set-only-if" }}'
     enabled_conditions:
     - '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" }}'
     depends_on:
@@ -2678,11 +2734,12 @@ units:
       cluster-bmh: '{{ .Values.cluster.capi_providers.infra_provider | eq "capm3" }}'
       cluster-node-deletion-timeout-fix: '{{ tuple . "cluster-node-deletion-timeout-fix" | include "unit-enabled" }}'
       cluster-node-provider-id-blacklist: '{{ tuple . "cluster-node-provider-id-blacklist" | include "unit-enabled" }}'
-      cluster-rke2-migrate-legacy-etcd-certs: '{{ tuple . "cluster-rke2-migrate-legacy-etcd-certs" | include "unit-enabled" }}'
       longhorn-instance-manager-cleanup: '{{ tuple . "longhorn-instance-manager-cleanup" | include "unit-enabled" }}'
       cluster-prevent-rke2-helmcharts-calico-metallb: '{{ tuple . "cluster-prevent-rke2-helmcharts-calico-metallb" | include "unit-enabled" }}'
       rke2-helmchart-prevent-uninstall: '{{ and (tuple . "rke2-helmchart-prevent-uninstall" | include "unit-enabled") .Values._internal.state.is_upgrade }}'
       metallb: '{{ and (tuple . "metallb" | include "unit-enabled") .Values._internal.state.is_upgrade }}'
+      calico: '{{ .Values._internal.state.is_upgrade }}'
+      calico-ready: '{{ .Values._internal.state.is_upgrade }}'
     kustomization_spec:
       prune: '{{ not (eq .Release.Namespace "sylva-system") | include "preserve-type" }}'
       # we wait on all important resources built by sylva-capi-cluster,
@@ -2737,6 +2794,17 @@ units:
           name: '{{ .Values._internal.cluster_unit_os_images_info_configmap }}'
           valuesKey: values.yaml
           optional: '{{ not (.Values.cluster.capi_providers.infra_provider | eq "capm3") | include "as-bool" }}'
+        - |
+          {{-
+          tuple
+            (dict "kind" "ConfigMap"
+                  "name" "capo-cluster-resources"
+                  "valuesKey" "allocated_ip"
+                  "targetPath" "cni.calico.helm_values.installation.calicoNetwork.nodeAddressAutodetectionV4.canReach"
+            )
+            .Values._internal.capo_calico_autodetection_method_use_canReach_vip
+          | include "set-only-if"
+          -}}
       _postRenderers:
         - kustomize:
             patches:
@@ -2961,7 +3029,7 @@ units:
       images:
         - name: controller
           newName: registry.gitlab.com/sylva-projects/sylva-elements/sylva-units-operator
-          newTag: 0.1.5
+          newTag: v0.1.6
 
   workload-cluster-operator:
     info:
@@ -3035,18 +3103,18 @@ units:
       maturity: stable
       hidden: true
     unit_templates:
-    - base-deps
+      - '{{ tuple "base-deps" (not .Values._internal.state.is_upgrade) | include "set-only-if" }}'
     enabled_conditions:
     - '{{ tuple . "calico" | include "unit-enabled" }}'
     depends_on:
       namespace-defs: true
+      calico-rke2-chart-cleanup: '{{ tuple . "calico-rke2-chart-cleanup" | include "unit-enabled" }}'
     helm_repo_url: https://rke2-charts.rancher.io
     helm_chart_versions: &calico-chart-versions
-      v3.27.300: >-
-        {{ include "k8s-version-match" (tuple ">=1.28.9,<1.29.0" .Values._internal.k8s_version) }}
-      v3.28.100: >-
+      v3.28.200: >-
+        {{ include "k8s-version-match" (tuple ">=1.28.0,<1.29.0" .Values._internal.k8s_version) }}
+      v3.29.000: >-
         {{ include "k8s-version-match" (tuple ">=1.29.0" .Values._internal.k8s_version) }}
-
     helmrelease_spec:
       releaseName: rke2-calico-crd
       targetNamespace: kube-system
@@ -3055,46 +3123,70 @@ units:
           chart: rke2-calico-crd
           version: "" # will be defined by helm_chart_versions
 
+  calico-rke2-chart-cleanup:
+    info:
+      description: remove rke2-deployed HelmChart resources for Calico
+      internal: true
+    unit_templates:
+    - kube-job
+    enabled_conditions:
+    - '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" }}'
+    - '{{ .Values._internal.state.is_upgrade }}'
+    depends_on:
+      cluster-prevent-rke2-helmcharts-calico-metallb: true
+      rke2-helmchart-prevent-uninstall: true
+    kustomization_spec:
+      targetNamespace: kube-system
+      _patches:
+      - target:
+          kind: ConfigMap
+          labelSelector: kube-job=script
+        patch: |
+          - op: replace
+            path: /data/kube-job.sh
+            value: |
+              #!/bin/bash
+              if kubectl -n kube-system get helmchart.helm.cattle.io rke2-calico || kubectl -n kube-system get helmchart.helm.cattle.io rke2-calico-crd; then
+                kubectl -n kube-system delete cm chart-content-rke2-calico chart-content-rke2-calico-crd
+                kubectl -n kube-system delete secret chart-values-rke2-calico chart-values-rke2-calico-crd
+                kubectl -n kube-system delete secret -l 'name in (rke2-calico, rke2-calico-crd)',owner=helm
+                kubectl -n kube-system patch helmchart --type merge -p '{"metadata":{"finalizers": [], "annotations":{"helmcharts.helm.cattle.io/unmanaged":""}}}' rke2-calico rke2-calico-crd
+                kubectl -n kube-system delete helmchart.helm.cattle.io rke2-calico rke2-calico-crd
+              fi
+
   calico:
     info:
       description: install Calico CNI
       maturity: stable
-    enabled_conditions:
-    - '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpk" }}'  # installed by RKE2 when RKE2 is used
     unit_templates:
-    - base-deps
+      - '{{ tuple "base-deps" (not .Values._internal.state.is_upgrade) | include "set-only-if" }}'
     depends_on:
       calico-crd: true
+      calico-rke2-chart-cleanup: '{{ tuple . "calico-rke2-chart-cleanup" | include "unit-enabled" }}'
     helm_repo_url: https://rke2-charts.rancher.io
     helm_chart_versions: *calico-chart-versions  # we use a YAML anchor rather than templating so that this file can be read by tools/generate_units_documentation.py
     helmrelease_spec:
+      releaseName: '{{ eq .Values.cluster.capi_providers.bootstrap_provider "cabpk" | ternary "calico" "rke2-calico" }}'
+      targetNamespace: '{{ eq .Values.cluster.capi_providers.bootstrap_provider "cabpk" | ternary "sylva-system" "kube-system" }}'
       chart:
         spec:
           chart: rke2-calico
           version: "" # will be defined by helm_chart_versions
-      values:
-        tolerations:
-        - effect: NoExecute
-          key: node.kubernetes.io/not-ready
-          operator: Exists
-        - effect: NoSchedule
-          key: node.kubernetes.io/not-ready
-          operator: Exists
-        global:
-          clusterCIDR: '{{ first .Values.cluster.cluster_pods_cidrs }}'
-          clusterCIDRv4: '{{ first .Values.cluster.cluster_pods_cidrs }}'
-          # for clusterDNS, take the .10 of the first subnet of cluster.cluster_services_cidrs
-          # FIXME: this will not work for subnets not starting at 0 (e.g. 192.168.1.128/25)
-          clusterDNS: '{{ regexReplaceAll "[.]0/.*" (first .Values.cluster.cluster_services_cidrs) ".10" }}'
-          clusterDomain: cluster.local
-          serviceCIDR: '{{ first .Values.cluster.cluster_services_cidrs }}'
-        installation:
-          calicoNetwork:
-            bgp: Enabled
-            nodeAddressAutodetectionV4: '{{ .Values.cluster.cni.calico.autodetection_method | include "preserve-type"}}'
-          registry: UseDefault
-        felixConfiguration:
-          wireguardEnabled: '{{ .Values.security.calico_wireguard_enabled | include "preserve-type" }}'
+      values: '{{ .Values.calico_helm_values | include "preserve-type" }}'
+      valuesFrom:
+        # For Calico nodeAddressAutodetection, for RKE2 on CAPO, we need to pass the cluster VIP in calico values
+        # as installation.calicoNetwork.nodeAddressAutodetectionV4.canReach
+        #
+        # this address is read from the ConfigMap produced by capo-cluster-resources unit
+        # which allocates the VIP
+        '{{ tuple
+            (list (dict "kind" "ConfigMap"
+                  "name" "capo-cluster-resources"
+                  "valuesKey" "allocated_ip"
+                  "targetPath" "installation.calicoNetwork.nodeAddressAutodetectionV4.canReach")
+            )
+            .Values._internal.capo_calico_autodetection_method_use_canReach_vip
+          | include "set-only-if" }}'
 
   calico-ready:
     info:
@@ -3137,7 +3229,7 @@ units:
       chart:
         spec:
           chart: metallb
-          version: 0.14.8
+          version: 0.14.9
       targetNamespace: metallb-system
       install:
         createNamespace: true
@@ -3218,7 +3310,7 @@ units:
       chart:
         spec:
           chart: openstack-cinder-csi
-          version: 2.31.1
+          version: 2.31.2
       targetNamespace: cinder-csi
       install:
         createNamespace: false
@@ -3246,6 +3338,21 @@ units:
             allowVolumeExpansion: true
             parameters:
               type: "{{ .Values.openstack.storageClass.type }}"
+      _postRenderers:
+        - kustomize:
+            patches:
+              - target:
+                  kind: Deployment
+                  name: openstack-cinder-csi-controllerplugin
+                patch: |
+                  kind: Deployment
+                  metadata:
+                    name: openstack-cinder-csi-controllerplugin
+                  spec:
+                    template:
+                      metadata:
+                        annotations:
+                          clouds-yaml-hash: '{{ .Values._internal.clouds_yaml_hash }}'
     helm_secret_values:
       secret:
         enabled: "true"
@@ -3368,7 +3475,7 @@ units:
           # When changing the major or minor version of rancher, make sure that renovate is
           # also updated to accept the corresponding versions of the other rancher charts (monitory, sriov, longhorn)
           # See https://github.com/rancher/charts/blob/dev-v2.9/README.md
-          version: 2.9.3
+          version: 2.10.1
       targetNamespace: cattle-system
       interval: 10m0s
       values:
@@ -3451,6 +3558,21 @@ units:
           name: rancher-webhook
           namespace: cattle-system
 
+  rancher-custom-roles:
+    info:
+      description: configures custom roles for Rancher
+      internal: true
+    unit_templates:
+    - base-deps
+    enabled_conditions:
+    - '{{ tuple . "rancher" | include "unit-enabled" }}'
+    repo: sylva-core
+    depends_on:
+      rancher: true
+    kustomization_spec:
+      path: ./kustomize-units/rancher-custom-roles
+      wait: true
+
   rancher-keycloak-oidc-provider:
     info:
       description: configures Rancher for Keycloak OIDC integration
@@ -3463,6 +3585,7 @@ units:
     repo: sylva-core
     depends_on:
       rancher: true
+      rancher-custom-roles: true
       keycloak: true
       keycloak-resources: true
       keycloak-oidc-external-secrets: true
@@ -3569,6 +3692,7 @@ units:
     kustomization_spec:
       path: ./kustomize-units/cluster-vip
       wait: true
+      prune: false
       postBuild:
         substitute:
           # in the general case, the cluster VIP is taken from .Values.cluster_virtual_ip
@@ -3635,9 +3759,8 @@ units:
       '{{ .Values._internal.calico_readiness_unit }}': '{{ tuple . "calico" | include "unit-enabled" }}'
     helm_repo_url: https://rke2-charts.rancher.io
     helm_chart_versions:
-      4.10.102: '{{ include "k8s-version-match" (tuple ">=1.28.0,<1.29.0" .Values._internal.k8s_version) }}'  # also for 1.28.12
-      4.10.401: '{{ include "k8s-version-match" (tuple ">=1.29.0,<=1.29.9" .Values._internal.k8s_version) }}'
-      4.10.402: '{{ include "k8s-version-match" (tuple ">=1.30.0" .Values._internal.k8s_version) }}'
+      4.10.501: '{{ include "k8s-version-match" (tuple ">=1.28.0,<1.29.0" .Values._internal.k8s_version) }}'
+      4.10.502: '{{ include "k8s-version-match" (tuple ">=1.29.0" .Values._internal.k8s_version) }}'
     helmrelease_spec:
       releaseName: rke2-ingress-nginx
       targetNamespace: kube-system
@@ -3961,7 +4084,7 @@ units:
             storageSpec:
               volumeClaimTemplate:
                 spec:
-                  storageClassName: '{{ tuple . (tuple . "low-replicas-storageclass" | include "unit-enabled") "low-replicas-storageclass" .Values._internal.default_storage_class | include "interpret-ternary" }}'
+                  storageClassName: '{{ tuple . (tuple . "two-replicas-storageclass" | include "unit-enabled") "two-replicas-storageclass" .Values._internal.default_storage_class | include "interpret-ternary" }}'
                   accessModes: ["ReadWriteOnce"]
                   resources:
                     requests:
@@ -3995,7 +4118,7 @@ units:
             storage:
               volumeClaimTemplate:
                 spec:
-                  storageClassName: '{{ tuple . (tuple . "low-replicas-storageclass" | include "unit-enabled") "low-replicas-storageclass" .Values._internal.default_storage_class | include "interpret-ternary" }}'
+                  storageClassName: '{{ tuple . (tuple . "two-replicas-storageclass" | include "unit-enabled") "two-replicas-storageclass" .Values._internal.default_storage_class | include "interpret-ternary" }}'
                   accessModes: ["ReadWriteOnce"]
                   resources:
                     requests:
@@ -4197,7 +4320,7 @@ units:
           - --persistence.interval=5m
         extraContainers:
           - name: prometheus-pushgateway-metrics-purger
-            image: curlimages/curl:8.11.0
+            image: curlimages/curl:8.11.1
             command:
             - sh
             - -c
@@ -4250,7 +4373,7 @@ units:
       chart:
         spec:
           chart: kepler
-          version: 0.5.11
+          version: 0.5.12
       install:
         createNamespace: false
       values:
@@ -4339,7 +4462,7 @@ units:
     helm_secret_values:
       extraInitContainers:
         - name: config-file-create
-          image: registry.gitlab.com/sylva-projects/sylva-elements/container-images/sylva-toolbox:v0.5.18
+          image: registry.gitlab.com/sylva-projects/sylva-elements/container-images/sylva-toolbox:v0.6.2
           command: ["/bin/sh"]
           args:
             - -c
@@ -4517,7 +4640,7 @@ units:
       maturity: stable
     unit_templates:
     - base-deps
-    enabled: '{{ tuple . "sriov" | include "unit-enabled" }}' # for backward compatibility
+    enabled: '{{ or (tuple . "sriov" | include "unit-enabled") (not (empty .Values.sriov.node_policies)) }}' # for backward compatibility
     depends_on:
       namespace-defs: true
       sriov-crd: true
@@ -4669,7 +4792,7 @@ units:
       chart:
         spec:
           chart: ceph-csi-cephfs
-          version: 3.12.2
+          version: 3.12.3
       values:
         provisioner:
           replicaCount: '{{ .Values.cluster.control_plane_replicas }}'
@@ -4731,18 +4854,18 @@ units:
           chart: longhorn
           version: 104.2.1+up1.7.2
       values:
-        persistence:
-          defaultClass: '{{ ge (int .Values._internal.longhorn_node_count) 3 | include "preserve-type" }}'
         metrics:
           serviceMonitor:
             enabled: '{{ .Values._internal.monitoring.enabled | include "preserve-type" }}'
         defaultSettings:
           createDefaultDiskLabeledNodes: true
-          allowVolumeCreationWithDegradedAvailability: false
+          allowVolumeCreationWithDegradedAvailability: true # tentative workaround of https://gitlab.com/sylva-projects/sylva-core/-/issues/1921
           storageMinimalAvailablePercentage: 10
           replicaReplenishmentWaitInterval: '{{ .Values.cluster.capi_providers.infra_provider | eq "capm3" | ternary 3600 600 | include "preserve-type" }}'
           nodeDrainPolicy: block-for-eviction-if-contains-last-replica
           concurrentAutomaticEngineUpgradePerNodeLimit: 3
+        persistence:
+          defaultClass: '{{ .Values._internal.default_storage_class | eq "longhorn" | include "preserve-type" }}'
 
   longhorn-engine-image-cleanup:
     info:
@@ -5322,12 +5445,11 @@ units:
       gitea-keycloak-resources: true
       gitea-secrets: true
       '{{ .Values._internal.default_storage_class_unit }}': true
-    helm_repo_url: https://charts.bitnami.com/bitnami
+    repo: bitnami-redis-cluster
     helmrelease_spec:
       chart:
         spec:
-          chart: redis-cluster
-          version: 11.0.8
+          chart: bitnami/redis-cluster
       targetNamespace: gitea
       releaseName: gitea-redis
       values:
@@ -5357,12 +5479,11 @@ units:
       gitea-keycloak-resources: true
       gitea-secrets: true
       '{{ .Values._internal.default_storage_class_unit }}': true
-    helm_repo_url: https://charts.bitnami.com/bitnami
+    repo: bitnami-postgresql-ha
     helmrelease_spec:
       chart:
         spec:
-          chart: postgresql-ha
-          version: 14.2.30
+          chart: bitnami/postgresql-ha
       targetNamespace: gitea
       releaseName: gitea-postgres
       values:
@@ -5694,8 +5815,8 @@ units:
       minio-operator: true
       minio-logging-init: true
       ingress-nginx: '{{ tuple . "ingress-nginx" | include "unit-enabled" }}'
-      low-replicas-storageclass: '{{ tuple . "low-replicas-storageclass" | include "unit-enabled" }}'
-      '{{ .Values._internal.default_storage_class_unit }}': '{{ not (tuple . "low-replicas-storageclass" | include "unit-enabled") }}'
+      two-replicas-storageclass: '{{ tuple . "two-replicas-storageclass" | include "unit-enabled" }}'
+      '{{ .Values._internal.default_storage_class_unit }}': '{{ not (tuple . "two-replicas-storageclass" | include "unit-enabled") }}'
     annotations:
       sylvactl/readyMessage: MinIO logging tenant console can be reached at https://{{ .Values.external_hostnames.minio_logging_console }} ({{ .Values.external_hostnames.minio_logging_console }} must resolve to {{ .Values.display_external_ip }})
     repo: minio-operator
@@ -5722,7 +5843,7 @@ units:
               name: pool-0
               volumesPerserver: 4
               size: 3Gi
-              storageClassName: '{{ tuple . (tuple . "low-replicas-storageclass" | include "unit-enabled") "low-replicas-storageclass" .Values._internal.default_storage_class | include "interpret-ternary" }}'
+              storageClassName: '{{ tuple . (tuple . "two-replicas-storageclass" | include "unit-enabled") "two-replicas-storageclass" .Values._internal.default_storage_class | include "interpret-ternary" }}'
               containerSecurityContext:
                 runAsUser: 1000
                 runAsGroup: 1000
@@ -5741,6 +5862,13 @@ units:
                 runAsNonRoot: true
                 seccompProfile:
                   type: RuntimeDefault
+              resources:
+                limits:
+                  cpu: 500m
+                  memory: 512Mi
+                requests:
+                  cpu: 100m
+                  memory: 128Mi
               affinity:
                 podAntiAffinity:
                   requiredDuringSchedulingIgnoredDuringExecution:
@@ -5861,8 +5989,8 @@ units:
       minio-operator: true
       minio-monitoring-init: true
       ingress-nginx: '{{ tuple . "ingress-nginx" | include "unit-enabled" }}'
-      low-replicas-storageclass: '{{ tuple . "low-replicas-storageclass" | include "unit-enabled" }}'
-      '{{ .Values._internal.default_storage_class_unit }}': '{{ not (tuple . "low-replicas-storageclass" | include "unit-enabled") }}'
+      two-replicas-storageclass: '{{ tuple . "two-replicas-storageclass" | include "unit-enabled" }}'
+      '{{ .Values._internal.default_storage_class_unit }}': '{{ not (tuple . "two-replicas-storageclass" | include "unit-enabled") }}'
     annotations:
       sylvactl/readyMessage: MinIO monitoring tenant console can be reached at https://{{ .Values.external_hostnames.minio_monitoring_console }} ({{ .Values.external_hostnames.minio_monitoring_console }} must resolve to {{ .Values.display_external_ip }})
     repo: minio-operator
@@ -5889,7 +6017,7 @@ units:
               name: pool-0
               volumesPerserver: 4
               size: 10Gi
-              storageClassName: '{{ tuple . (tuple . "low-replicas-storageclass" | include "unit-enabled") "low-replicas-storageclass" .Values._internal.default_storage_class | include "interpret-ternary" }}'
+              storageClassName: '{{ tuple . (tuple . "two-replicas-storageclass" | include "unit-enabled") "two-replicas-storageclass" .Values._internal.default_storage_class | include "interpret-ternary" }}'
               containerSecurityContext:
                 runAsUser: 1000
                 runAsGroup: 1000
@@ -5908,6 +6036,13 @@ units:
                 runAsNonRoot: true
                 seccompProfile:
                   type: RuntimeDefault
+              resources:
+                limits:
+                  cpu: 500m
+                  memory: '{{  has .Values.env_type (list "dev" "ci") | ternary "512Mi" "2Gi" }}'
+                requests:
+                  cpu: 100m
+                  memory: '{{  has .Values.env_type (list "dev" "ci") | ternary "128Mi" "1Gi" }}'
               affinity:
                 podAntiAffinity:
                   requiredDuringSchedulingIgnoredDuringExecution:
@@ -6048,15 +6183,14 @@ units:
       ingress-nginx: '{{ tuple . "ingress-nginx" | include "unit-enabled" }}'
     annotations:
       sylvactl/readyMessage: Thanos UI can be reached at https://{{ .Values.external_hostnames.thanos }} ({{ .Values.external_hostnames.thanos }} must resolve to {{ .Values.display_external_ip }})
-    helm_repo_url: https://charts.bitnami.com/bitnami
+    repo: bitnami-thanos
     helmrelease_spec:
       targetNamespace: thanos
       install:
         createNamespace: false
       chart:
         spec:
-          chart: thanos
-          version: 15.8.0
+          chart: bitnami/thanos
       values:
         fullnameOverride: "thanos"
         metrics:
@@ -6145,7 +6279,7 @@ units:
                 cpu: "250m"
           persistence:
             enabled: true
-            storageClass: '{{ tuple . (tuple . "low-replicas-storageclass" | include "unit-enabled") "low-replicas-storageclass" .Values._internal.default_storage_class | include "interpret-ternary" }}'
+            storageClass: '{{ tuple . (tuple . "two-replicas-storageclass" | include "unit-enabled") "two-replicas-storageclass" .Values._internal.default_storage_class | include "interpret-ternary" }}'
             accessModes: ["ReadWriteOnce"]
             size: '{{  has .Values.env_type (list "dev" "ci") | ternary "2Gi" "4Gi" }}'
           evalInterval: 1m
@@ -6483,7 +6617,6 @@ units:
         name: loki-secrets
 
   loki:
-    enabled: false
     info:
       description: installs Loki log storage
       details: installs Loki log storage in simple scalable mode
@@ -6666,11 +6799,7 @@ units:
 
   single-replica-storageclass:
     info:
-      description: DEPRECATED longhorn storage class with a single replica
-      details: |
-        This unit is preserved for migration purposes, it will be removed after sylva 1.2 release
-        Single replicas PVC were causing data replication churn during rolling updates of nodes
-        See https://gitlab.com/sylva-projects/sylva-core/-/issues/1648
+      description: Create a Longhorn storage class with a single replica
       internal: true
     repo: sylva-core
     unit_templates:
@@ -6693,12 +6822,14 @@ units:
             kind: _unused_
             metadata:
               name: _unused_
+              annotations:
+                storageclass.kubernetes.io/is-default-class: '{{ .Values._internal.default_storage_class | eq "single-replica-storageclass" }}'
             parameters:
               numberOfReplicas: "1"
 
-  low-replicas-storageclass:
+  two-replicas-storageclass:
     info:
-      description: Create a Longhorn storage class with less than 3 replicas
+      description: Create a Longhorn storage class with a two replicas
       internal: true
     repo: sylva-core
     unit_templates:
@@ -6713,7 +6844,7 @@ units:
       wait: true
       postBuild:
         substitute:
-          CLASS_NAME: low-replicas-storageclass
+          CLASS_NAME: two-replicas-storageclass
       _patches:
         - target:
             kind: StorageClass
@@ -6721,10 +6852,10 @@ units:
             kind: _unused_
             metadata:
               name: _unused_
-            annotations:
-              storageclass.kubernetes.io/is-default-class: '{{ .Values._internal.default_storage_class | eq "low-replicas-storageclass" }}'
+              annotations:
+                storageclass.kubernetes.io/is-default-class: '{{ .Values._internal.default_storage_class | eq "two-replicas-storageclass" }}'
             parameters:
-              numberOfReplicas: '{{ (int .Values._internal.longhorn_node_count | min 2) | max 1 }}'
+              numberOfReplicas: "2"
 
   sylva-prometheus-rules:
     info:
@@ -6915,7 +7046,7 @@ cluster:
 
   capo:
     # flavor_name: m1.large # Openstack flavor name
-    # image_key: # key of an image in os_images or sylva_diskimage_builder
+    # image_key: # key of an image in os_images or sylva_diskimagebuilder_images
     # image_name: # (deprecated, please use image_key instead) - OpenStack image name (one of image_key and image_name must be set, but not both)
     # ssh_key_name: # OpenStack VM SSH key
     # network_id: # OpenStack network used for nodes and VIP port
@@ -6971,8 +7102,7 @@ cluster:
     - 100.72.0.0/16
   cni:
     calico:
-      wireguard_enabled: '{{ .Values.security.calico_wireguard_enabled | include "preserve-type" }}'
-      autodetection_method: '{{ .Values._internal.default_calico_autodetection_method | include "preserve-type" }}'
+      helm_values: '{{ .Values.calico_helm_values | include "preserve-type" }}'
 
   ntp: '{{ .Values.ntp | include "preserve-type" }}'
   proxies:
@@ -6982,9 +7112,17 @@ cluster:
 
   registry_mirrors: '{{ .Values.registry_mirrors | include "preserve-type" }}'
 
-  metallb_helm_oci_url: ""  # for an OCI-based deployment this is overridden in use-oci-artifacts.values.yaml
-  metallb_helm_version: '{{ .Values.units.metallb.helmrelease_spec.chart.spec.version }}'
-  metallb_helm_extra_ca_certs: ""  # for an OCI-based deployment this is overridden in use-oci-artifacts.values.yaml
+  helm_oci_url: # for an OCI-based deployment this is overridden in use-oci-artifacts.values.yaml
+    metallb: ""
+    calico-crd: ""
+    calico: ""
+  helm_versions:
+    metallb: '{{ .Values.units.metallb.helmrelease_spec.chart.spec.version }}'
+    calico-crd: '{{ tuple . "calico-crd" (index .Values.units "calico-crd") | include "get-helm-version" }}'
+    calico: '{{ tuple . "calico" .Values.units.calico | include "get-helm-version" }}'
+  helm_extra_ca_certs: # for an OCI-based deployment this is overridden in use-oci-artifacts.values.yaml
+    metallb: ""
+    calico: ""
 
   capv:
     # image_name: # vSphere image name
@@ -7315,21 +7453,21 @@ k8s_version_short: "1.30"
 
 # Renovate Bot needs additional information to detect sylva diskimage-builder version
 # renovate: depName=sylva-projects/sylva-elements/diskimage-builder
-sylva_diskimagebuilder_version: 0.3.4
+sylva_diskimagebuilder_version: 0.3.9
 
 sylva_diskimagebuilder_images:
-  ubuntu-jammy-hardened-rke2-1-30-5: {}
-  ubuntu-jammy-hardened-rke2-1-29-9: {}
-  ubuntu-jammy-hardened-rke2-1-28-14: {}
-  ubuntu-jammy-plain-rke2-1-30-5: {}
-  ubuntu-jammy-plain-rke2-1-29-9: {}
-  ubuntu-jammy-plain-rke2-1-28-14: {}
-  opensuse-15-6-plain-rke2-1-30-5: {}
-  opensuse-15-6-plain-rke2-1-29-9: {}
-  opensuse-15-6-plain-rke2-1-28-14: {}
-  opensuse-15-6-hardened-rke2-1-30-5: {}
-  opensuse-15-6-hardened-rke2-1-29-9: {}
-  opensuse-15-6-hardened-rke2-1-28-14: {}
+  ubuntu-jammy-hardened-rke2-1-30-7: {}
+  ubuntu-jammy-hardened-rke2-1-29-11: {}
+  ubuntu-jammy-hardened-rke2-1-28-15: {}
+  ubuntu-jammy-plain-rke2-1-30-7: {}
+  ubuntu-jammy-plain-rke2-1-29-11: {}
+  ubuntu-jammy-plain-rke2-1-28-15: {}
+  opensuse-15-6-plain-rke2-1-30-7: {}
+  opensuse-15-6-plain-rke2-1-29-11: {}
+  opensuse-15-6-plain-rke2-1-28-15: {}
+  opensuse-15-6-hardened-rke2-1-30-7: {}
+  opensuse-15-6-hardened-rke2-1-29-11: {}
+  opensuse-15-6-hardened-rke2-1-28-15: {}
 
 # this dict can be enriched at deployment time to feed additional information
 # into the sylva-units-status ConfigMap
@@ -7348,6 +7486,11 @@ os_images_default_download_storage_space: 30Gi
 get_openstack_images_per_image_timeout_minutes: 30
 
 security:
+  external_x509_issuer: {}
+   # issuer_type:  acme or vault
+   # vault_token:  authent token for vault,
+   # server: e.g. https://vault.external-domain:8200
+   # vault_path: e.g. /pki/sylva, only when using vault issuer
   default_cosign_public_key: | # the default public key in PEM format to be used to verify cosign signatures
     -----BEGIN PUBLIC KEY-----
     MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEcuuLszwy0u7y394KY6GW1BgjfaU6
@@ -7367,6 +7510,14 @@ security:
   os_images:
     skip_signing_check: false
     cosign_public_key: '{{ .Values.security.default_cosign_public_key }}'
+  oci_artifacts:
+    skip_signing_check: false
+    cosign_public_key: | # the OCI public key is not the default public key used to verify sylva elements, e.g. os_images
+      -----BEGIN PUBLIC KEY-----
+      MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEEN6LNycNA/OB8/dtqTPZcPDuLnxW
+      hR0Rskmno7Lx1WqBl2ylN/sfkLEAPfCkizceHiu/fw8lnsPq9uSGlAICeQ==
+      -----END PUBLIC KEY-----
+
 
 monitoring:
   platform_tag: Sylva
@@ -7436,6 +7587,41 @@ logging:
   clusteroutputs: {}
 
 
+calico_helm_values:
+  tolerations:
+  - effect: NoExecute
+    key: node.kubernetes.io/not-ready
+    operator: Exists
+  - effect: NoSchedule
+    key: node.kubernetes.io/not-ready
+    operator: Exists
+  - effect: NoSchedule
+    key: node.cloudprovider.kubernetes.io/uninitialized
+    operator: Exists
+  - effect: NoSchedule
+    key: node.kubernetes.io/network-unavailable
+    operator: Exists
+  global:
+    clusterCIDR: '{{ .Values._internal.calico.clusterCIDR }}'
+    clusterCIDRv4: '{{ .Values._internal.calico.clusterCIDRv4 }}'
+    clusterDNS: '{{ .Values._internal.calico.clusterDNS }}'
+    clusterDomain: '{{ .Values._internal.calico.clusterDomain }}'
+    serviceCIDR: '{{ .Values._internal.calico.serviceCIDR }}'
+  installation:
+    calicoNetwork:
+      bgp: Enabled
+      mtu: '{{ tuple .Values.cluster.capm3.network_interfaces.mtu (and (.Values.cluster.capi_providers.infra_provider | eq "capm3") .Values.cluster.capm3.network_interfaces.mtu) | include "set-only-if" }}'
+      nodeAddressAutodetectionV4:
+        '{{
+        tuple
+          .Values._internal.default_calico_autodetection_method
+          (not .Values._internal.capo_calico_autodetection_method_use_canReach_vip)
+        | include "set-only-if"
+        }}'
+    registry: UseDefault
+  felixConfiguration:
+    wireguardEnabled: '{{ .Values.security.calico_wireguard_enabled | include "preserve-type" }}'
+
 _internal:
 
   state:
@@ -7459,6 +7645,14 @@ _internal:
 
   k8s_version: '{{ include "interpret-as-string" (tuple . .Values.cluster.k8s_version) }}'
   mgmt_cluster: false
+
+  # compute the hash value for clouds_yaml
+
+  clouds_yaml_hash: >-
+    {{
+    .Values.cluster | dig "capo" "clouds_yaml" "clouds" dict | toYaml
+      | sha256sum | trunc 8
+    }}
 
   # 'cluster_machines_ready_unit_deps' contains all the dependencies of the 'cluster' unit, direct and indirect,
   # except the ones set due to depending on cluster-machines-ready.
@@ -7552,10 +7746,12 @@ _internal:
 
   default_longhorn_storage_class: >-
     {{- $nodeCount := int (tuple . .Values._internal.longhorn_node_count | include "interpret-as-string") -}}
-    {{- if ge $nodeCount 3 -}}
-      longhorn
+    {{- if eq $nodeCount 1 -}}
+      single-replica-storageclass
+    {{- else if eq $nodeCount 2 -}}
+      two-replicas-storageclass
     {{- else -}}
-      low-replicas-storageclass
+      longhorn
     {{- end -}}
 
   default_storage_class: >-
@@ -7586,7 +7782,7 @@ _internal:
 
   storage_class_RWX_support:
     - longhorn
-    - low-replicas-storageclass
+    - two-replicas-storageclass
     - cephfs-csi
   default_storage_class_RWX_support: >-
     {{- $default_storage_class := tuple . .Values._internal.default_storage_class | include "interpret-as-string" -}}
@@ -7613,6 +7809,17 @@ _internal:
 
   vault_no_affinity: {}
 
+  keycloak_affinity:
+    podAntiAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        - labelSelector:
+            matchExpressions:
+              - key: app
+                operator: In
+                values:
+                  - sso
+          topologyKey: kubernetes.io/hostname
+
   # this is used in use-oci-artifacts.values.yaml
   # and in a few other places
   sylva_core_version: '{{ .Chart.Version }}'
@@ -7621,9 +7828,9 @@ _internal:
   bootstrap_node_ip: '{{ lookup "v1" "ConfigMap" "sylva-system" "cluster-public-endpoint" | dig "data" "address" "not_found" | default "not_found" }}'
 
   k8s_version_map:
-    1.28: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" | ternary "v1.28.14+rke2r1" "v1.28.14" }}'
-    1.29: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" | ternary "v1.29.9+rke2r1" "v1.29.9" }}'
-    "1.30": '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" | ternary "v1.30.5+rke2r1" "v1.30.5" }}'
+    1.28: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" | ternary "v1.28.15+rke2r1" "v1.28.15" }}'
+    1.29: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" | ternary "v1.29.11+rke2r1" "v1.29.11" }}'
+    "1.30": '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" | ternary "v1.30.7+rke2r1" "v1.30.7" }}'
 
   # total number of nodes in this cluster
   node_count:
@@ -7661,14 +7868,19 @@ _internal:
 
   cluster_unit_os_images_info_configmap: os-images-info
 
-  # default value for cabpr is computed in s-c-c due to https://gitlab.com/sylva-projects/sylva-core/-/issues/1477
-  # canReach: not (empty .Values.cluster.mgmt_cluster_ip) | ternary .Values.cluster.mgmt_cluster_ip .Values.cluster.cluster_virtual_ip
   default_calico_autodetection_method: >-
     {{- if .Values.cluster.capi_providers.bootstrap_provider | eq "cabpk" }}
       {{- dict "kubernetes" "NodeInternalIP" | include "preserve-type" -}}
     {{- else -}}
-      {{- dict | include "preserve-type" -}}
+      {{- dict "canReach" (not (empty .Values.cluster.mgmt_cluster_ip) | ternary .Values.cluster.mgmt_cluster_ip .Values.cluster_virtual_ip) | include "preserve-type" -}}
     {{- end -}}
+
+  capo_calico_autodetection_method_use_canReach_vip:
+    '{{
+      and (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpr")
+          (.Values.cluster.capi_providers.infra_provider | eq "capo")
+          (empty .Values.cluster.mgmt_cluster_ip) | include "preserve-type"
+    }}'
 
   calico_readiness_unit: "calico"
 
@@ -7733,6 +7945,15 @@ _internal:
         name: not-used
       spec:
         unhealthyPodEvictionPolicy: AlwaysAllow
+
+  calico:
+    clusterCIDR: '{{ first .Values.cluster.cluster_pods_cidrs }}'
+    clusterCIDRv4: '{{ first .Values.cluster.cluster_pods_cidrs }}'
+    # for clusterDNS, take the .10 of the first subnet of cluster.cluster_services_cidrs
+    # FIXME: this will not work for subnets not starting at 0 (e.g. 192.168.1.128/25)
+    clusterDNS: '{{ regexReplaceAll "[.]0/.*" (first .Values.cluster.cluster_services_cidrs) ".10" }}'
+    clusterDomain: cluster.local
+    serviceCIDR: '{{ first .Values.cluster.cluster_services_cidrs }}'
 
 shared_workload_clusters_values:
   ntp: '{{ .Values.ntp | include "set-if-defined" }}'
@@ -7840,3 +8061,4 @@ openshift:
     # serviceHostname: openshift-assisted-service.example.com
     # variable to specify the openshift assisted image service hostname
     # imageHostname: openshift-assisted-images.example.com
+

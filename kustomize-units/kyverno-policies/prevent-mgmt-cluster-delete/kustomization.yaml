@@ -5,3 +5,8 @@ namespace: sylva-system
 
 resources:
 - prevent-deletion.yaml
+
+components:
+  # the exclude-kube-system component will patch Policies and ClusterPolicies
+  # having the sylva.org/kyverno-exclude-kube-system=add-matchCondition annotation:
+  - ../exclude-kube-system

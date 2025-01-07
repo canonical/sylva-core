@@ -19,6 +19,7 @@ spec:
   background: false
   webhookConfiguration:
     matchConditions:
+    # This policy purposefully targets the kube-system namespace, so we don't exclude it
     - name: is-create
       expression: request.operation == "CREATE"
     - name: is-calico-or-metallb
@@ -27,6 +28,12 @@ spec:
           "rke2-calico-crd",
           "rke2-calico",
           "metallb",
+        ]
+    - name: namespace
+      expression: >-
+        request.namespace in [
+          "kube-system",
+          "metallb-system"
         ]
   rules:
   - name: prevent-metallb-calico
