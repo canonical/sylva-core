@@ -22,3 +22,12 @@ default:
     - $CI_PIPELINE_IID
     - equinix
     - docker
+
+# This configuration is specific to capm3 deployments
+.flavored-pre-deployment-configuration:
+  - echo Runner tags = $CI_RUNNER_TAGS  /  Pipeline IID = $CI_PIPELINE_IID
+  - >
+    if [[ $CI_RUNNER_TAGS != *${CI_PIPELINE_IID}* ]]; then
+      echo "Wrong runner ¯\_(ツ)_/¯ ";
+      exit 100;
+    fi
