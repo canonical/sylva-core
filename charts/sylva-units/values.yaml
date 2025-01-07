@@ -1537,7 +1537,7 @@ units:
 
               echo "-- Generate federation token"
               FEDERATION_TOKEN=$(curl -s -k -H 'Content-Type: application/json' -H "X-Auth-Token: ${ACCESS_TOKEN}" \
-                  ${NEUVECTOR_BASE_URL}/join_token | jq -r .join_token)
+                  ${NEUVECTOR_BASE_URL}/v1/fed/join_token | jq -r .join_token)
 
 
               echo $FEDERATION_TOKEN
