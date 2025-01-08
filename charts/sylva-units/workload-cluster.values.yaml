@@ -410,6 +410,8 @@ units:
     enabled_conditions:
       - '{{ tuple . "neuvector" | include "unit-enabled" }}'
       - '{{ .Values._internal.sylva_mgmt_enabled_units.neuvector }}'
+    depends_on:
+      neuvector: false
     unit_templates:
     - kustomization-deployed-on-mgmt-cluster
     kustomization_spec:
