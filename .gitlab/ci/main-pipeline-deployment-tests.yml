@@ -100,10 +100,11 @@ variables:
 .scenario_rolling-update:
   variables:
     MGMT_WATCH_TIMEOUT_MIN: "45"
-    APPLY_WATCH_TIMEOUT_MIN: "80"
-    APPLY_WC_WATCH_TIMEOUT_MIN: "80"
-    MGMT_UPDATE_ADDITIONAL_VALUES: "dummy-rolling-update-trigger.yml"
-    WC_UPDATE_ADDITIONAL_VALUES: "dummy-rolling-update-trigger.yml"
+    APPLY_WATCH_TIMEOUT_MIN: "95"
+    APPLY_WC_WATCH_TIMEOUT_MIN: "95"
+    MGMT_INITIAL_ADDITIONAL_VALUES: "serve-k8s-1.28-image.yml"
+    WC_INITIAL_ADDITIONAL_VALUES: "k8s-1.28.yml"
+    WC_UPDATE_ADDITIONAL_VALUES: "k8s-1.29.yml"
 
 .scenario_mgmt_rolling-update:
   variables:
