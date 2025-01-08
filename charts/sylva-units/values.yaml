@@ -562,7 +562,7 @@ units:
       chart:
         spec:
           chart: cert-manager
-          version: v1.15.4
+          version: v1.16.2
       targetNamespace: cert-manager
       install:
         createNamespace: true
@@ -573,7 +573,7 @@ units:
         https_proxy: '{{ tuple .Values.proxies.https_proxy (hasKey .Values.security.external_x509_issuer "issuer_type") | include "set-only-if" }}'
         no_proxy: '{{ tuple .Values.proxies.no_proxy (hasKey .Values.security.external_x509_issuer "issuer_type") | include "set-only-if" }}'
         replicaCount: >-
-          {{ .Values._internal.ha_cluster.is_ha | ternary 2 1 }}
+          {{ .Values._internal.ha_cluster.is_ha | ternary 2 1 | include "preserve-type" }}
         affinity:
           podAntiAffinity:
             preferredDuringSchedulingIgnoredDuringExecution:
@@ -587,10 +587,10 @@ units:
         podDisruptionBudget:
           enabled: true
           minAvailable: >-
-            {{ .Values._internal.ha_cluster.is_ha | ternary 1 0 }}
+            {{ .Values._internal.ha_cluster.is_ha | ternary 1 0 | include "preserve-type" }}
         webhook:
           replicaCount: >-
-            {{ .Values._internal.ha_cluster.is_ha | ternary 3 1 }}
+            {{ .Values._internal.ha_cluster.is_ha | ternary 3 1 | include "preserve-type" }}
           affinity:
             podAntiAffinity:
               preferredDuringSchedulingIgnoredDuringExecution:
@@ -604,10 +604,10 @@ units:
           podDisruptionBudget:
             enabled: true
             minAvailable: >-
-              {{ .Values._internal.ha_cluster.is_ha | ternary 1 0 }}
+              {{ .Values._internal.ha_cluster.is_ha | ternary 1 0 | include "preserve-type" }}
         cainjector:
           replicaCount: >-
-            {{ .Values._internal.ha_cluster.is_ha | ternary 2 1 }}
+            {{ .Values._internal.ha_cluster.is_ha | ternary 2 1 | include "preserve-type" }}
           affinity:
             podAntiAffinity:
               preferredDuringSchedulingIgnoredDuringExecution:
@@ -621,7 +621,7 @@ units:
           podDisruptionBudget:
             enabled: true
             minAvailable: >-
-              {{ .Values._internal.ha_cluster.is_ha | ternary 1 0 }}
+              {{ .Values._internal.ha_cluster.is_ha | ternary 1 0 | include "preserve-type" }}
       _postRenderers:
         - kustomize:
             patches:
