@@ -1516,7 +1516,7 @@ units:
               set -e
               set -o pipefail
 
-              NAMESPACE_EXISTS=`kubectl get ns neuvector -o jsonpath='{.metadata}' | jq -r '.name'`
+              NAMESPACE_EXISTS=`kubectl get ns {{ .Values.cluster.name }} -o jsonpath='{.metadata}' | jq -r '.name'`
 
               if [ -z "${NAMESPACE_EXISTS}-unset" ];
                 echo "not in workload cluster deployment"
