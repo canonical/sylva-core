@@ -301,10 +301,6 @@ units:
               value:
                 namespace: sylva-system
                 name: sylva-units
-            - op: add
-              path: /metadata/labels
-              value:
-                sylva-units/protected: ""
     helmrelease_spec:
       releaseName: sylva-units
       chart:

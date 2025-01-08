@@ -13,7 +13,7 @@ spec:
       expression: request.operation == "DELETE"
     - name: match-label
       expression: >-
-         has(oldObject.metadata.labels) && 'sylva-units/protected' in oldObject.metadata.labels
+        has(oldObject.metadata) && has(oldObject.metadata.labels) && 'sylva-units/protected' in oldObject.metadata.labels
   rules:
   - name: helm-resources
     match:
@@ -55,32 +55,3 @@ spec:
       message: Deleting the Sylva CAPI resources that describe the Cluster API cluster for the management cluster is not possible without breaking the Sylva management cluster.
       deny: {}
   validationFailureAction: Enforce
----
-#set sylva-units/protected label in sylva-units hr using kyverno instead of doing it
-#on bootstrap level in order to cover upgrades as well, could be delete after 1.2.0 tag
-apiVersion: kyverno.io/v1
-kind: Policy
-metadata:
-  name: set-labels-sylva-units
-  annotations:
-    kustomize.toolkit.fluxcd.io/force: Enabled
-spec:
-  background: true
-  webhookTimeoutSeconds: 30
-  mutateExistingOnPolicyUpdate: true
-  rules:
-    - name: update-label
-      match:
-        any:
-        - resources:
-            kinds:
-            - HelmRelease
-      mutate:
-        targets:
-          - apiVersion: helm.toolkit.fluxcd.io/v2
-            kind: HelmRelease
-            name: sylva-units
-        patchStrategicMerge:
-          metadata:
-            labels:
-              sylva-units/protected: ""
