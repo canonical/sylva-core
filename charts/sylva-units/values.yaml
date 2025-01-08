@@ -4061,6 +4061,9 @@ units:
       install:
         createNamespace: false
       values:
+        kube-state-metrics:
+          extraArgs:
+          - --metric-labels-allowlist=namespaces=[field.cattle.io/projectId]
         grafana:
           sidecar:
             dashboards:

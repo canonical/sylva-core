@@ -328,10 +328,6 @@ units:
     depends_on:
       cluster-import: '{{ tuple . "cluster-import" | include "unit-enabled" }}'
     helmrelease_spec:
-      values:
-        kube-state-metrics:
-          extraArgs:
-          - --metric-labels-allowlist=namespaces=[field.cattle.io/projectId]
       valuesFrom:
         - kind: ConfigMap
           name: '{{ .Values.cluster.name }}-capi-monitoring-info'  # this configmap is produced by a kyverno policy defined by the "rancher-monitoring-clusterid-inject" mgmt unit
