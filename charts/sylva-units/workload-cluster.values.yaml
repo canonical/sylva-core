@@ -405,11 +405,23 @@ units:
       _components:
         - '{{ hasKey .Values.external_certificates.neuvector_federation_master "cert" | ternary "../../tls-components/tls-secret" "../../tls-components/tls-certificate" }}'
 
+  neuvector-fedadmin-token:
+    enabled: true
+    depends_on:
+      - '{{ tuple . "neuvector" | include "unit-enabled" }}'
+      - '{{ .Values._internal.sylva_mgmt_enabled_units.neuvector }}'
+    unit_templates:
+    - kustomization-deployed-on-mgmt-cluster
+    kustomization_spec:
+      healthChecks: null # Remove healthChecks targeting sylva-system namespace
+
+
   neuvector:
     # can be enabled at runtime if desired
     enabled: false
     depends_on:
       neuvector-federation-tls: '{{ tuple . "neuvector-federation-tls" | include "unit-enabled" }}'
+      neuvector-fedadmin-token: '{{ tuple . "neuvector-fedadmin-token" | include "unit-enabled" }}'
     helmrelease_spec:
       values:
         controller:
