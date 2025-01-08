@@ -6799,7 +6799,7 @@ units:
 
   single-replica-storageclass:
     info:
-      description: Create a Longhorn storage class with a single replica
+      description: Defines a Longhorn storage class with a single replica
       internal: true
     repo: sylva-core
     unit_templates:
