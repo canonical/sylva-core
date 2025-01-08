@@ -4,6 +4,7 @@
     "gitlab>sylva-projects/sylva-elements/renovate-config:default"
   ],
   "ignorePaths": [],
+  "baseBranches": ["main", "release-1.3"],
   "addLabels": [
     "renovate"
   ],
@@ -26,6 +27,22 @@
     ]
   },
   "packageRules": [
+    {
+      "description": "For release-1.3, limit updates frequency to every 2 weeksh",
+      "matchUpdateTypes": ["major", "minor"],
+      "matchBaseBranches": ["release-1.3"],
+      "enabled": false
+    },
+    {
+      "description": "Limit patch updates frequency to every 3 weeks for non sylva package of release-1.3 base branch",
+      "matchBaseBranches": ["release-1.3"],
+      "matchPackageNames": [
+        "!/.*sylva.*/"
+      ],
+      "schedule": [
+        "* * */21 * *"
+      ]
+    },
     {
       "description": "Limit patch updates frequency to every 2 weeks for some packages",
       "matchPackageNames": [
