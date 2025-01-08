@@ -284,6 +284,7 @@ units:
     unit_templates:
     - sylva-units
     labels:
+      sylva-units/protected: ""
       suspend-on-pivot: "yes"  # this unit must be suspended before pivot
     # Use a kustomization_spec alongside an helmrelease_spec,
     # this way we'll create the flux helmrelease into the management cluster
