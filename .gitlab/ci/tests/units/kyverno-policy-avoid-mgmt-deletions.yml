@@ -35,8 +35,8 @@ mgmt-avoid-mgmt-deletion-policies:
       }
 
       #get protected resources ks/hr based on label
-      resources_ks=$(kubectl get kustomization -l=sylva-units/protected --no-headers | awk '{print $1}')
-      resources_hr=$(kubectl get helmrelease -l=sylva-units/protected --no-headers | awk '{print $1}')
+      resources_ks=$(kubectl get kustomization -l=sylva-units/protected --no-headers -o custom-columns="NAME:.metadata.name")
+      resources_hr=$(kubectl get helmrelease -l=sylva-units/protected --no-headers -o custom-columns="NAME:.metadata.name")
       for resources in ${resources_ks[@]}
       do
          fail_if_delete_succeeds Kustomization $resources
