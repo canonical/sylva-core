@@ -6807,8 +6807,8 @@ units:
     depends_on:
       longhorn: true
     enabled_conditions:
-      - '{{ or (tuple . "minio-monitoring" | include "unit-enabled") (tuple . "minio-logging" | include "unit-enabled") }}'
       - '{{ tuple . "longhorn" | include "unit-enabled" }}'
+      - '{{ eq .Values._internal.default_storage_class "single-replica-storageclass" }}'
     kustomization_spec:
       path: ./kustomize-units/longhorn-storageclass
       wait: true
