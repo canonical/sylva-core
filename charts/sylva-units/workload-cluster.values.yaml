@@ -415,6 +415,7 @@ units:
       neuvector: false
     unit_templates:
     - kustomization-deployed-on-mgmt-cluster
+    - kube-job
     kustomization_spec:
       healthChecks: [] # Remove healthChecks targeting sylva-system namespace
 

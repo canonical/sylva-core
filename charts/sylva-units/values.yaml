@@ -1498,7 +1498,6 @@ units:
       neuvector: true
     kustomization_spec:
       targetNamespace: neuvector
-      path: ./kustomize-units/dummy/base
       _patches:
       - target:
           kind: Job
