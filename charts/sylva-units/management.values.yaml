@@ -236,7 +236,7 @@ units:
               tlsSkipVerify: true
               timeInterval: 60s
               prometheusVersion: "0.35.0"
-              customQueryParameters: "deduplicate=1"
+              customQueryParameters: "deduplicate=1&max_source_resolution=auto"
             secureJsonData:
               basicAuthPassword: '{{ .Values._internal.thanos_password }}'
             isDefault: true
