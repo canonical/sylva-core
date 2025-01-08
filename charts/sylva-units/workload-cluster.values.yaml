@@ -407,7 +407,7 @@ units:
 
   neuvector-fedadmin-token:
     enabled: true
-    depends_on:
+    enabled_conditions:
       - '{{ tuple . "neuvector" | include "unit-enabled" }}'
       - '{{ .Values._internal.sylva_mgmt_enabled_units.neuvector }}'
     unit_templates:
