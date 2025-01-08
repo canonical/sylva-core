@@ -410,6 +410,7 @@ units:
     enabled_conditions:
       - '{{ tuple . "neuvector" | include "unit-enabled" }}'
       - '{{ .Values._internal.sylva_mgmt_enabled_units.neuvector }}'
+    repo: sylva-core
     depends_on:
       neuvector: false
     unit_templates:
