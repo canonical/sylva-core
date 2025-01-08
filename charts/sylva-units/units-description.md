@@ -3,10 +3,10 @@
 <!-- markdownlint-disable MD044 -->
 | name | full description | maturity | source | version |
 | :----- | :----- | :----- | :----- | :----- |
-| **cabpk** | installs Kubeadm CAPI bootstrap provider | core-component | [Kustomization](https://github.com/kubernetes-sigs/cluster-api/releases/download/v1.8.6/bootstrap-components.yaml) | v1.8.6 |
+| **cabpk** | installs Kubeadm CAPI bootstrap provider | core-component | [Kustomization](https://github.com/kubernetes-sigs/cluster-api/releases/download/v1.8.8/bootstrap-components.yaml) | v1.8.8 |
 | **cabpr** | installs RKE2 CAPI bootstrap provider | core-component | [Kustomization](https://github.com/rancher/cluster-api-provider-rke2/releases/download/v0.7.1/bootstrap-components.yaml) | v0.7.1 |
-| **capd** | installs Docker CAPI infra provider | core-component | [Kustomization](https://github.com/kubernetes-sigs/cluster-api//test/infrastructure/docker/config/default/?ref=v1.8.6) | v1.8.6 |
-| **capi** | installs Cluster API core operator | core-component | [Kustomization](https://github.com/kubernetes-sigs/cluster-api/releases/download/v1.8.6/core-components.yaml) | v1.8.6 |
+| **capd** | installs Docker CAPI infra provider | core-component | [Kustomization](https://github.com/kubernetes-sigs/cluster-api//test/infrastructure/docker/config/default/?ref=v1.8.8) | v1.8.8 |
+| **capi** | installs Cluster API core operator | core-component | [Kustomization](https://github.com/kubernetes-sigs/cluster-api/releases/download/v1.8.8/core-components.yaml) | v1.8.8 |
 | **capm3** | installs Metal3 CAPI infra provider, for baremetal | core-component | [Kustomization](https://github.com/metal3-io/cluster-api-provider-metal3/releases/download/v1.8.3/infrastructure-components.yaml) | v1.8.3 |
 | **capo** | installs OpenStack CAPI infra provider | core-component | [Kustomization](https://github.com/kubernetes-sigs/cluster-api-provider-openstack/releases/download/v0.11.3/infrastructure-components.yaml) | v0.11.3 |
 | **capv** | installs vSphere CAPI infra provider | core-component | [Kustomization](https://github.com/kubernetes-sigs/cluster-api-provider-vsphere/releases/download/v1.12.0/infrastructure-components.yaml) | v1.12.0 |
@@ -16,8 +16,8 @@
 | **calico** | install Calico CNI | stable | [Helm chart](https://rke2-charts.rancher.io) | v3.28.200, v3.29.000 |
 | **cinder-csi** | installs OpenStack Cinder CSI | stable | [Helm chart](https://kubernetes.github.io/cloud-provider-openstack) | 2.31.2 |
 | **cis-operator** | install CIS operator | stable | [Helm chart](https://charts.rancher.io) | 105.0.0+up7.0.0 |
-| **cnpg-operator** | Cloud Native PostgreSQL (CNPG) Operator | stable | [Helm chart](https://cloudnative-pg.github.io/charts) | 0.22.1 |
-| **external-secrets-operator** | installs the External Secrets operator | stable | [Helm chart](https://charts.external-secrets.io) | 0.10.4 |
+| **cnpg-operator** | Cloud Native PostgreSQL (CNPG) Operator | stable | [Helm chart](https://cloudnative-pg.github.io/charts) | 0.23.0 |
+| **external-secrets-operator** | installs the External Secrets operator | stable | [Helm chart](https://charts.external-secrets.io) | 0.10.7 |
 | **flux-webui** | installs Weave GitOps Flux web GUI | stable | [Helm chart](https://github.com/weaveworks/weave-gitops.git) | v0.38.0 |
 | **gitea** | installs Gitea | stable | [Helm chart](https://dl.gitea.com/charts/) | 10.4.1 |
 | **gitea-postgresql-ha** | installs PostgreSQL HA cluster for Gitea | stable | [Helm chart](https://github.com/bitnami/charts.git) | postgresql-ha/14.2.30 |
@@ -31,15 +31,15 @@
 | **local-path-provisioner** | installs local-path CSI | stable | [Helm chart](https://github.com/rancher/local-path-provisioner.git) | v0.0.30 |
 | **longhorn** | installs Longhorn CSI | stable | [Helm chart](https://charts.rancher.io/) | 104.2.1+up1.7.2 |
 | **metal3** | installs SUSE-maintained Metal3 operator | stable | [Helm chart](https://suse-edge.github.io/charts) | 0.8.3 |
-| **metallb** | installs MetalLB operator | stable | [Helm chart](https://metallb.github.io/metallb) | 0.14.8 |
+| **metallb** | installs MetalLB operator | stable | [Helm chart](https://metallb.github.io/metallb) | 0.14.9 |
 | **monitoring** | installs monitoring stack | stable | [Helm chart](https://charts.rancher.io/) | 104.1.2+up57.0.3 |
 | **multus** | installs Multus | stable | [Helm chart](https://rke2-charts.rancher.io/) | v4.1.001 |
 | **postgres** | installs Postgresql for Keycloak | stable | [Helm chart](https://github.com/bitnami/charts.git) | postgresql/15.5.36 |
-| **rancher** | installs Rancher | stable | [Helm chart](https://releases.rancher.com/server-charts/stable) | 2.9.3 |
+| **rancher** | installs Rancher | stable | [Helm chart](https://releases.rancher.com/server-charts/stable) | 2.10.1 |
 | **sriov-network-operator** | installs SR-IOV operator | stable | [Helm chart](https://suse-edge.github.io/charts/) | 1.3.0 |
 | **vault** | installs Vault<br/><br/>Vault assumes that the certificate vault-tls has been issued | stable | [Kustomization](https://raw.githubusercontent.com/banzaicloud/bank-vaults/1.19.0/operator/deploy/rbac.yaml) | 1.19.0 |
 | **vault-config-operator** | installs Vault config operator | stable | [Helm chart](https://redhat-cop.github.io/vault-config-operator) | v0.8.29 |
-| **vault-operator** | installs Vault operator | stable | [Helm chart](https://github.com/bank-vaults/vault-operator.git) | v1.22.3 |
+| **vault-operator** | installs Vault operator | stable | [Helm chart](https://github.com/bank-vaults/vault-operator.git) | v1.22.5 |
 | **vsphere-csi-driver** | installs Vsphere CSI | stable | [Kustomization](https://raw.githubusercontent.com/kubernetes-sigs/vsphere-csi-driver/v3.3.1/manifests/vanilla/vsphere-csi-driver.yaml) | v3.3.1 |
 | **alertmanager-jiralert** | installs Alertmanager webhook Jiralert<br/><br/>Jiralert is an Alertmanager wehbook that creates Jira issues | beta | [Helm chart](https://prometheus-community.github.io/helm-charts) | 1.7.1 |
 | **cabpoa** | installs OKD/OpenShift CAPI bootstrap/controlplane provider | experimental | [Kustomization](https://github.com/openshift-assisted/cluster-api-agent/releases/download/v0.2.0/bootstrap-components.yaml) | v0.2.0 |
