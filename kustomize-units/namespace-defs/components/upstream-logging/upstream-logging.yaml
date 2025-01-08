@@ -7,3 +7,4 @@ metadata:
     kubernetes.io/metadata.name: upstream-logging
     pod-security.kubernetes.io/enforce: privileged
     pod-security.kubernetes.io/enforce-version: latest
+

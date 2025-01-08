@@ -17,3 +17,4 @@ spec:
   - maxEntries: 100
     name: rke2-agent-journal
     systemdFilter: rke2-agent.service
+
