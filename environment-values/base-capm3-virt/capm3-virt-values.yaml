@@ -98,7 +98,7 @@ cluster:
         allowScheduling: true
         tags:
           - vhdd
-          - fast
+          - slow
     bmh_metadata:
       annotations:
         sylvaproject.org/snmp-auth: foo
@@ -108,7 +108,7 @@ cluster:
         # you should use `(baremetal_host_default|baremetal_hosts).longhorn_disk_config` instead
         sylvaproject.org/default-longhorn-disks-config: >-
           [{"path":"/var/longhorn/disks/disk_by-path_pci-0000:00:0a.0", "storageReserved":0, "allowScheduling":true, "tags":[ "vhdd", "fast"] },
-           {"path":"/var/longhorn/disks/disk_by-path_pci-0000:00:0b.0", "storageReserved":0, "allowScheduling":true, "tags":[ "vhdd", "fast"] }]
+           {"path":"/var/longhorn/disks/disk_by-path_pci-0000:00:0b.0", "storageReserved":0, "allowScheduling":true, "tags":[ "vhdd", "slow"] }]
     bmh_spec:
       online: false
       description: management cluster node
@@ -149,10 +149,51 @@ units:
       values:
         persistence:
           defaultClassReplicaCount: 1
+          defaultClass: false
 
   monitoring:
     enabled_conditions:
       - '{{ ternary true false (.Values.env_type | eq "ci") | include "preserve-type" }}'
+
+  default-storageclass:
+    enabled: true
+    info:
+      description: Create a default longhorn storage class with 3 replicas on fast disks
+      internal: true
+    repo: sylva-core
+    unit_templates:
+    - base-deps
+    depends_on:
+      longhorn: true
+    kustomization_spec:
+      path: ./kustomize-units/longhorn-storageclass
+      wait: true
+      postBuild:
+        substitute:
+          CLASS_NAME: default-storageclass
+      _patches:
+        - target:
+            kind: StorageClass
+          patch: |
+            kind: _unused_
+            metadata:
+              name: _unused_
+              annotations:
+                storageclass.kubernetes.io/is-default-class: "true"
+            parameters:
+              diskSelector: fast
+
+  two-replicas-storageclass:
+    kustomization_spec:
+      patches:
+        - target:
+            kind: StorageClass
+          patch: |
+            kind: _unused_
+            metadata:
+              name: _unused_
+            parameters:
+              diskSelector: slow
 
 libvirt_metal:
   #image: registry.gitlab.com/sylva-projects/sylva-elements/container-images/libvirt-metal:0.1.4  # customize if wanted
