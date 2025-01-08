@@ -1499,6 +1499,9 @@ units:
     kustomization_spec:
       targetNamespace: neuvector
       path: ./kustomize-units/kube-job
+      postBuild:
+        substitute:
+          JOB_NAME: neuvector-fedadmin-token
       _patches:
       - target:
           kind: Job
