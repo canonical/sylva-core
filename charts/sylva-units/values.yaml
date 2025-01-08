@@ -1498,10 +1498,7 @@ units:
       neuvector: true
     kustomization_spec:
       targetNamespace: neuvector
-      path: ./kustomize-units/kube-job
-      postBuild:
-        substitute:
-          JOB_NAME: neuvector-fedadmin-token
+      path: ./kustomize-units/helmrelease-generic
       _patches:
       - target:
           kind: Job
