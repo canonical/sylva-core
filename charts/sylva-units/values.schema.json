@@ -2353,7 +2353,24 @@
             "ip_preallocations": {
               "anyOf": [
                 {
-                  "type": "object"
+                  "type": "object",
+                  "additionalProperties": false,
+                  "patternProperties": {
+                    ".*": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "format": "ipv4"
+                        },
+                        {
+                          "$ref": "#/$defs/string-with-gotpl"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  }
                 },
                 {
                   "$ref": "#/$defs/string-with-gotpl"
@@ -4479,24 +4496,10 @@
                                 ]
                               },
                               "properties": {
-                                "network": {
+                                "subnet": {
                                   "anyOf": [
                                     {
-                                      "type": "string",
-                                      "format": "ipv4"
-                                    },
-                                    {
-                                      "$ref": "#/$defs/string-with-gotpl"
-                                    },
-                                    {
-                                      "type": "null"
-                                    }
-                                  ]
-                                },
-                                "prefix": {
-                                  "anyOf": [
-                                    {
-                                      "$ref": "#/$defs/ipv4-prefix"
+                                      "$ref": "#/$defs/ipv4-cidr-full"
                                     },
                                     {
                                       "$ref": "#/$defs/string-with-gotpl"
@@ -4553,6 +4556,21 @@
                                     {
                                       "type": "string",
                                       "$ref": "#/$defs/linux-ifname"
+                                    },
+                                    {
+                                      "$ref": "#/$defs/string-with-gotpl"
+                                    },
+                                    {
+                                      "type": "null"
+                                    }
+                                  ]
+                                },
+                                "mtu": {
+                                  "anyOf": [
+                                    {
+                                      "type": "integer",
+                                      "min": 1280,
+                                      "max": 9000
                                     },
                                     {
                                       "$ref": "#/$defs/string-with-gotpl"

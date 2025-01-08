@@ -1,0 +1,6 @@
+dependencies:
+- name: sylva-library
+  repository: https://gitlab.com/api/v4/projects/56163211/packages/helm/base
+  version: 0.0.0-cm-net-refacto
+digest: sha256:15488f3b16ff2b2332b913345a86349ffd42ed50263ebe526750b220700ca092
+generated: "2025-03-17T10:20:32.356217338Z"
