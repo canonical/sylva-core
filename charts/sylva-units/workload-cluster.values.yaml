@@ -480,10 +480,9 @@ units:
     enabled: true
 
   logging:
-    enabled: false
+    enabled: true
 
   logging-config:
-    enabled: true
     kustomization_spec:
       targetNamespace: "cattle-logging-system"
 
