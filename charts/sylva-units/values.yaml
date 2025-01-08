@@ -1493,6 +1493,7 @@ units:
     - kube-job
     enabled_conditions:
     - '{{ tuple . "neuvector" | include "unit-enabled" }}'
+    repo: sylva-core
     depends_on:
       neuvector: true
     kustomization_spec:
