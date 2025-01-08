@@ -394,6 +394,34 @@ unit_templates:
                       configMap:
                         name: kube-cronjob-{{ .Values._kustomization_name_ }}
 
+  pin-to-cp-nodes:
+    kustomization_spec:
+      _patches:
+      - target:
+          kind: (Deployment|Job|DaemonSet|StatefulSet)
+        patch: |-
+          kind: _unused_
+          metadata:
+            name: _unused_
+          spec:
+            template:
+              spec:
+                nodeSelector:
+                  node-role.kubernetes.io/control-plane: '{{ .Values._internal.cp_node_label_value }}'
+      - target:
+          kind: CronJob
+        patch: |-
+          kind: _unused_
+          metadata:
+            name: _unused_
+          spec:
+            jobTemplate:
+              spec:
+                template:
+                  spec:
+                    nodeSelector:
+                      node-role.kubernetes.io/control-plane: '{{ .Values._internal.cp_node_label_value }}'
+
 
 # unit_definition_defaults is merged with each "units.x" before
 # it inherits from unit templates
@@ -486,6 +514,7 @@ units:
     #
     unit_templates:
     - kube-job
+    - pin-to-cp-nodes
     labels:
       sylva-units/root-dependency-wait: null  # cancel the label set in unit_definition_defaults, because the root-dependency wait job should _not_ wait for this unit
     repo: devnull
@@ -550,6 +579,7 @@ units:
     repo: sylva-core
     unit_templates: # we intendedly don't inherit from base-deps, because flux is itself part of base dependencies
     - flux-common
+    - pin-to-cp-nodes
 
   cert-manager:
     info:
@@ -569,6 +599,8 @@ units:
       values:
         crds:
           enabled: true
+        nodeSelector:
+          node-role.kubernetes.io/control-plane: '{{ .Values._internal.cp_node_label_value }}'
         http_proxy: '{{ tuple .Values.proxies.http_proxy (hasKey .Values.security.external_x509_issuer "issuer_type") | include "set-only-if" }}' #proxy setting is required to reach external cert issuers
         https_proxy: '{{ tuple .Values.proxies.https_proxy (hasKey .Values.security.external_x509_issuer "issuer_type") | include "set-only-if" }}'
         no_proxy: '{{ tuple .Values.proxies.no_proxy (hasKey .Values.security.external_x509_issuer "issuer_type") | include "set-only-if" }}'
@@ -591,6 +623,8 @@ units:
         webhook:
           replicaCount: >-
             {{ .Values._internal.ha_cluster.is_ha | ternary 3 1 }}
+          nodeSelector:
+            node-role.kubernetes.io/control-plane: '{{ .Values._internal.cp_node_label_value }}'
           affinity:
             podAntiAffinity:
               preferredDuringSchedulingIgnoredDuringExecution:
@@ -608,6 +642,8 @@ units:
         cainjector:
           replicaCount: >-
             {{ .Values._internal.ha_cluster.is_ha | ternary 2 1 }}
+          nodeSelector:
+            node-role.kubernetes.io/control-plane: '{{ .Values._internal.cp_node_label_value }}'
           affinity:
             podAntiAffinity:
               preferredDuringSchedulingIgnoredDuringExecution:
@@ -635,6 +671,7 @@ units:
       internal: true
     unit_templates:
     - base-deps
+    - pin-to-cp-nodes
     repo: sylva-core
     kustomization_spec:
       path: ./kustomize-units/kube-storage-version-migrator
@@ -761,6 +798,9 @@ units:
           chart: cloudnative-pg
           version: 0.23.0
       targetNamespace: cnpg-system
+      values:
+        nodeSelector:
+          node-role.kubernetes.io/control-plane: '{{ .Values._internal.cp_node_label_value }}'
 
   keycloak-postgres:
     info:
@@ -1184,6 +1224,8 @@ units:
         image:
           repository: ghcr.io/bank-vaults/vault-operator
           tag: '{{ .Values.source_templates | dig "vault-operator" "spec" "ref" "tag" "" | required "source_templates.vault-operator.spec.ref.tag is unset" }}'
+        nodeSelector:
+          node-role.kubernetes.io/control-plane: '{{ .Values._internal.cp_node_label_value }}'
 
   vault:
     info:
@@ -1308,6 +1350,8 @@ units:
       values:
         enableCertManager: true
         enableMonitoring: false
+        nodeSelector:
+          node-role.kubernetes.io/control-plane: '{{ .Values._internal.cp_node_label_value }}'
 
   vault-secrets:
     info:
@@ -1363,6 +1407,9 @@ units:
         createNamespace: true
       values:
         installCRDs: true
+        global:
+          nodeSelector:
+            node-role.kubernetes.io/control-plane: '{{ .Values._internal.cp_node_label_value }}'
 
   eso-secret-stores:
     info:
@@ -1609,6 +1656,7 @@ units:
       maturity: stable
     unit_templates:
     - base-deps
+    - pin-to-cp-nodes
     depends_on:
       sylva-ca: true
       ingress-nginx: '{{ tuple . "ingress-nginx" | include "unit-enabled" }}'
@@ -1685,6 +1733,7 @@ units:
       maturity: stable
     unit_templates:
     - base-deps
+    - pin-to-cp-nodes
     enabled_conditions:
     - '{{ tuple . "keycloak" | include "unit-enabled" }}'
     depends_on:
@@ -1777,6 +1826,7 @@ units:
     unit_templates:
     - base-deps
     - kube-job
+    - pin-to-cp-nodes
     enabled_conditions:
     - '{{ tuple . "keycloak" | include "unit-enabled" }}'
     depends_on:
@@ -1815,6 +1865,7 @@ units:
     unit_templates:
     - base-deps
     - kube-job
+    - pin-to-cp-nodes
     enabled_conditions:
     - '{{ tuple . "keycloak" | include "unit-enabled" }}'
     depends_on:
@@ -1851,6 +1902,7 @@ units:
     unit_templates:
     - base-deps
     - kube-job
+    - pin-to-cp-nodes
     enabled_conditions:
     - '{{ tuple . "keycloak" | include "unit-enabled" }}'
     - '{{ hasKey .Values.external_certificates "cacert" }}'
@@ -2010,6 +2062,8 @@ units:
           resources:
             limits:
               memory: 1024Mi
+          nodeSelector:
+            node-role.kubernetes.io/control-plane: '{{ .Values._internal.cp_node_label_value }}'
           serviceMonitor:
             enabled: '{{ .Values._internal.monitoring.enabled | include "preserve-type" }}'
         cleanupController:
@@ -2026,10 +2080,14 @@ units:
                 resources:
                   - engineimages
                 verbs: ["get", "list", "watch", "patch", "update", "delete"]
+          nodeSelector:
+            node-role.kubernetes.io/control-plane: '{{ .Values._internal.cp_node_label_value }}'
           serviceMonitor:
             enabled: '{{ .Values._internal.monitoring.enabled | include "preserve-type" }}'
         reportsController:
           replicas: '{{ .Values._internal.default_replicas | include "preserve-type" }}'
+          nodeSelector:
+            node-role.kubernetes.io/control-plane: '{{ .Values._internal.cp_node_label_value }}'
           rbac:
             coreClusterRole:
               extraResources:
@@ -2040,6 +2098,8 @@ units:
             enabled: '{{ .Values._internal.monitoring.enabled | include "preserve-type" }}'
         backgroundController:
           replicas: '{{ .Values._internal.default_replicas | include "preserve-type" }}'
+          nodeSelector:
+            node-role.kubernetes.io/control-plane: '{{ .Values._internal.cp_node_label_value }}'
           resources:
             limits:
               memory: 1024Mi
@@ -2280,6 +2340,7 @@ units:
     repo: sylva-core
     unit_templates:
     - base-deps
+    - pin-to-cp-nodes
     depends_on:
       cert-manager: true
     kustomization_spec:
@@ -2298,6 +2359,7 @@ units:
     repo: sylva-core
     unit_templates:
     - base-deps
+    - pin-to-cp-nodes
     depends_on:
       cert-manager: true
     kustomization_spec:
@@ -2320,6 +2382,7 @@ units:
     repo: sylva-core
     unit_templates:
     - base-deps
+    - pin-to-cp-nodes
     depends_on:
       cert-manager: true
     kustomization_spec:
@@ -2353,6 +2416,7 @@ units:
     repo: sylva-core
     unit_templates:
     - base-deps
+    - pin-to-cp-nodes
     depends_on:
       cert-manager: true
       metal3: true
@@ -2373,6 +2437,7 @@ units:
     repo: sylva-core
     unit_templates:
     - base-deps
+    - pin-to-cp-nodes
     depends_on:
       cert-manager: true
     kustomization_spec:
@@ -2391,6 +2456,7 @@ units:
     repo: sylva-core
     unit_templates:
     - base-deps
+    - pin-to-cp-nodes
     depends_on:
       cert-manager: true
     kustomization_spec:
@@ -2409,6 +2475,7 @@ units:
     repo: sylva-core
     unit_templates:
     - base-deps
+    - pin-to-cp-nodes
     depends_on:
       cert-manager: true
     kustomization_spec:
@@ -2550,6 +2617,9 @@ units:
               accessMode: ReadWriteOnce
         metal3-baremetal-operator:
           replicaCount: '{{ .Values._internal.ha_cluster.is_ha | ternary 2 1 | include "preserve-type" }}'
+          global:
+            nodeSelector:
+              node-role.kubernetes.io/control-plane: '{{ .Values._internal.cp_node_label_value }}'
         metal3-mariadb:
           persistence:
             storageClass: '{{ .Values._internal.default_storage_class }}'
@@ -2607,6 +2677,8 @@ units:
           - node: DEFAULT_PATH_FOR_NON_LISTED_NODES
             paths:
               - /var/lib/kubelet/local-path-provisioner
+        nodeSelector:
+          node-role.kubernetes.io/control-plane: '{{ .Values._internal.cp_node_label_value }}'
         helperImage:
           repository: docker.io/library/busybox
           tag: 1.36.1
@@ -2845,6 +2917,7 @@ units:
     unit_templates:
     - base-deps
     - kube-cronjob
+    - pin-to-cp-nodes
     depends_on:
       cluster: false # we can't depend directly on 'cluster' unit, since it's being disabled in 'management-sylva-units' and re-enabled by 'pivot'
       capi: true
@@ -2854,6 +2927,7 @@ units:
       capm3: '{{ tuple . "capm3" | include "unit-enabled" }}'
     kustomization_spec:
       path: ./kustomize-units/cluster-garbage-collector
+      wait: true
       _components:
         - '{{ tuple "components/dev-ci-cronjob-schedule" (list "dev" "ci" | has .Values.env_type) | include "set-only-if" }}'
 
@@ -2915,6 +2989,7 @@ units:
       vsphere-cpi: '{{ .Values.cluster.capi_providers.infra_provider | eq "capv" }}'
     unit_templates:
     - kube-job
+    - pin-to-cp-nodes
     kustomization_spec:
       _patches:
       - target:
@@ -3002,6 +3077,7 @@ units:
       maturity: core-component
     unit_templates:
     - base-deps
+    - pin-to-cp-nodes
     enabled_conditions:
     - '{{ .Values.cluster.capi_providers.infra_provider | eq "capo" }}'
     repo: sylva-core
@@ -3020,6 +3096,7 @@ units:
       maturity: experimental
     unit_templates:
     - base-deps
+    - pin-to-cp-nodes
     repo: sylva-core
     depends_on:
       flux-system: true
@@ -3037,6 +3114,7 @@ units:
       maturity: experimental
     unit_templates:
     - base-deps
+    - pin-to-cp-nodes
     repo: sylva-core
     depends_on:
       sylva-units-operator: true
@@ -3316,6 +3394,10 @@ units:
         createNamespace: false
       values:
         clusterID: '{{ .Values.cluster.capo.resources_tag }}'
+        plugin:
+          controllerPlugin:
+            nodeSelector:
+              node-role.kubernetes.io/control-plane: '{{ .Values._internal.cp_node_label_value }}'
         storageClass:
           enabled: false
           delete:
@@ -3507,6 +3589,9 @@ units:
               secretKeyRef:
                 name: rancher-bootstrap-secret
                 key: bootstrapPassword
+        webhook:
+          nodeSelector:
+            node-role.kubernetes.io/control-plane: '{{ .Values._internal.cp_node_label_value }}'
       _postRenderers:
         - kustomize:
             patches:
@@ -3518,6 +3603,8 @@ units:
                   spec:
                     template:
                       spec:
+                        nodeSelector:
+                          node-role.kubernetes.io/control-plane: '{{ .Values._internal.cp_node_label_value }}'
                         volumes:
                           - name: tls-ca-additional-volume
                             secret:
@@ -4654,6 +4741,9 @@ units:
           version: 1.3.0
       values:
         cert_manager: true
+        operator:
+          nodeSelector:
+            node-role.kubernetes.io/control-plane: '{{ .Values._internal.cp_node_label_value }}'
 
   sriov:
     info:
@@ -4796,6 +4886,8 @@ units:
       values:
         provisioner:
           replicaCount: '{{ .Values.cluster.control_plane_replicas }}'
+          nodeSelector:
+            node-role.kubernetes.io/control-plane: '{{ .Values._internal.cp_node_label_value }}'
         storageClass:
           create: true
           name: cephfs-csi
@@ -5011,6 +5103,7 @@ units:
     - base-deps
     - kube-job
     - kube-cronjob
+    - pin-to-cp-nodes
     enabled_conditions:
     - '{{ tuple . "rancher" | include "unit-enabled" }}'
     depends_on:
@@ -5094,6 +5187,7 @@ units:
     unit_templates:
     - base-deps
     - kube-job
+    - pin-to-cp-nodes
     kustomization_spec:
       _components:
       - '{{ tuple "./components/certs" (not .Values.oci_registry_insecure) | include "set-only-if" }}'
@@ -5302,6 +5396,7 @@ units:
       maturity: stable
     unit_templates:
     - base-deps
+    - pin-to-cp-nodes
     enabled_conditions:
       - '{{ eq .Values.cluster.capi_providers.infra_provider "capv" }}'
     repo: sylva-core
@@ -7587,7 +7682,12 @@ logging:
   clusteroutputs: {}
 
 
+## missing pinning
+# * rancher-webhook
+
 calico_helm_values:
+  nodeSelector:  # for tigera controller
+    node-role.kubernetes.io/control-plane: '{{ .Values._internal.cp_node_label_value }}'
   tolerations:
   - effect: NoExecute
     key: node.kubernetes.io/not-ready
@@ -7608,6 +7708,12 @@ calico_helm_values:
     clusterDomain: '{{ .Values._internal.calico.clusterDomain }}'
     serviceCIDR: '{{ .Values._internal.calico.serviceCIDR }}'
   installation:
+    calicoKubeControllersDeployment:
+      spec:
+        template:
+          spec:
+            nodeSelector:  # for calico controllers
+              node-role.kubernetes.io/control-plane: '{{ .Values._internal.cp_node_label_value }}'
     calicoNetwork:
       bgp: Enabled
       mtu: '{{ tuple .Values.cluster.capm3.network_interfaces.mtu (and (.Values.cluster.capi_providers.infra_provider | eq "capm3") .Values.cluster.capm3.network_interfaces.mtu) | include "set-only-if" }}'

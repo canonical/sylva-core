@@ -215,6 +215,7 @@ units:
       calico-ready: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpk" }}'
     unit_templates:
     - flux-common
+    - pin-to-cp-nodes
     kustomization_spec:
       kubeConfig:
         secretRef:
@@ -339,6 +340,7 @@ units:
       cluster-machines-ready: true
     unit_templates:
     - kube-job
+    - pin-to-cp-nodes
     kustomization_spec:
        # change to ClusterRole because the `pivot` unit's pivot-job-sa SA is required to access
        # the cluster-wide CRD resources in order to move CAPI objects to management cluster
