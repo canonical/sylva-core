@@ -1498,6 +1498,7 @@ units:
       neuvector: true
     kustomization_spec:
       targetNamespace: neuvector
+      path: ./kustomize-units/kube-job
       _patches:
       - target:
           kind: Job
