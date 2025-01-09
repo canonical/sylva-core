@@ -882,7 +882,8 @@ units:
     - base-deps
     depends_on:
       litmus-operator: true
-      longhorn: true
+      vault: true
+      #longhorn: true
     repo: sylva-core
     kustomization_spec:
       targetNamespace: litmus
@@ -4924,7 +4925,7 @@ units:
     info:
       description: installs Longhorn CSI
       maturity: stable
-    enabled: false
+    enabled: true
     unit_templates:
     - base-deps
     depends_on:
