@@ -7,8 +7,9 @@ metadata:
     kustomize.toolkit.fluxcd.io/ssa: IfNotPresent
 spec:
   appinfo:
-    appns: ''
-    applabel: ''
+    appns: '${NAMESPACE}'
+    applabel: ""
+    appkind: ""
 
   ## It can be true/false
   annotationCheck: 'false'
@@ -31,5 +32,6 @@ spec:
             - name: CHAOS_INTERVAL
               value: ${QUOTE}${CHAOS_INTERVAL}${QUOTE}
 
-            - name: APP_NAMESPACE
-              value: 'litmus'
+            ## percentage of total pods to target
+            - name: NODES_AFFECTED_PERC
+              value: ${QUOTE}${NODES_AFFECTED_PERC}${QUOTE}

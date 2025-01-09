@@ -46,12 +46,11 @@ spec:
           - "update"
           - "delete"
           - "deletecollection"
-    #image: 'litmuschaos/go-runner:3.4.0'
-    image: 'nikhilsethi31/go-runner:storage-benchmarking-24july'
+    image: 'litmuschaos/go-runner:3.4.0'
     imagePullPolicy: 'IfNotPresent'
     args:
     - -c
-    - ./experiments -name storage-benchmarking
+    - ./experiments -name pod-delete
     command:
     - /bin/bash
     env:
@@ -64,42 +63,34 @@ spec:
     - name: RAMP_TIME
       value: ''
 
-    - name: IODEPTH
-      value: '1'
-
-    - name: OPERATIONS
-      value: 'read'
-
-    - name: BLOCK_STORAGE
-      value: '4k'
-
-    - name: FIO_REPLICAS
-      value: '2'
-
-    - name: TEST_SIZE
-      value: '3G'
-
-    - name: STORAGE_CLASS
-      value: 'longhorn'
-
-    - name: PVC_STORAGE
-      value: '5Gi'
-
-    - name: ACCESS_MODE
-      value: 'ReadWriteOnce'
-
-    - name: CLUSTERID
-      value: 'sylva-cluster'
-
     - name: CHAOS_INTERVAL
       value: ${QUOTE}${CHAOS_INTERVAL}${QUOTE}
 
-    - name: TARGET_PODS
-      value: '${TARGET_PODS}'
+    - name: NODE_LABEL
+      value: '${NODE_LABEL}'
 
     # pod failures without '--force' & default terminationGracePeriodSeconds
     - name: FORCE
       value: 'false'
+
+    ## percentage of total pods to target
+    - name: NODES_AFFECTED_PERC
+      value: ${QUOTE}${NODES_AFFECTED_PERC}${QUOTE}
+
+    ## Specify the size as percent of total node capacity Ex: '30'
+    ## NOTE: for selecting this option keep MEMORY_CONSUMPTION_MEBIBYTES empty
+    - name: MEMORY_CONSUMPTION_PERCENTAGE
+      value: '50'
+
+    ## Specify the amount of memory to be consumed in mebibytes
+    ## NOTE: for selecting this option keep MEMORY_CONSUMPTION_PERCENTAGE empty
+    - name: MEMORY_CONSUMPTION_MEBIBYTES
+      value: ''
+
+    ## it defines the sequence of chaos execution for multiple target pods
+    ## supported values: serial, parallel
+    - name: SEQUENCE
+      value: '${SEQUENCE}'
 
     labels:
       name: '${UNIT_NAME}'

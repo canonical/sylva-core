@@ -136,9 +136,12 @@ units:
     enabled: true
 
   litmus-testcase-pod-delete:
-    enabled: true
+    enabled: false
 
   litmus-testcase-storage-benchmarking:
+    enabled: false
+
+  litmus-testcase-node-memory-hog:
     enabled: true
 
   kubevirt:
