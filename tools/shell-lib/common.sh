@@ -200,7 +200,7 @@ function ensure_sylvactl {
         curl -q --progress-bar -f https://gitlab.com/api/v4/projects/43501695/packages/generic/$SYLVACTL_RELEASE_NAME/$SYLVACTL_VERSION/sylvactl -o ${USER_DIR}/bin/sylvactl
         chmod +x ${USER_DIR}/bin/sylvactl
     fi
-    curl -q --progress-bar -f https://gitlab.com/api/v4/projects/43501695/packages/generic/sylvactl-unstable/0.0.0-git-bb66d20b/sylvactl -o ${BASE_DIR}/bin/sylvactl
+    curl -q --progress-bar -f https://gitlab.com/api/v4/projects/43501695/packages/generic/sylvactl-unstable/0.0.0-git-8a32d726/sylvactl -o ${BASE_DIR}/bin/sylvactl
     chmod +x ${BASE_DIR}/bin/sylvactl
 }
 
