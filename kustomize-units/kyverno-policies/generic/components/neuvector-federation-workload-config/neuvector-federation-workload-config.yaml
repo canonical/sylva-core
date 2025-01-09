@@ -55,10 +55,4 @@ spec:
                   data:
                     fedinitcfg.yaml: |
                       cluster_name: "{{ federationConfig.cluster_name }}"
-                      primary_rest_info:
-                        server: "{{ .Values._internal.mgmt_neuvector_federation_master }}"
-                        port: 443
-                      managed_rest_info:
-                        server: "{{ .Values.external_hostnames.neuvector_federation_managed }}"
-                        port: 443
                       join_token: "{{ federationConfig.join_token }}"
