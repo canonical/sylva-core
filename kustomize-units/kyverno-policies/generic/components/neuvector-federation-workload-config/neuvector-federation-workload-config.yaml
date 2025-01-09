@@ -19,7 +19,7 @@ spec:
       expression: >
         has(object.metadata) &&
         object.metadata.namespace == 'neuvector' &&
-        startsWith(object.metadata.name, 'neuvector-federation-') &&
+        object.metadata.name.startsWith('neuvector-federation-') &&
         object.metadata.name != 'neuvector-federation-management-cluster'
   rules:
     - name: reconcile-neuvector-helmrelease

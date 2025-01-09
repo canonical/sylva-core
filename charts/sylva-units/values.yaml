@@ -1454,33 +1454,6 @@ units:
         - '{{ ternary "../tls-components/tls-secret" "../tls-components/tls-certificate" (hasKey .Values.external_certificates.neuvector "cert") }}'
         - "../tls-components/sylva-ca"
 
-  neuvector-credentials-secret:
-    info:
-      description: create a secret containing tenant's neuvector credentials
-      internal: true
-    unit_templates:
-    - base-deps
-    depends_on:
-      kyverno-policies-ready: true
-    enabled_conditions:
-      - '{{ tuple . "neuvector" | include "unit-enabled" }}'
-    repo: sylva-core
-    kustomization_substitute_secrets:
-      PASSWORD: '{{ .Values._internal.neuvector_join_token }}'
-    kustomization_spec:
-      targetNamespace: '{{ .Release.Namespace }}'
-      path: ./kustomize-units/credentials-secret
-      postBuild:
-        substitute:
-          LABEL_NAME: sylva.io/aggregated-secret
-          LABEL_VALUE: neuvector
-          SECRET_NAME: neuvector-credentials
-          USERNAME: '{{ .Values.cluster.name }}'
-      healthChecks: # ensure that kyverno has produced the secret
-      - apiVersion: v1
-        kind: Secret
-        namespace: sylva-system
-        name: neuvector-secrets
 
   neuvector-federation-generate-workload-config:
     info:
