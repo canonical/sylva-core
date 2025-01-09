@@ -406,17 +406,18 @@ function ci_remaining_minutes_and_at_most() {
 
 # Function to fetch ingress resources and map to service types
 function fetch_ingress_service_types() {
-  # Fetch all ingress resources from all namespaces
-  ingresses=$(kubectl --kubeconfig management-cluster-kubeconfig get ingress --all-namespaces -o custom-columns='NAMESPACE:.metadata.namespace,NAME:.metadata.name' --no-headers)
+# Fetch all ingress resources from all namespaces
+  ingresses=$(kubectl --kubeconfig management-cluster-kubeconfig get ingress --all-namespaces -o custom-columns='NAMESPACE:.metadata.namespace,NAME:.metadata.name,HOSTS:.spec.rules[*].host' --no-headers)
 
-  # Print the header
-  printf "%-25s  %-20s\n" "ingress-name" "service-type"
-  echo "--------------            --------------"
+  # Declare arrays to store GUI and API ingresses
+  gui_ingresses=()
+  api_ingresses=()
 
   # Loop over each ingress (split by line)
   while IFS= read -r ingress; do
       namespace=$(echo "$ingress" | awk '{print $1}')
       ingress_name=$(echo "$ingress" | awk '{print $2}')
+      ingress_host=$(echo "$ingress" | awk '{print $3}')
 
       helmrelease=$(kubectl --kubeconfig management-cluster-kubeconfig get ingress "$ingress_name" -n "$namespace" -o jsonpath="{.metadata.labels['helm\.toolkit\.fluxcd\.io/name']}" 2>/dev/null)
 
@@ -429,14 +430,18 @@ function fetch_ingress_service_types() {
 
               if [ -n "$kustomization_info" ]; then
                   kustomization_namespace=$(echo "$kustomization_info" | awk '{print $1}')
-                  
+
                   service_type=$(kubectl --kubeconfig management-cluster-kubeconfig get kustomization "$kustomization" -n "$kustomization_namespace" -o jsonpath="{.metadata.labels['service-type']}" 2>/dev/null)
-                  
+
                   if [ -z "$service_type" ]; then
                       service_type=$(kubectl --kubeconfig management-cluster-kubeconfig get kustomization "$kustomization" -n "$kustomization_namespace" -o jsonpath="{.metadata.labels['service-type-$ingress_name']}")
                   fi
                   if [ -n "$service_type" ]; then
-                      printf "%-25s  %-15s\n" "$ingress_name" "$service_type"
+                      if [ "$service_type" == "gui" ]; then
+                          gui_ingresses+=("$ingress_name: https://$ingress_host")
+                      elif [ "$service_type" == "api" ]; then
+                          api_ingresses+=("$ingress_name: https://$ingress_host")
+                      fi
                   fi
               fi
           fi
@@ -452,11 +457,31 @@ function fetch_ingress_service_types() {
                   service_type=$(kubectl --kubeconfig management-cluster-kubeconfig get helmrelease "$helmrelease" -n "$helmrelease_namespace" -o jsonpath="{.metadata.labels['service-type-$ingress_name']}")
               fi
               if [ -n "$service_type" ]; then
-                  printf "%-25s  %-15s\n" "$ingress_name" "$service_type"
+                  if [ "$service_type" == "gui" ]; then
+                      gui_ingresses+=("$ingress_name: https://$ingress_host")
+                  elif [ "$service_type" == "api" ]; then
+                      api_ingresses+=("$ingress_name: https://$ingress_host")
+                  fi
               fi
           fi
       fi
   done <<< "$ingresses"
+
+  # Output GUI ingresses
+  if [ ${#gui_ingresses[@]} -gt 0 ]; then
+      echo "GUIs:"
+      for ingress in "${gui_ingresses[@]}"; do
+          echo "* $ingress"
+      done
+  fi
+
+  # Output API-only ingresses
+  if [ ${#api_ingresses[@]} -gt 0 ]; then
+      echo "API-only:"
+      for ingress in "${api_ingresses[@]}"; do
+          echo "* $ingress"
+      done
+  fi
 }
 
 function display_final_messages() {
