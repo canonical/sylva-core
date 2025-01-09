@@ -7748,9 +7748,6 @@ _internal:
   kubevirt_admin_user: 'admin'
   kubevirt_admin_password: '{{ include "internalPersistentRandomPasswd" (tuple . "kubevirt_admin_password") }}'
 
-  # neuvector join token for cluster federation
-  neuvector_join_token: '{{ include "internalPersistentRandomPasswd" (tuple . "neuvector_join_token") }}'
-
   default_password: '{{ include "internalPersistentRandomPasswd" (tuple . "default_password") }}'
 
   default_storage_class: >-
@@ -7975,7 +7972,6 @@ shared_workload_clusters_values:
          {{- end -}}
        {{- end -}}'
     mgmt_neuvector_federation_master: '{{ .Values.external_hostnames.neuvector_federation_master }}'
-    # TODO test aggregate neuvector_join_token: '{{ .Values._internal.neuvector_join_token }}'
 
 shared_workload_clusters_secret_values: {}
 
