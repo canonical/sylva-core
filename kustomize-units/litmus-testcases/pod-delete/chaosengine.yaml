@@ -18,7 +18,7 @@ spec:
   chaosServiceAccount: '${UNIT_NAME}'
   monitoring: false
   # It can be delete/retain
-  jobCleanUpPolicy: 'delete'
+  jobCleanUpPolicy: 'retain'
   experiments:
     - name: '${UNIT_NAME}'
       spec:

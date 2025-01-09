@@ -133,10 +133,10 @@ units:
     enabled: true
 
   litmus-testcase-k8s-api-response:
-    enabled: false
+    enabled: true
 
   litmus-testcase-pod-delete:
-    enabled: false
+    enabled: true
 
   litmus-testcase-storage-benchmarking:
     enabled: true

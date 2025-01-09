@@ -131,6 +131,10 @@
 | **kyverno-policy-prevent-mgmt-cluster-delete** | Kyverno policies to prevent deletion of critical resources for mgmt cluster | Kustomization |
 | **kyverno-policy-rancher-webhook-ha** | Kyverno policy for rancher-webhook HA | Kustomization |
 | **kyverno-update-namespace-and-psa** | grants to Kyverno the permission to update namespaces using the "updatepsa" verb (Rancher-specific)<br/><br/>This unit allows Kyverno to define namespaces with specific PodSecurityAdmission levels. It is useful for situations where namespaces need to be mutated (with PSA labels) in order to accomodate privileged pods (for which PSA level restricted at cluster level is not enough), when namespace creation is not controlled | Kustomization |
+| **litmus-operator** | Deploys litmus core component as an unit | Kustomization |
+| **litmus-testcase-k8s-api-response** | Runs k8s API testcase | Kustomization |
+| **litmus-testcase-pod-delete** | Runs Pod delete testcase | Kustomization |
+| **litmus-testcase-storage-benchmarking** | Runs Storage Benchmarking testcase | Kustomization |
 | **logging-config** | Configures rancher-logging to ship logs to Loki | Kustomization |
 | **loki-credentials-secret** | create a secret containing tenant's loki credentials | Kustomization |
 | **loki-init** | sets up Loki certificate<br/><br/>it generate certificate | Kustomization |
@@ -144,7 +148,6 @@
 | **metal3-pdb** | add pdb to baremetal-operator pods | Kustomization |
 | **metallb-resources** | configures metallb resources | Helm chart |
 | **mgmt-cluster-ready** | (workload cluster) this unit reflects the readiness of the mgmt cluster<br/><br/>this unit acts as simple dependency lock to prevent deploying a workload cluster before the mgmt cluster is ready | Kustomization |
-| **minio-cleanup-pre-upgrade** | special unit to delete left-over minio PVCs before cluster upgrades<br/><br/>In 1.1.1 release, minio-monitoring-tenant was configured to use single-replica-storageclass, this tenant will be deleted during upgrade, but we have to delete the PVC that will be left over | Kustomization |
 | **minio-logging-init** | sets up secrets and certificates for minio-logging | Kustomization |
 | **minio-monitoring-init** | sets up secrets and certificates for minio-monitoring | Kustomization |
 | **minio-operator-init** | sets up MinIO certificate for minio-operator<br/><br/>it generate certificate | Kustomization |
@@ -154,7 +157,7 @@
 | **nfs-ganesha-init** | Define persistent volume claim for NFS Ganesha | Kustomization |
 | **os-images-info** | Creates a list of os images<br/><br/>This unit creates a configmap containing the os images (and their details in the case of Sylva diskimage-builder ones)<br/>to be further served by os-image-server | Kustomization |
 | **pivot** | moves ClusterAPI objects from bootstrap cluster to management cluster | Kustomization |
-| **prometheus-flux** | Prometheus configuration for Flux controllers & resources<br/><br/>Adding podmonitors for flux controllers and custom labels to the flux resource metrics by configuring kube-state-metrics | Kustomization |
+| **prometheus-custom-metrics** | Prometheus configuration for custom resource metrics<br/><br/>Adding podmonitors for flux controllers and create custom metrics for various resources by configuring kube-state-metrics | Kustomization |
 | **prometheus-resources** | Creates required ConfigMaps and Kyverno policies to enable SNMP monitoring by Prometheus | Kustomization |
 | **rancher-custom-roles** | configures custom roles for Rancher | Kustomization |
 | **rancher-default-roles** | Create Rancher role templates<br/><br/>This unit creates a set of additional role templates which are likely to be needed by many<br/>clusters. | Kustomization |
@@ -163,7 +166,6 @@
 | **rancher-monitoring-clusterid-inject** | injects Rancher cluster ID in Helm values of Rancher monitoring chart | Kustomization |
 | **refresh-metal3machinetemplates** | Recreate metal3machinetemplates resources via the reconciliation of cluster helmrelease | Kustomization |
 | **rke2-helmchart-prevent-uninstall** | Kyverno policy to prevent key Helm charts from being uninstalled by RKE2 HelmChart controller | Kustomization |
-| **rke2-metrics-server-fix-old-pods** | transition unit to smoothen RKE2 upgrades for k8s metrics server, fixing a mismatch between old pods and new service pod selector<br/><br/>see https://gitlab.com/sylva-projects/sylva-core/-/issues/1857 on motivations<br/><br/>this unit patches the rke2-metrics-server Deployment to ensure that its pods will have<br/>all the necessary labels to transition from version 2.11 of the chart to version<br/>3.12.x which is used in recent RKE2<br/><br/>this unit shouldn't be necessary to keep after Sylva 1.2 | Kustomization |
 | **root-dependency** | special unit ensuring ordered updates of all Kustomizations<br/><br/>All Kustomizations will depend on this Kustomization, whose name is `root-dependency-<n>` and changes at each update of the sylva-units Helm release. This Kustomization does not become ready before all other Kustomizations have been updated.<br/>This unit also manages the `root-dependency-<n>` HelmRelease that acts as a lock to prevent HelmReleases from reconciling before units they depend on are ready.<br/>All this ensures in a race-free way that during an update, units will be reconciled in an order matching dependency declarations. | Helm chart |
 | **sandbox-privileged-namespace** | creates the sandbox namespace used to perform privileged operations like debugging a node | Kustomization |
 | **shared-workload-clusters-settings** | manages parameters which would be shared between management and workload clusters | Kustomization |
@@ -175,11 +177,6 @@
 | **test-nfs-ganesha** | Perform testing for RWX enabled PVs created from NFS Ganesha | Kustomization |
 | **thanos-credentials-secret** | create a secret containing tenant's thanos credentials | Kustomization |
 | **thanos-init** | sets up thanos certificate<br/><br/>it generates a multiple CN certificate for all Thanos components | Kustomization |
-<<<<<<< HEAD
-| **thanos-uninstall-pre-upgrade** | special unit to uninstall thanos before cluster upgrades<br/><br/>In 1.1.1 release, thanos was configured to use minio-monitoring-tenant tenant (and single-replica-storageclass when longhorn was used) This tenant is replaced by minio-monitoring-tenant. As this value can't be updated, and thanos data will be lost in any case, uninstall it prior to upgrade cluster and reinstall it with new values. | Kustomization |
-| **tigera-clusterrole** | is here to allow for upgrading Calico chart when upgrading cluster<br/><br/>For v1.25.x to v1.26.x, see https://gitlab.com/sylva-projects/sylva-core/-/issues/664 | Kustomization |
-=======
->>>>>>> 81bcffa1 (remove tigera-clusterrole unit as no longer needed)
 | **two-replicas-storageclass** | Create a longhorn storage class with a two replicas | Kustomization |
 | **vault-oidc** | configures Vault to be used with OIDC | Kustomization |
 | **vault-secrets** | generates random secrets in vault, configure password policy, authentication backends, etc... | Kustomization |
