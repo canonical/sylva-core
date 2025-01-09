@@ -28,19 +28,19 @@
   },
   "packageRules": [
     {
-      "description": "For release-1.3, limit updates frequency to every 2 weeksh",
+      "description": "For release-1.3 base branch, disable major/minor to only keep patch updates",
       "matchUpdateTypes": ["major", "minor"],
       "matchBaseBranches": ["release-1.3"],
       "enabled": false
     },
     {
-      "description": "Limit patch updates frequency to every 3 weeks for non sylva package of release-1.3 base branch",
+      "description": "For release-1.3, limit updates frequency to every 2 weeks",
       "matchBaseBranches": ["release-1.3"],
       "matchPackageNames": [
         "!/.*sylva.*/"
       ],
       "schedule": [
-        "* * */21 * *"
+        "* * 11,26 * *"
       ]
     },
     {
