@@ -337,15 +337,6 @@ units:
     # this unit isn't relevant in workload clusters
     enabled_conditions: [false]
 
-  neuvector-credentials-secret:
-    enabled: true
-    depends_on:
-      kyverno-policies-ready: false
-    unit_templates:
-    - kustomization-deployed-on-mgmt-cluster
-    kustomization_spec:
-      healthChecks: [] # Remove healthChecks targeting sylva-system namespace
-
   neuvector-tls:
     enabled: true
     info:

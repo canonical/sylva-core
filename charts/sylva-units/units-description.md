@@ -60,7 +60,6 @@
 | **thanos** | installs Thanos | beta | [Helm chart](https://charts.bitnami.com/bitnami) | 15.8.0 |
 | **trivy-operator** | installs Trivy operator | beta | [Helm chart](https://aquasecurity.github.io/helm-charts/) | 0.24.1 |
 | **descheduler** | install descheduler |  | [Helm chart](https://kubernetes-sigs.github.io/descheduler/) | 0.31.0 |
-| **neuvector-credentials-secret** |  |  | Kustomization |  |
 
 ## Units for operators, tools or Helm charts maintained in Sylva project
 
