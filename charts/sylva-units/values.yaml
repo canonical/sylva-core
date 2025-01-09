@@ -872,6 +872,30 @@ units:
           NAMESPACE: litmus
           PROBE_DATA: '{{ .Values._internal.litmus.probe | toJson }}'
 
+  litmus-testcase-storage-benchmarking:
+    info:
+      description: Runs Storage Benchmarking testcase
+      internal: true
+      test: true
+      maturity: beta
+    unit_templates:
+    - base-deps
+    depends_on:
+      litmus-operator: true
+      longhorn: true
+    repo: sylva-core
+    kustomization_spec:
+      targetNamespace: litmus
+      path: ./kustomize-units/litmus-testcases/storage-benchmarking
+      postBuild:
+        substitute:
+          UNIT_NAME: storage-benchmarking
+          TOTAL_CHAOS_DURATION: "360"
+          QUOTE: '"'
+          CHAOS_INTERVAL: "360"
+          TARGET_PODS: custom-exp-pod
+          NAMESPACE: litmus
+
   litmus-testcase-pod-delete:
     info:
       description: Runs Pod delete testcase

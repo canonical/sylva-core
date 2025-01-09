@@ -33,7 +33,7 @@ rules:
   # Fetch configmaps details and mount it to the experiment pod (if specified)
   - apiGroups: [""]
     resources: ["configmaps"]
-    verbs: ["get","list",]
+    verbs: ["get","list"]
   # Track and get the runner, experiment, and helper pods log
   - apiGroups: [""]
     resources: ["pods/log"]
@@ -56,3 +56,6 @@ rules:
   - apiGroups: ["networking.k8s.io"]
     resources: ["ingresses"]
     verbs: ["get", "list"]
+  - apiGroups: [""]
+    resources: ["persistentvolumeclaims"]
+    verbs: ["create","delete","get","list","patch","update", "deletecollection"]

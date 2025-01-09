@@ -133,9 +133,12 @@ units:
     enabled: true
 
   litmus-testcase-k8s-api-response:
-    enabled: true
+    enabled: false
 
   litmus-testcase-pod-delete:
+    enabled: false
+
+  litmus-testcase-storage-benchmarking:
     enabled: true
 
   kubevirt:
