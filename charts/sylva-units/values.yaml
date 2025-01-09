@@ -1482,11 +1482,11 @@ units:
         namespace: sylva-system
         name: neuvector-secrets
 
-  neuvector-fedadmin-token:
+  neuvector-federation-generate-workload-config:
     info:
-      description: generate a Neuvector federation token
+      description: generate a Neuvector federation workload config with join token
       details: >
-        a job to manually add fedAdmin role to sylva infra-admins group
+        a job to define the federation config for workload cluster
       internal: true
     unit_templates:
     - base-deps
@@ -1547,7 +1547,7 @@ units:
 
               # Update secret
               echo "Creating neuvector-federation secret"
-              kubectl create secret generic neuvector-federation-{{ .Values.cluster.name }} --from-literal=join_token="$FEDERATION_TOKEN" --from-literal=cluster_name={{ .Values.cluster.name }} -n neuvector
+              kubectl create secret generic neuvector-federation-{{ .Values.cluster.name }} --from-literal=join_token="$FEDERATION_TOKEN" --from-literal=cluster_name={{ .Values.cluster.name }} -n neuvector && kubectl label secret neuvector-federation-{{ .Values.cluster.name }} "sylva.io/neuvector-workload-config=true"
 
               echo "-- All done"
 
@@ -2232,7 +2232,7 @@ units:
         - '{{ tuple "components/check-images" .Values.security.upstream_images_signature.verify | include "set-only-if" }}'
         - '{{ tuple "components/mutate-job-security-context" (tuple . "rancher" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/neuvector-policies" (tuple . "neuvector" | include "unit-enabled") | include "set-only-if" }}'
-        - '{{ tuple "components/neuvector-aggregated-secrets" (tuple . "neuvector" | include "unit-enabled") | include "set-only-if" }}'
+        - '{{ tuple "components/neuvector-federation-workload-config" (tuple . "neuvector" | include "unit-enabled") | include "set-only-if" }}'
         - ../exclude-kube-system  # needs to be last (needed for components above that use sylva.org/kyverno-exclude-kube-system annotation)
 
   kyverno-policies-ready:

@@ -405,7 +405,7 @@ units:
       _components:
         - '{{ hasKey .Values.external_certificates.neuvector_federation_master "cert" | ternary "../../tls-components/tls-secret" "../../tls-components/tls-certificate" }}'
 
-  neuvector-fedadmin-token:
+  neuvector-federation-generate-workload-config:
     enabled: true
     enabled_conditions:
       - '{{ tuple . "neuvector" | include "unit-enabled" }}'
@@ -425,7 +425,7 @@ units:
     enabled: false
     depends_on:
       neuvector-federation-tls: '{{ tuple . "neuvector-federation-tls" | include "unit-enabled" }}'
-      neuvector-fedadmin-token: '{{ tuple . "neuvector-fedadmin-token" | include "unit-enabled" }}'
+      neuvector-federation-generate-workload-config: '{{ tuple . "neuvector-federation-generate-workload-config" | include "unit-enabled" }}'
     helmrelease_spec:
       values:
         controller:
@@ -471,7 +471,7 @@ units:
                   username: admin
                   Password: {{ .Values._internal.neuvector_admin_password }}
               fedinitcfg.yaml: |
-                cluster_name: {{ .Values.cluster.name }}
+                cluster_name: {{ .Values._internal.neuvector_cluster_name }}
                 primary_rest_info:
                   server: {{ .Values._internal.mgmt_neuvector_federation_master }}
                   port: 443
