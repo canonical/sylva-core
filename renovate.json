@@ -5,6 +5,8 @@
   ],
   "ignorePaths": [],
   "baseBranches": ["main", "release-1.3"],
+
+  "branchName": "renovate/{{#if (containsString baseBranch 'main')}}{{else}}{{{baseBranch}}}-{{/if}}{{{additionalBranchPrefix}}}{{{branchTopic}}}",
   "addLabels": [
     "renovate"
   ],
