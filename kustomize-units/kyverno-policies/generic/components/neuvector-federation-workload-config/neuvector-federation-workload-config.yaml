@@ -73,5 +73,5 @@ spec:
               - op: replace
                 path: /spec/values/controller/configmap/data/fedinitcfg.yaml
                 value: |
-                  cluster_name: "{{ request.name | regexReplaceAll('neuvector-federation-(.*)', '$1') }}"
-                  join_token: "test"
+                  cluster_name: "test1"
+                  join_token: "test2"
