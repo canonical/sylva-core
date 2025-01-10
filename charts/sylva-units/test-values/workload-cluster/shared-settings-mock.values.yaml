@@ -6,4 +6,5 @@ _internal:
     cabpk: true
     capd: true
     cabpr: true
+    cabpck: true
 

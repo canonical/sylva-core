@@ -291,7 +291,7 @@ unit_templates:
         - '{{ tuple "components/thanos" (tuple . "thanos" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/loki" (tuple . "loki" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/kepler" (tuple . "kepler" | include "unit-enabled") | include "set-only-if" }}'
-        - '{{ tuple "components/kube-system" (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpr") | include "set-only-if" }}'
+        - '{{ tuple "components/kube-system" (list "cabpr" "cabpck" | has .Values.cluster.capi_providers.bootstrap_provider) | include "set-only-if" }}'
         - '{{ tuple "components/neuvector" (tuple . "neuvector" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/kunai" (tuple . "kunai" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/sbom-operator" (tuple . "sbom-operator" | include "unit-enabled") | include "set-only-if" }}'
@@ -2672,6 +2672,22 @@ units:
                 resources: [clusters]
                 verbs: [list, get, patch, update]
 
+  cabpck:
+    info:
+      description: installs Canonical CAPI bootstrap provider
+      maturity: core-component
+    repo: sylva-core
+    unit_templates:
+    - base-deps
+    depends_on:
+      cert-manager: true
+    kustomization_spec:
+      path: ./kustomize-units/cabpck
+      postBuild:
+        substitute:
+          force_var_substitution_enabled: "true"  # dummy value to ensure substitution of defaults
+      wait: true
+
   cabpr:
     info:
       description: installs RKE2 CAPI bootstrap provider
@@ -3058,7 +3074,7 @@ units:
       #  ready (for the controlplane nodes, the kubeadm controlplane provider ignores that)
       healthChecks: >-
         {{
-        (include "cluster-healthchecks" (dict "ns" .Release.Namespace "cluster" .Values.cluster "includeMDs" false) | fromYaml).result
+        (include "cluster-healthchecks" (dict "ns" .Release.Namespace "cluster" .Values.cluster "includeMDs" false "onlyCheckKubeConfig" (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpck" | ternary true false)) | fromYaml).result
         | include "preserve-type"
         }}
     helmrelease_spec:
@@ -3188,6 +3204,18 @@ units:
                     name: _unused_
                     annotations:
                       {{ .Values.cluster.capi_providers.infra_provider | eq "capo" | ternary "sylva.org/gzip-user-data" "sylva.org/plain-user-data"}}: "true"
+              - target:
+                  kind: CK8sControlPlane
+                patch: |
+                  kind: _unused_
+                  metadata:
+                    name: _unused_
+                  spec:
+                    spec:
+                      controlPlane:
+                        extraKubeAPIServerArgs:
+                          --feature-gates: ValidatingAdmissionPolicy=true
+                          --runtime-config: admissionregistration.k8s.io/v1beta1
 
     # we pass everything that is under `cluster` to this unit that uses sylva-capi-cluster chart
     # (we do it via a secret because some of the values are credentials in many scenarios)
@@ -3294,6 +3322,8 @@ units:
                   RKE2ControlPlane
                   {{- else if (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpoa") }}
                   OpenshiftAssistedControlPlane
+                  {{- else if (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpck") }}
+                  CK8sControlPlane
                   {{- end }}
       - target:
           kind: ConfigMap
@@ -3490,8 +3520,8 @@ units:
       # Setting drift detection mode to warn for calico till https://gitlab.com/sylva-projects/sylva-core/-/issues/1814 is solved.
       driftDetection:
         mode: warn
-      releaseName: '{{ eq .Values.cluster.capi_providers.bootstrap_provider "cabpk" | ternary "calico" "rke2-calico" }}'
-      targetNamespace: '{{ eq .Values.cluster.capi_providers.bootstrap_provider "cabpk" | ternary "sylva-system" "kube-system" }}'
+      releaseName: '{{ list "cabpk" "cabpck" | has .Values.cluster.capi_providers.bootstrap_provider | ternary "calico" "rke2-calico" }}'
+      targetNamespace: '{{ list "cabpk" "cabpck" | has .Values.cluster.capi_providers.bootstrap_provider | ternary "sylva-system" "kube-system" }}'
       chart:
         spec:
           chart: rke2-calico
@@ -5195,7 +5225,14 @@ units:
           patch: |
             - op: replace
               path: /metadata/name
-              value: '{{ (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpk") | ternary "coredns" "rke2-coredns-rke2-coredns" }}'
+              value: >-
+                {{- if eq .Values.cluster.capi_providers.bootstrap_provider "cabk" }}
+                coredns
+                {{- else if eq .Values.cluster.capi_providers.bootstrap_provider "cabpck" }}
+                ck-dns-coredns
+                {{- else }}
+                rke2-coredns-rke2-coredns
+                {{- end }}
       postBuild:
         substitute:
           CLUSTER_VIRTUAL_IP: '{{ .Values.cluster_virtual_ip }}'
@@ -8331,7 +8368,7 @@ k8s_version_short: "1.31"
 
 # Renovate Bot needs additional information to detect sylva diskimage-builder version
 # renovate: depName=sylva-projects/sylva-elements/diskimage-builder
-sylva_diskimagebuilder_version: 0.4.11
+sylva_diskimagebuilder_version: 0.4.12
 
 # 'sylva_diskimagebuilder_images' determines which images will be available for CAPO and CAPM3
 # via 'os_image_selector' or 'image_keys'
@@ -8375,6 +8412,8 @@ sylva_diskimagebuilder_images:
   opensuse-15-6-plain-kubeadm-1-30-12:
     os_images_oci_registry: sylva
   opensuse-15-6-plain-kubeadm-1-29-15:
+    os_images_oci_registry: sylva
+  ubuntu-noble-plain-ck8s-1-31-6:
     os_images_oci_registry: sylva
 
 # this dictionary can be extended to let os-image-server serve additional OS images
@@ -8979,7 +9018,15 @@ _internal:
   k8s_version_map:
     1.29: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" | ternary "v1.29.15+rke2r1" "v1.29.15" }}'
     "1.30": '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" | ternary "v1.30.12+rke2r1" "v1.30.12" }}'
-    1.31: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" | ternary "v1.31.8+rke2r1" "v1.31.8" }}'
+    1.31: >-
+      {{- $version := "v1.31.8" -}}
+      {{- if .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" -}}
+        {{- $version = "v1.31.8+rke2r1" -}}
+      {{- end -}}
+      {{- if .Values.cluster.capi_providers.bootstrap_provider | eq "cabpck" -}}
+        {{- $version = "v1.31.6" -}}
+      {{- end -}}
+      {{- $version -}}
 
   # total number of nodes in this cluster
   node_count:

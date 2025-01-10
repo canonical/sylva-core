@@ -1,0 +1,34 @@
+---
+units:
+  namespace-defs:
+    depends_on:
+      cluster-machines-ready: false
+  calico:
+    depends_on:
+      cluster-machines-ready: false
+  calico-crd:
+    depends_on:
+      cluster-machines-ready: false
+cluster:
+  control_plane:
+    rolloutStrategy:
+      rollingUpdate:
+        maxSurge: 0
+  ck8s:
+    users:
+      - name: sylva-user
+        groups: users
+        sudo: ALL=(ALL) NOPASSWD:ALL
+        shell: /bin/bash
+        lock_passwd: false
+        passwd: $1$pdWEicWs$9ZWQf5.CWyXccmP8Chuu01 # sylva
+
+  k8s_version: 1.31.6
+
+  capi_providers:
+    bootstrap_provider: cabpck
+
+  capm3:
+    os_image_selector:
+      os: ubuntu
+      hardened: false
