@@ -7610,10 +7610,20 @@
                                 "required": [
                                   "commit"
                                 ]
+                              },
+                              {
+                                "required": [
+                                  "name"
+                                ]
+                              },
+                              {
+                                "required": [
+                                  "semver"
+                                ]
                               }
                             ],
                             "patternProperties": {
-                              "(branch|tag|commit)": {
+                              "(branch|tag|commit|name|semver)": {
                                 "type": "string"
                               }
                             }
@@ -7664,7 +7674,7 @@
                               }
                             ],
                             "patternProperties": {
-                              "(digest|semver|tag)": {
+                              "(digest|semver|semverFilter|tag)": {
                                 "type": "string"
                               },
                               "commit": {
