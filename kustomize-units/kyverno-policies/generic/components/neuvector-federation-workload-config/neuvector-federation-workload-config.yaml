@@ -48,7 +48,8 @@ spec:
           namespace: "{{ request.name | regexReplaceAll('neuvector-federation-(.*)', '$1') }}"  # Extraction du namespace
       patchesJson6902: |-
         - op: replace
-          path: /spec/values/controller/configmap/data/fedinitcfg.yaml
-          value: |
-            cluster_name: "test"
-            join_token: "{{ federationConfigs[?cluster_name==`{{ request.name | regexReplaceAll('neuvector-federation-(.*)', '$1') }}`].join_token | [0]  | default('') }}"
+          path: /spec/values/controller/configmap/data/fedinitcfg.yaml/cluster_name
+          value: "{{ request.name | regexReplaceAll('neuvector-federation-(.*)', '$1') }}"
+        - op: replace
+          path: /spec/values/controller/configmap/data/fedinitcfg.yaml/join_token
+          value: "{{ federationConfigs[?cluster_name==`{{ request.name | regexReplaceAll('neuvector-federation-(.*)', '$1') }}`].join_token | [0]  | default('') }}"
