@@ -163,7 +163,7 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
     spec:
       url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-thanos-rules.git
       ref:
-        tag: 0.0.2
+        tag: 0.0.3
 
   sylva-alertmanager-resources:
     kind: GitRepository
@@ -4061,6 +4061,9 @@ units:
       install:
         createNamespace: false
       values:
+        kube-state-metrics:
+          extraArgs:
+          - --metric-labels-allowlist=namespaces=[field.cattle.io/projectId]
         grafana:
           sidecar:
             dashboards:
