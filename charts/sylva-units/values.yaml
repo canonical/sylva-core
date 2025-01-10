@@ -3492,7 +3492,7 @@ units:
             source: secret
             secretName: rancher-tls
           extraAnnotations:
-            nginx.ingress.kubernetes.io/proxy-body-size: 64m
+            nginx.ingress.kubernetes.io/proxy-body-size: 8m
         # restrictedAdmin: true
         # negative value will deploy 1 to abs(replicas) depending on available number of nodes
         replicas: -3
