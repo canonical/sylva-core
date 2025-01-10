@@ -37,17 +37,6 @@ spec:
           apiCall:
             urlPath: "/api/v1/secrets?labelSelector=sylva.io/neuvector-workload-config=true"
             jmesPath: "items[].data.{cluster_name: base64_decode(cluster_name), join_token:base64_decode(join_token)}"
-          # Transforme le tableau en un objet associatif
-        - name: federationConfig
-          variable:
-            value: |
-              {
-                {{- range .context.federationConfigs }}
-                "{{ .cluster_name }}": {
-                  "join_token": "{{ .join_token }}"
-                }{{- if not @last }},{{ end }}
-                {{- end }}
-              }
             # Build a config that matches the chart values format, so that secret can be merged as is
             # to the chart values (without specifying targetPath, otherwise values would be injected as a string)
             # Secret content will have the following structure:
@@ -67,4 +56,4 @@ spec:
             path: /spec/values/controller/configmap/data/fedinitcfg.yaml
             value: |
               cluster_name: "{{ request.name | regexReplaceAll('neuvector-federation-(.*)', '$1') }}"
-              join_token: "{{ federationConfig[request.name | regexReplaceAll('neuvector-federation-(.*)', '$1')]?.join_token }}"
+              join_token: "{{ federationConfigs[?cluster_name==`{{ request.name | regexReplaceAll('neuvector-federation-(.*)', '$1') }}`].join_token | [0] }}"
