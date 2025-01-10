@@ -70,8 +70,8 @@ spec:
               name: neuvector
               namespace: "{{ request.name | regexReplaceAll('neuvector-federation-(.*)', '$1') }}"
             patch: |
-              - op: replace
-                path: /spec/values/controller/configmap/data/fedinitcfg.yaml
+              - op: add
+                path: /spec/values/controller/configmap/data/fedinitcfg
                 value: |
                   cluster_name: "test1"
                   join_token: "test2"
