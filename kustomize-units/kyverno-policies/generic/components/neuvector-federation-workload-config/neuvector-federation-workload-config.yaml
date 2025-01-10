@@ -27,28 +27,28 @@ spec:
           selector:
             matchLabels:
               sylva.io/neuvector-workload-config: true
-      context:
-        - name: federationConfigs
-          apiCall:
-            urlPath: "/api/v1/secrets?labelSelector=sylva.io/neuvector-workload-config=true"
-            jmesPath: "items[].data.{cluster_name: base64_decode(cluster_name), join_token:base64_decode(join_token)}"
-            # Build a config that matches the chart values format, so that secret can be merged as is
-            # to the chart values (without specifying targetPath, otherwise values would be injected as a string)
-            # Secret content will have the following structure:
-            #   federationConfigs:
-            #     - management-cluster:
-            #         join_token: foo
-            #     - test-workload1:
-            #         join_token: bar
-      mutate:
-        targets:
-          - apiVersion: helm.toolkit.fluxcd.io/v2
-            kind: HelmRelease
-            name: neuvector
-            namespace: "{{ request.name | regexReplaceAll('neuvector-federation-(.*)', '$1') }}"  # Extraction du namespace
-        patchesJson6902: |-
-          - op: replace
-            path: /spec/values/controller/configmap/data/fedinitcfg.yaml
-            value: |
-              cluster_name: "test"
-              join_token: "{{ federationConfigs[?cluster_name==`{{ request.name | regexReplaceAll('neuvector-federation-(.*)', '$1') }}`].join_token | [0] }}"
+    context:
+      - name: federationConfigs
+        apiCall:
+          urlPath: "/api/v1/secrets?labelSelector=sylva.io/neuvector-workload-config=true"
+          jmesPath: "items[].data.{cluster_name: base64_decode(cluster_name), join_token:base64_decode(join_token)}"
+          # Build a config that matches the chart values format, so that secret can be merged as is
+          # to the chart values (without specifying targetPath, otherwise values would be injected as a string)
+          # Secret content will have the following structure:
+          #   federationConfigs:
+          #     - management-cluster:
+          #         join_token: foo
+          #     - test-workload1:
+          #         join_token: bar
+    mutate:
+      targets:
+        - apiVersion: helm.toolkit.fluxcd.io/v2
+          kind: HelmRelease
+          name: neuvector
+          namespace: "{{ request.name | regexReplaceAll('neuvector-federation-(.*)', '$1') }}"  # Extraction du namespace
+      patchesJson6902: |-
+        - op: replace
+          path: /spec/values/controller/configmap/data/fedinitcfg.yaml
+          value: |
+            cluster_name: "test"
+            join_token: "{{ federationConfigs[?cluster_name==`{{ request.name | regexReplaceAll('neuvector-federation-(.*)', '$1') }}`].join_token | ] }}"
