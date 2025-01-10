@@ -62,16 +62,9 @@ spec:
             kind: HelmRelease
             name: neuvector
             namespace: "{{ request.name | regexReplaceAll('neuvector-federation-(.*)', '$1') }}"  # Extraction du namespace
-        patchesJson6902:
-          - target:
-              group: helm.toolkit.fluxcd.io
-              version: v2
-              kind: HelmRelease
-              name: neuvector
-              namespace: "{{ request.name | regexReplaceAll('neuvector-federation-(.*)', '$1') }}"
-            patch: |
-              - op: add
-                path: /spec/values/controller/configmap/data/fedinitcfg
-                value: |
-                  cluster_name: "test1"
-                  join_token: "test2"
+        patchesJson6902: |-
+          - op: replace
+            path: /spec/values/controller/configmap/data/fedinitcfg.yaml
+            value: |
+              cluster_name: "{{ request.name | regexReplaceAll('neuvector-federation-(.*)', '$1') }}"
+              join_token: "{{ federationConfig[request.name | regexReplaceAll('neuvector-federation-(.*)', '$1')]?.join_token }}"
