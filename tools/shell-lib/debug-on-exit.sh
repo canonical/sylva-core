@@ -273,6 +273,27 @@ EOB
   curl -X GET ${BACKEND_URL_BASE}/v1/supportbundles/${ID}/${SUPPORT_BUNDLE_NAME}/download --output $dump_dir/longhorn-support-bundle.zip
 }
 
+function _openstack() {
+  local destination_file="$1"
+  local kubectl_opts="$2"
+  local openstack_args="$3"
+  echo "running 'openstack $3' > $destination_file ..."
+
+  tmp_clouds_yaml_d=$(mktemp -d -p $(pwd))
+  trap "rm -rf $tmp_clouds_yaml_d" EXIT INT
+
+  kubectl $kubectl_opts get secret cluster-cloud-config -o yaml | yq '.data."clouds.yaml"' | base64 -d > $tmp_clouds_yaml_d/clouds.yaml
+
+  chmod og+rX -R $tmp_clouds_yaml_d
+
+  docker run --rm \
+    -v $tmp_clouds_yaml_d:/etc/openstack \
+    --entrypoint sh \
+    registry.gitlab.com/sylva-projects/sylva-elements/container-images/openstack-client:v0.0.19 \
+    -c "openstack --os-cloud capo_cloud $openstack_args" > "$destination_file"
+}
+
+
 function cluster_info_dump() {
   local cluster=$1
   local dump_dir=$cluster-cluster-dump
@@ -295,6 +316,27 @@ function cluster_info_dump() {
     -n $capi_cluster_namespace $capi_cluster_name \
     --grouping=false --show-conditions all --echo \
     > $dump_dir/clusterctl-describe.txt
+
+  if [[ -n ${CI_JOB_NAME} ]]; then
+    openstack_machines=$(kubectl get OpenStackMachines -A -o go-template='{{range .items}}{{.metadata.namespace}}/{{.metadata.name}} {{ end }}' 2>/dev/null)
+    if [[ -n $openstack_machines ]]; then
+      vm_console_logs_dir=$dump_dir/openstack-vms-console-logs
+      echo "Gathering info on OpenStack machines into $vm_console_logs_dir ..."
+      for openstack_machine in $openstack_machines; do
+          local osm_ns=${openstack_machine%/*}
+          local vm_name=${openstack_machine#*/}
+          mkdir -p $vm_console_logs_dir/$osm_ns
+
+          kubectl_opts="--kubeconfig $MGMT_KUBECONFIG -n $capi_cluster_namespace"
+
+          echo "   Dumping 'openstack server show' for $osm_ns/$vm_name ..."
+          _openstack $vm_console_logs_dir/$osm_ns/$vm_name.show.txt "$kubectl_opts" "server show $vm_name -f yaml | yq '.\"OS-EXT-SRV-ATTR:user_data\" = \"... omitted ...\"'"
+
+          echo "   Dumping 'openstack console logs' for $osm_ns/$vm_name ..."
+          _openstack $vm_console_logs_dir/$osm_ns/$vm_name.console-log.txt "$kubectl_opts" "console log show $vm_name"
+      done
+    fi
+  fi
 
   echo "Checking if $cluster cluster is reachable"
   if ! timeout 10s kubectl get nodes > /dev/null 2>&1 ;then
