@@ -303,6 +303,8 @@ units:
 
   cluster-vip:
     enabled: true
+    kustomization_spec:
+      targetNamespace: null  # cancel the targetNamespace set in unit_kustomization_spec_default
 
   ingress-nginx:
     enabled: true
