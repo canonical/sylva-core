@@ -2509,6 +2509,28 @@ units:
           name: assisted-service
           namespace: assisted-installer
 
+  openshift-keycloak-oidc-init:
+    info:
+      description: initializes and configures OpenShift openid client for keycloak
+      maturity: experimental
+      internal: true
+    #enabled_conditions:
+    #- '{{ tuple . "openshift-keycloak-oidc-provider" | include "unit-enabled" }}'
+    unit_templates:
+    - base-deps
+    depends_on:
+      namespace-defs: true
+      sylva-ca: true
+    repo: sylva-core
+    kustomization_spec:
+      path: ./kustomize-units/openshift-keycloak-oidc-init
+      wait: true
+      postBuild:
+        substitute:
+          CACERT: '{{ .Values.external_certificates.cacert | default "" }}'
+      _components:
+        - "../tls-components/sylva-ca"
+
   metal3:
     info:
       description: installs SUSE-maintained Metal3 operator
