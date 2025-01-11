@@ -403,7 +403,7 @@ units:
       - '{{ .Values._internal.sylva_mgmt_enabled_units.neuvector }}'
     repo: sylva-core
     depends_on:
-      neuvector: false
+      neuvector: true
     unit_templates:
     - kustomization-deployed-on-mgmt-cluster
     - kube-job
@@ -416,7 +416,7 @@ units:
     enabled: false
     depends_on:
       neuvector-federation-tls: '{{ tuple . "neuvector-federation-tls" | include "unit-enabled" }}'
-      neuvector-federation-generate-workload-config: '{{ tuple . "neuvector-federation-generate-workload-config" | include "unit-enabled" }}'
+      # neuvector-federation-generate-workload-config: '{{ tuple . "neuvector-federation-generate-workload-config" | include "unit-enabled" }}'
     helmrelease_spec:
       values:
         controller:
