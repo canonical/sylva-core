@@ -3697,7 +3697,7 @@ units:
     enabled_conditions:
     - '{{ tuple . "k8s-gateway" | include "unit-enabled" }}'
     - '{{ .Values._internal.state.is_upgrade }}'
-    - '{{ .Values._internal.state.needs_loadbalancer_class }}'
+    - '{{ .Values._internal.state.needs_loadbalancer_class_change }}'
     depends_on:
       metallb-resources: '{{ tuple . "metallb" | include "unit-enabled" }}'
     kustomization_spec:
@@ -3798,6 +3798,26 @@ units:
                             seccompProfile:
                               type: RuntimeDefault
 
+  cluster-vip-fix-lbclass:
+    info:
+      description: Set loadBalancerClass to cluster-vip service and metallb components
+      details: This unit can be removed after next release when the loadBalancerClass is set by default
+      internal: true
+    unit_templates:
+    - base-deps
+    - kube-job
+    enabled_conditions:
+    - '{{ tuple . "metallb" | include "unit-enabled" }}'
+    - '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" }}'
+    - '{{ .Values._internal.state.is_upgrade }}'
+    - '{{ .Values._internal.state.needs_loadbalancer_class_change }}'
+    kustomization_spec:
+      wait: true
+      path: ./kustomize-units/cluster-vip-lbclass
+      postBuild:
+        substitute:
+          NAMESPACE: kube-system
+
   cluster-vip:
     info:
       description: Defines the cluster-vip Service for MetalLB load-balancing
@@ -3816,6 +3836,8 @@ units:
     enabled_conditions:
     - '{{ tuple . "metallb" | include "unit-enabled" }}'
     - '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" }}'
+    depends_on:
+      cluster-vip-fix-lbclass: '{{ and .Values._internal.state.is_upgrade .Values._internal.state.needs_loadbalancer_class_change }}'
     repo: sylva-core
     kustomization_spec:
       force: true
@@ -3829,8 +3851,6 @@ units:
           # from capo-cluster-resources ConfigMap (see substituteFrom below)
           allocated_ip: '{{ tuple .Values.cluster_virtual_ip (not (.Values.cluster.capi_providers.infra_provider | eq "capo")) | include "set-only-if" }}'
           lb_class: sylva.org/metallb-class
-          # we need the kube-job to run in metallb-system namespace
-          NAMESPACE: metallb-system
         substituteFrom:
         # see explanation above about allocated_ip / cluster_virtual_ip in CAPO case
         - kind: ConfigMap
@@ -3890,7 +3910,7 @@ units:
     enabled_conditions:
     - '{{ tuple . "ingress-nginx" | include "unit-enabled" }}'
     - '{{ .Values._internal.state.is_upgrade }}'
-    - '{{ .Values._internal.state.needs_loadbalancer_class }}'
+    - '{{ .Values._internal.state.needs_loadbalancer_class_change }}'
     depends_on:
       metallb-resources: '{{ tuple . "metallb" | include "unit-enabled" }}'
     kustomization_spec:
@@ -7827,7 +7847,7 @@ _internal:
       {{ gt (lookup "kustomize.toolkit.fluxcd.io/v1" "Kustomization" .Release.Namespace "sylva-units-status" | dig "status" "inventory" "entries" list | len) 0
           | include "preserve-type"
       }}
-    needs_loadbalancer_class: >-
+    needs_loadbalancer_class_change: >-
       {{- $current_config := lookup "v1" "Secret" .Release.Namespace "sylva-units-values" | dig "data" "values" "" | b64dec | fromYaml | default dict -}}
       {{- ne (dig "units" "ingress-nginx" "helmrelease_spec" "values" "controller" "service" "loadBalancerClass" "" $current_config) .Values._internal.loadBalancerClass -}}
 
