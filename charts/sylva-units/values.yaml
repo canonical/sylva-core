@@ -5274,10 +5274,11 @@ units:
             containerPort: 8181
             service:
               servicePort: 8181
-        secret:
-          create: true
-          userID: '{{ .Values.ceph.rbd_csi.userID }}'
-          userKey: '{{ .Values.ceph.rbd_csi.userKey }}'
+    helm_secret_values:
+      secret:
+        create: true
+        userID: '{{ .Values.ceph.rbd_csi.userID }}'
+        userKey: '{{ .Values.ceph.rbd_csi.userKey }}'
 
   longhorn-crd:
     info:
