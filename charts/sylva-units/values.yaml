@@ -2004,17 +2004,18 @@ units:
         admissionController:
           replicas: '{{ .Values._internal.default_replicas | include "preserve-type" }}'
           rbac:
-            extraResources:
-            - apiGroups:
-                - admissionregistration.k8s.io
-              resources:
-                - validatingadmissionpolicies
-                - validatingadmissionpolicybindings
-              verbs:
-                - create
-                - update
-                - delete
-                - list
+            clusterRole:
+              extraResources:
+              - apiGroups:
+                  - admissionregistration.k8s.io
+                resources:
+                  - validatingadmissionpolicies
+                  - validatingadmissionpolicybindings
+                verbs:
+                  - create
+                  - update
+                  - delete
+                  - list
             coreClusterRole:
               extraResources:
               - apiGroups: ["*"]
