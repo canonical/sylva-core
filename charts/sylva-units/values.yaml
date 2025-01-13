@@ -1530,14 +1530,15 @@ units:
                 labels:
                   sylva.io/neuvector-workload-config: "true"
               data:
-                cluster_name: {{ .Values.cluster.name }}
-                primary_rest_info:
-                  server: {{ .Values._internal.mgmt_neuvector_federation_master }}
-                  port: 443
-                managed_rest_info:
-                  server: {{ .Values.external_hostnames.neuvector_federation_managed }}
-                  port: 443
-                join_token: $FEDERATION_TOKEN
+                fedinitcfg.yaml: |
+                  cluster_name: {{ .Values.cluster.name }}
+                  primary_rest_info:
+                    server: {{ .Values._internal.mgmt_neuvector_federation_master }}
+                    port: 443
+                  managed_rest_info:
+                    server: {{ .Values.external_hostnames.neuvector_federation_managed }}
+                    port: 443
+                  join_token: $FEDERATION_TOKEN
               EOF
 
               kubectl apply -f $configmap_file
