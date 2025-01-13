@@ -1575,38 +1575,22 @@ units:
             cpu: 100m
             memory: 2280Mi
       _postRenderers: |
-        {{- $updaterPatch := `
+        {{- $patch := `
         kustomize:
           patches:
-            - target:
+            - patch: |-
                 kind: CronJob
-                name: neuvector-updater-pod
-              patch: |-
-                - op: replace
-                  path: /spec/startingDeadlineSeconds
-                  value: 21600
-                - op: add
-                  path: /metadata/annotations/kube-score~1ignore
-                  value: container-image-tag
+                apiVersion: batch/v1
+                metadata:
+                  name: neuvector-updater-pod
+                  namespace: neuvector
+                spec:
+                  startingDeadlineSeconds: 21600
         ` -}}
-
-        {{- $scannerPatch := `
-        kustomize:
-          patches:
-            - target:
-                kind: Deployment
-                name: neuvector-scanner-pod
-              patch: |-
-                - op: add
-                  path: /spec/template/metadata/annotations
-                  value:
-                    kube-score/ignore: container-image-tag
-        ` -}}
-
         {{- if .Values.security.neuvector_scanning_enabled -}}
-        {{- list ($updaterPatch | fromYaml) ($scannerPatch | fromYaml) | include "preserve-type" -}}
+        {{- list ($patch | fromYaml) | include "preserve-type" -}}
         {{- else -}}
-        {{- list ($scannerPatch | fromYaml) | include "preserve-type" -}}
+        {{- list | include "preserve-type" -}}
         {{- end -}}
     kustomization_spec:
       healthChecks:
