@@ -402,8 +402,6 @@ units:
       - '{{ tuple . "neuvector" | include "unit-enabled" }}'
       - '{{ .Values._internal.sylva_mgmt_enabled_units.neuvector }}'
     repo: sylva-core
-    depends_on:
-      neuvector: true
     unit_templates:
     - kustomization-deployed-on-mgmt-cluster
     - kube-job
