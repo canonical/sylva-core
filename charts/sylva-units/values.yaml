@@ -6799,11 +6799,7 @@ units:
 
   single-replica-storageclass:
     info:
-      description: DEPRECATED longhorn storage class with a single replica
-      details: |
-        This unit is preserved for migration purposes, it will be removed after sylva 1.2 release
-        Single replicas PVC were causing data replication churn during rolling updates of nodes
-        See https://gitlab.com/sylva-projects/sylva-core/-/issues/1648
+      description: Defines a Longhorn storage class with a single replica
       internal: true
     repo: sylva-core
     unit_templates:
@@ -6826,12 +6822,14 @@ units:
             kind: _unused_
             metadata:
               name: _unused_
+              annotations:
+                storageclass.kubernetes.io/is-default-class: '{{ .Values._internal.default_storage_class | eq "single-replica-storageclass" }}'
             parameters:
               numberOfReplicas: "1"
 
   two-replicas-storageclass:
     info:
-      description: Create a longhorn storage class with a two replicas
+      description: Defines a Longhorn storage class with two replicas
       internal: true
     repo: sylva-core
     unit_templates:
@@ -6854,6 +6852,8 @@ units:
             kind: _unused_
             metadata:
               name: _unused_
+              annotations:
+                storageclass.kubernetes.io/is-default-class: '{{ .Values._internal.default_storage_class | eq "two-replicas-storageclass" }}'
             parameters:
               numberOfReplicas: "2"
 
@@ -7744,6 +7744,16 @@ _internal:
 
   default_password: '{{ include "internalPersistentRandomPasswd" (tuple . "default_password") }}'
 
+  default_longhorn_storage_class: >-
+    {{- $nodeCount := int (tuple . .Values._internal.longhorn_node_count | include "interpret-as-string") -}}
+    {{- if eq $nodeCount 1 -}}
+      single-replica-storageclass
+    {{- else if eq $nodeCount 2 -}}
+      two-replicas-storageclass
+    {{- else -}}
+      longhorn
+    {{- end -}}
+
   default_storage_class: >-
     {{ if (tuple . "ceph-csi-cephfs" | include "unit-enabled") -}}
       cephfs-csi
@@ -7752,7 +7762,7 @@ _internal:
     {{- else if (tuple . "vsphere-csi-driver" | include "unit-enabled") -}}
       vsphere-csi
     {{- else if (tuple . "longhorn" | include "unit-enabled") -}}
-      longhorn
+      {{ .Values._internal.default_longhorn_storage_class}}
     {{- else -}}
       local-path
     {{- end -}}
@@ -7761,7 +7771,7 @@ _internal:
   # (a storage class does not need to appear in this map if the required unit has the same name)
   storage_class_unit_map:
     local-path: local-path-provisioner
-    longhorn: longhorn
+    '{{ .Values._internal.default_longhorn_storage_class}}': longhorn
     vsphere-csi: vsphere-csi-driver
     '{{ .Values.openstack.storageClass.name }}': cinder-csi
     cephfs-csi: ceph-csi-cephfs
@@ -7772,6 +7782,8 @@ _internal:
 
   storage_class_RWX_support:
     - longhorn
+    - two-replicas-storageclass
+    - single-replica-storageclass
     - cephfs-csi
   default_storage_class_RWX_support: >-
     {{- $default_storage_class := tuple . .Values._internal.default_storage_class | include "interpret-as-string" -}}
@@ -7829,6 +7841,30 @@ _internal:
       {{- $n = add $n $md.replicas -}}
     {{- end -}}
     {{ $n | include "preserve-type" }}
+    '
+
+  # total number of longhorn nodes
+  longhorn_node_count:
+    '
+    {{- $count := 0 -}}
+      {{- if hasKey .Values.cluster "baremetal_host_default" -}}
+        {{- if hasKey .Values.cluster.baremetal_host_default "longhorn_disk_config" -}}
+          {{- $count = len .Values.cluster.baremetal_hosts -}}
+        {{- else -}}
+          {{- range $key, $value := .Values.cluster.baremetal_hosts -}}
+            {{- if hasKey $value "longhorn_disk_config" -}}
+              {{- $count = add $count 1 -}}
+            {{- end -}}
+          {{- end -}}
+        {{- end -}}
+      {{- else -}}
+        {{- range $key, $value := .Values.cluster.baremetal_hosts -}}
+          {{- if hasKey $value "longhorn_disk_config" -}}
+            {{- $count = add $count 1 -}}
+          {{- end -}}
+        {{- end -}}
+      {{- end -}}
+    {{- $count -}}
     '
 
   cluster_unit_os_images_info_configmap: os-images-info
@@ -7891,6 +7927,14 @@ _internal:
           _immutable_comment: "Underlying infrastructure of a running cluster can't be changed"
       _immutable: '{{ not .Values._internal.ha_cluster.is_ha | include "preserve-type" }}'
       _immutable_comment: "Cluster values can't be changed, as they would trigger a rolling upgrade that is not supported in non-HA mode"
+
+    longhorn:
+      helmrelease_spec:
+        values:
+          persistence:
+            defaultClassReplicaCount:
+              _immutable: true
+              _immutable_comment: "Default longhorn class replica count should not be changed as it impact longhorn upgrade"
 
   pdb_allow_unhealthy_pod_eviction:
     target:
@@ -8018,3 +8062,4 @@ openshift:
     # serviceHostname: openshift-assisted-service.example.com
     # variable to specify the openshift assisted image service hostname
     # imageHostname: openshift-assisted-images.example.com
+
