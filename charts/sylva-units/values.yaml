@@ -1546,10 +1546,14 @@ units:
             secretName: neuvector-tls
         cve:
           updater:
+            podAnnotations:
+              kube-score/ignore: container-image-tag
             enabled: '{{ .Values.security.neuvector_scanning_enabled | include "preserve-type" }}'
             image:
               repository: neuvector/updater
           scanner:
+            podAnnotations:
+              kube-score/ignore: container-image-tag
             enabled: '{{ .Values.security.neuvector_scanning_enabled | include "preserve-type" }}'
             image:
               repository: neuvector/scanner
