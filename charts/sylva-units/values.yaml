@@ -1518,9 +1518,40 @@ units:
                   exit 1
               fi
 
-              # Update secret
-              echo "Creating neuvector-federation secret"
-              kubectl create secret generic neuvector-federation-{{ .Values.cluster.name }} --from-literal=join_token="$FEDERATION_TOKEN" --from-literal=cluster_name={{ .Values.cluster.name }} -n neuvector && kubectl label secret neuvector-federation-{{ .Values.cluster.name }} "sylva.io/neuvector-workload-config=true"
+              # Create configmap
+              echo "Creating neuvector-federation configmap"
+              configmap_file=/tmp/fedinitcfg.yaml
+
+              cat <<EOF >> $configmap_file
+              apiVersion: v1
+              kind: ConfigMap
+              metadata:
+                name: neuvector-federation-{{ .Values.cluster.name }}
+                labels:
+                  sylva.io/neuvector-workload-config: "true"
+              data:
+                fedinitcfg.yaml: |
+                  cluster_name: {{ .Values._internal.neuvector_cluster_name }}
+                  primary_rest_info:
+                    server: {{ .Values._internal.mgmt_neuvector_federation_master }}
+                    port: 443
+                  managed_rest_info:
+                    server: {{ .Values.external_hostnames.neuvector_federation_managed }}
+                    port: 443
+                  join_token: $FEDERATION_TOKEN
+              EOF
+              
+              kubectl apply -f $configmap_file
+              # fedinitcfg.yaml: |
+              #                cluster_name: {{ .Values._internal.neuvector_cluster_name }}
+              #                primary_rest_info:
+              #                  server: {{ .Values._internal.mgmt_neuvector_federation_master }}
+              #                  port: 443
+              #                managed_rest_info:
+              #                  server: {{ .Values.external_hostnames.neuvector_federation_managed }}
+              #                  port: 443
+              #                join_token: {{ .Values._internal.neuvector_join_token }}
+              # kubectl create secret generic neuvector-federation-{{ .Values.cluster.name }} --from-literal=join_token="$FEDERATION_TOKEN" --from-literal=cluster_name={{ .Values.cluster.name }} -n neuvector && kubectl label secret neuvector-federation-{{ .Values.cluster.name }} "sylva.io/neuvector-workload-config=true"
 
               echo "-- All done"
 
