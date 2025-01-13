@@ -7,8 +7,8 @@
     expire_in: 48 hour
     when: always
     paths:
-      - ${CI_PROJECT_DIR}/failed-jobs-dump/*
-      - ${CI_PROJECT_DIR}/cronjob_report.txt
+      - failed-jobs-dump/*
+      - cronjob_report.txt
   variables:
     DUMP_DIR: ${CI_PROJECT_DIR}/failed-jobs-dump
     REPORT_FILE: ${CI_PROJECT_DIR}/cronjob_report.txt
