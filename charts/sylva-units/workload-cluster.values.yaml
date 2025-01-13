@@ -416,7 +416,7 @@ units:
     enabled: false
     depends_on:
       neuvector-federation-tls: '{{ tuple . "neuvector-federation-tls" | include "unit-enabled" }}'
-      # neuvector-federation-generate-workload-config: '{{ tuple . "neuvector-federation-generate-workload-config" | include "unit-enabled" }}'
+      neuvector-federation-generate-workload-config: '{{ tuple . "neuvector-federation-generate-workload-config" | include "unit-enabled" }}'
     helmrelease_spec:
       values:
         controller:
@@ -461,15 +461,6 @@ units:
                   Role: admin
                   username: admin
                   Password: {{ .Values._internal.neuvector_admin_password }}
-              fedinitcfg.yaml: |
-                cluster_name: {{ .Values._internal.neuvector_cluster_name }}
-                primary_rest_info:
-                  server: {{ .Values._internal.mgmt_neuvector_federation_master }}
-                  port: 443
-                managed_rest_info:
-                  server: {{ .Values.external_hostnames.neuvector_federation_managed }}
-                  port: 443
-                join_token: {{ .Values._internal.neuvector_join_token }}
 
 
   thanos-credentials-secret:

@@ -1,4 +1,3 @@
----
 apiVersion: kyverno.io/v1
 kind: ClusterPolicy
 metadata:
@@ -9,47 +8,42 @@ metadata:
     policies.kyverno.io/title: Reconcile Neuvector HelmRelease
     policies.kyverno.io/minversion: 1.12.0
     policies.kyverno.io/description: >-
-      Reconcile neuvector HelmRelease when neuvector-federation-* is updated
-    sylva.org/kyverno-exclude-kube-system: add-matchCondition
+      Reconcile neuvector HelmRelease when neuvector-federation-* is created, excluding sylva-system namespace
 spec:
   mutateExistingOnPolicyUpdate: true
-  webhookConfiguration:
-    matchConditions:
-    - name: is-neuvector-federation-workload-config
-      expression: "has(object.metadata) && has(object.metadata.labels) && 'sylva.io/neuvector-workload-config' in object.metadata.labels && object.metadata.labels['sylva.io/neuvector-workload-config'] == 'true'"
   rules:
-  - name: reconcile-neuvector-helmrelease
-    match:
-      any:
-      - resources:
+    - name: reconcile-neuvector-helmrelease
+      match:
+        resources:
           kinds:
-          - Secret
-          selector:
-            matchLabels:
-              sylva.io/neuvector-workload-config: "true"
-    context:
-      - name: federationConfigs
-        apiCall:
-          urlPath: "/api/v1/secrets?labelSelector=sylva.io/neuvector-workload-config=true"
-          jmesPath: "items[].data.{cluster_name: base64_decode(cluster_name), join_token:base64_decode(join_token)}"
-          # Build a config that matches the chart values format, so that secret can be merged as is
-          # to the chart values (without specifying targetPath, otherwise values would be injected as a string)
-          # Secret content will have the following structure:
-          #   federationConfigs:
-          #     - management-cluster:
-          #         join_token: foo
-          #     - test-workload1:
-          #         join_token: bar
-    mutate:
-      targets:
-        - apiVersion: helm.toolkit.fluxcd.io/v2
-          kind: HelmRelease
-          name: neuvector
-          namespace: "{{ request.name | regexReplaceAll('neuvector-federation-(.*)', '$1') }}"  # Extraction du namespace
-      patchesJson6902: |-
-        - op: replace
-          path: /spec/values/controller/configmap/data/fedinitcfg.yaml/cluster_name
-          value: "{{ request.name | regexReplaceAll('neuvector-federation-(.*)', '$1') }}"
-        - op: replace
-          path: /spec/values/controller/configmap/data/fedinitcfg.yaml/join_token
-          value: "{{ federationConfigs[?cluster_name==`{{ request.name | regexReplaceAll('neuvector-federation-(.*)', '$1') }}`].join_token | [0]  | default('') }}"
+            - HelmRelease
+          namespaces:
+            - "*"
+      context:
+        - name: configMapData
+          apiCall:
+            urlPath: "/api/v1/namespaces/{{ request.namespace }}/configmaps/neuvector-federation-{{ request.namespace }}"  # Utilisation de l'interpolation
+            jmesPath: "data"  # Récupère les données du ConfigMap
+      mutate:
+        targets:
+          - apiVersion: helm.toolkit.fluxcd.io/v2
+            kind: HelmRelease
+            name: neuvector
+            namespace: "{{ request.namespace }}"
+        patchesJson6902:
+          - target:
+              group: helm.toolkit.fluxcd.io
+              version: v2
+              kind: HelmRelease
+              name: neuvector
+              namespace: "{{ request.namespace }}"
+            patch: |
+              - op: add
+                path: /spec/values/controller/configmap/data/fedinitcfg.yaml
+                value: |
+                  {{ configMapData | toJson }}  # Injecte les données du ConfigMap
+      validate:
+        message: "HelmRelease cannot be updated in the sylva-system namespace."
+        pattern:
+          metadata:
+            namespace: "!sylva-system"  # Exclure le namespace sylva-system
