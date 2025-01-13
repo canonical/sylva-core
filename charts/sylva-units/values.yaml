@@ -8348,6 +8348,7 @@ security:
   sbom_operator:
     targets:
       - configmap # list of targets (i.e. places where the SBOM is uploaded). Supported targets are configmap, oci and dtrack
+  restrict_nodeName_nodeSelector: true
 
 monitoring:
   platform_tag: Sylva

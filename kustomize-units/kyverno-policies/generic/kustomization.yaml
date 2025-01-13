@@ -7,4 +7,4 @@ resources:
 - ensure-pdb-minreplicas.yaml
 - always-allow-pdb-unhealthy-pod-eviction.yaml
 - ensure-pdb-unhealthypodeviction.yaml
-- restrict-nodeName-nodeSelector.yaml
+- '{{ tuple "restrict-nodeName-nodeSelector.yaml" .Values.restrict_nodeName_nodeSelector | include "set-only-if" }}'
