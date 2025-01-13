@@ -36,3 +36,9 @@ spec:
           - op: add
             path: /spec/values/controller/configmap/data/fedinitcfg.yaml
             value: {{ configMapData | toJson }}  # Injecte les données du ConfigMap
+          - op: add
+            path: /spec/metadata/annotations/reconcile.fluxcd.io~1requestedAt
+            value: "{{ time_now_utc() }}"
+          - op: add
+            path: /spec/metadata/annotations/kyverno.reconcile-thanos-helmrelease~1requestedAt
+            value: "{{ time_now_utc() }}"
