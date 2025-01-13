@@ -17,6 +17,8 @@ spec:
         resources:
           kinds:
             - HelmRelease
+          names:
+            - neuvector
           namespaces:
             - "*"
       context:
@@ -31,6 +33,6 @@ spec:
             name: neuvector
             namespace: "{{ request.namespace }}"
         patchesJson6902: |-
-            - op: add
-              path: /spec/values/controller/configmap/data/fedinitcfg.yaml
-              value: {{ configMapData | toJson }}  # Injecte les données du ConfigMap
+          - op: add
+            path: /spec/values/controller/configmap/data/fedinitcfg.yaml
+            value: {{ configMapData | toJson }}  # Injecte les données du ConfigMap
