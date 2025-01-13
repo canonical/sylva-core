@@ -30,18 +30,10 @@ spec:
             kind: HelmRelease
             name: neuvector
             namespace: "{{ request.namespace }}"
-        patchesJson6902:
-          - target:
-              group: helm.toolkit.fluxcd.io
-              version: v2
-              kind: HelmRelease
-              name: neuvector
-              namespace: "{{ request.namespace }}"
-            patch: |
-              - op: add
-                path: /spec/values/controller/configmap/data/fedinitcfg.yaml
-                value: |
-                  {{ configMapData | toJson }}  # Injecte les données du ConfigMap
+        patchesJson6902: |-
+            - op: add
+              path: /spec/values/controller/configmap/data/fedinitcfg.yaml
+              value: {{ configMapData | toJson }}  # Injecte les données du ConfigMap
       validate:
         message: "HelmRelease cannot be updated in the sylva-system namespace."
         pattern:
