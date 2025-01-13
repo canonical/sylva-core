@@ -4418,7 +4418,7 @@ units:
   upstream-monitoring:
     info:
       description: installs upstream monitoring stack
-      maturity: alpha
+      maturity: beta
     unit_templates:
     - base-deps
     depends_on:
