@@ -24,7 +24,7 @@ spec:
       nets:
       - ${CLUSTER_VIRTUAL_IP}
       ports:
-      - 6180 # ironic
+      - 6185 # ironic
       - 5050 # ironic
       - 6385 # ironic
   - action: Allow
