@@ -34,8 +34,3 @@ spec:
             - op: add
               path: /spec/values/controller/configmap/data/fedinitcfg.yaml
               value: {{ configMapData | toJson }}  # Injecte les données du ConfigMap
-      validate:
-        message: "HelmRelease cannot be updated in the sylva-system namespace."
-        pattern:
-          metadata:
-            namespace: "!sylva-system"  # Exclure le namespace sylva-system
