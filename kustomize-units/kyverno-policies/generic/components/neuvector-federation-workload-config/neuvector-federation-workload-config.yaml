@@ -14,13 +14,19 @@ spec:
   rules:
     - name: reconcile-neuvector-helmrelease
       match:
-        resources:
-          kinds:
+        any:
+          resources:
+            kinds:
             - HelmRelease
-          names:
+            names:
             - neuvector
-          namespaces:
+            namespaces:
             - "*"
+      exclude:
+        any:
+          - resources:
+              namespaces:
+                - sylva-system
       context:
         - name: configMapData
           apiCall:
@@ -40,5 +46,5 @@ spec:
             path: /spec/metadata/annotations/reconcile.fluxcd.io~1requestedAt
             value: "{{ time_now_utc() }}"
           - op: add
-            path: /spec/metadata/annotations/kyverno.reconcile-thanos-helmrelease~1requestedAt
+            path: /spec/metadata/annotations/kyverno.reconcile-neuvector-helmrelease~1requestedAt
             value: "{{ time_now_utc() }}"
