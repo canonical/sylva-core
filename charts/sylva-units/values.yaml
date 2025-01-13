@@ -1996,12 +1996,25 @@ units:
         webhooksCleanup:
           enabled: false
         features:
+          generateValidatingAdmissionPolicy:
+            enabled: true
           policyExceptions:
             enabled: true
             namespace: "*"
         admissionController:
           replicas: '{{ .Values._internal.default_replicas | include "preserve-type" }}'
           rbac:
+            extraResources:
+            - apiGroups:
+                - admissionregistration.k8s.io
+              resources:
+                - validatingadmissionpolicies
+                - validatingadmissionpolicybindings
+              verbs:
+                - create
+                - update
+                - delete
+                - list
             coreClusterRole:
               extraResources:
               - apiGroups: ["*"]
