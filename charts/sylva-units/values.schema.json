@@ -9279,6 +9279,8 @@
               }
             }
           ]
+        "restrict_nodeName_nodeSelector": {
+          "type": "boolean"
         }
       }
     },
