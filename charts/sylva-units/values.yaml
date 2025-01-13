@@ -2318,6 +2318,7 @@ units:
           COREDNS_DEPLOYMENT_NAME: '{{ tuple (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpk" | ternary "coredns" "rke2-coredns-rke2-coredns") (tuple . "cabpoa" | include "unit-enabled") | include "set-only-if" }}'
           COREDNS_CONFIGMAP_NAME: '{{ tuple (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpk" | ternary "coredns" "rke2-coredns-rke2-coredns") (tuple . "cabpoa" | include "unit-enabled") | include "set-only-if" }}'
       _components:
+        - '{{ tuple "components/restricted-fields" .Values.restrict_nodeName_nodeSelector | include "set-only-if" }}'
         - '{{ tuple "components/bootstrap-cluster-only" .Values._internal.bstrp_cluster | include "set-only-if" }}'
         - '{{ tuple "components/management-cluster-only" .Values._internal.mgmt_cluster | include "set-only-if" }}'
         - '{{ tuple "components/descheduler" (tuple . "descheduler" | include "unit-enabled") | include "set-only-if" }}'
