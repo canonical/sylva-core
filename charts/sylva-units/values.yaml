@@ -4309,7 +4309,7 @@ units:
       install:
         createNamespace: false
 
-   upstream-prometheus:
+  upstream-prometheus:
     info:
       description: installs upstream prometheus stack
       maturity: beta
