@@ -58,7 +58,8 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
     spec:
       url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-capi-cluster.git
       ref:
-        tag: 0.4.8
+        #tag: 0.4.5
+        branch: dg/add-os-image-server-tls #to be removed after the MR from s-c-c will be merged
 
   devnull:
     kind: GitRepository
@@ -2165,6 +2166,7 @@ units:
         - '{{ tuple "components/check-images" .Values.security.upstream_images_signature.verify | include "set-only-if" }}'
         - '{{ tuple "components/mutate-job-security-context" (tuple . "rancher" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/neuvector-policies" (tuple . "neuvector" | include "unit-enabled") | include "set-only-if" }}'
+        - '{{ tuple "components/clone-os-images-secret" (tuple . "os-image-server" | include "unit-enabled") | include "set-only-if" }}'
         - ../exclude-kube-system  # needs to be last (needed for components above that use sylva.org/kyverno-exclude-kube-system annotation)
 
   kyverno-policies-ready:
@@ -2509,6 +2511,52 @@ units:
           name: assisted-service
           namespace: assisted-installer
 
+  metal3-additionalcert-init:
+    info:
+      description: creates the tls-ca-additional certificate in metal3-system namespace, from the os-image-server-tls secret
+      internal: true
+    unit_templates:
+    - base-deps
+    - kube-job
+    enabled_conditions:
+    - '{{ tuple . "metal3" | include "unit-enabled" }}'
+    - '{{ tuple . "os-image-server" | include "unit-enabled" }}'
+    depends_on:
+      namespace-defs: true
+      os-image-server-init: true
+    kustomization_spec:
+      targetNamespace: metal3-system
+      _patches:
+      - target:
+          kind: ConfigMap
+          labelSelector: kube-job=script
+        patch: |
+          - op: replace
+            path: /data/kube-job.sh
+            value: |
+              #!/bin/bash
+              set -e
+
+              # Wait for the os-image-server-tls secret to exist in the metal3-system namespace
+              until kubectl get secret os-image-server-tls -n metal3-system &> /dev/null; do
+                echo "Waiting for os-image-server-tls secret to be created..."
+                sleep 5
+              done
+              # Fetch the ca.crt from the os-image-server-tls secret in os-images namespace
+              CA_CERT=$(kubectl get secret os-image-server-tls -n metal3-system -o jsonpath='{.data.ca\.crt}')
+
+              # Create or update the tls-ca-additional secret in the metal3-system namespace
+              kubectl apply -f - <<EOF
+              apiVersion: v1
+              kind: Secret
+              metadata:
+                name: tls-ca-additional
+                namespace: metal3-system
+              type: Opaque
+              data:
+                ca-additional.crt: $CA_CERT
+              EOF
+
   metal3:
     info:
       description: installs SUSE-maintained Metal3 operator
@@ -2517,6 +2565,7 @@ units:
     unit_templates:
     - base-deps
     depends_on:
+      metal3-additionalcert-init: '{{ tuple . "metal3-additionalcert-init" | include "unit-enabled" }}'
       namespace-defs: true
       cert-manager: true
       '{{ .Values._internal.default_storage_class_unit }}': true
@@ -2528,11 +2577,13 @@ units:
       chart:
         spec:
           chart: metal3
-          version: 0.8.3
+          version: 0.9.0
       timeout: 30m
       targetNamespace: metal3-system
       values:
         global:
+          ironicKernelParams: "console=tty1, suse.autologin=tty1, hosts.append={{ .Values.display_external_ip }}_{{ .Values.external_hostnames.os_image_server }}"
+          additionalTrustedCAs: true
           ironicIP: '{{ .Values.display_external_ip }}'
           provisioningInterface: eth0
         metal3-ironic:
@@ -5156,6 +5207,33 @@ units:
           name: os-images-info
           namespace: '{{ .Release.Namespace }}'
 
+  os-image-server-init:
+    info:
+      description: sets up os-images namespace and the certificate for TLS integration
+      internal: true
+    enabled_conditions:
+      - '{{ tuple . "metal3" | include "unit-enabled" }}'
+      - '{{ tuple . "os-image-server" | include "unit-enabled" }}'
+    unit_templates:
+    - base-deps
+    depends_on:
+      namespace-defs: true
+      sylva-ca: true
+      kyverno-policies: true
+    repo: sylva-core
+    kustomization_spec:
+      path: ./kustomize-units/os-image-server-init
+      postBuild:
+        substitute:
+          SERVICE: os-image-server
+          OS_IMAGE_SERVER_DNS: "{{ .Values.external_hostnames.os_image_server }}"
+          OS_IMAGE_SERVER_IP: "{{ .Values.display_external_ip }}"
+      healthChecks:
+        - apiVersion: v1
+          kind: Secret
+          name: os-image-server-tls
+          namespace: os-images
+
   os-image-server:
     info:
       description: >
@@ -5170,6 +5248,7 @@ units:
       ingress-nginx: '{{ tuple . "ingress-nginx" | include "unit-enabled" }}'
       '{{ .Values._internal.default_storage_class_unit }}': true
       os-images-info: true
+      os-image-server-init: '{{ tuple . "os-image-server-init" | include "unit-enabled" }}'
     repo: os-image-server
     annotations:
       sylvactl/readyMessage: |
@@ -5217,8 +5296,12 @@ units:
               type: RuntimeDefault
         ingress:
           className: nginx
+          tls:
+            - secretName: os-image-server-tls
+              hosts:
+                - "{{ .Values.external_hostnames.os_image_server }}"
           hosts:
-            - host: '{{ .Values.external_hostnames.os_image_server }}'
+            - host: "{{ .Values.external_hostnames.os_image_server }}"
         osImagePersistenceDefaults:
           enabled: true
           size: '{{ .Values.os_images_default_download_storage_space }}'
@@ -7282,7 +7365,7 @@ external_hostnames:
   flux: 'flux.{{ .Values.cluster_domain }}'
   neuvector: 'neuvector.{{ .Values.cluster_domain }}'
   harbor: 'harbor.{{ .Values.cluster_domain }}'
-  os_image_server: ''
+  os_image_server: 'images.{{ .Values.cluster_domain }}'
   gitea: 'gitea.{{ .Values.cluster_domain }}'
   minio_operator_console: 'minio-operator-console.{{ .Values.cluster_domain }}'
   minio_monitoring: 'minio-monitoring.{{ .Values.cluster_domain }}'
