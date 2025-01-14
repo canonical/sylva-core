@@ -2156,7 +2156,7 @@ units:
           rbac:
             clusterRole:
               extraResources:
-              - apiGroups: ["*"]
+              - apiGroups: [""]
                 resources:
                   - "secrets"
                 verbs: ["get", "list", "patch", "update", "watch", "create", "delete"]
