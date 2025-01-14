@@ -4447,6 +4447,26 @@ units:
       install:
         createNamespace: false
 
+   upstream-prometheus:
+    info:
+      description: installs upstream prometheus stack
+      maturity: beta
+    unit_templates:
+    - base-deps
+    depends_on:
+      namespace-defs: true
+      monitoring-crd: true
+    helm_repo_url: https://prometheus-community.github.io/helm-charts
+    helmrelease_spec:
+      releaseName: kube-prometheus-stack
+      targetNamespace: upstream-monitoring
+      chart:
+        spec:
+          chart: kube-prometheus-stack
+          version: 67.9.0
+      install:
+        createNamespace: false      
+
   monitoring:
     info:
       description: installs monitoring stack
