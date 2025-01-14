@@ -1,0 +1,37 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: cnpg-harbor
+  namespace: harbor
+spec:
+  # One primary and two standby servers
+  instances: ${HARBOR_POSTGRES_REPLICAS}
+  # Sets Postgres shared buffers to 1GB
+  postgresql:
+    parameters:
+      shared_buffers: "1GB"
+  # Sets the resources for Guaranteed QoS
+  resources:
+    requests:
+      memory: "4Gi"
+      cpu: 2
+    limits:
+      memory: "4Gi"
+      cpu: 2
+  # Sets the 20GB storage for PGDATA
+  # This volume will also be used by the import
+  # process to temporarily store the custom format
+  # dump coming from the source database
+  storage:
+    size: 20Gi
+    storageClass: ${storageClass}
+  affinity:
+    podAntiAffinityType: ${podAntiAffinityType}
+  enablePDB: false
+  # Initializes the cluster from scratch (initdb bootstrap)
+  bootstrap:
+    initdb:
+      # Enables data checksums
+      dataChecksums: true
+      # Sets WAL segment size to 32MB
+      walSegmentSize: 32
