@@ -125,6 +125,7 @@
 | **grafana-init** | sets up Grafana certificate for Keycloak OIDC integration | Kustomization |
 | **harbor-init** | sets up Harbor prerequisites<br/><br/>it generates namespace, certificate, admin password, OIDC configuration | Kustomization |
 | **ingress-nginx-cleanup** | Remove rke2-ingress-nginx service from previous deployments (This unit should be removed after Sylva 1.3) | Kustomization |
+| **ingress-nginx-init** | prepares default certificate for nginx ingress controler | Kustomization |
 | **k8s-gateway-cleanup** | Remove k8s-gateway service from previous deployments (This unit should be removed after Sylva 1.3) | Kustomization |
 | **keycloak-add-client-scope** | configures Keycloak client-scope<br/><br/>a job to manually add a custom client-scope to sylva realm (on top of default ones) while CRD option does not yet provide good results (overrides defaults) | Kustomization |
 | **keycloak-add-realm-role** | Creates Keycloak realm role<br/><br/>a job to manually create a custom realm role to sylva realm (on top of default ones) and assigns it to sylva-admin while CRD option does not allow updates. | Kustomization |
@@ -156,6 +157,7 @@
 | **management-namespace-defs** | creates required namespaces in management cluster | Kustomization |
 | **management-sylva-units** | installs sylva-units in management cluster during bootstrap | Helm chart |
 | **metal3-pdb** | add pdb to baremetal-operator pods | Kustomization |
+| **metal3-sylva-ca-init** | injects sylva-ca certificate in metal3<br/><br/>this certificate is needed to download baremetal os images via https | Kustomization |
 | **metallb-resources** | configures metallb resources | Helm chart |
 | **mgmt-cluster-ready** | (workload cluster) this unit reflects the readiness of the mgmt cluster<br/><br/>this unit acts as simple dependency lock to prevent deploying a workload cluster before the mgmt cluster is ready | Kustomization |
 | **minio-logging-cleanup** | Recreates MinIO-logging StatefulSet to avoid upgrade failure (This unit will be removed after Sylva 1.4) | Kustomization |

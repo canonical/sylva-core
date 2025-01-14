@@ -309,6 +309,9 @@ units:
   ingress-nginx-cleanup:
     enabled: true
 
+  ingress-nginx-init:
+    enabled: false
+
   ingress-nginx:
     enabled: true
     depends_on:
