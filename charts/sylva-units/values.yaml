@@ -1069,6 +1069,32 @@ units:
             patches:
             - '{{ .Values._internal.pdb_allow_unhealthy_pod_eviction | include "preserve-type" }}'
 
+  harbor-cnpg-postgres:
+    info:
+      description: Deploy Postgres cluster for Harbor using Cloud Native PostgreSQL (CNPG)
+      maturity: stable
+      internal: true
+    depends_on:
+      cnpg-operator: true
+      namespace-defs: true
+      harbor-init: '{{ tuple . "harbor-init" | include "unit-enabled" }}'  # conditional, because in workload clusters harbor-init isn't used
+      '{{ .Values._internal.default_storage_class_unit }}': true
+    unit_templates:
+      - base-deps
+    enabled_conditions:
+      - '{{ tuple . "harbor" | include "unit-enabled" }}'
+    repo: sylva-core
+    kustomization_spec:
+      postBuild:
+        substitute:
+          HARBOR_POSTGRES_REPLICAS: '{{ .Values._internal.ha_cluster.is_ha | ternary 3 1 }}'
+          storageClass: '{{ .Values._internal.default_storage_class }}'
+          podAntiAffinityType: '{{ .Values._internal.ha_cluster.is_ha | ternary "required" "preferred" }}'
+      path: ./kustomize-units/harbor-postgres
+      wait: true
+      _components:
+        - '{{ tuple "./components/harbor-upgrade-db" (and .Values._internal.state.is_upgrade (tuple . "harbor" | include "unit-enabled")) | include "set-only-if" }}'
+
   harbor:
     info:
       description: installs Harbor
@@ -1081,6 +1107,7 @@ units:
       harbor-init: '{{ tuple . "harbor-init" | include "unit-enabled" }}'
       '{{ .Values._internal.default_storage_class_unit }}': true
       harbor-postgres: true
+      harbor-cnpg-postgres: true
     annotations:
       sylvactl/readyMessage: "Harbor UI can be reached at https://{{ .Values.external_hostnames.harbor }} ({{ .Values.external_hostnames.harbor }} must resolve to {{ .Values.display_external_ip }})"
     helm_repo_url: https://helm.goharbor.io
