@@ -461,6 +461,8 @@ units:
                   Role: admin
                   username: admin
                   Password: {{ .Values._internal.neuvector_admin_password }}
+              fedinitcfg.yaml: |
+                cluster_name: {{ .Values.cluster.name }}
 
 
   thanos-credentials-secret:
