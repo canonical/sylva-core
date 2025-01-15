@@ -8,7 +8,7 @@ spec:
   # It is possible to leverage an external authority by referring a vault-issuer or an acme-issuer.
   # In this case, configure the issuer according to the spec of the external authority and update issuerRef below
   issuerRef:
-    name: ca-issuer
+    name: certificate-issuer
     kind: ClusterIssuer
   commonName: ${OS_IMAGE_SERVER_DNS}
   duration: 2160h # 90d
