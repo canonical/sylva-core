@@ -7030,7 +7030,7 @@ cluster:
   images:
     kube_vip:
       repository: ghcr.io/kube-vip/kube-vip
-      tag: "v0.8.8"
+      tag: "v0.8.9"
 
   # Nodes number for control-plane
   control_plane_replicas: 3
