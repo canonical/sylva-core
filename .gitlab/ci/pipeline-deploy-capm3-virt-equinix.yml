@@ -9,6 +9,10 @@ include:
 variables:
   EQUINIX_RUNNER_PLAN: "m3.large.x86"
 
+create-runner:
+  variables:
+    RUNNER_AAS_TARGET_REF: test
+
 # Default tag will be used for all deployments/updates jobs
 default:
   tags:
