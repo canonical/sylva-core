@@ -2701,6 +2701,52 @@ units:
       _components:
         - '{{ tuple "components/ceph-csi-cephfs" (tuple . "ceph-csi-cephfs" | include "unit-enabled") | include "set-only-if" }}'
 
+  metal3-additionalcert-init:
+    info:
+      description: creates the tls-ca-additional certificate in metal3-system namespace, from the os-image-server-tls secret
+      internal: true
+    unit_templates:
+    - base-deps
+    - kube-job
+    enabled_conditions:
+    - '{{ tuple . "metal3" | include "unit-enabled" }}'
+    - '{{ tuple . "os-image-server" | include "unit-enabled" }}'
+    depends_on:
+      namespace-defs: true
+      os-image-server-init: true
+    kustomization_spec:
+      targetNamespace: metal3-system
+      _patches:
+      - target:
+          kind: ConfigMap
+          labelSelector: kube-job=script
+        patch: |
+          - op: replace
+            path: /data/kube-job.sh
+            value: |
+              #!/bin/bash
+              set -e
+
+              # Wait for the os-image-server-tls secret to exist in the metal3-system namespace
+              until kubectl get secret os-image-server-tls -n metal3-system &> /dev/null; do
+                echo "Waiting for os-image-server-tls secret to be created..."
+                sleep 5
+              done
+              # Fetch the ca.crt from the os-image-server-tls secret in os-images namespace
+              CA_CERT=$(kubectl get secret os-image-server-tls -n metal3-system -o jsonpath='{.data.ca\.crt}')
+
+              # Create or update the tls-ca-additional secret in the metal3-system namespace
+              kubectl apply -f - <<EOF
+              apiVersion: v1
+              kind: Secret
+              metadata:
+                name: tls-ca-additional
+                namespace: metal3-system
+              type: Opaque
+              data:
+                ca-additional.crt: $CA_CERT
+              EOF
+
   metal3:
     info:
       description: installs SUSE-maintained Metal3 operator
@@ -2709,6 +2755,7 @@ units:
     unit_templates:
     - base-deps
     depends_on:
+      metal3-additionalcert-init: '{{ tuple . "metal3-additionalcert-init" | include "unit-enabled" }}'
       namespace-defs: true
       cert-manager: true
       '{{ .Values._internal.default_storage_class_unit }}': true
