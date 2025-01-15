@@ -30,14 +30,14 @@ spec:
       context:
         - name: configMapData
           apiCall:
-            urlPath: "/api/v1/namespaces/{{ request.namespace }}/configmaps/neuvector-federation-{{ request.namespace }}"  # Utilisation de l'interpolation
+            urlPath: "/api/v1/namespaces/{{ request.object.metadata.namespace }}/configmaps/neuvector-federation-{{ request.namespace }}"  # Utilisation de l'interpolation
             jmesPath: "data.fedinitcfg.yaml"  # Récupère les données du ConfigMap
       mutate:
         targets:
           - apiVersion: helm.toolkit.fluxcd.io/v2
             kind: HelmRelease
             name: neuvector
-            namespace: "{{ request.namespace }}"
+            namespace: "{{ request.object.metadata.namespace }}"
         patchesJson6902: |-
           - op: add
             path: /spec/values/controller/configmap/data/fedinitcfg.yaml
