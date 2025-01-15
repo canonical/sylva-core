@@ -38,13 +38,15 @@ spec:
             kind: HelmRelease
             name: neuvector
             namespace: "{{ request.namespace }}"
-        patchesJson6902: |-
-          - op: add
-            path: /spec/values/controller/configmap/data/fedinitcfg.yaml
-            value: {{ configMapData | toJson }}  # Injecte les données du ConfigMap
-          - op: add
-            path: /spec/metadata/annotations/reconcile.fluxcd.io~1requestedAt
-            value: "{{ time_now_utc() }}"
-          - op: add
-            path: /spec/metadata/annotations/kyverno.reconcile-neuvector-helmrelease~1requestedAt
-            value: "{{ time_now_utc() }}"
+        patchStrategicMerge:
+          metadata:
+            annotations:
+              reconcile.fluxcd.io/requestedAt: "{{ time_now_utc() }}"
+              kyverno.reconcile-neuvector-helmrelease/requestedAt: "{{ time_now_utc() }}"
+          spec:
+            values:
+              controller:
+                configmap:
+                  data:
+                    fedinitcfg.yaml: |
+                      {{ configMapData | toJson }}
