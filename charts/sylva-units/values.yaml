@@ -51,7 +51,8 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
     spec:
       url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-capi-cluster.git
       ref:
-        tag: 0.7.0
+        #tag: 0.7.0
+        branch: dg/add-os-image-server-tls
 
   sync-openstack-images:
     kind: GitRepository
@@ -2768,11 +2769,7 @@ units:
       chart:
         spec:
           chart: metal3
-<<<<<<< HEAD
           version: 0.9.3
-=======
-          version: 0.9.0
->>>>>>> efd9d719d (Add Kyverno policy and Metal3 parameters)
       timeout: 30m
       targetNamespace: metal3-system
       values:
