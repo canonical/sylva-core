@@ -5603,6 +5603,33 @@ units:
           name: os-images-info
           namespace: '{{ .Release.Namespace }}'
 
+  os-image-server-init:
+    info:
+      description: sets up os-images namespace and the certificate for TLS integration
+      internal: true
+    enabled_conditions:
+      - '{{ tuple . "metal3" | include "unit-enabled" }}'
+      - '{{ tuple . "os-image-server" | include "unit-enabled" }}'
+    unit_templates:
+    - base-deps
+    depends_on:
+      namespace-defs: true
+      sylva-ca: true
+      kyverno-policies: true
+    repo: sylva-core
+    kustomization_spec:
+      path: ./kustomize-units/os-image-server-init
+      postBuild:
+        substitute:
+          SERVICE: os-image-server
+          OS_IMAGE_SERVER_DNS: "{{ .Values.external_hostnames.os_image_server }}"
+          OS_IMAGE_SERVER_IP: "{{ .Values.display_external_ip }}"
+      healthChecks:
+        - apiVersion: v1
+          kind: Secret
+          name: os-image-server-tls
+          namespace: os-images
+
   os-image-server:
     info:
       description: >
@@ -5617,6 +5644,7 @@ units:
       ingress-nginx: '{{ tuple . "ingress-nginx" | include "unit-enabled" }}'
       '{{ .Values._internal.default_storage_class_unit }}': true
       os-images-info: true
+      os-image-server-init: '{{ tuple . "os-image-server-init" | include "unit-enabled" }}'
     repo: os-image-server
     annotations:
       sylvactl/readyMessage: |
@@ -5664,8 +5692,12 @@ units:
               type: RuntimeDefault
         ingress:
           className: nginx
+          tls:
+            - secretName: os-image-server-tls
+              hosts:
+                - "{{ .Values.external_hostnames.os_image_server }}"
           hosts:
-            - host: '{{ .Values.external_hostnames.os_image_server }}'
+            - host: "{{ .Values.external_hostnames.os_image_server }}"
         osImagePersistenceDefaults:
           enabled: true
           size: '{{ .Values.os_images_default_download_storage_space }}'
@@ -8019,7 +8051,7 @@ external_hostnames:
   flux: 'flux.{{ .Values.cluster_domain }}'
   neuvector: 'neuvector.{{ .Values.cluster_domain }}'
   harbor: 'harbor.{{ .Values.cluster_domain }}'
-  os_image_server: ''
+  os_image_server: 'images.{{ .Values.cluster_domain }}'
   gitea: 'gitea.{{ .Values.cluster_domain }}'
   kunai: 'kunai.{{ .Values.cluster_domain }}'
   minio_operator_console: 'minio-operator-console.{{ .Values.cluster_domain }}'
