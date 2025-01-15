@@ -22,6 +22,7 @@ variables:
   DEPLOY_WORKLOAD_CLUSTER: "true"   # Controls whether workload cluster deploys
   UPDATE_MGMT_CLUSTER: "true"       # Controls whether management cluster updates
   UPDATE_WORKLOAD_CLUSTER: "true"   # Controls whether workload cluster updates
+  DELETE_WORKLOAD_CLUSTER: "true"   # Controls whether workload cluster deletion
 
 default:
   tags:
@@ -127,5 +128,5 @@ delete-workload-cluster:
   extends:
     - .delete-workload
   rules:
-    - if: $DEPLOY_WORKLOAD_CLUSTER == "true"
+    - if: $DEPLOY_WORKLOAD_CLUSTER == "true" && $DELETE_WORKLOAD_CLUSTER == "true"
       when: always
