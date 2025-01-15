@@ -1530,7 +1530,7 @@ units:
                 labels:
                   sylva.io/neuvector-workload-config: "true"
               data:
-                fedinitcfg.yaml: |
+                fedinitcfg: |
                   cluster_name: {{ .Values.cluster.name }}
                   primary_rest_info:
                     server: {{ .Values._internal.mgmt_neuvector_federation_master }}
