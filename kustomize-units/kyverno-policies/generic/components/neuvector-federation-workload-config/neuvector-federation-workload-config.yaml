@@ -30,7 +30,7 @@ spec:
       context:
         - name: configMapData
           apiCall:
-            urlPath: "/api/v1/namespaces/{{ request.object.metadata.namespace }}/configmaps/neuvector-federation-{{ request.namespace }}"  # Utilisation de l'interpolation
+            urlPath: "/api/v1/namespaces/{{ request.object.metadata.namespace }}/configmaps/neuvector-federation-{{ request.object.metadata.namespace }}"  # Utilisation de l'interpolation
             jmesPath: "data.fedinitcfg.yaml"  # Récupère les données du ConfigMap
       mutate:
         targets:
