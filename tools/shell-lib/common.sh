@@ -414,14 +414,14 @@ function fetch_ingress_service_types() {
     api_ingresses=()
 
     # Get all ingress resources and process them
-    for i in $(kubectl get ingress -A | sed "s/[ \t]\+/|/gi" | grep -v NAMESPACE); do
+    for i in $(kubectl --kubeconfig management-cluster-kubeconfig get ingress -A | sed "s/[ \t]\+/|/gi" | grep -v NAMESPACE); do
         # Extract the namespace and ingress name
         namespace=$(echo "$i" | cut -d'|' -f1)
         ingress_name=$(echo "$i" | cut -d'|' -f2)
         ingress_host=$(echo "$i" | cut -d'|' -f4)
 
         # Extract the unit name using labels from the ingress resource
-        unit_name=$(kubectl get ingress "$ingress_name" -n "$namespace" -o yaml | yq '.metadata.labels."helm.toolkit.fluxcd.io/name" //
+        unit_name=$(kubectl --kubeconfig management-cluster-kubeconfig get ingress "$ingress_name" -n "$namespace" -o yaml | yq '.metadata.labels."helm.toolkit.fluxcd.io/name" //
             .metadata.labels."kustomize.toolkit.fluxcd.io/name" //
             .metadata.labels."app.kubernetes.io/name"')
 
