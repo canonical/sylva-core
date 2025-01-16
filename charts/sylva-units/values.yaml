@@ -1470,80 +1470,16 @@ units:
     depends_on:
       neuvector: true
     kustomization_spec:
+      path: ./kustomize-units/neuvector-federation-workload-config
       targetNamespace: neuvector
-      _patches:
-      - target:
-          kind: Job
-        patch: |
-          - op: replace
-            path: /spec/backoffLimit
-            value: 15
-      - target:
-          kind: ConfigMap
-          labelSelector: kube-job=script
-        patch: |
-          - op: replace
-            path: /data/kube-job.sh
-            value: |
-              #!/bin/bash
+      postBuild:
+        substitute:
+          CONFIGMAP_NAME: 'neuvector-federation-{{ .Values.cluster_name}}'
+          CLUSTER_NAME: '{{ .Values.cluster_name}}'
+          MGMT_NEUVECTOR_FEDERATION_MASTER_HOSTNAME: '{{ .Values._internal.mgmt_neuvector_federation_master }}'
+          NEUVECTOR_FEDERATION_MANAGED_HOSTNAME: '{{ .Values.external_hostnames.neuvector_federation_managed }}'
+          NEUVECTOR_JOIN_TOKEN: '{{ .Values._internal.neuvector_join_token }}'
 
-              set -e
-              set -o pipefail
-
-              secret_federation_token_file=/tmp/neuvector-federation.yaml
-
-              NEUVECTOR_BASE_URL="https://neuvector-svc-controller-api.neuvector.svc.cluster.local:10443"
-              NEUVECTOR_USERNAME="admin"
-
-              echo "-- Retrieve Neuvector admin initial password"
-              NEUVECTOR_PASSWORD=`kubectl -n neuvector get secret neuvector-init -o jsonpath='{.data.userinitcfg\.yaml}' | base64 -d | yq eval '.users[0].Password'`
-
-              echo "-- Retrieve Neuvector access token"
-              ACCESS_TOKEN=$(curl -k -s -X POST \
-                  -H "Content-Type: application/json" \
-                  -d '{"password": {"username":"'${NEUVECTOR_USERNAME}'", "password":"'${NEUVECTOR_PASSWORD}'"}}' \
-                  ${NEUVECTOR_BASE_URL}/v1/auth | jq -r '.token.token')
-
-              if [ -z "${ACCESS_TOKEN-unset}" ]; then
-                  echo "ACCESS_TOKEN is set to the empty string, will try again"
-                  exit 1
-              fi
-
-              echo "-- Generate federation token"
-              FEDERATION_TOKEN=$(curl -s -k -H 'Content-Type: application/json' -H "X-Auth-Token: ${ACCESS_TOKEN}" \
-                  ${NEUVECTOR_BASE_URL}/v1/fed/join_token | jq -r .join_token)
-
-              if [ -z "${FEDERATION_TOKEN-unset}" ]; then
-                  echo "FEDERATION_TOKEN is set to the empty string, will try again"
-                  exit 1
-              fi
-
-              # Create configmap
-              echo "Creating neuvector-federation configmap"
-              configmap_file=/tmp/fedinitcfg.yaml
-
-              cat <<EOF >> $configmap_file
-              apiVersion: v1
-              kind: ConfigMap
-              metadata:
-                name: neuvector-federation-{{ .Values.cluster.name }}
-                labels:
-                  sylva.io/neuvector-workload-config: "true"
-              data:
-                fedinitcfg: |
-                  cluster_name: {{ .Values.cluster.name }}
-                  primary_rest_info:
-                    server: {{ .Values._internal.mgmt_neuvector_federation_master }}
-                    port: 443
-                  managed_rest_info:
-                    server: {{ .Values.external_hostnames.neuvector_federation_managed }}
-                    port: 443
-                  join_token: $FEDERATION_TOKEN
-              EOF
-
-              kubectl apply -f $configmap_file
-
-              echo "-- All done"
 
   neuvector:
     info:
@@ -2226,7 +2162,6 @@ units:
         - '{{ tuple "components/check-images" .Values.security.upstream_images_signature.verify | include "set-only-if" }}'
         - '{{ tuple "components/mutate-job-security-context" (tuple . "rancher" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/neuvector-policies" (tuple . "neuvector" | include "unit-enabled") | include "set-only-if" }}'
-        - '{{ tuple "components/neuvector-federation-workload-config" (tuple . "neuvector" | include "unit-enabled") | include "set-only-if" }}'
         - ../exclude-kube-system  # needs to be last (needed for components above that use sylva.org/kyverno-exclude-kube-system annotation)
 
   kyverno-policies-ready:
