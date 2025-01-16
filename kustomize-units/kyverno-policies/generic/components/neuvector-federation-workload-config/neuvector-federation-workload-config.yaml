@@ -29,9 +29,9 @@ spec:
                 - sylva-system
       context:
         - name: configMapData
-          apiCall:
-            urlPath: "/api/v1/namespaces/neuvector/configmaps/neuvector-federation-{{ request.namespace }}"  # Utilisation de l'interpolation
-            jmesPath: "data.fedinitcfg"  # Récupère les données du ConfigMap
+          configMap:
+            name: "neuvector-federation-{{ request.namespace }}"
+            namespace: neuvector
       mutate:
         targets:
           - apiVersion: helm.toolkit.fluxcd.io/v2
@@ -49,4 +49,4 @@ spec:
                 configmap:
                   data:
                     fedinitcfg.yaml: |
-                      {{ configMapData | toJson }}
+                      {{ configMapData.data.fedinitcfg }}
