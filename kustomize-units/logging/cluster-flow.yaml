@@ -8,7 +8,7 @@ spec:
   filters:
     - grep:
         exclude:
-          - key: message
+          - key: log
             pattern: "^(E|W|I|D)\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}.*"
           # - key: MESSAGE
           #   pattern: "^time=.*"
