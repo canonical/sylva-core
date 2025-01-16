@@ -25,7 +25,17 @@ DEFAULT_MR_DESCRIPTION = f"{BASE_DIR}/.gitlab/merge_request_templates/Default.md
 ALLOWED_INFRA = os.getenv("ALLOWED_DEPLOYMENT_INFRA", "capd,capo,capm3")
 ALLOWED_SCENARIOS = os.getenv(
     "ALLOWED_DEPLOYMENT_SCENARIO",
-    "simple-update,rolling-update,mgmt-rolling-update,k8s-upgrade,sylva-upgrade,sylva-upgrade-from-1.1.1,nightly,preview"
+    ",".join([
+        "simple-update",
+        "mgmt-rolling-update",
+        "preview",
+        "nightly",
+        "k8s-upgrade",
+        "sylva-upgrade",
+        "sylva-upgrade-from-1.1.1",
+        "sylva-upgrade-from-1.2.1",
+        "sylva-upgrade-from-1.3.1",
+    ])
 )
 
 # Max number of pipelines to be allowed for a MR
