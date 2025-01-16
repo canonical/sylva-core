@@ -25,6 +25,7 @@ spec:
           names:
           - metal3machines.infrastructure.cluster.x-k8s.io
     mutate:
+      mutateExistingOnPolicyUpdate: true
       targets:
       - apiVersion: helm.toolkit.fluxcd.io/v2
         kind: HelmRelease
