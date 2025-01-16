@@ -3,3 +3,4 @@ kind: Kustomization
 
 resources:
 - kyverno-global-network-set-policy.yaml
+- restart-kyverno-after-capo-crds.yaml
