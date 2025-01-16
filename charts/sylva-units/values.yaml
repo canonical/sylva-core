@@ -65,7 +65,7 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
     spec:
       url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sync-openstack-images.git
       ref:
-        branch: os-images-from-values
+        branch: os-image-selectors
 
   devnull:
     kind: GitRepository
@@ -6957,6 +6957,8 @@ units:
               .Values.proxies
             ) | include "interpret-and-hash"
             }}
+          os_image_selectors:
+            - os: '.*'  # for now a single dummy selector matching all OS images
     helm_secret_values:
       openstack_clouds_yaml: '{{ .Values.cluster.capo.clouds_yaml | include "preserve-type" }}'
 
