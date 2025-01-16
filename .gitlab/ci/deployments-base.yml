@@ -1,0 +1,202 @@
+# ====================================================================================
+#
+# /!\ This file is not used directly by Gitlab CI.
+#
+# It is processed by generate_deployment_job.py (called from 'prepare-deployment-jobs' job)
+# which produces gitlab-ci-deployment-jobs-defs.yaml by adding job definitions, that file
+# is then dynamically included by the 'deployment-jobs' job.
+#
+# ====================================================================================
+
+workflow:
+  rules:
+    - when: always
+
+stages:
+  - build
+  - deploy
+
+include:
+  - local: .gitlab/ci/common.yml
+  - local: .gitlab/ci/deployments-build-oci-artifacts.yml
+
+variables:
+
+  # Used for cross repo pipelines
+  REMOTE_VALUES: ""
+
+  # Timeout configuration
+  APPLY_WATCH_TIMEOUT_MIN:
+    value: "20"
+    description: "apply.sh timeout"
+  MGMT_WATCH_TIMEOUT_MIN:
+    value: "30"
+    description: "bootstrap.sh timeout"
+  BOOTSTRAP_WATCH_TIMEOUT_MIN:
+    value: "45"
+    description: "bootstrap.sh timeout for bootstrap cluster"
+  APPLY_WC_WATCH_TIMEOUT_MIN:
+    value: "30"
+    description: "apply-workload-cluster.sh timeout"
+
+  # Management cluster relative variables
+  MGMT_ADDITIONAL_VALUES: ""  # Path to a file for customizing the values used during all management cluster stages
+  MGMT_INITIAL_ADDITIONAL_VALUES: "" # Path to a file for customizing the values used during the management cluster deployment stage
+  MGMT_UPDATE_ADDITIONAL_VALUES: "simple-update.yml" # Path to a file for customizing the values used during the management cluster update stage
+  MGMT_INITIAL_REVISION: ""  # Git revision used for the management cluster deployment
+  MGMT_UPDATE_REVISION: ""  # Git revision used for the management cluster update
+
+  # Workload cluster relative variables
+  WC_ADDITIONAL_VALUES: ""  # Path to a file for customizing the values used during all workload cluster stages
+  WC_INITIAL_ADDITIONAL_VALUES: ""  # Path to a file for customizing the values used during the workload cluster deployment stage
+  WC_UPDATE_ADDITIONAL_VALUES: "simple-update.yml"  # Path to a file for customizing the values used during the workload cluster update stage
+  WC_INITIAL_REVISION: ""  # Git revision used for the workload cluster deployment
+  WC_UPDATE_REVISION: ""  # Git revision used for the workload cluster update"
+
+  # Repo used to store CI values
+  SYLVA_CI_VALUES_REPO: https://gitlab.com/sylva-projects/sylva-elements/ci-tooling/ci-deployment-values.git
+  SYLVA_CI_VALUES_FOLDER: environment-values/sylva-core-ci-values
+  # Reference to checkout for CI values, by default we use the same for all stages but it can be overriden
+  # eg: if we have a breaking change during an upgrade we could use a different branch for the deployment and update
+  SYLVA_CI_VALUES_REVISION: 0.4.27
+
+  # Use CI values for specific version
+  # If not specified $GIT_REVISION if set is used or "current" otherwise
+  SYLVA_CI_VERSIONNED_CI_VALUES_FOLDER: ""
+
+.default-deploy-config:
+  stage: deploy
+  trigger:
+    forward:
+      pipeline_variables: true  # required to pass variables from upstream to downstream pipelines
+  variables:
+    WORKFLOW_NAME: $CI_JOB_NAME  # Used to pass parent JOB_NAME to the child pipelines
+  needs: []
+
+.wait-publish-jobs:
+  needs:
+    - job: push-helm-artifacts
+    - job: publish-kustomize-units-artifact
+    - job: publish-sylva-units-artifact
+
+
+# Scenarios definitions
+#################################
+
+.scenario_simple-update:
+  variables:
+    MGMT_UPDATE_ADDITIONAL_VALUES: "simple-update.yml"
+    WC_UPDATE_ADDITIONAL_VALUES: "simple-update.yml"
+
+.scenario_rolling-update:
+  variables:
+    MGMT_WATCH_TIMEOUT_MIN: "45"
+    APPLY_WATCH_TIMEOUT_MIN: "80"
+    APPLY_WC_WATCH_TIMEOUT_MIN: "80"
+    MGMT_UPDATE_ADDITIONAL_VALUES: "dummy-rolling-update-trigger.yml"
+    WC_UPDATE_ADDITIONAL_VALUES: "dummy-rolling-update-trigger.yml"
+
+.scenario_mgmt-rolling-update:
+  variables:
+    DEPLOY_WORKLOAD_CLUSTER: "false"
+    UPDATE_WORKLOAD_CLUSTER: "false"
+    MGMT_WATCH_TIMEOUT_MIN: "45"
+    APPLY_WATCH_TIMEOUT_MIN: "80"
+    APPLY_WC_WATCH_TIMEOUT_MIN: "80"
+    MGMT_UPDATE_ADDITIONAL_VALUES: "dummy-rolling-update-trigger.yml"
+    WC_UPDATE_ADDITIONAL_VALUES: "dummy-rolling-update-trigger.yml"
+
+.scenario_k8s-upgrade:
+  variables:
+    UPDATE_MGMT_CLUSTER: "false"
+    MGMT_WATCH_TIMEOUT_MIN: "45"
+    APPLY_WATCH_TIMEOUT_MIN: "95"
+    APPLY_WC_WATCH_TIMEOUT_MIN: "95"
+    MGMT_INITIAL_ADDITIONAL_VALUES: "serve-k8s-1.29-image.yml"
+    WC_INITIAL_ADDITIONAL_VALUES: "k8s-1.29.yml"
+    WC_UPDATE_ADDITIONAL_VALUES: "k8s-1.30.yml"
+
+.scenario_nightly:  # mix mgmt-rolling-update & k8s-upgrade
+  variables:
+    MGMT_WATCH_TIMEOUT_MIN: "45"
+    APPLY_WATCH_TIMEOUT_MIN: "95"
+    APPLY_WC_WATCH_TIMEOUT_MIN: "95"
+    MGMT_INITIAL_ADDITIONAL_VALUES: "serve-k8s-1.29-image.yml"
+    MGMT_UPDATE_ADDITIONAL_VALUES: "dummy-rolling-update-trigger.yml"
+    WC_INITIAL_ADDITIONAL_VALUES: "k8s-1.29.yml"
+    WC_UPDATE_ADDITIONAL_VALUES: "k8s-1.30.yml"
+
+.scenario_sylva-upgrade:   # from 1.2.1 to current
+  variables:
+    MGMT_INITIAL_REVISION: "1.2.1"
+    MGMT_UPDATE_REVISION: "" # Use current commit
+    WC_INITIAL_REVISION: "1.2.1"
+    WC_UPDATE_REVISION: "" # Use current commit
+    # Increase default timers due to rolling upgrade
+    MGMT_WATCH_TIMEOUT_MIN: "45"
+    APPLY_WATCH_TIMEOUT_MIN: "95"
+    APPLY_WC_WATCH_TIMEOUT_MIN: "95"
+
+.scenario_sylva-upgrade-from-1.1.1:
+  variables:
+    MGMT_INITIAL_REVISION: "1.1.1-ci-tweaks"
+    MGMT_UPDATE_REVISION: "" # Use current commit
+    WC_INITIAL_REVISION: "1.1.1-ci-tweaks"
+    WC_UPDATE_REVISION: "" # Use current commit
+    # Increase default timers due to rolling upgrade
+    MGMT_WATCH_TIMEOUT_MIN: "45"
+    APPLY_WATCH_TIMEOUT_MIN: "95"
+    APPLY_WC_WATCH_TIMEOUT_MIN: "95"
+
+.scenario_sylva-upgrade-capm3-from-1.1.1:
+  variables:
+    # libvirt-metal-no-bond.yaml file is added to updates values as a temporary fix for capm3 upgrades from 1.1.1,
+    # it can be removed after next release, see https://gitlab.com/sylva-projects/sylva-core/-/issues/1581
+    MGMT_ADDITIONAL_VALUES: libvirt-metal-no-bond.yaml
+    MGMT_UPDATE_ADDITIONAL_VALUES: disable-interface-mappings-mgmt.yaml
+    WC_ADDITIONAL_VALUES: libvirt-metal-no-bond.yaml
+    WC_UPDATE_ADDITIONAL_VALUES: disable-interface-mappings-wc.yaml
+
+.scenario_preview:
+  variables:
+    PREVIEW_MGMT_CLUSTER: "true"
+    DEPLOY_MGMT_CLUSTER: "false"
+    DEPLOY_WORKLOAD_CLUSTER: "false"
+    SKIP_TESTS: "true"
+    CAPD_RUNNER_TAG: gitlab-org-docker
+
+
+# CAPD ---------------------------------------------------
+
+.capd:
+  extends: .default-deploy-config
+  trigger:
+    include: .gitlab/ci/pipeline-deploy-capd.yml
+    strategy: depend
+  variables:
+    DEPLOY_MGMT_CLUSTER: "true"
+    UPDATE_MGMT_CLUSTER: "false"
+    DEPLOY_WORKLOAD_CLUSTER: "false"
+    SKIP_TESTS: "true"
+
+
+# CAPO -----------------------------------------
+
+.capo:
+  extends: [.default-deploy-config, .scenario_simple-update]
+  trigger:
+    include: .gitlab/ci/pipeline-deploy-capo.yml
+    strategy: depend
+
+
+# CAPM3 --------------------------------------------------------
+
+.capm3:
+  extends: [.default-deploy-config, .scenario_simple-update]
+  trigger:
+    include: .gitlab/ci/pipeline-deploy-capm3-virt-equinix.yml
+    strategy: depend
+  variables:
+    MGMT_WATCH_TIMEOUT_MIN: 35
+    APPLY_WATCH_TIMEOUT_MIN: 95
+    APPLY_WC_WATCH_TIMEOUT_MIN: 95
