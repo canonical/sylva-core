@@ -58,7 +58,10 @@ def get_ci_configuration_from_context():
 
     # if renovate label is set use predefined config
     if "renovate" in os.getenv("CI_MERGE_REQUEST_LABELS", "").split(","):
-        retrieved_config = get_predefined_ci_config("Renovate")
+        if "capo" in os.getenv("CI_MERGE_REQUEST_LABELS", "").split(","):
+            retrieved_config = get_predefined_ci_config("Renovate Capo")
+        else:
+            retrieved_config = get_predefined_ci_config("Renovate")
         if not retrieved_config:
             logging.error("Unable to find deployment flavors for renovate")
             sys.exit(1)
