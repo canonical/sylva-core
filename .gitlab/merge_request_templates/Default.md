@@ -23,7 +23,7 @@ Below you can choose test deployment variants to run in this MR's CI.
 | 🚀  | **Bootstrap Provider**   | `kubeadm` (alias `kadm`), `rke2`                                          |
 | 🐧  | **Node OS**              | `ubuntu`, `suse`                                                          |
 | 🛠  | **Deployment Options**    | `light-deploy`, `oci`, `ha`, `misc`                                       |
-| 🎬  | **Pipeline Scenarios**   | `rolling-update`, `mgmt-rolling-update`, `k8s-upgrade`, `sylva-upgrade`, `sylva-upgrade-from-x.x.X`, `simple-update`, `preview`, `nightly` |
+| 🎬  | **Pipeline Scenarios**   | `rolling-update`, `mgmt-rolling-update`, `k8s-upgrade`, `sylva-upgrade`, `simple-update`, `preview`, `nightly` |
 
 <!-- DEPLOYMENT FLAVOR DEFINITION START -->
 

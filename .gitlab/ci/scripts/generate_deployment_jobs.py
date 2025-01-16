@@ -25,8 +25,36 @@ DEFAULT_MR_DESCRIPTION = f"{BASE_DIR}/.gitlab/merge_request_templates/Default.md
 ALLOWED_INFRA = os.getenv("ALLOWED_DEPLOYMENT_INFRA", "capd,capo,capm3")
 ALLOWED_SCENARIOS = os.getenv(
     "ALLOWED_DEPLOYMENT_SCENARIO",
-    "simple-update,rolling-update,mgmt-rolling-update,k8s-upgrade,sylva-upgrade,sylva-upgrade-from-1.1.1,nightly,preview"
+    "simple-update,rolling-update,mgmt-rolling-update,k8s-upgrade,sylva-upgrade,nightly,preview"
 )
+
+# map for variables_for_sylva_upgrade
+#
+# it contains rules to determine which initial_version to use
+#
+# target_reference is "what we'll uprgade to":
+# - for an MR pipeline, the target branch
+# - for a scheduled pipeline, typically the branch under test
+# - for a tag pipeline, the tag
+#
+# the rules below match the reference with a regex
+# the first matched rule wins
+PREVIOUS_MINOR_MAP_RULES = [
+    # when testing upgrades to main or to 1.4.x ...
+    # use 1.3.x as the initial version
+    {"target_reference": "(main|1[.]4[.])",
+     "initial_version": "1.3.1"},
+
+    # when testing upgrades to release-1.3 or to 1.3.x ...
+    # use 1.2.x as the initial version
+    {"target_reference": "(release-1.3|1[.]3[.])",
+     "initial_version": "1.2.1"},
+
+    # when testing upgrades to 1.2.x ...
+    # use 1.1.1 as the initial version
+    {"target_reference": "1[.]2[.]",
+     "initial_version": "1.1.1-ci-tweaks"},
+]
 
 # Max number of pipelines to be allowed for a MR
 DEPLOY_CHILD_PIPELINE_COUNT_LIMIT = int(os.getenv("DEPLOY_CHILD_PIPELINE_COUNT_LIMIT", "9"))
@@ -121,6 +149,35 @@ def get_default_ci_config():
         description=default_mr_description, fallback=False
     )
 
+def variables_for_sylva_upgrade():
+    # differentiate between MR and manual test
+
+    target_reference = os.environ("CI_COMMIT_BRANCH")  # CI_COMMIT_REF_NAME ??
+    if target_reference:
+        logging.info(f"sylva-upgrade: using CI_COMMIT_BRANCH as target_reference ({target_reference})")
+    else:   # if commit_branch not set, we're probably on an MR pipeline
+        target_reference = os.environ("CI_MERGE_REQUEST_TARGET_BRANCH_NAME")
+        if target_reference:
+            logging.info(f"sylva-upgrade: using CI_MERGE_REQUEST_TARGET_BRANCH_NAME as target_reference ({target_reference})")
+        else:
+            raise Exception("sylva-upgrade: cannot determine target_reference from which to determine initial revision")
+
+    initial_revision = None
+    for rule in PREVIOUS_MINOR_MAP_RULES:
+        if re.match(rule["reference"], target_reference):
+            initial_revision = rule["initial_version"]
+            break
+
+    if not initial_revision:
+        raise Exception(f"sylva-upgrade: unable to find a rule for upgrading from reference {target_reference}")
+
+    logging.info(f"sylva-upgrade: will use {initial_revision} as initial sylva-core revision")
+    return {
+        "MGMT_INITIAL_REVISION": initial_revision,
+        "MGMT_UPDATE_REVISION": "",
+        "WC_INITIAL_REVISION": initial_revision,
+        "WC_UPDATE_REVISION": "",
+    }
 
 def generate_ci_job_struct(job_names):
     ci_jobs = {}
@@ -139,10 +196,15 @@ def generate_ci_job_struct(job_names):
         scenario = re.compile(r"🎬([\w\d\.-]+)").findall(job)
         if scenario:
             if scenario[0] in ALLOWED_SCENARIOS.split(","):
+                if scenario[0] == "sylva-upgrade":
+                    ci_jobs[job]["variables"].update(variables_for_sylva_upgrade())
+
                 ci_jobs[job]["extends"].append(f".scenario_{scenario[0]}")
 
                 # Special temporary exception for capm3 sylva-upgrade from 1.1.1
-                if scenario[0] == "sylva-upgrade-from-1.1.1" and infra[0] in ["capm3", "capm3-virt"]:
+                if (scenario[0] == "sylva-upgrade" and
+                       infra[0] in ["capm3", "capm3-virt"] and
+                       "1.1.1" in ci_jobs[job]["variables"].get("MGMT_INITIAL_REVISION","")):
                     ci_jobs[job]["extends"].append(".scenario_sylva-upgrade-capm3-from-1.1.1")
 
             else:
