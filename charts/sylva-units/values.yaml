@@ -1463,7 +1463,6 @@ units:
       internal: true
     unit_templates:
     - base-deps
-    - kube-job
     enabled_conditions:
     - '{{ tuple . "neuvector" | include "unit-enabled" }}'
     repo: sylva-core
@@ -1474,8 +1473,8 @@ units:
       targetNamespace: neuvector
       postBuild:
         substitute:
-          CONFIGMAP_NAME: 'neuvector-federation-{{ .Values.cluster_name}}'
-          CLUSTER_NAME: '{{ .Values.cluster_name}}'
+          CONFIGMAP_NAME: 'neuvector-federation-{{ .Values.cluster.name }}'
+          CLUSTER_NAME: '{{ .Values.cluster.name }}'
           MGMT_NEUVECTOR_FEDERATION_MASTER_HOSTNAME: '{{ .Values._internal.mgmt_neuvector_federation_master }}'
           NEUVECTOR_FEDERATION_MANAGED_HOSTNAME: '{{ .Values.external_hostnames.neuvector_federation_managed }}'
           NEUVECTOR_JOIN_TOKEN: '{{ .Values._internal.neuvector_join_token }}'
