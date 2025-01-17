@@ -162,10 +162,10 @@ units:
     - kustomization-deployed-on-mgmt-cluster
     - kube-job
 
-  get-openstack-images:
+  sync-openstack-images:
     enabled: true
     unit_templates:
-    - kustomization-deployed-on-mgmt-cluster
+    - helmrelease-deployed-on-mgmt-cluster
 
   cluster-node-deletion-timeout-fix:
     enabled: true
