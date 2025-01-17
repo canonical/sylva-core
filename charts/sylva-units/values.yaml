@@ -8824,8 +8824,10 @@ _internal:
   calico_mtu: |-
     {{- $mtu := .Values.cluster.capm3.network_interfaces.mtu | int -}}
     {{- $encapsulation_header := dict -}}
-    {{- $_ := set $encapsulation_header "ipinip" 20 -}}
+    {{- $_ := set $encapsulation_header "ipip" 20 -}}
+    {{- $_ := set $encapsulation_header "ipipcrosssubnet" 20 -}}
     {{- $_ := set $encapsulation_header "vxlan" 50 -}}
+    {{- $_ := set $encapsulation_header "vxlancrosssubnet" 50 -}}
     {{- $_ := set $encapsulation_header "wireguard" 60 -}}
     {{- $max_overhead := 0 -}}
     {{- $ippool_encapsulation := (index .Values.calico_helm_values.installation.calicoNetwork.ipPools 0).encapsulation | lower -}}
@@ -8845,7 +8847,6 @@ _internal:
       {{- $mtu = sub $mtu $max_overhead -}}
     {{- end }}
     {{- $mtu | include "preserve-type" -}}
-
 
 shared_workload_clusters_values:
   ntp: '{{ .Values.ntp | include "set-if-defined" }}'
