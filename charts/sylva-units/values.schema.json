@@ -6472,7 +6472,7 @@
                           "anyOf": [
                             {
                               "type": "string",
-                              "pattern": "[jammy|15.5]"
+                              "pattern": "[jammy|noble|15.5|15.6]"
                             },
                             {
                               "$ref": "#/$defs/string-with-gotpl"
