@@ -421,8 +421,6 @@ _internal:
 
   calico_readiness_unit: '{{ .Values._internal.state.is_upgrade | ternary "calico-ready" "calico" }}'
 
-  neuvector_join_token: '{{ include "internalPersistentRandomPasswd" (tuple . "neuvector_join_token") }}'
-
   monitoring:
     conditionals:
       # Always deploy management cluster Longhorn resources, so that the dashboard
