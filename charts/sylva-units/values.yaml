@@ -6979,19 +6979,18 @@ units:
                   enabled:
                     - RemoveDuplicates
                     - LowNodeUtilization
-      rbac:
-        create: true
-      serviceAccount:
-        create: true
-        name: descheduler
-      extraClusterRoleRules:
-        - apiGroups:
-            - policy
-          resources:
-            - poddisruptionbudgets
-          verbs:
-            - list
-            - watch
+   _postRenderers:
+     - kustomize:
+         patches:
+           - target:
+               kind: ClusterRole
+             patch: |
+               - op: add
+                 path: /rules/-
+                 value:
+                   verbs: ["get", "watch", "list"]
+                   apiGroups: ["policy"]
+                   resources: ["poddisruptionbudgets"]
 
   workload-team-defs:
     info:
