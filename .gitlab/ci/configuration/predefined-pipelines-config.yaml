@@ -3,10 +3,10 @@
 # Changes made here will impact the next run of corresponding schedule pipeline after merge in main branch
 ---
 Nightly - CAPD:
-  - ☁capd 🚀rke2 🐧ubuntu 🛠oci,light
-  - ☁capd 🚀kadm 🐧ubuntu 🛠oci,light
-  - ☁capd 🚀rke2 🐧ubuntu 🛠light
-  - ☁capd 🚀kadm 🐧ubuntu 🛠light
+  - ☁capd 🚀rke2 🐧ubuntu 🛠oci,light-deploy
+  - ☁capd 🚀kadm 🐧ubuntu 🛠oci,light-deploy
+  - ☁capd 🚀rke2 🐧ubuntu light-deploy
+  - ☁capd 🚀kadm 🐧ubuntu light-deploy
 
 Nightly - CAPO Kubeadm:
   - ☁capo 🚀kadm 🐧suse 🛠ha 🎬nightly
