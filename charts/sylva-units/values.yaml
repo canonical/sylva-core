@@ -8817,6 +8817,33 @@ _internal:
     clusterDomain: cluster.local
     serviceCIDR: '{{ first .Values.cluster.cluster_services_cidrs }}'
 
+  calico_mtu: |-
+    {{- $mtu := .Values.cluster.capm3.network_interfaces.mtu | int -}}
+    {{- $encapsulation_header := dict -}}
+    {{- $_ := set $encapsulation_header "ipinip" 20 -}}
+    {{- $_ := set $encapsulation_header "vxlan" 50 -}}
+    {{- $_ := set $encapsulation_header "wireguard" 60 -}}
+    {{- $max_overhead := 0 -}}
+    {{- $ippool_encapsulation := .Values.caliconetwork.ippools.encapsulation | lower -}}
+    {{- $wireguard_enabled := .Values.felixConfiguration.wireguardEnabled -}}
+    {{- if $ippool_encapsulation }}
+      {{- $current_overhead := (index $encapsulation_header $ippool_encapsulation) -}}
+      {{- if gt $current_overhead $max_overhead }}
+        {{- $max_overhead = $current_overhead -}}
+      {{- end }}
+    {{- end }}
+    {{- if $wireguard_enabled }}
+      {{- $wireguard_overhead := (index $encapsulation_header "wireguard") -}}
+      {{- if gt $wireguard_overhead $max_overhead }}
+        {{- $max_overhead = $wireguard_overhead -}}
+      {{- end }}
+    {{- end }}
+    {{- if gt $max_overhead 0 }}
+      {{- $mtu = sub $mtu $max_overhead -}}
+    {{- end }}
+    {{- $mtu | include "preserve-type" -}}
+
+
 shared_workload_clusters_values:
   ntp: '{{ .Values.ntp | include "set-if-defined" }}'
   proxies: '{{ .Values.proxies | include "set-if-defined" }}'
