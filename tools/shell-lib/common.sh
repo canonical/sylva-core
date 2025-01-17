@@ -180,6 +180,8 @@ function ensure_sylva_toolbox {
 }
 ensure_sylva_toolbox
 
+SYLVACTL_VERSION=0.0.0-git-8875906f
+
 function ensure_sylvactl {
     if [[ -n ${SYLVACTL_VERSION:-} ]] && [[ ${SYLVACTL_VERSION} != $(${BASE_DIR}/bin/sylvactl version 2>&1) ]]; then
         SYLVACTL_RELEASE_NAME="sylvactl"
