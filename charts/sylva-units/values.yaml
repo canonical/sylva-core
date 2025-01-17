@@ -4232,6 +4232,8 @@ units:
           - -hash-jira-label
         existingConfigSecret: sylva-alertmanager-webhook-jiralert  # this Secret is a byproduct of the alertmanager-jiralert-config unit
         fullnameOverride: 'alertmanager-jiralert'
+        podAnnotations:
+          sylva/jiralert-config: '{{ .Values.monitoring.alertmanager.webhooks.jiralert.config | toJson | sha256sum | trunc 8 }}'
         env:
           http_proxy: '{{ .Values.monitoring.alertmanager.webhooks.jiralert.env.http_proxy | default .Values.proxies.http_proxy }}'
           https_proxy: '{{ .Values.monitoring.alertmanager.webhooks.jiralert.env.https_proxy | default .Values.proxies.https_proxy }}'
