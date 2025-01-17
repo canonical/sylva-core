@@ -8629,6 +8629,10 @@ calico_helm_values:
           (not .Values._internal.capo_calico_autodetection_method_use_canReach_vip)
         | include "set-only-if"
         }}'
+      ipPools:
+        - cidr: '{{ first .Values.cluster.cluster_pods_cidrs }}'
+          encapsulation: VXLAN
+          natOutgoing: true
     registry: UseDefault
   felixConfiguration:
     wireguardEnabled: '{{ .Values.security.calico_wireguard_enabled | include "preserve-type" }}'
