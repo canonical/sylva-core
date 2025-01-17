@@ -7703,6 +7703,8 @@ _internal:
   kubevirt_admin_user: 'admin'
   kubevirt_admin_password: '{{ include "internalPersistentRandomPasswd" (tuple . "kubevirt_admin_password") }}'
 
+  neuvector_join_token: '{{ include "internalPersistentRandomPasswd" (tuple . "neuvector_join_token") }}'
+
   default_password: '{{ include "internalPersistentRandomPasswd" (tuple . "default_password") }}'
 
   default_storage_class: >-
