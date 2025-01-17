@@ -304,6 +304,7 @@ gitleaks-custom:
   stage: gitleaks
   extends: gitleaks
   needs: []
+  interruptible: true
   before_script:
     - echo GITLEAKS_ARGS=$GITLEAKS_ARGS
     - !reference [gitleaks, before_script]
