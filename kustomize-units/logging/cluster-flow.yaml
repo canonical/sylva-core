@@ -8,7 +8,7 @@ spec:
   filters:
     - grep:
         exclude:
-          - key: log
+          - key: message
             pattern: "^(E|W|I|D)\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}.*"
           # - key: MESSAGE
           #   pattern: "^time=.*"
@@ -53,13 +53,13 @@ metadata:
 spec:
   filters:
   - parser:
-      key_name: log
+      key_name: message
       parse:
         expression: (?<level>[IWEF])(?<timestamp>\d{4} \d{2}:\d{2}:\d{2}\.\d{6})\s+(?<thread_id>\d+)\s+(?<source_file>[^:]+):(?<line_number>\d+)]\s+(?<message>.*?)(?:\s+err="(?<err>.*?)")?$
         time_format: '%m%d %T'
         time_key: timestamp
         type: regexp
-      remove_key_name_field: true
+      remove_key_name_field: false
       reserve_data: true
   globalOutputRefs:
   - loki
