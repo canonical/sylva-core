@@ -6979,6 +6979,19 @@ units:
                   enabled:
                     - RemoveDuplicates
                     - LowNodeUtilization
+      rbac:
+        create: true
+      serviceAccount:
+        create: true
+        name: descheduler
+      extraClusterRoleRules:
+        - apiGroups:
+            - policy
+          resources:
+            - poddisruptionbudgets
+          verbs:
+            - list
+            - watch
 
   workload-team-defs:
     info:
