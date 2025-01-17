@@ -7929,6 +7929,7 @@ shared_workload_clusters_values:
          {{- end -}}
        {{- end -}}'
     mgmt_neuvector_federation_master: '{{ .Values.external_hostnames.neuvector_federation_master }}'
+    neuvector_join_token: '{{ .Values._internal.neuvector_join_token }}'
 
 shared_workload_clusters_secret_values: {}
 
