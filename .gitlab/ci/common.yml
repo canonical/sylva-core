@@ -30,6 +30,7 @@ default:
   tags:
     - gitlab-org-docker
   image: $CI_IMAGE
+  interruptible: true
 
 variables:
   RUNNER_GENERATE_ARTIFACTS_METADATA: "true"
