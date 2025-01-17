@@ -8632,7 +8632,7 @@ calico_helm_values:
       ipPools:
         - cidr: '{{ first .Values.cluster.cluster_pods_cidrs }}'
           encapsulation: VXLAN
-          natOutgoing: true
+          natOutgoing: Enabled
     registry: UseDefault
   felixConfiguration:
     wireguardEnabled: '{{ .Values.security.calico_wireguard_enabled | include "preserve-type" }}'
