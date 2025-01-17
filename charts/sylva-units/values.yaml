@@ -9068,8 +9068,8 @@ _internal:
     {{- $_ := set $encapsulation_header "vxlan" 50 -}}
     {{- $_ := set $encapsulation_header "wireguard" 60 -}}
     {{- $max_overhead := 0 -}}
-    {{- $ippool_encapsulation := .Values.caliconetwork.ippools.encapsulation | lower -}}
-    {{- $wireguard_enabled := .Values.felixConfiguration.wireguardEnabled -}}
+    {{- $ippool_encapsulation := .Values.calico_helm_values.installation.calicoNetwork.ipPools[0].encapsulation | lower -}}
+    {{- $wireguard_enabled := .Values.calico_helm_values.felixConfiguration.wireguardEnabled -}}
     {{- if $ippool_encapsulation }}
       {{- $current_overhead := (index $encapsulation_header $ippool_encapsulation) -}}
       {{- if gt $current_overhead $max_overhead }}
