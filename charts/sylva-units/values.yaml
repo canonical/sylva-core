@@ -9069,14 +9069,13 @@ _internal:
     {{- $_ := set $encapsulation_header "wireguard" 60 -}}
     {{- $max_overhead := 0 -}}
     {{- $ippool_encapsulation := (index .Values.calico_helm_values.installation.calicoNetwork.ipPools 0).encapsulation | lower -}}
-    {{- $wireguard_enabled := .Values.calico_helm_values.felixConfiguration.wireguardEnabled -}}
     {{- if $ippool_encapsulation }}
       {{- $current_overhead := (index $encapsulation_header $ippool_encapsulation) -}}
       {{- if gt $current_overhead $max_overhead }}
         {{- $max_overhead = $current_overhead -}}
       {{- end }}
     {{- end }}
-    {{- if $wireguard_enabled }}
+    {{- if .Values.security.calico_wireguard_enabled | default false }}
       {{- $wireguard_overhead := (index $encapsulation_header "wireguard") -}}
       {{- if gt $wireguard_overhead $max_overhead }}
         {{- $max_overhead = $wireguard_overhead -}}
