@@ -44,21 +44,21 @@ variables:
   MGMT_INITIAL_ADDITIONAL_VALUES: "" # Path to a file for customizing the values used during the management cluster deployment stage
   MGMT_UPDATE_ADDITIONAL_VALUES: "simple-update.yml" # Path to a file for customizing the values used during the management cluster update stage
   MGMT_INITIAL_REVISION: ""  # Git revision used for the management cluster deployment
-  MGMT_UPDATE_REVISION: "logging-amitk/issue-1807"  # Git revision used for the management cluster update
+  MGMT_UPDATE_REVISION: ""  # Git revision used for the management cluster update
 
   # Workload cluster relative variables
   WC_ADDITIONAL_VALUES: ""  # Path to a file for customizing the values used during all workload cluster stages
   WC_INITIAL_ADDITIONAL_VALUES: ""  # Path to a file for customizing the values used during the workload cluster deployment stage
   WC_UPDATE_ADDITIONAL_VALUES: "simple-update.yml"  # Path to a file for customizing the values used during the workload cluster update stage
   WC_INITIAL_REVISION: ""  # Git revision used for the workload cluster deployment
-  WC_UPDATE_REVISION: "logging-amitk/issue-1807"  # Git revision used for the workload cluster update"
+  WC_UPDATE_REVISION: ""  # Git revision used for the workload cluster update"
 
   # Repo used to store CI values
   SYLVA_CI_VALUES_REPO: https://gitlab.com/sylva-projects/sylva-elements/ci-tooling/ci-deployment-values.git
   SYLVA_CI_VALUES_FOLDER: environment-values/sylva-core-ci-values
   # Reference to checkout for CI values, by default we use the same for all stages but it can be overriden
   # eg: if we have a breaking change during an upgrade we could use a different branch for the deployment and update
-  SYLVA_CI_VALUES_REVISION: ci-test-amit
+  SYLVA_CI_VALUES_REVISION: 0.4.27
 
   # Use CI values for specific version
   # If not specified $GIT_REVISION if set is used or "current" otherwise
