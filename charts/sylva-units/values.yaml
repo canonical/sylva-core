@@ -2528,6 +2528,8 @@ units:
       postBuild:
         substitute:
           CACERT: '{{ .Values.external_certificates.cacert | default "" }}'
+          CERTIFICATE_NAMESPACE: sylva-system
+
       _components:
         - "../tls-components/sylva-ca"
 
