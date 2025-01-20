@@ -10,6 +10,8 @@ spec:
         exclude:
           - key: log
             pattern: "^(E|W|I|D)\\d{4} \\d{2}:\\d{2}:\\d{2}\\.\\d{6}.*"
+          - key: message
+            pattern: "^(E|W|I|D)\\d{4} \\d{2}:\\d{2}:\\d{2}\\.\\d{6}.*"
           # - key: MESSAGE
           #   pattern: "^time=.*"
   match:
