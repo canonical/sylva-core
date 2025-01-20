@@ -128,7 +128,7 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
     spec:
       url: https://github.com/minio/operator.git
       ref:
-        tag: v5.0.16
+        tag: v6.0.4
 
   sylva-snmp-resources:
     kind: GitRepository
@@ -5831,10 +5831,13 @@ units:
       install:
         createNamespace: false
       values:
-        secrets:
-          existingSecret: minio-logging-root
         tenant:
           name: logging
+          configSecret:
+            existingSecret: true
+            name: minio-logging-root
+            accessKey: ""
+            secretKey: ""
           # The Kubernetes secret name that contains MinIO environment variable configurations:
           configuration:
             name: minio-logging-root
@@ -6005,10 +6008,13 @@ units:
       install:
         createNamespace: false
       values:
-        secrets:
-          existingSecret: minio-monitoring-root
         tenant:
           name: monitoring
+          configSecret:
+            existingSecret: true
+            name: minio-monitoring-root
+            accessKey: ""
+            secretKey: ""
           # The Kubernetes secret name that contains MinIO environment variable configurations:
           configuration:
             name: minio-monitoring-root
