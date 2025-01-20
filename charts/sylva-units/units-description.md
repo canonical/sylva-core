@@ -61,7 +61,6 @@
 | **trivy-operator** | installs Trivy operator | beta | [Helm chart](https://aquasecurity.github.io/helm-charts/) | 0.25.0 |
 | **descheduler** | install descheduler |  | [Helm chart](https://kubernetes-sigs.github.io/descheduler/) | 0.32.1 |
 
-
 ## Units for operators, tools or Helm charts maintained in Sylva project
 
 <!-- markdownlint-disable MD044 -->
