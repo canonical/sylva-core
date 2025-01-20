@@ -1505,6 +1505,7 @@ units:
           certmanager:
             enabled: true
             secretname: neuvector-internal
+          autoGenerateCert: false
         controller:
           replicas: 1  # PVC only works for 1 replica https://github.com/neuvector/neuvector-helm/issues/110#issuecomment-1251921734
           strategy:
