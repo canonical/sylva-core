@@ -18,11 +18,6 @@ cluster:
     primary_pool_start: 192.168.100.60
     primary_pool_end: 192.168.100.90
     primary_pool_prefix: "24"
-    provisioning_pool_network: 192.168.10.0
-    provisioning_pool_gateway: 192.168.10.1
-    provisioning_pool_start: 192.168.10.60
-    provisioning_pool_end: 192.168.10.90
-    provisioning_pool_prefix: "24"
 
     dns_servers: [1.1.1.1]
 
@@ -32,13 +27,12 @@ cluster:
         matchLabels:
           cluster-role: control-plane
 
-      provisioning_pool_interface: ens4
       primary_pool_interface: ens5
 
     network_interfaces:
-      nic1:
+      ens4:
         type: phy
-      nic2:
+      ens5:
         type: phy
 
   control_plane_replicas: 1
@@ -51,7 +45,6 @@ cluster:
           matchLabels:
             cluster-role: worker
 
-        provisioning_pool_interface: ens4
         primary_pool_interface: ens5
 
       network_interfaces:
@@ -88,7 +81,7 @@ cluster:
       interface_mappings:
         nic1:
           mac_address: 52:54:00:44:44:01
-        nic2:
+        ens5:
           inspection_name: ens5
       bmh_metadata:
         labels:
@@ -99,4 +92,3 @@ cluster:
         bootMACAddress: 52:54:00:44:44:01
       ip_preallocations:
         primary: 192.168.100.70
-
