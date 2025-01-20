@@ -7614,7 +7614,7 @@ calico_helm_values:
     serviceCIDR: '{{ .Values._internal.calico.serviceCIDR }}'
   installation:
     calicoNetwork:
-      bgp: Enabled
+      bgp: Disabled
       mtu: '{{ tuple .Values.cluster.capm3.network_interfaces.mtu (and (.Values.cluster.capi_providers.infra_provider | eq "capm3") .Values.cluster.capm3.network_interfaces.mtu) | include "set-only-if" }}'
       nodeAddressAutodetectionV4:
         '{{
