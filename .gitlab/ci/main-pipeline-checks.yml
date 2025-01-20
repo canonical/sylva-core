@@ -282,6 +282,13 @@ check-renovate-json:
           git status renovate.json -s --porcelain
           exit 1
       fi
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+      changes:
+        - .gitlab/ci/main-pipeline-checks.yml
+        - .gitlab/merge_request_templates/Default.md
+        - tools/generate-renovate-json.sh
+        - renovate.json
 
 ###########################
 # Gitleaks customization
