@@ -6331,9 +6331,6 @@ units:
               - hosts:
                   - '{{ .Values.external_hostnames.thanos_query }}'
                 secretName: thanos-tls
-          pdb:
-            create: true
-            minAvailable: '{{ .Values._internal.ha_cluster.is_ha | ternary 1 0 | include "preserve-type" }}'
         queryFrontend:
           loglevel: info
           extraFlags:
@@ -6362,9 +6359,6 @@ units:
               - hosts:
                   - '{{ .Values.external_hostnames.thanos }}'
                 secretName: thanos-tls
-          pdb:
-            create: true
-            minAvailable: '{{ .Values._internal.ha_cluster.is_ha | ternary 1 0 | include "preserve-type" }}'
         storegateway:
           enabled: true
           logLevel: info
