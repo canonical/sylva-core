@@ -26,4 +26,4 @@ spec:
   tls:
   - hosts:
     - ${KUBEVIRT_MANAGER_DNS}
-    secretName: kubevirt-manager-certificate
+    secretName: kubevirt-manager-tls
