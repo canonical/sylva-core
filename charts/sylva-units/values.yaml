@@ -3316,8 +3316,6 @@ units:
       targetNamespace: metallb-system
       install:
         createNamespace: true
-      upgrade:
-        force: true
       values:
         loadBalancerClass: '{{ .Values._internal.loadBalancerClass }}'
         controller:
@@ -3697,7 +3695,6 @@ units:
     enabled_conditions:
     - '{{ tuple . "k8s-gateway" | include "unit-enabled" }}'
     - '{{ .Values._internal.state.is_upgrade }}'
-    - '{{ lookup "v1" "Service" "k8s-gateway" "k8s-gateway" | dig "spec" "loadBalancerClass" "" | ne .Values._internal.loadBalancerClass }}'
     depends_on:
       metallb-resources: '{{ tuple . "metallb" | include "unit-enabled" }}'
     kustomization_spec:
@@ -3810,7 +3807,6 @@ units:
     - '{{ tuple . "metallb" | include "unit-enabled" }}'
     - '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" }}'
     - '{{ .Values._internal.state.is_upgrade }}'
-    - '{{ lookup "v1" "Service" "kube-system" "cluster-vip" | dig "spec" "loadBalancerClass" "" | ne .Values._internal.loadBalancerClass }}'
     kustomization_spec:
       wait: true
       path: ./kustomize-units/cluster-vip-lbclass
@@ -3840,7 +3836,6 @@ units:
       cluster-vip-fix-lbclass: '{{ tuple . "cluster-vip-fix-lbclass" | include "unit-enabled" }}'
     repo: sylva-core
     kustomization_spec:
-      force: true
       path: ./kustomize-units/cluster-vip
       wait: true
       prune: false
@@ -3910,7 +3905,6 @@ units:
     enabled_conditions:
     - '{{ tuple . "ingress-nginx" | include "unit-enabled" }}'
     - '{{ .Values._internal.state.is_upgrade }}'
-    - '{{ lookup "v1" "Service" "kube-system" "rke2-ingress-nginx-controller" | dig "spec" "loadBalancerClass" "" | ne .Values._internal.loadBalancerClass }}'
     depends_on:
       metallb-resources: '{{ tuple . "metallb" | include "unit-enabled" }}'
     kustomization_spec:
