@@ -143,7 +143,7 @@ def image_exists_in_glance(checksum, _image_name, status=['active']):
     try:
         matching_images = [
             image
-            for image in conn.image.images(tags=[f"sylva-md5-{checksum}"], visibility="community", paginated=False)
+            for image in conn.image.images(tags=[f"sylva-md5-{checksum}"], visibility="community")
             if image.status in status
         ]
         if _image_name in [i.name for i in matching_images]:
