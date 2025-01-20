@@ -6344,10 +6344,10 @@ units:
           resources:
             requests:
               cpu: 0.1
-              memory: 128Mi
+              memory: 512Mi
             limits:
               cpu: 0.5
-              memory: 256Mi
+              memory: 1024Mi
           config: |-
             type: IN-MEMORY
             config:
@@ -6409,7 +6409,7 @@ units:
           retentionResolution1h: 15d
         receive:
           enabled: true
-          logLevel: debug
+          logLevel: info
           resources:
             requests:
               cpu: 0.5
