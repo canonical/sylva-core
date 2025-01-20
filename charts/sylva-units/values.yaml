@@ -6308,7 +6308,7 @@ units:
           service:
             clusterIP: None
         query:
-          logLevel: debug
+          logLevel: info
           extraFlags:
             - --query.auto-downsampling
             - --query.replica-label=prometheus_replica
@@ -6316,6 +6316,13 @@ units:
             - --enable-auto-gomemlimit
             - --query.max-concurrent=20
             - --query.max-concurrent-select=4
+          resources:
+            requests:
+              cpu: 0.1
+              memory: 128Mi
+            limits:
+              cpu: 0.5
+              memory: 256Mi
           ingress:
             enabled: true
             ingressClassName: "nginx"
@@ -6324,10 +6331,23 @@ units:
               - hosts:
                   - '{{ .Values.external_hostnames.thanos_query }}'
                 secretName: thanos-tls
+          pdb:
+            create: true
+            minAvailable: '{{ .Values._internal.ha_cluster.is_ha | ternary 1 0 | include "preserve-type" }}'
         queryFrontend:
-          loglevel: debug
+          loglevel: info
           extraFlags:
             - --query-frontend.forward-header=Authorization
+            - --cache-compression-type=snappy
+            - --query-range.split-interval=6h
+            - --enable-auto-gomemlimit
+          resources:
+            requests:
+              cpu: 0.1
+              memory: 128Mi
+            limits:
+              cpu: 0.5
+              memory: 256Mi
           config: |-
             type: IN-MEMORY
             config:
@@ -6342,9 +6362,15 @@ units:
               - hosts:
                   - '{{ .Values.external_hostnames.thanos }}'
                 secretName: thanos-tls
+          pdb:
+            create: true
+            minAvailable: '{{ .Values._internal.ha_cluster.is_ha | ternary 1 0 | include "preserve-type" }}'
         storegateway:
           enabled: true
-          logLevel: debug
+          logLevel: info
+          extraFlags:
+            - --index-cache-size=1GB
+            - --enable-auto-gomemlimit
           persistence:
             enabled: false
           ingress:
@@ -6355,6 +6381,13 @@ units:
               - hosts:
                   - '{{ .Values.external_hostnames.thanos_storegateway }}'
                 secretName: thanos-tls
+          resources:
+            requests:
+              cpu: 0.1
+              memory: 1.5Gi
+            limits:
+              cpu: 0.5
+              memory: 2Gi
         compactor:
           persistence:
             enabled: false
@@ -6362,6 +6395,8 @@ units:
           logLevel: debug
           extraFlags:
             - --deduplication.replica-label="prometheus_replica"
+            - --downsampling.disable
+          consistencyDelay: 30m
           resources:
             requests:
               cpu: 0.5
@@ -6369,9 +6404,9 @@ units:
             limits:
               cpu: 1
               memory: 1024Mi
-          retentionResolutionRaw: 2d
-          retentionResolution5m: 30d
-          retentionResolution1h: 1y
+          retentionResolutionRaw: 15d
+          retentionResolution5m: 15d
+          retentionResolution1h: 15d
         receive:
           enabled: true
           logLevel: debug
