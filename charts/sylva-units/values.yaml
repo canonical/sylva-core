@@ -4131,13 +4131,17 @@ units:
       sylva-ca: true
     repo: sylva-core
     kustomization_spec:
-      path: ./kustomize-units/grafana-init
+      path: ./kustomize-units/dummy/base
       postBuild:
         substitute:
-          SERVICE: grafana-sylva-ingress
-          GRAFANA_DNS: '{{ .Values.external_hostnames.grafana }}'
+          SERVICE: grafana
+          SERVICE_DNS: '{{ .Values.external_hostnames.grafana }}'
+          CERTIFICATE_NAMESPACE: cattle-monitoring-system
+          CERT: '{{ .Values.external_certificates.grafana.cert | default "" | b64enc }}'
+          CACERT: '{{ .Values.external_certificates.cacert | default "" | b64enc }}'
       _components:
-        - "../tls-components/sylva-ca"
+        - '{{ ternary "../../tls-components/tls-secret" "../../tls-components/tls-certificate" (hasKey .Values.external_certificates.grafana "cert") }}'
+        - "../../tls-components/sylva-ca"
       healthChecks:
         - apiVersion: v1
           kind: Secret
@@ -4145,7 +4149,7 @@ units:
           namespace: cattle-monitoring-system
         - apiVersion: v1
           kind: Secret
-          name: grafana-general-tls
+          name: grafana-tls
           namespace: cattle-monitoring-system
 
   monitoring:
