@@ -3,13 +3,9 @@
 # and upload it as an artifact
 
 mgmt-cis-scan:
-  stage: deployment-test
   extends:
-    - .test-tags
-    - .rules:need-management-cluster
+    - .test-base-management-cluster
   script:
-    - !reference [.import_functions]
-    - download_artifact deploy-management-cluster management-cluster-kubeconfig
     - pip install tabulate --break-system-packages
     - |
       if kubectl --kubeconfig management-cluster-kubeconfig get namespace cis-operator-system &>/dev/null; then
