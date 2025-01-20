@@ -56,7 +56,15 @@ def get_ci_configuration_from_context():
         logging.info(f"{retrieved_config}")
         return retrieved_config
 
-    # if renovate label is set use predefined config
+    # attempt to use CI config from MR description
+    if os.getenv("CI_MERGE_REQUEST_DESCRIPTION"):
+        ci_config = get_ci_config_from_mr_description()
+        if ci_config:
+            return ci_config
+        else:
+            logging.info("Unable to find any deployment flavor request in MR description.")
+
+    # otherwise, if renovate label is set use predefined config
     if "renovate" in os.getenv("CI_MERGE_REQUEST_LABELS", "").split(","):
         if "capo" in os.getenv("CI_MERGE_REQUEST_LABELS", "").split(","):
             retrieved_config = get_predefined_ci_config("Renovate Capo")
@@ -68,14 +76,6 @@ def get_ci_configuration_from_context():
         logging.info("Requested deployment flavors found for renovate pipeline")
         logging.info(f"{retrieved_config}")
         return retrieved_config
-
-    # otherwise check MR description
-    if os.getenv("CI_MERGE_REQUEST_DESCRIPTION"):
-        ci_config = get_ci_config_from_mr_description()
-        if ci_config:
-            return ci_config
-        else:
-            logging.info("Unable to find any deployment flavor request in MR description.")
 
     # as fallback, get default config
     logging.info("Applying defaut deployment pipeline config")
