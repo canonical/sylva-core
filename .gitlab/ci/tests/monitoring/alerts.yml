@@ -45,7 +45,7 @@ mgmt-thanos-alert:
             if [ $critical_alerts -gt 0 ] ; then
               echo "Critical alerts found:"
               curl -k -s -G https://$thanos_url:443/api/v1/query -u $thanos_user:$thanos_token \
-              --data-urlencode "$ALERT_QUERY" | yq -r '.data.result[] | select(.metric.severity=="critical") | { "alertname": .metric.alertname, "cluster": .metric.cluster}'
+              --data-urlencode "$ALERT_QUERY" | yq -r '.data.result[] | select(.metric.severity=="critical") | { "alertname": .metric.alertname, "cluster": .metric.cluster, "namespace": .metric.namespace,  "pod": .metric.pod }'
               exit 1
             fi
          else

@@ -159,10 +159,19 @@ def create_report():
             child_pipelines_reports = dict()
             for pipeline in newest_pipelines:
                 print(f"  processing pipeline {pipeline.id}")
-                for child in project.pipelines.get(pipeline.id).bridges.list():
-                    print(f"    processing child {child.name}")
-                    child_pipelines_reports.setdefault(child.name, dict())
-                    child_pipelines_reports[child.name][pipeline.id] = _get_child_md(child)
+                for level1_child in project.pipelines.get(pipeline.id).bridges.list():
+
+                    print(f"    processing child {level1_child.name}")
+                    if level1_child.name == "deployment-jobs":
+                        for level2_child in project.pipelines.get(level1_child.downstream_pipeline['id']).bridges.list():
+                            print(f"      processing child {level2_child.name}")
+                            child_pipelines_reports.setdefault(level2_child.name, dict())
+                            child_pipelines_reports[level2_child.name][pipeline.id] = _get_child_md(level2_child)
+
+                    # keep compatibility with old CI behavior
+                    else:
+                        child_pipelines_reports.setdefault(level1_child.name, dict())
+                        child_pipelines_reports[level1_child.name][pipeline.id] = _get_child_md(level1_child)
 
             headers = ["name"]
             rows_as_dict = dict()

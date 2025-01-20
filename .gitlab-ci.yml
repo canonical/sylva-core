@@ -4,7 +4,7 @@ include:
     ref: 2.6.1
     file: "templates/gitlab-ci-gitleaks.yml"
   - project: 'renovate-bot/renovate-runner'
-    ref: v19.64.1
+    ref: v19.84.1
     file: '/templates/renovate-config-validator.gitlab-ci.yml'
     rules:
       - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
@@ -27,7 +27,6 @@ include:
 
   - local: .gitlab/ci/common.yml
   - local: .gitlab/ci/main-pipeline-checks.yml
-  - local: .gitlab/ci/main-pipeline-builds.yml
-  - local: .gitlab/ci/main-pipeline-deployment-tests.yml
+  - local: .gitlab/ci/main-pipeline-prepare-deployments.yml
   - local: .gitlab/ci/main-pipeline-cleanup.yml
   - local: .gitlab/ci/main-pipeline-report.yml

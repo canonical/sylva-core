@@ -652,7 +652,7 @@ units:
       chart:
         spec:
           chart: trivy-operator
-          version: 0.24.1
+          version: 0.25.0
       targetNamespace: trivy-system
       install:
         createNamespace: true
@@ -1394,7 +1394,7 @@ units:
       chart:
         spec:
           chart: rancher-cis-benchmark-crd
-          version: 6.5.1
+          version: 105.1.0+up7.1.1
       targetNamespace: cis-operator-system
       install:
         createNamespace: true
@@ -3491,6 +3491,8 @@ units:
           tls:
             source: secret
             secretName: rancher-tls
+          extraAnnotations:
+            nginx.ingress.kubernetes.io/proxy-body-size: 8m
         # restrictedAdmin: true
         # negative value will deploy 1 to abs(replicas) depending on available number of nodes
         replicas: -3
@@ -4230,6 +4232,8 @@ units:
           - -hash-jira-label
         existingConfigSecret: sylva-alertmanager-webhook-jiralert  # this Secret is a byproduct of the alertmanager-jiralert-config unit
         fullnameOverride: 'alertmanager-jiralert'
+        podAnnotations:
+          sylva/jiralert-config: '{{ .Values.monitoring.alertmanager.webhooks.jiralert.config | toJson | sha256sum | trunc 8 }}'
         env:
           http_proxy: '{{ .Values.monitoring.alertmanager.webhooks.jiralert.env.http_proxy | default .Values.proxies.http_proxy }}'
           https_proxy: '{{ .Values.monitoring.alertmanager.webhooks.jiralert.env.https_proxy | default .Values.proxies.https_proxy }}'
@@ -4302,7 +4306,7 @@ units:
       chart:
         spec:
           chart: prometheus-pushgateway
-          version: 2.16.0
+          version: 2.17.0
       install:
         createNamespace: true
       values:
@@ -4408,7 +4412,7 @@ units:
       chart:
         spec:
           chart: prometheus-snmp-exporter
-          version: 5.6.0
+          version: 6.0.0
       install:
         createNamespace: true
       values:
@@ -4465,7 +4469,7 @@ units:
     helm_secret_values:
       extraInitContainers:
         - name: config-file-create
-          image: registry.gitlab.com/sylva-projects/sylva-elements/container-images/sylva-toolbox:v0.6.2
+          image: registry.gitlab.com/sylva-projects/sylva-elements/container-images/sylva-toolbox:v0.6.3
           command: ["/bin/sh"]
           args:
             - -c
@@ -6794,11 +6798,7 @@ units:
 
   single-replica-storageclass:
     info:
-      description: DEPRECATED longhorn storage class with a single replica
-      details: |
-        This unit is preserved for migration purposes, it will be removed after sylva 1.2 release
-        Single replicas PVC were causing data replication churn during rolling updates of nodes
-        See https://gitlab.com/sylva-projects/sylva-core/-/issues/1648
+      description: Defines a Longhorn storage class with a single replica
       internal: true
     repo: sylva-core
     unit_templates:
@@ -6821,12 +6821,14 @@ units:
             kind: _unused_
             metadata:
               name: _unused_
+              annotations:
+                storageclass.kubernetes.io/is-default-class: '{{ .Values._internal.default_storage_class | eq "single-replica-storageclass" }}'
             parameters:
               numberOfReplicas: "1"
 
   two-replicas-storageclass:
     info:
-      description: Create a longhorn storage class with a two replicas
+      description: Defines a Longhorn storage class with two replicas
       internal: true
     repo: sylva-core
     unit_templates:
@@ -6849,6 +6851,8 @@ units:
             kind: _unused_
             metadata:
               name: _unused_
+              annotations:
+                storageclass.kubernetes.io/is-default-class: '{{ .Values._internal.default_storage_class | eq "two-replicas-storageclass" }}'
             parameters:
               numberOfReplicas: "2"
 
@@ -7042,7 +7046,7 @@ cluster:
   images:
     kube_vip:
       repository: ghcr.io/kube-vip/kube-vip
-      tag: "v0.8.8"
+      tag: "v0.8.9"
 
   # Nodes number for control-plane
   control_plane_replicas: 3
@@ -7751,6 +7755,16 @@ _internal:
 
   default_password: '{{ include "internalPersistentRandomPasswd" (tuple . "default_password") }}'
 
+  default_longhorn_storage_class: >-
+    {{- $nodeCount := int (tuple . .Values._internal.longhorn_node_count | include "interpret-as-string") -}}
+    {{- if eq $nodeCount 1 -}}
+      single-replica-storageclass
+    {{- else if eq $nodeCount 2 -}}
+      two-replicas-storageclass
+    {{- else -}}
+      longhorn
+    {{- end -}}
+
   default_storage_class: >-
     {{ if (tuple . "ceph-csi-cephfs" | include "unit-enabled") -}}
       cephfs-csi
@@ -7759,7 +7773,7 @@ _internal:
     {{- else if (tuple . "vsphere-csi-driver" | include "unit-enabled") -}}
       vsphere-csi
     {{- else if (tuple . "longhorn" | include "unit-enabled") -}}
-      longhorn
+      {{ .Values._internal.default_longhorn_storage_class}}
     {{- else -}}
       local-path
     {{- end -}}
@@ -7768,7 +7782,7 @@ _internal:
   # (a storage class does not need to appear in this map if the required unit has the same name)
   storage_class_unit_map:
     local-path: local-path-provisioner
-    longhorn: longhorn
+    '{{ .Values._internal.default_longhorn_storage_class}}': longhorn
     vsphere-csi: vsphere-csi-driver
     '{{ .Values.openstack.storageClass.name }}': cinder-csi
     cephfs-csi: ceph-csi-cephfs
@@ -7779,6 +7793,8 @@ _internal:
 
   storage_class_RWX_support:
     - longhorn
+    - two-replicas-storageclass
+    - single-replica-storageclass
     - cephfs-csi
   default_storage_class_RWX_support: >-
     {{- $default_storage_class := tuple . .Values._internal.default_storage_class | include "interpret-as-string" -}}
@@ -7836,6 +7852,30 @@ _internal:
       {{- $n = add $n $md.replicas -}}
     {{- end -}}
     {{ $n | include "preserve-type" }}
+    '
+
+  # total number of longhorn nodes
+  longhorn_node_count:
+    '
+    {{- $count := 0 -}}
+      {{- if hasKey .Values.cluster "baremetal_host_default" -}}
+        {{- if hasKey .Values.cluster.baremetal_host_default "longhorn_disk_config" -}}
+          {{- $count = len .Values.cluster.baremetal_hosts -}}
+        {{- else -}}
+          {{- range $key, $value := .Values.cluster.baremetal_hosts -}}
+            {{- if hasKey $value "longhorn_disk_config" -}}
+              {{- $count = add $count 1 -}}
+            {{- end -}}
+          {{- end -}}
+        {{- end -}}
+      {{- else -}}
+        {{- range $key, $value := .Values.cluster.baremetal_hosts -}}
+          {{- if hasKey $value "longhorn_disk_config" -}}
+            {{- $count = add $count 1 -}}
+          {{- end -}}
+        {{- end -}}
+      {{- end -}}
+    {{- $count -}}
     '
 
   cluster_unit_os_images_info_configmap: os-images-info
@@ -7898,6 +7938,14 @@ _internal:
           _immutable_comment: "Underlying infrastructure of a running cluster can't be changed"
       _immutable: '{{ not .Values._internal.ha_cluster.is_ha | include "preserve-type" }}'
       _immutable_comment: "Cluster values can't be changed, as they would trigger a rolling upgrade that is not supported in non-HA mode"
+
+    longhorn:
+      helmrelease_spec:
+        values:
+          persistence:
+            defaultClassReplicaCount:
+              _immutable: true
+              _immutable_comment: "Default longhorn class replica count should not be changed as it impact longhorn upgrade"
 
   pdb_allow_unhealthy_pod_eviction:
     target:
@@ -8025,3 +8073,4 @@ openshift:
     # serviceHostname: openshift-assisted-service.example.com
     # variable to specify the openshift assisted image service hostname
     # imageHostname: openshift-assisted-images.example.com
+
