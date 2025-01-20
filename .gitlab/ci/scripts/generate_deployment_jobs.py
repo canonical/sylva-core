@@ -71,13 +71,13 @@ def get_ci_configuration_from_context():
 
     # otherwise check MR description
     if os.getenv("CI_MERGE_REQUEST_DESCRIPTION"):
-        return get_ci_config_from_mr_desription()
+        return get_ci_config_from_mr_description()
 
     # anyway get default config
     return get_default_ci_config()
 
 
-def get_ci_config_from_mr_desription(description="", fallback=True):
+def get_ci_config_from_mr_description(description="", fallback=True):
 
     MR_DESCRIPTION = description
     if not MR_DESCRIPTION and os.getenv("CI_MERGE_REQUEST_DESCRIPTION"):
@@ -120,7 +120,7 @@ def get_predefined_ci_config(config_name):
 def get_default_ci_config():
     with open(DEFAULT_MR_DESCRIPTION, "r") as f:
         default_mr_description = f.read()
-    return get_ci_config_from_mr_desription(
+    return get_ci_config_from_mr_description(
         description=default_mr_description, fallback=False
     )
 
