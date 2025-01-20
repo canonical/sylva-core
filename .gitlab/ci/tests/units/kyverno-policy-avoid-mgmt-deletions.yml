@@ -3,13 +3,9 @@
 # key Sylva Flux and CAPI resources for the mgmt cluster
 
 mgmt-avoid-mgmt-deletion-policies:
-  stage: deployment-test
   extends:
-    - .test-tags
-    - .rules:need-management-cluster
+    - .test-base-management-cluster
   script:
-    - !reference [.import_functions]
-    - download_artifact deploy-management-cluster management-cluster-kubeconfig
     - |-
       export KUBECONFIG=management-cluster-kubeconfig
       set -e

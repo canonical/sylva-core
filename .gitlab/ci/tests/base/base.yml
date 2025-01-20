@@ -1,0 +1,50 @@
+---
+# This job collect all the necessary files, information, environment variables useful for testing
+# They are pass as artifacts and .env reports
+# All tests job will have a direct dependency to this job
+prepare-tests-env:
+  stage: deployment-test
+  extends:
+    - .test-tags
+  script:
+    - !reference [.import_functions]
+    - download_artifact deploy-management-cluster management-cluster-kubeconfig
+    - !reference [.test_scripts, edit_hosts_file]
+    - |
+      if [[ ${DEPLOY_WORKLOAD_CLUSTER} == 'true' ]]; then
+        unset https_proxy http_proxy
+        export KUBECONFIG=management-cluster-kubeconfig
+        ./tools/shell-lib/get-wc-kubeconfig-from-rancher.sh $WORKLOAD_CLUSTER_NAME workload-cluster-kubeconfig
+        if [[ ${ENV_NAME} == *'capm3-virt'* ]]; then
+          yq -i e '.clusters[].cluster.insecure-skip-tls-verify = true' workload-cluster-kubeconfig
+          yq -i e 'del(.clusters[].cluster.certificate-authority-data)' workload-cluster-kubeconfig
+        fi
+      fi
+  artifacts:
+    expire_in: 8 hour
+    when: always
+    paths:
+      - management-cluster-kubeconfig
+      - workload-cluster-kubeconfig
+
+# Theses test-base-xxx must be use as a base extend for tests jobs
+.test-base:
+  stage: deployment-test
+  needs:
+    - prepare-tests-env
+  extends:
+    - .test-tags
+
+.test-base-management-cluster:
+  extends:
+    - .test-base
+    - .rules:need-management-cluster
+  variables:
+    KUBECONFIG: management-cluster-kubeconfig
+
+.test-base-workload-cluster:
+  extends:
+    - .test-base
+    - .rules:need-workload-cluster
+  variables:
+    KUBECONFIG: workload-cluster-kubeconfig
