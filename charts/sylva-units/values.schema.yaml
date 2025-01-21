@@ -271,8 +271,12 @@ properties:
                           - tag
                         - required:
                           - commit
+                        - required:
+                          - name
+                        - required:
+                          - semver
                       patternProperties:
-                        '(branch|tag|commit)':  # -------------------------------
+                        '(branch|tag|commit|name|semver)':  # -------------------------------
                           type: string
 
         - if:
@@ -298,7 +302,7 @@ properties:
                         - required:
                           - tag
                       patternProperties:
-                        '(digest|semver|tag)':  # -------------------------------
+                        '(digest|semver|semverFilter|tag)':  # -------------------------------
                           type: string
                         commit:  # -------------------------------
                           const: '{{ tuple "(unused)" false | include "set-only-if" }}'  # particular case to allow key deletion (see use-oci-artifacts.values.yaml)
