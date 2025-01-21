@@ -6457,8 +6457,7 @@
                         "os": {
                           "anyOf": [
                             {
-                              "type": "string",
-                              "pattern": "[ubuntu|opensuse]"
+                              "type": "string"
                             },
                             {
                               "$ref": "#/$defs/string-with-gotpl"
@@ -6471,8 +6470,7 @@
                         "os-release": {
                           "anyOf": [
                             {
-                              "type": "string",
-                              "pattern": "[jammy|noble|15.5|15.6]"
+                              "type": "string"
                             },
                             {
                               "$ref": "#/$defs/string-with-gotpl"
