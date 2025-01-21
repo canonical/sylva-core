@@ -60,6 +60,7 @@
 | **thanos** | installs Thanos | beta | [Helm chart](https://github.com/bitnami/charts.git) | thanos/15.8.0 |
 | **trivy-operator** | installs Trivy operator | beta | [Helm chart](https://aquasecurity.github.io/helm-charts/) | 0.25.0 |
 | **descheduler** | install descheduler |  | [Helm chart](https://kubernetes-sigs.github.io/descheduler/) | 0.32.1 |
+| **kube-logging** | installs Rancher Fluentbit/Fluentd logging stack from upstream chart, for log collecting and shipping<br/><br/>this unit deploys logging component from upstream |  | [Helm chart](https://github.com/kube-logging/logging-operator.git) | 4.11.4 |
 
 ## Units for operators, tools or Helm charts maintained in Sylva project
 
