@@ -35,6 +35,9 @@ $BASE_DIR/tools/generate_json_schema.py
 # update unit documentation
 $BASE_DIR/tools/generate_units_documentation.py
 
+# update renovate.json
+$BASE_DIR/tools/generate-renovate-json.sh
+
 ERRORS=0
 if [[ $(git diff $BASE_DIR/charts/sylva-units/values.schema.json) ]]; then
     ERRORS=1
@@ -43,6 +46,10 @@ fi
 if [[ $(git diff $BASE_DIR/charts/sylva-units/units-description.md) ]]; then
     ERRORS=1
     echo "units-description.md was updated. Please include it into this commit"
+fi
+if [[ $(git diff $BASE_DIR/renovate.json) ]]; then
+    ERRORS=1
+    echo "renovate.json was updated. Please include it into this commit"
 fi
 
 if [[ $ERRORS == 0 ]]; then
