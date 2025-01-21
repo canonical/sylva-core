@@ -5376,6 +5376,7 @@ units:
         createNamespace: true
       timeout: 168h  # leave plenty of time to download OS images in initContainers
       values:
+        outputConfigMapName: capm3-os-image-server-os-images-info
         downloader:
           proxy: '{{ get .Values.proxies "https_proxy" }}'
           no_proxy: '{{ include "sylva-units.no_proxy" (tuple .) }}'
