@@ -630,6 +630,17 @@ properties:
         type: string
         pattern: '^[0-9]+[smh]'
 
+  os_image_server_additional_selectors:  # -------------------------------
+    type: object
+    additionalProperties: false
+    patternProperties:
+      ".*":  # -------------------------------
+        type: object  # this is an "OS image selector", as defined in sylva-library (validated by validate-selector from same library)
+        additionalProperties: false
+        patternProperties:
+          ".*":  # -------------------------------
+            type: string
+
   openstack:  # -------------------------------
     type: object
     # actual constraints are later in this file under '# additional constraints for .openstack'
