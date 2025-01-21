@@ -1,0 +1,7 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: dummy-unit-${UNIT_NAME}
+data:
+  explanation: |
+    This configmap is a dummy resource created by Sylva $UNIT_NAME unit.
