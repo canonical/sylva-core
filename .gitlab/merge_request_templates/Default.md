@@ -27,27 +27,27 @@ Below you can choose test deployment variants to run in this MR's CI.
 
 <!-- DEPLOYMENT FLAVOR DEFINITION START -->
 
-* [ ] 🎬preview ☁capd 🚀kadm 🐧ubuntu 🛠oci
-* [ ] 🎬preview ☁capo 🚀rke2 🐧suse
-* [ ] 🎬preview ☁capm3 🚀rke2 🐧ubuntu
+* [ ] 🎬 preview ☁ capd 🚀 kadm 🐧 ubuntu 🛠 oci
+* [ ] 🎬 preview ☁ capo 🚀 rke2 🐧 suse
+* [ ] 🎬 preview ☁ capm3 🚀 rke2 🐧 ubuntu
 
-* [x] ☁capd 🚀kubeadm 🛠light-deploy 🐧ubuntu
-* [x] ☁capd 🚀rke2 🛠oci,light-deploy 🐧suse
+* [x] ☁ capd 🚀 kubeadm 🛠 light-deploy 🐧 ubuntu
+* [x] ☁ capd 🚀 rke2 🛠 oci,light-deploy 🐧 suse
 
-* [x] ☁capo 🚀rke2 🛠oci 🐧suse
-* [x] ☁capo 🚀kadm 🛠oci 🐧ubuntu
-* [ ] ☁capo 🚀rke2 🎬rolling-update 🛠ha 🐧ubuntu
-* [ ] ☁capo 🚀kadm 🎬k8s-upgrade 🐧ubuntu
-* [ ] ☁capo 🚀rke2 🎬mgmt-rolling-update 🛠ha,misc 🐧suse
-* [ ] ☁capo 🚀rke2 🎬sylva-upgrade 🛠ha,misc 🐧ubuntu
+* [x] ☁ capo 🚀 rke2 🛠 oci 🐧 suse
+* [x] ☁ capo 🚀 kadm 🛠 oci 🐧 ubuntu
+* [ ] ☁ capo 🚀 rke2 🎬 rolling-update 🛠 ha 🐧 ubuntu
+* [ ] ☁ capo 🚀 kadm 🎬 k8s-upgrade 🐧 ubuntu
+* [ ] ☁ capo 🚀 rke2 🎬 mgmt-rolling-update 🛠 ha,misc 🐧 suse
+* [ ] ☁ capo 🚀 rke2 🎬 sylva-upgrade 🛠 ha,misc 🐧 ubuntu
 
-* [x] ☁capm3 🚀rke2 🐧suse
-* [x] ☁capm3 🚀kadm 🛠oci 🐧ubuntu
-* [ ] ☁capm3 🚀kadm 🎬mgmt-rolling-update 🛠ha,misc 🐧ubuntu
-* [ ] ☁capm3 🚀rke2 🎬k8s-upgrade 🛠ha 🐧suse
-* [ ] ☁capm3 🚀kadm 🎬rolling-update 🛠ha 🐧ubuntu
-* [ ] ☁capm3 🚀rke2 🎬sylva-upgrade 🛠misc,ha 🐧suse
-* [ ] ☁capm3 🚀kadm 🎬rolling-update 🛠ha 🐧suse
+* [x] ☁ capm3 🚀 rke2 🐧 suse
+* [x] ☁ capm3 🚀 kadm 🛠 oci 🐧 ubuntu
+* [ ] ☁ capm3 🚀 kadm 🎬 mgmt-rolling-update 🛠 ha,misc 🐧 ubuntu
+* [ ] ☁ capm3 🚀 rke2 🎬 k8s-upgrade 🛠 ha 🐧 suse
+* [ ] ☁ capm3 🚀 kadm 🎬 rolling-update 🛠 ha 🐧 ubuntu
+* [ ] ☁ capm3 🚀 rke2 🎬 sylva-upgrade 🛠 misc,ha 🐧 suse
+* [ ] ☁ capm3 🚀 kadm 🎬 rolling-update 🛠 ha 🐧 suse
 
 <!-- DEPLOYMENT FLAVOR DEFINITION END -->
 </details>
