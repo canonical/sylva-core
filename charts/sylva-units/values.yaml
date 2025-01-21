@@ -6389,7 +6389,6 @@ units:
           logLevel: debug
           extraFlags:
             - --deduplication.replica-label="prometheus_replica"
-            - --downsampling.disable
           consistencyDelay: 30m
           resources:
             requests:
