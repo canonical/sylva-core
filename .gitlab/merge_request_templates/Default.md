@@ -39,12 +39,12 @@ Below you can choose test deployment variants to run in this MR's CI.
 * [ ] ☁capo 🚀rke2 🎬rolling-update 🛠ha 🐧ubuntu
 * [ ] ☁capo 🚀kadm 🎬k8s-upgrade 🐧ubuntu
 * [ ] ☁capo 🚀rke2 🎬mgmt-rolling-update 🛠ha,misc 🐧suse
-* [ ] ☁capo 🚀rke2 🎬sylva-upgrade 🛠misc 🐧ubuntu
+* [ ] ☁capo 🚀rke2 🎬sylva-upgrade 🛠ha,misc 🐧ubuntu
 
 * [x] ☁capm3 🚀rke2 🐧suse
 * [x] ☁capm3 🚀kadm 🛠oci 🐧ubuntu
 * [ ] ☁capm3 🚀kadm 🎬mgmt-rolling-update 🛠ha,misc 🐧ubuntu
-* [ ] ☁capm3 🚀rke2 🎬k8s-upgrade 🐧suse
+* [ ] ☁capm3 🚀rke2 🎬k8s-upgrade 🛠ha 🐧suse
 * [ ] ☁capm3 🚀kadm 🎬rolling-update 🛠ha 🐧ubuntu
 * [ ] ☁capm3 🚀rke2 🎬sylva-upgrade 🛠misc,ha 🐧suse
 * [ ] ☁capm3 🚀kadm 🎬rolling-update 🛠ha 🐧suse
