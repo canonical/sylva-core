@@ -27,6 +27,7 @@ ALLOWED_SCENARIOS = os.getenv(
     "ALLOWED_DEPLOYMENT_SCENARIO",
     ",".join([
         "simple-update",
+        "rolling-update",
         "mgmt-rolling-update",
         "preview",
         "nightly",
