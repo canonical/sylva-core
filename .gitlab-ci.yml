@@ -30,3 +30,8 @@ include:
   - local: .gitlab/ci/main-pipeline-prepare-deployments.yml
   - local: .gitlab/ci/main-pipeline-cleanup.yml
   - local: .gitlab/ci/main-pipeline-report.yml
+  - local: .gitlab/ci/pipeline-build-oci-artifacts.yml
+    rules:
+      - if: $CI_OPEN_MERGE_REQUESTS  # prevent branch pipeline when an MR is open (prefer MR pipeline)
+        when: never
+      - if: $CI_PIPELINE_SOURCE == "push"
