@@ -480,7 +480,7 @@ units:
   logging-config:
     enabled: true
     kustomization_spec:
-      targetNamespace: '{{ tuple . (tuple . "upstream-logging" | include "unit-enabled") "upstream-logging" "cattle-logging-system" | include "interpret-ternary" }}'
+      targetNamespace: '{{ tuple . (tuple . "kube-logging" | include "unit-enabled") "kube-logging" "cattle-logging-system" | include "interpret-ternary" }}'
 
   loki:
     # this unit isn't designed to work in workload clusters
