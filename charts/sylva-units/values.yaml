@@ -260,10 +260,6 @@ unit_templates:
     kustomization_spec:
       path: ./kustomize-units/dummy/base
       wait: false
-      force: true
-      postBuild:
-        substitute:
-          UNIT_NAME: '{{ .Values._unit_name_ }}'
 
   flux-common:
     repo: sylva-core
@@ -2893,6 +2889,12 @@ units:
       kubeConfig:
         secretRef:
           name: '{{ .Values.cluster.name }}-kubeconfig'
+      _components:
+        - ../configmap-component
+      postBuild:
+        substitute:
+          UNIT_NAME: cluster-reachable
+      wait: true
 
   cluster-machines-ready:
     info:
