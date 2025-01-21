@@ -264,6 +264,8 @@ include:
       echo "  WC_INITIAL_REVISION = ${WC_INITIAL_REVISION:-'N/A'}"
       echo "  WC_UPDATE_REVISION = ${WC_UPDATE_REVISION:-'N/A'}"
       echo "  APPLY_WC_WATCH_TIMEOUT_MIN = ${APPLY_WC_WATCH_TIMEOUT_MIN}"
+  - pip install requests --break-system-packages
+  - .gitlab/ci/scripts/pipeline_summary.py
 
 .setup_ci_context_and_values:
   - |
