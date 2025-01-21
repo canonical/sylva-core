@@ -18,7 +18,7 @@ stages:
 
 include:
   - local: .gitlab/ci/common.yml
-  - local: .gitlab/ci/deployments-build-oci-artifacts.yml
+  - local: .gitlab/ci/pipeline-build-oci-artifacts.yml
 
 variables:
 
