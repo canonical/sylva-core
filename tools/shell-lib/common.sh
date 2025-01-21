@@ -409,16 +409,76 @@ EOC
   fi
 }
 
+function fetch_ingress_service_types() {
+    # Fetch all ingress resources from all namespaces
+    ingresses=$(kubectl --kubeconfig management-cluster-kubeconfig get ingress --all-namespaces \
+        -o custom-columns='NAMESPACE:.metadata.namespace,NAME:.metadata.name,HOSTS:.spec.rules[*].host' --no-headers)
+
+    # Declare arrays to store GUI and API ingresses
+    gui_ingresses=()
+    api_ingresses=()
+
+    # Get all ingress resources and process them
+    for i in $(kubectl --kubeconfig management-cluster-kubeconfig get ingress -A | sed "s/[ \t]\+/|/gi" | grep -v NAMESPACE); do
+        # Extract the namespace and ingress name
+        namespace=$(echo "$i" | cut -d'|' -f1)
+        ingress_name=$(echo "$i" | cut -d'|' -f2)
+        ingress_host=$(echo "$i" | cut -d'|' -f4)
+
+        # Extract the unit name using labels from the ingress resource
+        unit_name=$(kubectl --kubeconfig management-cluster-kubeconfig get ingress "$ingress_name" -n "$namespace" -o yaml | yq '.metadata.labels."helm.toolkit.fluxcd.io/name" //
+            .metadata.labels."kustomize.toolkit.fluxcd.io/name" //
+            .metadata.labels."app.kubernetes.io/name"')
+
+        # Determine the service type
+        service_type=$(kubectl --kubeconfig management-cluster-kubeconfig get kustomization "$unit_name" -n sylva-system \
+            -o jsonpath="{.metadata.labels['service-type']}" 2>/dev/null)
+
+        if [ -z "$service_type" ]; then
+            service_type=$(kubectl --kubeconfig management-cluster-kubeconfig get kustomization "$unit_name" -n sylva-system \
+                -o jsonpath="{.metadata.labels['service-type-$ingress_name']}" 2>/dev/null)
+        fi
+
+        if [ -n "$service_type" ]; then
+            if [ "$service_type" == "gui" ]; then
+                gui_ingresses+=("$ingress_name: https://$ingress_host")
+            elif [ "$service_type" == "api" ]; then
+                api_ingresses+=("$ingress_name: https://$ingress_host")
+            fi
+        fi
+    done
+
+    # Output GUI ingresses
+    if [ ${#gui_ingresses[@]} -gt 0 ]; then
+        echo "GUIs:"
+        for ingress in "${gui_ingresses[@]}"; do
+            echo "* $ingress"
+        done
+    fi
+
+    # Output API-only ingresses
+    if [ ${#api_ingresses[@]} -gt 0 ]; then
+        echo "API-only:"
+        for ingress in "${api_ingresses[@]}"; do
+            echo "* $ingress"
+        done
+    fi
+}
+
 function display_final_messages() {
   CALLER_SCRIPT_NAME=$(basename ${BASH_SOURCE[1]})
   if [[ $CALLER_SCRIPT_NAME != *"apply-workload-cluster.sh"* ]]; then
     echo_b "\U00002714 Sylva is ready, everything deployed in management cluster"
     echo "   Management cluster nodes:"
     kubectl --kubeconfig management-cluster-kubeconfig get nodes
+    echo ""
   fi
 
   if [[ $CALLER_SCRIPT_NAME == *"bootstrap.sh"* ]]; then
+    echo ""
     echo_b "\U0001F331 You can access following UIs"
+    fetch_ingress_service_types
+    echo ""
     kubectl --kubeconfig management-cluster-kubeconfig get ingress --all-namespaces
   fi
   echo_b "\U0001F389 All done"
