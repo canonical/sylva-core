@@ -4414,7 +4414,7 @@ units:
           kind: Secret
           name: grafana-tls
           namespace: cattle-monitoring-system
-  
+
   upstream-grafana:
     info:
       description: installs upstream monitoring stack
@@ -4453,7 +4453,7 @@ units:
           chart: kube-prometheus-stack
           version: 68.2.2
       install:
-        createNamespace: false     
+        createNamespace: false
       values:
         grafana:
           sidecar:
@@ -4469,7 +4469,7 @@ units:
           prometheusSpec:
             scrapeInterval: "60s"
             scrapeTimeout: "30s"
-            evaluationInterval: "30s"  
+            evaluationInterval: "30s"
 
   #upstream-prometheus:
   #  info:
@@ -4490,7 +4490,7 @@ units:
   #        version: 26.1.0
   #    install:
   #      createNamespace: false
-          
+
   upstream-prometheus-adaptor:
     info:
       description: installs upstream prometheus adaptor
@@ -4509,7 +4509,7 @@ units:
           chart: prometheus-adapter
           version: 4.11.0
       install:
-        createNamespace: false            
+        createNamespace: false
 
   monitoring:
     info:
