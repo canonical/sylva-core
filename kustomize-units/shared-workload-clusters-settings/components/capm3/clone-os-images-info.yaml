@@ -17,6 +17,7 @@ spec:
           selector:
             matchLabels:
               sylva-project.org/shared-workload-cluster-settings: ""
+              sylva-project.org/shared-workload-cluster-capm3: ""
     generate:
       kind: ConfigMap
       apiVersion: v1
