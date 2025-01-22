@@ -414,11 +414,10 @@ function fetch_ingress_service_types() {
     ingresses=$(kubectl --kubeconfig management-cluster-kubeconfig get ingress --all-namespaces \
         -o custom-columns='NAMESPACE:.metadata.namespace,NAME:.metadata.name,HOSTS:.spec.rules[*].host' --no-headers)
 
-    # Declare arrays to store GUI and API ingresses
+    # Declare arrays to store GUI ingresses
     gui_ingresses=()
-  #  api_ingresses=()
 
-    # Get all ingress resources and process them
+    # Get all ingress resources
     for i in $(kubectl --kubeconfig management-cluster-kubeconfig get ingress -A | sed "s/[ \t]\+/|/gi" | grep -v NAMESPACE); do
         # Extract the namespace and ingress name
         namespace=$(echo "$i" | cut -d'|' -f1)
@@ -442,8 +441,6 @@ function fetch_ingress_service_types() {
         if [ -n "$service_type" ]; then
             if [ "$service_type" == "gui" ]; then
                 gui_ingresses+=("$ingress_name: https://$ingress_host")
-        #    elif [ "$service_type" == "api" ]; then
-        #        api_ingresses+=("$ingress_name: https://$ingress_host")
             fi
         fi
     done
@@ -455,14 +452,6 @@ function fetch_ingress_service_types() {
             echo "* $ingress"
         done
     fi
-
-  #  # Output API-only ingresses
-  #  if [ ${#api_ingresses[@]} -gt 0 ]; then
-  #      echo "API-only:"
-  #      for ingress in "${api_ingresses[@]}"; do
-  #          echo "* $ingress"
-  #      done
-  #  fi
 }
 
 function display_final_messages() {
