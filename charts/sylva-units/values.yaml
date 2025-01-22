@@ -51,7 +51,7 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
     spec:
       url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-capi-cluster.git
       ref:
-        tag: 0.8.3
+        tag: 0.0.0-okd-qcow2-apr29
 
   sync-openstack-images:
     kind: GitRepository
@@ -3290,6 +3290,54 @@ units:
 
               echo "--- waiting for all machines to have a nodeRef (reflects the fact that the Node has joined the cluster)..."
               kubectl wait Machine -l cluster.x-k8s.io/cluster-name={{ .Values.cluster.name }} --for=jsonpath='{.status.nodeRef.name}' --timeout $WAIT_TIMEOUT
+
+  openshift-cluster-ready:
+    info:
+      description: openshift specific cluster ready check
+      details: |
+        This unit is an extra check for openshift cluster ready on top of cluster-machines-ready
+      internal: true
+    enabled_conditions:
+    - '{{ eq .Values.cluster.capi_providers.bootstrap_provider "cabpoa" }}'
+    depends_on:
+      cluster: true
+      cluster-machines-ready: true  # no need to start waiting for anything until
+    unit_templates:
+    - kube-job
+    kustomization_spec:
+      targetNamespace: '{{ .Release.Namespace }}'
+      postBuild:
+        substitute:
+          ACTIVE_DEADLINE_SECONDS: "7200"
+      _patches:
+      - target:
+          kind: Job
+        patch: |
+          - op: add
+            path: /spec/template/spec/containers/0/env
+            value:
+              - name: WAIT_TIMEOUT
+                value: {{ .Values.openshift_cluster_ready.wait_timeout }}
+              - name: CONTROL_PLANE
+                value: OpenshiftAssistedControlPlane
+      - target:
+          kind: ConfigMap
+          labelSelector: kube-job=script
+        patch: |
+          - op: replace
+            path: /data/kube-job.sh
+            value: |
+              #!/bin/bash
+              set -e
+
+              function exit_trap() {
+                echo "--- summary of resources"
+                kubectl get $CONTROL_PLANE -l cluster.x-k8s.io/cluster-name={{ .Values.cluster.name }}
+              }
+              trap exit_trap EXIT
+
+              echo "--- waiting for openshift UpgradeCompleted condition ..."
+              kubectl wait $CONTROL_PLANE -l cluster.x-k8s.io/cluster-name={{ .Values.cluster.name }} --for condition=UpgradeCompleted --timeout $WAIT_TIMEOUT
 
   heat-operator:
     info:
@@ -7970,6 +8018,13 @@ cluster:
 
   openshift:
     baseDomain: '{{ .Values.cluster_domain }}'
+    version: 4.19.0-okd-scos.ec.1
+    sshAuthorizedKey: ""
+    pullSecret: ""
+    additionalEnabledCapabilities:
+      - marketplace
+      - NodeTuning
+      - Storage
 
   timeouts:
     cluster_delete_hook_job_timeout: 300
@@ -8001,6 +8056,9 @@ cluster:
 
 cluster_machines_ready:
   wait_timeout: 600s
+
+openshift_cluster_ready:
+  wait_timeout: 900s
 
 capd_docker_host: unix:///var/run/docker.sock
 
@@ -9109,18 +9167,15 @@ openshift:
     fsSize: 8Gi
     imagestoreSize: 10Gi
     osImages:
-    - openshiftVersion: "4.14.0-0.okd-scos-2024-01-30-032525"
-      cpuArchitecture: "x86_64"
-      url: "https://mirror.openshift.com/pub/openshift-v4/x86_64/dependencies/rhcos/4.14/4.14.0/rhcos-4.14.0-x86_64-live.x86_64.iso"
-      version: "4.14.0-0.okd-scos-2024-01-30-032525"
-    - openshiftVersion: "4.15.0-0.okd-scos-2024-01-18-223523"
-      cpuArchitecture: "x86_64"
-      url: "https://mirror.openshift.com/pub/openshift-v4/x86_64/dependencies/rhcos/4.15/4.15.0/rhcos-4.15.0-x86_64-live.x86_64.iso"
-      version: "4.15.0-0.okd-scos-2024-01-18-223523"
     - openshiftVersion: "4.17.0"
       cpuArchitecture: "x86_64"
       url: "https://mirror.openshift.com/pub/openshift-v4/x86_64/dependencies/rhcos/4.17/4.17.0/rhcos-4.17.0-x86_64-live.x86_64.iso"
       version: "4.17.0"
+    - cpuArchitecture: x86_64
+      openshiftVersion: '4.19'
+      url: https://mirror.openshift.com/pub/openshift-v4/x86_64/dependencies/rhcos/pre-release/dev-4.19/rhcos-live-iso.x86_64.iso
+      version: 4.19.0
+
     # variable to specify the openshift assisted service hostname
     # serviceHostname: openshift-assisted-service.example.com
     # variable to specify the openshift assisted image service hostname

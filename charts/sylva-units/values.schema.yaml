@@ -650,6 +650,14 @@ properties:
         type: string
         pattern: '^[0-9]+[smh]'
 
+  openshift_cluster_ready:
+    type: object
+    additionalProperties: false
+    properties:
+      wait_timeout:
+        type: string
+        pattern: '^[0-9]+[smh]'
+
   os_image_server_additional_selectors:  # -------------------------------
     type: object
     additionalProperties: false

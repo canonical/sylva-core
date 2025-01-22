@@ -6,7 +6,7 @@ metadata:
   namespace: "${NAMESPACE:-sylva-system}"
 spec:
   backoffLimit: 5
-  activeDeadlineSeconds: 1800
+  activeDeadlineSeconds: "${ACTIVE_DEADLINE_SECONDS:-1800}"
   template:
     metadata:
       annotations:

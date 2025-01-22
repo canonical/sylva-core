@@ -105,6 +105,12 @@ units:
     - helmrelease-deployed-on-mgmt-cluster
     - kube-job
 
+  openshift-cluster-ready:
+    enabled: '{{ eq .Values.cluster.capi_providers.bootstrap_provider "cabpoa" }}'
+    unit_templates:
+    - kustomization-deployed-on-mgmt-cluster
+    - kube-job
+
   mgmt-cluster-ready:
     # all units (except 'root-dependency') depend on this unit
     # (see unit_definition_defaults.depends_on.mgmt-cluster-ready)

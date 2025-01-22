@@ -1,17 +1,16 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
-  - https://raw.githubusercontent.com/openshift/assisted-service/v2.33.0/hack/crds/hive.openshift.io_clusterdeployments.yaml
-  - https://raw.githubusercontent.com/openshift/assisted-service/v2.33.0/hack/crds/hive.openshift.io_clusterimagesets.yaml
-  - https://github.com/openshift/assisted-service/config/default?ref=v2.33.0
+  - https://raw.githubusercontent.com/openshift/assisted-service/9964f0870d5df042a782bb9c6394835d05ad807a/hack/crds/hive.openshift.io_clusterdeployments.yaml
+  - https://raw.githubusercontent.com/openshift/assisted-service/9964f0870d5df042a782bb9c6394835d05ad807a/hack/crds/hive.openshift.io_clusterimagesets.yaml
+  - https://github.com/openshift/assisted-service/config/default?ref=v2.38.1&timeout=300s
   - agentconfig.yaml
   - root-fsGroup-assisted-installer.yaml # test workaround for https://gitlab.com/sylva-projects/sylva-core/-/merge_requests/2654#note_2114765991
 
-# ocm-2.12-2024-10-30 build
 images:
   - name: quay.io/edge-infrastructure/assisted-service
     newName: quay.io/edge-infrastructure/assisted-service
-    newTag: ocm-2.12-2024-10-30
+    digest: "sha256:ce7f612a87088e22c79a93601ea70ba089af58792a0164e2bfe955d7a50c1105"
 
 patches:
   - target:
@@ -23,25 +22,25 @@ patches:
     patch: |-
       - op: replace
         path: /spec/template/spec/containers/0/env/0/value
-        value: quay.io/edge-infrastructure/assisted-service:ocm-2.12-2024-10-30
+        value: quay.io/edge-infrastructure/assisted-service@sha256:b0748fb8c0fcfacea90fac2ad7d69e32291714bde5bfbada30b9fe6e206db212
       - op: replace
         path: /spec/template/spec/containers/0/env/1/value
-        value: quay.io/edge-infrastructure/assisted-service-el8:ocm-2.12-2024-10-30
+        value: quay.io/edge-infrastructure/assisted-service-el8@sha256:bb487fc7121a26be374792ccb6eeed7ac8a521fa78876eec87807a5da7da5121
       - op: replace
         path: /spec/template/spec/containers/0/env/2/value
-        value: quay.io/edge-infrastructure/assisted-image-service:ocm-2.12-2024-10-30
+        value: quay.io/edge-infrastructure/assisted-image-service@sha256:007f0b23d6e3f52837f44d3b4f02565e0121967e8b64e75dc38ba1b1d48e58c2
       - op: replace
         path: /spec/template/spec/containers/0/env/3/value
         value: quay.io/sclorg/postgresql-12-c8s@sha256:663089471e999a4175341ac4d97dcff9cd15ec5f2e96b2309dc8de806106198b
       - op: replace
         path: /spec/template/spec/containers/0/env/4/value
-        value: quay.io/edge-infrastructure/assisted-installer-agent:ocm-2.12-2024-10-30
+        value: quay.io/edge-infrastructure/assisted-installer-agent@sha256:b9cf4a9246eb3eb2d71dc17f6034c875be9c7d63120fa5a683b975dd878e6b20
       - op: replace
         path: /spec/template/spec/containers/0/env/5/value
-        value: quay.io/edge-infrastructure/assisted-installer-controller:ocm-2.12-2024-10-30
+        value: quay.io/edge-infrastructure/assisted-installer-controller@sha256:6fd6d481b66b78853214fbce28acbd45fd9345480c70b8775078ce44ba3d2ab8
       - op: replace
         path: /spec/template/spec/containers/0/env/6/value
-        value: quay.io/edge-infrastructure/assisted-installer:ocm-2.12-2024-10-30
+        value: quay.io/edge-infrastructure/assisted-installer@sha256:7c4e456c16d9f1171a8328485e89d63622a5d1bc24c6e553031119b8027f3384
       - op: add
         path: "/spec/template/spec/containers/0/env/-"
         value:
