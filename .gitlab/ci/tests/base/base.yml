@@ -9,15 +9,16 @@ prepare-tests-env:
   script:
     - !reference [.import_functions]
     - download_artifact deploy-management-cluster management-cluster-kubeconfig
+    - cp management-cluster-kubeconfig ${CI_PROJECT_DIR}/management-cluster-kubeconfig
     - !reference [.test_scripts, edit_hosts_file]
     - |
       if [[ ${DEPLOY_WORKLOAD_CLUSTER} == 'true' ]]; then
         unset https_proxy http_proxy
-        export KUBECONFIG=management-cluster-kubeconfig
-        ./tools/shell-lib/get-wc-kubeconfig-from-rancher.sh $WORKLOAD_CLUSTER_NAME workload-cluster-kubeconfig
+        export KUBECONFIG=${CI_PROJECT_DIR}/management-cluster-kubeconfig
+        ./tools/shell-lib/get-wc-kubeconfig-from-rancher.sh $WORKLOAD_CLUSTER_NAME ${CI_PROJECT_DIR}/workload-cluster-kubeconfig
         if [[ ${ENV_NAME} == *'capm3-virt'* ]]; then
-          yq -i e '.clusters[].cluster.insecure-skip-tls-verify = true' workload-cluster-kubeconfig
-          yq -i e 'del(.clusters[].cluster.certificate-authority-data)' workload-cluster-kubeconfig
+          yq -i e '.clusters[].cluster.insecure-skip-tls-verify = true' ${CI_PROJECT_DIR}/workload-cluster-kubeconfig
+          yq -i e 'del(.clusters[].cluster.certificate-authority-data)' ${CI_PROJECT_DIR}/workload-cluster-kubeconfig
         fi
       fi
   artifacts:
