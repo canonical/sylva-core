@@ -549,6 +549,7 @@ units_override_enabled:
   - vsphere-csi-driver
   # use following hack to ensure  "units.ceph-csi-cephfs.enabled has precedence over units_override_enabled
   - '{{ tuple "ceph-csi-cephfs" (dig "ceph-csi-cephfs" "enabled" true .Values.units) | include "set-only-if"}}'
+  - '{{ tuple "openshift-assisted-installer" (eq .Values.cluster.capi_providers.bootstrap_provider "cabpoa") | include "set-only-if" }}'
   - metal3
   - capo-orc
   - bootstrap-local-path
@@ -565,9 +566,9 @@ units_override_enabled:
   - kyverno
   - kyverno-policies
   - kyverno-metal3-policies
-  - calico-crd
-  - calico
-  - calico-ready
+  - '{{ tuple "calico-crd" (ne .Values.cluster.capi_providers.bootstrap_provider "cabpoa") | include "set-only-if" }}'
+  - '{{ tuple "calico" (ne .Values.cluster.capi_providers.bootstrap_provider "cabpoa") | include "set-only-if" }}'
+  - '{{ tuple "calico-ready" (ne .Values.cluster.capi_providers.bootstrap_provider "cabpoa") | include "set-only-if" }}'
   - management-cluster-flux
   - management-cluster-configs
   - management-sylva-units
