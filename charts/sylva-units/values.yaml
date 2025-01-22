@@ -2455,7 +2455,6 @@ units:
     info:
       description: installs OKD/OpenShift CAPI bootstrap/controlplane provider
       maturity: experimental
-    enabled: false
     repo: sylva-core
     unit_templates:
     - base-deps
