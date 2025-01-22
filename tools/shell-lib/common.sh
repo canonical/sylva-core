@@ -294,7 +294,9 @@ function suspend_sylva_units {
   else
     echo -e "\U000023F8 Suspend sylva-units HelmRelease/HelmChart"
     kubectl -n $ns patch helmreleases.helm.toolkit.fluxcd.io sylva-units       --type=merge --patch='{"spec":{"suspend":true}}'
-    kubectl -n $ns patch helmcharts.source.toolkit.fluxcd.io ${ns}-sylva-units --type=merge --patch='{"spec":{"suspend":true}}'
+    if [[ $(kubectl -n $ns get helmcharts.source.toolkit.fluxcd.io ${ns}-sylva-units 2>&1 || true) != *"not found" ]]; then
+      kubectl -n $ns patch helmcharts.source.toolkit.fluxcd.io ${ns}-sylva-units --type=merge --patch='{"spec":{"suspend":true}}'
+    fi
   fi
 }
 
