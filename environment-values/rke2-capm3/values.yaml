@@ -29,7 +29,9 @@ cluster:
               - ssh-rsa AAAA...... YOUR KEY HERE ....UqnQ==
 
   capm3:
-    image_key: ubuntu-noble-hardened-rke2-1-30-9
+    os_image_selector:
+      os: ubuntu
+      hardened: true
     primary_pool_network: 10.188.36.128
     primary_pool_gateway: 10.188.36.129
     primary_pool_start: 10.188.36.148
