@@ -1,3 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: assisted-installer-config-override
+  namespace: assisted-installer
+data:
+  INSTALL_TO_EXISTING_ROOT: "true"
+---
 apiVersion: agent-install.openshift.io/v1beta1
 kind: AgentServiceConfig
 metadata:
