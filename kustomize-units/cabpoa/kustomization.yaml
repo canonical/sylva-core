@@ -1,32 +1,45 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
-  - https://github.com/openshift-assisted/cluster-api-agent/releases/download/v0.2.0/bootstrap-components.yaml
-  - https://github.com/openshift-assisted/cluster-api-agent/releases/download/v0.2.0/controlplane-components.yaml
+  - https://github.com/openshift-assisted/cluster-api-provider-openshift-assisted/releases/download/v0.3.4/bootstrap-components.yaml
+  - https://github.com/openshift-assisted/cluster-api-provider-openshift-assisted/releases/download/v0.3.4/controlplane-components.yaml
+
 patches:
+  - target:
+      kind: Deployment
+      name: capoa-bootstrap-controller-manager
+      version: v1
+    patch: |-
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: ASSISTED_CA_BUNDLE_NAME
+          value: assisted-installer-ca
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: ASSISTED_CA_BUNDLE_NAMESPACE
+          value: assisted-installer
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: ASSISTED_CA_BUNDLE_RESOURCE
+          value: secret
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: ASSISTED_CA_BUNDLE_KEY
+          value: ca.crt
   - target:
       version: v1
       kind: Namespace
     patch: |-
-      - op: replace
+      - op: add
+        path: /metadata/labels
+        value: {}
+      - op: add
         path: /metadata/labels/pod-security.kubernetes.io~1enforce
         value: baseline
-  - patch: |-
-      apiVersion: apps/v1
-      kind: Deployment
-      metadata:
-        name: capi-agent-bootstrapcontroller-manager
-        namespace: capi-agent-bootstrap-system
-      spec:
-        template:
-          spec:
-            containers:
-            - name: manager
-              env:
-              - name: USE_INTERNAL_IMAGE_URL
-                value: "true"
-              - name: IMAGE_SERVICE_NAMESPACE
-                value: "assisted-installer"
 labels:
   - pairs:
       clusterctl.cluster.x-k8s.io: ""
