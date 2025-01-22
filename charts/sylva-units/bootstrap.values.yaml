@@ -315,13 +315,6 @@ units:
         spec:
           chart: charts/sylva-units
           reconcileStrategy: Revision
-          # copy sourceRef from bootstrap HelmRelease:
-          # we copy the valuesFiles from the bootstrap HelmRelease, skipping
-          # the bootstrap.values.yaml file (with or without the 'charts/sylva-units/'
-          # prefix which is or isn't there depending on whether this is a deployment
-          # relying on OCI artifacts)
-          valuesFiles: |
-            {{- without (lookup "helm.toolkit.fluxcd.io/v2" "HelmRelease" "sylva-system" "sylva-units" | dig "spec" "chart" "spec" "valuesFiles" list) "bootstrap.values.yaml" "charts/sylva-units/bootstrap.values.yaml" | include "preserve-type" -}}
       # copy values and valuesFrom from current sylva-units HelmRelease
           # copy sourceRef from bootstrap HelmRelease, sylva-units templating would not set it if already present (see units.yaml)
           sourceRef: '{{ lookup "helm.toolkit.fluxcd.io/v2beta2" "HelmRelease" "sylva-system" "sylva-units" | dig "spec" "chart" "spec" "sourceRef" (dict "kind" "GitRepository" "name" "not-found" "namespace" "not-found") | include "preserve-type" }}'
