@@ -2165,6 +2165,7 @@ units:
                 verbs: ["get", "list", "patch", "update", "watch"]
               - apiGroups: ["apps"]
                 resources:
+                  - "statefulsets"
                   - "deployments"
                 verbs: ["get", "list", "watch", "patch", "update"]
               - apiGroups: ["helm.toolkit.fluxcd.io"]
@@ -2271,6 +2272,21 @@ units:
             value: |
               #!/bin/bash
               sleep 60
+
+  kyverno-vault-restart-policy:
+    info:
+      description: restart vault after certs renewal
+      internal: true
+    unit_templates:
+      - base-deps
+    enabled_conditions:
+      - '{{ tuple . "kyverno" | include "unit-enabled" }}'
+    depends_on:
+      kyverno: true
+    repo: sylva-core
+    kustomization_spec:
+      path: ./kustomize-units/kyverno-policies/restart-vault
+      wait: true
 
   kyverno-metal3-policies:
     info:
