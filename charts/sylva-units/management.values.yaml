@@ -139,6 +139,14 @@ units:
     depends_on:
       monitoring-crd: true
 
+  sylva-prometheus-rules:
+    helmrelease_spec:
+      values:
+        createRules:
+          # always add the management-cluster rules
+          # regardless of the management cluster name
+          management-cluster: true
+
   monitoring:
     depends_on:
       keycloak-oidc-external-secrets: true
