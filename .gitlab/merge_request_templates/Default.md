@@ -23,7 +23,7 @@ Below you can choose test deployment variants to run in this MR's CI.
 | 🚀  | **Bootstrap Provider**   | `kubeadm` (alias `kadm`), `rke2`                                          |
 | 🐧  | **Node OS**              | `ubuntu`, `suse`                                                          |
 | 🛠  | **Deployment Options**    | `light-deploy`, `oci`, `ha`, `misc`                                       |
-| 🎬  | **Pipeline Scenarios**   | `rolling-update`, `mgmt-rolling-update`, `k8s-upgrade`, `sylva-upgrade`, `sylva-upgrade-from-x.x.X`, `simple-update`, `preview`, `nightly` |
+| 🎬  | **Pipeline Scenarios**   | `rolling-update`, `mgmt-rolling-update`, `k8s-upgrade`, `sylva-upgrade-from-x.x.x`, `simple-update`, `preview`, `nightly` |
 
 <!-- DEPLOYMENT FLAVOR DEFINITION START -->
 
@@ -39,14 +39,14 @@ Below you can choose test deployment variants to run in this MR's CI.
 * [ ] ☁ capo 🚀 rke2 🎬 rolling-update 🛠 ha 🐧 ubuntu
 * [ ] ☁ capo 🚀 kadm 🎬 k8s-upgrade 🐧 ubuntu
 * [ ] ☁ capo 🚀 rke2 🎬 mgmt-rolling-update 🛠 ha,misc 🐧 suse
-* [ ] ☁ capo 🚀 rke2 🎬 sylva-upgrade 🛠 ha,misc 🐧 ubuntu
+* [ ] ☁ capo 🚀 rke2 🎬 sylva-upgrade-from-1.3.x 🛠 ha,misc 🐧 ubuntu
 
 * [x] ☁ capm3 🚀 rke2 🐧 suse
 * [x] ☁ capm3 🚀 kadm 🛠 oci 🐧 ubuntu
 * [ ] ☁ capm3 🚀 kadm 🎬 mgmt-rolling-update 🛠 ha,misc 🐧 ubuntu
 * [ ] ☁ capm3 🚀 rke2 🎬 k8s-upgrade 🛠 ha 🐧 suse
 * [ ] ☁ capm3 🚀 kadm 🎬 rolling-update 🛠 ha 🐧 ubuntu
-* [ ] ☁ capm3 🚀 rke2 🎬 sylva-upgrade 🛠 misc,ha 🐧 suse
+* [ ] ☁ capm3 🚀 rke2 🎬 sylva-upgrade-from-1.3.x 🛠 misc,ha 🐧 suse
 * [ ] ☁ capm3 🚀 kadm 🎬 rolling-update 🛠 ha 🐧 suse
 
 <!-- DEPLOYMENT FLAVOR DEFINITION END -->
