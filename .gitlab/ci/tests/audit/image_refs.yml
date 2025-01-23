@@ -13,12 +13,9 @@
 
 mgmt-image-ref-report:
   extends:
-    - .test-tags
-    - .rules:need-management-cluster
     - .image-ref-report
+    - .test-base-management-cluster
   script:
-    - !reference [.import_functions]
-    - download_artifact deploy-management-cluster management-cluster-kubeconfig
     - apk add py3-kubernetes py3-pydantic
     - pip install docker-image-py paramiko --break-system-packages
     - python3 ./tools/get_image_refs.py --kubeconfig management-cluster-kubeconfig --output ${CI_PROJECT_DIR}/image_refs_${CLUSTER}_${CI_PIPELINE_ID}.json
@@ -30,9 +27,8 @@ wkld-image-ref-report:
     - .test-tags
     - .rules:need-workload-cluster
     - .image-ref-report
+    - .test-base-workload-cluster
   script:
-    - !reference [.import_functions]
-    - download_artifact deploy-management-cluster management-cluster-kubeconfig
     - apk add py3-kubernetes py3-pydantic
     - pip install docker-image-py paramiko --break-system-packages
     - python3 ./tools/get_image_refs.py --kubeconfig management-cluster-kubeconfig --workload-name $WORKLOAD_CLUSTER_NAME --output ${CI_PROJECT_DIR}/image_refs_${CLUSTER}_${CI_PIPELINE_ID}.json
