@@ -142,7 +142,7 @@ def generate_ci_job_struct(job_names):
     ci_jobs = {}
 
     for job in job_names:
-        infra = re.compile(r"☁([\w\d-]+)").findall(job)
+        infra = re.compile(r"☁\s*([\w\d-]+)").findall(job)
         if len(infra) != 1 or infra[0] not in ALLOWED_INFRA.split(","):
             logging.error(f"deployment {job}: infra not allowed")
             sys.exit(1)
@@ -152,7 +152,7 @@ def generate_ci_job_struct(job_names):
             ci_jobs[job].setdefault("variables", {})
             ci_jobs[job]["variables"]["SKIP_TESTS"] = "true"
 
-        scenario = re.compile(r"🎬([\w\d\.-]+)").findall(job)
+        scenario = re.compile(r"🎬\s*([\w\d\.-]+)").findall(job)
         if scenario:
             if scenario[0] in ALLOWED_SCENARIOS.split(","):
                 ci_jobs[job]["extends"].append(f".scenario_{scenario[0]}")
@@ -166,7 +166,7 @@ def generate_ci_job_struct(job_names):
                 sys.exit(1)
 
         options = []
-        option_match = re.compile(r"🛠([\w\d,-]+)").findall(job)
+        option_match = re.compile(r"🛠\s*([\w\d,-]+)").findall(job)
         if option_match:
             options = option_match[0].split(",")
 
