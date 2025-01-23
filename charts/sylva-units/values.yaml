@@ -2520,7 +2520,6 @@ units:
     kustomization_spec:
       path: ./kustomize-units/openshift-security-context-constraints
       wait: true
-      prune: false
       _components:
         - '{{ tuple "components/ceph-csi-cephfs" (tuple . "ceph-csi-cephfs" | include "unit-enabled") | include "set-only-if" }}'
 
