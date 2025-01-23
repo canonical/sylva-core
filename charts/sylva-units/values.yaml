@@ -4176,6 +4176,51 @@ units:
             username: '{{ .Values._internal.thanos_user }}'
             password: '{{ .Values._internal.thanos_password }}'
 
+  openshift-monitoring:
+    info:
+      description: Enable monitoring of OKD workload cluster components on Sylva management cluster
+      maturity: experimental
+      internal: true
+    unit_templates:
+    - base-deps
+    enabled: false
+    repo: sylva-core
+    kustomization_substitute_secrets:
+      USERNAME: '{{ .Values._internal.thanos_user }}'
+      PASSWORD: '{{ .Values._internal.thanos_password }}'
+    kustomization_spec:
+      targetNamespace: openshift-monitoring
+      path: ./kustomize-units/openshift-monitoring
+      postBuild:
+        substitute:
+          SECRET_NAME: mgmt-cluster-thanos-credentials
+          CLUSTER_NAME: '{{ .Values.cluster.name }}'
+          THANOS_URL: '{{ .Values.monitoring.thanos_receive_url }}'
+
+  openshift-user-workload-monitoring:
+    info:
+      description: Enable monitoring of workload CNFs on Sylva management cluster
+      maturity: experimental
+      internal: true
+    unit_templates:
+      - base-deps
+    enabled_conditions:
+      - '{{ tuple . "openshift-monitoring" | include "unit-enabled" }}'
+    depends_on:
+      openshift-monitoring: '{{ tuple . "openshift-monitoring" | include "unit-enabled" }}'
+    repo: sylva-core
+    kustomization_substitute_secrets:
+      USERNAME: '{{ .Values._internal.thanos_user }}'
+      PASSWORD: '{{ .Values._internal.thanos_password }}'
+    kustomization_spec:
+      targetNamespace: openshift-user-workload-monitoring
+      path: ./kustomize-units/openshift-monitoring/openshift-user-workload-monitoring
+      postBuild:
+        substitute:
+          SECRET_NAME: mgmt-cluster-thanos-credentials
+          CLUSTER_NAME: '{{ .Values.cluster.name }}'
+          THANOS_URL: '{{ .Values.monitoring.thanos_receive_url }}'
+
   prometheus-resources:
     info:
       description: Creates required ConfigMaps and Kyverno policies to enable SNMP monitoring by Prometheus

@@ -151,6 +151,8 @@
 | **namespace-defs** | creates sylva-system namespace and other namespaces to be used by various units | Kustomization |
 | **neuvector-init** | sets up Neuvector prerequisites<br/><br/>it generates namespace, certificate, admin password, policy exception for using latest tag images (required for the pod managing the database of vulnerabilities since this DB is updated often) | Kustomization |
 | **nfs-ganesha-init** | Define persistent volume claim for NFS Ganesha | Kustomization |
+| **openshift-monitoring** | Enable monitoring of OKD workload cluster components on Sylva management cluster | Kustomization |
+| **openshift-user-workload-monitoring** | Enable monitoring of workload CNFs on Sylva management cluster | Kustomization |
 | **os-images-info** | Creates a list of os images<br/><br/>This unit creates a configmap containing the os images (and their details in the case of Sylva diskimage-builder ones)<br/>to be further served by os-image-server | Kustomization |
 | **pivot** | moves ClusterAPI objects from bootstrap cluster to management cluster | Kustomization |
 | **prometheus-custom-metrics** | Prometheus configuration for custom resource metrics<br/><br/>Adding podmonitors for flux controllers and create custom metrics for various resources by configuring kube-state-metrics | Kustomization |
