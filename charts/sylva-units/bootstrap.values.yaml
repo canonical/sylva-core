@@ -311,6 +311,7 @@ units:
                 name: sylva-units
     helmrelease_spec:
       releaseName: sylva-units
+      interval: 1m0s
       chart:
         spec:
           chart: charts/sylva-units
