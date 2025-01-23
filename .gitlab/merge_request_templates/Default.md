@@ -31,7 +31,7 @@ Below you can choose test deployment variants to run in this MR's CI.
 * [ ] 🎬 preview ☁ capo 🚀 rke2 🐧 suse
 * [ ] 🎬 preview ☁ capm3 🚀 rke2 🐧 ubuntu
 
-* [x] ☁ capd 🚀 kubeadm 🛠 light-deploy 🐧 ubuntu
+* [x] ☁ capd 🚀 kadm 🛠 light-deploy 🐧 ubuntu
 * [x] ☁ capd 🚀 rke2 🛠 oci,light-deploy 🐧 suse
 
 * [x] ☁ capo 🚀 rke2 🛠 oci 🐧 suse
