@@ -35,7 +35,7 @@ ALLOWED_SCENARIOS = os.getenv(
         "sylva-upgrade",
         "sylva-upgrade-from-1.1.1",
         "sylva-upgrade-from-1.2.1",
-        "sylva-upgrade-from-1.3.1",
+        "sylva-upgrade-from-1.3.x",
     ])
 )
 
