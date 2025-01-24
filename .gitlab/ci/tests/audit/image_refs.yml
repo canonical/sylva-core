@@ -24,8 +24,6 @@ mgmt-image-ref-report:
 
 wkld-image-ref-report:
   extends:
-    - .test-tags
-    - .rules:need-workload-cluster
     - .image-ref-report
     - .test-base-workload-cluster
   script:
