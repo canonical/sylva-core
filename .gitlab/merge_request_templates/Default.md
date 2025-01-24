@@ -50,6 +50,18 @@ Below you can choose test deployment variants to run in this MR's CI.
 * [ ] ☁ capm3 🚀 kadm 🎬 rolling-update 🛠 ha 🐧 suse
 
 <!-- DEPLOYMENT FLAVOR DEFINITION END -->
+
+### Global config for deployment pipelines
+
+* [ ] autorun pipelines                    <!-- AUTORUN  OPTION -->
+* [x] allow failure on pipelines           <!-- ALLOW FAILURE OPTION -->
+
+Notes:
+
+* Enabling `autorun` will make deployment pipelines to be run automatically without human interaction
+* Disabling `allow failure` will make deployment pipelines mandatory for pipeline success.
+* if both `autorun` and `allow failure` are disabled, deployment pipelines will need manual triggering but will be blocking the pipeline
+
 </details>
 
 **Be aware:** after configuration change, pipeline is not triggered automatically.
