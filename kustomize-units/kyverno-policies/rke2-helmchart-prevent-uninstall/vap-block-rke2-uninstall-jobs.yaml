@@ -1,0 +1,42 @@
+apiVersion: admissionregistration.k8s.io/v1alpha1
+kind: ValidatingAdmissionPolicy
+metadata:
+  name: block-rke2-uninstall-jobs
+  annotations:
+    kustomize.toolkit.fluxcd.io/force: Enabled
+    policies.kyverno.io/description: >-
+      Blocks RKE2 HelmChart jobs that attempt to uninstall critical components like Calico, CoreDNS, and MetalLB
+spec:
+  failurePolicy: Fail
+  matchConstraints:
+    resourceRules:
+      - apiGroups: ["batch"]
+        apiVersions: ["v1"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["jobs"]
+  validations:
+    - expression: >
+        !(object.metadata.name in [
+          "helm-delete-rke2-calico",
+          "helm-delete-rke2-calico-crd",
+          "helm-delete-rke2-coredns",
+          "helm-delete-metallb"
+        ])
+      message: >-
+        Sylva prevents the deletion of critical components (Calico, CoreDNS, MetalLB) by the RKE2 HelmCharts controller
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  name: block-rke2-uninstall-jobs-binding
+spec:
+  policyName: block-rke2-uninstall-jobs
+  validationActions: [Deny]
+  matchResources:
+    namespaceSelector:
+      matchExpressions:
+        - key: kubernetes.io/metadata.name
+          operator: In
+          values:
+            - kube-system
+            - metallb-system
