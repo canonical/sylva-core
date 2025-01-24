@@ -429,19 +429,12 @@ function fetch_ingress_service_types() {
             .metadata.labels."kustomize.toolkit.fluxcd.io/name" //
             .metadata.labels."app.kubernetes.io/name"')
 
-        # Determine the service type
-        service_type=$(kubectl --kubeconfig management-cluster-kubeconfig get kustomization "$unit_name" -n sylva-system \
-            -o jsonpath="{.metadata.labels['service-type']}" 2>/dev/null)
+        # Check if any label starting with "sylva-gui-list-" exists
+        label_present=$(kubectl --kubeconfig management-cluster-kubeconfig get kustomization "$unit_name" -n sylva-system \
+            -o json | jq -e '.metadata.labels | keys[] | select(startswith("sylva-gui-list-"))' 2>/dev/null)
 
-        if [ -z "$service_type" ]; then
-            service_type=$(kubectl --kubeconfig management-cluster-kubeconfig get kustomization "$unit_name" -n sylva-system \
-                -o jsonpath="{.metadata.labels['service-type-$ingress_name']}" 2>/dev/null)
-        fi
-
-        if [ -n "$service_type" ]; then
-            if [ "$service_type" == "gui" ]; then
-                gui_ingresses+=("$ingress_name: https://$ingress_host")
-            fi
+        if [ -n "$label_present" ]; then
+            gui_ingresses+=("$ingress_name: https://$ingress_host")
         fi
     done
 
@@ -467,8 +460,6 @@ function display_final_messages() {
     echo ""
     echo_b "\U0001F331 You can access following UIs"
     fetch_ingress_service_types
-    echo ""
-    kubectl --kubeconfig management-cluster-kubeconfig get ingress --all-namespaces
   fi
   echo_b "\U0001F389 All done"
 }
