@@ -169,7 +169,7 @@ function crust_gather_collect() {
   echo "Crust-gathering $cluster cluster in crust-gather/$cluster"
 
   mkdir -p "crust-gather/$cluster"
-  crustgather collect --exclude-group="catalog.cattle.io" --exclude-kind=Secret -f crust-gather/$cluster &> "crust-gather/$cluster/crustgather.log"
+  https_proxy="" crustgather collect --exclude-group="catalog.cattle.io" --exclude-kind=Secret -f crust-gather/$cluster &> "crust-gather/$cluster/crustgather.log"
 
   return 0
 }
