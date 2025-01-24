@@ -19,12 +19,8 @@ That's why the following were implemented:
 
 During `deployment-test` stage we run one of:
 
-- `test-sso+workload-kubeconfig` that does<br/>
+- `wkld-sso-kubeconfig` that downloads the Rancher Kubeconfig for the sample workload cluster, if job is using a variable `DEPLOY_WORKLOAD_CLUSTER: "TRUE"`, i.e. the job does deploy the sample workload cluster <br/>
+      and then creates a pod using this this kubeconfig <br/>
 
-   1) runs the [Selenium script](../../tools/login-test/test-sso.py), which <br/>
-     1.1) tests SSO login (to the UIs for which an endpoint is exported in CI job script, the `capo-misc-units-deploy` ones like Harbor and Neuvector are not) <br/>
-     1.2) and also downloads the Rancher Kubeconfig for the sample workload cluster, if job is **not** using a variable `ONLY_DEPLOY_MGMT: "TRUE"`, i.e. the job does deploy the sample workload cluster <br/>
-   2) and then does some more with this kubeconfig, creating a test pod <br/>
-
-- `test-sso`, that only does 1.1) from above, when we only deploy the management cluster (like in `capo-fip` or `capo-misc-units` CI variants)
-- `test-no-sso`, get Rancher Kubeconfig without SSO and create test pod into workload cluster.
+- `mgmt-sso`, that tests SSO login (to the UIs for which an endpoint is exported in CI job script) <br/>
+- `wkld-no-sso-kubeconfig`, get Rancher Kubeconfig without SSO and create test pod into workload cluster.
