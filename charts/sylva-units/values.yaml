@@ -1578,14 +1578,25 @@ units:
         {{- $patch := `
         kustomize:
           patches:
-            - patch: |-
+            - target:
                 kind: CronJob
-                apiVersion: batch/v1
-                metadata:
-                  name: neuvector-updater-pod
-                  namespace: neuvector
-                spec:
-                  startingDeadlineSeconds: 21600
+                name: neuvector-updater-pod
+              patch: |-
+                - op: replace
+                  path: /spec/startingDeadlineSeconds
+                  value: 21600
+                - op: add
+                  path: /spec/jobTemplate/spec/template/spec/containers/0/securityContext
+                  value:
+                    runAsNonRoot: true
+                    runAsGroup: 10000
+                    runAsUser: 10000
+                    seccompProfile:
+                      type: RuntimeDefault
+                    allowPrivilegeEscalation: false
+                    capabilities:
+                      drop:
+                        - ALL
         ` -}}
         {{- if .Values.security.neuvector_scanning_enabled -}}
         {{- list ($patch | fromYaml) | include "preserve-type" -}}
