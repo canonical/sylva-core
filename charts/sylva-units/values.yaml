@@ -271,6 +271,7 @@ unit_templates:
       prune: false
       _components:
       - '{{ tuple "../components/extra-ca" .Values.oci_registry_extra_ca_certs | include "set-only-if" }}'
+      - '{{ tuple "../components/openshift" (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpoa") | include "set-only-if" }}'
       postBuild:
         substitute:
           var_substitution_enabled: "true" # To force substitution when configmap does not exist
