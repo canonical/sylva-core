@@ -432,7 +432,7 @@ function fetch_ingress_service_types() {
 
         # Check if any label starting/ending with "sylva-gui-list-" exists
         label_present=$(kubectl --kubeconfig management-cluster-kubeconfig get kustomization "$unit_name" -n sylva-system \
-        -o json | jq  --arg ingress_name "$ingress_name"  '.metadata.labels | keys[] | select(startswith("sylva-gui-list-service-\($ingress_name)") or endswith("sylva-gui-list-services"))' 2>/dev/null)
+        -o json | jq  --arg ingress_name "$ingress_name"  '.metadata.labels | keys[] | select(endswith("sylva-gui-list-service-\($ingress_name)") or startswith("sylva-gui-list-services"))' 2>/dev/null)
 
         if [ -n "$label_present" ]; then
             gui_ingresses+=("$ingress_name: https://$ingress_host")
