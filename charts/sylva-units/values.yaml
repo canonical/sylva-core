@@ -4061,8 +4061,6 @@ units:
       namespace-defs: true
       monitoring-crd: true
       prometheus-resources: '{{ tuple . "prometheus-resources" | include "unit-enabled" }}'
-    labels:
-      sylva-gui-list-services: ""
     helm_repo_url: https://charts.rancher.io/
     helmrelease_spec:
       releaseName: rancher-monitoring
@@ -6018,7 +6016,7 @@ units:
     annotations:
       sylvactl/readyMessage: MinIO monitoring tenant console can be reached at https://{{ .Values.external_hostnames.minio_monitoring_console }} ({{ .Values.external_hostnames.minio_monitoring_console }} must resolve to {{ .Values.display_external_ip }})
     labels:
-      sylva-gui-list-service-minio-monitoring-console: ""
+      sylva-gui-list-service-monitoring-console: ""
     repo: minio-operator
     helmrelease_spec:
       targetNamespace: minio-monitoring
