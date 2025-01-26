@@ -4445,6 +4445,15 @@ units:
       namespace-defs: true
       monitoring-crd: true
     helm_repo_url: https://prometheus-community.github.io/helm-charts
+    helm_secret_values:
+      grafana:
+        adminPassword: '{{ .Values._internal.grafana_admin_password }}'
+      prometheus:
+        extraSecret:
+          name: thanos-basic-auth
+          data:
+            username: '{{ .Values._internal.thanos_user }}'
+            password: '{{ .Values._internal.thanos_password }}'
     helmrelease_spec:
       releaseName: kube-prometheus-stack
       targetNamespace: upstream-monitoring
@@ -4470,6 +4479,67 @@ units:
             scrapeInterval: "60s"
             scrapeTimeout: "30s"
             evaluationInterval: "30s"
+            resources:
+              limits:
+                memory: 6Gi
+              requests:
+                memory: 3Gi
+            storageSpec:
+              volumeClaimTemplate:
+                spec:
+                  storageClassName: '{{ tuple . (tuple . "two-replicas-storageclass" | include "unit-enabled") "two-replicas-storageclass" .Values._internal.default_storage_class | include "interpret-ternary" }}'
+                  accessModes: ["ReadWriteOnce"]
+                  resources:
+                    requests:
+                      # default storage is 50Gi, except for CI and dev environments, 8Gi
+                      storage: '{{  has .Values.env_type (list "dev" "ci") | ternary "8Gi" "50Gi" }}'
+            externalLabels:
+              cluster: '{{ .Values.cluster.name }}'  # required for multi-cluster dashboards
+              platform_tag: '{{ .Values.monitoring.platform_tag }}'
+            remoteWriteDashboards: true
+            remoteWrite:
+              - url: '{{ .Values.monitoring.thanos_receive_url }}'
+                name: '{{ .Values.cluster.name }}'
+                basicAuth:
+                  username:
+                    name: thanos-basic-auth
+                    key: username
+                  password:
+                    name: thanos-basic-auth
+                    key: password
+                tlsConfig:
+                  insecureSkipVerify: true
+                queueConfig:
+                  batchSendDeadline: 5s
+                  minBackoff: 1s
+                  maxBackoff: 30s
+        alertmanager:
+          alertmanagerSpec:
+            useExistingSecret: true
+            configSecret: sylva-alertmanager-config # this Secret is a byproduct of the alertmanager-config unit
+            replicas: '{{ .Values._internal.ha_cluster.is_ha | ternary 2 1 }}'
+            storage:
+              volumeClaimTemplate:
+                spec:
+                  storageClassName: '{{ tuple . (tuple . "two-replicas-storageclass" | include "unit-enabled") "two-replicas-storageclass" .Values._internal.default_storage_class | include "interpret-ternary" }}'
+                  accessModes: ["ReadWriteOnce"]
+                  resources:
+                    requests:
+                      # default storage is 2Gi, except for CI and dev environments, 1Gi
+                      storage: '{{  has .Values.env_type (list "dev" "ci") | ternary "1Gi" "2Gi" }}'
+            affinity:
+              podAntiAffinity:
+                requiredDuringSchedulingIgnoredDuringExecution:
+                  - labelSelector:
+                      matchExpressions:
+                        - key: app.kubernetes.io/name
+                          operator: In
+                          values:
+                            - alertmanager
+                    topologyKey: "kubernetes.io/hostname"
+          podDisruptionBudget:
+            enabled: true
+            minAvailable: '{{ .Values._internal.ha_cluster.is_ha | ternary 1 0 }}'
 
   #upstream-prometheus:
   #  info:
