@@ -70,7 +70,9 @@ mgmt-kube-score:
     - .kube-score-base
     - .test-base-management-cluster
   needs:
-    - deploy-management-cluster
+    - job: deploy-management-cluster
+    - job: update-management-cluster
+      optional: true
   variables:
     DUMP_FOLDER: management-cluster-dump
 
@@ -79,6 +81,8 @@ wkld-kube-score:
     - .kube-score-base
     - .test-base-workload-cluster
   needs:
-    - deploy-workload-cluster
+    - job: deploy-workload-cluster
+    - job: update-workload-cluster
+      optional: true
   variables:
     DUMP_FOLDER: workload-cluster-dump
