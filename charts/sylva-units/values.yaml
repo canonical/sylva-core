@@ -4289,25 +4289,25 @@ units:
           name: grafana-tls
           namespace: cattle-monitoring-system
 
-  upstream-grafana:
-    info:
-      description: installs upstream monitoring stack
-      maturity: beta
-    unit_templates:
-    - base-deps
-    depends_on:
-      namespace-defs: true
-      monitoring-crd: true
-    helm_repo_url: https://grafana.github.io/helm-charts
-    helmrelease_spec:
-      releaseName: grafana
-      targetNamespace: upstream-monitoring
-      chart:
-        spec:
-          chart: grafana
-          version: 8.8.2
-      install:
-        createNamespace: false
+  #upstream-grafana:
+  #  info:
+  #    description: installs upstream monitoring stack
+  #    maturity: beta
+  #  unit_templates:
+  #  - base-deps
+  #  depends_on:
+  #    namespace-defs: true
+  #    monitoring-crd: true
+  #  helm_repo_url: https://grafana.github.io/helm-charts
+  #  helmrelease_spec:
+  #    releaseName: grafana
+  #    targetNamespace: upstream-monitoring
+  #    chart:
+  #      spec:
+  #        chart: grafana
+  #        version: 8.8.2
+  #    install:
+  #      createNamespace: false
 
   upstream-kube-prometheus:
     info:
@@ -4415,6 +4415,24 @@ units:
           podDisruptionBudget:
             enabled: true
             minAvailable: '{{ .Values._internal.ha_cluster.is_ha | ternary 1 0 }}'
+      valuesFrom:
+        - kind: ConfigMap
+          name: custom-resource-state-config # this configmap is a byproduct of the prometheus-custom-metrics unit
+          optional: '{{ not (tuple . "prometheus-custom-metrics" | include "unit-enabled") | include "as-bool" }}'
+        - kind: ConfigMap
+          name: prometheus-config-values # this configmap is a byproduct of the prometheus-resources unit
+          optional: '{{ not (tuple . "prometheus-resources" | include "unit-enabled") | include "as-bool" }}'
+      _postRenderers:
+        - kustomize:
+            patches:
+            # Disable drift detection for rancher-monitoring webhooks
+            - target:
+                kind: (ValidatingWebhookConfiguration|MutatingWebhookConfiguration)
+              patch: |
+                - op: add
+                  path: /metadata/annotations/helm.toolkit.fluxcd.io~1driftDetection
+                  value: disabled
+            - '{{ .Values._internal.pdb_allow_unhealthy_pod_eviction | include "preserve-type" }}'
 
   #upstream-prometheus:
   #  info:
