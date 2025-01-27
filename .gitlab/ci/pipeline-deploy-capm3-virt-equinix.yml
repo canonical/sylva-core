@@ -40,7 +40,7 @@ preview-management-cluster:
 
 # This configuration is specific to capm3 deployments
 .flavored-pre-deployment-configuration:
-  - if [ $SKIP_DOCKER_SERVICE = "true" ]; then export DOCKER_HOST=""; fi
+  - if [ "$SKIP_DOCKER_SERVICE" = "true" ]; then export DOCKER_HOST=""; fi
 
   # mitigation of https://gitlab.com/gitlab-org/gitlab/-/issues/511377
   - echo Runner tags = $CI_RUNNER_TAGS  /  Pipeline IID = $CI_PIPELINE_IID
