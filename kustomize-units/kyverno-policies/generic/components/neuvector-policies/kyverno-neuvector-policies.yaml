@@ -2,30 +2,58 @@ apiVersion: kyverno.io/v1
 kind: ClusterPolicy
 metadata:
   name: merge-neuvector-secrets
+  namespace: sylva-system
   annotations:
     kustomize.toolkit.fluxcd.io/force: Enabled
+    policies.kyverno.io/title: Merge Neuvector secrets for OIDC
+    policies.kyverno.io/minversion: 1.12.0
+    policies.kyverno.io/description: >-
+      Merge neuvector secrets to create init config
 spec:
   mutateExistingOnPolicyUpdate: true
   rules:
   - name: merge-neuvector-secrets
     match:
-      resources:
-        kinds:
-        - Secret
-        names:
-        - neuvector-oidc-init
-        namespaces:
-        - neuvector
-    mutate:
-      targets:
-      - apiVersion: v1
-        kind: Secret
-        name: neuvector-init
-        namespace: neuvector
-      patchesJson6902: |-
-        - path: "/data/oidcinitcfg.yaml"
-          op: add
-          value: {{request.object.data.oidcinitcfg}}
+      any:
+        - resources:
+            kinds:
+            - Secret
+            namespaces:
+            - neuvector
+            names:
+            - neuvector-oidc-init
+            - neuvector-usercfg
+    context:
+      - name: oidcNeuvector
+        apiCall:
+          urlPath: "/api/v1/namespaces/neuvector/secrets/neuvector-oidc-init"
+          jmesPath: "data.oidcinitcfg || `{}`"
+      - name: passwordprofileinitcfg
+        apiCall:
+          urlPath: "/api/v1/namespaces/neuvector/secrets/neuvector-usercfg"
+          jmesPath: "data.passwordprofileinitcfg || `{}`"
+      - name: userinitcfg
+        apiCall:
+          urlPath: "/api/v1/namespaces/neuvector/secrets/neuvector-usercfg"
+          jmesPath: "data.userinitcfg || `{}`"
+    generate:
+      apiVersion: v1
+      kind: Secret
+      name: neuvector-init
+      namespace: neuvector
+      data:
+        metadata:
+          annotations:
+            reconcile.fluxcd.io/requestedAt: "{{ time_now_utc() }}"
+            kyverno.merge-neuvector-secrets/requestedAt: "{{ time_now_utc() }}"
+        data:
+          oidcinitcfg.yaml: |
+            {{ oidcNeuvector }}
+          passwordprofileinitcfg.yaml: |
+            {{ passwordprofileinitcfg }}
+          userinitcfg.yaml: |
+            {{ userinitcfg }}
+
 ---
 apiVersion: kyverno.io/v1
 kind: ClusterPolicy
