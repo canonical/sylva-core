@@ -12,7 +12,7 @@ cluster:
     - '{{ .Values._internal.bootstrap_node_ip }}'
 
   capm3:
-    # image_key: ubuntu-jammy-hardened-rke2-1-30-7
+    # image_key: ubuntu-noble-hardened-rke2-1-30-7
     primary_pool_network: 192.168.100.0
     primary_pool_gateway: 192.168.100.1
     primary_pool_start: 192.168.100.60
