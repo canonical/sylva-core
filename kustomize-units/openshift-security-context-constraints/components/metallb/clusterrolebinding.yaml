@@ -8,7 +8,7 @@ roleRef:
   name: system:openshift:scc:privileged
 subjects:
 - kind: ServiceAccount
-  name: speaker
+  name: metallb-speaker
   namespace: metallb-system
 - kind: ServiceAccount
   name: metallb-controller
