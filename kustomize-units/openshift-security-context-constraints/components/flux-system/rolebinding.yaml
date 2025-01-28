@@ -5,7 +5,7 @@ metadata:
   labels:
     app.kubernetes.io/instance: flux-system
     app.kubernetes.io/part-of: flux
-  name: allow-nonroot_v2-scc
+  name: allow-nonroot_v2
   namespace: flux-system
 rules:
 - apiGroups:
@@ -20,12 +20,12 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: bind-nonroot_v2-scc
+  name: bind-nonroot_v2
   namespace: flux-system
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
-  name: allow-nonroot_v2-scc # The Role created above
+  name: allow-nonroot_v2 # The Role created above
 subjects:
 - kind: ServiceAccount
   name: notification-controller # The ServiceAccount created by the flux-system Helm chart
