@@ -2567,7 +2567,6 @@ units:
       prune: false
       _components:
         - '{{ tuple "components/ceph-csi-cephfs" (tuple . "ceph-csi-cephfs" | include "unit-enabled") | include "set-only-if" }}'
-        - '{{ tuple "components/ceph-csi-rbd" (tuple . "ceph-csi-rbd" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/flux-system" (tuple . "flux-system" | include "unit-enabled") | include "set-only-if" }}'
  
 
