@@ -91,7 +91,7 @@ mgmt-sso:
     - echo "additional GUI tests:"
     - !reference [.test_scripts, get_kubevirt_manager_creds]
     - pytest ./tools/login-test/test_kubevirt_manager.py --browser firefox -v --tb=short
-	
+
 wkld-no-sso-kubeconfig:
   extends:
     - .test-base-workload-cluster

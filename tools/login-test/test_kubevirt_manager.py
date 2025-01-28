@@ -1,6 +1,7 @@
 import os
 import pytest
-from playwright.sync_api import Page, expect
+from playwright.sync_api import expect
+
 
 @pytest.mark.skipif(not os.getenv("kubevirt_manager_url"), reason="Kubevirt Manager URL not provided", all=True)
 def test_kubevirt_manager(browser, kubevirt_manager_url):
