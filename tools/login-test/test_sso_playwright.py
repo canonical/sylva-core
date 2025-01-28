@@ -56,8 +56,6 @@ def test_neuvector_sso(page: Page, neuvector_url):
     response = page.goto(neuvector_url)
     assert response.status == 200, f"Expected status 200, but got {response.status}"
 
-    expect(page).to_
-
     oidc_login = page.get_by_text("Login with OpenID")
 
     if oidc_login.is_disabled():
