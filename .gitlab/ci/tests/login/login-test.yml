@@ -34,6 +34,11 @@
     - export USER_SSO=$(kubectl --kubeconfig ./management-cluster-kubeconfig -n keycloak get secrets/credential-sylva-sylva-admin-keycloak -o jsonpath='{.data.username}'| base64 -d)
     - export PASSWORD_SSO=$(kubectl --kubeconfig ./management-cluster-kubeconfig -n keycloak get secrets/credential-sylva-sylva-admin-keycloak -o jsonpath='{.data.password}'| base64 -d)
     - echo -e "\e[0Ksection_end:`date +%s`:gitlab_ci_get_sso_login_and_password\r\e[0K"
+  get_kubevirt_manager_creds:
+    - echo -e "\e[1m\e[0Ksection_start:`date +%s`:gitlab_ci_get_kubevirt_manager_creds[collapsed=true]\r\e[0KGet Kubevirt Manager login and password\e[0m"
+    - export KUBEVERT_USERNAME="admin"
+    - export KUBEVIRT_PASSWORD=$(kubectl --kubeconfig ./management-cluster-kubeconfig get secrets -n sylva-system sylva-units-values -o yaml | yq .data.values | base64 -d | yq ._internal.kubevirt_admin_password)
+    - echo -e "\e[0Ksection_end:`date +%s`:gitlab_ci_get_kubevirt_manager_creds\r\e[0K"
 
 wkld-sso-kubeconfig:
   extends:
@@ -83,7 +88,10 @@ mgmt-sso:
     - !reference [.test_scripts, get_ui_ingresses_url]
     - !reference [.test_scripts, get_sso_login_and_password]
     - pytest ./tools/login-test/test_sso_playwright.py --browser firefox -v --tb=short
-
+    - echo "additional GUI tests:"
+    - !reference [.test_scripts, get_kubevirt_manager_creds]
+    - pytest ./tools/login-test/test_kubevirt_manager.py --browser firefox -v --tb=short
+	
 wkld-no-sso-kubeconfig:
   extends:
     - .test-base-workload-cluster
