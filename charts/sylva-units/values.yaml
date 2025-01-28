@@ -3262,7 +3262,8 @@ units:
     - base-deps
     enabled_conditions:
       - '{{ or (.Values.cluster.capi_providers.infra_provider | eq "capd")
-               (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpr") }}'
+               (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpr") 
+               (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpoa") }}'
     depends_on:
       '{{ .Values._internal.calico_readiness_unit }}': '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpk" }}'
       metallb-rke2-chart-cleanup: '{{ tuple . "metallb-rke2-chart-cleanup" | include "unit-enabled" }}'
