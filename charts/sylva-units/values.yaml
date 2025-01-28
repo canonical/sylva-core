@@ -1615,6 +1615,95 @@ units:
           name: neuvector-controller-pod
           namespace: neuvector
 
+  crossplane-init:
+    info:
+      description: sets up Crossplane prerequisites
+      details: |
+        it creates the namespace and generates CA certificate secret to be used by 'crossplane' unit
+      internal: true
+    unit_templates:
+    - base-deps
+    enabled_conditions:
+    - '{{ tuple . "crossplane" | include "unit-enabled" }}'
+    depends_on:
+      namespace-defs: true
+      sylva-ca: true
+    repo: sylva-core
+    kustomization_spec:
+      path: ./kustomize-units/crossplane-init
+      postBuild:
+        substitute:
+          CERTIFICATE_NAMESPACE: crossplane-system
+      _components:
+        - "../tls-components/sylva-ca"
+      healthChecks:
+        - apiVersion: v1
+          kind: Secret
+          name: sylva-ca.crt
+          namespace: crossplane-system
+
+  crossplane:
+    info:
+      description: Installs Crossplane with RBAC Manager
+      maturity: stable
+    unit_templates:
+      - base-deps
+    depends_on:
+      namespace-defs: true
+      crossplane-init: true
+    helm_repo_url: https://charts.crossplane.io/stable
+    helmrelease_spec:
+      releaseName: crossplane
+      targetNamespace: crossplane-system
+      chart:
+        spec:
+          chart: crossplane
+          version: 1.17.1
+      install:
+        createNamespace: false
+      values:
+        extraVolumesCrossplane:
+          - name: sylva-ca-crt
+            secret:
+              secretName: sylva-ca.crt
+        extraVolumeMountsCrossplane:
+          - name: sylva-ca-crt
+            mountPath: /etc/ssl/certs/ca.crt
+            subPath: ca.crt
+        extraEnvVarsCrossplane:
+          HTTP_PROXY: '{{ .Values.proxies.http_proxy }}'
+          HTTPS_PROXY: '{{ .Values.proxies.https_proxy }}'
+          NO_PROXY: '{{ include "sylva-units.no_proxy" (tuple .) }}'
+        rbacManager:
+          deploy: true
+          skipAggregatedClusterRoles: false
+          replicas: 1
+          leaderElection: true
+        securityContextCrossplane:
+          runAsUser: 65532
+          runAsNonRoot: true
+          runAsGroup: 65532
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+              - ALL
+          seccompProfile:
+            type: RuntimeDefault
+        securityContextRBACManager:
+          runAsNonRoot: true
+          runAsUser: 65532
+          runAsGroup: 65532
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+              - ALL
+          seccompProfile:
+            type: RuntimeDefault
+        metrics:
+          enabled: false
+
   keycloak:
     info:
       description: initializes and configures Keycloak
