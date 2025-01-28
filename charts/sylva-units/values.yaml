@@ -2567,6 +2567,7 @@ units:
       _components:
         - '{{ tuple "components/ceph-csi-cephfs" (tuple . "ceph-csi-cephfs" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/flux-system" (tuple . "flux-system" | include "unit-enabled") | include "set-only-if" }}'
+        - '{{ tuple "components/metallb" (tuple . "metallb" | include "unit-enabled") | include "set-only-if" }}'
  
 
   metal3:
