@@ -4403,7 +4403,7 @@ units:
                       # default storage is 2Gi, except for CI and dev environments, 1Gi
                       storage: '{{  has .Values.env_type (list "dev" "ci") | ternary "1Gi" "2Gi" }}'
             affinity:
-              podAffinity:
+              podAntiAffinity:
                 requiredDuringSchedulingIgnoredDuringExecution:
                   - labelSelector:
                       matchExpressions:
