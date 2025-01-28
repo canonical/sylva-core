@@ -1,0 +1,51 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-crossplane-ingress
+  namespace: crossplane-system
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: crossplane
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/name: crossplane-rbac-manager
+    - podSelector:
+        matchLabels:
+          app: crossplane-provider
+    ports:
+    - port: 9443
+      protocol: TCP
+  egress:
+  - {} # Allow all egress traffic
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-rbac-manager-ingress
+  namespace: crossplane-system
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: crossplane-rbac-manager
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/name: crossplane
+    - podSelector:
+        matchLabels:
+          app: crossplane-provider
+    ports:
+    - port: 9443
+      protocol: TCP
+  egress:
+  - {} # Allow all egress traffic
