@@ -4094,6 +4094,14 @@ units:
                   enabled: true
                 etcd:
                   enabled: true
+        prometheus-adapter:
+          resources:
+            requests:
+              cpu: 1
+              memory: 1.5Gi
+            limits:
+              cpu: 1.5
+              memory: 2.5Gi
         prometheus:
           prometheusSpec:
             scrapeInterval: "60s"
