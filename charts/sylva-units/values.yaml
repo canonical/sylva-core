@@ -4633,7 +4633,6 @@ units:
     - '{{ tuple . "sriov-network-operator" | include "unit-enabled" }}'
     depends_on:
       namespace-defs: true
-      multus-ready: true
     helm_repo_url: https://suse-edge.github.io/charts/
     helmrelease_spec:
       releaseName: sriov-crd
