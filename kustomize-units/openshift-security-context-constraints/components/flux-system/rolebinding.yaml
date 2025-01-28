@@ -1,35 +1,16 @@
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
-metadata:
-  labels:
-    app.kubernetes.io/instance: flux-system
-    app.kubernetes.io/part-of: flux
-  name: allow-nonroot_v2
-  namespace: flux-system
-rules:
-- apiGroups:
-  - security.openshift.io
-  resources:
-  - securitycontextconstraints
-  resourceNames:
-  - nonroot-v2  # Allow the use of the nonroot-v2 SCC
-  verbs:
-  - use
----
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: bind-nonroot_v2
+  name: bind-nonroot-v2
   namespace: flux-system
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
-  name: allow-nonroot_v2 # The Role created above
+  name: nonroot-v2  # Directly bind to the SCC
 subjects:
 - kind: ServiceAccount
-  name: notification-controller # The ServiceAccount created by the flux-system Helm chart
-  namespace: flux-system  # Namespace of the ServiceAccount
+  name: notification-controller  # Flux ServiceAccount
+  namespace: flux-system
 - kind: ServiceAccount
-  name: source-controller # The ServiceAccount created by the flux-system Helm chart
-  namespace: flux-system  # Namespace of the ServiceAccount
+  name: source-controller  # Flux ServiceAccount
+  namespace: flux-system
