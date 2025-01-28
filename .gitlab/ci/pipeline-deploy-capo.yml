@@ -38,7 +38,7 @@ default:
       yq -i '.namespace = "WORKLOAD_CLUSTER_NAMESPACE"' $ENV_PATH/kustomization.yaml
     fi
     # Eventually apply version specific private-values-override CI values
-    if [ -f "${SYLVA_CI_VALUES_FOLDER}/${SYLVA_CI_VERSIONNED_CI_VALUES_FOLDER}/private-values-override.yaml" ]; then
+    if [ -f "${SYLVA_CI_VALUES_FOLDER}/${SYLVA_CI_VERSIONED_CI_VALUES_FOLDER}/private-values-override.yaml" ]; then
       values_file="${PRIVATE_RUNNER_VALUES_PATH}/values.yaml"  update_values_file private-values-override.yaml
     fi
     echo -e "\e[0Ksection_end:`date +%s`:gitlab_ci_capo\r\e[0K"
