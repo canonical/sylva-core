@@ -7464,9 +7464,15 @@ cluster:
   # Nodes number for control-plane
   control_plane_replicas: 3
 
-  kubelet_extra_args:
-    # increase max-pods for single-node deployments
+  kubelet_extra_args: >-
+    # Increase max-pods for single-node deployments
     max-pods: '{{ tuple "196" (eq (.Values._internal.node_count | int) 1) | include "set-only-if" }}'
+    {{- if (tuple . "kubevirt" | include "unit-enabled") -}}
+    topology-manager-policy: "best-effort"
+    cpu-manager-policy: "static"
+    system-reserved: "cpu=100m,memory=500Mi"
+    kube-reserved: "cpu=100m,memory=500Mi"
+    {{- end -}}
 
   capo:
     # flavor_name: m1.large # Openstack flavor name
