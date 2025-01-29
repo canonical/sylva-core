@@ -34,7 +34,7 @@ default:
     - key: toolbox  # cache shared by all jobs
       paths:
         - ./bin/
-  interruptible: false
+  interruptible: true
 
 # ----------------------------------------------------------
 .test-tags:
@@ -62,6 +62,21 @@ default:
   rules:
     - if: $DEPLOY_WORKLOAD_CLUSTER == "true" && $UPDATE_WORKLOAD_CLUSTER == "true"
       when: on_success
+
+# ----------------------------------------------------------
+
+🚨 dont-interrupt-me:
+  stage: .pre
+  tags: [gitlab-org-docker]
+  image: alpine:edge
+  interruptible: false
+  when: manual
+  allow_failure: true
+  variables:
+    GIT_STRATEGY: none
+  before_script: []
+  script:
+    - echo "This jobs makes sure this pipeline won't be interrupted! xx"
 
 # ----------------------------------------------------------
 
