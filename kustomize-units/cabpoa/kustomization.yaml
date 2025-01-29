@@ -27,6 +27,13 @@ patches:
                 value: "true"
               - name: IMAGE_SERVICE_NAMESPACE
                 value: "assisted-installer"
+images:
+- name: quay.io/edge-infrastructure/openshift-capi-agent-bootstrap
+  newName: quay.io/jianzzha/openshift-capi-agent-bootstrap
+  newTag: sriov
+- name: quay.io/edge-infrastructure/openshift-capi-agent-controlplane
+  newName: quay.io/jianzzha/openshift-capi-agent-controlplane
+  newTag: sriov
 labels:
   - pairs:
       clusterctl.cluster.x-k8s.io: ""
