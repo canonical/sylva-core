@@ -1,31 +1,50 @@
 apiVersion: kyverno.io/v1
 kind: ClusterPolicy
 metadata:
-  name: merge-neuvector-secrets
+  name: reconcile-neuvector-oidc-helmrelease
+  namespace: sylva-system
   annotations:
     kustomize.toolkit.fluxcd.io/force: Enabled
+    policies.kyverno.io/title: Reconcile Neuvector HelmRelease for OIDC
+    policies.kyverno.io/minversion: 1.12.0
+    policies.kyverno.io/description: >-
+      Reconcile neuvector HelmRelease when neuvector-oidc-init is created
 spec:
   mutateExistingOnPolicyUpdate: true
   rules:
-  - name: merge-neuvector-secrets
-    match:
-      resources:
-        kinds:
-        - Secret
-        names:
-        - neuvector-oidc-init
-        namespaces:
-        - neuvector
-    mutate:
-      targets:
-      - apiVersion: v1
-        kind: Secret
-        name: neuvector-init
-        namespace: neuvector
-      patchesJson6902: |-
-        - path: "/data/oidcinitcfg.yaml"
-          op: add
-          value: {{request.object.data.oidcinitcfg}}
+    - name: reconcile-neuvector-oidc-helmrelease
+      match:
+        any:
+          - resources:
+              kinds:
+              - HelmRelease
+              names:
+              - neuvector
+              namespaces:
+              - sylva-system
+      context:
+        - name: oidcNeuvector
+          apiCall:
+            urlPath: "/api/v1/namespaces/neuvector/secrets/neuvector-oidc-init"
+            jmesPath: "data.oidcinitcfg | base64_decode(@) || `{}`"
+      mutate:
+        targets:
+          - apiVersion: helm.toolkit.fluxcd.io/v2
+            kind: HelmRelease
+            name: neuvector
+            namespace: "{{ request.namespace }}"
+        patchStrategicMerge:
+          metadata:
+            annotations:
+              reconcile.fluxcd.io/requestedAt: "{{ time_now_utc() }}"
+              kyverno.reconcile-neuvector-oidc-helmrelease/requestedAt: "{{ time_now_utc() }}"
+          spec:
+            values:
+              controller:
+                configmap:
+                  data:
+                    oidcinitcfg.yaml: |
+                      {{ oidcNeuvector }}
 ---
 apiVersion: kyverno.io/v1
 kind: ClusterPolicy
