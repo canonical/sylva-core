@@ -1,7 +1,7 @@
 apiVersion: provisioning.cattle.io/v1
 kind: Cluster
 metadata:
-  name: ${CLUSTER_NAME}-capi
+  name: ${CLUSTER_NAME}
   annotations:
     field.cattle.io/description: "${CLUSTER_FLAVOR} workload cluster"
     field.cattle.io/creatorId: ${USER_NAME}
