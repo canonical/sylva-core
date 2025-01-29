@@ -4435,6 +4435,27 @@ units:
   #    install:
   #      createNamespace: false
 
+  upstream-alertmanager-config:
+    info:
+      description: generates the config for Alertmanager
+      maturity: beta
+    enabled_conditions:
+    - '{{ tuple . "upstream-kube-prometheus" | include "unit-enabled" }}'
+    - '{{ .Values.units.upstream-kube-prometheus.helmrelease_spec.values.alertmanager.alertmanagerSpec.useExistingSecret }}'
+    unit_templates:
+    - base-deps
+    depends_on:
+      namespace-defs: true
+    repo: sylva-alertmanager-resources
+    helm_chart_artifact_name: alertmanager-config
+    helmrelease_spec:
+      chart:
+        spec:
+          chart: config
+      targetNamespace: upstream-monitoring
+    helm_secret_values:
+      config: '{{ .Values.upstream-kube-prometheus.alertmanager.config | include "preserve-type" }}'
+
   upstream-kube-prometheus:
     info:
       description: installs upstream kube prometheus stack
@@ -4515,8 +4536,8 @@ units:
                   maxBackoff: 30s
         alertmanager:
           alertmanagerSpec:
-            #useExistingSecret: true
-            #configSecret: sylva-alertmanager-config # this Secret is a byproduct of the alertmanager-config unit
+            useExistingSecret: true
+            configSecret: sylva-alertmanager-config # this Secret is a byproduct of the upstream-alertmanager-config unit
             podAntiAffinity: ""
             replicas: '{{ .Values._internal.ha_cluster.is_ha | ternary 2 1 }}'
             storage:
