@@ -1,0 +1,31 @@
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  labels:
+    cnpg.io/cluster: cnpg-kunai
+  name: cnpg-kunai
+  namespace: kunai
+spec:
+  minAvailable: 1
+  unhealthyPodEvictionPolicy: AlwaysAllow
+  selector:
+    matchLabels:
+      cnpg.io/cluster: cnpg-kunai
+      cnpg.io/instanceRole: replica
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  labels:
+    cnpg.io/cluster: cnpg-kunai
+  name: cnpg-kunai-primary
+  namespace: kunai
+spec:
+  minAvailable: 1
+  unhealthyPodEvictionPolicy: AlwaysAllow
+  selector:
+    matchLabels:
+      cnpg.io/cluster: cnpg-kunai
+      cnpg.io/instanceRole: primary
+
