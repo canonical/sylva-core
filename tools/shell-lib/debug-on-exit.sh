@@ -63,6 +63,7 @@ additional_resources="
   OpenStackClusters
   OpenStackMachineTemplates
   OpenStackMachines
+  OpenStackServers
   Metal3Clusters
   Metal3MachineTemplates
   Metal3Machines
