@@ -820,34 +820,6 @@ units:
       # some namespaces
       kyverno: false
       kyverno-policies: false
-    repo: sylva-core
-    kustomization_spec:
-      path: ./kustomize-units/namespace-defs
-      wait: true
-      prune: false
-      _components:
-        - '{{ tuple "components/cinder-csi" (tuple . "cinder-csi" | include "unit-enabled") | include "set-only-if" }}'
-        - '{{ tuple "components/metal3" (tuple . "metal3" | include "unit-enabled") | include "set-only-if" }}'
-        - '{{ tuple "components/longhorn" (tuple . "longhorn" | include "unit-enabled") | include "set-only-if" }}'
-        - '{{ tuple "components/keycloak" (tuple . "keycloak" | include "unit-enabled") | include "set-only-if" }}'
-        - '{{ tuple "components/harbor" (tuple . "harbor" | include "unit-enabled") | include "set-only-if" }}'
-        - '{{ tuple "components/vault" (tuple . "vault" | include "unit-enabled") | include "set-only-if" }}'
-        - '{{ tuple "components/rancher" (tuple . "rancher" | include "unit-enabled") | include "set-only-if" }}'
-        - '{{ tuple "components/sriov" (tuple . "sriov-network-operator" | include "unit-enabled") | include "set-only-if" }}'
-        - '{{ tuple "components/cattle-monitoring" (tuple . "monitoring" | include "unit-enabled") | include "set-only-if" }}'
-        - '{{ tuple "components/cattle-fleet" (.Values._internal | dig "sylva_mgmt_enabled_units" "rancher" false) | include "set-only-if" }}'  # effective only in workload clusters
-        - '{{ tuple "components/ceph-csi-cephfs" (tuple . "ceph-csi-cephfs" | include "unit-enabled") | include "set-only-if" }}'
-        - '{{ tuple "components/cattle-logging" (tuple . "logging" | include "unit-enabled") | include "set-only-if" }}'
-        - '{{ tuple "components/gitea" (tuple . "gitea" | include "unit-enabled") | include "set-only-if" }}'
-        - '{{ tuple "components/minio-operator" (tuple . "minio-operator" | include "unit-enabled") | include "set-only-if" }}'
-        - '{{ tuple "components/minio-monitoring" (tuple . "minio-monitoring" | include "unit-enabled") | include "set-only-if" }}'
-        - '{{ tuple "components/minio-logging" (tuple . "minio-logging" | include "unit-enabled") | include "set-only-if" }}'
-        - '{{ tuple "components/thanos" (tuple . "thanos" | include "unit-enabled") | include "set-only-if" }}'
-        - '{{ tuple "components/loki" (tuple . "loki" | include "unit-enabled") | include "set-only-if" }}'
-        - '{{ tuple "components/kepler" (tuple . "kepler" | include "unit-enabled") | include "set-only-if" }}'
-        - '{{ tuple "components/kube-system" (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpr") | include "set-only-if" }}'
-        - '{{ tuple "components/crossplane" (tuple . "crossplane" | include "unit-enabled") | include "set-only-if" }}'
-        - '{{ tuple "components/neuvector" (tuple . "neuvector" | include "unit-enabled") | include "set-only-if" }}'
 
   cnpg-operator:
     info:

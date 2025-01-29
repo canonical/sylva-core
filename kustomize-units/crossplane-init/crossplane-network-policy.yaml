@@ -12,12 +12,30 @@ spec:
   - Egress
   ingress:
   - from:
+    - namespaceSelector:
+        matchLabels:
+          namespace: kube-system
+    ports:
+    - port: 9443
+      protocol: TCP
+  - from:
     - podSelector:
         matchLabels:
-          app.kubernetes.io/name: crossplane-rbac-manager
+          app.kubernetes.io/name: crossplane
+    ports:
+    - port: 9443
+      protocol: TCP
+  - from:
+    - podSelector:
+        matchLabels:
+          pkg.crossplane.io/function: function-extra-resources
     - podSelector:
         matchLabels:
           app: crossplane-provider
+  - from:
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/name: crossplane-rbac-manager
     ports:
     - port: 9443
       protocol: TCP

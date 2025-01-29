@@ -122,7 +122,6 @@
 | **crossplane-init** | sets up Crossplane prerequisites<br/><br/>it generates CA certificate secret to be used by 'crossplane' unit | Kustomization |
 | **crossplane-provider-keycloak** | Deploys Crossplane Keycloak Provider<br/><br/>Deploys keycloak-provider and installs CRD's | Kustomization |
 | **crossplane-provider-keycloak-config** | Configure Crossplane Keycloak Provider<br/><br/>Configures keycloak-provider auth | Kustomization |
-| **crossplane-init** | sets up Crossplane prerequisites<br/><br/>it generates CA certificate secret to be used by 'crossplane' unit | Kustomization |
 | **eso-secret-stores** | defines External Secrets stores | Kustomization |
 | **first-login-rancher** | configure Rancher authentication for admin | Kustomization |
 | **flux-webui-init** | initializes and configures flux-webui | Kustomization |
