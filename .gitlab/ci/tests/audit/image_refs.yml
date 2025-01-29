@@ -1,0 +1,35 @@
+---
+# This test gather images reference list
+# and upload it as an artifact
+
+.image-ref-report:
+  stage: deployment-test
+  artifacts:
+    paths:
+      - ${CI_PROJECT_DIR}/image_refs_${CLUSTER}_${CI_PIPELINE_ID}.json
+    expire_in: 48 hour
+    when: always
+  allow_failure: true
+
+mgmt-image-ref-report:
+  extends:
+    - .image-ref-report
+    - .test-base-management-cluster
+  script:
+    - apk add py3-kubernetes py3-pydantic
+    - pip install docker-image-py paramiko --break-system-packages
+    - python3 ./tools/get_image_refs.py --kubeconfig management-cluster-kubeconfig --output ${CI_PROJECT_DIR}/image_refs_${CLUSTER}_${CI_PIPELINE_ID}.json
+  variables:
+    CLUSTER: management
+
+wkld-image-ref-report:
+  extends:
+    - .image-ref-report
+    - .test-base-workload-cluster
+  script:
+    - !reference [.test_scripts, edit_hosts_file]
+    - apk add py3-kubernetes py3-pydantic
+    - pip install docker-image-py paramiko --break-system-packages
+    - python3 ./tools/get_image_refs.py --kubeconfig management-cluster-kubeconfig --workload-kubeconfig workload-cluster-kubeconfig --output ${CI_PROJECT_DIR}/image_refs_${CLUSTER}_${CI_PIPELINE_ID}.json
+  variables:
+    CLUSTER: workload
