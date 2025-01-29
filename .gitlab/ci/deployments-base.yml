@@ -129,7 +129,7 @@ variables:
 .scenario_sylva-upgrade:
   extends: .scenario_sylva-upgrade-from-1.3.x
 
-.scenario_sylva-upgrade-from-1.3.x:   # from 1.3.2 to current
+.scenario_sylva-upgrade-from-1.3.x:   # from last 1.3.x to current
   variables:
     MGMT_INITIAL_REVISION: "1.3.3"
     MGMT_UPDATE_REVISION: "" # Use current commit
