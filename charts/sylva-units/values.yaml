@@ -7472,6 +7472,7 @@ cluster:
     system-reserved: '{{ tuple "cpu=100m,memory=500Mi" (tuple . "kubevirt" | include "unit-enabled") | include "set-only-if" }}'
     kube-reserved: '{{ tuple "cpu=100m,memory=500Mi" (tuple . "kubevirt" | include "unit-enabled") | include "set-only-if" }}'
 
+
   capo:
     # flavor_name: m1.large # Openstack flavor name
     # image_key: # key of an image in os_images or sylva_diskimagebuilder_images
