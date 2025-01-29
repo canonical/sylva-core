@@ -4315,7 +4315,7 @@ units:
       maturity: beta
     enabled_conditions:
     - '{{ tuple . "upstream-kube-prometheus" | include "unit-enabled" }}'
-    - '{{ .Values.units.upstream-kube-prometheus.helmrelease_spec.values.alertmanager.alertmanagerSpec.useExistingSecret }}'
+    - '{{ .Values.units."upstream-kube-prometheus".helmrelease_spec.values.alertmanager.alertmanagerSpec.useExistingSecret }}'
     unit_templates:
     - base-deps
     depends_on:
@@ -4328,7 +4328,7 @@ units:
           chart: config
       targetNamespace: upstream-monitoring
     helm_secret_values:
-      config: '{{ .Values.upstream-kube-prometheus.alertmanager.config | include "preserve-type" }}'
+      config: '{{ .Values."upstream-kube-prometheus".alertmanager.config | include "preserve-type" }}'
 
   upstream-kube-prometheus:
     info:
