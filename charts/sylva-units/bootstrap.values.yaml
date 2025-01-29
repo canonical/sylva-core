@@ -515,9 +515,9 @@ units_override_enabled:
   - kyverno
   - kyverno-policies
   - kyverno-metal3-policies
-  - calico-crd
-  - calico
-  - calico-ready
+  - '{{ tuple "calico-crd" (ne .Values.cluster.capi_providers.bootstrap_provider "cabpoa") | include "set-only-if" }}'
+  - '{{ tuple "calico" (ne .Values.cluster.capi_providers.bootstrap_provider "cabpoa") | include "set-only-if" }}'
+  - '{{ tuple "calico-ready" (ne .Values.cluster.capi_providers.bootstrap_provider "cabpoa") | include "set-only-if" }}'
   - management-cluster-flux
   - management-cluster-configs
   - management-sylva-units
