@@ -131,9 +131,9 @@ variables:
 
 .scenario_sylva-upgrade-from-1.3.x:   # from 1.3.2 to current
   variables:
-    MGMT_INITIAL_REVISION: "1.3.2"
+    MGMT_INITIAL_REVISION: "1.3.3"
     MGMT_UPDATE_REVISION: "" # Use current commit
-    WC_INITIAL_REVISION: "1.3.2"
+    WC_INITIAL_REVISION: "1.3.3"
     WC_UPDATE_REVISION: "" # Use current commit
     # Increase default timers due to rolling upgrade
     MGMT_WATCH_TIMEOUT_MIN: "45"
