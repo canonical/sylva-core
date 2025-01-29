@@ -1,0 +1,31 @@
+
+# External Secret responsible for creating a secret that holds the clientID and clientSecret
+# of the Keycloak client that will be used for kunai authentication.
+# Secret is then consumed by the 'kunai' unit.
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  name: kunai-next-oidc
+  namespace: kunai
+spec:
+  refreshInterval: 1h
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: eso-store-k8s-keycloak
+  target:
+    name: kunai-next-oidc # name of the k8s Secret to be created in the same namespace as ExternalSecret
+    template:
+      engineVersion: v2
+      data:
+        KEYCLOAK_CLIENT_SECRET: "{{ .clientSecret }}"
+        KEYCLOAK_CLIENT_ID: "{{ .clientID }}"
+        KEYCLOAK_AUTH_ISSUER: "https://${KEYCLOAK_DNS}/realms/sylva"
+  data:
+    - secretKey: clientSecret
+      remoteRef:
+        key: keycloak-client-secret-kunai-client # this secret is a byproduct of the kunai-client KeycloakClient resource
+        property: CLIENT_SECRET
+    - secretKey: clientID
+      remoteRef:
+        key: keycloak-client-secret-kunai-client
+        property: CLIENT_ID

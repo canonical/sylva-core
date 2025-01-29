@@ -8474,6 +8474,20 @@
             }
           ]
         },
+        "kunai": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "hostname"
+            },
+            {
+              "const": ""
+            },
+            {
+              "$ref": "#/$defs/string-with-gotpl"
+            }
+          ]
+        },
         "minio_operator_console": {
           "anyOf": [
             {
@@ -8701,6 +8715,9 @@
           "$ref": "#/$defs/cert-and-key"
         },
         "gitea": {
+          "$ref": "#/$defs/cert-and-key"
+        },
+        "kunai": {
           "$ref": "#/$defs/cert-and-key"
         },
         "minio_operator": {

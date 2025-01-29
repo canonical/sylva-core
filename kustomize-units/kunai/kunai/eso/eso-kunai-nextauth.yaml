@@ -1,0 +1,21 @@
+---
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+   name: kunai-next-auth
+spec:
+   secretStoreRef:
+      name: vault
+      kind: ClusterSecretStore
+   refreshInterval: 0s  # `vault-config-operator` can create new versions (>1) of the Vault secret/rancher value and ESO would by default sync that in Rancher's bootstrap secret, but Rancher app itself would only be using the initial version 1; this stops new version sync
+   target:
+      creationPolicy: Orphan
+      name: kunai-next-auth
+      template:
+         data:
+            NEXTAUTH_SECRET: '{{ .password }}'
+   data:
+   - secretKey: password
+     remoteRef:
+        key: secret/data/kunai-nextauth-secret
+        property: password

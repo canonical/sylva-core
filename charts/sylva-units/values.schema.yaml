@@ -816,6 +816,12 @@ properties:
             format: hostname
           - const: ''
           - $ref: "#/$defs/string-with-gotpl"
+      kunai:  # -------------------------------
+        anyOf:
+          - type: string
+            format: hostname
+          - const: ''
+          - $ref: "#/$defs/string-with-gotpl"
       minio_operator_console:  # -------------------------------
         anyOf:
           - type: string
@@ -922,6 +928,8 @@ properties:
       os_image_server:  # -------------------------------
         $ref: "#/$defs/cert-and-key"
       gitea:  # -------------------------------
+        $ref: "#/$defs/cert-and-key"
+      kunai:  # -------------------------------
         $ref: "#/$defs/cert-and-key"
       minio_operator:  # -------------------------------
         $ref: "#/$defs/cert-and-key"

@@ -736,6 +736,7 @@ units:
         - '{{ tuple "components/loki" (tuple . "loki" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/kepler" (tuple . "kepler" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/kube-system" (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpr") | include "set-only-if" }}'
+        - '{{ tuple "components/kunai" (tuple . "kunai" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/neuvector" (tuple . "neuvector" | include "unit-enabled") | include "set-only-if" }}'
 
   cnpg-operator:
@@ -745,7 +746,9 @@ units:
     enabled_conditions:
       - '{{ or (tuple . "keycloak" | include "unit-enabled")
             (tuple . "harbor" | include "unit-enabled")
-            (tuple . "gitea" | include "unit-enabled") }}'
+            (tuple . "gitea" | include "unit-enabled")
+            (tuple . "kunai" | include "unit-enabled")
+         }}'
     unit_templates:
       - base-deps
     helm_repo_url: https://cloudnative-pg.github.io/charts
@@ -5769,6 +5772,184 @@ units:
             readOnly: true
             subPath: ca.crt
 
+  # Kunai-unit
+  kunai-secrets:
+    info:
+      description: >
+        create random secret that will be used by kunai application.
+        secrets are sync with vault.
+      internal: true
+    enabled_conditions:
+    - '{{ tuple . "kunai" | include "unit-enabled" }}'
+    unit_templates:
+    - base-deps
+    depends_on:
+      namespace-defs: true
+      vault-config-operator: true
+    repo: sylva-core
+    kustomization_spec:
+      path: ./kustomize-units/kunai/secrets
+      wait: true
+
+  kunai-eso:
+    info:
+      description: >
+        write secrets in kunai namespace in kunai expected format
+      internal: true
+    enabled_conditions:
+    - '{{ tuple . "kunai" | include "unit-enabled" }}'
+    unit_templates:
+    - base-deps
+    depends_on:
+      namespace-defs: true
+      eso-secret-stores: true
+      kunai-keycloak-resources: true
+      kunai-secrets: true
+    repo: sylva-core
+    kustomization_substitute_secrets:
+      KEY: '{{ .Values.external_certificates.kunai.key | default "" | b64enc }}'
+    kustomization_spec:
+      path: ./kustomize-units/kunai/eso
+      wait: false
+      healthChecks:
+        - apiVersion: v1
+          kind: Secret
+          name: kunai-next-oidc
+          namespace: kunai
+        - apiVersion: v1
+          kind: Secret
+          name: kunai-next-auth
+          namespace: kunai
+        - apiVersion: v1
+          kind: Secret
+          name: sylva-ca.crt
+          namespace: kunai
+      postBuild:
+        substitute:
+          SERVICE: kunai
+          SERVICE_DNS: '{{ .Values.external_hostnames.kunai }}'
+          CERT: '{{ .Values.external_certificates.kunai.cert | default "" | b64enc }}'
+          CACERT: '{{ .Values.external_certificates.cacert | default "" | b64enc }}'
+          KEYCLOAK_DNS: '{{ .Values.external_hostnames.keycloak }}'
+      _components:
+        - '{{ ternary "../../tls-components/tls-secret" "../../tls-components/tls-certificate" (hasKey .Values.external_certificates.kunai "cert") }}'
+        - "../../tls-components/sylva-ca"
+
+  kunai-keycloak-resources:
+    info:
+      description: >
+        deploys Kunai OIDC client in Sylva's Keycloak realm
+      internal: true
+    enabled_conditions:
+    - '{{ tuple . "kunai" | include "unit-enabled" }}'
+    unit_templates:
+    - base-deps
+    depends_on:
+      keycloak: true
+      keycloak-legacy-operator: true
+      keycloak-resources: true
+    repo: sylva-core
+    kustomization_spec:
+      path: ./kustomize-units/kunai/keycloak-resources
+      targetNamespace: keycloak
+      postBuild:
+        substitute:
+          KUNAI_DNS: '{{ .Values.external_hostnames.kunai }}'
+      healthChecks:
+        - apiVersion: v1
+          kind: Secret
+          name: keycloak-client-secret-kunai-client  # this secret is a byproduct of the kunai-client KeycloakClient resource
+          namespace: keycloak
+
+  kunai-postgres-cnpg:
+    info:
+      description: Deploy Postgres cluster for Kunai using Cloud Native PostgreSQL (CNPG)
+      internal: true
+    unit_templates:
+      - base-deps
+    enabled_conditions:
+      - '{{ tuple . "kunai" | include "unit-enabled" }}'
+    repo: sylva-core
+    depends_on:
+      cnpg-operator: true
+      namespace-defs: true
+      kunai-eso: true
+      kunai-keycloak-resources: true
+      kunai-secrets: true
+      '{{ .Values._internal.default_storage_class_unit }}': true
+    kustomization_spec:
+      postBuild:
+        substitute:
+          KUNAI_POSTGRES_REPLICAS: '{{ .Values._internal.ha_cluster.is_ha | ternary 3 1 }}'
+          storageClass: '{{ .Values._internal.default_storage_class }}'
+          podAntiAffinityType: '{{ .Values._internal.ha_cluster.is_ha | ternary "required" "preferred" }}'
+      path: ./kustomize-units/kunai-postgres-cnpg
+      wait: true
+
+
+  kunai:
+    info:
+      description: installs Kunai
+      details: |-
+        [Kunai](https://gitlab.com/sylva-projects/sylva-elements/kunai)
+      maturity: beta
+    enabled: false
+    unit_templates:
+    - base-deps
+    depends_on:
+      cert-manager: true
+      kunai-eso: true
+      kunai-keycloak-resources: true
+      kunai-secrets: true
+      kunai-postgres-cnpg: true
+      namespace-defs: true
+    annotations:
+      sylvactl/readyMessage: "Kunai can be reached at https://{{ .Values.external_hostnames.kunai }} ({{ .Values.external_hostnames.kunai }} must resolve to {{ .Values.display_external_ip }})"
+    helm_repo_url: "https://gitlab.com/api/v4/projects/sylva-projects%2Fsylva-elements%2Fkunai/packages/helm/stable"  # https://gitlab.com/sylva-projects/sylva-elements/kunai
+    helmrelease_spec:
+      chart:
+        spec:
+          chart: kunai
+          version: "1.2.0"
+      targetNamespace: kunai
+      values:
+        containerSecurityContext:
+          readOnlyRootFilesystem: true
+        postgresql:
+          enabled: false
+        externalDatabase:
+          existingSecret: cnpg-kunai-app
+        persistence:
+          enabled: false
+
+        strategy:
+          type: '{{ eq (tuple . .Values._internal.default_storage_class_RWX_support | include "interpret-as-string") "true" | ternary "RollingUpdate" "Recreate" }}'
+        kunai:
+          publicName: kunai
+          nextAuth:
+            enabled: true
+            existingsecretname: kunai-next-auth
+          nextOidc:
+            existingsecretname: kunai-next-oidc
+          extraCaCert:
+            enabled: true
+            existingsecretname: sylva-ca.crt
+            existingsecretkey: ca.crt
+        proxies:
+          http_proxy: '{{ .Values.proxies.http_proxy }}'
+          https_proxy: '{{ .Values.proxies.https_proxy }}'
+          no_proxy: '{{ include "sylva-units.no_proxy" (tuple .) }}'
+        ingress:
+          enabled: true
+          className: nginx
+          annotations:
+            nginx.ingress.kubernetes.io/proxy-body-size: 8m
+            nginx.ingress.kubernetes.io/large-client-header-buffers: "4 16k"
+            nginx.ingress.kubernetes.io/proxy-buffer-size: "256k"
+          tls: true
+          hostname: '{{ .Values.external_hostnames.kunai }}'
+
+
   minio-operator-init:
     info:
       description: sets up MinIO certificate for minio-operator
@@ -7421,6 +7602,7 @@ external_hostnames:
   harbor: 'harbor.{{ .Values.cluster_domain }}'
   os_image_server: ''
   gitea: 'gitea.{{ .Values.cluster_domain }}'
+  kunai: 'kunai.{{ .Values.cluster_domain }}'
   minio_operator_console: 'minio-operator-console.{{ .Values.cluster_domain }}'
   minio_monitoring: 'minio-monitoring.{{ .Values.cluster_domain }}'
   minio_monitoring_console: 'minio-monitoring-console.{{ .Values.cluster_domain }}'
@@ -7454,6 +7636,7 @@ external_certificates:
   loki: {}
   grafana: {}
   kubevirt_manager: {}
+  kunai: {}
 
 audit_log:
   level: 0
