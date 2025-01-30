@@ -21,7 +21,7 @@ spec:
               names:
               - neuvector-oidc-init
               namespaces:
-              - sylva-system
+              - neuvector
       context:
         - name: oidcNeuvector
           apiCall:
