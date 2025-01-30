@@ -18,41 +18,38 @@ spec:
           - resources:
               kinds:
               - Secret
-              names:
-              - neuvector-oidc-init
               namespaces:
               - neuvector
       context:
         - name: oidcNeuvector
           apiCall:
             urlPath: "/api/v1/namespaces/neuvector/secrets/neuvector-oidc-init"
-            jmesPath: "data.oidcinitcfg | base64_decode(@) || `{}`"
+            jmesPath: "data.oidcinitcfg || `{}`"
         - name: passwordprofileinitcfg
           apiCall:
             urlPath: "/api/v1/namespaces/neuvector/secrets/neuvector-usercfg"
-            jmesPath: "data.passwordprofileinitcfg | base64_decode(@) || `{}`"
+            jmesPath: "data.passwordprofileinitcfg || `{}`"
         - name: userinitcfg
           apiCall:
             urlPath: "/api/v1/namespaces/neuvector/secrets/neuvector-usercfg"
-            jmesPath: "data.userinitcfg | base64_decode(@) || `{}`"
-      mutate:
-        targets:
-          - apiVersion: v1
-            kind: Secret
-            name: neuvector-init
-            namespace: neuvector
-        patchStrategicMerge:
+            jmesPath: "data.userinitcfg || `{}`"
+      generate:
+        apiVersion: v1
+        kind: Secret
+        name: neuvector-init
+        namespace: neuvector
+        data:
           metadata:
             annotations:
               reconcile.fluxcd.io/requestedAt: "{{ time_now_utc() }}"
               kyverno.merge-neuvector-secrets/requestedAt: "{{ time_now_utc() }}"
           data:
-              oidcinitcfg.yaml: |
-                {{ oidcNeuvector }}
-              passwordprofileinitcfg.yaml: |
-                {{ passwordprofileinitcfg }}
-              userinitcfg.yaml: |
-                {{ userinitcfg }}
+            oidcinitcfg.yaml: |
+              {{ oidcNeuvector }}
+            passwordprofileinitcfg.yaml: |
+              {{ passwordprofileinitcfg }}
+            userinitcfg.yaml: |
+              {{ userinitcfg }}
 
 ---
 apiVersion: kyverno.io/v1
