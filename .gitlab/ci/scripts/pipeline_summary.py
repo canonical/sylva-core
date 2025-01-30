@@ -179,19 +179,8 @@ def main():
     if len(user_comments) == 0:
         logging.info(f"No comment found for MR {GITLAB_MR_ID}, posting a new one")
         post_mr_comment(GITLAB_PROJECT_ID, GITLAB_MR_ID, new_comment_body)
-    elif len(user_comments) == 1:
-        logging.info(f"One comment found for MR {GITLAB_MR_ID}, updating it")
-        existing_comment = user_comments[0]
-        edit_mr_comment(
-            GITLAB_PROJECT_ID,
-            GITLAB_MR_ID,
-            existing_comment["id"],
-            new_comment_body
-        )
     else:
-        # This case happens sometimes when we have a race condition
-        #  between multiple autostarted pipelines
-        logging.info(f"Multiple comments found for MR {GITLAB_MR_ID}, cleaning them and updating the latest")
+        logging.info(f"Existing comment(s) found for MR {GITLAB_MR_ID}, updating one (and removing others, if any)")
         edit_mr_comment(
             GITLAB_PROJECT_ID,
             GITLAB_MR_ID,
