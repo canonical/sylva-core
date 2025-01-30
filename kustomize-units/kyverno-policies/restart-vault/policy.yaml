@@ -1,7 +1,8 @@
 apiVersion: kyverno.io/v1
-kind: ClusterPolicy
+kind: Policy
 metadata:
   name: restart-sts-on-secret-change
+  namespace: vault
   annotations:
     kustomize.toolkit.fluxcd.io/force: Enabled
     policies.kyverno.io/description: >-
@@ -19,14 +20,11 @@ spec:
           - Secret
           names:
           - vault-internal-tls
-          namespaces:
-          - vault
     mutate:
       targets:
         - apiVersion: apps/v1
           kind: StatefulSet
           name: vault
-          namespace: vault
       patchStrategicMerge:
         spec:
           template:
