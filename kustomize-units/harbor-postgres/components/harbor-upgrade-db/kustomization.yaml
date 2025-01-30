@@ -22,8 +22,8 @@ patches:
               user: postgres
               dbname: harbor
             password:
-              name: postgres
-              key: postgres-password
+              name: harbor-postgres-secrets
+              key: password
     target:
       kind: Cluster
       name: cnpg-harbor
