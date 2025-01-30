@@ -129,20 +129,6 @@ delete-workload-cluster:
     - if: $DEPLOY_WORKLOAD_CLUSTER == "true" && $DELETE_WORKLOAD_CLUSTER == "true"
       when: always
 
-.summary:
-  image: python:alpine3.21
-  before_script: []
-  tags:
-    - gitlab-org-docker
-  script:
-    - pip install requests
-    - .gitlab/ci/scripts/pipeline_summary.py
-  rules:
-    - if: $SKIP_PIPELINE_SUMMARY == "true"
-      when: never
-    - if: $CI_MERGE_REQUEST_IID
-      when: always
-
 initialize-summary:
   extends: .summary
   stage: .pre
