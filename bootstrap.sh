@@ -58,7 +58,7 @@ if kill $KUBECONFIG_PID &>/dev/null; then
 fi
 
 echo_b "\U000023F3 Testing Manik"
-helm --kubeconfig management-cluster-kubeconfig get values sylva-units
+helm --kubeconfig management-cluster-kubeconfig get values sylva-units --all
 helm --kubeconfig management-cluster-kubeconfig get manifest sylva-units
 
 echo_b "\U000023F3 Wait for units installed on management cluster to be ready"
