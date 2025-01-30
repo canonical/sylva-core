@@ -1,0 +1,74 @@
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
+
+patches:
+  - target:
+      kind: Job
+    patch: |
+      - op: replace
+        path: /spec/template/spec/containers/0/image
+        value: registry.gitlab.com/sylva-projects/sylva-elements/container-images/kube-job/mcli/snapshot:0.0.0-git-854713ce
+      - op: add
+        path: /spec/template/spec/volumes/-
+        value:
+          name: s3-config
+          secret:
+            secretName: backup-store-s3-config-${CRONJOB_NAME}
+      - op: add
+        path: /spec/template/spec/containers/0/volumeMounts/-
+        value:
+          mountPath: /s3-config
+          name: s3-config
+      - op: add
+        path: /spec/template/spec/volumes/-
+        value:
+          name: s3-config-share
+          emptyDir: {}
+      - op: add
+        path: /spec/template/spec/containers/0/volumeMounts/-
+        value:
+          mountPath: /s3-config/share
+          name: s3-config-share
+  - target:
+      kind: Job
+    patch: |
+      - op: add
+        path: /spec/template/spec/containers/0/env
+        value:
+        - name: S3_BUCKET
+          value: ${S3_BUCKET}
+  - target:
+      kind: CronJob
+    patch: |
+      - op: replace
+        path: /spec/jobTemplate/spec/template/spec/containers/0/image
+        value: registry.gitlab.com/sylva-projects/sylva-elements/container-images/kube-job/mcli/snapshot:0.0.0-git-854713ce
+      - op: add
+        path: /spec/jobTemplate/spec/template/spec/volumes/-
+        value:
+          name: s3-config
+          secret:
+            secretName: backup-store-s3-config-${CRONJOB_NAME}
+      - op: add
+        path: /spec/jobTemplate/spec/template/spec/containers/0/volumeMounts/-
+        value:
+          mountPath: /s3-config
+          name: s3-config
+      - op: add
+        path: /spec/jobTemplate/spec/template/spec/volumes/-
+        value:
+          name: s3-config-share
+          emptyDir: {}
+      - op: add
+        path: /spec/jobTemplate/spec/template/spec/containers/0/volumeMounts/-
+        value:
+          mountPath: /s3-config/share
+          name: s3-config-share
+  - target:
+      kind: CronJob
+    patch: |
+      - op: add
+        path: /spec/jobTemplate/spec/template/spec/containers/0/env
+        value:
+        - name: S3_BUCKET
+          value: ${S3_BUCKET}

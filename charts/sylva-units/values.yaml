@@ -7250,6 +7250,37 @@ units:
         managed_clusters_settings: '{{ tuple . "shared_workload_clusters_values" | include "interpret" }}{{ .Values.shared_workload_clusters_values | include "preserve-type" }}'
         workload_cluster_sylva_source: '{{ .Values.workload_clusters.sylva_source | include "preserve-type" }}'
 
+  backup-cluster-capi:
+    info:
+      description: Backup Cluster API resources
+      details: Backup periodically Cluster API resources to S3 bucket using clusterctl move
+      maturity: beta
+    unit_templates:
+    - base-deps
+    - kube-job
+    - kube-cronjob
+    kustomization_spec:
+      path: ./kustomize-units/backup
+      postBuild:
+        substitute:
+          JOB_NAME: instant-backup-cluster-capi
+      _components:
+      - "./components/backup-cluster-capi"
+      - "./components/backup-to-s3"
+      - '{{ tuple "./components/backup-to-s3/cert" (hasKey (.Values.backup | dig "store" "s3" dict) "cert") | include "set-only-if" }}'
+      - '{{ tuple "./components/pushgateway" (tuple . "prometheus-pushgateway" | include "unit-enabled") | include "set-only-if" }}'
+      _patches:
+      - target:
+          kind: CronJob
+        patch: |
+          - op: replace
+            path: /spec/schedule
+            value:  "0 5 * * * "
+    kustomization_substitute_secrets:
+      S3_CONFIG: '{{ (dict "version" "10" "aliases" (dict "backup" (.Values.backup | dig "store" "s3" "config" dict))) | toJson | b64enc }}'
+      S3_CERT: '{{ .Values.backup | dig "store" "s3" "cert" "" }}'
+      S3_BUCKET: '{{ .Values.backup | dig "store" "s3" "bucket" "sylva-backup" }}'
+
 ##### stuff related to the 'cluster' unit #####
 #
 # all these values under 'cluster' are passed as values to sylva-capi-cluster chart
@@ -8304,3 +8335,15 @@ openshift:
     # serviceHostname: openshift-assisted-service.example.com
     # variable to specify the openshift assisted image service hostname
     # imageHostname: openshift-assisted-images.example.com
+
+backup: {}
+  # store:
+  #   s3:
+  #     config:
+  #       url: ""
+  #       api: s3v4
+  #       accessKey: ""
+  #       secretKey: ""
+  #       path: auto
+  #     bucket: ""
+  #     cert: ""

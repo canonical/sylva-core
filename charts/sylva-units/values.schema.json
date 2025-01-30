@@ -9624,6 +9624,21 @@
         }
       }
     },
+    "backup": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "store": {
+          "additionalProperties": false,
+          "type": "object",
+          "properties": {
+            "s3": {
+              "type": "object"
+            }
+          }
+        }
+      }
+    },
     "third_party": {
       "type": "object"
     },
