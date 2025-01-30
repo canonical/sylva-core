@@ -4309,26 +4309,26 @@ units:
   #    install:
   #      createNamespace: false
 
-  #upstream-alertmanager-config:
-  #  info:
-  #    description: generates the config for Alertmanager
-  #    maturity: beta
-  #  enabled_conditions:
-  #  - '{{ tuple . "upstrmonitoring" | include "unit-enabled" }}'
-  #  - '{{ .Values.units.upstrmonitoring.helmrelease_spec.values.alertmanager.alertmanagerSpec.useExistingSecret }}'
-  #  unit_templates:
-  #  - base-deps
-  #  depends_on:
-  #    namespace-defs: true
-  #  repo: sylva-alertmanager-resources
-  #  helm_chart_artifact_name: alertmanager-config
-  #  helmrelease_spec:
-  #    chart:
-  #      spec:
-  #        chart: config
-  #    targetNamespace: upstream-monitoring
-  #  helm_secret_values:
-  #    config: '{{ .Values.upstrmonitoring.alertmanager.config | include "preserve-type" }}'
+  upstream-alertmanager-config:
+    info:
+      description: generates the config for Alertmanager
+      maturity: beta
+    enabled_conditions:
+    - '{{ tuple . "upstrmonitoring" | include "unit-enabled" }}'
+    - '{{ .Values.units.upstrmonitoring.helmrelease_spec.values.alertmanager.alertmanagerSpec.useExistingSecret }}'
+    unit_templates:
+    - base-deps
+    depends_on:
+      namespace-defs: true
+    repo: sylva-alertmanager-resources
+    helm_chart_artifact_name: alertmanager-config
+    helmrelease_spec:
+      chart:
+        spec:
+          chart: config
+      targetNamespace: upstream-monitoring
+    helm_secret_values:
+      config: '{{ .Values.monitoring.alertmanager.config | include "preserve-type" }}'
 
   upstrmonitoring:
     info:
