@@ -1,0 +1,38 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: deny-cabundle-changes
+  annotations:
+    kustomize.toolkit.fluxcd.io/force: Enabled
+    policies.kyverno.io/title: Deny caBundle Changes in CRDs
+    policies.kyverno.io/category: Other
+    policies.kyverno.io/severity: medium
+    policies.kyverno.io/subject: CustomResourceDefinition
+    policies.kyverno.io/description: >-
+      This policy denies any changes to the `caBundle` field in CRDs that are managed
+      by Flux's Kustomization or Helm controller, while allowing cert-manager to modify it.
+spec:
+  validationFailureAction: Enforce
+  background: false
+  rules:
+    - name: deny-cabundle-changes
+      match:
+        any:
+          - resources:
+              kinds:
+                - CustomResourceDefinition
+              annotations:
+                cert-manager.io/inject-ca-from: "*"
+      exclude:
+        any:
+          - subjects:
+              - kind: ServiceAccount
+                name: cert-manager-cainjector
+                namespace: cert-manager
+      validate:
+        message: "The `caBundle` field in CRDs can be modified only by cert-manager."
+        deny:
+          conditions:
+            - key: "{{ request.object.spec.conversion.webhook.clientConfig.caBundle }}"
+              operator: NotEquals
+              value: "{{ request.oldObject.spec.conversion.webhook.clientConfig.caBundle }}"
