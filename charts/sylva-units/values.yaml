@@ -278,9 +278,11 @@ unit_templates:
           KUSTOMIZE_CONCURRENT: '{{ .Values.flux.kustomize.concurrent }}'
           KUSTOMIZE_LOG_LEVEL: '{{ .Values.flux.kustomize.log_level }}'
           KUSTOMIZE_FEATURES_GATES: '{{ tuple .Values.flux.kustomize.features_gates | include "dict_to_key_values_separated_string"  }}'
+          KUSTOMIZE_REQUEUE_DEPENDENCY: '{{ .Values.flux.kustomize.requeue_dependency }}'
           HELM_CONCURRENT: '{{ .Values.flux.helm.concurrent }}'
           HELM_LOG_LEVEL: '{{ .Values.flux.helm.log_level }}'
           HELM_FEATURES_GATES: '{{ tuple .Values.flux.helm.features_gates | include "dict_to_key_values_separated_string"  }}'
+          HELM_REQUEUE_DEPENDENCY: '{{ .Values.flux.helm.requeue_dependency }}'
           SOURCE_CONCURRENT: '{{ .Values.flux.source.concurrent }}'
           SOURCE_LOG_LEVEL: '{{ .Values.flux.source.log_level }}'
           SOURCE_FEATURES_GATES: '{{ tuple .Values.flux.source.features_gates | include "dict_to_key_values_separated_string"  }}'
@@ -7390,18 +7392,20 @@ admin_password: '{{ .Values._internal.default_password }}'
 
 flux:
   kustomize:
-    concurrent: 4
+    concurrent: 10
     log_level: info
     features_gates: {}
+    requeue_dependency: 5s
   helm:
-    concurrent: 4
+    concurrent: 10
     features_gates:
       OOMWatch: true
       DetectDrift: true
       CorrectDrift: true
     log_level: info
+    requeue_dependency: 5s
   source:
-    concurrent: 2
+    concurrent: 10
     log_level: info
     features_gates: {}
 
