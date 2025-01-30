@@ -7467,11 +7467,14 @@ cluster:
   kubelet_extra_args:
     # Increase max-pods for single-node deployments
     max-pods: '{{ tuple "196" (eq (.Values._internal.node_count | int) 1) | include "set-only-if" }}'
-    feature-gates: '{{ tuple "TopologyManager=true,CPUManager=true" (tuple . "kubevirt" | include "unit-enabled") | include "set-only-if" }}'
-    topology-manager-policy: '{{ tuple "best-effort" (tuple . "kubevirt" | include "unit-enabled") | include "set-only-if" }}'
-    cpu-manager-policy: '{{ tuple "static" (tuple . "kubevirt" | include "unit-enabled") | include "set-only-if" }}'
-    system-reserved: '{{ tuple "cpu=100m,memory=500Mi" (tuple . "kubevirt" | include "unit-enabled") | include "set-only-if" }}'
-    kube-reserved: '{{ tuple "cpu=100m,memory=500Mi" (tuple . "kubevirt" | include "unit-enabled") | include "set-only-if" }}'
+    # topology-manager-policy: '{{ tuple "best-effort" (tuple . "kubevirt" | include "unit-enabled") | include "set-only-if" }}'
+    # cpu-manager-policy: '{{ tuple "static" (tuple . "kubevirt" | include "unit-enabled") | include "set-only-if" }}'
+    # system-reserved: '{{ tuple "cpu=100m,memory=500Mi" (tuple . "kubevirt" | include "unit-enabled") | include "set-only-if" }}'
+    # kube-reserved: '{{ tuple "cpu=100m,memory=500Mi" (tuple . "kubevirt" | include "unit-enabled") | include "set-only-if" }}'
+    topology-manager-policy: "best-effort"
+    cpu-manager-policy: "static"
+    system-reserved: "cpu=100m"
+    kube-reserved: "cpu=100m"
 
   capo:
     # flavor_name: m1.large # Openstack flavor name
