@@ -131,7 +131,8 @@ delete-workload-cluster:
 
 initialize-summary:
   extends: .summary
-  stage: .pre
+  stage: .post
+  needs: []
 
 update-summary:
   extends: .summary
