@@ -31,6 +31,7 @@ ALLOWED_SCENARIOS = os.getenv(
         "mgmt-rolling-update",
         "preview",
         "nightly",
+        "quick-mgmt",
         "k8s-upgrade",
         "sylva-upgrade",
         "sylva-upgrade-from-1.1.1",

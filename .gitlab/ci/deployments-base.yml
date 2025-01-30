@@ -83,6 +83,11 @@ variables:
 # Scenarios definitions
 #################################
 
+.scenario_quick-mgmt:
+  variables:
+    UPDATE_MGMT_CLUSTER: "false"
+    DEPLOY_WORKLOAD_CLUSTER: "false"
+
 .scenario_simple-update:
   variables:
     MGMT_UPDATE_ADDITIONAL_VALUES: "simple-update.yml"
