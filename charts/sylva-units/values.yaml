@@ -6818,6 +6818,20 @@ units:
           enabled: false
         lokiCanary:
           enabled: false
+        chunksCache:
+          allocatedMemory: 4096
+          resources:
+            limits:
+              memory: 5Gi
+            requests:
+              memory: 500Mi
+        resultsCache:
+          allocatedMemory: 512
+          resources:
+            limits:
+              memory: 600Mi
+            requests:
+              memory: 60Mi
         monitoring:
           selfMonitoring:
             enabled: false
