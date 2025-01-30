@@ -110,11 +110,6 @@ units:
               kubectl get m3mt
               kubectl patch cluster.cluster.x-k8s.io {{ .Values.cluster.name }} --type merge -p '{"spec":{"paused": false}}'
 
-  kyverno-vault-restart-policy:
-    enabled: true
-    enabled_conditions:
-    - '{{ tuple . "kyverno" | include "unit-enabled"  }}'
-
   kyverno-policy-prevent-mgmt-cluster-delete:
     info:
       description: Kyverno policies to prevent deletion of critical resources for mgmt cluster

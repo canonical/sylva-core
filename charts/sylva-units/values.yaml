@@ -2177,6 +2177,10 @@ units:
                   - "cronjobs"
                   - "jobs"
                 verbs: ["get", "list", "patch", "update", "watch"]
+              - apiGroups: ["vault.banzaicloud.com"]
+                resources:
+                  - "vaults"
+                verbs: ["get", "list", "watch", "patch", "update"]
               - apiGroups: ["apps"]
                 resources:
                   - "statefulsets"
