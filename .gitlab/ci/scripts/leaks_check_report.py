@@ -65,6 +65,8 @@ whitelist_secret = {
     # https://gitlab.com/sylva-projects/sylva-core/-/issues/1665
     "gitea-postgres-replication": ["password"],
     "cnpg-keycloak-app": ["user", "port", "host", "dbname"],
+    # https://gitlab.com/sylva-projects/sylva-core/-/issues/1665
+    "gitea-postgres-secrets": ["repmgr-password"],
 }
 
 whitelist_secret_without_prefix_and_suffix = {
@@ -101,6 +103,8 @@ whitelist_secret_without_prefix_and_suffix = {
     ],
     # this is some rancher webhook setup, not sensitive
     "helm-operation": ["values-rancher-webhook-104.0.2-up0.5.2.yaml"],
+    # https://gitlab.com/sylva-projects/sylva-core/-/issues/1610
+    "rke2-capo-token": ["value"],
 }
 
 whitelist_key = [
