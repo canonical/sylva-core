@@ -3388,8 +3388,6 @@ units:
           priorityClassName: system-cluster-critical
           frr:
             enabled: false
-          nodeSelector:
-            node-role.kubernetes.io/control-plane: '{{ .Values._internal.cp_node_label_value }}'
           tolerations:
           - key: node.cloudprovider.kubernetes.io/uninitialized
             value: "true"
