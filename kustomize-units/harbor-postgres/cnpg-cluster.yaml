@@ -18,7 +18,6 @@ spec:
     limits:
       memory: "4Gi"
       cpu: 2
-  # Sets the 20GB storage for PGDATA
   # This volume will also be used by the import
   # process to temporarily store the custom format
   # dump coming from the source database
