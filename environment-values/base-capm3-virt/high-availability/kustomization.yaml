@@ -19,8 +19,9 @@ patches:
     name: sylva-units
   patch: |
     - op: add
-      path: /spec/valuesFrom/1
+      path: /spec/valuesFrom/-
       value:
         kind: ConfigMap
         name: capm3-virt-ha-values
         valuesKey: capm3-virt-ha-values
+        optional: true
