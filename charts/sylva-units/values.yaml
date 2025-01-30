@@ -2160,7 +2160,7 @@ units:
                 resources:
                   - "secrets"
                 verbs: ["get", "list", "patch", "update", "watch", "create", "delete"]
-              - apiGroups: ["provisioning.cattle.io"]
+              - apiGroups: ["provisioning.cattle.io"]  # for set-monitoring-chart-cluster-id ClusterPolicy
                 resources:
                   - "clusters"
                 verbs: ["get", "list", "watch"]
