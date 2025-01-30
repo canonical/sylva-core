@@ -23,33 +23,45 @@ Below you can choose test deployment variants to run in this MR's CI.
 | 🚀  | **Bootstrap Provider**   | `kubeadm` (alias `kadm`), `rke2`                                          |
 | 🐧  | **Node OS**              | `ubuntu`, `suse`                                                          |
 | 🛠  | **Deployment Options**    | `light-deploy`, `oci`, `ha`, `misc`                                       |
-| 🎬  | **Pipeline Scenarios**   | `rolling-update`, `mgmt-rolling-update`, `k8s-upgrade`, `sylva-upgrade`, `sylva-upgrade-from-x.x.X`, `simple-update`, `preview`, `nightly` |
+| 🎬  | **Pipeline Scenarios**   | `rolling-update`, `mgmt-rolling-update`, `k8s-upgrade`, `sylva-upgrade-from-x.x.x`, `simple-update`, `preview`, `nightly` |
 
 <!-- DEPLOYMENT FLAVOR DEFINITION START -->
 
-* [ ] 🎬preview ☁capd 🚀kadm 🐧ubuntu 🛠oci
-* [ ] 🎬preview ☁capo 🚀rke2 🐧suse
-* [ ] 🎬preview ☁capm3 🚀rke2 🐧ubuntu
+* [ ] 🎬 preview ☁ capd 🚀 kadm 🐧 ubuntu 🛠 oci
+* [ ] 🎬 preview ☁ capo 🚀 rke2 🐧 suse
+* [ ] 🎬 preview ☁ capm3 🚀 rke2 🐧 ubuntu
 
-* [x] ☁capd 🚀kubeadm 🛠light-deploy 🐧ubuntu
-* [x] ☁capd 🚀rke2 🛠oci,light-deploy 🐧suse
+* [x] ☁ capd 🚀 kadm 🛠 light-deploy 🐧 ubuntu
+* [x] ☁ capd 🚀 rke2 🛠 oci,light-deploy 🐧 suse
 
-* [x] ☁capo 🚀rke2 🛠oci 🐧suse
-* [x] ☁capo 🚀kadm 🛠oci 🐧ubuntu
-* [ ] ☁capo 🚀rke2 🎬rolling-update 🛠ha 🐧ubuntu
-* [ ] ☁capo 🚀kadm 🎬k8s-upgrade 🐧ubuntu
-* [ ] ☁capo 🚀rke2 🎬mgmt-rolling-update 🛠ha,misc 🐧suse
-* [ ] ☁capo 🚀rke2 🎬sylva-upgrade 🛠misc 🐧ubuntu
+* [x] ☁ capo 🚀 rke2 🛠 oci 🐧 suse
+* [x] ☁ capo 🚀 kadm 🛠 oci 🐧 ubuntu
+* [ ] ☁ capo 🚀 rke2 🎬 rolling-update 🛠 ha 🐧 ubuntu
+* [ ] ☁ capo 🚀 kadm 🎬 k8s-upgrade 🐧 ubuntu
+* [ ] ☁ capo 🚀 rke2 🎬 mgmt-rolling-update 🛠 ha,misc 🐧 suse
+* [ ] ☁ capo 🚀 rke2 🎬 sylva-upgrade-from-1.3.x 🛠 ha,misc 🐧 ubuntu
 
-* [x] ☁capm3 🚀rke2 🐧suse
-* [x] ☁capm3 🚀kadm 🛠oci 🐧ubuntu
-* [ ] ☁capm3 🚀kadm 🎬mgmt-rolling-update 🛠ha,misc 🐧ubuntu
-* [ ] ☁capm3 🚀rke2 🎬k8s-upgrade 🐧suse
-* [ ] ☁capm3 🚀kadm 🎬rolling-update 🛠ha 🐧ubuntu
-* [ ] ☁capm3 🚀rke2 🎬sylva-upgrade 🛠misc,ha 🐧suse
-* [ ] ☁capm3 🚀kadm 🎬rolling-update 🛠ha 🐧suse
+* [x] ☁ capm3 🚀 rke2 🐧 suse
+* [x] ☁ capm3 🚀 kadm 🛠 oci 🐧 ubuntu
+* [ ] ☁ capm3 🚀 kadm 🎬 mgmt-rolling-update 🛠 ha,misc 🐧 ubuntu
+* [ ] ☁ capm3 🚀 rke2 🎬 k8s-upgrade 🛠 ha 🐧 suse
+* [ ] ☁ capm3 🚀 kadm 🎬 rolling-update 🛠 ha 🐧 ubuntu
+* [ ] ☁ capm3 🚀 rke2 🎬 sylva-upgrade-from-1.3.x 🛠 misc,ha 🐧 suse
+* [ ] ☁ capm3 🚀 kadm 🎬 rolling-update 🛠 ha 🐧 suse
 
 <!-- DEPLOYMENT FLAVOR DEFINITION END -->
+
+### Global config for deployment pipelines
+
+* [ ] autorun pipelines                    <!-- AUTORUN  OPTION -->
+* [x] allow failure on pipelines           <!-- ALLOW FAILURE OPTION -->
+
+Notes:
+
+* Enabling `autorun` will make deployment pipelines to be run automatically without human interaction
+* Disabling `allow failure` will make deployment pipelines mandatory for pipeline success.
+* if both `autorun` and `allow failure` are disabled, deployment pipelines will need manual triggering but will be blocking the pipeline
+
 </details>
 
 **Be aware:** after configuration change, pipeline is not triggered automatically.

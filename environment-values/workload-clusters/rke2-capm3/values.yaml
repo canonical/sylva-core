@@ -94,12 +94,23 @@ cluster:
   baremetal_hosts:
     # this example is based on what worked on an HP Proliant DL360 Gen10
     my-server:  # corresponding credentials need to be set in secrets.yaml
+      longhorn_disk_config:
+        - path: "/var/longhorn/disks/disk_by-path_pci-0000:18:00.0-scsi-0:3:111:0"
+          storageReserved: 0
+          allowScheduling: true
+          tags:
+            - ssd
+            - fast
+        - path: "/var/longhorn/disks/sde"
+          storageReserved: 0
+          allowScheduling: true
+          tags:
+            - hdd
+            - slow
       bmh_metadata:
         labels:
           cluster-role: control-plane
           longhorn: "true"
-        annotations:
-          disk: /dev/sdb # this disk will be mounted on the K8S node in a dedicated directory and used by Longhorn
       bmh_spec:
         description: Downstream dev clusters
         online: true
@@ -116,8 +127,6 @@ cluster:
         labels:
           cluster-role: worker
           longhorn: "true"
-        annotations:
-          disk: /dev/sdb # this disk will be mounted on the K8S node in a dedicated directory and used by Longhorn
       bmh_spec:
         description: Downstream dev clusters
         online: true

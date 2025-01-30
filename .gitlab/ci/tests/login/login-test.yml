@@ -19,8 +19,8 @@
           echo $access_ip $i >> /etc/hosts
         done
       fi
-  test_sso:
-    - echo -e "\e[1m\e[0Ksection_start:`date +%s`:gitlab_ci_test_loging[collapsed=true]\r\e[0KGet ingress saved into /etc/hosts and set variables\e[0m"
+  get_ui_ingresses_url:
+    - echo -e "\e[1m\e[0Ksection_start:`date +%s`:gitlab_ci_get_ui_ingresses_url[collapsed=true]\r\e[0KGet ui urls from ingresses\e[0m"
     - export flux_url=$(kubectl --kubeconfig management-cluster-kubeconfig get ingress -n flux-system flux-webui-weave-gitops -o jsonpath='{ .spec.tls[].hosts[] }')
     - export vault_url=$(kubectl --kubeconfig management-cluster-kubeconfig get ingress -n vault vault -o jsonpath='{ .spec.tls[].hosts[] }')
     - export rancher_url=$(kubectl --kubeconfig management-cluster-kubeconfig get ingress -n cattle-system rancher -o jsonpath='{ .spec.tls[].hosts[] }')
@@ -28,22 +28,17 @@
     - export grafana_url=$(kubectl --kubeconfig management-cluster-kubeconfig get ingress -n cattle-monitoring-system grafana-sylva-ingress -o jsonpath='{ .spec.tls[].hosts[] }')
     - export neuvector_url=$(kubectl --kubeconfig management-cluster-kubeconfig get ingress -n neuvector neuvector-webui-ingress  -o jsonpath='{ .spec.tls[].hosts[] }')
     - export gitea_url=$(kubectl --kubeconfig management-cluster-kubeconfig get ingress -n gitea gitea -o jsonpath='{ .spec.tls[].hosts[] }')
+    - echo -e "\e[0Ksection_end:`date +%s`:gitlab_ci_get_ui_ingresses_url\r\e[0K"
+  get_sso_login_and_password:
+    - echo -e "\e[1m\e[0Ksection_start:`date +%s`:gitlab_ci_get_sso_login_and_password[collapsed=true]\r\e[0KGet sso login and password\e[0m"
     - export USER_SSO=$(kubectl --kubeconfig ./management-cluster-kubeconfig -n keycloak get secrets/credential-sylva-sylva-admin-keycloak -o jsonpath='{.data.username}'| base64 -d)
     - export PASSWORD_SSO=$(kubectl --kubeconfig ./management-cluster-kubeconfig -n keycloak get secrets/credential-sylva-sylva-admin-keycloak -o jsonpath='{.data.password}'| base64 -d)
-    - echo "Test dependencies and initialize firefox/driver"
-    - /usr/lib/python3.12/site-packages/selenium/webdriver/common/linux/selenium-manager --browser firefox --output json --debug
-    - echo -e "\e[0Ksection_end:`date +%s`:gitlab_ci_test_loging\r\e[0K"
-    - echo "-- Testing login using SSO"
-    - unset https_proxy http_proxy
-    - python3 ./tools/login-test/test-sso.py
-    # For capm3 job we need to modify the $WORKLOAD_CLUSTER_NAME-rancher.yaml to remove the certificate and use an insecure option
-    - !reference [.capm3-virt-kubeconfig]
+    - echo -e "\e[0Ksection_end:`date +%s`:gitlab_ci_get_sso_login_and_password\r\e[0K"
 
 wkld-sso-kubeconfig:
   extends:
     - .test-base-workload-cluster
-  retry:
-    max: 2
+  image: registry.gitlab.com/sylva-projects/sylva-elements/container-images/ci-image/ci-playwright-image:v1.0.56
   variables:
     SCREENSHOTS: ${CI_PROJECT_DIR}/screenshots
   artifacts:
@@ -52,10 +47,15 @@ wkld-sso-kubeconfig:
     paths:
       - $SCREENSHOTS
   script:
+    - unset https_proxy http_proxy
     - !reference [.test_scripts, edit_hosts_file]
-    - !reference [.test_scripts, test_sso]
+    - !reference [.test_scripts, get_ui_ingresses_url]
+    - !reference [.test_scripts, get_sso_login_and_password]
+    - pytest ./tools/login-test/test_download_workload_kubeconfig.py --browser firefox -v --tb=short
+    # For capm3 job we need to modify the $WORKLOAD_CLUSTER_NAME-rancher.yaml to remove the certificate and use an insecure option
+    - !reference [.capm3-virt-kubeconfig]
     - echo "-- Testing workload cluster. Job started at '$CI_JOB_STARTED_AT'."
-    # the $WORKLOAD_CLUSTER_NAME-rancher.yaml file below is the kubeconfig previously downloaded from Rancher server through Selenim
+    # the $WORKLOAD_CLUSTER_NAME-rancher.yaml file below is the kubeconfig previously downloaded from Rancher server through Playwright
     - |
       attempts=0; max_attempts=5
       until kubectl run test-sso --image=registry.k8s.io/pause:3.9 --kubeconfig $WORKLOAD_CLUSTER_NAME-rancher.yaml --overrides='{"apiVersion": "v1","spec": {"containers": [{"name": "test","image": "registry.k8s.io/pause:3.9","securityContext": {"allowPrivilegeEscalation": false,"capabilities": {"drop": ["ALL"]},"runAsNonRoot": true,"runAsGroup": 1000,"runAsUser": 1000,"seccompProfile": {"type": "RuntimeDefault"}}}]}}'; do
@@ -68,9 +68,8 @@ wkld-sso-kubeconfig:
 
 mgmt-sso:
   extends:
-    - .test-base
-  retry:
-    max: 2
+    - .test-base-management-cluster
+  image: registry.gitlab.com/sylva-projects/sylva-elements/container-images/ci-image/ci-playwright-image:v1.0.56
   variables:
     SCREENSHOTS: ${CI_PROJECT_DIR}/screenshots
   artifacts:
@@ -79,11 +78,11 @@ mgmt-sso:
     paths:
       - $SCREENSHOTS
   script:
+    - unset https_proxy http_proxy
     - !reference [.test_scripts, edit_hosts_file]
-    - !reference [.test_scripts, test_sso]
-  rules:
-    - if: $DEPLOY_WORKLOAD_CLUSTER != "true"
-      when: never
+    - !reference [.test_scripts, get_ui_ingresses_url]
+    - !reference [.test_scripts, get_sso_login_and_password]
+    - pytest ./tools/login-test/test_sso_playwright.py --browser firefox -v --tb=short
 
 wkld-no-sso-kubeconfig:
   extends:
@@ -117,7 +116,7 @@ mgmt-login:
       - store/
     reports:
       junit:
-      - $HURL_JUNIT_REPORT
+        - $HURL_JUNIT_REPORT
   script:
     - !reference [.test_scripts, edit_hosts_file]
     - export HURL_token=$(kubectl --kubeconfig management-cluster-kubeconfig -n vault get secrets/vault-unseal-keys -o jsonpath='{.data.vault-root}' | base64 -d)
@@ -196,7 +195,7 @@ wkld-login:
       - store/
     reports:
       junit:
-      - $HURL_JUNIT_REPORT
+        - $HURL_JUNIT_REPORT
   script:
     - !reference [.test_scripts, edit_hosts_file]
     - export HURL_token=$(kubectl --kubeconfig management-cluster-kubeconfig -n vault get secrets/vault-unseal-keys -o jsonpath='{.data.vault-root}' | base64 -d)

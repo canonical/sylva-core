@@ -35,7 +35,7 @@ ALLOWED_SCENARIOS = os.getenv(
         "sylva-upgrade",
         "sylva-upgrade-from-1.1.1",
         "sylva-upgrade-from-1.2.1",
-        "sylva-upgrade-from-1.3.1",
+        "sylva-upgrade-from-1.3.x",
     ])
 )
 
@@ -48,13 +48,18 @@ random.seed(os.getenv("CI_MERGE_REQUEST"))
 
 def get_ci_configuration_from_context():
 
+    global_options = {
+        "autorun": True,
+        "allow-failure": False,
+    }
+
     # CI variable DEPLOYMENT_DESCRIPTION_OVERRIDE can be used to override CI config in any case
     DEPLOYMENT_DESCRIPTION_OVERRIDE = os.getenv("DEPLOYMENT_DESCRIPTION_OVERRIDE")
     if DEPLOYMENT_DESCRIPTION_OVERRIDE:
         requested_deployments = DEPLOYMENT_DESCRIPTION_OVERRIDE.split("|")
         logging.info("Requested deployment flavors found from DEPLOYMENT_DESCRIPTION_OVERRIDE variable")
         logging.info(f"{requested_deployments}")
-        return requested_deployments
+        return requested_deployments, global_options
 
     # if CI variable DEPLOYMENT_DESCRIPTION is set, refer to config in predefined-pipelines-config.yaml
     if os.getenv("DEPLOYMENT_DESCRIPTION"):
@@ -65,13 +70,13 @@ def get_ci_configuration_from_context():
             sys.exit(1)
         logging.info(f"Requested deployment flavors found for {requested_deployment_config} pipeline")
         logging.info(f"{retrieved_config}")
-        return retrieved_config
+        return retrieved_config, global_options
 
     # attempt to use CI config from MR description
     if os.getenv("CI_MERGE_REQUEST_DESCRIPTION"):
-        ci_config = get_ci_config_from_mr_description()
+        ci_config, mr_options = get_ci_config_from_mr_description()
         if ci_config:
-            return ci_config
+            return ci_config, mr_options
         else:
             logging.info("Unable to find any deployment flavor request in MR description.")
 
@@ -86,7 +91,7 @@ def get_ci_configuration_from_context():
             sys.exit(1)
         logging.info("Requested deployment flavors found for renovate pipeline")
         logging.info(f"{retrieved_config}")
-        return retrieved_config
+        return retrieved_config, global_options
 
     # as fallback, get default config
     logging.info("Applying defaut deployment pipeline config")
@@ -94,6 +99,11 @@ def get_ci_configuration_from_context():
 
 
 def get_ci_config_from_mr_description(description=""):
+
+    global_options = {
+        "autorun": False,
+        "allow-failure": True,
+    }
 
     MR_DESCRIPTION = description
     if not MR_DESCRIPTION and os.getenv("CI_MERGE_REQUEST_DESCRIPTION"):
@@ -111,14 +121,25 @@ def get_ci_config_from_mr_description(description=""):
     )
     config = config_pattern.findall(MR_DESCRIPTION)
 
+    # Global options parsing
+    autorun_option_pattern = re.compile(r"\* \[(.)\] .*-- AUTORUN  OPTION --")
+    autorun_option = autorun_option_pattern.findall(MR_DESCRIPTION)
+    if autorun_option:
+        global_options["autorun"] = autorun_option[0] == "x"
+    allowfailure_option_pattern = re.compile(r"\* \[(.)\] .*-- ALLOW FAILURE OPTION --")
+    allowfailure_option = allowfailure_option_pattern.findall(MR_DESCRIPTION)
+    if allowfailure_option:
+        global_options["allow-failure"] = allowfailure_option[0] == "x"
+
     if config:
         selected_deployments = re.compile(r"\n\* \[x\] (.*)").findall(config[0])
         if selected_deployments:
             logging.info("Requested deployments flavors found:")
             [logging.info(f"* {d}") for d in selected_deployments]
-            return [s.strip() for s in selected_deployments]
+            logging.info(f"Global pipeline options: {global_options}")
+            return [s.strip() for s in selected_deployments], global_options
 
-    return []
+    return [], global_options
 
 
 def get_predefined_ci_config(config_name):
@@ -138,11 +159,11 @@ def get_default_ci_config():
     )
 
 
-def generate_ci_job_struct(job_names):
+def generate_ci_job_struct(job_names, global_options):
     ci_jobs = {}
 
     for job in job_names:
-        infra = re.compile(r"☁([\w\d-]+)").findall(job)
+        infra = re.compile(r"☁\s*([\w\d-]+)").findall(job)
         if len(infra) != 1 or infra[0] not in ALLOWED_INFRA.split(","):
             logging.error(f"deployment {job}: infra not allowed")
             sys.exit(1)
@@ -152,7 +173,7 @@ def generate_ci_job_struct(job_names):
             ci_jobs[job].setdefault("variables", {})
             ci_jobs[job]["variables"]["SKIP_TESTS"] = "true"
 
-        scenario = re.compile(r"🎬([\w\d\.-]+)").findall(job)
+        scenario = re.compile(r"🎬\s*([\w\d\.-]+)").findall(job)
         if scenario:
             if scenario[0] in ALLOWED_SCENARIOS.split(","):
                 ci_jobs[job]["extends"].append(f".scenario_{scenario[0]}")
@@ -166,7 +187,7 @@ def generate_ci_job_struct(job_names):
                 sys.exit(1)
 
         options = []
-        option_match = re.compile(r"🛠([\w\d,-]+)").findall(job)
+        option_match = re.compile(r"🛠\s*([\w\d,-]+)").findall(job)
         if option_match:
             options = option_match[0].split(",")
 
@@ -177,16 +198,9 @@ def generate_ci_job_struct(job_names):
             ci_jobs[job].setdefault("variables", {})
             ci_jobs[job]["variables"]["EQUINIX_RUNNER_PLAN"] = "m3.large.x86"
 
-        # For human triggered pipelines, make deployment jobs triggerable individually
-        if os.getenv("CI_PIPELINE_SOURCE") in ["pipeline", "web", "merge_request_event", "push"] \
-            and "renovate" not in os.getenv("CI_MERGE_REQUEST_LABELS", "").split(",") \
-                and (not scenario or scenario[0] != "preview"):
-            ci_jobs[job]["allow_failure"] = True
+        ci_jobs[job]["allow_failure"] = global_options["allow-failure"]
+        if (not scenario or scenario[0] != "preview") and global_options["autorun"] is False:
             ci_jobs[job]["when"] = "manual"
-
-        if ("allow-failure" in job
-           or "ci-allow-failure" in os.getenv("CI_MERGE_REQUEST_LABELS", "")):
-            ci_jobs[job]["allow_failure"] = True
 
     return ci_jobs
 
@@ -200,7 +214,7 @@ def output_yaml_file_from_template(ci_jobs):
 
 
 if __name__ == "__main__":
-    selected_deployments = get_ci_configuration_from_context()
+    selected_deployments, global_options = get_ci_configuration_from_context()
 
     # Limit number of generated child pipelines
     if len(selected_deployments) > DEPLOY_CHILD_PIPELINE_COUNT_LIMIT:
@@ -208,5 +222,5 @@ if __name__ == "__main__":
         logging.error(f"Deployment list: {selected_deployments}")
         sys.exit(1)
 
-    ci_jobs = generate_ci_job_struct(selected_deployments)
+    ci_jobs = generate_ci_job_struct(selected_deployments, global_options)
     output_yaml_file_from_template(ci_jobs)

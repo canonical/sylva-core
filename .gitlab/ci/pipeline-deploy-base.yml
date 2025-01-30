@@ -34,6 +34,7 @@ default:
     - key: toolbox  # cache shared by all jobs
       paths:
         - ./bin/
+  interruptible: false
 
 # ----------------------------------------------------------
 .test-tags:
@@ -127,3 +128,13 @@ delete-workload-cluster:
   rules:
     - if: $DEPLOY_WORKLOAD_CLUSTER == "true" && $DELETE_WORKLOAD_CLUSTER == "true"
       when: always
+
+initialize-summary:
+  extends: .summary
+  stage: .pre
+
+update-summary:
+  extends: .summary
+  stage: .post
+  variables:
+    UPDATE_SUMMARY: true

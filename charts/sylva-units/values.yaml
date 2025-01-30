@@ -58,7 +58,7 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
     spec:
       url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-capi-cluster.git
       ref:
-        tag: 0.4.9
+        tag: 0.4.10
 
   devnull:
     kind: GitRepository
@@ -1505,6 +1505,7 @@ units:
           certmanager:
             enabled: true
             secretname: neuvector-internal
+          autoGenerateCert: false
         controller:
           replicas: 1  # PVC only works for 1 replica https://github.com/neuvector/neuvector-helm/issues/110#issuecomment-1251921734
           strategy:
@@ -1542,10 +1543,14 @@ units:
             secretName: neuvector-tls
         cve:
           updater:
+            podAnnotations:
+              kube-score/ignore: container-image-tag
             enabled: '{{ .Values.security.neuvector_scanning_enabled | include "preserve-type" }}'
             image:
               repository: neuvector/updater
           scanner:
+            podAnnotations:
+              kube-score/ignore: container-image-tag
             enabled: '{{ .Values.security.neuvector_scanning_enabled | include "preserve-type" }}'
             image:
               repository: neuvector/scanner
@@ -1574,14 +1579,25 @@ units:
         {{- $patch := `
         kustomize:
           patches:
-            - patch: |-
+            - target:
                 kind: CronJob
-                apiVersion: batch/v1
-                metadata:
-                  name: neuvector-updater-pod
-                  namespace: neuvector
-                spec:
-                  startingDeadlineSeconds: 21600
+                name: neuvector-updater-pod
+              patch: |-
+                - op: replace
+                  path: /spec/startingDeadlineSeconds
+                  value: 21600
+                - op: add
+                  path: /spec/jobTemplate/spec/template/spec/containers/0/securityContext
+                  value:
+                    runAsNonRoot: true
+                    runAsGroup: 10000
+                    runAsUser: 10000
+                    seccompProfile:
+                      type: RuntimeDefault
+                    allowPrivilegeEscalation: false
+                    capabilities:
+                      drop:
+                        - ALL
         ` -}}
         {{- if .Values.security.neuvector_scanning_enabled -}}
         {{- list ($patch | fromYaml) | include "preserve-type" -}}
