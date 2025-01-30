@@ -781,58 +781,6 @@ units:
       _components:
         - '{{ tuple "./components/keycloak-upgrade-db" (and .Values._internal.state.is_upgrade (tuple . "keycloak" | include "unit-enabled")) | include "set-only-if" }}'
 
-  postgres:
-    info:
-      description: installs Postgresql for Keycloak
-      maturity: stable
-    enabled_conditions:
-    - '{{ tuple . "keycloak" | include "unit-enabled" }}'
-    unit_templates:
-    - base-deps
-    depends_on:
-      namespace-defs: true
-      '{{ .Values._internal.default_storage_class_unit }}': true
-    repo: bitnami-postgresql
-    helmrelease_spec:
-      chart:
-        spec:
-          chart: bitnami/postgresql
-      targetNamespace: keycloak
-      values:
-        architecture: replication
-        nameOverride: postgres
-        serviceAccount:
-          create: true
-          name: postgresql
-        primary:
-          extendedConfiguration: |-
-            huge_pages = off
-          initdb:
-            args: "--set huge_pages=off"
-        readReplicas:
-          pdb:
-            maxUnavailable: '{{ .Values._internal.ha_cluster.is_ha | ternary 1 0 }}'
-          extendedConfiguration: |-
-            huge_pages = off
-          replicaCount: '{{ .Values._internal.ha_cluster.is_ha | ternary 3 1 }}'
-          affinity:
-            podAntiAffinity:
-              requiredDuringSchedulingIgnoredDuringExecution:
-                - labelSelector:
-                    matchLabels:
-                      app.kubernetes.io/name: postgres
-                      app.kubernetes.io/component: read
-                  topologyKey: kubernetes.io/hostname
-      _postRenderers:
-        - kustomize:
-            patches:
-            - '{{ .Values._internal.pdb_allow_unhealthy_pod_eviction | include "preserve-type" }}'
-    helm_secret_values:
-      auth:
-        database: keycloak
-        password: '{{ .Values._internal.postgres_user_password }}'
-        replicationPassword: '{{ .Values._internal.postgres_replication_password }}'
-
   kubevirt:
     info:
       description: installs kubevirt
@@ -7862,10 +7810,6 @@ _internal:
   # loki user and password
   loki_user: '{{ .Values.cluster.name }}'
   loki_password: '{{ include "internalPersistentRandomPasswd" (tuple . "loki_password") }}'
-
-  # postgres passwords
-  postgres_user_password: '{{ include "internalPersistentRandomPasswd" (tuple . "postgres_user_password") }}'
-  postgres_replication_password: '{{ include "internalPersistentRandomPasswd" (tuple . "postgres_replication_password") }}'
 
   # Grafana password
   grafana_admin_password: '{{ include "internalPersistentRandomPasswd" (tuple . "grafana_admin_password") }}'
