@@ -1,33 +1,5 @@
 ---
 include:
-  - project: "to-be-continuous/gitleaks"
-    ref: 2.6.1
-    file: "templates/gitlab-ci-gitleaks.yml"
-  - project: 'renovate-bot/renovate-runner'
-    ref: v19.50.3
-    file: '/templates/renovate-config-validator.gitlab-ci.yml'
-    rules:
-      - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
-        changes:
-          paths:
-            - .gitlab-ci.yml
-            - renovate.json
-  - project: 'sylva-projects/sylva-elements/renovate'
-    ref: 1.0.0
-    file: '/templates/renovate-dry-run.gitlab-ci.yml'
-    rules:
-      - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
-        changes:
-          paths:
-            - renovate.json
-  - project: 'sylva-projects/sylva-elements/ci-tooling/ci-templates'
-    ref: 1.0.36
-    file:
-      - 'templates/release-notes.yml'
-
-  - local: .gitlab/ci/common.yml
-  - local: .gitlab/ci/main-pipeline-checks.yml
-  - local: .gitlab/ci/main-pipeline-builds.yml
-  - local: .gitlab/ci/main-pipeline-deployment-tests.yml
-  - local: .gitlab/ci/main-pipeline-cleanup.yml
-  - local: .gitlab/ci/main-pipeline-report.yml
+  - project: sylva-projects/sylva-core
+    ref: main
+    file: ".gitlab-ci.yml"
