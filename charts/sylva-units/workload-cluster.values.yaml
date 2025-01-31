@@ -438,9 +438,6 @@ units:
     kustomization_spec:
       path: ./kustomize-units/rancher-init/components/webhook-ha
 
-  post-command-annotation-check:
-    enabled: true
-
   cluster-import:
     enabled: false  # overriden depending on whether Rancher is enabled or not (eg. via shared-workload-clusters-settings)
     info:

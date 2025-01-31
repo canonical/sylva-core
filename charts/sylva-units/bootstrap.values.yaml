@@ -559,7 +559,6 @@ units_override_enabled:
   - cluster
   - cluster-ready
   - cluster-machines-ready
-  - post-command-annotation-check
   - cluster-reachable
   - namespace-defs
   - management-namespace-defs
