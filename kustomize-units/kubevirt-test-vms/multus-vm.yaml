@@ -1,16 +1,18 @@
 apiVersion: kubevirt.io/v1
 kind: VirtualMachine
 metadata:
-  name: centos-vm
+  name: multus-vm
 spec:
   running: true
   template:
     metadata:
       labels:
         kubevirt.io/size: small
-        kubevirt.io/domain: testvm
+        kubevirt.io/domain: multus
     spec:
       domain:
+        cpu:
+          cores: 2
         devices:
           disks:
             - name: containerdisk
@@ -26,7 +28,7 @@ spec:
             bridge: {}
         resources:
           requests:
-            memory: 64M
+            memory: 128M
       networks:
       - name: default
         pod: {}
@@ -36,7 +38,7 @@ spec:
       volumes:
         - name: containerdisk
           containerDisk:
-            image: quay.io/kubevirt/centos8-container-disk-images:8.4.2105
+            image: quay.io/kubevirt/cirros-container-disk-demo:v1.3.1
         - name: cloudinitdisk
           cloudInitNoCloud:
             userDataBase64: SGkuXG4=

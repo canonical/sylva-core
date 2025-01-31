@@ -72,7 +72,7 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
     spec:
       url: https://github.com/rancher/local-path-provisioner.git
       ref:
-        tag: v0.0.30
+        tag: v0.0.31
 
   sriov-resources:
     kind: GitRepository
@@ -93,7 +93,7 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
     spec:
       url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/os-image-server.git
       ref:
-        tag: 2.1.1
+        tag: 2.1.2
 
   capo-contrail-bgpaas:
     kind: GitRepository
@@ -128,7 +128,7 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
     spec:
       url: https://github.com/minio/operator.git
       ref:
-        tag: v6.0.4
+        tag: v7.0.0
 
   sylva-snmp-resources:
     kind: GitRepository
@@ -558,7 +558,7 @@ units:
       chart:
         spec:
           chart: cert-manager
-          version: v1.16.2
+          version: v1.16.3
       targetNamespace: cert-manager
       install:
         createNamespace: true
@@ -780,58 +780,6 @@ units:
       wait: true
       _components:
         - '{{ tuple "./components/keycloak-upgrade-db" (and .Values._internal.state.is_upgrade (tuple . "keycloak" | include "unit-enabled")) | include "set-only-if" }}'
-
-  postgres:
-    info:
-      description: installs Postgresql for Keycloak
-      maturity: stable
-    enabled_conditions:
-    - '{{ tuple . "keycloak" | include "unit-enabled" }}'
-    unit_templates:
-    - base-deps
-    depends_on:
-      namespace-defs: true
-      '{{ .Values._internal.default_storage_class_unit }}': true
-    repo: bitnami-postgresql
-    helmrelease_spec:
-      chart:
-        spec:
-          chart: bitnami/postgresql
-      targetNamespace: keycloak
-      values:
-        architecture: replication
-        nameOverride: postgres
-        serviceAccount:
-          create: true
-          name: postgresql
-        primary:
-          extendedConfiguration: |-
-            huge_pages = off
-          initdb:
-            args: "--set huge_pages=off"
-        readReplicas:
-          pdb:
-            maxUnavailable: '{{ .Values._internal.ha_cluster.is_ha | ternary 1 0 }}'
-          extendedConfiguration: |-
-            huge_pages = off
-          replicaCount: '{{ .Values._internal.ha_cluster.is_ha | ternary 3 1 }}'
-          affinity:
-            podAntiAffinity:
-              requiredDuringSchedulingIgnoredDuringExecution:
-                - labelSelector:
-                    matchLabels:
-                      app.kubernetes.io/name: postgres
-                      app.kubernetes.io/component: read
-                  topologyKey: kubernetes.io/hostname
-      _postRenderers:
-        - kustomize:
-            patches:
-            - '{{ .Values._internal.pdb_allow_unhealthy_pod_eviction | include "preserve-type" }}'
-    helm_secret_values:
-      auth:
-        database: keycloak
-        password: '{{ .Values._internal.postgres_user_password }}'
-        replicationPassword: '{{ .Values._internal.postgres_replication_password }}'
 
   kubevirt:
     info:
@@ -1390,7 +1338,7 @@ units:
       chart:
         spec:
           chart: rancher-cis-benchmark-crd
-          version: 105.1.0+up7.1.1
+          version: 105.2.0+up7.2.0
       targetNamespace: cis-operator-system
       install:
         createNamespace: true
@@ -1410,7 +1358,7 @@ units:
       chart:
         spec:
           chart: rancher-cis-benchmark
-          version: 105.1.0+up7.1.1
+          version: 105.2.0+up7.2.0
       targetNamespace: cis-operator-system
 
   cis-operator-scan:
@@ -2609,6 +2557,20 @@ units:
           kind: Deployment
           name: assisted-service
           namespace: assisted-installer
+
+  openshift-security-context-constraints:
+    info:
+      description: sets up openshift security context constraints for operators not installed via RedHat operator lifecycle manager(OLM)
+      internal: true
+    unit_templates:
+    - base-deps
+    enabled: '{{ eq .Values.cluster.capi_providers.bootstrap_provider "cabpoa" }}'
+    repo: sylva-core
+    kustomization_spec:
+      path: ./kustomize-units/openshift-security-context-constraints
+      wait: true
+      _components:
+        - '{{ tuple "components/ceph-csi-cephfs" (tuple . "ceph-csi-cephfs" | include "unit-enabled") | include "set-only-if" }}'
 
   metal3:
     info:
@@ -4908,6 +4870,7 @@ units:
     - base-deps
     depends_on:
       namespace-defs: true
+      openshift-security-context-constraints: '{{ eq .Values.cluster.capi_providers.bootstrap_provider "cabpoa" }}'
     helm_repo_url: https://ceph.github.io/csi-charts
     helmrelease_spec:
       targetNamespace: ceph-csi-cephfs
@@ -7862,10 +7825,6 @@ _internal:
   # loki user and password
   loki_user: '{{ .Values.cluster.name }}'
   loki_password: '{{ include "internalPersistentRandomPasswd" (tuple . "loki_password") }}'
-
-  # postgres passwords
-  postgres_user_password: '{{ include "internalPersistentRandomPasswd" (tuple . "postgres_user_password") }}'
-  postgres_replication_password: '{{ include "internalPersistentRandomPasswd" (tuple . "postgres_replication_password") }}'
 
   # Grafana password
   grafana_admin_password: '{{ include "internalPersistentRandomPasswd" (tuple . "grafana_admin_password") }}'

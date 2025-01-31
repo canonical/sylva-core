@@ -108,7 +108,7 @@ function set_current_namespace {
 }
 
 function check_pivot_has_ran() {
-  if kubectl wait --for condition=complete --timeout=0s job pivot-job-sylva-system -n kube-job > /dev/null 2>&1; then
+  if kubectl wait --for condition=complete --timeout=0s job pivot -n sylva-system > /dev/null 2>&1; then
       if [ ! -f "management-cluster-kubeconfig" ]; then
           kubectl get secret management-cluster-kubeconfig-copy -o jsonpath='{.data.value}' 2>/dev/null | base64 -d > management-cluster-kubeconfig
       fi

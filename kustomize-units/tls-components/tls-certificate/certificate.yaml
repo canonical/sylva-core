@@ -11,7 +11,7 @@ spec:
   issuerRef:
     name: certificate-issuer
     kind: ClusterIssuer
-  commonName: ${SERVICE_DNS}
+  commonName: ${SERVICE}-cn
   duration: 2160h # 90d
   renewBefore: 360h # 15d
   emailAddresses:

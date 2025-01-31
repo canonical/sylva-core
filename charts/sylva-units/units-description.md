@@ -8,14 +8,14 @@
 | **capd** | installs Docker CAPI infra provider | core-component | [Kustomization](https://github.com/kubernetes-sigs/cluster-api//test/infrastructure/docker/config/default/?ref=v1.8.8) | v1.8.8 |
 | **capi** | installs Cluster API core operator | core-component | [Kustomization](https://github.com/kubernetes-sigs/cluster-api/releases/download/v1.8.8/core-components.yaml) | v1.8.8 |
 | **capm3** | installs Metal3 CAPI infra provider, for baremetal | core-component | [Kustomization](https://github.com/metal3-io/cluster-api-provider-metal3/releases/download/v1.9.1/infrastructure-components.yaml) | v1.9.1 |
-| **capo** | installs OpenStack CAPI infra provider | core-component | [Kustomization](https://github.com/kubernetes-sigs/cluster-api-provider-openstack/releases/download/v0.11.3/infrastructure-components.yaml) | v0.11.3 |
+| **capo** | installs OpenStack CAPI infra provider | core-component | [Kustomization](https://github.com/kubernetes-sigs/cluster-api-provider-openstack/releases/download/v0.11.4/infrastructure-components.yaml) | v0.11.4 |
 | **capv** | installs vSphere CAPI infra provider | core-component | [Kustomization](https://github.com/kubernetes-sigs/cluster-api-provider-vsphere/releases/download/v1.12.0/infrastructure-components.yaml) | v1.12.0 |
-| **cert-manager** | installs cert-manager, an X.509 certificate controller | core-component | [Helm chart](https://charts.jetstack.io) | v1.16.2 |
+| **cert-manager** | installs cert-manager, an X.509 certificate controller | core-component | [Helm chart](https://charts.jetstack.io) | v1.16.3 |
 | **flux-system** | contains Flux definitions *to manage the Flux system itself via gitops*<br/><br/>Note that Flux is always installed on the current cluster as a pre-requisite to installing the chart | core-component | Kustomization |  |
 | **kyverno** | installs Kyverno | core-component | [Helm chart](https://kyverno.github.io/kyverno) | 3.3.4 |
 | **calico** | install Calico CNI | stable | [Helm chart](https://rke2-charts.rancher.io) | v3.28.200, v3.29.000 |
 | **cinder-csi** | installs OpenStack Cinder CSI | stable | [Helm chart](https://kubernetes.github.io/cloud-provider-openstack) | 2.31.2 |
-| **cis-operator** | install CIS operator | stable | [Helm chart](https://charts.rancher.io) | 105.1.0+up7.1.1 |
+| **cis-operator** | install CIS operator | stable | [Helm chart](https://charts.rancher.io) | 105.2.0+up7.2.0 |
 | **cnpg-operator** | Cloud Native PostgreSQL (CNPG) Operator | stable | [Helm chart](https://cloudnative-pg.github.io/charts) | 0.23.0 |
 | **crossplane** | Installs Crossplane with RBAC Manager | stable | [Helm chart](https://charts.crossplane.io/stable) | 1.17.1 |
 | **external-secrets-operator** | installs the External Secrets operator | stable | [Helm chart](https://charts.external-secrets.io) | 0.12.1 |
@@ -29,13 +29,12 @@
 | **kepler** | installs Kepler (Kubernetes-based Efficient Power Level Exporter) exporter for Prometheus | stable | [Helm chart](https://sustainable-computing-io.github.io/kepler-helm-chart) | 0.5.12 |
 | **keycloak** | initializes and configures Keycloak | stable | [Kustomization](https://raw.githubusercontent.com/keycloak/keycloak-k8s-resources/26.1.0/kubernetes/keycloaks.k8s.keycloak.org-v1.yml) | 26.1.0 |
 | **keycloak-legacy-operator** | installs Keycloak "legacy" operator | stable | [Kustomization](https://raw.githubusercontent.com/keycloak/keycloak-realm-operator/1.0.0/deploy/crds/legacy.k8s.keycloak.org_externalkeycloaks_crd.yaml) | 1.0.0 |
-| **local-path-provisioner** | installs local-path CSI | stable | [Helm chart](https://github.com/rancher/local-path-provisioner.git) | v0.0.30 |
+| **local-path-provisioner** | installs local-path CSI | stable | [Helm chart](https://github.com/rancher/local-path-provisioner.git) | v0.0.31 |
 | **longhorn** | installs Longhorn CSI | stable | [Helm chart](https://charts.rancher.io/) | 105.1.0+up1.7.2 |
 | **metal3** | installs SUSE-maintained Metal3 operator | stable | [Helm chart](https://suse-edge.github.io/charts) | 0.8.3 |
 | **metallb** | installs MetalLB operator | stable | [Helm chart](https://metallb.github.io/metallb) | 0.14.9 |
 | **monitoring** | installs monitoring stack | stable | [Helm chart](https://charts.rancher.io/) | 104.1.2+up57.0.3 |
 | **multus** | installs Multus | stable | [Helm chart](https://rke2-charts.rancher.io/) | v4.1.001 |
-| **postgres** | installs Postgresql for Keycloak | stable | [Helm chart](https://github.com/bitnami/charts.git) | postgresql/15.5.36 |
 | **rancher** | installs Rancher | stable | [Helm chart](https://releases.rancher.com/server-charts/stable) | 2.10.1 |
 | **sriov-network-operator** | installs SR-IOV operator | stable | [Helm chart](https://suse-edge.github.io/charts/) | 1.4.0 |
 | **vault** | installs Vault<br/><br/>Vault assumes that the certificate vault-tls has been issued | stable | [Kustomization](https://raw.githubusercontent.com/banzaicloud/bank-vaults/1.19.0/operator/deploy/rbac.yaml) | 1.19.0 |
@@ -50,9 +49,9 @@
 | **kubevirt-cdi** | manages Kubevirt CDI - Container Data Importer | beta | [Helm chart](https://suse-edge.github.io/charts) | 0.4.0 |
 | **logging** | installs Rancher Fluentbit/Fluentd logging stack, for log collecting and shipping | beta | [Helm chart](https://charts.rancher.io/) | 105.1.0+up4.10.0 |
 | **loki** | installs Loki log storage<br/><br/>installs Loki log storage in simple scalable mode | beta | [Helm chart](https://github.com/grafana/loki.git) | v3.3.2 |
-| **minio-logging** | creates a MinIO tenant for the logging stack, used as S3 storage by Loki | beta | [Helm chart](https://github.com/minio/operator.git) | v6.0.4 |
-| **minio-monitoring** | creates a MinIO tenant for the monitoring stack, used as S3 storage by Thanos | beta | [Helm chart](https://github.com/minio/operator.git) | v6.0.4 |
-| **minio-operator** | install MinIO operator<br/><br/>MinIO operator is used to manage multiple S3 tenants | beta | [Helm chart](https://github.com/minio/operator.git) | v6.0.4 |
+| **minio-logging** | creates a MinIO tenant for the logging stack, used as S3 storage by Loki | beta | [Helm chart](https://github.com/minio/operator.git) | v7.0.0 |
+| **minio-monitoring** | creates a MinIO tenant for the monitoring stack, used as S3 storage by Thanos | beta | [Helm chart](https://github.com/minio/operator.git) | v7.0.0 |
+| **minio-operator** | install MinIO operator<br/><br/>MinIO operator is used to manage multiple S3 tenants | beta | [Helm chart](https://github.com/minio/operator.git) | v7.0.0 |
 | **neuvector** | installs Neuvector | beta | [Helm chart](https://neuvector.github.io/neuvector-helm) | 2.8.3 |
 | **nfs-ganesha** | manages NFS Ganesha CSI provisioner | experimental | [Helm chart](https://kubernetes-sigs.github.io/nfs-ganesha-server-and-external-provisioner/) | 1.8.0 |
 | **openshift-assisted-installer** | installs assisted installer operator for OKD | experimental | [Kustomization](https://raw.githubusercontent.com/openshift/assisted-service/v2.33.0/hack/crds/hive.openshift.io_clusterdeployments.yaml) | v2.33.0 |
@@ -72,7 +71,7 @@
 | **heat-operator** | installs OpenStack Heat operator | [Kustomization](https://gitlab.com/sylva-projects/sylva-elements/heat-operator.git/config/default?ref=0.0.10) | 0.0.10 |
 | **capo-contrail-bgpaas** | installs CAPO Contrail BGPaaS controller | [Helm chart](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/capo-contrail-bgpaas.git) | 1.0.4 |
 | **libvirt-metal** | installs libvirt for baremetal emulation<br/><br/>this unit is used in bootstrap cluster for baremetal testing | [Helm chart](https://gitlab.com/sylva-projects/sylva-elements/container-images/libvirt-metal.git) | 0.1.19 |
-| **os-image-server** | Deploys a web server on management cluster which serves OS images for baremetal clusters. | [Helm chart](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/os-image-server.git) | 2.1.1 |
+| **os-image-server** | Deploys a web server on management cluster which serves OS images for baremetal clusters. | [Helm chart](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/os-image-server.git) | 2.1.2 |
 | **alertmanager-config** | generates the config for Alertmanager | [Helm chart](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-alertmanager-resources.git) | 0.0.3 |
 | **alertmanager-jiralert-config** | generates the config for Jiralert Alertmanager webhook | [Helm chart](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-alertmanager-resources.git) | 0.0.3 |
 | **sylva-dashboards** | adds Sylva-specific Grafana dashboards | [Helm chart](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-dashboards.git) | 0.0.14 |
@@ -153,6 +152,7 @@
 | **namespace-defs** | creates sylva-system namespace and other namespaces to be used by various units | Kustomization |
 | **neuvector-init** | sets up Neuvector prerequisites<br/><br/>it generates namespace, certificate, admin password, policy exception for using latest tag images (required for the pod managing the database of vulnerabilities since this DB is updated often) | Kustomization |
 | **nfs-ganesha-init** | Define persistent volume claim for NFS Ganesha | Kustomization |
+| **openshift-security-context-constraints** | sets up openshift security context constraints for operators not installed via RedHat operator lifecycle manager(OLM) | Kustomization |
 | **os-images-info** | Creates a list of os images<br/><br/>This unit creates a configmap containing the os images (and their details in the case of Sylva diskimage-builder ones)<br/>to be further served by os-image-server | Kustomization |
 | **pivot** | moves ClusterAPI objects from bootstrap cluster to management cluster | Kustomization |
 | **prometheus-custom-metrics** | Prometheus configuration for custom resource metrics<br/><br/>Adding podmonitors for flux controllers and create custom metrics for various resources by configuring kube-state-metrics | Kustomization |
