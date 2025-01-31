@@ -2,77 +2,66 @@
 # This test extracts from the logs of all the nodes the logs corresponding
 # to packets reaching the default rule of the firewall configuration
 
+.firewall-verify:
+  script:
+    - touch $FIREWALL_LOG_FILE
+    - |
+      for i in $CLUSTER_DIRECTORY/node_logs/*.tar.gz; do
+          echo "Extracting the calico logs from $i"
+          mkdir my-node-logs
+          tar -C my-node-logs -z -xf $i || true
+          for j in $(find my-node-logs -type d -name journal); do
+              echo "Found the journal at path $j"
+              journalctl -D $j | grep "calico-packet:" >> $FIREWALL_LOG_FILE || true
+          done
+          rm -rf my-node-logs
+      done
+    - count=$(cat $FIREWALL_LOG_FILE | wc -l)   # No need to count the packets to a DHCP server which can come from the test environment
+    - |
+      if [ $count -ne 0 ]; then
+          echo "Some packets reached the default policy:"
+          cat $FIREWALL_LOG_FILE
+          exit 1
+      fi
+    - echo "No packet reached the default policy, it is OK"
+
 mgmt-firewall-verify:
-  stage: deployment-test
   extends:
-    - .test-tags
-    - .rules:need-management-cluster
+    - .test-base-management-cluster
+    - .firewall-verify
   dependencies:
-    - deploy-management-cluster
+    - job: deploy-management-cluster
+    - job: update-management-cluster
+      optional: true
+  variables:
+    FIREWALL_LOG_FILE: management-firewall.log
+    CLUSTER_DIRECTORY: management-cluster-dump
   image: registry.gitlab.com/sylva-projects/sylva-elements/container-images/ci-image/ci-firewall-logs/snapshot:0.0.0-git-76b67019
   artifacts:
     expire_in: 48 hour
     when: always
     paths:
       - management-firewall.log
-  script:
-    - touch management-firewall.log
-    - |
-      for i in management-cluster-dump/node_logs/*.tar.gz; do
-          echo "Extracting the calico logs from $i"
-          mkdir my-node-logs
-          tar -C my-node-logs -z -xf $i || true
-          for j in $(find my-node-logs -type d -name journal); do
-              echo "Found the journal at path $j"
-              journalctl -D $j | grep "calico-packet:" >> management-firewall.log || true
-          done
-          rm -rf my-node-logs
-      done
-    - count=$(cat management-firewall.log | wc -l)   # No need to count the packets to a DHCP server which can come from the test environment
-    - |
-      if [ $count -ne 0 ]; then
-          echo "Some packets reached the default policy:"
-          cat management-firewall.log
-          exit 1
-      fi
-    - echo "No packet reached the default policy, it is OK"
   allow_failure: true
 
 # This test extracts from the logs of all the nodes the logs corresponding
 # to packets reaching the default rule of the firewall configuration
 
 wkld-firewall-verify:
-  stage: deployment-test
   extends:
-    - .test-tags
-    - .rules:need-workload-cluster
+    - .test-base-workload-cluster
+    - .firewall-verify
   dependencies:
-    - deploy-workload-cluster
+    - job: deploy-workload-cluster
+    - job: update-workload-cluster
+      optional: true
+  variables:
+    FIREWALL_LOG_FILE: workload-firewall.log
+    CLUSTER_DIRECTORY: workload-cluster-dump
   image: registry.gitlab.com/sylva-projects/sylva-elements/container-images/ci-image/ci-firewall-logs/snapshot:0.0.0-git-76b67019
   artifacts:
     expire_in: 48 hour
     when: always
     paths:
       - workload-firewall.log
-  script:
-    - touch workload-firewall.log
-    - |
-      for i in workload-cluster-dump/node_logs/*.tar.gz; do
-          echo "Extracting the calico logs from $i"
-          mkdir my-node-logs
-          tar -C my-node-logs -z -xf $i || true
-          for j in $(find my-node-logs -type d -name journal); do
-              echo "Found the journal at path $j"
-              journalctl -D $j | grep "calico-packet:" >> workload-firewall.log || true
-          done
-          rm -rf my-node-logs
-      done
-    - count=$(cat workload-firewall.log | wc -l)
-    - |
-      if [ $count -ne 0 ]; then
-          echo "Some packets reached the default policy:"
-          cat workload-firewall.log
-          exit 1
-      fi
-    - echo "No packet reached the default policy, it is OK"
   allow_failure: true
