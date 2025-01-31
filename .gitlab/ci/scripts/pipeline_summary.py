@@ -3,6 +3,7 @@
 import os
 import requests
 import logging
+from collections import defaultdict
 
 GITLAB_API_TOKEN = os.getenv("GITLAB_GUEST_TOKEN")
 GITLAB_PROJECT_ID = os.getenv("CI_PROJECT_ID")
@@ -17,7 +18,7 @@ HEADERS = {
 
 STATUS_ICON = {
     "failed": "❌",
-    "success": "✔",
+    "success": "✅",
     "allowed_to_fail": "⚠️",
     "canceled": "🚫",
     "skipped": "⏩",
@@ -67,6 +68,15 @@ def get_current_user():
     return response.json()
 
 
+def get_pipeline_details(project_id, pipeline_id):
+    """Fetch pipeline details"""
+
+    url = f"{GITLAB_API_URL}/projects/{project_id}/pipelines/{pipeline_id}"
+    response = requests.get(url, headers=HEADERS)
+    response.raise_for_status()
+    return response.json()
+
+
 def get_pipeline_bridges(project_id, pipeline_id):
     """Retrieve all trigger jobs (bridges) for a given pipeline."""
 
@@ -84,19 +94,39 @@ def get_pipeline_jobs(project_id, pipeline_id):
     logging.info(f"Retrieve all jobs for pipeline {pipeline_id}")
 
     url = f"{GITLAB_API_URL}/projects/{project_id}/pipelines/{pipeline_id}/jobs"
-    response = requests.get(url, headers=HEADERS)
-    response.raise_for_status()
-    return response.json()
+    all_jobs = []
+    page = 1
+
+    while True:
+        response = requests.get(url, headers=HEADERS, params={"page": page})
+        response.raise_for_status()
+
+        jobs = response.json()
+        all_jobs.extend(jobs)
+
+        if 'X-Next-Page' in response.headers and response.headers['X-Next-Page']:
+            page += 1
+        else:
+            break
+    return all_jobs
 
 
-def calculate_pipeline_status(jobs, current_job_id):
+def calculate_pipeline_status(jobs):
     """Calculate the status of the pipeline based on job statuses."""
 
     logging.info("Check status of all jobs")
 
     for job in jobs:
-        if job["id"] != current_job_id and job["status"] != "success":
+        # Consider the pipeline as failed if any job is failed
+        if job["status"] == "failed":
             return "failed"
+        # exclude summary jobs
+        if job["name"] in {"initialize-summary", "update-summary"}:
+            continue
+        # else if any jobs is running, scheduled etc.. we consider the pipeline as still running
+        if job["status"] in {"running", "pending", "scheduled", "created"}:
+            return "running"
+    # else it's a success
     return "success"
 
 
@@ -135,12 +165,44 @@ def delete_mr_comment(project_id, mr_id, comment_id):
     return response
 
 
+def format_jobs(jobs):
+    """Format jobs grouped by stage with relevant titles."""
+
+    logging.info("Formating jobs grouped by stage with relevant titles")
+
+    grouped_jobs = defaultdict(list)
+
+    ignored_jobs = {"create-runner", "create-runner-wait"}
+    ignored_stages = {".pre", ".post", "cleanup"}
+
+    for job in sorted(jobs, key=lambda d: d['stage']):
+        if job["name"] in ignored_jobs and job["status"] != "failed":
+            continue
+        if job["stage"] in ignored_stages:
+            continue
+        if job["stage"] == "delete" and job["status"] != "failed":
+            continue
+        grouped_jobs[job["stage"]].append(job)
+
+    formatted_output = ""
+    for stage, jobs in grouped_jobs.items():
+        formatted_output += f"**{stage.capitalize()} Stage**<br>"
+        for job in sorted(jobs, key=lambda j: j["name"]):
+            status_icon = STATUS_ICON.get(job["status"], "❔")
+            formatted_output += f"[{job['name']} {status_icon}]({job['web_url']})<br>"
+        formatted_output += "<br>"
+
+    return formatted_output
+
+
 def format_table(bridges):
     """Generate the Markdown table."""
 
     logging.info("Generate updated table")
-
-    table = "| Pipeline Name | Status | Link |\n"
+    parent_pipeline_detail = get_pipeline_details(GITLAB_PROJECT_ID, PARENT_PIPELINE_ID)
+    parent_pipeline_url = parent_pipeline_detail["web_url"]
+    table = f"## Deployment pipelines from [{PARENT_PIPELINE_ID}]({parent_pipeline_url})\n"
+    table += "| Pipeline Name | Status | Link |\n"
     table += "|---------------|--------|------|\n"
     for bridge in bridges:
         name = bridge.get("name", "Unknown")
@@ -151,17 +213,16 @@ def format_table(bridges):
         if downstream_pipeline:
             url = downstream_pipeline.get("web_url", "N/A")
             link = f"[View Pipeline]({url})"
-            if UPDATE_SUMMARY:
-                downstream_pipeline_id = downstream_pipeline.get("id")
-                if downstream_pipeline_id == int(os.getenv("CI_PIPELINE_ID")):
-                    logging.info(f"Updating pipeline {downstream_pipeline_id} status based on jobs status")
-                    jobs = get_pipeline_jobs(GITLAB_PROJECT_ID, os.getenv("CI_PIPELINE_ID"))
-                    status = calculate_pipeline_status(jobs, int(os.getenv("CI_JOB_ID", "0")))
-                    status_icon = STATUS_ICON.get(status, "❔")
+            downstream_pipeline_id = downstream_pipeline.get("id")
+            logging.info(f"Updating pipeline {downstream_pipeline_id} status based on jobs status")
+            jobs = get_pipeline_jobs(GITLAB_PROJECT_ID, int(downstream_pipeline_id))
+            job_detail = "<details><summary>Details</summary>" + format_jobs(jobs) + "</details>"
+            status = calculate_pipeline_status(jobs)
+            status_icon = STATUS_ICON.get(status, "❔")
         else:
             link = "N/A"
-
-        table += f"| {name} | {status_icon} | {link} |\n"
+            job_detail = ""
+        table += f"| {name} | {status_icon} | {link}  {job_detail} |\n"
     return table
 
 

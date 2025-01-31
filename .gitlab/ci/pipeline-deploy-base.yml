@@ -137,5 +137,3 @@ initialize-summary:
 update-summary:
   extends: .summary
   stage: .post
-  variables:
-    UPDATE_SUMMARY: true
