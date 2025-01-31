@@ -38,7 +38,7 @@
 wkld-sso-kubeconfig:
   extends:
     - .test-base-workload-cluster
-  image: registry.gitlab.com/sylva-projects/sylva-elements/container-images/ci-image/ci-playwright-image:v1.0.56
+  image: registry.gitlab.com/sylva-projects/sylva-elements/container-images/ci-image/ci-playwright-image:v1.0.57
   variables:
     SCREENSHOTS: ${CI_PROJECT_DIR}/screenshots
   artifacts:
@@ -69,7 +69,7 @@ wkld-sso-kubeconfig:
 mgmt-sso:
   extends:
     - .test-base-management-cluster
-  image: registry.gitlab.com/sylva-projects/sylva-elements/container-images/ci-image/ci-playwright-image:v1.0.56
+  image: registry.gitlab.com/sylva-projects/sylva-elements/container-images/ci-image/ci-playwright-image:v1.0.57
   variables:
     SCREENSHOTS: ${CI_PROJECT_DIR}/screenshots
   artifacts:
