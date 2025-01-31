@@ -2,10 +2,6 @@ apiVersion: admissionregistration.k8s.io/v1alpha1
 kind: ValidatingAdmissionPolicy
 metadata:
   name: block-rke2-uninstall-jobs
-  annotations:
-    kustomize.toolkit.fluxcd.io/force: Enabled
-    policies.kyverno.io/description: >-
-      Blocks RKE2 HelmChart jobs that attempt to uninstall critical components like Calico, CoreDNS, and MetalLB
 spec:
   failurePolicy: Fail
   matchConstraints:
