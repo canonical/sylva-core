@@ -1,33 +1,36 @@
 apiVersion: kyverno.io/v1
 kind: Policy
 metadata:
-  name: restart-sts-on-secret-change
+  name: restart-deployment-on-secret-change
   namespace: vault
   annotations:
-    kustomize.toolkit.fluxcd.io/force: Enabled
     policies.kyverno.io/description: >-
-      If vault-internal-tls secret is updated, the vault sts is not restarted auotmatically. This
-      policy monitors the secret and will set up the annotations in sts so that pods are restarted
-      and it takes the updated cert after expiration of old one.
+      This policy monitors the vault-internal-tls secret and will set up the annotations in sts so that pods are restarted
+      and takes the updated cert after expiration of old one.
 spec:
-  mutateExistingOnPolicyUpdate: false
   rules:
-  - name: update-secret
-    match:
-      any:
-      - resources:
-          kinds:
-          - Secret
-          names:
-          - vault-internal-tls
-    mutate:
-      targets:
-        - apiVersion: apps/v1
-          kind: StatefulSet
-          name: vault
-      patchStrategicMerge:
-        spec:
-          template:
-            metadata:
-              annotations:
-                vault-certs: "{{request.object.metadata.resourceVersion}}"
+    - name: update-secret
+      match:
+        any:
+          - resources:
+              kinds:
+                - Secret
+              names:
+                - vault-internal-tls
+      preconditions:
+        all:
+          - key: "{{ request.operation }}"
+            operator: Equals
+            value: "UPDATE"
+      mutate:
+        targets:
+          - apiVersion: apps/v1
+            kind: StatefulSet
+            name: vault
+            namespace: vault
+        patchStrategicMerge:
+          spec:
+            template:
+              metadata:
+                annotations:
+                  vault-certs: "{{ request.object.metadata.resourceVersion }}"
