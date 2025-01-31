@@ -3118,7 +3118,7 @@ units:
             value: |
               #!/bin/bash
               set -e
-
+              ls -ltr /opt/kubeconfig
               function exit_trap() {
                 echo "--- summary of resources"
                 kubectl get $CONTROL_PLANE -l cluster.x-k8s.io/cluster-name={{ .Values.cluster.name }}
@@ -3171,13 +3171,13 @@ units:
               echo "--- waiting for all machines to have a nodeRef (reflects the fact that the Node has joined the cluster)..."
               kubectl wait Machine -l cluster.x-k8s.io/cluster-name={{ .Values.cluster.name }} --for=jsonpath='{.status.nodeRef.name}' --timeout $WAIT_TIMEOUT
 
-              nodes=$(kubectl get nodes -A --kubeconfig $KUBECONFIG -o jsonpath='{.items[*].metadata.name}')
+              nodes=$(kubectl get nodes -A -o jsonpath='{.items[*].metadata.name}')
 
               # Function to check annotations for all nodes
               check_annotations() {
                 for node in $nodes; do
                   # Fetch the annotation value for the current node
-                  annotation=$(kubectl get node "$node" --kubeconfig $KUBECONFIG -o jsonpath='{.metadata.annotations.post-commands-executed}')
+                  annotation=$(kubectl get node "$node" -o jsonpath='{.metadata.annotations.post-commands-executed}')
                   if [ "$annotation" != "true" ]; then
                     return 1 # Exit the function with failure
                   fi
