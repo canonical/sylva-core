@@ -3082,9 +3082,13 @@ units:
           kind: Job
         patch: |
           - op: add
+            path: /spec/template/spec/securityContext
+            value:
+              fsGroup: 1000
+          - op: add
             path: /spec/template/spec/volumes/-
             value:
-              name: kubeconfig-volume
+              name: kubeconfig
               secret:
                 secretName: management-cluster-kubeconfig
           - op: add
@@ -3092,6 +3096,7 @@ units:
             value:
               name: kubeconfig-volume
               mountPath: /root/.kube/config
+              subPath: config
           - op: add
             path: /spec/template/spec/containers/0/env
             value:
