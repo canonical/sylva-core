@@ -3092,6 +3092,7 @@ units:
             value:
               name: kubeconfig
               mountPath: /opt/kubeconfig
+              subPath: config 
           - op: add
             path: /spec/template/spec/containers/0/env
             value:
