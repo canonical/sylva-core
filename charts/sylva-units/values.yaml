@@ -3156,7 +3156,7 @@ units:
               echo "--- waiting for all machines to have a nodeRef (reflects the fact that the Node has joined the cluster)..."
               kubectl wait Machine -l cluster.x-k8s.io/cluster-name={{ .Values.cluster.name }} --for=jsonpath='{.status.nodeRef.name}' --timeout $WAIT_TIMEOUT
 
-              kubectl get secret management-cluster-kubeconfig -n sylva-system -o yaml | yq .data.value | base64 -d > /opt/kubeconfig
+              kubectl get secret management-cluster-kubeconfig -n sylva-system -o yaml | yq .data.value | base64 -d > /opt/kubeconfig && chmod 600 /opt/kubeconfig
               nodes=$(kubectl get nodes -A --kubeconfig /opt/kubeconfig -o jsonpath='{.items[*].metadata.name}')
 
               echo $nodes
