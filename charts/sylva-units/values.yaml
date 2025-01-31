@@ -291,6 +291,8 @@ unit_templates:
           SOURCE_CONCURRENT: '{{ .Values.flux.source.concurrent }}'
           SOURCE_LOG_LEVEL: '{{ .Values.flux.source.log_level }}'
           SOURCE_FEATURES_GATES: '{{ tuple .Values.flux.source.features_gates | include "dict_to_key_values_separated_string"  }}'
+          SOURCE_STORAGE_CLASS: '{{ .Values._internal.default_storage_class }}'
+          SOURCE_STORAGE_SIZE: 1Gi
         substituteFrom:
         - kind: ConfigMap
           name: proxy-env-vars
@@ -5004,7 +5006,8 @@ units:
     info:
       description: installs Longhorn CSI
       maturity: stable
-    enabled: false
+    enabled_conditions:
+      - '{{ eq .Values.cluster.capi_providers.infra_provider "capm3" }}'
     unit_templates:
     - base-deps
     depends_on:
@@ -7400,7 +7403,7 @@ cluster:
         | include "set-only-if"
         -}}
 
-  enable_longhorn: '{{ or (tuple . "longhorn" | include "unit-enabled") (tuple . .Values.units.longhorn.enabled | include "interpret-for-test") | include "as-bool" }}'
+  enable_longhorn: '{{ tuple . "longhorn" | include "unit-enabled" | include "as-bool" }}'
 
   timeouts:
     cluster_delete_hook_job_timeout: 300
@@ -8015,7 +8018,8 @@ _internal:
     '{{ .Values.openstack.storageClass.name }}': cinder-csi
     cephfs-csi: ceph-csi-cephfs
 
-  default_storage_class_unit: >-
+  default_storage_class_unit: '{{ tuple . .Values._internal.default_storage_class_unit_ref | include "interpret-as-string" }}'
+  default_storage_class_unit_ref: >-
     {{- tuple . "_internal.default_storage_class" | include "interpret" -}}
     {{- tuple . "_internal.storage_class_unit_map" | include "interpret" -}}
     {{- .Values._internal.storage_class_unit_map | dig .Values._internal.default_storage_class (printf "storage class unit not found for %s" .Values._internal.default_storage_class) -}}

@@ -69,6 +69,17 @@ unit_templates:
   base-deps:
     depends_on: null  # don't inherit dependencies from values.yaml or management.values.yaml
 
+  management-cluster-csi:
+    depends_on:
+      cluster-reachable: true
+      calico-ready: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpk" }}'
+    helmrelease_spec:
+      kubeConfig:
+        secretRef:
+          name: '{{ .Values.cluster.name }}-kubeconfig'
+    labels:
+      suspend-on-pivot: "yes"
+
 unit_kustomization_spec_default:
   interval: 100000m   # for bootstrap, we don't care about having flux update things on the longterm
   retryInterval: 30s  # but we want it to retry quickly so that the system converges faster (quicker reaction when a dependency is met)
@@ -122,6 +133,12 @@ units:
           service:
             externalIPs:
               - '{{ .Values._internal.bootstrap_node_ip }}'
+          persistence:
+            ironic:
+              storageClass: local-path
+        metal3-mariadb:
+          persistence:
+            storageClass: local-path
     labels:
       suspend-on-pivot: "yes"
 
@@ -157,6 +174,8 @@ units:
       values:
         service:
           type: NodePort
+        osImagePersistenceDefaults:
+          storageClass: local-path
 
   calico-crd:
     # overload calico-crd definition in bootstrap context to deploy in the management cluster
@@ -203,11 +222,44 @@ units:
         secretRef:
           name: '{{ .Values.cluster.name }}-kubeconfig'
 
+  # Install csi in management cluster to support flux
+  cinder-csi:
+    unit_templates:
+    - management-cluster-csi
+
+  longhorn:
+    unit_templates:
+    - management-cluster-csi
+
+  longhorn-crd:
+    unit_templates:
+    - management-cluster-csi
+
+  local-path-provisioner:
+    unit_templates:
+    - management-cluster-csi
+
+  vsphere-csi-driver:
+    depends_on:
+      cluster-reachable: true
+      calico-ready: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpk" }}'
+    kustomization_spec:
+      kubeConfig:
+        secretRef:
+          name: '{{ .Values.cluster.name }}-kubeconfig'
+    labels:
+      suspend-on-pivot: "yes"
+
+  ceph-csi-cephfs:
+    unit_templates:
+    - management-cluster-csi
+
   management-cluster-flux:
     info:
       description: installs flux in management cluster during bootstrap
       internal: true
     depends_on:
+      '{{ .Values._internal.default_storage_class_unit_ref }}': true
       cluster-reachable: true
       # FIXME; Flux wait/healthcheck on management cluster does not work as expected, it becomes ready as soon as manifests are applied
       # cluster readyness will actually be ensured by the retries on installations of this kustomization for now.
@@ -507,6 +559,13 @@ units_override_enabled:
   - capi
   - '{{ .Values.cluster.capi_providers.infra_provider }}'
   - '{{ .Values.cluster.capi_providers.bootstrap_provider }}'
+  - cinder-csi
+  - longhorn
+  - longhorn-crd
+  - local-path-provisioner
+  - vsphere-csi-driver
+  # use following hack to ensure  "units.ceph-csi-cephfs.enabled has precedence over units_override_enabled
+  - '{{ tuple "ceph-csi-cephfs" (dig "ceph-csi-cephfs" "enabled" true .Values.units) | include "set-only-if"}}'
   - metal3
   - bootstrap-local-path
   - ingress-nginx
