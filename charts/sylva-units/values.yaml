@@ -3082,11 +3082,6 @@ units:
           kind: Job
         patch: |
           - op: add
-            path: /spec/template/spec/securityContext
-            value:
-              runAsUser: 0
-              fsGroup: 1000
-          - op: add
             path: /spec/template/spec/volumes/-
             value:
               name: kubeconfig
@@ -3096,13 +3091,12 @@ units:
             path: /spec/template/spec/containers/0/volumeMounts/-
             value:
               name: kubeconfig
-              mountPath: /root/.kube/config
-              subPath: config
+              mountPath: /opt/kubeconfig
           - op: add
             path: /spec/template/spec/containers/0/env
             value:
               - name: KUBECONFIG
-                value: /root/.kube/config
+                value: /opt/kubeconfig
               - name: WAIT_TIMEOUT
                 value: {{ .Values.cluster_machines_ready.wait_timeout }}
               - name: CONTROL_PLANE
