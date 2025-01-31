@@ -3084,6 +3084,7 @@ units:
           - op: add
             path: /spec/template/spec/securityContext
             value:
+              runAsUser: 0
               fsGroup: 1000
           - op: add
             path: /spec/template/spec/volumes/-
