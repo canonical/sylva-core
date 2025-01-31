@@ -3094,7 +3094,7 @@ units:
           - op: add
             path: /spec/template/spec/containers/0/volumeMounts/-
             value:
-              name: kubeconfig-volume
+              name: kubeconfig
               mountPath: /root/.kube/config
               subPath: config
           - op: add
