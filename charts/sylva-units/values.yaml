@@ -3082,22 +3082,8 @@ units:
           kind: Job
         patch: |
           - op: add
-            path: /spec/template/spec/volumes/-
-            value:
-              name: kubeconfig
-              secret:
-                secretName: management-cluster-kubeconfig
-          - op: add
-            path: /spec/template/spec/containers/0/volumeMounts/-
-            value:
-              name: kubeconfig
-              mountPath: "/opt/kubeconfig/config"
-              subPath: config
-          - op: add
             path: /spec/template/spec/containers/0/env
             value:
-              - name: KUBECONFIG
-                value: /opt/configuration
               - name: WAIT_TIMEOUT
                 value: {{ .Values.cluster_machines_ready.wait_timeout }}
               - name: CONTROL_PLANE
@@ -3171,7 +3157,8 @@ units:
               echo "--- waiting for all machines to have a nodeRef (reflects the fact that the Node has joined the cluster)..."
               kubectl wait Machine -l cluster.x-k8s.io/cluster-name={{ .Values.cluster.name }} --for=jsonpath='{.status.nodeRef.name}' --timeout $WAIT_TIMEOUT
 
-              nodes=$(kubectl get nodes -A --kubeconfig /opt/kubeconfig/config -o jsonpath='{.items[*].metadata.name}')
+              kubectl get secret management-cluster-kubeconfig -n sylva-system -o yaml | yq .data.value | base64 -d > /opt/kubeconfig
+              nodes=$(kubectl get nodes -A --kubeconfig /opt/kubeconfig -o jsonpath='{.items[*].metadata.name}')
 
               # Function to check annotations for all nodes
               check_annotations() {
