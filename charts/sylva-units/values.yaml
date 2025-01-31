@@ -3104,7 +3104,6 @@ units:
             value: |
               #!/bin/bash
               set -e
-              ls -ltra /opt/kubeconfig/
               function exit_trap() {
                 echo "--- summary of resources"
                 kubectl get $CONTROL_PLANE -l cluster.x-k8s.io/cluster-name={{ .Values.cluster.name }}
@@ -3160,6 +3159,7 @@ units:
               kubectl get secret management-cluster-kubeconfig -n sylva-system -o yaml | yq .data.value | base64 -d > /opt/kubeconfig
               nodes=$(kubectl get nodes -A --kubeconfig /opt/kubeconfig -o jsonpath='{.items[*].metadata.name}')
 
+              echo $nodes
               # Function to check annotations for all nodes
               check_annotations() {
                 for node in $nodes; do
