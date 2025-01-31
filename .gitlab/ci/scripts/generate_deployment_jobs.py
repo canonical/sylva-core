@@ -186,7 +186,7 @@ def generate_ci_job_struct(job_names, global_options):
                     ci_jobs[job]["extends"].append(".scenario_sylva-upgrade-capm3-from-1.1.1")
 
             else:
-                logging.error(f"deployment {job}: scenario not allowed")
+                logging.error(f"deployment {job}: scenario {scenario[0]} not allowed (supported scenarios: {ALLOWED_SCENARIOS})")
                 sys.exit(1)
 
         options = []
