@@ -2343,6 +2343,7 @@ units:
       postBuild:
         substitute:
           force_var_substitution_enabled: "true"  # dummy value to ensure substitution of defaults
+          EXP_MACHINE_SET_PREFLIGHT_CHECKS: "false"  # https://gitlab.com/sylva-projects/sylva-core/-/issues/1658
       wait: true
       _components:
         - '{{ tuple "components/ha" (.Values._internal.ha_cluster.is_ha) | include "set-only-if" }}'
