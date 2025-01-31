@@ -3176,7 +3176,7 @@ units:
               check_annotations() {
                 for node in $nodes; do
                   # Fetch the annotation value for the current node
-                  annotation=$(kubectl get node "$node" --kubeconfig management-cluster-kubeconfig -o jsonpath='{.metadata.annotations.post-commands-executed}')
+                  annotation=$(kubectl get node "$node" --kubeconfig $KUBECONFIG -o jsonpath='{.metadata.annotations.post-commands-executed}')
                   if [ "$annotation" != "true" ]; then
                     return 1 # Exit the function with failure
                   fi
