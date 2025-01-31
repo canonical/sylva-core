@@ -3091,7 +3091,7 @@ units:
             path: /spec/template/spec/containers/0/volumeMounts/-
             value:
               name: kubeconfig
-              mountPath: /opt/kubeconfig
+              mountPath: /opt/
               subPath: config 
           - op: add
             path: /spec/template/spec/containers/0/env
@@ -3118,7 +3118,7 @@ units:
             value: |
               #!/bin/bash
               set -e
-              ls -ltr /opt/kubeconfig
+              ls -ltr /opt/
               function exit_trap() {
                 echo "--- summary of resources"
                 kubectl get $CONTROL_PLANE -l cluster.x-k8s.io/cluster-name={{ .Values.cluster.name }}
