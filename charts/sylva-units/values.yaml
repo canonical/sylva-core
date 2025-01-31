@@ -3104,7 +3104,6 @@ units:
             value: |
               #!/bin/bash
               set -e
-              ls -ltra /opt/configuration
               function exit_trap() {
                 echo "--- summary of resources"
                 kubectl get $CONTROL_PLANE -l cluster.x-k8s.io/cluster-name={{ .Values.cluster.name }}
