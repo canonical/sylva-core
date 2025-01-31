@@ -3084,14 +3084,14 @@ units:
           - op: add
             path: /spec/template/spec/volumes/-
             value:
-              - name: kubeconfig-volume
-                secret:
-                  secretName: management-cluster-kubeconfig
+              name: kubeconfig-volume
+              secret:
+                secretName: management-cluster-kubeconfig
           - op: add
             path: /spec/template/spec/containers/0/volumeMounts/-
             value:
-              - name: kubeconfig-volume
-                mountPath: /root/.kube/config
+              name: kubeconfig-volume
+              mountPath: /root/.kube/config
           - op: add
             path: /spec/template/spec/containers/0/env
             value:
