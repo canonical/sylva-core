@@ -499,7 +499,7 @@ units_override_enabled:
   - capi
   - '{{ .Values.cluster.capi_providers.infra_provider }}'
   - '{{ .Values.cluster.capi_providers.bootstrap_provider }}'
-  - openshift-assisted-installer
+  - '{{ tuple "openshift-assisted-installer" (eq .Values.cluster.capi_providers.bootstrap_provider "cabpoa") | include "set-only-if" }}'
   - metal3
   - bootstrap-local-path
   - ingress-nginx
