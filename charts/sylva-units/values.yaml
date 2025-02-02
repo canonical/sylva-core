@@ -2505,6 +2505,24 @@ units:
           name: assisted-service
           namespace: assisted-installer
 
+  openshift-security-context-constraints:
+    info:
+      description: sets up openshift security context constraints for operators not installed via RedHat operator lifecycle manager(OLM)
+      internal: true
+    unit_templates:
+    - base-deps
+    enabled: '{{ eq .Values.cluster.capi_providers.bootstrap_provider "cabpoa" }}'
+    repo: sylva-core
+    kustomization_spec:
+      path: ./kustomize-units/openshift-security-context-constraints
+      wait: true
+      prune: false
+      _components:
+        - '{{ tuple "components/ceph-csi-cephfs" (tuple . "ceph-csi-cephfs" | include "unit-enabled") | include "set-only-if" }}'
+        - '{{ tuple "components/flux-system" (tuple . "flux-system" | include "unit-enabled") | include "set-only-if" }}'
+        - '{{ tuple "components/metallb" (tuple . "metallb" | include "unit-enabled") | include "set-only-if" }}'
+ 
+
   metal3:
     info:
       description: installs SUSE-maintained Metal3 operator
@@ -3223,7 +3241,8 @@ units:
     - base-deps
     enabled_conditions:
       - '{{ or (.Values.cluster.capi_providers.infra_provider | eq "capd")
-               (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpr") }}'
+               (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpr") 
+               (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpoa") }}'
     depends_on:
       '{{ .Values._internal.calico_readiness_unit }}': '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpk" }}'
     helm_repo_url: https://metallb.github.io/metallb
@@ -4820,6 +4839,7 @@ units:
         create: true
         adminID: '{{ .Values.ceph.cephfs_csi.adminID }}'
         adminKey: '{{ .Values.ceph.cephfs_csi.adminKey }}'
+
 
   longhorn-crd:
     info:
