@@ -66,6 +66,11 @@ def gitea_url():
     return add_scheme(os.getenv("gitea_url", "https://gitea.sylva"))
 
 
+@pytest.fixture
+def thanos_url():
+    return add_scheme(os.getenv("thanos_url", "https://thanos.sylva"))
+
+
 def pytest_addoption(parser):
     parser.addoption("--all", action="store_true", default=False, help="Run all tests")
 
