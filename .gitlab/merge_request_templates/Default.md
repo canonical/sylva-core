@@ -11,11 +11,58 @@
 
 ## CI configuration
 
-CI pipelines perform an update for both management and workload clusters, this update will **NOT** perform a ClusterAPI rolling update (deletion and creation of new K8s nodes) by default.
+Below you can choose test deployment variants to run in this MR's CI.
 
-For some cases, it may be relevant to perform more complex tests.
+<details><summary> Click to open to CI configuration </summary>
 
-Theses features can be activated in an MR by adding one of these labels to the MR and will apply to the next pipelines.
+**Legend:**
 
-* adding the label ~ci-feature::test-rolling-update pipelines will perform a node rolling update in the `-update` jobs (without version upgrades)
-* adding the label ~ci-feature::test-upgrade-from-1.2.1 pipelines will perform an upgrade from Sylva 1.2.1 to your dev branch (including a k8s version upgrade resulting in a node rolling update)
+| Icon | Meaning                  | Available values                                                          |
+|------|--------------------------|---------------------------------------------------------------------------|
+| ☁   | **Infra Provider**       | `capd`, `capo`, `capm3`                                                   |
+| 🚀  | **Bootstrap Provider**   | `kubeadm` (alias `kadm`), `rke2`                                          |
+| 🐧  | **Node OS**              | `ubuntu`, `suse`                                                          |
+| 🛠  | **Deployment Options**    | `light-deploy`, `oci`, `ha`, `misc`                                       |
+| 🎬  | **Pipeline Scenarios**   | `rolling-update`, `mgmt-rolling-update`, `k8s-upgrade`, `sylva-upgrade-from-x.x.x`, `simple-update`, `preview`, `nightly` |
+
+<!-- DEPLOYMENT FLAVOR DEFINITION START -->
+
+* [ ] 🎬 preview ☁ capd 🚀 kadm 🐧 ubuntu 🛠 oci
+* [ ] 🎬 preview ☁ capo 🚀 rke2 🐧 suse
+* [ ] 🎬 preview ☁ capm3 🚀 rke2 🐧 ubuntu
+
+* [x] ☁ capd 🚀 kadm 🛠 light-deploy 🐧 ubuntu
+* [x] ☁ capd 🚀 rke2 🛠 oci,light-deploy 🐧 suse
+
+* [x] ☁ capo 🚀 rke2 🛠 oci 🐧 suse
+* [x] ☁ capo 🚀 kadm 🛠 oci 🐧 ubuntu
+* [ ] ☁ capo 🚀 rke2 🎬 rolling-update 🛠 ha 🐧 ubuntu
+* [ ] ☁ capo 🚀 kadm 🎬 k8s-upgrade 🐧 ubuntu
+* [ ] ☁ capo 🚀 rke2 🎬 mgmt-rolling-update 🛠 ha,misc 🐧 suse
+* [ ] ☁ capo 🚀 rke2 🎬 sylva-upgrade-from-1.3.x 🛠 ha,misc 🐧 ubuntu
+
+* [x] ☁ capm3 🚀 rke2 🐧 suse
+* [x] ☁ capm3 🚀 kadm 🛠 oci 🐧 ubuntu
+* [ ] ☁ capm3 🚀 kadm 🎬 mgmt-rolling-update 🛠 ha,misc 🐧 ubuntu
+* [ ] ☁ capm3 🚀 rke2 🎬 k8s-upgrade 🛠 ha 🐧 suse
+* [ ] ☁ capm3 🚀 kadm 🎬 rolling-update 🛠 ha 🐧 ubuntu
+* [ ] ☁ capm3 🚀 rke2 🎬 sylva-upgrade-from-1.3.x 🛠 misc,ha 🐧 suse
+* [ ] ☁ capm3 🚀 kadm 🎬 rolling-update 🛠 ha 🐧 suse
+
+<!-- DEPLOYMENT FLAVOR DEFINITION END -->
+
+### Global config for deployment pipelines
+
+* [ ] autorun pipelines                    <!-- AUTORUN  OPTION -->
+* [x] allow failure on pipelines           <!-- ALLOW FAILURE OPTION -->
+
+Notes:
+
+* Enabling `autorun` will make deployment pipelines to be run automatically without human interaction
+* Disabling `allow failure` will make deployment pipelines mandatory for pipeline success.
+* if both `autorun` and `allow failure` are disabled, deployment pipelines will need manual triggering but will be blocking the pipeline
+
+</details>
+
+**Be aware:** after configuration change, pipeline is not triggered automatically.
+Please run it manually (by clicking the `run pipeline` button in Pipelines tab) or push new code.

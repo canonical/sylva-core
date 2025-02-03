@@ -8,7 +8,6 @@ include:
 
 variables:
   CAPD_RUNNER_TAG: saas-linux-medium-amd64
-  MGMT_ADDITIONAL_VALUES: lightweight-disable-some-units.yml
 
 # This configuration is specific to capd deployments
 .flavored-pre-deployment-configuration:
