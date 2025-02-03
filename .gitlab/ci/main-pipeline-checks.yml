@@ -273,7 +273,7 @@ check-renovate-json:
     - tools/generate-renovate-json.sh
     - |
       if [[ -n $(git status renovate.json -s --porcelain) ]]; then
-          echo -e "\033[0;31m[ERROR] renovate.json was regenerated with 'tools/generate-renovate-json.sh'\033[0m"
+          echo -e "\033[0;31m[ERROR] renovate.json wasn't regenerated with 'tools/generate-renovate-json.sh'\033[0m"
           echo
           git diff renovate.json
           echo
@@ -289,6 +289,30 @@ check-renovate-json:
         - .gitlab/merge_request_templates/Default.md
         - tools/generate-renovate-json.sh
         - renovate.json
+
+check-ci-doc:
+  extends: [.lint-base]
+  script:
+    - set -e
+    - .gitlab/ci/scripts/generate-scenario-description.sh
+    - |
+      if [[ -n $(git status .gitlab/README.md -s --porcelain) ]]; then
+          echo -e "\033[0;31m[ERROR] .gitlab/README.md wasn't regenerated with '.gitlab/ci/scripts/generate-scenario-description.sh\033[0m"
+          echo
+          git diff .gitlab/README.md
+          echo
+          echo "Git status:"
+          echo
+          git status .gitlab/README.md -s --porcelain
+          exit 1
+      fi
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+      changes:
+        - .gitlab/ci/main-pipeline-checks.yml
+        - .gitlab/README.md
+        - .gitlab/ci/scripts/generate-scenario-description.sh
+
 
 ###########################
 # Gitleaks customization
