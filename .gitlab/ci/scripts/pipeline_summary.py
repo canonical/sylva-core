@@ -8,9 +8,11 @@ from collections import defaultdict
 GITLAB_API_TOKEN = os.getenv("GITLAB_GUEST_TOKEN")
 GITLAB_PROJECT_ID = os.getenv("CI_PROJECT_ID")
 GITLAB_MR_ID = os.getenv("CI_MERGE_REQUEST_IID")
-PARENT_PIPELINE_ID = os.getenv("DEPLOYMENT_JOBS_PIPELINE_ID")
+DEPLOYMENT_JOBS_PIPELINE_ID = os.getenv("DEPLOYMENT_JOBS_PIPELINE_ID")
+TOP_LEVEL_PIPELINE_ID = os.getenv("TOP_LEVEL_PIPELINE_ID")
 GITLAB_API_URL = os.getenv("CI_API_V4_URL", "https://gitlab.com/api/v4")
 UPDATE_SUMMARY = os.getenv("UPDATE_SUMMARY")
+
 
 HEADERS = {
     "Private-Token": GITLAB_API_TOKEN
@@ -32,6 +34,14 @@ STATUS_ICON = {
 }
 
 logging.basicConfig(format='[%(levelname)s] %(message)s', level=logging.INFO)
+
+
+def is_last_pipeline(project_id, mr_id):
+    """Check if current pipeline is the last one from current MR."""
+    url = f"{GITLAB_API_URL}/projects/{project_id}/merge_requests/{mr_id}"
+    response = requests.get(url, headers=HEADERS)
+    response.raise_for_status()
+    return str(response.json()["head_pipeline"]["id"]) == TOP_LEVEL_PIPELINE_ID
 
 
 def get_mr_comments(project_id, mr_id):
@@ -199,9 +209,9 @@ def format_table(bridges):
     """Generate the Markdown table."""
 
     logging.info("Generate updated table")
-    parent_pipeline_detail = get_pipeline_details(GITLAB_PROJECT_ID, PARENT_PIPELINE_ID)
+    parent_pipeline_detail = get_pipeline_details(GITLAB_PROJECT_ID, DEPLOYMENT_JOBS_PIPELINE_ID)
     parent_pipeline_url = parent_pipeline_detail["web_url"]
-    table = f"## Deployment pipelines from [{PARENT_PIPELINE_ID}]({parent_pipeline_url})\n"
+    table = f"## Deployment pipelines from [{DEPLOYMENT_JOBS_PIPELINE_ID}]({parent_pipeline_url})\n"
     table += "| Pipeline Name | Status | Link |\n"
     table += "|---------------|--------|------|\n"
     for bridge in bridges:
@@ -230,7 +240,11 @@ def main():
     current_user = get_current_user()
     current_user_id = current_user["id"]
 
-    bridges = get_pipeline_bridges(GITLAB_PROJECT_ID, PARENT_PIPELINE_ID)
+    if not is_last_pipeline(GITLAB_PROJECT_ID, GITLAB_MR_ID):
+        logging.info("Skipping because current pipeline is not the lastest one in the MR.")
+        return
+
+    bridges = get_pipeline_bridges(GITLAB_PROJECT_ID, DEPLOYMENT_JOBS_PIPELINE_ID)
 
     new_comment_body = format_table(bridges)
 
