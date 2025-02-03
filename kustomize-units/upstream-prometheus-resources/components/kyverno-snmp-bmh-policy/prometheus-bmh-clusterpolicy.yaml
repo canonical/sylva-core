@@ -1,0 +1,55 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: prometheus-bmh-snmp-metadata
+  annotations:
+    kustomize.toolkit.fluxcd.io/force: Enabled
+spec:
+  mutateExistingOnPolicyUpdate: true
+  rules:
+  - name: baremetalhosts-specs-add
+    match:
+      any:
+      - resources:
+          kinds:
+          - BareMetalHost
+          operations:
+          - CREATE
+          - UPDATE
+          selector:
+            matchLabels:
+              snmp-enabled: "true"
+    mutate:
+      targets:
+        - kind: ConfigMap
+          apiVersion: v1
+          name: prometheus-snmp-sd-files-bmh
+          namespace: cattle-monitoring-system
+      patchStrategicMerge:
+        data:
+          snmp_{{request.object.metadata.name}}.yaml: |
+            - targets: ['{{request.object.metadata.annotations."sylvaproject.org/snmp-endpoint"}}']
+              labels:
+                auth: '{{request.object.metadata.annotations."sylvaproject.org/snmp-auth"}}'
+                module: '{{request.object.metadata.annotations."sylvaproject.org/snmp-hw-type"}}'
+                alias: '{{request.object.metadata.annotations."sylvaproject.org/baremetal-host-name"}}'
+                sylva_cluster: '{{request.object.metadata.annotations."sylvaproject.org/cluster-name"}}'
+  - name: baremetalhosts-specs-delete
+    match:
+      any:
+      - resources:
+          kinds:
+          - BareMetalHost
+          operations:
+          - DELETE
+    mutate:
+      targets:
+        - kind: ConfigMap
+          apiVersion: v1
+          name: prometheus-snmp-sd-files-bmh
+          namespace: cattle-monitoring-system
+      patchesJson6902: |-
+        - path: "/data"
+          op: remove
+          value: 'snmp_{{request.object.metadata.name}}.yaml'
+

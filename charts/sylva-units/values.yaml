@@ -4447,6 +4447,43 @@ units:
   #    install:
   #      createNamespace: false
 
+  upstream-prometheus-resources:
+    info:
+      description: Creates required ConfigMaps and Kyverno policies to enable SNMP monitoring by Prometheus
+      internal: true
+    unit_templates:
+    - base-deps
+    depends_on:
+      namespace-defs: true
+      metal3: '{{ tuple . "metal3" | include "unit-enabled" }}'
+    enabled_conditions:
+      - '{{ tuple . "upstrmonitoring" | include "unit-enabled" }}'
+    repo: sylva-core
+    kustomization_spec:
+      path: ./kustomize-units/upstream-prometheus-resources
+      force: true
+      wait: true
+      postBuild:
+        substitute:
+          CONFIGMAPS: '
+            {{- $cm := list -}}
+            {{- if (tuple . "snmp-exporter" | include "unit-enabled") -}}
+            {{- $cm = append $cm "prometheus-snmp-sd-files" -}}
+            {{- $cm = append $cm "prometheus-snmp-sd-files-bmh" -}}
+            {{- end -}}
+            {{ $cm | toJson }}'
+          TARGETS: >
+            {{- $sylva_cluster := .Values.cluster.name -}}
+            {{- $result := list -}}
+            {{- range .Values.snmp.devices -}}
+              {{- $target := dict "targets" (list .target) -}}
+              {{- $_ := set $target "labels" (dict "module" .module "auth" .auth "alias" .alias "cluster_name" (.cluster_name | default $sylva_cluster)) -}}
+              {{- $result = append $result $target -}}
+            {{- end -}}
+            {{ $result | toJson }}
+      _components:
+        - '{{ tuple "components/kyverno-snmp-bmh-policy" (tuple . "metal3" | include "unit-enabled") | include "set-only-if" }}'
+
   upstream-alertmanager-config:
     info:
       description: generates the config for Alertmanager
@@ -4477,6 +4514,7 @@ units:
     depends_on:
       namespace-defs: true
       #monitoring-crd: true
+      upstream-prometheus-resources: '{{ tuple . "upstream-prometheus-resources" | include "unit-enabled" }}'
     helm_repo_url: https://prometheus-community.github.io/helm-charts
     helm_secret_values:
       grafana:
