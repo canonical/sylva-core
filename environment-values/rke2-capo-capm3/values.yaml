@@ -2,10 +2,6 @@
 # a Sylva CAPO mgmt cluster (inheriting from ../rke2-capo)
 # plus a Metal3 workload cluster with 1 control node and 1 worker node
 
-sylva_diskimagebuilder_images:
-  ubuntu-noble-hardened-rke2-1-30-9:
-    enabled: true
-
 cluster:
   capi_providers:
     infra_provider: capo

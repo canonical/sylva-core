@@ -29,10 +29,6 @@ cluster:
   #      sshAuthorizedKeys:
   #        - ssh-rsa AAAA...... YOUR KEY HERE ....UqnQ==
 
-sylva_diskimagebuilder_images:
-  ubuntu-noble-plain-kubeadm-1-30-9:
-    enabled: true
-
 openstack:
   storageClass:
     name: "cinder-ceph-ssd"
