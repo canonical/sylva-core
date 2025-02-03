@@ -29,6 +29,14 @@ spec:
               - kind: ServiceAccount
                 name: cert-manager-cainjector
                 namespace: cert-manager
+      preconditions:
+        any:
+          - key: "{{request.userInfo.username}}"
+            operator: Equals
+            value: system:serviceaccount:flux-system:helm-controller
+          - key: "{{request.userInfo.username}}"
+            operator: Equals
+            value: system:serviceaccount:flux-system:kustomize-controller
       validate:
         message: "The `caBundle` field in CRDs can be modified only by cert-manager."
         deny:
