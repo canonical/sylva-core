@@ -165,7 +165,7 @@
 | **refresh-metal3machinetemplates** | Recreate metal3machinetemplates resources via the reconciliation of cluster helmrelease | Kustomization |
 | **rke2-helmchart-prevent-uninstall** | Kyverno policy to prevent key Helm charts from being uninstalled by RKE2 HelmChart controller | Kustomization |
 | **root-dependency** | special unit ensuring ordered updates of all Kustomizations<br/><br/>All Kustomizations will depend on this Kustomization, whose name is `root-dependency-<n>` and changes at each update of the sylva-units Helm release. This Kustomization does not become ready before all other Kustomizations have been updated.<br/>This unit also manages the `root-dependency-<n>` HelmRelease that acts as a lock to prevent HelmReleases from reconciling before units they depend on are ready.<br/>All this ensures in a race-free way that during an update, units will be reconciled in an order matching dependency declarations. | Helm chart |
-| **sandbox-privileged-namespace** | creates the sandbox namespace used to perform privileged operations like debugging a node | Kustomization |
+| **sandbox-privileged-namespace** | creates the sandbox namespace used to perform privileged operations like debugging a node. It cannot be enabled when env_type=prod | Kustomization |
 | **shared-workload-clusters-settings** | manages parameters which would be shared between management and workload clusters | Kustomization |
 | **single-replica-storageclass** | Defines a Longhorn storage class with a single replica | Kustomization |
 | **sriov** | obsolete - replaced by sriov-network-operator<br/><br/>dummy unit which only enables sriov-network-operator for backwark compatibility | Kustomization |
