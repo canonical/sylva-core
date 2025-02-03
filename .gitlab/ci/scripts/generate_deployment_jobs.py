@@ -26,13 +26,16 @@ ALLOWED_INFRA = os.getenv("ALLOWED_DEPLOYMENT_INFRA", "capd,capo,capm3")
 ALLOWED_SCENARIOS = os.getenv(
     "ALLOWED_DEPLOYMENT_SCENARIO",
     ",".join([
+        "no-wkld",
         "simple-update",
+        "simple-update-no-wkld",
         "rolling-update",
-        "mgmt-rolling-update",
+        "rolling-update-no-wkld",
         "preview",
         "nightly",
-        "k8s-upgrade",
+        "wkld-k8s-upgrade",
         "sylva-upgrade",
+        "sylva-upgrade-no-wkld",
         "sylva-upgrade-from-1.1.1",
         "sylva-upgrade-from-1.2.1",
         "sylva-upgrade-from-1.3.x",
@@ -183,7 +186,7 @@ def generate_ci_job_struct(job_names, global_options):
                     ci_jobs[job]["extends"].append(".scenario_sylva-upgrade-capm3-from-1.1.1")
 
             else:
-                logging.error(f"deployment {job}: scenario not allowed")
+                logging.error(f"deployment {job}: scenario {scenario[0]} not allowed (supported scenarios: {ALLOWED_SCENARIOS})")
                 sys.exit(1)
 
         options = []
