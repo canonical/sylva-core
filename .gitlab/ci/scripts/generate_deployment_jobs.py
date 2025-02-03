@@ -183,7 +183,11 @@ def generate_ci_job_struct(job_names, global_options):
 
                 # Special temporary exception for capm3 sylva-upgrade from 1.1.1
                 if scenario[0] == "sylva-upgrade-from-1.1.1" and infra[0] in ["capm3", "capm3-virt"]:
-                    ci_jobs[job]["extends"].append(".scenario_sylva-upgrade-capm3-from-1.1.1")
+                    ci_jobs[job]["extends"].append(".additional-sylva-upgrade-capm3-from-1.1.1")
+
+                # Special additional values for capm3 sylva-upgrade from 1.3.x
+                if scenario[0] in ["sylva-upgrade", "sylva-upgrade-from-1.3.x"] and infra[0] in ["capm3", "capm3-virt"]:
+                    ci_jobs[job]["extends"].append(".additional-sylva-upgrade-capm3-from-1.3.x")
 
             else:
                 logging.error(f"deployment {job}: scenario {scenario[0]} not allowed (supported scenarios: {ALLOWED_SCENARIOS})")
