@@ -3678,6 +3678,39 @@ units:
           AUTH_USER_INFO_RESYNC_CRON: '{{ .Values.rancher.auth_user_info_resync_cron | quote }}'
       wait: true
 
+  # this is a Job to manually add a custom client-scope to sylva realm (on top of default ones)
+  # while CRD option does not yet provide good results (overrides defaults)
+  rancher-oidc-set-admin-user:
+    enabled_conditions:
+    - '{{ tuple . "rancher" | include "unit-enabled" }}'
+    - '{{ tuple . "keycloak" | include "unit-enabled" }}'
+    repo: sylva-core
+    depends_on:
+      rancher-keycloak-oidc-provider: true
+    kustomization_spec:
+      path: ./kustomize-units/kube-job
+      wait: true
+      force: true
+      _patches:
+      - target:
+          kind: Job
+          name: kube-job
+        patch: |
+          - op: replace
+            path: /metadata/name
+            value: rancher-oidc-set-admin-user
+          - op: replace
+            path: /spec/backoffLimit
+            value: 10
+      - target:
+          kind: ConfigMap
+          name: job-scripts
+        patch: |
+          - op: replace
+            path: /data/kube-job.sh
+            value: |
+          {{ .Files.Get "scripts/rancher-oidc-set-admin-user.sh" | indent 4 }}
+
   k8s-gateway:
     info:
       description: installs k8s gateway (coredns + plugin to resolve external service names to ingress IPs)
