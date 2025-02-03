@@ -410,7 +410,7 @@ EOC
   fi
 }
 
-function fetch_ingress_service_types() {
+function display_service_ingresses() {
     # Fetch all ingress resources from all namespaces
     ingresses=$(kubectl --kubeconfig management-cluster-kubeconfig get ingress --all-namespaces \
         -o custom-columns='NAMESPACE:.metadata.namespace,NAME:.metadata.name,HOSTS:.spec.rules[*].host' --no-headers)
@@ -458,7 +458,7 @@ function display_final_messages() {
 
   if [[ $CALLER_SCRIPT_NAME == *"bootstrap.sh"* ]]; then
     echo_b "\U0001F331 You can access following UIs"
-    fetch_ingress_service_types
+    display_service_ingresses
   fi
   echo_b "\U0001F389 All done"
 }
