@@ -30,6 +30,10 @@ spec:
                 name: cert-manager-cainjector
                 namespace: cert-manager
       preconditions:
+        all:
+          - key: "{{ request.object.spec.conversion.webhook.clientConfig.caBundle || '' }}"
+            operator: NotEquals
+            value: ""
         any:
           - key: "{{request.userInfo.username}}"
             operator: Equals
