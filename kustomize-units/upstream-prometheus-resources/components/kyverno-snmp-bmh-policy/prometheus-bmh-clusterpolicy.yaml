@@ -24,7 +24,7 @@ spec:
         - kind: ConfigMap
           apiVersion: v1
           name: prometheus-snmp-sd-files-bmh
-          namespace: cattle-monitoring-system
+          namespace: upstream-monitoring
       patchStrategicMerge:
         data:
           snmp_{{request.object.metadata.name}}.yaml: |
@@ -47,7 +47,7 @@ spec:
         - kind: ConfigMap
           apiVersion: v1
           name: prometheus-snmp-sd-files-bmh
-          namespace: cattle-monitoring-system
+          namespace: upstream-monitoring
       patchesJson6902: |-
         - path: "/data"
           op: remove
