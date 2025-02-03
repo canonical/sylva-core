@@ -804,6 +804,7 @@ units:
                 - NUMA
                 - CPUManager
                 - Snapshot
+                - ExpandDisks
       _postRenderers:
         - kustomize:
             patches:
