@@ -8299,6 +8299,9 @@
             },
             "features_gates": {
               "type": "object"
+            },
+            "requeue_dependency": {
+              "type": "string"
             }
           }
         },
@@ -8314,6 +8317,9 @@
             },
             "features_gates": {
               "type": "object"
+            },
+            "requeue_dependency": {
+              "type": "string"
             }
           }
         },

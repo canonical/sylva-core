@@ -717,6 +717,8 @@ properties:
             type: string
           features_gates:
             type: object
+          requeue_dependency:
+            type: string
       helm:  # -------------------------------
         type: object
         additionalProperties: false
@@ -727,6 +729,8 @@ properties:
             type: string
           features_gates:
             type: object
+          requeue_dependency:
+            type: string
       source:  # -------------------------------
         type: object
         additionalProperties: false

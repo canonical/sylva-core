@@ -12,6 +12,9 @@ patches:
       - op: add
         path: /spec/template/spec/containers/0/args/-
         value: --feature-gates=${HELM_FEATURES_GATES}
+      - op: add
+        path: /spec/template/spec/containers/0/args/-
+        value: --requeue-dependency=${HELM_REQUEUE_DEPENDENCY}
     target:
       kind: Deployment
       name: helm-controller
@@ -26,6 +29,9 @@ patches:
       - op: add
         path: /spec/template/spec/containers/0/args/-
         value: --feature-gates=${KUSTOMIZE_FEATURES_GATES}
+      - op: add
+        path: /spec/template/spec/containers/0/args/-
+        value: --requeue-dependency=${KUSTOMIZE_REQUEUE_DEPENDENCY}
     target:
       kind: Deployment
       name: kustomize-controller
