@@ -536,3 +536,18 @@ include:
     - . bin/env
     - ./tools/shell-lib/debug-on-exit.sh
     - echo -e "\e[0Ksection_end:`date +%s`:debug_exit\r\e[0K"
+
+# Used to generate summary comment in MRs
+.summary:
+  image: python:alpine3.21
+  before_script: []
+  tags:
+    - gitlab-org-docker
+  script:
+    - pip install requests
+    - .gitlab/ci/scripts/pipeline_summary.py
+  rules:
+    - if: $SKIP_PIPELINE_SUMMARY == "true"
+      when: never
+    - if: $CI_MERGE_REQUEST_IID
+      when: always

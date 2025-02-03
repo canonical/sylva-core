@@ -804,6 +804,7 @@ units:
                 - NUMA
                 - CPUManager
                 - Snapshot
+                - ExpandDisks
       _postRenderers:
         - kustomize:
             patches:
@@ -1606,7 +1607,7 @@ units:
       chart:
         spec:
           chart: crossplane
-          version: 1.17.1
+          version: 1.18.2
       install:
         createNamespace: false
       values:
@@ -5409,11 +5410,13 @@ units:
     info:
       description: >
         creates the sandbox namespace used
-        to perform privileged operations like debugging a node
+        to perform privileged operations like debugging a node.
+        It cannot be enabled when env_type=prod
       internal: true
     unit_templates:
     - base-deps
-    enabled: false
+    enabled_conditions:
+      - '{{ or (.Values.env_type | eq "dev") (.Values.env_type | eq "ci") }}'
     repo: sylva-core
     kustomization_spec:
       path: ./kustomize-units/sandbox-privileged-namespace

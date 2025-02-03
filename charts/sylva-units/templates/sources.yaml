@@ -10,7 +10,7 @@
 
   {{- if and (include "unit-enabled" (tuple $envAll $unit_name))
              (hasKey $unit_def "repo")
-             (not (hasKey $unit_def "helm_repo_url"))            -}}
+             (not $unit_def.helm_repo_url)            -}}
     {{- $repo_name := $unit_def.repo -}}
     {{- if not (hasKey $envAll.Values.source_templates $repo_name) -}}
       {{- fail (printf "units.%s.repo refers to '%s' that isn't defined in .source_templates" $unit_name $repo_name) -}}

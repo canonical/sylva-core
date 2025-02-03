@@ -54,10 +54,10 @@ Process all units
     {{- $helmrelease_spec_overrides := dict -}}
     {{- $kustomization_spec_overrides := dict -}}
 
-    {{- if and (not (hasKey $unit_def "helm_repo_url"))
+    {{- if and (not $unit_def.helm_repo_url)
                ($unit_def | dig "kustomization_spec" "sourceRef" dict | empty)
                ($unit_def | dig "helmrelease_spec" "chart" "spec" "sourceRef" dict | empty) -}}
-      {{/* if no helm_repo_url is set, then we know we'll use a GitRepository or OCIRepository */}}
+      {{/* if helm_repo_url is not set, then we know we'll use a GitRepository or OCIRepository */}}
       {{/* if the unit does not have any sourceRef defined, we'll generate it from repo here */}}
       {{/* the GitRepository or OCIRepository used here are generated in 'sources.yaml' */}}
 
@@ -89,7 +89,7 @@ Process all units
       {{- end }}
 
 
-    {{ else if hasKey $unit_def "helm_repo_url" }}{{/* helm_repo is declared, we generate a HelmRepository */}}
+    {{ else if $unit_def.helm_repo_url }}{{/* helm_repo is declared, we generate a HelmRepository */}}
 
       {{- $helm_repo_spec := dict -}}
       {{- $schema := urlParse $unit_def.helm_repo_url -}}

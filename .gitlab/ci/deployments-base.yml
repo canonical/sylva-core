@@ -17,7 +17,7 @@ stages:
   - deploy
 
 include:
-  - local: .gitlab/ci/common.yml
+  - local: .gitlab/ci/templates-deployments.yml
   - local: .gitlab/ci/pipeline-build-oci-artifacts.yml
 
 variables:
@@ -64,6 +64,8 @@ variables:
   # If not specified $GIT_REVISION if set is used or "current" otherwise
   SYLVA_CI_VERSIONED_CI_VALUES_FOLDER: ""
 
+  DEPLOYMENT_JOBS_PIPELINE_ID: $CI_PIPELINE_ID
+
 .default-deploy-config:
   stage: deploy
   trigger:
@@ -83,86 +85,99 @@ variables:
 # Scenarios definitions
 #################################
 
+# Increase default timers for rolling upgrade
+.rolling-upgrade-timeout:
+  variables:
+    MGMT_WATCH_TIMEOUT_MIN: "45"
+    APPLY_WATCH_TIMEOUT_MIN: "95"
+    APPLY_WC_WATCH_TIMEOUT_MIN: "95"
+
+.no-workload-cluster:
+  variables:
+    DEPLOY_WORKLOAD_CLUSTER: "false"
+
+.scenario_no-wkld:
+  variables:
+    UPDATE_MGMT_CLUSTER: "false"
+    DEPLOY_WORKLOAD_CLUSTER: "false"
+
 .scenario_simple-update:
   variables:
     MGMT_UPDATE_ADDITIONAL_VALUES: "simple-update.yml"
     WC_UPDATE_ADDITIONAL_VALUES: "simple-update.yml"
 
+.scenario_simple-update-no-wkld:
+  extends:
+    - .scenario_simple-update
+    - .no-workload-cluster
+
 .scenario_rolling-update:
+  extends:
+    - .rolling-upgrade-timeout
   variables:
-    MGMT_WATCH_TIMEOUT_MIN: "45"
-    APPLY_WATCH_TIMEOUT_MIN: "80"
-    APPLY_WC_WATCH_TIMEOUT_MIN: "80"
     MGMT_UPDATE_ADDITIONAL_VALUES: "dummy-rolling-update-trigger.yml"
     WC_UPDATE_ADDITIONAL_VALUES: "dummy-rolling-update-trigger.yml"
 
-.scenario_mgmt-rolling-update:
-  variables:
-    DEPLOY_WORKLOAD_CLUSTER: "false"
-    UPDATE_WORKLOAD_CLUSTER: "false"
-    MGMT_WATCH_TIMEOUT_MIN: "45"
-    APPLY_WATCH_TIMEOUT_MIN: "80"
-    APPLY_WC_WATCH_TIMEOUT_MIN: "80"
-    MGMT_UPDATE_ADDITIONAL_VALUES: "dummy-rolling-update-trigger.yml"
-    WC_UPDATE_ADDITIONAL_VALUES: "dummy-rolling-update-trigger.yml"
+.scenario_rolling-update-no-wkld:
+  extends:
+    - .no-workload-cluster
+    - .scenario_rolling-update
 
-.scenario_k8s-upgrade:
+.scenario_wkld-k8s-upgrade:
+  extends:
+    - .rolling-upgrade-timeout
   variables:
     UPDATE_MGMT_CLUSTER: "false"
-    MGMT_WATCH_TIMEOUT_MIN: "45"
-    APPLY_WATCH_TIMEOUT_MIN: "95"
-    APPLY_WC_WATCH_TIMEOUT_MIN: "95"
     MGMT_INITIAL_ADDITIONAL_VALUES: "serve-k8s-1.29-image.yml"
     WC_INITIAL_ADDITIONAL_VALUES: "k8s-1.29.yml"
     WC_UPDATE_ADDITIONAL_VALUES: "k8s-1.30.yml"
 
-.scenario_nightly:  # mix mgmt-rolling-update & k8s-upgrade
+.scenario_nightly:
+  extends:
+    - .rolling-upgrade-timeout
+    - .scenario_wkld-k8s-upgrade
   variables:
-    MGMT_WATCH_TIMEOUT_MIN: "45"
-    APPLY_WATCH_TIMEOUT_MIN: "95"
-    APPLY_WC_WATCH_TIMEOUT_MIN: "95"
-    MGMT_INITIAL_ADDITIONAL_VALUES: "serve-k8s-1.29-image.yml"
+    UPDATE_MGMT_CLUSTER: "true"
     MGMT_UPDATE_ADDITIONAL_VALUES: "dummy-rolling-update-trigger.yml"
-    WC_INITIAL_ADDITIONAL_VALUES: "k8s-1.29.yml"
-    WC_UPDATE_ADDITIONAL_VALUES: "k8s-1.30.yml"
 
 .scenario_sylva-upgrade:
   extends: .scenario_sylva-upgrade-from-1.3.x
 
-.scenario_sylva-upgrade-from-1.3.x:   # from last 1.3.x to current
+.scenario_sylva-upgrade-no-wkld:
+  extends:
+    - .scenario_sylva-upgrade
+    - .no-workload-cluster
+
+.scenario_sylva-upgrade-from-1.3.x: # from 1.3.x to current
+  extends:
+    - .rolling-upgrade-timeout
   variables:
     MGMT_INITIAL_REVISION: "1.3.3"
     MGMT_UPDATE_REVISION: "" # Use current commit
     WC_INITIAL_REVISION: "1.3.3"
     WC_UPDATE_REVISION: "" # Use current commit
-    # Increase default timers due to rolling upgrade
-    MGMT_WATCH_TIMEOUT_MIN: "45"
-    APPLY_WATCH_TIMEOUT_MIN: "95"
-    APPLY_WC_WATCH_TIMEOUT_MIN: "95"
 
-.scenario_sylva-upgrade-from-1.2.1:   # from 1.2.1 to current
+.scenario_sylva-upgrade-from-1.2.1: # from 1.2.1 to current
+  extends:
+    - .rolling-upgrade-timeout
   variables:
     MGMT_INITIAL_REVISION: "1.2.1"
     MGMT_UPDATE_REVISION: "" # Use current commit
     WC_INITIAL_REVISION: "1.2.1"
     WC_UPDATE_REVISION: "" # Use current commit
-    # Increase default timers due to rolling upgrade
-    MGMT_WATCH_TIMEOUT_MIN: "45"
-    APPLY_WATCH_TIMEOUT_MIN: "95"
-    APPLY_WC_WATCH_TIMEOUT_MIN: "95"
 
 .scenario_sylva-upgrade-from-1.1.1:
+  extends:
+    - .rolling-upgrade-timeout
   variables:
     MGMT_INITIAL_REVISION: "1.1.1-ci-tweaks"
     MGMT_UPDATE_REVISION: "" # Use current commit
     WC_INITIAL_REVISION: "1.1.1-ci-tweaks"
     WC_UPDATE_REVISION: "" # Use current commit
-    # Increase default timers due to rolling upgrade
-    MGMT_WATCH_TIMEOUT_MIN: "45"
-    APPLY_WATCH_TIMEOUT_MIN: "95"
-    APPLY_WC_WATCH_TIMEOUT_MIN: "95"
 
 .scenario_sylva-upgrade-capm3-from-1.1.1:
+  extends:
+    - .rolling-upgrade-timeout
   variables:
     # libvirt-metal-no-bond.yaml file is added to updates values as a temporary fix for capm3 upgrades from 1.1.1,
     # it can be removed after next release, see https://gitlab.com/sylva-projects/sylva-core/-/issues/1581
@@ -214,3 +229,8 @@ variables:
     MGMT_WATCH_TIMEOUT_MIN: 35
     APPLY_WATCH_TIMEOUT_MIN: 95
     APPLY_WC_WATCH_TIMEOUT_MIN: 95
+
+initialize-summary:
+  extends: .summary
+  stage: .post
+  needs: []
