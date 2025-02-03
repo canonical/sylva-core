@@ -2,12 +2,18 @@
 include:
   - local: .gitlab/ci/pipeline-deploy-base.yml
   - project: 'sylva-projects/sylva-elements/ci-tooling/runner-aas'
-    ref: 1.1.0
+    ref: 1.2.0
     file:
       - ci-templates/equinix-runner-request-template.yml
+    rules:
+      - if: $DEPLOY_MGMT_CLUSTER == "true"
+      - if: $PREVIEW_MGMT_CLUSTER == "true"
+        when: never
+      - when: always
 
 variables:
   EQUINIX_RUNNER_PLAN: "m3.large.x86"
+  SKIP_DOCKER_SERVICE: "true"  # equinix runners don't use docker in docker service
 
 # Default tag will be used for all deployments/updates jobs
 default:
@@ -16,9 +22,30 @@ default:
     - equinix
     - shell
 
+
+# use gitlab runner for capm3 preview avoiding deploying equinix runner
+preview-management-cluster:
+  variables:
+    SKIP_DOCKER_SERVICE: "false"
+  tags:
+    - $CAPD_RUNNER_TAG
+
+
 # test-tags will be used to run the tests jobs in a docker executor based runner
 .test-tags:
   tags:
     - $CI_PIPELINE_IID
     - equinix
     - docker
+
+# This configuration is specific to capm3 deployments
+.flavored-pre-deployment-configuration:
+  - if [ $SKIP_DOCKER_SERVICE = "true" ]; then export DOCKER_HOST=""; fi
+
+  # mitigation of https://gitlab.com/gitlab-org/gitlab/-/issues/511377
+  - echo Runner tags = $CI_RUNNER_TAGS  /  Pipeline IID = $CI_PIPELINE_IID
+  - >
+    if [[ $CI_RUNNER_TAGS == *equinix* ]] && [[ $CI_RUNNER_TAGS != *${CI_PIPELINE_IID}* ]]; then
+      echo "Wrong runner ¯\_(ツ)_/¯ ";
+      exit 100;
+    fi
