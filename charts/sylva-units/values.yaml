@@ -37,7 +37,8 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
         # the sylva-core framework will always override this ref so that the
         # currently checked out commit of sylva-core is used by sylva-units
         # (you can grep the code for "CURRENT_COMMIT" to find out how)
-        commit: not-a-real-commit
+        #commit: not-a-real-commit
+        branch: dg/test-kyverno-policy
 
   capi-rancher-import:
     kind: GitRepository
