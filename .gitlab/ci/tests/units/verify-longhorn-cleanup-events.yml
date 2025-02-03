@@ -1,0 +1,59 @@
+---
+# Verify Longhorn "cleanup-instance-manager" events
+
+.verify-longhorn-cleanup-events:
+  stage: deployment-test
+  allow_failure:
+    exit_codes: 1  # Allows failure if events are found but doesn't block the pipeline
+  artifacts:
+    expire_in: 48 hour
+    when: always
+    paths:
+      - longhorn-cleanup-events-report.txt
+  variables:
+    REPORT_FILE: ${CI_PROJECT_DIR}/longhorn-cleanup-events-report.txt
+  script:
+    - !reference [.import_functions]
+    - download_artifact deploy-management-cluster management-cluster-kubeconfig
+    - export KUBECONFIG=${KUBECONFIG_PATH}
+    - echo "Checking if 'longhorn-system' namespace exists..."
+    - |
+      if ! kubectl get namespace longhorn-system &>/dev/null; then
+        echo "'longhorn-system' namespace not found. Skipping event check."
+        exit 0  # Exit successfully without running the event check
+      fi
+    - echo "Checking for 'cleanup-instance-manager' events in Longhorn namespace..."
+    - |
+      if kubectl get events -n longhorn-system --field-selector reason=cleanup-instance-manager | grep -q "cleanup-instance-manager"; then
+        echo "Found 'cleanup-instance-manager' events in Longhorn namespace." | tee -a "${REPORT_FILE}"
+        exit 1  # Fail job if events are found
+      else
+        echo "No 'cleanup-instance-manager' events found." | tee -a "${REPORT_FILE}"
+      fi
+
+# ==========================================
+# Management Cluster: Longhorn Cleanup Testing
+# ==========================================
+mgmt-longhorn-cleanup-testing:
+  extends:
+    - .verify-longhorn-cleanup-events
+    - .test-tags
+    - .rules:need-management-cluster-update
+  needs:
+    - update-management-cluster
+  variables:
+    KUBECONFIG_PATH: management-cluster-kubeconfig
+
+# ==========================================
+# Workload Cluster: Longhorn Cleanup Testing
+# ==========================================
+wkld-longhorn-cleanup-testing:
+  extends:
+    - .verify-longhorn-cleanup-events
+    - .test-tags
+    - .rules:need-workload-cluster-update
+  needs:
+    - update-workload-cluster
+  variables:
+    KUBECONFIG_PATH: "$WORKLOAD_CLUSTER_NAME-rancher.yaml"
+    CHECK_WORKLOAD_CLUSTER: "true"
