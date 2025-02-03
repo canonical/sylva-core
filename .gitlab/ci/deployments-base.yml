@@ -17,7 +17,7 @@ stages:
   - deploy
 
 include:
-  - local: .gitlab/ci/common.yml
+  - local: .gitlab/ci/templates-deployments.yml
   - local: .gitlab/ci/pipeline-build-oci-artifacts.yml
 
 variables:
@@ -63,6 +63,8 @@ variables:
   # Use CI values for specific version
   # If not specified $GIT_REVISION if set is used or "current" otherwise
   SYLVA_CI_VERSIONED_CI_VALUES_FOLDER: ""
+
+  DEPLOYMENT_JOBS_PIPELINE_ID: $CI_PIPELINE_ID
 
 .default-deploy-config:
   stage: deploy
@@ -214,3 +216,8 @@ variables:
     MGMT_WATCH_TIMEOUT_MIN: 35
     APPLY_WATCH_TIMEOUT_MIN: 95
     APPLY_WC_WATCH_TIMEOUT_MIN: 95
+
+initialize-summary:
+  extends: .summary
+  stage: .post
+  needs: []
