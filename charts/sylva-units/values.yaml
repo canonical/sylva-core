@@ -4494,6 +4494,38 @@ units:
                   value: disabled
             - '{{ .Values._internal.pdb_allow_unhealthy_pod_eviction | include "preserve-type" }}'
 
+  upstream-grafana-init:
+    info:
+      description: sets up Grafana certificate for Keycloak OIDC integration
+      internal: true
+    enabled_conditions:
+      - '{{ tuple . "upstrmonitoring" | include "unit-enabled" }}'
+      - '{{ tuple . "keycloak" | include "unit-enabled" }}'
+    unit_templates:
+    - base-deps
+    depends_on:
+      namespace-defs: true
+      sylva-ca: true
+    repo: sylva-core
+    kustomization_spec:
+      path: ./kustomize-units/grafana-init
+      targetNamespace: upstream-monitoring
+      postBuild:
+        substitute:
+          SERVICE: kube-prometheus-stack-grafana
+          GRAFANA_DNS: '{{ .Values.external_hostnames.grafana }}'
+      _components:
+        - "../tls-components/sylva-ca"
+      healthChecks:
+        - apiVersion: v1
+          kind: Secret
+          name: sylva-ca.crt
+          namespace: upstream-monitoring
+        - apiVersion: v1
+          kind: Secret
+          name: grafana-general-tls
+          namespace: upstream-monitoring
+
   #upstream-prometheus:
   #  info:
   #    description: installs upstream kube prometheus stack
