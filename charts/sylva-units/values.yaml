@@ -3709,7 +3709,7 @@ units:
             path: /data/kube-job.sh
             value: |
               #!/bin/bash
-              kubectl -n k8s-gateway delete service k8s-gateway
+              kubectl -n k8s-gateway delete service k8s-gateway --ignore-not-found=true
 
   k8s-gateway:
     info:
@@ -3921,7 +3921,7 @@ units:
             path: /data/kube-job.sh
             value: |
               #!/bin/bash
-              kubectl -n kube-system delete service rke2-ingress-nginx-controller
+              kubectl -n kube-system delete service rke2-ingress-nginx-controller --ignore-not-found=true
 
   ingress-nginx:
     info:
