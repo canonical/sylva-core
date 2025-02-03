@@ -502,6 +502,7 @@ properties:
               - type: string
                 pattern: (https?|oci)://.*
               - $ref: "#/$defs/gotpl"
+              - const: ""
 
           helm_chart_versions:  # -------------------------------
             type: object
