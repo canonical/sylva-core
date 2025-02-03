@@ -155,7 +155,7 @@ def edit_mr_comment(project_id, mr_id, comment_id, comment):
 
 
 def delete_mr_comment(project_id, mr_id, comment_id):
-    """Edit an existing MR comment."""
+    """Delete an existing MR comment."""
 
     logging.info(f"Delete comment {comment_id} on MR {mr_id}")
 
