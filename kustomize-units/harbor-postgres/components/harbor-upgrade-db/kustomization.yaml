@@ -18,7 +18,7 @@ patches:
         value:
           - name: harbor-old-db
             connectionParameters:
-              host: postgres-primary
+              host: harbor-postgres-primary
               user: postgres
               dbname: harbor
             password:
