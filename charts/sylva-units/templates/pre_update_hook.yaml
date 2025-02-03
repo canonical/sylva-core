@@ -1,0 +1,87 @@
+{{- if tuple . "root-dependency" | include "unit-enabled" }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ .Release.Name }}-delete-root-dependencies
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "helm.sh/hook": pre-upgrade
+    "helm.sh/hook-delete-policy": before-hook-creation
+spec:
+  activeDeadlineSeconds: 1800
+  template:
+    spec:
+      containers:
+      - name: pre-upgrade-hook
+        # renovate: datasource=docker
+        image: registry.gitlab.com/sylva-projects/sylva-elements/container-images/kube-job:v1.1.0
+        command:
+          - "/bin/bash"
+          - "-c"
+          - |
+            set -e
+
+            echo "--- deleting root-dependency-<n> Kustomizations of older versions"
+            kubectl delete Kustomization --timeout=30s -l sylva-units.unit=root-dependency
+
+            echo "--- deleting root-dependency-<n> HelmReleases of older versions"
+            kubectl delete HelmRelease --timeout=30s -l sylva-units.unit=root-dependency
+
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
+          runAsNonRoot: true
+          runAsUser: 1000
+          privileged: false
+          seccompProfile:
+            type: RuntimeDefault
+      restartPolicy: Never
+      serviceAccountName: {{ .Release.Name }}-pre-upgrade-hook-sa
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ .Release.Name }}-pre-upgrade-hook-sa
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "helm.sh/hook": pre-upgrade
+    "helm.sh/hook-weight": "-5"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ .Release.Name }}-pre-upgrade-hook-r
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "helm.sh/hook": pre-upgrade
+    "helm.sh/hook-weight": "-5"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+rules:
+- apiGroups: ["kustomize.toolkit.fluxcd.io"]
+  resources: ["kustomizations"]
+  verbs: ["get", "delete", "list", "watch", "patch"]
+- apiGroups: ["helm.toolkit.fluxcd.io"]
+  resources: ["helmreleases"]
+  verbs: ["get", "delete", "list", "watch", "patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ .Release.Name }}-pre-upgrade-hook-rb
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "helm.sh/hook": pre-upgrade
+    "helm.sh/hook-weight": "-5"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+subjects:
+- kind: ServiceAccount
+  name: {{ .Release.Name }}-pre-upgrade-hook-sa
+  namespace: {{ .Release.Namespace }}
+roleRef:
+  kind: Role
+  name: {{ .Release.Name }}-pre-upgrade-hook-r
+  apiGroup: rbac.authorization.k8s.io
+{{- end }}
