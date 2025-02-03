@@ -32,8 +32,12 @@
         "thanos",
         "postgresql"
       ],
-      "matchUpdateTypes": ["patch"],
-      "schedule": ["* * 1,14 * *"]
+      "matchUpdateTypes": [
+        "patch"
+      ],
+      "schedule": [
+        "* * 1,14 * *"
+      ]
     },
     {
       "description": "Regroup CAPI and capd-manager updates",
@@ -45,7 +49,9 @@
     },
     {
       "description": "Regroup vsphere-cloud-controller-manager updates",
-      "matchFileNames": ["kustomize-units/vsphere-cloud-controller-manager/**"],
+      "matchFileNames": [
+        "kustomize-units/vsphere-cloud-controller-manager/**"
+      ],
       "matchPackagePrefixes": [
         "gcr.io/cloud-provider-vsphere/csi/release",
         "quay.io/k8scsi"
@@ -54,7 +60,9 @@
     },
     {
       "description": "Regroup vsphere-csi-driver updates",
-      "matchFileNames": ["kustomize-units/vsphere-csi-driver/**"],
+      "matchFileNames": [
+        "kustomize-units/vsphere-csi-driver/**"
+      ],
       "matchPackagePrefixes": [
         "gcr.io/cloud-provider-vsphere/csi/release",
         "quay.io/k8scsi"
@@ -72,12 +80,16 @@
     },
     {
       "description": "Format rke2-ingress-nginx version",
-      "matchPackageNames": ["rke2-ingress-nginx"],
+      "matchPackageNames": [
+        "rke2-ingress-nginx"
+      ],
       "versioning": "regex:^(?<major>\\d+)(\\.(?<minor>\\d+))?(\\.(?<patch>\\d+))$"
     },
     {
       "description": "Format rke2-multus version",
-      "matchPackageNames": ["rke2-multus"],
+      "matchPackageNames": [
+        "rke2-multus"
+      ],
       "versioning": "regex:^v(?<major>\\d+)(\\.(?<minor>\\d+))?(\\.(?<patch>).*)$"
     },
     {
@@ -122,7 +134,9 @@
     },
     {
       "description": "Format ironic version",
-      "matchPackageNames": ["ironic"],
+      "matchPackageNames": [
+        "ironic"
+      ],
       "versioning": "regex:^capm3-v(?<major>\\d+)(\\.(?<minor>\\d+))?(\\.(?<patch>\\d+))$"
     },
     {
@@ -135,7 +149,9 @@
     },
     {
       "description": "Prevent vault update to 1.14 due to licence issue",
-      "matchPackageNames": ["hashicorp/vault"],
+      "matchPackageNames": [
+        "hashicorp/vault"
+      ],
       "allowedVersions": "<1.14"
     },
     {
@@ -182,12 +198,12 @@
       "postUpgradeTasks": {
         "commands": [
           "pip install pyyaml",
-          "tools/generate_units_documentation.py"
-         ,"tools/generate_json_schema.py"
+          "tools/generate_units_documentation.py",
+          "tools/generate_json_schema.py"
         ],
         "fileFilters": [
-          "charts/sylva-units/units-description.md"
-         ,"charts/sylva-units/values.schema.json"
+          "charts/sylva-units/units-description.md",
+          "charts/sylva-units/values.schema.json"
         ],
         "executionMode": "update"
       }
@@ -219,7 +235,9 @@
     {
       "description": "Update Pylama in GitLab CI pipeline",
       "customType": "regex",
-      "fileMatch": [".gitlab/ci/.*.yml"],
+      "fileMatch": [
+        ".gitlab/ci/.*.yml"
+      ],
       "matchStrings": [
         ".*pip install\\s+(?<depName>.*)==(?<currentValue>.*)"
       ],
@@ -228,9 +246,11 @@
     {
       "description": "Match docker image define in _IMAGE variables for gitlab-ci",
       "customType": "regex",
-      "fileMatch": [".gitlab/ci/.*.yml"],
+      "fileMatch": [
+        ".gitlab/ci/.*.yml"
+      ],
       "matchStrings": [
-        "\\s+# renovate: datasource=(?<datasource>.*?)\\s+.*?_IMAGE: (?<registryUrl>.*?)\/(?<depName>.*?):(?<currentValue>.*)"
+        "\\s+# renovate: datasource=(?<datasource>.*?)\\s+.*?_IMAGE: (?<registryUrl>.*?)/(?<depName>.*?):(?<currentValue>.*)"
       ],
       "registryUrlTemplate": "https://{{{ registryUrl }}}"
     },
@@ -238,7 +258,8 @@
       "description": "Match github releases defined via a direct link in kustomizations",
       "customType": "regex",
       "fileMatch": "kustomization.y[a]?ml",
-      "matchStrings": ["https:\/\/github[.]com\/(?<depName>.*\/.*?)\/releases\/download\/(?<currentValue>.*?)\/"
+      "matchStrings": [
+        "https://github[.]com/(?<depName>.*/.*?)/releases/download/(?<currentValue>.*?)/"
       ],
       "datasourceTemplate": "github-releases"
     },
@@ -247,7 +268,7 @@
       "customType": "regex",
       "fileMatch": "kustomization.y[a]?ml",
       "matchStrings": [
-        "https:\/\/raw.githubusercontent.com\/(?<depName>[^\/]*\/[^\/]*)\/(?<currentValue>.*?)\/"
+        "https://raw.githubusercontent.com/(?<depName>[^/]*/[^/]*)/(?<currentValue>.*?)/"
       ],
       "datasourceTemplate": "github-tags"
     },
@@ -278,7 +299,7 @@
       "matchStringsStrategy": "recursive",
       "matchStrings": [
         "units:[\\w\\W]*[ ]+",
-        "\\n\\s+newName:\\s+(?<registryUrl>.*?)\/(?<depName>.*)\\n[\\w\\W]*?newTag:\\s+\"?(?<currentValue>[^\"\\n]+)\"?\\n"
+        "\\n\\s+newName:\\s+(?<registryUrl>.*?)/(?<depName>.*)\\n[\\w\\W]*?newTag:\\s+\"?(?<currentValue>[^\"\\n]+)\"?\\n"
       ],
       "registryUrlTemplate": "https://{{{ registryUrl }}}",
       "datasourceTemplate": "docker"
@@ -299,7 +320,7 @@
       "customType": "regex",
       "fileMatch": "charts/sylva-units/values.yaml",
       "matchStrings": [
-        "\\s+repository:\\s+(?<registryUrl>.*)\/(?<depName>.*)\\n\\s+tag:\\s\"?(?<currentValue>[^\"\\n]+)\"?\\n"
+        "\\s+repository:\\s+(?<registryUrl>.*)/(?<depName>.*)\\n\\s+tag:\\s\"?(?<currentValue>[^\"\\n]+)\"?\\n"
       ],
       "registryUrlTemplate": "https://{{{ registryUrl }}}",
       "datasourceTemplate": "docker"
@@ -308,7 +329,9 @@
       "description": "Detect keycloak-realm-operator version",
       "customType": "regex",
       "datasourceTemplate": "docker",
-      "fileMatch": ["kustomize-units/keycloak-legacy-operator/kustomization.yaml"],
+      "fileMatch": [
+        "kustomize-units/keycloak-legacy-operator/kustomization.yaml"
+      ],
       "matchStrings": [
         "#\\s?renovate: registryUrl=(?<registryUrl>.*?) image=(?<depName>.*?)\\n[\\w\\W]*?newTag: (?<currentValue>[\\w+.-]*)"
       ]
@@ -317,7 +340,9 @@
       "description": "Detect vault docker image",
       "customType": "regex",
       "datasourceTemplate": "docker",
-      "fileMatch": ["vault.yaml"],
+      "fileMatch": [
+        "vault.yaml"
+      ],
       "matchStrings": [
         "spec:\\n[\\w\\W]*?.*image: (?<depName>.*)\\:(?<currentValue>.*)"
       ]
@@ -331,7 +356,7 @@
         "SYLVA_TOOLBOX_VERSION:-\"(?<currentValue>.*)\".",
         "SYLVA_TOOLBOX_IMAGE:-(?<depName>.*).",
         "SYLVA_BASE_OCI_REGISTRY:-(?<base_registryUrl>.*).",
-        "SYLVA_TOOLBOX_REGISTRY:-.*\/(?<uri_registryUrl>.*)."
+        "SYLVA_TOOLBOX_REGISTRY:-.*/(?<uri_registryUrl>.*)."
       ],
       "registryUrlTemplate": "https://{{{ base_registryUrl }}}/{{{ uri_registryUrl }}}",
       "datasourceTemplate": "docker"
@@ -339,12 +364,15 @@
     {
       "description": "Match generic comment in values file, used to detect version change in kustomize patch",
       "customType": "regex",
-      "fileMatch": ["charts/sylva-units/values.yaml",
-                    "charts/sylva-units/templates/delete_hook.yaml"],
+      "fileMatch": [
+        "charts/sylva-units/values.yaml",
+        "charts/sylva-units/templates/delete_hook.yaml"
+      ],
       "matchStrings": [
-        "#\\s?renovate: datasource=(?<datasource>.*?)\\n\\s+.*?:\\s*(?<registryUrl>.*)\/(?<depName>.*):(?<currentValue>.*)"
+        "#\\s?renovate: datasource=(?<datasource>.*?)\\n\\s+.*?:\\s*(?<registryUrl>.*)/(?<depName>.*):(?<currentValue>.*)"
       ],
       "registryUrlTemplate": "https://{{{ registryUrl }}}"
     }
-  ]
+  ],
+  "prFooter": "This PR has been generated by [Renovate Bot Sylva instance](https://gitlab.com/sylva-projects/sylva-elements/renovate).\n\n## CI configuration\n\nBelow you can choose test deployment variants to run in this MR's CI.\n\n<details><summary> Click to open to CI configuration </summary>\n\n**Legend:**\n\n| Icon | Meaning                  | Available values                                                          |\n|------|--------------------------|---------------------------------------------------------------------------|\n| ☁   | **Infra Provider**       | `capd`, `capo`, `capm3`                                                   |\n| 🚀  | **Bootstrap Provider**   | `kubeadm` (alias `kadm`), `rke2`                                          |\n| 🐧  | **Node OS**              | `ubuntu`, `suse`                                                          |\n| 🛠  | **Deployment Options**    | `light-deploy`, `oci`, `ha`, `misc`                                       |\n| 🎬  | **Pipeline Scenarios**   | `rolling-update`, `mgmt-rolling-update`, `k8s-upgrade`, `sylva-upgrade-from-x.x.x`, `simple-update`, `preview`, `nightly` |\n\n<!-- DEPLOYMENT FLAVOR DEFINITION START -->\n\n* [ ] 🎬 preview ☁ capd 🚀 kadm 🐧 ubuntu 🛠 oci\n* [ ] 🎬 preview ☁ capo 🚀 rke2 🐧 suse\n* [ ] 🎬 preview ☁ capm3 🚀 rke2 🐧 ubuntu\n\n* [ ] ☁ capd 🚀 kadm 🛠 light-deploy 🐧 ubuntu\n* [ ] ☁ capd 🚀 rke2 🛠 oci,light-deploy 🐧 suse\n\n* [ ] ☁ capo 🚀 rke2 🛠 oci 🐧 suse\n* [ ] ☁ capo 🚀 kadm 🛠 oci 🐧 ubuntu\n* [ ] ☁ capo 🚀 rke2 🎬 rolling-update 🛠 ha 🐧 ubuntu\n* [ ] ☁ capo 🚀 kadm 🎬 k8s-upgrade 🐧 ubuntu\n* [ ] ☁ capo 🚀 rke2 🎬 mgmt-rolling-update 🛠 ha,misc 🐧 suse\n* [ ] ☁ capo 🚀 rke2 🎬 sylva-upgrade-from-1.3.x 🛠 ha,misc 🐧 ubuntu\n\n* [ ] ☁ capm3 🚀 rke2 🐧 suse\n* [ ] ☁ capm3 🚀 kadm 🛠 oci 🐧 ubuntu\n* [ ] ☁ capm3 🚀 kadm 🎬 mgmt-rolling-update 🛠 ha,misc 🐧 ubuntu\n* [ ] ☁ capm3 🚀 rke2 🎬 k8s-upgrade 🛠 ha 🐧 suse\n* [ ] ☁ capm3 🚀 kadm 🎬 rolling-update 🛠 ha 🐧 ubuntu\n* [ ] ☁ capm3 🚀 rke2 🎬 sylva-upgrade-from-1.3.x 🛠 misc,ha 🐧 suse\n* [ ] ☁ capm3 🚀 kadm 🎬 rolling-update 🛠 ha 🐧 suse\n\n<!-- DEPLOYMENT FLAVOR DEFINITION END -->\n\n### Global config for deployment pipelines\n\n* [ ] autorun pipelines                    <!-- AUTORUN  OPTION -->\n* [ ] allow failure on pipelines           <!-- ALLOW FAILURE OPTION -->\n\nNotes:\n\n* Enabling `autorun` will make deployment pipelines to be run automatically without human interaction\n* Disabling `allow failure` will make deployment pipelines mandatory for pipeline success.\n* if both `autorun` and `allow failure` are disabled, deployment pipelines will need manual triggering but will be blocking the pipeline\n\n</details>\n\n**Be aware:** after configuration change, pipeline is not triggered automatically.\nPlease run it manually (by clicking the `run pipeline` button in Pipelines tab) or push new code.\n\n:gear: If no checkbox is checked, a default pipeline will be enabled (capm3, or capo if ~capo label is set)"
 }

@@ -9,9 +9,10 @@ sylva-units-preview/
 sylva.env
 *__pycache__*
 charts/sylva-units/use-oci-artifacts-final.values.yaml
+gitlab-ci-deployment-jobs-defs.yaml
 
 # Sops decyphered
-environment-values/ci/private/falcon-base/secrets.yaml
+environment-values/ci/private/*/secrets.yaml
 
 # Gitleaks reports
 reports/
