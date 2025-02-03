@@ -8254,8 +8254,8 @@ _internal:
                 {{- dict | include "preserve-type" -}}
               {{- end }}
             nodeSelectors:
-              - matchLabels:
-                  node-role.kubernetes.io/control-plane: '{{ .Values._internal.cp_node_label_value }}'
+              matchLabels:
+                - node-role.kubernetes.io/control-plane: '{{ .Values._internal.cp_node_label_value }}'
 
   metallb_service_annotations:
     '{{
