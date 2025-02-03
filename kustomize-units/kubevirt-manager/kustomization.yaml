@@ -6,6 +6,5 @@ namespace: kubevirt-manager
 resources:
 - https://raw.githubusercontent.com/kubevirt-manager/kubevirt-manager/e07c994cee5c055f25ef5fada1abc7607c346806/kubernetes/bundled.yaml
 - kubevirt-manager-ingress.yaml
-- kubevirt-manager-certificate.yaml
 - kubevirt-manager-cm.yaml
 - kubevirt-manager-secret.yaml
