@@ -2767,12 +2767,20 @@ units:
   cluster-prevent-rke2-helmcharts-calico-metallb:
     info:
       description: Kyverno policy to prevent RKE2 HelmCharts from being recreated for MetaLB and Calico
+      details: |-
+        This unit really is a safe-guard. It's not quite sure if it still is needed or not given Sylva design today.
+        Indeed, we now have only the first node installation install an RKE2 HelmCharts for Calico and MetalLB
+        and after this Flux takes over. Unless the CAPI RKE2 control plane provider would mistakenly start
+        the creation of two control plane nodes in parallel, nothing would recreate a HelmChart for those components,
+        which is highly hypothetical.  There's certainly no reason to keep this policy after the cluster
+        successfully installed.
       internal: true
+    one_shot: true  # this policy isn't relevant to keep after the first installation
+                    # (after this Flux handles Calico, there are is no RKE2 HelmChart for Calico anymore)
     unit_templates:
     - '{{ tuple "base-deps" (not .Values._internal.state.is_upgrade ) | include "set-only-if" }}'
     enabled_conditions:
     - '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" }}'
-    - '{{ .Values._internal.state.is_upgrade }}'
     depends_on:
       kyverno: true
     repo: sylva-core
