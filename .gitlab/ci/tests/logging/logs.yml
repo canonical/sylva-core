@@ -1,0 +1,22 @@
+---
+
+# Retrieve logs from loki using logcli
+
+mgmt-logs-logcli:
+  extends:
+    - .test-base-management-cluster
+  variables:
+    LOKI_USERNAME: "management-cluster"
+    LOKI_ADDR: "https://loki.sylva"
+    LOKI_ORG_ID: "management-cluster"
+script:
+  - echo "Fetching Loki Password..."
+  - !reference [.test_scripts, edit_hosts_file]
+  - get-sylva-values | yq ._internal.loki_password || echo "Error fetching password"
+  - export LOKI_PASSWORD=$(get-sylva-values | yq ._internal.loki_password)
+  - logcli query --quiet --output=raw --since=1h --limit=20 '{namespace="calico-system"} | json | line_format "{{.message}}"' --tls-skip-verify > logcli.log
+artifacts:
+  expire_in: 48 hour
+  when: always
+  paths:
+    - logcli.log
