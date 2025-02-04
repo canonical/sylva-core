@@ -8253,7 +8253,7 @@ _internal:
               {{- else -}}
                 {{- dict | include "preserve-type" -}}
               {{- end }}
-            nodeSelectors:
+            nodeSelector:
               matchLabels:
                 - node-role.kubernetes.io/control-plane: '{{ .Values._internal.cp_node_label_value }}'
 
