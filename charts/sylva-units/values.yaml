@@ -2708,31 +2708,6 @@ units:
     # (we do it via a secret because some of the values are credentials in many scenarios)
     helm_secret_values: '{{ .Values.cluster | include "preserve-type" }}'
 
-  cluster-node-deletion-timeout-fix:
-    info:
-      description: Kyverno policy to fix CAPI nodeDeletionTimeout (temporary fix)
-      details: |
-        This policy fixes Machine definitions to force their spec.nodeDeletionTimeout.
-        This is primarily meant to set this timeout to 0 (interpreted as "do infinite retries"
-        by CAPI Machine controller), to avoid corner case issues due to a failed node
-        deletion. See https://gitlab.com/sylva-projects/sylva-core/-/issues/1431.
-      internal: true
-    unit_templates:
-    - base-deps
-    enabled_conditions:
-    - '{{ tuple . "kyverno" | include "unit-enabled" }}'
-    depends_on:
-      kyverno: true
-    repo: sylva-core
-    kustomization_spec:
-      path: ./kustomize-units/kyverno-policies/cluster-node-deletion-timeout-fix
-      wait: true
-      targetNamespace: '{{ .Release.Namespace }}'
-      postBuild:
-        substitute:
-          CLUSTER_NAME: '{{ .Values.cluster.name }}'
-          NODE_DELETION_TIMEOUT: 0s
-
   cluster-node-provider-id-blacklist:
     info:
       description: Kyverno policy to prevent nodes from being recreated with a providerID that has already been used
@@ -2803,7 +2778,6 @@ units:
       capo-cluster-resources: '{{ .Values.cluster.capi_providers.infra_provider | eq "capo" }}'
       get-openstack-images: '{{ .Values.cluster.capi_providers.infra_provider | eq "capo" }}'
       cluster-bmh: '{{ .Values.cluster.capi_providers.infra_provider | eq "capm3" }}'
-      cluster-node-deletion-timeout-fix: '{{ tuple . "cluster-node-deletion-timeout-fix" | include "unit-enabled" }}'
       cluster-node-provider-id-blacklist: '{{ tuple . "cluster-node-provider-id-blacklist" | include "unit-enabled" }}'
       longhorn-instance-manager-cleanup: '{{ tuple . "longhorn-instance-manager-cleanup" | include "unit-enabled" }}'
       cluster-prevent-rke2-helmcharts-calico-metallb: '{{ tuple . "cluster-prevent-rke2-helmcharts-calico-metallb" | include "unit-enabled" }}'
@@ -3185,7 +3159,6 @@ units:
     - '{{ tuple . "calico" | include "unit-enabled" }}'
     depends_on:
       namespace-defs: true
-      calico-rke2-chart-cleanup: '{{ tuple . "calico-rke2-chart-cleanup" | include "unit-enabled" }}'
     helm_repo_url: https://rke2-charts.rancher.io
     helm_chart_versions: &calico-chart-versions
       v3.28.200: >-
@@ -3200,37 +3173,6 @@ units:
           chart: rke2-calico-crd
           version: "" # will be defined by helm_chart_versions
 
-  calico-rke2-chart-cleanup:
-    info:
-      description: remove rke2-deployed HelmChart resources for Calico
-      internal: true
-    unit_templates:
-    - kube-job
-    enabled_conditions:
-    - '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" }}'
-    - '{{ .Values._internal.state.is_upgrade }}'
-    depends_on:
-      cluster-prevent-rke2-helmcharts-calico-metallb: true
-      rke2-helmchart-prevent-uninstall: true
-    kustomization_spec:
-      targetNamespace: kube-system
-      _patches:
-      - target:
-          kind: ConfigMap
-          labelSelector: kube-job=script
-        patch: |
-          - op: replace
-            path: /data/kube-job.sh
-            value: |
-              #!/bin/bash
-              if kubectl -n kube-system get helmchart.helm.cattle.io rke2-calico || kubectl -n kube-system get helmchart.helm.cattle.io rke2-calico-crd; then
-                kubectl -n kube-system delete cm chart-content-rke2-calico chart-content-rke2-calico-crd
-                kubectl -n kube-system delete secret chart-values-rke2-calico chart-values-rke2-calico-crd
-                kubectl -n kube-system delete secret -l 'name in (rke2-calico, rke2-calico-crd)',owner=helm
-                kubectl -n kube-system patch helmchart --type merge -p '{"metadata":{"finalizers": [], "annotations":{"helmcharts.helm.cattle.io/unmanaged":""}}}' rke2-calico rke2-calico-crd
-                kubectl -n kube-system delete helmchart.helm.cattle.io rke2-calico rke2-calico-crd
-              fi
-
   calico:
     info:
       description: install Calico CNI
@@ -3239,7 +3181,6 @@ units:
       - '{{ tuple "base-deps" (not .Values._internal.state.is_upgrade) | include "set-only-if" }}'
     depends_on:
       calico-crd: true
-      calico-rke2-chart-cleanup: '{{ tuple . "calico-rke2-chart-cleanup" | include "unit-enabled" }}'
     helm_repo_url: https://rke2-charts.rancher.io
     helm_chart_versions: *calico-chart-versions  # we use a YAML anchor rather than templating so that this file can be read by tools/generate_units_documentation.py
     helmrelease_spec:

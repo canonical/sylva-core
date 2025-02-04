@@ -89,7 +89,6 @@
 | :----- | :----- | :----- |
 | **bootstrap-local-path** | installs localpath CSI in bootstrap cluster | Kustomization |
 | **calico-ready** | ensure Calico resources created by the Tigera operator are ready before running further steps<br/><br/>This unit will be enabled in bootstrap cluster to confirm management cluster CNI readiness and in various workload-cluster namespaces in management cluster to do the same for workload clusters | Kustomization |
-| **calico-rke2-chart-cleanup** | remove rke2-deployed HelmChart resources for Calico | Kustomization |
 | **capi-providers-pivot-ready** | checks if management cluster is ready for pivot<br/><br/>This unit only has dependencies, but does not create resources. It is here only to have a single thing to look at to determine if everything is ready for pivot (see bootstrap.values.yaml pivot unit) | Kustomization |
 | **capi-rancher-import** | installs the capi-rancher-import operator, which let's us import Cluster AIP workload clusters in management cluster's Rancher | Helm chart |
 | **capo-cloud-config** | creates CAPO cloud-config used to produce Heat stack | Kustomization |
@@ -100,7 +99,6 @@
 | **cluster-garbage-collector** | installs cronjob responsible for unused CAPI resources cleaning | Kustomization |
 | **cluster-import** | imports workload cluster into Rancher | Kustomization |
 | **cluster-machines-ready** | unit used to wait for all CAPI resources to be ready<br/><br/>This unit is here so that activity on all units is held off until all the CAPI resources are ready.<br/>This is a distinct unit from 'cluster-ready' because the readiness criteria is different: here<br/>we not only want the cluster to be ready to host some workload (which only requires some CAPI resources<br/>to be ready) we want all CAPI resources to be ready. | Kustomization |
-| **cluster-node-deletion-timeout-fix** | Kyverno policy to fix CAPI nodeDeletionTimeout (temporary fix)<br/><br/>This policy fixes Machine definitions to force their spec.nodeDeletionTimeout.<br/>This is primarily meant to set this timeout to 0 (interpreted as "do infinite retries"<br/>by CAPI Machine controller), to avoid corner case issues due to a failed node<br/>deletion. See https://gitlab.com/sylva-projects/sylva-core/-/issues/1431. | Kustomization |
 | **cluster-node-provider-id-blacklist** | Kyverno policy to prevent nodes from being recreated with a providerID that has already been used | Kustomization |
 | **cluster-prevent-rke2-helmcharts-calico-metallb** | Kyverno policy to prevent RKE2 HelmCharts from being recreated for MetaLB and Calico | Kustomization |
 | **cluster-reachable** | ensure that created clusters are reachable, and make failure a bit more explicit if it is not the case<br/><br/>This unit will be enabled in bootstrap cluster to check connectivity to management cluster and in various workload-cluster namespaces in management cluster to check connectivity to workload clusters | Kustomization |

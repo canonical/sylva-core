@@ -167,14 +167,6 @@ units:
     unit_templates:
     - kustomization-deployed-on-mgmt-cluster
 
-  cluster-node-deletion-timeout-fix:
-    enabled: true
-    unit_templates:
-    - kustomization-deployed-on-mgmt-cluster
-    enabled_conditions: []  # override what is set in values.yaml
-    depends_on:
-      kyverno: false  # Kyverno is deployed in management cluster sylva-units release
-
   cluster-node-provider-id-blacklist:
     enabled: true
 
@@ -233,9 +225,6 @@ units:
       calico-ready: false
     kustomization_spec:
       targetNamespace: null  # if we don't do this, there are errors because namespaces are a non-namespaced resource
-
-  calico-rke2-chart-cleanup:
-    enabled: true
 
   calico-crd:
     enabled: true
