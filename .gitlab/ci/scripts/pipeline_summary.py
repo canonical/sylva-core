@@ -23,7 +23,7 @@ STATUS_ICON = {
     "canceled": "🚫",
     "skipped": "⏩",
     "running": "🔄",
-    "created": "⚙️",
+    "created": "🆕",
     "waiting_for_resource": "🔒",
     "preparing": "👀",
     "pending": "⏸️",
