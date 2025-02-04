@@ -8,6 +8,10 @@ spec:
   mutateExistingOnPolicyUpdate: true
   rules:
   - name: suspend-thanos-compactor
+    context:
+    - name: thanosDeploymentExists
+      apiCall:
+        urlPath: "/apis/apps/v1/namespaces/thanos/deployments/thanos-compactor"
     match:
       any:
       - resources:
@@ -22,6 +26,9 @@ spec:
       - key: "{{ request.object.metadata.generation }}"
         operator: NotEquals
         value: "{{ request.object.status.observedGeneration }}"
+      - key: "{{ thanosDeploymentExists.metadata.name }}"
+        operator: Equals
+        value: "thanos-compactor"
     mutate:
       targets:
         - apiVersion: apps/v1
