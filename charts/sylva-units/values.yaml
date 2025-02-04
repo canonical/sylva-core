@@ -6143,7 +6143,6 @@ units:
         strategy:
           type: '{{ eq (tuple . .Values._internal.default_storage_class_RWX_support | include "interpret-as-string") "true" | ternary "RollingUpdate" "Recreate" }}'
         kunai:
-          publicName: kunai
           nextAuth:
             enabled: true
             existingsecretname: kunai-next-auth
@@ -6164,7 +6163,11 @@ units:
             nginx.ingress.kubernetes.io/proxy-body-size: 8m
             nginx.ingress.kubernetes.io/large-client-header-buffers: "4 16k"
             nginx.ingress.kubernetes.io/proxy-buffer-size: "256k"
-          tls: true
+          tls: false
+          extraTls:
+            - hosts:
+                - '{{ .Values.external_hostnames.kunai }}'
+              secretName: kunai-tls
           hostname: '{{ .Values.external_hostnames.kunai }}'
 
 
