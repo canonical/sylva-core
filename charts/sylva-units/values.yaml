@@ -3158,10 +3158,10 @@ units:
 
               kubectl get secret management-cluster-kubeconfig -n sylva-system -o yaml | yq .data.value | base64 -d > /tmp/kubeconfig 
               echo "Checking post command annotations for all nodes..."
-              nodes=$(kubectl get nodes -A -o jsonpath='{.items[*].metadata.name}')
+              nodes=$(kubectl get nodes --kubeconfig /tmp/kubeconfig -A -o jsonpath='{.items[*].metadata.name}')
               echo $nodes
-              
-              while ! kubectl get nodes -o json | jq -e '[.items[] | select(.metadata.annotations | has("post-commands-executed") | not)] | length == 0' >/dev/null; do
+
+              while ! kubectl get nodes --kubeconfig /tmp/kubeconfig -o json | jq -e '[.items[] | select(.metadata.annotations | has("post-commands-executed") | not)] | length == 0' >/dev/null; do
                 echo "..."
                 sleep 5
               done
