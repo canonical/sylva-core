@@ -847,7 +847,14 @@ units:
       targetNamespace: kubevirt-manager
       postBuild:
         substitute:
-          KUBEVIRT_MANAGER_DNS: '{{ .Values.external_hostnames.kubevirt_manager }}'
+          SERVICE: kubevirt-manager
+          SERVICE_DNS: '{{ .Values.external_hostnames.kubevirt_manager }}'
+          CERTIFICATE_NAMESPACE: kubevirt-manager
+          CERT: '{{ .Values.external_certificates.kubevirt_manager.cert | default "" | b64enc }}'
+          CACERT: '{{ .Values.external_certificates.cacert | default "" | b64enc }}'
+      _components:
+        - '{{ ternary "../tls-components/tls-secret" "../tls-components/tls-certificate" (hasKey .Values.external_certificates.kubevirt_manager "cert") }}'
+        - "../tls-components/sylva-ca"
       _patches:
       - target:
           kind: Deployment
@@ -3548,7 +3555,7 @@ units:
           # When changing the major or minor version of rancher, make sure that renovate is
           # also updated to accept the corresponding versions of the other rancher charts (monitory, sriov, longhorn)
           # See https://github.com/rancher/charts/blob/dev-v2.9/README.md
-          version: 2.10.1
+          version: 2.10.2
       targetNamespace: cattle-system
       interval: 10m0s
       values:
@@ -4097,13 +4104,17 @@ units:
       sylva-ca: true
     repo: sylva-core
     kustomization_spec:
-      path: ./kustomize-units/grafana-init
+      path: ./kustomize-units/dummy/base
       postBuild:
         substitute:
-          SERVICE: grafana-sylva-ingress
-          GRAFANA_DNS: '{{ .Values.external_hostnames.grafana }}'
+          SERVICE: grafana
+          SERVICE_DNS: '{{ .Values.external_hostnames.grafana }}'
+          CERTIFICATE_NAMESPACE: cattle-monitoring-system
+          CERT: '{{ .Values.external_certificates.grafana.cert | default "" | b64enc }}'
+          CACERT: '{{ .Values.external_certificates.cacert | default "" | b64enc }}'
       _components:
-        - "../tls-components/sylva-ca"
+        - '{{ ternary "../../tls-components/tls-secret" "../../tls-components/tls-certificate" (hasKey .Values.external_certificates.grafana "cert") }}'
+        - "../../tls-components/sylva-ca"
       healthChecks:
         - apiVersion: v1
           kind: Secret
@@ -4111,7 +4122,7 @@ units:
           namespace: cattle-monitoring-system
         - apiVersion: v1
           kind: Secret
-          name: grafana-general-tls
+          name: grafana-tls
           namespace: cattle-monitoring-system
 
   monitoring:
@@ -4550,7 +4561,7 @@ units:
     helm_secret_values:
       extraInitContainers:
         - name: config-file-create
-          image: registry.gitlab.com/sylva-projects/sylva-elements/container-images/sylva-toolbox:v0.6.3
+          image: registry.gitlab.com/sylva-projects/sylva-elements/container-images/sylva-toolbox:v0.6.4
           command: ["/bin/sh"]
           args:
             - -c
@@ -6230,10 +6241,16 @@ units:
       postBuild:
         substitute:
           SERVICE: thanos
-          THANOS_DNS: '{{ .Values.external_hostnames.thanos }}'
+          SERVICE_DNS: '{{ .Values.external_hostnames.thanos }}'
+          CERTIFICATE_NAMESPACE: thanos
           THANOS_RECEIVE_DNS: '{{ .Values.external_hostnames.thanos_receive }}'
           THANOS_STOREGATEWAY_DNS: '{{ .Values.external_hostnames.thanos_storegateway }}'
           THANOS_QUERY_DNS: '{{ .Values.external_hostnames.thanos_query }}'
+          CERT: '{{ .Values.external_certificates.thanos.cert | default "" | b64enc }}'
+          CACERT: '{{ .Values.external_certificates.cacert | default "" | b64enc }}'
+      _components:
+        - '{{ ternary "../tls-components/tls-secret" "../tls-components/tls-certificate" (hasKey .Values.external_certificates.thanos "cert") }}'
+        - "../tls-components/sylva-ca"
 
   thanos-credentials-secret:
     info:
@@ -6787,6 +6804,20 @@ units:
           enabled: false
         lokiCanary:
           enabled: false
+        chunksCache:
+          allocatedMemory: 4096
+          resources:
+            limits:
+              memory: 5Gi
+            requests:
+              memory: 500Mi
+        resultsCache:
+          allocatedMemory: 512
+          resources:
+            limits:
+              memory: 600Mi
+            requests:
+              memory: 60Mi
         monitoring:
           selfMonitoring:
             enabled: false

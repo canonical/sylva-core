@@ -183,7 +183,7 @@ units:
               use_refresh_token: true
               signout_redirect_url: 'http://{{ .Values.external_hostnames.keycloak }}/realms/sylva/protocol/openid-connect/logout'
           extraSecretMounts:
-            - name: grafana-tls
+            - name: grafana-ca
               mountPath: "/etc/ssl/certs"
               secretName: sylva-ca.crt
           # Define a custom ingress to directly access Grafana without nginx path rewrite
@@ -212,7 +212,7 @@ units:
             spec:
               ingressClassName: nginx
               tls:
-              - secretName: grafana-general-tls
+              - secretName: grafana-tls
                 hosts:
                 - '{{ .Values.external_hostnames.grafana }}'
               rules:

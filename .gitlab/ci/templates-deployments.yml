@@ -539,12 +539,13 @@ include:
 
 # Used to generate summary comment in MRs
 .summary:
-  image: python:alpine3.21
+  image:
+    name: registry.gitlab.com/python-gitlab/python-gitlab:v5.6.0-alpine
+    entrypoint: [""]
   before_script: []
   tags:
     - gitlab-org-docker
   script:
-    - pip install requests
     - .gitlab/ci/scripts/pipeline_summary.py
   rules:
     - if: $SKIP_PIPELINE_SUMMARY == "true"
