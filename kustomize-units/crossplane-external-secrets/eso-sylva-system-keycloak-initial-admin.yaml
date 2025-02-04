@@ -1,0 +1,26 @@
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  name: eso-keycloak-provider-secret
+  namespace: sylva-system
+spec:
+  refreshInterval: 1h
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: eso-store-k8s-keycloak
+  target:
+    name: keycloak-initial-admin
+    template:
+      type: Opaque
+      data:
+        username: "{{ .username }}"
+        password: "{{ .password }}"
+  data:
+    - secretKey: username
+      remoteRef:
+        key: keycloak-initial-admin
+        property: username
+    - secretKey: password
+      remoteRef:
+        key: keycloak-initial-admin
+        property: password

@@ -119,10 +119,12 @@
 | **cluster-vip-fix-lbclass** | Set loadBalancerClass to cluster-vip service and metallb components<br/><br/>This unit can be removed after next release when the loadBalancerClass is set by default | Kustomization |
 | **coredns** | configures DNS inside cluster | Kustomization |
 | **coredns-custom-hosts-import** | create a ConfigMap containing workload cluster's DNS A records in [CoreDNS hosts plugin](https://coredns.io/plugins/hosts/) | Kustomization |
+| **crossplane-external-secrets** | configures external secrets for Crossplane resources | Kustomization |
 | **crossplane-init** | sets up Crossplane prerequisites<br/><br/>it creates the namespace and generates CA certificate secret to be used by 'crossplane' unit | Kustomization |
 | **eso-secret-stores** | defines External Secrets stores | Kustomization |
 | **first-login-rancher** | configure Rancher authentication for admin | Kustomization |
 | **flux-webui-init** | initializes and configures flux-webui | Kustomization |
+| **get-keycloak-uuids** | Get keycloak resource uuids | Kustomization |
 | **gitea-eso** | write secrets in gitea namespace in gitea expected format | Kustomization |
 | **gitea-keycloak-resources** | deploys Gitea OIDC client in Sylva's Keycloak realm | Kustomization |
 | **gitea-secrets** | create random secret that will be used by gitea application. secrets are sync with vault. | Kustomization |

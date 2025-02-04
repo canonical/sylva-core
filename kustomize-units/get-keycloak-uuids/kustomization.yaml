@@ -1,0 +1,14 @@
+
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: sylva-system
+
+resources:
+  - job.yaml
+configMapGenerator:
+  - name: get-keycloak-resources-script-cm
+    behavior: create
+    files:
+      - script.py=./get-keycloak-resources.py
+    options:
+      disableNameSuffixHash: true

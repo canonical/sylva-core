@@ -1,0 +1,73 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: ${JOB_NAME}
+  namespace: ${JOB_TARGET_NAMESPACE}
+spec:
+  backoffLimit: 5
+  template:
+    metadata:
+      name: get-keycloak-resources
+      annotations:
+        checksum: s${JOB_CHECKSUM}  # s prefix to avoid this turning into a number if we're unlucky
+    spec:
+      restartPolicy: Never
+      serviceAccountName: ${JOB_NAME}-${JOB_TARGET_NAMESPACE:-sylva-system}-sa
+      securityContext:
+        runAsUser: 1001
+        fsGroup: 1001
+      containers:
+      - name: keycloak-tools-container
+        image: registry.gitlab.com/sylva-projects/sylva-elements/container-images/keycloak-tools:0.0.1
+        command: ["/bin/bash","-c", "/opt/scripts/get-keycloak-resources.py"]
+        securityContext:
+          allowPrivilegeEscalation: false
+          runAsNonRoot: true
+          capabilities:
+            drop:
+            - ALL
+          seccompProfile:
+            type: RuntimeDefault
+        volumeMounts:
+        - name: get-keycloak-resources-script
+          mountPath: /opt/scripts/get-keycloak-resources.py
+          subPath: get-keycloak-resources.py
+          readOnly: true
+      volumes:
+      - name: get-keycloak-resources-script
+        configMap:
+          name: get-keycloak-resources-script-cm
+          defaultMode: 0777
+          items:
+          - key: script.py
+            path: get-keycloak-resources.py
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: ${JOB_NAME}-${JOB_TARGET_NAMESPACE:-sylva-system}-sa
+  namespace: ${JOB_TARGET_NAMESPACE}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: ${JOB_NAME}
+  namespace: ${JOB_TARGET_NAMESPACE}
+rules:
+- apiGroups: ["*"]
+  resources: ["*"]
+  verbs: ["get", "list", "create", "update", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: ${JOB_NAME}
+  namespace: ${JOB_TARGET_NAMESPACE}
+subjects:
+- kind: ServiceAccount
+  name: ${JOB_NAME}-${JOB_TARGET_NAMESPACE:-sylva-system}-sa
+  namespace: ${JOB_TARGET_NAMESPACE}
+roleRef:
+  kind: Role
+  name: ${JOB_NAME}
+  apiGroup: rbac.authorization.k8s.io

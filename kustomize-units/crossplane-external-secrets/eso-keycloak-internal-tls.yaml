@@ -1,0 +1,26 @@
+
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  name: eso-keycloak-internal-tls
+  namespace: crossplane-system
+spec:
+  refreshInterval: 1h
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: eso-store-k8s-keycloak
+  target:
+    name: keycloak-internal-tls # name of the k8s Secret to be created in the same namespace as ExternalSecret
+  data:
+  - secretKey: ca.crt
+    remoteRef:
+      key: keycloak-internal-tls
+      property: ca.crt
+  - secretKey: tls.crt
+    remoteRef:
+      key: keycloak-internal-tls
+      property: tls.crt
+  - secretKey: tls.key
+    remoteRef:
+      key: keycloak-internal-tls
+      property: tls.key
