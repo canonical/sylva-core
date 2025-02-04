@@ -7471,7 +7471,6 @@ cluster:
     cpu-manager-policy: '{{ tuple "static" (tuple . "kubevirt" | include "unit-enabled") | include "set-only-if" }}'
     system-reserved: '{{ tuple "cpu=100m,memory=500Mi" (tuple . "kubevirt" | include "unit-enabled") | include "set-only-if" }}'
     kube-reserved: '{{ tuple "cpu=100m,memory=500Mi" (tuple . "kubevirt" | include "unit-enabled") | include "set-only-if" }}'
-    test: 'manik'
     # topology-manager-policy: "best-effort"
     # cpu-manager-policy: "static"
     # system-reserved: "cpu=100m"
