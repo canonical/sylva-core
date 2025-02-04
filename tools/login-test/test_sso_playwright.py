@@ -1,6 +1,5 @@
 import os
 import pytest
-import base64
 from playwright.sync_api import Page, expect
 
 
@@ -112,18 +111,11 @@ def test_gitea_sso(page: Page, gitea_url):
 
 
 @pytest.mark.skipif(not os.getenv("thanos_url"), reason="Thanos URL not provided", all=True)
-def test_thanos_basic_auth(page: Page, thanos_url):
-    thanos_user = os.getenv("thanos_user")
-    thanos_password = os.getenv("thanos_password")
-    auth_string = f"{thanos_user}:{thanos_password}".encode("ascii")
-    base64_bytes = base64.b64encode(auth_string)
-    base64_string = base64_bytes.decode("ascii")
-    auth_header = f"Basic {base64_string}"
-    page.set_extra_http_headers({"Authorization": auth_header})
-
-    response = page.goto(thanos_url)
+def test_thanos_basic_auth(page_thanos: Page, thanos_url):
+    response = page_thanos.goto(thanos_url)
     assert response.status == 200, f"Expected status 200, but got {response.status}"
-    page.locator("a[href=\"/stores\"]").click()
 
-    expect(page.locator("a", has=page.get_by_text("Rules"))).to_be_attached()
-    expect(page).to_have_url(thanos_url + '/stores')
+    page_thanos.locator("a[href=\"/stores\"]").click()
+
+    expect(page_thanos.locator("a", has=page_thanos.get_by_text("Rules"))).to_be_attached()
+    expect(page_thanos).to_have_url(thanos_url + '/stores')
