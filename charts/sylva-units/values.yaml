@@ -3157,28 +3157,37 @@ units:
               kubectl wait Machine -l cluster.x-k8s.io/cluster-name={{ .Values.cluster.name }} --for=jsonpath='{.status.nodeRef.name}' --timeout $WAIT_TIMEOUT
 
               kubectl get secret management-cluster-kubeconfig -n sylva-system -o yaml | yq .data.value | base64 -d > /tmp/kubeconfig 
-              nodes=$(kubectl get nodes -A --kubeconfig /tmp/kubeconfig -o jsonpath='{.items[*].metadata.name}')
-
-              echo $nodes
-              # Function to check annotations for all nodes
-              check_annotations() {
-                for node in $nodes; do
-                  # Fetch the annotation value for the current node
-                  annotation=$(kubectl get node "$node" --kubeconfig /tmp/kubeconfig -o jsonpath='{.metadata.annotations.post-commands-execut}')
-                  if [ "$annotation" != "true" ]; then
-                    return 1 # Exit the function with failure
-                  fi
-                done
-                return 0 # All nodes have the annotation set to true
-              }
-
-              # Wait until all nodes have the annotation set to true
               echo "Checking post command annotations for all nodes..."
-
-              while ! check_annotations; do
-                echo -n "..."
+              nodes=$(kubectl get nodes -A -o jsonpath='{.items[*].metadata.name}')
+              echo $nodes
+              
+              while ! kubectl get nodes -o json | jq -e '[.items[] | select(.metadata.annotations | has("post-commands-executed") | not)] | length == 0' >/dev/null; do
+                echo "..."
+                sleep 5
               done
-              echo "All nodes have the annotation 'post-commands-executed' set to true."
+
+              # nodes=$(kubectl get nodes -A --kubeconfig /tmp/kubeconfig -o jsonpath='{.items[*].metadata.name}')
+
+              # echo $nodes
+              # # Function to check annotations for all nodes
+              # check_annotations() {
+              #   for node in $nodes; do
+              #     # Fetch the annotation value for the current node
+              #     annotation=$(kubectl get node "$node" --kubeconfig /tmp/kubeconfig -o jsonpath='{.metadata.annotations.post-commands-executed}')
+              #     if [ "$annotation" != "true" ]; then
+              #       return 1 # Exit the function with failure
+              #     fi
+              #   done
+              #   return 0 # All nodes have the annotation set to true
+              # }
+
+              # # Wait until all nodes have the annotation set to true
+              # echo "Checking post command annotations for all nodes..."
+
+              # while ! check_annotations; do
+              #   echo -n "..."
+              # done
+              # echo "All nodes have the annotation 'post-commands-executed' set to true."
 
   heat-operator:
     info:
