@@ -17,11 +17,8 @@ spec:
                 - Secret
               names:
                 - vault-internal-tls
-      preconditions:
-        all:
-          - key: "{{ request.operation }}"
-            operator: Equals
-            value: "UPDATE"
+              operations:
+                - UPDATE
       mutate:
         targets:
           - apiVersion: apps/v1
