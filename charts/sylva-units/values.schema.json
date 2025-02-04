@@ -8747,11 +8747,15 @@
       "patternProperties": {
         ".*": {
           "type": "object",
+          "patternProperties": {
+            ".*": {
+              "type": "string"
+            }
+          },
           "properties": {
             "uri": {
               "anyOf": [
                 {
-                  "type": "string",
                   "anyOf": [
                     {
                       "pattern": "^(https?://.*|)$"
@@ -8769,27 +8773,12 @@
                 }
               ]
             },
-            "filename": {
-              "type": "string"
-            },
             "sha256": {
-              "type": "string",
               "pattern": "[a-f0-9]*"
-            },
-            "os": {
-              "type": "string"
-            },
-            "k8s-version": {
-              "type": "string"
-            },
-            "k8s-flavor": {
-              "type": "string",
-              "pattern": "^(rke2|kubeadm)$"
             }
           },
           "required": [
-            "uri",
-            "filename"
+            "uri"
           ]
         }
       }
