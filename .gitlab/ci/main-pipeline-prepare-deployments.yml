@@ -19,6 +19,9 @@
 prepare-deployment-jobs:
   stage: deploy
   extends: .deploy_rules
+  image:
+    name: registry.gitlab.com/python-gitlab/python-gitlab:v5.6.0-alpine
+    entrypoint: [""]
   needs: []
   script:
     - ./.gitlab/ci/scripts/generate_deployment_jobs.py > gitlab-ci-deployment-jobs-defs.yaml
