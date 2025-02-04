@@ -178,6 +178,16 @@ Usage:
     {{- $unit_enabled = index (tuple $envAll $unit_def.enabled (printf "unit:%s" $unit_name) | include "interpret-as-bool" | fromJson) "encapsulated-result" -}}
   {{- end -}}
 
+  {{/* a unit which has "one_shot: true" will be disabled if we have recorded,
+       via sylva-units-status ConfigMap, that it was part of an install/upgrade
+       of the Helm release that proceeded until completion (reconcilication of
+       sylva-units-status Kustomization which depends on all Kustomizations
+       having reconciled, and which updates the sylva-units-status ConfigMap)
+  */}}
+  {{- if and ($unit_def.one_shot | default false) (include "one-shot-unit-is-done" (tuple $envAll $unit_name)) -}}
+    {{- $unit_enabled = false -}}
+  {{- end -}}
+
   {{- range $condition := $unit_def.enabled_conditions | default list -}}
     {{- $unit_enabled = and $unit_enabled (index (tuple $envAll $condition (printf "unit:%s" $unit_name) | include "interpret-as-bool" | fromJson) "encapsulated-result") -}}
     {{- if not $unit_enabled -}}
@@ -189,6 +199,50 @@ Usage:
 true
   {{- else -}} {{- /* we "emulate" a 'false' value by returning an empty string which the caller will evaluate as False */ -}}
   {{- end -}}
+{{- end -}}
+
+
+{{/*
+
+"one-shot-unit-is-done"
+
+Test, applicable to a unit with "one_shot: true", which indicates if this unit
+was already applied, ie. reconciled successfully in an application (install or upgrade)
+of sylva-units Helm release that ran to completion until the reconciliation
+of sylva-units-status Kustomization.
+
+This is determined based on the content of the "one-shot-units"
+key of the sylva-units-status ConfigMap.
+
+Usage:
+
+  include "one-shot-unit-is-done" "my-unit"
+
+Returned value: "true" or "" (false)
+
+*/}}
+{{- define "one-shot-unit-is-done" -}}
+  {{- $envAll := index . 0 -}}
+  {{- $unit_name := index . 1 -}}
+  {{- if include "one-shot-units" $envAll | fromJson | dig $unit_name "" | eq "done" -}}
+true
+  {{- else -}}{{- end -}}{{/* empty return value to mean false */}}
+{{- end -}}
+
+{{/*
+
+"one-shot-units"
+
+Returns a JSON-encoded dict with all the one-shot units tracked in
+the "one-shot-units" entry of sylva-units-status ConfigMap.
+
+(see in sylva-units-values.yaml how the "one-shot-units" entry of
+sylva-units-status ConfigMap is maintained)
+
+*/}}
+{{- define "one-shot-units" -}}
+  {{- $envAll := index . -}}
+  {{- lookup "v1" "ConfigMap" $envAll.Release.Namespace "sylva-units-status" | dig "data" "one-shot-units" "{}" | fromYaml | toJson -}}
 {{- end -}}
 
 
