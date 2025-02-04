@@ -460,6 +460,17 @@ units:
   #                   unit templates are defined under "unit_templates"
   #                   the settings for the unit are inherited from the corresponding entries under .Values.unit_templates,
   #                   merging them in the specified order
+  #   one_shot: true/false (default: false)
+  #             This is used for units that need to run only once on a given cluster.
+  #             A unit having "one_shot: true" will be automatically disabled if it has already
+  #             run once on an application of sylva-units that ran to completion (until reconciliation
+  #             of sylva-units-status).
+  #             It is typically used for kube-job units:
+  #             * that are needed to apply a given change for a sylva-upgrade
+  #             * or that need to run at cluster creation time, but not after (eg. for metallb
+  #               transitioning from RKE2-managed to Flux-managed)
+  #             NOTE WELL: there is *no* guarantee that a one_shot unit will never be replayed (it will be replayed on a re-run after
+  #                        a sylva-units update that didn't complete)
 
   root-dependency:
     info:

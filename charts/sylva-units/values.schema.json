@@ -7774,6 +7774,9 @@
                 ]
               }
             },
+            "one_shot": {
+              "type": "boolean"
+            },
             "repo": {
               "anyOf": [
                 {

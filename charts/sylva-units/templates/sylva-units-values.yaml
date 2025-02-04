@@ -52,11 +52,29 @@ of a deployment with information about the revision and values of the sylva-unit
 {{- range $unit_status_name := list "sylva-units-tests-status" "sylva-units-status" }}
   {{- $is_test := eq $unit_status_name "sylva-units-tests-status" -}}
   {{- $deps := list -}}
+
+  {{/* one-shot units information already present in the current sylva-units-status confimap, is preserved */}}
+  {{- $one_shot_units := include "one-shot-units" $envAll | fromJson -}}
+
   {{- range $unit_name, $unit_def := $envAll.Values.units -}}
     {{- $unit_enabled := include "unit-enabled" (tuple $envAll $unit_name) -}}
     {{- $is_test_unit := dig "test" false $unit_def.info -}}
-    {{- if and $unit_enabled (eq $is_test $is_test_unit) -}}
-      {{- $deps = append $deps (dict "name" (include "kustomization-name" (tuple $envAll $unit_name))) -}}
+    {{- if $unit_enabled -}}
+      {{- if eq $is_test $is_test_unit -}}
+        {{- $deps = append $deps (dict "name" (include "kustomization-name" (tuple $envAll $unit_name))) -}}
+      {{- end -}}
+
+      {{/* add to one-shot units information: a unit enabled in this run
+        which also is a one-shot unit, will be added to the "one-shot-units" entry
+        of the sylva-units-status ConfigMap, which is produced on completion of
+        the last Kustomization of the dependency chain, sylva-units-status
+
+        (we care about one-shot-unit information only for sylva-units-status)
+      */}}
+      {{- if and (not $is_test) ($unit_def.one_shot | default false) -}}
+        {{- $_ := set $one_shot_units $unit_name "done" -}}
+      {{- end -}}
+
     {{- end -}}
   {{- end }}
   {{/* we always add a dependency on 'cluster' unit for sylva-units-status, 
@@ -108,6 +126,9 @@ remote cluster */}}
           sylva-units-chart-version: "{{ $envAll.Chart.Version }}"
           release-time: "{{ $time }}"
           values-checksum: "{{ $values_checksum }}"
+          {{ if not (empty $one_shot_units) -}}
+          one-shot-units: | {{ $one_shot_units | toYaml | nindent 12 }}
+          {{- end }}
           additional-info: | {{ $envAll.Values.additional_sylva_units_status_info | toYaml | nindent 12 }}
 ---
 {{- end }}
