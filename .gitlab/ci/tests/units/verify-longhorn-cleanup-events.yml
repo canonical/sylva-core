@@ -1,10 +1,8 @@
 ---
-# Verify Longhorn "cleanup-instance-manager" events
+# Highlight "longhorn-instance-manager-cleanup" events
 
 .verify-longhorn-cleanup-events:
-  stage: deployment-test
-  allow_failure:
-    exit_codes: 1  # Allows failure if events are found but doesn't block the pipeline
+  allow_failure: true
   artifacts:
     expire_in: 48 hour
     when: always
@@ -13,47 +11,37 @@
   variables:
     REPORT_FILE: ${CI_PROJECT_DIR}/longhorn-cleanup-events-report.txt
   script:
-    - !reference [.import_functions]
-    - download_artifact deploy-management-cluster management-cluster-kubeconfig
-    - export KUBECONFIG=${KUBECONFIG_PATH}
-    - echo "Checking if 'longhorn-system' namespace exists..."
+    - touch ${REPORT_FILE}
+    - echo "Longhorn Cleanup Events Check Started" > ${REPORT_FILE}
     - |
-      if ! kubectl get namespace longhorn-system &>/dev/null; then
-        echo "'longhorn-system' namespace not found. Skipping event check."
+      if ! kubectl --kubeconfig ${KUBECONFIG} get namespace longhorn-system &>/dev/null; then
+        echo "'longhorn-system' namespace not found. Skipping event check." | tee -a "${REPORT_FILE}"
         exit 0  # Exit successfully without running the event check
       fi
-    - echo "Checking for 'cleanup-instance-manager' events in Longhorn namespace..."
+    - echo "Checking for 'longhorn-instance-manager-cleanup' events in Longhorn namespace..."
     - |
-      if kubectl get events -n longhorn-system --field-selector reason=cleanup-instance-manager | grep -q "cleanup-instance-manager"; then
-        echo "Found 'cleanup-instance-manager' events in Longhorn namespace." | tee -a "${REPORT_FILE}"
+      echo "Longhorn Cleanup Events Report" > "${REPORT_FILE}"
+      kubectl --kubeconfig ${KUBECONFIG} get events -n longhorn-system --field-selector reason=cleanup-instance-manager -o wide | tee -a "${REPORT_FILE}"
+
+      if grep -q "cleanup-instance-manager" "${REPORT_FILE}"; then
+        echo "Found 'longhorn-instance-manager-cleanup' events. Check the report for details." | tee -a "${REPORT_FILE}"
         exit 1  # Fail job if events are found
       else
-        echo "No 'cleanup-instance-manager' events found." | tee -a "${REPORT_FILE}"
+        echo "No 'longhorn-instance-manager-cleanup' events found." | tee -a "${REPORT_FILE}"
       fi
 
 # ==========================================
-# Management Cluster: Longhorn Cleanup Testing
+# Management Cluster: Verify longhorn instance manager cleanup events
 # ==========================================
-mgmt-longhorn-cleanup-testing:
+mgmt-verify-longhorn-cleanup-events:
   extends:
+    - .test-base-management-cluster
     - .verify-longhorn-cleanup-events
-    - .test-tags
-    - .rules:need-management-cluster-update
-  needs:
-    - update-management-cluster
-  variables:
-    KUBECONFIG_PATH: management-cluster-kubeconfig
 
 # ==========================================
-# Workload Cluster: Longhorn Cleanup Testing
+# Workload Cluster: Verify longhorn instance manager cleanup events
 # ==========================================
-wkld-longhorn-cleanup-testing:
+wkld-verify-longhorn-cleanup-events:
   extends:
+    - .test-base-workload-cluster
     - .verify-longhorn-cleanup-events
-    - .test-tags
-    - .rules:need-workload-cluster-update
-  needs:
-    - update-workload-cluster
-  variables:
-    KUBECONFIG_PATH: "$WORKLOAD_CLUSTER_NAME-rancher.yaml"
-    CHECK_WORKLOAD_CLUSTER: "true"
