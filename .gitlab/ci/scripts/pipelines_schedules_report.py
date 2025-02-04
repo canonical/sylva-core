@@ -149,6 +149,7 @@ def create_report():
             child_pipelines_reports = dict()
             success_counts = dict()
             total_counts = dict()
+            last_success_dates = dict()
 
             def _get_child_md(child):
                 duration_text = "unknown runtime"
@@ -175,6 +176,11 @@ def create_report():
                             total_counts[level2_child.name] = total_counts.get(level2_child.name, 0) + 1
                             if level2_child.status == "success":
                                 success_counts[level2_child.name] = success_counts.get(level2_child.name, 0) + 1
+                                if level2_child.name in last_success_dates:
+                                    if last_success_dates[level2_child.name] < level2_child.started_at:
+                                        last_success_dates[level2_child.name] = level2_child.started_at
+                                else:
+                                    last_success_dates[level2_child.name] = level2_child.started_at
 
                     # keep compatibility with old CI behavior
                     else:
@@ -185,6 +191,11 @@ def create_report():
                         total_counts[level1_child.name] = total_counts.get(level1_child.name, 0) + 1
                         if level1_child.status == "success":
                             success_counts[level1_child.name] = success_counts.get(level1_child.name, 0) + 1
+                            if level1_child.name in last_success_dates:
+                                if last_success_dates[level1_child.name] < level1_child.started_at:
+                                    last_success_dates[level1_child.name] = level1_child.started_at
+                            else:
+                                last_success_dates[level1_child.name] = level1_child.started_at
 
             headers = ["name"]
             rows_as_dict = dict()
@@ -204,11 +215,22 @@ def create_report():
             # Calculate success rates
             # and insert it in 2nd position
             headers.insert(1, "success rate")
+            today = datetime.datetime.now()
+            fmt = "%Y-%m-%dT%H:%M:%S.%fZ"
             for child_name in rows_as_dict.keys():
                 total = total_counts.get(child_name, 0)
                 success = success_counts.get(child_name, 0)
-                success_rate = (success / total * 100) if total > 0 else 0
-                rows_as_dict[child_name].insert(1, f"{success_rate:.2f}%")
+                if success > 0:
+                    last_success_date = last_success_dates.get(child_name, 0)
+                    days_since_event = (today - datetime.datetime.strptime(last_success_date, fmt)).days
+                    if days_since_event == 0:
+                        last_success_message = "Pipeline succeed today"
+                    else:
+                        last_success_message = f"Pipeline succeed {days_since_event} day(s) ago"
+                else:
+                    last_success_message = f"Pipeline didn't succeed since at least {total} days"
+                success_rate = f"{success}/{total} pipelines succeed"
+                rows_as_dict[child_name].insert(1, f"{success_rate}, {last_success_message}")
 
             report_rows = list(rows_as_dict.values())
             print_report(tabulate(report_rows, headers=headers, tablefmt="pipe"))
