@@ -146,6 +146,10 @@ def create_report():
             print_report(f"## {pipeline_description}")
             print_report("")
 
+            child_pipelines_reports = dict()
+            success_counts = dict()
+            total_counts = dict()
+
             def _get_child_md(child):
                 duration_text = "unknown runtime"
                 if child.duration:
@@ -160,7 +164,6 @@ def create_report():
             for pipeline in newest_pipelines:
                 print(f"  processing pipeline {pipeline.id}")
                 for level1_child in project.pipelines.get(pipeline.id).bridges.list():
-
                     print(f"    processing child {level1_child.name}")
                     if level1_child.name == "deployment-jobs":
                         for level2_child in project.pipelines.get(level1_child.downstream_pipeline['id']).bridges.list():
@@ -168,17 +171,27 @@ def create_report():
                             child_pipelines_reports.setdefault(level2_child.name, dict())
                             child_pipelines_reports[level2_child.name][pipeline.id] = _get_child_md(level2_child)
 
+                            # Count successes and total for each child pipeline
+                            total_counts[level2_child.name] = total_counts.get(level2_child.name, 0) + 1
+                            if level2_child.status == "success":
+                                success_counts[level2_child.name] = success_counts.get(level2_child.name, 0) + 1
+
                     # keep compatibility with old CI behavior
                     else:
                         child_pipelines_reports.setdefault(level1_child.name, dict())
                         child_pipelines_reports[level1_child.name][pipeline.id] = _get_child_md(level1_child)
+
+                        # Count successes and total for each child pipeline
+                        total_counts[level1_child.name] = total_counts.get(level1_child.name, 0) + 1
+                        if level1_child.status == "success":
+                            success_counts[level1_child.name] = success_counts.get(level1_child.name, 0) + 1
 
             headers = ["name"]
             rows_as_dict = dict()
             for pipeline in newest_pipelines:
                 time_status = f"[{pipeline.created_at[:16]} {get_status_icon(pipeline)}]({pipeline.web_url})"
                 headers.append(time_status)
-                # add empty cell in table if any child pipeline type doesn't exit at a given date
+                # add empty cell in table if any child pipeline type doesn't exist at a given date
                 for child_pipeline_name in child_pipelines_reports.keys():
                     if pipeline.id not in child_pipelines_reports[child_pipeline_name]:
                         child_pipelines_reports[child_pipeline_name][pipeline.id] = ""
@@ -187,6 +200,15 @@ def create_report():
                                             [child_pipeline_name.replace("-deploy", "").replace("-", "‑")])
                     rows_as_dict[child_pipeline_name].append(
                         child_pipelines_reports[child_pipeline_name][pipeline.id])
+
+            # Calculate success rates
+            # and insert it in 2nd position
+            headers.insert(1, "success rate")
+            for child_name in rows_as_dict.keys():
+                total = total_counts.get(child_name, 0)
+                success = success_counts.get(child_name, 0)
+                success_rate = (success / total * 100) if total > 0 else 0
+                rows_as_dict[child_name].insert(1, f"{success_rate:.2f}%")
 
             report_rows = list(rows_as_dict.values())
             print_report(tabulate(report_rows, headers=headers, tablefmt="pipe"))
