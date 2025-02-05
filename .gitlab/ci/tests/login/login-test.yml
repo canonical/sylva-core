@@ -69,7 +69,25 @@ wkld-sso-kubeconfig:
     - kubectl wait --for=condition=Ready pod/test-sso --kubeconfig $WORKLOAD_CLUSTER_NAME-rancher.yaml --timeout=60s
     - echo "-- All done"
 
-mgmt-GUIs-login:
+mgmt-GUIs-test:
+  extends:
+    - .test-base-management-cluster
+  image: registry.gitlab.com/sylva-projects/sylva-elements/container-images/ci-image/ci-playwright-image:v1.0.56
+  variables:
+    SCREENSHOTS: ${CI_PROJECT_DIR}/screenshots
+  artifacts:
+    expire_in: 48 hour
+    when: always
+    paths:
+      - $SCREENSHOTS
+  script:
+    - unset https_proxy http_proxy
+    - !reference [.test_scripts, edit_hosts_file]
+    - !reference [.test_scripts, get_ui_ingresses_url]
+    - !reference [.test_scripts, get_sso_login_and_password]
+    - pytest ./tools/login-test/test_ui_playwright.py --browser firefox -v --tb=short
+
+mgmt-sso:
   extends:
     - .test-base-management-cluster
   image: registry.gitlab.com/sylva-projects/sylva-elements/container-images/ci-image/ci-playwright-image:v1.0.57
@@ -105,7 +123,7 @@ wkld-no-sso-kubeconfig:
     - kubectl wait --for=condition=Ready pod/test-no-sso --kubeconfig workload-cluster-kubeconfig --timeout=60s
     - echo "-- All done"
 
-mgmt-APIs-login:
+mgmt-login:
   extends:
     - .test-base-management-cluster
   variables:
@@ -184,7 +202,7 @@ mgmt-APIs-login:
       fi
     - hurl -k ./tools/login-test/*.hurl --test --color --noproxy=".$HURL_domain"  --report-junit $HURL_JUNIT_REPORT --report-html ${CI_PROJECT_DIR}
 
-wkld-APIs-login:
+wkld-login:
   extends:
     - .test-base-workload-cluster
   variables:

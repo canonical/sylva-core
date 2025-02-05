@@ -108,14 +108,3 @@ def test_gitea_sso(page: Page, gitea_url):
     login_to_sso(page)
 
     expect(page.get_by_text("Complete New Account")).to_be_visible()
-
-
-@pytest.mark.skipif(not os.getenv("thanos_url"), reason="Thanos URL not provided", all=True)
-def test_thanos_basic_auth(page_thanos: Page, thanos_url):
-    response = page_thanos.goto(thanos_url)
-    assert response.status == 200, f"Expected status 200, but got {response.status}"
-
-    page_thanos.locator("a[href=\"/stores\"]").click()
-
-    expect(page_thanos.locator("a", has=page_thanos.get_by_text("Rules"))).to_be_attached()
-    expect(page_thanos).to_have_url(thanos_url + '/stores')
