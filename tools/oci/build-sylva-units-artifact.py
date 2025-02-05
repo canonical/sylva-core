@@ -27,10 +27,10 @@ from pathlib import Path
 import atexit
 import logging
 import sys
-
 # pylama:ignore=W0401
 from artifact_utils import *
 
+paths = ArtifactPaths()
 
 # Set up environment and variables
 script_dir = Path(__file__).parent
@@ -46,7 +46,7 @@ logger.info(f'helm_chart_version: {helm_chart_version}')
 
 # Copy the chart directory to the artifact directory and change into it
 chart_source_dir = base_dir / 'charts' / 'sylva-units'
-chart_dest_dir = ARTIFACT_DIR / 'sylva-units'
+chart_dest_dir = paths.artifact_dir / 'sylva-units'
 shutil.copytree(chart_source_dir, chart_dest_dir, ignore=shutil.ignore_patterns('test-values'))
 os.chdir(chart_dest_dir)
 
@@ -249,8 +249,7 @@ default_values_source_templates = default_values_data["source_templates"]
 repo_overrides = {}
 for unit in default_values_units:
     if (
-        "repo" in default_values_units[unit]
-        and "helmrelease_spec" in default_values_units[unit]
+        "repo" in default_values_units[unit] and "helmrelease_spec" in default_values_units[unit]
     ):
         repo_overrides.update(
             {
@@ -295,6 +294,6 @@ tgz_file = f"sylva-units-{helm_chart_version}.tgz"
 artifact_name = "sylva-units"
 artifact_version = helm_chart_version
 
-atexit.register(cleanup)
+atexit.register(cleanup, paths)
 
-process_artifact_helm(artifact_name, artifact_version, tgz_file)
+process_artifact_helm(artifact_name, artifact_version, tgz_file, paths)

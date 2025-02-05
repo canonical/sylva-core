@@ -26,10 +26,8 @@ import yaml
 import atexit
 import logging
 import sys
-
 # pylama:ignore=W0401
 from artifact_utils import *
-
 
 BASE_DIR = os.path.realpath(os.path.join(os.path.dirname(__file__), '../..'))
 logger = logging.getLogger()
@@ -85,6 +83,7 @@ def process_kustomization(kustomization):
         yaml.dump(data, file)
 
 
+paths = ArtifactPaths()
 artifact_name = "kustomize-units"
 
 if os.getenv('CI_REPOSITORY_URL'):
@@ -102,12 +101,12 @@ artifact_version = os.getenv('ARTIFACT_VERSION', f"0.0.0-git-{artifact_tag}")
 logger.info(f'artifact_version: {artifact_version}')
 
 
-shutil.copytree(os.path.join(BASE_DIR, 'kustomize-units'), os.path.join(ARTIFACT_DIR, 'kustomize-units'),
+shutil.copytree(os.path.join(BASE_DIR, 'kustomize-units'), os.path.join(paths.artifact_dir, 'kustomize-units'),
                 dirs_exist_ok=True)
 
-os.chdir(ARTIFACT_DIR)
+os.chdir(paths.artifact_dir)
 
-kustomizations = find_kustomization_files(ARTIFACT_DIR)
+kustomizations = find_kustomization_files(paths.artifact_dir)
 
 for kustomization in kustomizations:
     with open(kustomization) as kustomization_file:
@@ -125,13 +124,13 @@ try:
 except subprocess.CalledProcessError:
     logger.error("There are remaining remote URLs in some kustomization!")
 
-atexit.register(cleanup)
+atexit.register(cleanup, paths)
 
 
 artifact_url = f"{OCI_REGISTRY}/{artifact_name}:{artifact_version}"
-if artifact_exists_with_flux(artifact_name, artifact_version, artifact_url):
+if artifact_exists_with_flux(artifact_name, artifact_version, artifact_url, paths):
 
-    fail_if_existing_artifact_differs(artifact_name, artifact_version, artifact_url)
+    fail_if_existing_artifact_differs(artifact_name, artifact_version, artifact_url, paths)
 
     # artifact content hasn't changed, but we may want to sign it
     if 'COSIGN_PUBLIC_KEY' in os.environ:

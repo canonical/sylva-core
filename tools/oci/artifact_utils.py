@@ -12,10 +12,6 @@ CI_REGISTRY = os.getenv('CI_REGISTRY')
 ARTIFACT_DIGEST = None
 
 # Create a temporary directory for the artifacts
-ARTIFACT_DIR = Path(tempfile.mkdtemp(prefix='sylva-artifact-'))
-PULLED_ARTIFACT_DIR = Path(tempfile.mkdtemp(prefix='sylva-pulled-'))
-TGZ_ARTIFACT_DIR = Path(tempfile.mkdtemp(prefix='tgz-'))
-
 LOG_ERROR_FILE = tempfile.mktemp()
 logging.basicConfig(
     level=logging.INFO,
@@ -27,7 +23,15 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-logger.info(f"(working in {ARTIFACT_DIR})")
+
+class ArtifactPaths:
+    def __init__(self):
+        self.artifact_dir = Path(tempfile.mkdtemp(prefix='sylva-artifact-'))
+        self.pulled_artifact_dir = Path(tempfile.mkdtemp(prefix='sylva-pulled-'))
+        self.tgz_artifact_dir = Path(tempfile.mkdtemp(prefix='tgz-'))
+        logger.info(f"(working with artifact_dir: {self.artifact_dir})")
+        logger.info(f"(working with pulled_artifact_dir: {self.pulled_artifact_dir})")
+        logger.info(f"(working with tgz_artifact_dir: {self.tgz_artifact_dir})")
 
 
 def run_command(command, hide_command=False, **kwargs):
@@ -110,19 +114,19 @@ def diff(artifact_name, source_dir, dest_dir):
     logger.info("Integrity check: ok")
 
 
-def fail_if_existing_artifact_differs(artifact_name, artifact_version, artifact_url, tgz_file=None):
+def fail_if_existing_artifact_differs(artifact_name, artifact_version, artifact_url, paths, tgz_file=None):
     logger.info(
         f"Checking the integrity of the existing artifact {artifact_name}:{artifact_version} :: "
         f"{artifact_url}")
     if tgz_file and Path(tgz_file).is_file():
-        run_command(["tar", "-xzf", tgz_file, "-C", TGZ_ARTIFACT_DIR])
-        run_command(["tar", "-xzf", f"{PULLED_ARTIFACT_DIR}/{artifact_name}-{artifact_version}.tgz", "-C",
-                     PULLED_ARTIFACT_DIR])
-        os.remove(f"{PULLED_ARTIFACT_DIR}/{artifact_name}-{artifact_version}.tgz")
-        diff(artifact_name, TGZ_ARTIFACT_DIR, PULLED_ARTIFACT_DIR)
+        run_command(["tar", "-xzf", tgz_file, "-C", paths.tgz_artifact_dir])
+        run_command(["tar", "-xzf", f"{paths.pulled_artifact_dir}/{artifact_name}-{artifact_version}.tgz", "-C",
+                     paths.pulled_artifact_dir])
+        os.remove(f"{paths.pulled_artifact_dir}/{artifact_name}-{artifact_version}.tgz")
+        diff(artifact_name, paths.tgz_artifact_dir, paths.pulled_artifact_dir)
     else:
         # artifacts are not packaged in an archive
-        diff(artifact_name, ARTIFACT_DIR, PULLED_ARTIFACT_DIR)
+        diff(artifact_name, paths.artifact_dir, paths.pulled_artifact_dir)
 
 
 def signature_is_valid(artifact_name):
@@ -157,7 +161,8 @@ def push_and_sign_with_flux(artifact_name, artifact_version, artifact_source, ar
         "--path", ".", "--source", artifact_source, "--revision", artifact_revision
     ]
     # if we run in a gitlab CI job, then we use the credentials provided by gitlab job environment
-    logger.info(f"command: {" ".join(cmd)}")
+    commands = " ".join(cmd)
+    logger.info(f"command: {commands}")
     if CI_REGISTRY:
         ci_registry_user = os.getenv('CI_REGISTRY_USER')
         ci_registry_password = os.getenv('CI_REGISTRY_PASSWORD')
@@ -202,9 +207,9 @@ def registry_login():
     )
 
 
-def artifact_exists_with_flux(artifact_name, artifact_version, artifact_url):
+def artifact_exists_with_flux(artifact_name, artifact_version, artifact_url, paths):
     logger.info(f"Checking if OCI artifact exists: {artifact_name}:{artifact_version} :: {artifact_url}")
-    result = run_command(["flux", "pull", "artifact", artifact_url, "-o", PULLED_ARTIFACT_DIR],
+    result = run_command(["flux", "pull", "artifact", artifact_url, "-o", paths.pulled_artifact_dir],
                          check=False)
     if result.returncode == 0:
         global ARTIFACT_DIGEST
@@ -213,9 +218,9 @@ def artifact_exists_with_flux(artifact_name, artifact_version, artifact_url):
     return False
 
 
-def artifact_exists_with_helm(artifact_name, artifact_version, artifact_url):
+def artifact_exists_with_helm(artifact_name, artifact_version, artifact_url, paths):
     logger.info(f"Checking if OCI artifact exists: {artifact_name}:{artifact_version} :: {artifact_url}")
-    result = run_command(["helm", "pull", artifact_url, "--version", artifact_version, "-d", PULLED_ARTIFACT_DIR],
+    result = run_command(["helm", "pull", artifact_url, "--version", artifact_version, "-d", paths.pulled_artifact_dir],
                          check=False)
     if result.returncode == 0:
         global ARTIFACT_DIGEST
@@ -224,13 +229,12 @@ def artifact_exists_with_helm(artifact_name, artifact_version, artifact_url):
     return False
 
 
-def process_artifact_helm(artifact_name, artifact_version, tgz_file):
+def process_artifact_helm(artifact_name, artifact_version, tgz_file, paths):
     artifact_url = f"{OCI_REGISTRY}/{artifact_name}"
 
     artifact_version = artifact_version.replace("_", "+")
-    if artifact_exists_with_helm(artifact_name, artifact_version, artifact_url):
-
-        fail_if_existing_artifact_differs(artifact_name, artifact_version, artifact_url, tgz_file)
+    if artifact_exists_with_helm(artifact_name, artifact_version, artifact_url, paths):
+        fail_if_existing_artifact_differs(artifact_name, artifact_version, artifact_url, paths, tgz_file)
 
         # artifact content hasn't changed, but we may want to sign it
         if 'COSIGN_PUBLIC_KEY' in os.environ:
@@ -257,13 +261,13 @@ def clean_directory_and_files(directory):
 
 
 # Ensure the temporary files and directories are cleaned up before next artifact treatment
-def delete_temp_files():
-    for directory in [ARTIFACT_DIR, PULLED_ARTIFACT_DIR, TGZ_ARTIFACT_DIR]:
+def delete_temp_files(paths):
+    for directory in [paths.artifact_dir, paths.pulled_artifact_dir, paths.tgz_artifact_dir]:
         clean_directory_and_files(directory)
 
 
 # Ensure the temporary directory is cleaned up
-def cleanup():
-    shutil.rmtree(ARTIFACT_DIR)
-    shutil.rmtree(PULLED_ARTIFACT_DIR)
-    shutil.rmtree(TGZ_ARTIFACT_DIR)
+def cleanup(paths):
+    shutil.rmtree(paths.artifact_dir)
+    shutil.rmtree(paths.pulled_artifact_dir)
+    shutil.rmtree(paths.tgz_artifact_dir)
