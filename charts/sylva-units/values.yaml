@@ -7253,6 +7253,24 @@ units:
         managed_clusters_settings: '{{ tuple . "shared_workload_clusters_values" | include "interpret" }}{{ .Values.shared_workload_clusters_values | include "preserve-type" }}'
         workload_cluster_sylva_source: '{{ .Values.workload_clusters.sylva_source | include "preserve-type" }}'
 
+  test-one-shot:
+    info:
+      description: test one-shot unit
+    unit_templates:
+    - kube-job
+    kustomization_spec:
+      _patches:
+      - target:
+          kind: ConfigMap
+          labelSelector: kube-job=script
+        patch: |
+          - op: replace
+            path: /data/kube-job.sh
+            value: |
+              #!/bin/bash
+
+              kubectl create configmap test-one-shot-unit --from-literal=foo=bar || true
+
 ##### stuff related to the 'cluster' unit #####
 #
 # all these values under 'cluster' are passed as values to sylva-capi-cluster chart
