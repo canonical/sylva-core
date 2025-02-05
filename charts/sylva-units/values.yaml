@@ -3171,7 +3171,6 @@ units:
               kubectl wait Machine -l cluster.x-k8s.io/cluster-name={{ .Values.cluster.name }} --for=jsonpath='{.status.nodeRef.name}' --timeout $WAIT_TIMEOUT
 
               # kubectl get secret management-cluster-kubeconfig -n sylva-system -o yaml | yq .data.value | base64 -d > /tmp/kubeconfig
-              ls -ltr /tmp/kubeconfig
               nodes=$(kubectl get nodes -A -o jsonpath='{.items[*].metadata.name}')
               echo $nodes
 
