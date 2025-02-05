@@ -2028,7 +2028,6 @@ units:
               # In Sylva we have policy for which we *need* some validation webhooks in kube-system:                    #
               # * rke2-helmchart-prevent-uninstall                                                                      #
               # * block-rke2-uninstall-jobs policies                                                                    #
-              # * prevent-rke2-helmcharts-calico-metallb                                                                :
               #                                                                                                         .
               # This comment groups the different things done to allow excluding the kube-system namespace
               # except for Jobs.
@@ -2728,22 +2727,6 @@ units:
           # We have to set FailurePolicy to Ignore for rke2, otherwise we would hit https://gitlab.com/sylva-projects/sylva-core/-/issues/794
           FAILURE_POLICY: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpk" | ternary "Fail" "Ignore" }}'
 
-  cluster-prevent-rke2-helmcharts-calico-metallb:
-    info:
-      description: Kyverno policy to prevent RKE2 HelmCharts from being recreated for MetaLB and Calico
-      internal: true
-    unit_templates:
-    - '{{ tuple "base-deps" (not .Values._internal.state.is_upgrade ) | include "set-only-if" }}'
-    enabled_conditions:
-    - '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" }}'
-    - '{{ .Values._internal.state.is_upgrade }}'
-    depends_on:
-      kyverno: true
-    repo: sylva-core
-    kustomization_spec:
-      path: ./kustomize-units/kyverno-policies/cluster-prevent-rke2-helmcharts-calico-metallb
-      wait: true
-
   rke2-helmchart-prevent-uninstall:
     info:
       description: Kyverno policy to prevent key Helm charts from being uninstalled by RKE2 HelmChart controller
@@ -2780,7 +2763,6 @@ units:
       cluster-bmh: '{{ .Values.cluster.capi_providers.infra_provider | eq "capm3" }}'
       cluster-node-provider-id-blacklist: '{{ tuple . "cluster-node-provider-id-blacklist" | include "unit-enabled" }}'
       longhorn-instance-manager-cleanup: '{{ tuple . "longhorn-instance-manager-cleanup" | include "unit-enabled" }}'
-      cluster-prevent-rke2-helmcharts-calico-metallb: '{{ tuple . "cluster-prevent-rke2-helmcharts-calico-metallb" | include "unit-enabled" }}'
       rke2-helmchart-prevent-uninstall: '{{ and (tuple . "rke2-helmchart-prevent-uninstall" | include "unit-enabled") .Values._internal.state.is_upgrade }}'
       metallb: '{{ and (tuple . "metallb" | include "unit-enabled") .Values._internal.state.is_upgrade }}'
       calico: '{{ .Values._internal.state.is_upgrade }}'

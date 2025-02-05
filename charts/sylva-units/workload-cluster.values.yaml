@@ -170,9 +170,6 @@ units:
   cluster-node-provider-id-blacklist:
     enabled: true
 
-  cluster-prevent-rke2-helmcharts-calico-metallb:
-    enabled: true
-
   rke2-helmchart-prevent-uninstall:
     enabled: true
     kustomization_spec:
