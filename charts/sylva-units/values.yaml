@@ -2268,6 +2268,10 @@ units:
         - '{{ tuple "../components/check-images" .Values.security.upstream_images_signature.verify | include "set-only-if" }}'
         - '{{ tuple "../components/mutate-job-security-context" (tuple . "rancher" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "../components/neuvector-policies" (tuple . "neuvector" | include "unit-enabled") | include "set-only-if" }}'
+        - ../components/cluster-node-deletion-timeout-fix
+        - ../components/cluster-node-provider-id-blacklist
+        - ../components/prevent-mgmt-cluster-delete
+        - ../components/rke2-helmchart-prevent-uninstall
         - ../components/exclude-kube-system  # needs to be last (needed for components above that use sylva.org/kyverno-exclude-kube-system annotation)
 
   kyverno-policies-ready:
