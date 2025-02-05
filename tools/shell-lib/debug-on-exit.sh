@@ -251,8 +251,8 @@ EOB
   REQUEST_SUPPORT_BUNDLE=$(curl --retry 5 --retry-all-errors -sSX POST -H 'Content-Type: application/json' -d '{ "issueURL": "'"${ISSUE_URL}"'", "description": "'"${ISSUE_DESCRIPTION}"'" }' ${BACKEND_URL_BASE}/v1/supportbundles)
 
   ID=$( yq -p json -r '.id' <<< ${REQUEST_SUPPORT_BUNDLE} )
-  if [[ $ID == "null" ]]; then
-    echo "!!!! failed API call to create Longhorn support bundle (ID: $ID)"
+  if [[ $ID == "null" || $ID == "" ]]; then
+    echo "!!!! failed API call to create Longhorn support bundle (ID: $ID, REQUEST_SUPPORT_BUNDLE: $REQUEST_SUPPORT_BUNDLE)"
     return
   fi
 
@@ -348,6 +348,9 @@ function cluster_info_dump() {
 
   KUBECONFIG=$MGMT_KUBECONFIG helm get manifest -n $capi_cluster_namespace sylva-units | yq 'select(.kind!="Secret")' > $dump_dir/sylva-units-helm-release-manifest.yaml
 
+  KUBECONFIG=$MGMT_KUBECONFIG helm get manifest -n $capi_cluster_namespace cluster | yq 'select(.kind!="Secret")' > $dump_dir/cluster-helm-release-manifest.yaml
+  KUBECONFIG=$MGMT_KUBECONFIG helm get values -n $capi_cluster_namespace cluster  > $dump_dir/cluster-helm-release-values.yaml
+
   kubectl cluster-info dump -A -o yaml --show-managed-fields --output-directory=$dump_dir
 
   # produce a readable ordered log of events for each namespace
@@ -397,14 +400,48 @@ function cluster_info_dump() {
 
       echo "-- node $node"
 
+      remote_command $node echo test > $node_sysinfo_dumpdir/test.log
+
+      #remote_command $node timeout 120s apt-get update -q -y > $node_sysinfo_dumpdir/apt-update.log
+      remote_command $node timeout 120s apt-get install iputils-ping tcpdump -q -y > $node_sysinfo_dumpdir/apt-install.log
+
+      #remote_command $node timeout 120s zypper refresh > $node_sysinfo_dumpdir/zypper-refresh.log
+      remote_command $node timeout 120s zypper install -y iputils tcpdump > $node_sysinfo_dumpdir/zypper-install.log
+
+      cluster_vip=$(KUBECONFIG=$MGMT_KUBECONFIG kubectl -n $capi_cluster_namespace get cluster.cluster.x-k8s.io $capi_cluster_name -o yaml | yq .spec.controlPlaneEndpoint.host)
+      remote_command $node ping -c 10 $cluster_vip          > $node_sysinfo_dumpdir/vip-ping-arp.log
+      remote_command $node ip neighbour show $cluster_vip  >> $node_sysinfo_dumpdir/vip-ping-arp.log
+
+      remote_command $node ip route  > $node_sysinfo_dumpdir/ip-route.log
+      remote_command $node ip neighbour  > $node_sysinfo_dumpdir/ip-neighbor.log
+
       remote_command $node ss -apnm > $node_sysinfo_dumpdir/ss-apnm.log
 
-      remote_command $node iptables -t nat -nvL > $node_sysinfo_dumpdir/iptables-nat-1-before-clear-counters.log
+      step=1-before-clear
+      for t in filter nat mangle; do
+        remote_command $node iptables -t $t -nvL > $node_sysinfo_dumpdir/iptables-$t-$step.log
+      done
+
+      remote_command $node iptables -t mangle -nvL > $node_sysinfo_dumpdir/iptables-mangle-1-before-clear-counters.log
+      remote_command $node ip -d -s link > $node_sysinfo_dumpdir/ip-d-s-link-1-before.log
       # zeroing iptables counters (we'll retrieve counters below after waiting a bit)
       remote_command $node iptables -t nat -Z
-      sleep 10
-      remote_command $node iptables -t nat -nvL > $node_sysinfo_dumpdir/iptables-nat-2-after-clear-counters.log
-    } &
+
+      remote_command $node conntrack -L > $node_sysinfo_dumpdir/conntrack-1-before.log
+
+      # wait before dumping again
+      remote_command $node timeout 60s tcpdump -n -i any -e  > $node_sysinfo_dumpdir/tcpdump.log
+      sleep 60
+
+      # take counters after wait
+      step=2-after-clear
+      for t in filter nat mangle; do
+        remote_command $node iptables -t $t -nvL > $node_sysinfo_dumpdir/iptables-$t-$step.log
+      done
+
+      remote_command $node ip -d -s link > $node_sysinfo_dumpdir/ip-d-s-link-2-after.log
+      remote_command $node conntrack -L > $node_sysinfo_dumpdir/conntrack-2-after.log
+    }
   done
 
   wait
