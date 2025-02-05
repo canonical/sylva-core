@@ -3086,8 +3086,7 @@ units:
             value:
               name: kubeconfig-volume
               hostPath:
-                path: "management-cluster-kubeconfig"
-                type: "File"
+                path: "./management-cluster-kubeconfig"
           - op: add
             path: /spec/template/spec/containers/0/volumeMounts/-
             value:
