@@ -2,7 +2,7 @@
 apiVersion: external-secrets.io/v1beta1
 kind: ExternalSecret
 metadata:
-   name: neuvector-init
+   name: neuvector-usercfg
    namespace: neuvector
 spec:
    secretStoreRef:
@@ -10,11 +10,11 @@ spec:
       kind: ClusterSecretStore
    target:
       creationPolicy: Orphan
-      name: neuvector-init
+      name: neuvector-usercfg
       template:
          type: Opaque
          data:  # see https://open-docs.neuvector.com/deploying/production/configmap
-            passwordprofileinitcfg.yaml: |
+            passwordprofileinitcfg: |
               always_reload: true
               active_profile_name: default
               pwd_profiles:
@@ -33,7 +33,7 @@ spec:
                 enable_password_history: false
                 password_keep_history_count: 0
                 session_timeout: 600  # Optional. value between 30 -- 3600  default 300
-            userinitcfg.yaml: |
+            userinitcfg: |
               always_reload: true
               users:
               - Fullname: admin
