@@ -3943,6 +3943,8 @@ units:
         spec:
           chart: rke2-ingress-nginx
           version: "" # will be defined by helm_chart_versions
+      driftDetection:
+        mode: enabled
       upgrade:
         # Increase upgrade timeout as ingress-nginx pods have a longer terminationGracePeriodSeconds,
         # with a special case for pods that were deployed with a previous version of sylva where it was set to 300s
