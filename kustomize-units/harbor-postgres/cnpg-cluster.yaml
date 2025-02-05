@@ -22,7 +22,7 @@ spec:
   # process to temporarily store the custom format
   # dump coming from the source database
   storage:
-    size: 20Gi
+    size: 8Gi
     storageClass: ${storageClass}
   affinity:
     podAntiAffinityType: ${podAntiAffinityType}
