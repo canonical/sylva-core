@@ -4946,32 +4946,6 @@
             }
           ]
         },
-        "set_lb_class": {
-          "anyOf": [
-            {
-              "type": "boolean"
-            },
-            {
-              "$ref": "#/$defs/string-with-gotpl"
-            },
-            {
-              "type": "null"
-            }
-          ]
-        },
-        "loadBalancerClass": {
-          "anyOf": [
-            {
-              "type": "string"
-            },
-            {
-              "$ref": "#/$defs/string-with-gotpl"
-            },
-            {
-              "type": "null"
-            }
-          ]
-        },
         "enable_longhorn": {
           "anyOf": [
             {
@@ -6457,8 +6431,7 @@
                         "os": {
                           "anyOf": [
                             {
-                              "type": "string",
-                              "pattern": "[ubuntu|opensuse]"
+                              "type": "string"
                             },
                             {
                               "$ref": "#/$defs/string-with-gotpl"
@@ -6471,8 +6444,7 @@
                         "os-release": {
                           "anyOf": [
                             {
-                              "type": "string",
-                              "pattern": "[jammy|15.5]"
+                              "type": "string"
                             },
                             {
                               "$ref": "#/$defs/string-with-gotpl"
