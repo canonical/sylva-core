@@ -69,3 +69,24 @@ variables:
     - if: $CI_COMMIT_REF_PROTECTED == "true"
     - if: $WORKFLOW_NAME
       when: manual
+
+# Used to generate summary comment in MRs
+.summary:
+  image:
+    name: registry.gitlab.com/python-gitlab/python-gitlab:v5.6.0-alpine
+    entrypoint: [""]
+  before_script: []
+  tags:
+    - gitlab-org-docker
+  script:
+    - .gitlab/ci/scripts/pipeline_summary.py
+  rules:
+    - if: $SKIP_PIPELINE_SUMMARY == "true"
+      when: never
+    - if: $CI_MERGE_REQUEST_IID
+      when: always
+
+initialize-summary:
+  extends: .summary
+  stage: .post
+  needs: []
