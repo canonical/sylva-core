@@ -15,7 +15,7 @@
 | **kyverno** | installs Kyverno | core-component | [Helm chart](https://kyverno.github.io/kyverno) | 3.3.4 |
 | **calico** | install Calico CNI | stable | [Helm chart](https://rke2-charts.rancher.io) | v3.28.200, v3.29.000 |
 | **cinder-csi** | installs OpenStack Cinder CSI | stable | [Helm chart](https://kubernetes.github.io/cloud-provider-openstack) | 2.31.2 |
-| **cis-operator** | install CIS operator | stable | [Helm chart](https://charts.rancher.io) | 105.2.0+up7.2.0 |
+| **cis-operator** | install CIS operator | stable | [Helm chart](https://charts.rancher.io) | 105.1.0+up7.1.1 |
 | **cnpg-operator** | Cloud Native PostgreSQL (CNPG) Operator | stable | [Helm chart](https://cloudnative-pg.github.io/charts) | 0.23.0 |
 | **crossplane** | Installs Crossplane with RBAC Manager | stable | [Helm chart](https://charts.crossplane.io/stable) | 1.18.2 |
 | **external-secrets-operator** | installs the External Secrets operator | stable | [Helm chart](https://charts.external-secrets.io) | 0.12.1 |
