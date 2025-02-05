@@ -3326,6 +3326,7 @@ units:
             key: node-role.kubernetes.io/control-plane
         speaker:
           ignoreExcludeLB: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpk" | include "as-bool" }}'
+          priorityClassName: system-cluster-critical
           frr:
             enabled: false
           nodeSelector:
