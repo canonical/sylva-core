@@ -4656,6 +4656,8 @@ units:
       upgrade:
         crds: CreateReplace
       values:
+        manifests:
+          configMap: true
         rke2-whereabouts:
           enabled: true
           tolerations: []
