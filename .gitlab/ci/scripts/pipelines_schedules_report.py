@@ -228,9 +228,9 @@ def create_report():
                     else:
                         last_success_message = f"Pipeline succeed {days_since_event} day(s) ago"
                 else:
-                    last_success_message = f"Pipeline didn't succeed since at least {total} days"
+                    last_success_message = f"No success in past {total} days"
                 success_rate = f"{success}/{total} pipelines succeed"
-                rows_as_dict[child_name].insert(1, f"{success_rate}, {last_success_message}")
+                rows_as_dict[child_name].insert(1, f"{success_rate},<br>{last_success_message}")
 
             report_rows = list(rows_as_dict.values())
             print_report(tabulate(report_rows, headers=headers, tablefmt="pipe"))
