@@ -226,7 +226,7 @@ def create_report():
                     if days_since_event == 0:
                         last_success_message = "Pipeline succeed today"
                     else:
-                        last_success_message = f"Pipeline succeed {days_since_event} day(s) ago"
+                        last_success_message = f"Last success {days_since_event} day{'s'[:days_since_event>1]} ago"
                 else:
                     last_success_message = f"No success in past {total} days"
                 success_rate = f"{success}/{total} pipelines succeed"
