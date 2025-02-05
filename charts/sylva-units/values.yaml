@@ -2579,6 +2579,7 @@ units:
       wait: true
       _components:
         - '{{ tuple "components/ceph-csi-cephfs" (tuple . "ceph-csi-cephfs" | include "unit-enabled") | include "set-only-if" }}'
+        - '{{ tuple "components/metallb" (tuple . "metallb" | include "unit-enabled") | include "set-only-if" }}'
 
   metal3:
     info:
@@ -3298,7 +3299,8 @@ units:
     - base-deps
     enabled_conditions:
       - '{{ or (.Values.cluster.capi_providers.infra_provider | eq "capd")
-               (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpr") }}'
+               (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpr")
+               (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpoa") }}'
     depends_on:
       '{{ .Values._internal.calico_readiness_unit }}': '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpk" }}'
     helm_repo_url: https://metallb.github.io/metallb
