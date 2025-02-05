@@ -224,12 +224,12 @@ def create_report():
                     last_success_date = last_success_dates.get(child_name, 0)
                     days_since_event = (today - datetime.datetime.strptime(last_success_date, fmt)).days
                     if days_since_event == 0:
-                        last_success_message = "Pipeline succeed today"
+                        last_success_message = "Last pipeline Ok:heavy_check_mark:"
                     else:
-                        last_success_message = f"Last success {days_since_event} day{'s'[:days_since_event>1]} ago"
+                        last_success_message = f"Last success {days_since_event} day{'s'[:days_since_event > 1]} ago"
                 else:
                     last_success_message = f"No success in past {total} days"
-                success_rate = f"{success}/{total} pipelines succeed"
+                success_rate = f"success: {success}/{total} pipelines"
                 rows_as_dict[child_name].insert(1, f"{success_rate},<br>{last_success_message}")
 
             report_rows = list(rows_as_dict.values())
