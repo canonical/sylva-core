@@ -47,3 +47,25 @@ variables:
   variables:
     DOCKER_TLS_CERTDIR: ""
     DOCKER_HOST: tcp://docker:2375/
+
+# ----------------------------------------------------------
+
+# This job is necessary to be run to avoid pipeline interruption
+# when a new commit is pushed on the source branch
+# This job is available on MR deployment pipeline (must be run manually by user if needed)
+# This job is run automatically on protected branches.
+🚨 dont-interrupt-me:
+  stage: .pre
+  tags: [gitlab-org-docker]
+  image: alpine:edge
+  interruptible: false
+  allow_failure: true
+  variables:
+    GIT_STRATEGY: none
+  before_script: []
+  script:
+    - echo "This jobs makes sure this pipeline won't be interrupted!"
+  rules:
+    - if: $CI_COMMIT_REF_PROTECTED == "true"
+    - if: $WORKFLOW_NAME
+      when: manual
