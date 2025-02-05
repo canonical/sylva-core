@@ -3,4 +3,3 @@ kind: Kustomization
 resources:
   - ../kube-job
   - ../kube-cronjob
-  - secret.yaml

@@ -66,7 +66,7 @@ echo "-- Backup compressed."
 BACKUP_SECONDS=$SECONDS
 
 echo "-- Upload backup to S3"
-mcli --config-dir /s3-config mb backup/${S3_BUCKET} && \
+mcli --config-dir /s3-config alias set backup https://${S3_HOST} ${S3_ACCESS_KEY} ${S3_SECRET_KEY} && \
     mcli --config-dir /s3-config put /tmp/backup_cluster_capi_${NAMESPACE}.tar.gz backup/${S3_BUCKET} || exit 2
 
 echo "-- Backup uploaded"

@@ -752,6 +752,7 @@ units:
         - '{{ tuple "components/minio-operator" (tuple . "minio-operator" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/minio-monitoring" (tuple . "minio-monitoring" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/minio-logging" (tuple . "minio-logging" | include "unit-enabled") | include "set-only-if" }}'
+        - '{{ tuple "components/minio-backup" (tuple . "minio-backup" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/thanos" (tuple . "thanos" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/loki" (tuple . "loki" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/kepler" (tuple . "kepler" | include "unit-enabled") | include "set-only-if" }}'
@@ -7250,6 +7251,177 @@ units:
         managed_clusters_settings: '{{ tuple . "shared_workload_clusters_values" | include "interpret" }}{{ .Values.shared_workload_clusters_values | include "preserve-type" }}'
         workload_cluster_sylva_source: '{{ .Values.workload_clusters.sylva_source | include "preserve-type" }}'
 
+  minio-backup-init:
+    info:
+      description: sets up secrets and certificates for minio-backup. It's not meant to go into production. Rather use an external S3 service.
+      internal: true
+    unit_templates:
+    - base-deps
+    enabled_conditions:
+      - '{{ tuple . "minio-backup" | include "unit-enabled" }}'
+    depends_on:
+      namespace-defs: true
+      sylva-ca: true
+      vault: true
+      vault-config-operator: true
+      eso-secret-stores: true
+    repo: sylva-core
+    kustomization_substitute_secrets:
+      KEY: '{{ .Values.external_certificates.minio_backup.key | default "" | b64enc }}'
+    kustomization_spec:
+      path: ./kustomize-units/minio-tenant-init
+      wait: true
+      postBuild:
+        substitute:
+          TENANT_NAME: minio-backup
+          SERVICE: minio-backup
+          SERVICE_DNS: '{{ .Values.external_hostnames.minio_backup }}'
+          CERTIFICATE_NAMESPACE: minio-backup
+          CERT: '{{ .Values.external_certificates.minio_backup.cert | default "" | b64enc }}'
+          CACERT: '{{ .Values.external_certificates.cacert | default "" | b64enc }}'
+      _components:
+        - '{{ ternary "../tls-components/tls-secret" "../tls-components/tls-certificate" (hasKey .Values.external_certificates.minio_backup "cert") }}'
+        - "../tls-components/sylva-ca"
+
+  minio-backup:
+    info:
+      description: creates a MinIO tenant for the backup stack. It's not meant to go into production. Rather use an external S3 service.
+      maturity: beta
+    unit_templates:
+    - base-deps
+    enabled_conditions:
+      - '{{ hasKey (.Values.backup | dig "store" dict) "internalMinio" }}'
+    depends_on:
+      namespace-defs: true
+      minio-operator: true
+      minio-backup-init: true
+      ingress-nginx: '{{ tuple . "ingress-nginx" | include "unit-enabled" }}'
+      two-replicas-storageclass: '{{ tuple . "two-replicas-storageclass" | include "unit-enabled" }}'
+      '{{ .Values._internal.default_storage_class_unit }}': '{{ not (tuple . "two-replicas-storageclass" | include "unit-enabled") }}'
+    annotations:
+      sylvactl/readyMessage: MinIO backup tenant console can be reached at https://{{ .Values.external_hostnames.minio_backup_console }} ({{ .Values.external_hostnames.minio_backup_console }} must resolve to {{ .Values.display_external_ip }})
+    repo: minio-operator
+    helmrelease_spec:
+      targetNamespace: minio-backup
+      chart:
+        spec:
+          chart: helm/tenant
+      install:
+        createNamespace: false
+      values:
+        tenant:
+          name: backup
+          configSecret:
+            existingSecret: true
+            name: minio-backup-root
+            accessKey: ""
+            secretKey: ""
+          # The Kubernetes secret name that contains MinIO environment variable configurations:
+          configuration:
+            name: minio-backup-root
+          # Array of Kubernetes secrets from which the Operator generates MinIO users during tenant provisioning:
+          users:
+            - name: minio-backup-user
+          pools:
+            - servers: '{{ min .Values._internal.node_count 4 }}'
+              name: pool-0
+              volumesPerserver: 4
+              size: 500Mi
+              storageClassName: '{{ tuple . (tuple . "two-replicas-storageclass" | include "unit-enabled") "two-replicas-storageclass" .Values._internal.default_storage_class | include "interpret-ternary" }}'
+              containerSecurityContext:
+                runAsUser: 1000
+                runAsGroup: 1000
+                runAsNonRoot: true
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop:
+                    - ALL
+                seccompProfile:
+                  type: RuntimeDefault
+              securityContext:
+                runAsUser: 1000
+                runAsGroup: 1000
+                fsGroup: 1000
+                fsGroupChangePolicy: "OnRootMismatch"
+                runAsNonRoot: true
+                seccompProfile:
+                  type: RuntimeDefault
+              resources:
+                limits:
+                  cpu: 200m
+                  memory: 256Mi
+                requests:
+                  cpu: 100m
+                  memory: 128Mi
+              affinity:
+                podAntiAffinity:
+                  requiredDuringSchedulingIgnoredDuringExecution:
+                    - labelSelector:
+                        matchExpressions:
+                          - key: v1.min.io/pool
+                            operator: In
+                            values:
+                              - pool-0
+                          - key: v1.min.io/tenant
+                            operator: In
+                            values:
+                              - backup
+                      topologyKey: "kubernetes.io/hostname"
+          metrics:
+            enabled: true
+          env:
+          - name: MINIO_PROMETHEUS_AUTH_TYPE
+            value: public
+          features:
+            bucketDNS: false
+            enableSFTP: false
+          buckets:
+            - name: "sylva-backup"
+              region: "backup-cluster"
+              objectLock: false
+          prometheusOperator: false    # Prometheus Operator's Service Monitor for MinIO Tenant Pods
+          logging:
+            anonymous: true
+            json: true
+            quiet: true
+        ingress:
+          api:
+            enabled: true
+            ingressClassName: nginx
+            annotations:
+              nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+            host: '{{ .Values.external_hostnames.minio_backup }}'
+            path: /
+            pathType: Prefix
+            tls:
+              - hosts:
+                  - '{{ .Values.external_hostnames.minio_backup }}'
+                secretName: minio-backup-tls
+          console:
+            enabled: true
+            ingressClassName: nginx
+            annotations:
+              nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+            host: '{{ .Values.external_hostnames.minio_backup_console }}'
+            path: /
+            pathType: Prefix
+            tls:
+              - hosts:
+                  - '{{ .Values.external_hostnames.minio_backup_console }}'
+                secretName: minio-backup-tls
+    kustomization_spec:
+      # these healthChecks are added so that MinIO backend setup
+      # for tenant.minio.min.io/backup created by this unit is ready
+      healthChecks:
+        - apiVersion: apps/v1
+          kind: StatefulSet
+          name: backup-pool-0  # concatenation from .tenant chart values .name & .pools[0].name
+          namespace: minio-backup
+        - apiVersion: v1
+          kind: Secret
+          name: backup-tls
+          namespace: minio-backup
+
   backup-cluster-capi:
     info:
       description: Backup Cluster API resources
@@ -7259,14 +7431,28 @@ units:
     - base-deps
     - kube-job
     - kube-cronjob
+    depends_on:
+      minio-backup: '{{ hasKey (.Values.backup | dig "store" dict) "internalMinio" }}'
+    kustomization_substitute_secrets:
+      S3_ACCESS_KEY: '{{ .Values.backup | dig "store" "s3" "access_key" "" | b64enc }}'
+      S3_SECRET_KEY: '{{ .Values.backup | dig "store" "s3" "secret_key" "" | b64enc }}'
+      S3_CERT: '{{ .Values.backup | dig "store" "s3" "cert" "" }}'
     kustomization_spec:
       path: ./kustomize-units/backup
       postBuild:
         substitute:
           JOB_NAME: instant-backup-cluster-capi
+          S3_HOST: '{{ .Values.backup | dig "store" "s3" "host" "minio.minio-backup.svc.cluster.local" }}'
+          S3_BUCKET: '{{ .Values.backup | dig "store" "s3" "bucket" "sylva-backup" }}'
+        substituteFrom:
+        - kind: Secret
+          name: backup-minio-user
+          optional: true
       _components:
       - "./components/backup-cluster-capi"
       - "./components/backup-to-s3"
+      - '{{ tuple "./components/backup-to-s3/internal-minio" (hasKey (.Values.backup | dig "store" dict) "internalMinio") | include "set-only-if" }}'
+      - '{{ tuple "./components/backup-to-s3/external-service" (hasKey (.Values.backup | dig "store" dict) "s3") | include "set-only-if" }}'
       - '{{ tuple "./components/backup-to-s3/cert" (hasKey (.Values.backup | dig "store" "s3" dict) "cert") | include "set-only-if" }}'
       - '{{ tuple "./components/pushgateway" (tuple . "prometheus-pushgateway" | include "unit-enabled") | include "set-only-if" }}'
       _patches:
@@ -7276,10 +7462,6 @@ units:
           - op: replace
             path: /spec/schedule
             value:  "0 5 * * * "
-    kustomization_substitute_secrets:
-      S3_CONFIG: '{{ (dict "version" "10" "aliases" (dict "backup" (.Values.backup | dig "store" "s3" "config" dict))) | toJson | b64enc }}'
-      S3_CERT: '{{ .Values.backup | dig "store" "s3" "cert" "" }}'
-      S3_BUCKET: '{{ .Values.backup | dig "store" "s3" "bucket" "sylva-backup" }}'
 
 ##### stuff related to the 'cluster' unit #####
 #
@@ -7568,6 +7750,8 @@ external_hostnames:
   minio_monitoring_console: 'minio-monitoring-console.{{ .Values.cluster_domain }}'
   minio_logging: 'minio-logging.{{ .Values.cluster_domain }}'
   minio_logging_console: 'minio-logging-console.{{ .Values.cluster_domain }}'
+  minio_backup: 'minio-backup.{{ .Values.cluster_domain }}'
+  minio_backup_console: 'minio-backup-console.{{ .Values.cluster_domain }}'
   thanos: 'thanos.{{ .Values.cluster_domain }}'
   thanos_storegateway: 'thanos-storegateway.{{ .Values.cluster_domain }}'
   thanos_receive: 'thanos-receive.{{ .Values.cluster_domain }}'
@@ -7592,6 +7776,7 @@ external_certificates:
   minio_operator: {}
   minio_monitoring: {}
   minio_logging: {}
+  minio_backup: {}
   thanos: {}
   loki: {}
   grafana: {}
@@ -8338,12 +8523,10 @@ openshift:
 
 backup: {}
   # store:
+  #   internalMinio: {}
   #   s3:
-  #     config:
-  #       url: ""
-  #       api: s3v4
-  #       accessKey: ""
-  #       secretKey: ""
-  #       path: auto
+  #     url: ""
+  #     access_key: ""
+  #     secret_key: ""
   #     bucket: ""
   #     cert: ""
