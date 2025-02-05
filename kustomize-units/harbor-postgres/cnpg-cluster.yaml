@@ -13,11 +13,11 @@ spec:
   # Sets the resources for Guaranteed QoS
   resources:
     requests:
-      memory: "4Gi"
-      cpu: 2
+      memory: "1Gi"
+      cpu: 1
     limits:
-      memory: "4Gi"
-      cpu: 2
+      memory: "1Gi"
+      cpu: 1
   # This volume will also be used by the import
   # process to temporarily store the custom format
   # dump coming from the source database
