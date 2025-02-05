@@ -224,7 +224,7 @@ def create_report():
                     last_success_date = last_success_dates.get(child_name, 0)
                     days_since_event = (today - datetime.datetime.strptime(last_success_date, fmt)).days
                     if days_since_event == 0:
-                        last_success_message = "Last pipeline Ok:heavy_check_mark:"
+                        last_success_message = "Last pipeline Ok :heavy_check_mark:"
                     else:
                         last_success_message = f"Last success {days_since_event} day{'s'[:days_since_event > 1]} ago"
                 else:
