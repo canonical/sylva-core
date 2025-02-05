@@ -3079,8 +3079,8 @@ units:
     kustomization_spec:
       _patches:
       - target:
-          kind: role
-          name: cluster-machines-ready
+          kind: ClusterRole
+          name: kube-job-cluster-machines-ready-sylva-system
         patch: |
           - op: add
             path: /rules/-
