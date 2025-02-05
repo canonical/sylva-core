@@ -3080,18 +3080,13 @@ units:
       _patches:
       - target:
           kind: ClusterRole
-          name: kube-job-cluster-machines-ready-sylva-system
         patch: |
-          - op: add
-            path: /rules/-
+          - op: replace
+            path: rules/
             value:
               apiGroups: [""]
-              resources:
-                - nodes
-              verbs:
-                - get
-                - list
-                - watch
+              resources: [nodes]
+              verbs: [list, get, watch]
       - target:
           kind: Job
         patch: |
