@@ -850,6 +850,18 @@ properties:
             format: hostname
           - const: ''
           - $ref: "#/$defs/string-with-gotpl"
+      minio_backup:  # -------------------------------
+        anyOf:
+          - type: string
+            format: hostname
+          - const: ''
+          - $ref: "#/$defs/string-with-gotpl"
+      minio_backup_console:  # -------------------------------
+        anyOf:
+          - type: string
+            format: hostname
+          - const: ''
+          - $ref: "#/$defs/string-with-gotpl"
       thanos:  # -------------------------------
         anyOf:
           - type: string
@@ -932,6 +944,8 @@ properties:
       minio_monitoring:  # -------------------------------
         $ref: "#/$defs/cert-and-key"
       minio_logging:  # -------------------------------
+        $ref: "#/$defs/cert-and-key"
+      minio_backup:  # -------------------------------
         $ref: "#/$defs/cert-and-key"
       thanos:  # -------------------------------
         $ref: "#/$defs/cert-and-key"
@@ -1548,11 +1562,17 @@ properties:
     additionalProperties: false
     properties:
       store:
-        additionalProperties: false
-        type: object
-        properties:
-          s3:
-            type: object
+        oneOf:
+        - type: object
+          additionalProperties: false
+          properties:
+            internalMinio:
+              type: object
+        - type: object
+          additionalProperties: false
+          properties:
+            s3:
+              type: object
 
 
   # Placeholder for external units that would need to define their own values

@@ -530,6 +530,14 @@ units:
         - '{{ tuple "components/vault-issuer" (eq .Values.security.external_x509_issuer.issuer_type "vault") | include "set-only-if"}}'
         - '{{ tuple "components/ca-issuer" (not (hasKey .Values.security.external_x509_issuer "issuer_type")) | include "set-only-if" }}'
 
+  backup-cluster-capi:
+    unit_templates:
+    - base-deps
+    - kube-job
+    - kube-cronjob
+    - kustomization-deployed-on-mgmt-cluster
+    kustomization_spec:
+      targetNamespace: '{{ .Release.Namespace }}'  # (in mgmt cluster)
 
 cluster_domain: '{{ .Values.cluster.name }}.{{ .Values._internal.workload_clusters_cluster_subdomain }}'
 
