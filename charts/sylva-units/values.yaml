@@ -58,7 +58,7 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
     spec:
       url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-capi-cluster.git
       ref:
-        tag: 0.4.10
+        tag: 0.4.11
 
   devnull:
     kind: GitRepository
@@ -2607,6 +2607,7 @@ units:
           ironicIP: '{{ .Values.display_external_ip }}'
           provisioningInterface: eth0
         metal3-ironic:
+          fullnameOverride: metal3-ironic
           service:
             type: LoadBalancer
             externalIPs:
@@ -2624,6 +2625,17 @@ units:
         metal3-mariadb:
           persistence:
             storageClass: '{{ .Values._internal.default_storage_class }}'
+      _postRenderers:
+        - kustomize:
+            patches:
+              - patch: |
+                  kind: Service
+                  apiVersion: v1
+                  metadata:
+                    name: metal3-ironic
+                  spec:
+                    type: LoadBalancer
+                    loadBalancerClass: '{{ .Values._internal.loadBalancerClass }}'
 
   metal3-pdb:
     info:
@@ -3301,6 +3313,7 @@ units:
                (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpr") }}'
     depends_on:
       '{{ .Values._internal.calico_readiness_unit }}': '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpk" }}'
+      cluster-vip: '{{ and (tuple . "cluster-vip" | include "unit-enabled") .Values._internal.state.is_upgrade }}'
     helm_repo_url: https://metallb.github.io/metallb
     helmrelease_spec:
       chart:
@@ -3311,6 +3324,7 @@ units:
       install:
         createNamespace: true
       values:
+        loadBalancerClass: '{{ .Values._internal.loadBalancerClass }}'
         controller:
           nodeSelector:
             node-role.kubernetes.io/control-plane: '{{ .Values._internal.cp_node_label_value }}'
@@ -3678,6 +3692,32 @@ units:
           AUTH_USER_INFO_RESYNC_CRON: '{{ .Values.rancher.auth_user_info_resync_cron | quote }}'
       wait: true
 
+  k8s-gateway-cleanup:
+    info:
+      description: Remove k8s-gateway service from previous deployments (This unit should be removed after Sylva 1.3)
+      internal: true
+    unit_templates:
+    - base-deps
+    - kube-job
+    enabled_conditions:
+    - '{{ tuple . "k8s-gateway" | include "unit-enabled" }}'
+    - '{{ .Values._internal.state.is_upgrade }}'
+    - '{{ not (lookup "v1" "ConfigMap" .Release.Namespace "sylva-units-status" | dig "annotations" "sylva.org/lbclass-migration-1.3-1.4" "" | eq "done") }}'
+    depends_on:
+      metallb-resources: '{{ tuple . "metallb" | include "unit-enabled" }}'
+    kustomization_spec:
+      targetNamespace: k8s-gateway
+      _patches:
+      - target:
+          kind: ConfigMap
+          labelSelector: kube-job=script
+        patch: |
+          - op: replace
+            path: /data/kube-job.sh
+            value: |
+              #!/bin/bash
+              kubectl -n k8s-gateway delete service k8s-gateway --ignore-not-found=true
+
   k8s-gateway:
     info:
       description: installs k8s gateway (coredns + plugin to resolve external service names to ingress IPs)
@@ -3688,6 +3728,7 @@ units:
     - base-deps
     depends_on:
       metallb-resources: '{{ tuple . "metallb" | include "unit-enabled" }}'
+      k8s-gateway-cleanup: '{{ tuple . "k8s-gateway-cleanup" | include "unit-enabled" }}'
     helm_repo_url: https://ori-edge.github.io/k8s_gateway/
     helmrelease_spec:
       chart:
@@ -3695,8 +3736,12 @@ units:
           chart: k8s-gateway
           version: 2.4.0
       targetNamespace: k8s-gateway
+      driftDetection:
+        mode: enabled
       install:
         createNamespace: true
+      upgrade:
+        force: true
       values:
         domain: '{{ .Values.cluster_domain }}'
         replicaCount: 3
@@ -3729,9 +3774,17 @@ units:
       _postRenderers:
         - kustomize:
             patches:
-              - patch: |-
-                  apiVersion: apps/v1
+              - patch: |
+                  kind: Service
+                  apiVersion: v1
+                  metadata:
+                    name: k8s-gateway
+                  spec:
+                    type: LoadBalancer
+                    loadBalancerClass: '{{ .Values._internal.loadBalancerClass }}'
+              - patch: |
                   kind: Deployment
+                  apiVersion: apps/v1
                   metadata:
                     name: k8s-gateway
                   spec:
@@ -3750,6 +3803,26 @@ units:
                             seccompProfile:
                               type: RuntimeDefault
 
+  cluster-vip-fix-lbclass:
+    info:
+      description: Set loadBalancerClass to cluster-vip service and metallb components
+      details: This unit can be removed after next release when the loadBalancerClass is set by default
+      internal: true
+    unit_templates:
+    - base-deps
+    - kube-job
+    enabled_conditions:
+    - '{{ tuple . "metallb" | include "unit-enabled" }}'
+    - '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" }}'
+    - '{{ .Values._internal.state.is_upgrade }}'
+    - '{{ not (lookup "v1" "ConfigMap" .Release.Namespace "sylva-units-status" | dig "annotations" "sylva.org/lbclass-migration-1.3-1.4" "" | eq "done") }}'
+    kustomization_spec:
+      wait: true
+      path: ./kustomize-units/cluster-vip-lbclass
+      postBuild:
+        substitute:
+          NAMESPACE: kube-system
+
   cluster-vip:
     info:
       description: Defines the cluster-vip Service for MetalLB load-balancing
@@ -3764,9 +3837,12 @@ units:
       internal: true
     unit_templates:
     - base-deps
+    - kube-job
     enabled_conditions:
     - '{{ tuple . "metallb" | include "unit-enabled" }}'
     - '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" }}'
+    depends_on:
+      cluster-vip-fix-lbclass: '{{ tuple . "cluster-vip-fix-lbclass" | include "unit-enabled" }}'
     repo: sylva-core
     kustomization_spec:
       path: ./kustomize-units/cluster-vip
@@ -3778,6 +3854,7 @@ units:
           # except in the CAPO case where we don't know it beforehand in values and we take it
           # from capo-cluster-resources ConfigMap (see substituteFrom below)
           allocated_ip: '{{ tuple .Values.cluster_virtual_ip (not (.Values.cluster.capi_providers.infra_provider | eq "capo")) | include "set-only-if" }}'
+          lb_class: sylva.org/metallb-class
         substituteFrom:
         # see explanation above about allocated_ip / cluster_virtual_ip in CAPO case
         - kind: ConfigMap
@@ -3827,6 +3904,32 @@ units:
             namespace: '{{ .Release.Namespace }}'
           cattle_agent_kustomize_path: ./cattle-kustomize
 
+  ingress-nginx-cleanup:
+    info:
+      description: Remove rke2-ingress-nginx service from previous deployments (This unit should be removed after Sylva 1.3)
+      internal: true
+    unit_templates:
+    - base-deps
+    - kube-job
+    enabled_conditions:
+    - '{{ tuple . "ingress-nginx" | include "unit-enabled" }}'
+    - '{{ .Values._internal.state.is_upgrade }}'
+    - '{{ not (lookup "v1" "ConfigMap" .Release.Namespace "sylva-units-status" | dig "annotations" "sylva.org/lbclass-migration-1.3-1.4" "" | eq "done") }}'
+    depends_on:
+      metallb-resources: '{{ tuple . "metallb" | include "unit-enabled" }}'
+    kustomization_spec:
+      targetNamespace: kube-system
+      _patches:
+      - target:
+          kind: ConfigMap
+          labelSelector: kube-job=script
+        patch: |
+          - op: replace
+            path: /data/kube-job.sh
+            value: |
+              #!/bin/bash
+              kubectl -n kube-system delete service rke2-ingress-nginx-controller --ignore-not-found=true
+
   ingress-nginx:
     info:
       description: installs Nginx ingress controller
@@ -3836,6 +3939,7 @@ units:
     depends_on:
       metallb-resources: '{{ tuple . "metallb" | include "unit-enabled" }}'
       '{{ .Values._internal.calico_readiness_unit }}': '{{ tuple . "calico" | include "unit-enabled" }}'
+      ingress-nginx-cleanup: '{{ tuple . "ingress-nginx-cleanup" | include "unit-enabled" }}'
     helm_repo_url: https://rke2-charts.rancher.io
     helm_chart_versions:
       4.10.501: '{{ include "k8s-version-match" (tuple ">=1.28.0,<1.29.0" .Values._internal.k8s_version) }}'
@@ -3847,6 +3951,8 @@ units:
         spec:
           chart: rke2-ingress-nginx
           version: "" # will be defined by helm_chart_versions
+      driftDetection:
+        mode: enabled
       upgrade:
         # Increase upgrade timeout as ingress-nginx pods have a longer terminationGracePeriodSeconds,
         # with a special case for pods that were deployed with a previous version of sylva where it was set to 300s
@@ -3857,6 +3963,7 @@ units:
           {{- else -}}
             30m
           {{- end -}}
+        force: true
       values:
         fullnameOverride: rke2-ingress-nginx
         controller:
@@ -3871,6 +3978,7 @@ units:
             node-role.kubernetes.io/control-plane: '{{ .Values._internal.cp_node_label_value }}'
           kind: DaemonSet
           service:
+            loadBalancerClass: '{{ .Values._internal.loadBalancerClass }}'
             enabled: true
             externalIPs:
             - '{{ .Values.cluster_virtual_ip }}'
@@ -8035,6 +8143,8 @@ _internal:
               (tuple . "metallb" | include "unit-enabled"))
       | include "set-only-if"
     }}'
+
+  loadBalancerClass: '{{ tuple . (eq .Values.cluster.capi_providers.bootstrap_provider "cabpr") "sylva.org/metallb-class" "kube-vip.io/kube-vip-class" | include "interpret-ternary" }}'
 
   previous_values: '{{ omit (lookup "v1" "Secret" .Release.Namespace "sylva-units-values" | dig "data" "values" "" | b64dec | fromYaml | default dict) "unit_templates" | include "preserve-type" }}'
 

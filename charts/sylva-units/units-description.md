@@ -66,8 +66,8 @@
 <!-- markdownlint-disable MD044 -->
 | name | full description | source | version |
 | :----- | :----- | :----- | :----- |
-| **cluster** | holds the Cluster API definition for the cluster | [Helm chart](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-capi-cluster.git) | 0.4.10 |
-| **cluster-bmh** | definitions for Cluster API BareMetalHosts resources (capm3) | [Helm chart](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-capi-cluster.git) | 0.4.10 |
+| **cluster** | holds the Cluster API definition for the cluster | [Helm chart](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-capi-cluster.git) | 0.4.11 |
+| **cluster-bmh** | definitions for Cluster API BareMetalHosts resources (capm3) | [Helm chart](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-capi-cluster.git) | 0.4.11 |
 | **heat-operator** | installs OpenStack Heat operator | [Kustomization](https://gitlab.com/sylva-projects/sylva-elements/heat-operator.git/config/default?ref=0.0.10) | 0.0.10 |
 | **capo-contrail-bgpaas** | installs CAPO Contrail BGPaaS controller | [Helm chart](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/capo-contrail-bgpaas.git) | 1.0.4 |
 | **libvirt-metal** | installs libvirt for baremetal emulation<br/><br/>this unit is used in bootstrap cluster for baremetal testing | [Helm chart](https://gitlab.com/sylva-projects/sylva-elements/container-images/libvirt-metal.git) | 0.1.19 |
@@ -106,6 +106,7 @@
 | **cluster-reachable** | ensure that created clusters are reachable, and make failure a bit more explicit if it is not the case<br/><br/>This unit will be enabled in bootstrap cluster to check connectivity to management cluster and in various workload-cluster namespaces in management cluster to check connectivity to workload clusters | Kustomization |
 | **cluster-ready** | unit to check readiness of cluster CAPI objects<br/><br/>the healthChecks on this unit complements the one done in the 'cluster' unit, which in some cases can't cover all CAPI resources | Kustomization |
 | **cluster-vip** | Defines the cluster-vip Service for MetalLB load-balancing<br/><br/>MetalLB will only handle the VIP if it has a corresponding service with endpoints, but we don't want that the API access (6443) relies on kube-proxy, because on RKE2 agent nodes, kube-proxy uses RKE2 internal load-balancing proxy that may fall-back to the VIP to access the API, which could create a deadlock if endpoints are not up-to-date.<br/>The cluster-vip Service that plays this role. This unit manages this resource, taking over the control after the initial creation of this Service by a cloud-init post command on the first node). | Kustomization |
+| **cluster-vip-fix-lbclass** | Set loadBalancerClass to cluster-vip service and metallb components<br/><br/>This unit can be removed after next release when the loadBalancerClass is set by default | Kustomization |
 | **coredns** | configures DNS inside cluster | Kustomization |
 | **crossplane-init** | sets up Crossplane prerequisites<br/><br/>it creates the namespace and generates CA certificate secret to be used by 'crossplane' unit | Kustomization |
 | **eso-secret-stores** | defines External Secrets stores | Kustomization |
@@ -117,6 +118,8 @@
 | **gitea-secrets** | create random secret that will be used by gitea application. secrets are sync with vault. | Kustomization |
 | **grafana-init** | sets up Grafana certificate for Keycloak OIDC integration | Kustomization |
 | **harbor-init** | sets up Harbor prerequisites<br/><br/>it generates namespace, certificate, admin password, OIDC configuration | Kustomization |
+| **ingress-nginx-cleanup** | Remove rke2-ingress-nginx service from previous deployments (This unit should be removed after Sylva 1.3) | Kustomization |
+| **k8s-gateway-cleanup** | Remove k8s-gateway service from previous deployments (This unit should be removed after Sylva 1.3) | Kustomization |
 | **keycloak-add-client-scope** | configures Keycloak client-scope<br/><br/>a job to manually add a custom client-scope to sylva realm (on top of default ones) while CRD option does not yet provide good results (overrides defaults) | Kustomization |
 | **keycloak-add-realm-role** | Creates Keycloak realm role<br/><br/>a job to manually create a custom realm role to sylva realm (on top of default ones) and assigns it to sylva-admin while CRD option does not allow updates. | Kustomization |
 | **keycloak-add-truststore** | configures Keycloak truststore<br/><br/>a job to manually add a truststore to Keycloak instance, e.h. to enable LDAPS protocol when using user federation) | Kustomization |

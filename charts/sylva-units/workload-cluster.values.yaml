@@ -301,10 +301,18 @@ units:
   metallb-resources:
     enabled: true
 
+  cluster-vip-fix-lbclass:
+    enabled: true
+    kustomization_spec:
+      targetNamespace: null  # cancel the targetNamespace set in unit_kustomization_spec_default
+
   cluster-vip:
     enabled: true
     kustomization_spec:
       targetNamespace: null  # cancel the targetNamespace set in unit_kustomization_spec_default
+
+  ingress-nginx-cleanup:
+    enabled: true
 
   ingress-nginx:
     enabled: true
