@@ -3079,6 +3079,20 @@ units:
     kustomization_spec:
       _patches:
       - target:
+          kind: role
+          name: cluster-machines-ready
+        patch: |
+          - op: add
+            path: /rules/-
+            value:
+              apiGroups: [""]
+              resources:
+                - nodes
+              verbs:
+                - get
+                - list
+                - watch
+      - target:
           kind: Job
         patch: |
           - op: add
