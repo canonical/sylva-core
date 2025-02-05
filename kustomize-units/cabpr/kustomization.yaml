@@ -12,8 +12,8 @@ labels:
   - pairs:
       clusterctl.cluster.x-k8s.io: ""
 
-images:
-- name: ghcr.io/rancher/cluster-api-provider-rke2-controlplane:v0.7.1
-  newName: registry.gitlab.com/sylva-projects/sylva-elements/container-images/sandbox-registry/cluster-api-provider-rke2-controlplane-amd64
-  newTag: 0.7.1-skip-etcd-membership-removal-3
+#images:
+#- name: ghcr.io/rancher/cluster-api-provider-rke2-controlplane:v0.7.1
+#  newName: registry.gitlab.com/sylva-projects/sylva-elements/container-images/sandbox-registry/cluster-api-provider-rke2-controlplane-amd64
+#  newTag: 0.7.1-skip-etcd-membership-removal-3
 

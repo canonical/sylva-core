@@ -251,8 +251,8 @@ EOB
   REQUEST_SUPPORT_BUNDLE=$(curl --retry 5 --retry-all-errors -sSX POST -H 'Content-Type: application/json' -d '{ "issueURL": "'"${ISSUE_URL}"'", "description": "'"${ISSUE_DESCRIPTION}"'" }' ${BACKEND_URL_BASE}/v1/supportbundles)
 
   ID=$( yq -p json -r '.id' <<< ${REQUEST_SUPPORT_BUNDLE} )
-  if [[ $ID == "null" ]]; then
-    echo "!!!! failed API call to create Longhorn support bundle (ID: $ID)"
+  if [[ $ID == "null" || $ID == "" ]]; then
+    echo "!!!! failed API call to create Longhorn support bundle (ID: $ID, REQUEST_SUPPORT_BUNDLE: $REQUEST_SUPPORT_BUNDLE)"
     return
   fi
 
@@ -396,6 +396,18 @@ function cluster_info_dump() {
       mkdir -p $node_sysinfo_dumpdir
 
       echo "-- node $node"
+
+      remote_command $node timeout 60s apt-get update
+      remote_command $node timeout 60s apt-get install iputils-ping tcpdump -y
+
+      remote_command $node timeout 60s zypper refresh
+      remote_command $node timeout 60s zypper install -y iputils tcpdump
+
+      cluster_vip=$(KUBECONFIG=$MGMT_KUBECONFIG kubectl -n $capi_cluster_namespace get cluster.cluster.x-k8s.io $capi_cluster_name -o yaml | yq .spec.controlPlaneEndpoint.host)
+      remote_command $node ping -c 10 $cluster_vip          > $node_sysinfo_dumpdir/vip-ping-arp.log
+      remote_command $node ip neighbour show $cluster_vip  >> $node_sysinfo_dumpdir/vip-ping-arp.log
+
+      remote_command $node timeout 5s tcpdump -n -i any -e  > $node_sysinfo_dumpdir/tcpdump.log
 
       remote_command $node ss -apnm > $node_sysinfo_dumpdir/ss-apnm.log
 
