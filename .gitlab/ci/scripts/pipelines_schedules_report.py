@@ -86,6 +86,7 @@ def pipeline_summary(pipeline):
     ignored_jobs = [
         "create-runner",
         "create-runner-wait",
+        "🚨 dont-interrupt-me",
     ]
     for job in jobs:
         # Don't display jobs in if they are in ignored_jobs list and succeed
