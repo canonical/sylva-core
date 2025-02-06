@@ -1,7 +1,0 @@
-apiVersion: v1
-kind: Secret
-metadata:
-  name: extra-ca-certs-job-get-openstack-images
-data:
-  extra-ca-certs.pem: ${EXTRA_CA_CERTS}
-type: Opaque
