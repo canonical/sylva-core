@@ -22,27 +22,27 @@ Below you can choose test deployment variants to run in this MR's CI.
 | ☁   | **Infra Provider**       | `capd`, `capo`, `capm3`                                                   |
 | 🚀  | **Bootstrap Provider**   | `kubeadm` (alias `kadm`), `rke2`                                          |
 | 🐧  | **Node OS**              | `ubuntu`, `suse`                                                          |
-| 🛠  | **Deployment Options**    | `light-deploy`, `oci`, `ha`, `misc`                                       |
+| 🛠  | **Deployment Options**    | `light-deploy`, `dev-sources`, `ha`, `misc`                                       |
 | 🎬  | **Pipeline Scenarios**   | [Available scenario list and description](https://gitlab.com/sylva-projects/sylva-core/-/blob/main/.gitlab/README.md?ref_type=heads#scenario-description)  |
 
 <!-- DEPLOYMENT FLAVOR DEFINITION START -->
 
-* [ ] 🎬 preview ☁ capd 🚀 kadm 🐧 ubuntu 🛠 oci
+* [x] 🎬 preview ☁ capd 🚀 kadm 🐧 ubuntu
 * [ ] 🎬 preview ☁ capo 🚀 rke2 🐧 suse
 * [ ] 🎬 preview ☁ capm3 🚀 rke2 🐧 ubuntu
 
 * [x] ☁ capd 🚀 kadm 🛠 light-deploy 🐧 ubuntu
-* [x] ☁ capd 🚀 rke2 🛠 oci,light-deploy 🐧 suse
+* [x] ☁ capd 🚀 rke2 🛠 light-deploy 🐧 suse
 
-* [x] ☁ capo 🚀 rke2 🛠 oci 🐧 suse
-* [x] ☁ capo 🚀 kadm 🛠 oci 🐧 ubuntu
+* [x] ☁ capo 🚀 rke2 🐧 suse
+* [x] ☁ capo 🚀 kadm 🐧 ubuntu
 * [ ] ☁ capo 🚀 rke2 🎬 rolling-update 🛠 ha 🐧 ubuntu
 * [ ] ☁ capo 🚀 kadm 🎬 wkld-k8s-upgrade 🐧 ubuntu
 * [ ] ☁ capo 🚀 rke2 🎬 rolling-update-no-wkld 🛠 ha,misc 🐧 suse
 * [ ] ☁ capo 🚀 rke2 🎬 sylva-upgrade-from-1.3.x 🛠 ha,misc 🐧 ubuntu
 
 * [x] ☁ capm3 🚀 rke2 🐧 suse
-* [x] ☁ capm3 🚀 kadm 🛠 oci 🐧 ubuntu
+* [x] ☁ capm3 🚀 kadm 🐧 ubuntu
 * [ ] ☁ capm3 🚀 kadm 🎬 rolling-update-no-wkld 🛠 ha,misc 🐧 ubuntu
 * [ ] ☁ capm3 🚀 rke2 🎬 wkld-k8s-upgrade 🛠 ha 🐧 suse
 * [ ] ☁ capm3 🚀 kadm 🎬 rolling-update 🛠 ha 🐧 ubuntu

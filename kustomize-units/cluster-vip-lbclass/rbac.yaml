@@ -1,0 +1,25 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: cluster-vip-patch-metallb
+  namespace: metallb-system
+rules:
+- apiGroups: ["*"]
+  resources: ["*"]
+  verbs: ["*"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: cluster-vip-patch-metallb
+  namespace: metallb-system
+subjects:
+- kind: ServiceAccount
+  name: ${JOB_NAME}-sa
+  namespace: ${NAMESPACE}
+roleRef:
+  kind: Role
+  name: cluster-vip-patch-metallb
+  apiGroup: rbac.authorization.k8s.io
+

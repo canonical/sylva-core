@@ -176,6 +176,9 @@ def generate_ci_job_struct(job_names, global_options):
             ci_jobs[job].setdefault("variables", {})
             ci_jobs[job]["variables"]["SKIP_TESTS"] = "true"
 
+        # Deployment jobs use OCI by default
+        ci_jobs[job]["extends"].append(".wait-publish-jobs")
+
         scenario = re.compile(r"🎬\s*([\w\d\.-]+)").findall(job)
         if scenario:
             if scenario[0] in ALLOWED_SCENARIOS.split(","):
@@ -194,8 +197,8 @@ def generate_ci_job_struct(job_names, global_options):
         if option_match:
             options = option_match[0].split(",")
 
-        if "oci" in options:
-            ci_jobs[job]["extends"].append(".wait-publish-jobs")
+        if "dev-sources" in options:
+            ci_jobs[job]["extends"].remove(".wait-publish-jobs")
 
         if infra[0] == "capm3" and "single-node" not in options:
             ci_jobs[job].setdefault("variables", {})
