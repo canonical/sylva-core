@@ -1093,6 +1093,7 @@ units:
       path: ./kustomize-units/harbor-postgres
       wait: true
       _components:
+        - '{{ tuple "./components/ha" (.Values._internal.ha_cluster.is_ha) | include "set-only-if" }}'
         - '{{ tuple "./components/harbor-upgrade-db" (and .Values._internal.state.is_upgrade (tuple . "harbor" | include "unit-enabled")) | include "set-only-if" }}'
 
   harbor:
