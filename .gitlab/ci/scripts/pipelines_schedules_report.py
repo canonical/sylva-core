@@ -28,7 +28,12 @@ project_id = os.getenv("CI_PROJECT_ID", default="42451983")
 pipeline_schedule_name = os.getenv("PIPELINE_SCHEDULE_NAME_SELECTOR", default="Nightly")
 project = gl.projects.get(project_id)
 print("retrieving pipeline schedules")
-pipeline_schedules = project.pipelineschedules.list()
+try:
+    pipeline_schedules = project.pipelineschedules.list()
+except gitlab.exceptions.GitlabHttpError as e:
+    print(f"error on pipelineschedules.list {e}\n  {e.response_body}")
+    raise
+
 print("  done")
 
 REPORT_FILE = "report_output.md"
