@@ -223,10 +223,12 @@ include:
     export KIND_CLUSTER_NAME="bootstrap-${ENV_TAG}"
     export MANAGEMENT_CLUSTER_NAME="mgmt-${ENV_TAG}"
     export WORKLOAD_CLUSTER_NAME="wc-${ENV_TAG}"
+    export OCI_TAG="$OCI_TAG_FORMAT"
 
-    if [[ ${DEPLOYMENT_OPTIONS} == *"oci"* ]] && [[ ${DEPLOYMENT_OPTIONS} != *"no-oci"* ]]; then
-      export OCI_TAG="$OCI_TAG_FORMAT"
+    if [[ ${DEPLOYMENT_OPTIONS} == *"dev-sources"* ]]; then
+      unset OCI_TAG
     fi
+
   - !reference [.sylva_ci_versioned_ci_values_folder]
   - |
       echo -e "[\\e[1;94mEnvironment INFO\\e[0m]"
@@ -303,8 +305,8 @@ include:
     update_values_file node-os-${DEPLOYMENT_OS}.yml
     options=$(echo $DEPLOYMENT_OPTIONS | tr "," "\n")
     for option in $options; do
-      if [[ $option == "oci" ]]; then
-        echo "OCI will be configured later"
+      if [[ $option == "dev-sources" ]]; then
+        echo "dev-sources option is set, OCI configuration will be disabled"
       elif [[ $option == "misc" ]]; then
         if [[ "$DEPLOYMENT_INFRA_PROV" == "capo" ]] && [[ "${CLUSTER_TYPE}" == "management" ]]; then
           update_values_file misc-units-in-capo.yml
