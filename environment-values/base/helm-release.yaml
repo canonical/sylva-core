@@ -15,6 +15,8 @@ apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: sylva-units
+  labels:
+    sylva-units/protected: ""
 spec:
   chart:
     spec:

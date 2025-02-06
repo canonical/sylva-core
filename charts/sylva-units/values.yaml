@@ -543,6 +543,8 @@ units:
       description: contains Flux definitions *to manage the Flux system itself via gitops*
       details: Note that Flux is always installed on the current cluster as a pre-requisite to installing the chart
       maturity: core-component
+    labels:
+      sylva-units/protected: ""
     repo: sylva-core
     unit_templates: # we intendedly don't inherit from base-deps, because flux is itself part of base dependencies
     - flux-common
@@ -2698,6 +2700,8 @@ units:
     info:
       description: definitions for Cluster API BareMetalHosts resources (capm3)
       maturity: core-component
+    labels:
+      sylva-units/protected: ""
     repo: sylva-capi-cluster
     helm_chart_artifact_name: sylva-capi-cluster
     unit_templates:
@@ -2765,6 +2769,8 @@ units:
     info:
       description: holds the Cluster API definition for the cluster
       maturity: core-component
+    labels:
+      sylva-units/protected: ""
     repo: sylva-capi-cluster
     unit_templates: []
     helm_chart_artifact_name: sylva-capi-cluster
@@ -3115,6 +3121,8 @@ units:
     info:
       description: installs OpenStack Heat stack for CAPO cluster prerequisites
       internal: true
+    labels:
+      sylva-units/protected: ""
     unit_templates:
     - base-deps
     enabled_conditions:
@@ -3148,6 +3156,8 @@ units:
       description: installs Calico CRDs
       maturity: stable
       hidden: true
+    labels:
+      sylva-units/protected: ""
     unit_templates:
       - '{{ tuple "base-deps" (not .Values._internal.state.is_upgrade) | include "set-only-if" }}'
     enabled_conditions:
@@ -3172,6 +3182,8 @@ units:
     info:
       description: install Calico CNI
       maturity: stable
+    labels:
+      sylva-units/protected: ""
     unit_templates:
       - '{{ tuple "base-deps" (not .Values._internal.state.is_upgrade) | include "set-only-if" }}'
     depends_on:
@@ -3230,6 +3242,8 @@ units:
     info:
       description: installs MetalLB operator
       maturity: stable
+    labels:
+      sylva-units/protected: ""
     unit_templates:
     - base-deps
     enabled_conditions:
@@ -3284,6 +3298,8 @@ units:
     info:
       description: configures metallb resources
       internal: true
+    labels:
+      sylva-units/protected: ""
     enabled_conditions:
     - '{{ tuple . "metallb" | include "unit-enabled" }}'
     unit_templates:
@@ -3760,6 +3776,8 @@ units:
         The cluster-vip Service that plays this role. This unit manages this resource, taking over
         the control after the initial creation of this Service by a cloud-init post command on the first node).
       internal: true
+    labels:
+      sylva-units/protected: ""
     unit_templates:
     - base-deps
     - kube-job
