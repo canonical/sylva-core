@@ -2325,11 +2325,14 @@ units:
             - op: replace
               path: /data/values
               value: |
-            {{ index (tuple . .Values.shared_workload_clusters_values | include "interpret-inner-gotpl" | fromJson) "result" | toYaml | indent 4 }}
+            {{- tuple . "shared_workload_clusters_values" | include "interpret" }}
+            {{ .Values.shared_workload_clusters_values | toYaml | indent 4 }}
       _components:
         - '{{ tuple "components/capm3" (tuple . "capm3" | include "unit-enabled") | include "set-only-if" }}'
     kustomization_substitute_secrets:
-      SECRET_VALUES: '{{ index (tuple . .Values.shared_workload_clusters_secret_values | include "interpret-inner-gotpl" | fromJson) "result" | toYaml | b64enc }}'
+      SECRET_VALUES: >-
+        {{- tuple . "shared_workload_clusters_secret_values" | include "interpret" -}}
+        {{- .Values.shared_workload_clusters_secret_values | toYaml | b64enc -}}
 
   capi:
     info:
@@ -5247,12 +5250,13 @@ units:
       postBuild:
         substitute:
           JOB_CHECKSUM: |-
+            {{- tuple . "no_proxy_additional" | include "interpret" -}}
             {{
             tuple . (list
               .Values._internal.sylva_core_version
               (include "generate-os-images" .)
               .Values.proxies
-              (index (tuple . .Values.no_proxy_additional | include "interpret-inner-gotpl" | fromJson) "result")
+              .Values.no_proxy_additional
               .Values.oci_registry_insecure
             ) | include "interpret-and-hash"
             }}
@@ -7224,7 +7228,7 @@ units:
           chart: .
       values:
         workload_cluster_teams: '{{ .Values.workload_clusters.teams | include "preserve-type" }}'
-        managed_clusters_settings: '{{ index (tuple . .Values.shared_workload_clusters_values | include "interpret-inner-gotpl" | fromJson) "result" | include "preserve-type" }}'
+        managed_clusters_settings: '{{ tuple . "shared_workload_clusters_values" | include "interpret" }}{{ .Values.shared_workload_clusters_values | include "preserve-type" }}'
         workload_cluster_sylva_source: '{{ .Values.workload_clusters.sylva_source | include "preserve-type" }}'
 
 ##### stuff related to the 'cluster' unit #####
@@ -7993,8 +7997,9 @@ _internal:
     cephfs-csi: ceph-csi-cephfs
 
   default_storage_class_unit: >-
-    {{- $default_storage_class := tuple . .Values._internal.default_storage_class | include "interpret-as-string" -}}
-    {{- index (tuple . .Values._internal.storage_class_unit_map | include "interpret-inner-gotpl" | fromJson) "result" | dig $default_storage_class (printf "storage class unit not found for %s" $default_storage_class) -}}
+    {{- tuple . "_internal.default_storage_class" | include "interpret" -}}
+    {{- tuple . "_internal.storage_class_unit_map" | include "interpret" -}}
+    {{- .Values._internal.storage_class_unit_map | dig .Values._internal.default_storage_class (printf "storage class unit not found for %s" .Values._internal.default_storage_class) -}}
 
   storage_class_RWX_support:
     - longhorn
