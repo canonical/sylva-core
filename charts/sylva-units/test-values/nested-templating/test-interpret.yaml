@@ -1,0 +1,29 @@
+# Leverage the controlled order of variables evaluation to ensure that evaluation is actually performed by "interpret" template:
+# As _internal.state is evaluated first, test_wo_interpret_value will be interpreted before the call of "interpret" template
+# As _internal is evaluated right after _internal.state, and before the rest of values,
+# we'll be sure that third_party.number_ref is not interpreted at that point
+
+_internal:
+  # 'Zm9v' is 'foo' encoded in Base64
+  state:
+    test_wo_interpret_value: '{{ .Values.third_party.string_ref | b64enc | eq "Zm9v" }}'
+  test_interpret_value: >-
+    {{- tuple . "third_party.string_ref" | include "interpret" -}}
+    {{ .Values.third_party.string_ref | b64enc | eq "Zm9v" }}
+  test_interpret_type: >-
+    {{- tuple . "third_party.number_ref" | include "interpret" -}}
+    {{ .Values.third_party.number_ref | kindOf | eq "float64"}}
+
+third_party:
+  string: foo
+  string_ref: '{{ .Values.third_party.string }}'
+  number: 1
+  number_ref: '{{ .Values.third_party.number | include "preserve-type" }}'
+  assertions: |
+    {{- if .Values._internal.state.test_wo_interpret_value | ne "false" }}
+      {{- fail "'.Values.third_party.string_ref' was already interpreted in test_wo_interpret_value, we won't be able to ensure that 'interpret' template works" }}
+    {{- else if .Values._internal.test_interpret_value | ne "true" }}
+      {{- fail "'.Values.third_party.string_ref' was not interpreted by 'interpret' template as expected" }}
+    {{- else if .Values._internal.test_interpret_type | ne "true" }}
+      {{- fail "'.Values.third_party.number_ref' type was not preserved by 'interpret' template as expected" }}
+    {{- end }}
