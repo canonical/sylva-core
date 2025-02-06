@@ -16,9 +16,9 @@ cluster:
           address: redfish-virtualmedia://{{ .Values._internal.bootstrap_node_ip }}:8010/redfish/v1/Systems/c0014001-b10b-f001-c0de-feeb1e54ee15
         bootMACAddress: 52:54:00:44:44:04
       interface_mappings:
-        nic1:
+        ens4:
           mac_address: 52:54:00:44:44:04
-        nic2:
+        ens5:
           inspection_name: ens5
       ip_preallocations:
         primary: 192.168.100.70
@@ -32,9 +32,9 @@ cluster:
           address: redfish-virtualmedia://{{ .Values._internal.bootstrap_node_ip }}:8011/redfish/v1/Systems/c0014001-b10b-f001-c0de-feeb1e54ee15
         bootMACAddress: 52:54:00:44:44:05
       interface_mappings:
-        nic1:
+        ens4:
           inspection_name: ens4
-        nic2:
+        ens5:
           mac_address: 52:54:00:55:55:05
       ip_preallocations:
         primary: 192.168.100.71
@@ -48,9 +48,9 @@ cluster:
           address: redfish-virtualmedia://{{ .Values._internal.bootstrap_node_ip }}:8012/redfish/v1/Systems/c0014001-b10b-f001-c0de-feeb1e54ee15
         bootMACAddress: 52:54:00:44:44:06
       interface_mappings:
-        nic1:
+        ens4:
           mac_address: 52:54:00:44:44:06
-        nic2:
+        ens5:
           mac_address: 52:54:00:55:55:06
       ip_preallocations:
         primary: 192.168.100.72

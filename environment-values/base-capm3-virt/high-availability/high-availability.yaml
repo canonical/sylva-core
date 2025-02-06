@@ -81,21 +81,25 @@ libvirt_metal:
       redfishPort: 8010
       memGB: 16 # IPA allocates half of it to tmpfs, if must be large enough to store the image
       numCPUs: 4
+      useBond: false
       enableDHCP: false
     workload-cp-1:
       redfishPort: 8011
       memGB: 16
       numCPUs: 4
+      useBond: false
       enableDHCP: false
     workload-cp-2:
       redfishPort: 8012
       memGB: 16
       numCPUs: 4
+      useBond: false
       enableDHCP: false
     workload-md-0:
       redfishPort: 8013
       memGB: 16
       numCPUs: 4
+      useBond: false
       enableDHCP: false
 
 units:
