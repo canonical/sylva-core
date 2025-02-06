@@ -11,12 +11,9 @@ spec:
     matchConditions:
     - name: is-delete
       expression: request.operation == "DELETE"
-    - name: match-name-and-ns
+    - name: match-label
       expression: >-
-        has(oldObject.metadata) && oldObject.metadata.name in [
-          "cluster",
-          "cluster-bmh",
-        ] && oldObject.metadata.namespace == "sylva-system"
+        has(oldObject.metadata) && has(oldObject.metadata.labels) && 'sylva-units/protected' in oldObject.metadata.labels
   rules:
   - name: helm-resources
     match:
@@ -26,7 +23,7 @@ spec:
           - helm.toolkit.fluxcd.io/*/HelmRelease
           - kustomize.toolkit.fluxcd.io/*/Kustomization
     validate:
-      message: Deleting the Flux resources that describe the Sylva management cluster is not possible without breaking the Sylva management cluster.
+      message: This is a mandatory resource, deleting it is not possible without breaking the Sylva management cluster.
       deny: {}
   validationFailureAction: Enforce
 ---
