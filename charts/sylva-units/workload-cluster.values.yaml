@@ -345,6 +345,10 @@ units:
     # can be enabled at runtime if desired
     enabled: false
 
+  kubevirt-manager:
+    enabled: true  # the inherited enabled_condition will ensure that the unit
+                   # is actually enabled if and only if kubevirt is enabled
+
   kubevirt-test-vms:
     enabled: false
 
