@@ -1176,6 +1176,7 @@ units:
       details: |
         Vault assumes that the certificate vault-tls has been issued
       maturity: stable
+      internal: true
     unit_templates:
     - base-deps
     depends_on:
@@ -5891,6 +5892,35 @@ units:
         - kustomize:
             patches:
             - '{{ .Values._internal.pdb_allow_unhealthy_pod_eviction | include "preserve-type" }}'
+
+  gitea-cnpg-postgres:
+    info:
+      description: Deploy Postgres cluster for Gitea using Cloud Native PostgreSQL (CNPG)
+      maturity: stable
+      internal: true
+    depends_on:
+      cnpg-operator: true
+      namespace-defs: true
+      gitea-eso: true
+      gitea-keycloak-resources: true
+      gitea-secrets: true
+      gitea-redis: true
+      '{{ .Values._internal.default_storage_class_unit }}': true
+    unit_templates:
+      - base-deps
+    enabled_conditions:
+      - '{{ tuple . "gitea" | include "unit-enabled" }}'
+    repo: sylva-core
+    kustomization_spec:
+      postBuild:
+        substitute:
+          GITEA_POSTGRES_REPLICAS: '{{ .Values._internal.ha_cluster.is_ha | ternary 3 1 }}'
+          storageClass: '{{ .Values._internal.default_storage_class }}'
+          podAntiAffinityType: '{{ .Values._internal.ha_cluster.is_ha | ternary "required" "preferred" }}'
+      path: ./kustomize-units/gitea-postgres
+      wait: true
+      _components:
+        - '{{ tuple "./components/gitea-upgrade-db" (and .Values._internal.state.is_upgrade (tuple . "gitea" | include "unit-enabled")) | include "set-only-if" }}'
 
   gitea:
     info:
