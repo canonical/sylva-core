@@ -139,6 +139,3 @@ cluster:
         rootDeviceHints:
           hctl: 2:1:0:0   # tweak as needed
 
-units:
-  longhorn:
-    enabled: true

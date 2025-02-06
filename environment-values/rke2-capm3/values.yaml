@@ -144,11 +144,6 @@ cluster:
           address: idrac-virtualmedia://77.77.77.77/redfish/v1/Systems/System.Embedded.1  # put the real BMC address here!
         bootMACAddress: ba:ad:00:c0:ff:ee    # put the real address here!
 
-units:
-
-  longhorn:
-    enabled: true
-
 metal3:
   bootstrap_ip: 10.177.129.138
 
