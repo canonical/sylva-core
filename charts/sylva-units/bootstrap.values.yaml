@@ -288,6 +288,14 @@ units:
     # Use a kustomization_spec alongside an helmrelease_spec,
     # this way we'll create the flux helmrelease into the management cluster
     kustomization_spec:
+      commonMetadata:
+        labels: >-
+          {{
+            omit (lookup "helm.toolkit.fluxcd.io/v2" "HelmRelease" "sylva-system" "sylva-units"
+                     | dig "metadata" "labels" dict)
+                  "copy-from-bootstrap-to-management"
+              | include "preserve-type"
+          }}
       kubeConfig:
         secretRef:
           name: '{{ .Values.cluster.name }}-kubeconfig'
