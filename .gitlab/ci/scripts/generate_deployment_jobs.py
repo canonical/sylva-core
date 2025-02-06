@@ -200,6 +200,10 @@ def generate_ci_job_struct(job_names, global_options):
         if "dev-sources" in options:
             ci_jobs[job]["extends"].remove(".wait-publish-jobs")
 
+        if "oci" in options:
+            options.remove("oci")
+            logging.info("ignoring 'oci' in options, since it's now implicitly always used")
+
         if infra[0] == "capm3" and "single-node" not in options:
             ci_jobs[job].setdefault("variables", {})
             ci_jobs[job]["variables"]["EQUINIX_RUNNER_PLAN"] = "m3.large.x86"
