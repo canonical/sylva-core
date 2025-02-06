@@ -72,6 +72,7 @@ unit_templates:
   management-cluster-csi:
     depends_on:
       cluster-reachable: true
+      management-namespace-defs: true
       calico-ready: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpk" }}'
     helmrelease_spec:
       kubeConfig:
@@ -205,19 +206,15 @@ units:
 
   management-namespace-defs:
     info:
-      description: creates sylva-system namespace in management cluster
+      description: creates required namespaces in management cluster
       internal: true
+    unit_templates:
+    - namespace-defs
     depends_on:
       cluster-reachable: true
-    unit_templates:
-    - base-deps
-    repo: sylva-core
     labels:
       suspend-on-pivot: "yes"  # this unit must be suspended before pivot
     kustomization_spec:
-      path: ./kustomize-units/namespace-defs
-      wait: true
-      prune: false
       kubeConfig:
         secretRef:
           name: '{{ .Values.cluster.name }}-kubeconfig'

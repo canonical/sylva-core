@@ -140,7 +140,7 @@
 | **management-cluster-configs** | copies configuration object in management cluster during bootstrap | Kustomization |
 | **management-cluster-flux** | installs flux in management cluster during bootstrap | Kustomization |
 | **management-flag** | dummy unit to identify management cluster<br/><br/>This unit will produce a configmap in management cluster that can be used by apply scripts to assert that they are properly targeting the management cluster | Kustomization |
-| **management-namespace-defs** | creates sylva-system namespace in management cluster | Kustomization |
+| **management-namespace-defs** | creates required namespaces in management cluster | Kustomization |
 | **management-sylva-units** | installs sylva-units in management cluster during bootstrap | Helm chart |
 | **metal3-pdb** | add pdb to baremetal-operator pods | Kustomization |
 | **metallb-resources** | configures metallb resources | Helm chart |
