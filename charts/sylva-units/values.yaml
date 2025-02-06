@@ -3658,13 +3658,13 @@ units:
     info:
       description: Remove k8s-gateway service from previous deployments (This unit should be removed after Sylva 1.3)
       internal: true
+    one_shot: true
     unit_templates:
     - base-deps
     - kube-job
     enabled_conditions:
     - '{{ tuple . "k8s-gateway" | include "unit-enabled" }}'
     - '{{ .Values._internal.state.is_upgrade }}'
-    - '{{ not (lookup "v1" "ConfigMap" .Release.Namespace "sylva-units-status" | dig "annotations" "sylva.org/lbclass-migration-1.3-1.4" "" | eq "done") }}'
     depends_on:
       metallb-resources: '{{ tuple . "metallb" | include "unit-enabled" }}'
     kustomization_spec:
@@ -3770,6 +3770,7 @@ units:
       description: Set loadBalancerClass to cluster-vip service and metallb components
       details: This unit can be removed after next release when the loadBalancerClass is set by default
       internal: true
+    one_shot: true
     unit_templates:
     - base-deps
     - kube-job
@@ -3777,7 +3778,6 @@ units:
     - '{{ tuple . "metallb" | include "unit-enabled" }}'
     - '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" }}'
     - '{{ .Values._internal.state.is_upgrade }}'
-    - '{{ not (lookup "v1" "ConfigMap" .Release.Namespace "sylva-units-status" | dig "annotations" "sylva.org/lbclass-migration-1.3-1.4" "" | eq "done") }}'
     kustomization_spec:
       wait: true
       path: ./kustomize-units/cluster-vip-lbclass
@@ -3872,13 +3872,13 @@ units:
     info:
       description: Remove rke2-ingress-nginx service from previous deployments (This unit should be removed after Sylva 1.3)
       internal: true
+    one_shot: true
     unit_templates:
     - base-deps
     - kube-job
     enabled_conditions:
     - '{{ tuple . "ingress-nginx" | include "unit-enabled" }}'
     - '{{ .Values._internal.state.is_upgrade }}'
-    - '{{ not (lookup "v1" "ConfigMap" .Release.Namespace "sylva-units-status" | dig "annotations" "sylva.org/lbclass-migration-1.3-1.4" "" | eq "done") }}'
     depends_on:
       metallb-resources: '{{ tuple . "metallb" | include "unit-enabled" }}'
     kustomization_spec:
