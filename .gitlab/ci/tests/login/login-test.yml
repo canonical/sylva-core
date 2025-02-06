@@ -32,11 +32,15 @@
     - echo -e "\e[0Ksection_end:`date +%s`:gitlab_ci_get_ui_ingresses_url\r\e[0K"
   get_sso_login_and_password:
     - echo -e "\e[1m\e[0Ksection_start:`date +%s`:gitlab_ci_get_sso_login_and_password[collapsed=true]\r\e[0KGet sso login and password\e[0m"
-    - export thanos_user=$(kubectl --kubeconfig management-cluster-kubeconfig get secrets sylva-units-values -o yaml | yq .data.values | base64 -d | yq ._internal.thanos_user)
-    - export thanos_password=$(kubectl --kubeconfig management-cluster-kubeconfig get secrets sylva-units-values -o yaml | yq .data.values | base64 -d | yq ._internal.thanos_password)
     - export USER_SSO=$(kubectl --kubeconfig ./management-cluster-kubeconfig -n keycloak get secrets/credential-sylva-sylva-admin-keycloak -o jsonpath='{.data.username}'| base64 -d)
     - export PASSWORD_SSO=$(kubectl --kubeconfig ./management-cluster-kubeconfig -n keycloak get secrets/credential-sylva-sylva-admin-keycloak -o jsonpath='{.data.password}'| base64 -d)
     - echo -e "\e[0Ksection_end:`date +%s`:gitlab_ci_get_sso_login_and_password\r\e[0K"
+
+  get_thanos_login_and_password:
+    - echo -e "\e[1m\e[0Ksection_start:`date +%s`:gitlab_ci_get_thanos_login_and_password[collapsed=true]\r\e[0KGet sso login and password\e[0m"
+    - export thanos_user=$(kubectl --kubeconfig management-cluster-kubeconfig get secrets sylva-units-values -o yaml | yq .data.values | base64 -d | yq ._internal.thanos_user)
+    - export thanos_password=$(kubectl --kubeconfig management-cluster-kubeconfig get secrets sylva-units-values -o yaml | yq .data.values | base64 -d | yq ._internal.thanos_password)
+    - echo -e "\e[0Ksection_end:`date +%s`:gitlab_ci_get_thanos_login_and_password\r\e[0K"```
 
 wkld-sso-kubeconfig:
   extends:
@@ -84,7 +88,7 @@ mgmt-GUIs-test:
     - unset https_proxy http_proxy
     - !reference [.test_scripts, edit_hosts_file]
     - !reference [.test_scripts, get_ui_ingresses_url]
-    - !reference [.test_scripts, get_sso_login_and_password]
+    - !reference [.test_scripts, get_thanos_login_and_password]
     - pytest ./tools/login-test/test_ui_playwright.py --browser firefox -v --tb=short
 
 mgmt-sso:
