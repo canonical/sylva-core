@@ -341,6 +341,9 @@ units:
     kustomization_spec:
       healthChecks: [] # Remove healthChecks targeting sylva-system namespace
 
+  external-secrets-operator:
+    enabled: true
+
   kubevirt:
     # can be enabled at runtime if desired
     enabled: false
@@ -512,6 +515,8 @@ units:
 
   sylva-ca:
     enabled: true
+    depends_on:
+      external-secrets-operator: true
     kustomization_spec:
       targetNamespace: "cert-manager"
       postBuild:
