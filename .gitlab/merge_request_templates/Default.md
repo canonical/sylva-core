@@ -23,7 +23,7 @@ Below you can choose test deployment variants to run in this MR's CI.
 | 🚀  | **Bootstrap Provider**   | `kubeadm` (alias `kadm`), `rke2`                                          |
 | 🐧  | **Node OS**              | `ubuntu`, `suse`                                                          |
 | 🛠  | **Deployment Options**    | `light-deploy`, `dev-sources`, `ha`, `misc`                                       |
-| 🎬  | **Pipeline Scenarios**   | `no-wkld` `simple-update` `simple-update-no-wkld` `rolling-update` `rolling-update-no-wkld` `wkld-k8s-upgrade` `nightly` `sylva-upgrade` `sylva-upgrade-no-wkld` `sylva-upgrade-from-x.x.x` `preview`  |
+| 🎬  | **Pipeline Scenarios**   | [Available scenario list and description](https://gitlab.com/sylva-projects/sylva-core/-/blob/main/.gitlab/README.md?ref_type=heads#scenario-description)  |
 
 <!-- DEPLOYMENT FLAVOR DEFINITION START -->
 
