@@ -332,6 +332,57 @@ Note well that there are a few limitations:
 
 {{/*
 
+interpret
+
+Usage:
+
+  tuple . "path.of.value.to.interpret"  | include "interpret"
+
+It is meant to be used in Helm values, as a way to fix the nested templating issue described in "interpret-inner-gotpl" doc above.
+
+This function triggers the interpretation of the value at provided path; it can be used to forcefully interpret a given value prior to using it.
+
+Example:
+
+    a: "foobar"  # this is a plain, non templated value
+    b: "{{ .Values.a }}"  # this is a templated value, without nesting
+
+    # WRONG nested templating (it gives the base64 of the '{{ .Values.a }}' string, not the base64 of "foobar")
+    d-broken: '{{ .Values.b | b64enc }}'  # WRONG
+    # working version (gives the base64 of "foobar"):
+    d-working: '{{ tuple . ".b" | include "interpret"}}{{ .Values.b | b64enc }}'  
+
+*/}}
+{{- define "interpret" -}}
+  {{- $envAll := index . 0 -}}
+  {{- $path := index . 1 -}}
+  {{- $keys := splitList "." $path -}}
+  {{- tuple $envAll $envAll.Values ($keys | first) ($keys | rest) "" | include "_interpret" -}}
+{{- end -}}
+
+{{/* Internal recursive implementation of interpret */}}
+
+{{- define "_interpret" -}}
+  {{- $envAll := index . 0 -}}
+  {{- $data := index . 1 -}}
+  {{- $key := index . 2 -}}
+  {{- $remainingKeys := index . 3 -}}
+  {{- $path := index . 4 -}}
+  {{- $path := printf "%s.%s" $path $key -}}
+  {{- if hasKey $data $key | not -}}
+    {{- fail (printf "'interpret' called on key '%s' not found in .Values.%s" $key $path) -}}
+  {{- end -}}
+  {{- if $remainingKeys | len | eq 0 -}}
+    {{- $interpreted := index (tuple $envAll (get $data $key) | include "interpret-inner-gotpl" | fromJson) "result" -}}
+    {{- $_ := set $data $key $interpreted -}}
+  {{- else -}}
+    {{- tuple $envAll (get $data $key) ($remainingKeys | first) ($remainingKeys | rest) $path | include "_interpret" -}}
+  {{- end -}}
+{{- end -}}
+
+
+{{/*
+
 interpret-as-string
 
 Usage:
