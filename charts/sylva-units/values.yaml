@@ -3082,7 +3082,7 @@ units:
           kind: ClusterRole
         patch: |
           - op: replace
-            path: rules/
+            path: /rules
             value:
               - apiGroups: [""]
                 resources: [nodes]
