@@ -428,6 +428,7 @@ include:
     # expose_as: $CI_JOB_NAME  # not allowed https://gitlab.com/gitlab-org/gitlab/-/issues/427149
   after_script:
     - echo -e "\e[1m\e[0Ksection_start:`date +%s`:dump_machine_logs[collapsed=true]\r\e[0KDumping machines logs\e[0m"
+    - if [ $SKIP_DOCKER_SERVICE = "true" ]; then export DOCKER_HOST=""; fi # CAPM3 deployment doesn't rely on docker in docker
     - !reference [.setup_docker]  # needed to access bootstrap cluster and/or capd mgmt cluster
     - |
       .gitlab/ci/scripts/dump_machine_logs.sh management || true
