@@ -8,6 +8,8 @@ import re
 import sys
 import urllib.request
 import yaml
+import requests
+
 
 """
 This script is used in CI for generating list of deployment jobs
@@ -15,12 +17,18 @@ This script is used in CI for generating list of deployment jobs
 
 logging.basicConfig(format='[%(levelname)s] %(message)s', level=logging.INFO)
 
+GITLAB_PROJECT_ID = os.getenv("CI_PROJECT_ID")
+GITLAB_MR_ID = os.getenv("CI_MERGE_REQUEST_IID")
+GITLAB_API_URL = os.getenv("CI_API_V4_URL", "https://gitlab.com/api/v4")
+
 SCRIPT_DIR = os.path.dirname(os.path.abspath(sys.argv[0]))
 BASE_DIR = os.path.abspath(f"{SCRIPT_DIR}/../../..")
 TEMPLATE_FILE = os.path.abspath(f"{BASE_DIR}/.gitlab/ci/deployments-base.yml")
 
 PREDEFINED_PIPELINES_CONFIG_FILE = f"{BASE_DIR}/.gitlab/ci/configuration/predefined-pipelines-config.yaml"
 DEFAULT_MR_DESCRIPTION = f"{BASE_DIR}/.gitlab/merge_request_templates/Default.md"
+DEFAULT_RENOVATE_COMMENT = f"{BASE_DIR}/.gitlab/ci/configuration/default-renovate-comment.md"
+
 
 ALLOWED_INFRA = os.getenv("ALLOWED_DEPLOYMENT_INFRA", "capd,capo,capm3")
 ALLOWED_SCENARIOS = os.getenv(
@@ -47,6 +55,54 @@ DEPLOY_CHILD_PIPELINE_COUNT_LIMIT = int(os.getenv("DEPLOY_CHILD_PIPELINE_COUNT_L
 
 # Make randomization stable for a single MR
 random.seed(os.getenv("CI_MERGE_REQUEST"))
+
+
+def get_mr_comment_from_user(project_id, mr_id, HEADERS, user_id):
+    """Retrieve first comment of a given user for a given MR, handling pagination."""
+    url = f"{GITLAB_API_URL}/projects/{project_id}/merge_requests/{mr_id}/notes"
+    user_comments = []
+    page = 1
+
+    logging.info(f"Retrieve firt comment of user {user_id} for MR {mr_id}")
+
+    while True:
+        response = requests.get(url, headers=HEADERS, params={"page": page})
+        response.raise_for_status()
+
+        comments = response.json()
+        user_comments.extend(filter(lambda comment: comment["author"]["id"] == user_id, comments))
+        if len(user_comments) > 0:
+            break
+        else:
+            if 'X-Next-Page' in response.headers and response.headers['X-Next-Page']:
+                page += 1
+            else:
+                break
+
+    return user_comments
+
+
+def get_current_user(HEADERS):
+    """Retrieve the current GitLab user."""
+
+    logging.info("Retrieve current gitlab user")
+
+    url = f"{GITLAB_API_URL}/user"
+    response = requests.get(url, headers=HEADERS)
+    response.raise_for_status()
+    return response.json()
+
+
+def post_mr_comment(project_id, mr_id, comment, HEADERS):
+    """Post a new comment on the MR."""
+
+    logging.info(f"Post a new comment on MR {mr_id}")
+
+    url = f"{GITLAB_API_URL}/projects/{project_id}/merge_requests/{mr_id}/notes"
+    payload = {"body": comment}
+    response = requests.post(url, headers=HEADERS, json=payload)
+    response.raise_for_status()
+    return response.json()
 
 
 def get_ci_configuration_from_context():
@@ -84,8 +140,34 @@ def get_ci_configuration_from_context():
         else:
             logging.info("Unable to find any deployment flavor request in MR description.")
 
-    # otherwise, if renovate label is set use predefined config
+    # if renovate label is present, rely either on predefined configuration or comment
     if "renovate" in os.getenv("CI_MERGE_REQUEST_LABELS", "").split(","):
+        # Interacting with notes API require a guest token as CI_JOB_TOKEN couldn't use it
+        HEADERS = {"Private-Token": os.getenv("CI_CONFIGURATION_GUEST_TOKEN")}
+        comment_bot = get_current_user(HEADERS)
+        comment_bot_id = comment_bot["id"]
+        comment_bot_name = comment_bot["name"]
+
+        user_comments = get_mr_comment_from_user(GITLAB_PROJECT_ID, GITLAB_MR_ID, HEADERS, comment_bot_id)
+
+        if len(user_comments) == 0:
+            logging.info(f"No comment found for MR {GITLAB_MR_ID}, posting a new one")
+            with open(DEFAULT_RENOVATE_COMMENT, "r") as f:
+                default_mr_description = f.read()
+            f.close
+            post_mr_comment(GITLAB_PROJECT_ID, GITLAB_MR_ID, default_mr_description, HEADERS)
+        else:
+            for user_comment in user_comments:
+                comment_id = user_comment["id"]
+                logging.info(f"Comment(s) found from {comment_bot_name}, checking if it contain a valid CI configuration")
+                ci_config, mr_options = get_ci_config_from_mr_description(user_comment["body"])
+                if ci_config:
+                    logging.info(f"Using CI configuration from {comment_bot_name} comment {comment_id}")
+                    return ci_config, mr_options
+                else:
+                    logging.info("Unable to find any deployment flavor request in MR comment.")
+
+        # If comment doesn't contain any CI configuration rely on predefined configuration, either CAPO or default
         if "capo" in os.getenv("CI_MERGE_REQUEST_LABELS", "").split(","):
             retrieved_config = get_predefined_ci_config("Renovate Capo")
         else:
