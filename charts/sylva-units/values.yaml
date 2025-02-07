@@ -4704,6 +4704,8 @@ units:
     depends_on:
       namespace-defs: true
       #monitoring-crd: true
+    enabled_conditions:
+      - '{{ tuple . "upstrmonitoring" | include "unit-enabled" }}'
     helm_repo_url: https://prometheus-community.github.io/helm-charts
     helmrelease_spec:
       releaseName: prometheus-adapter
