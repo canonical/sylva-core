@@ -5339,11 +5339,8 @@ units:
     repo: os-image-server
     annotations:
       sylvactl/readyMessage: |
-        OS images are served at:
         {{- $osImageFqdn := (coalesce .Values.external_hostnames.os_image_server .Values.display_external_ip) -}}
-        {{- range $imageName, $imageParams := (coalesce .Values.os_images .Values._internal.default_os_images) }}
-          * https://{{ $osImageFqdn }}/{{ $imageParams.filename }}(.sha256sum)
-        {{- end }}
+        OS images are served at URLs like: https://{{ $osImageFqdn }}/<filename>(.sha256sum)
         {{- if not (eq $osImageFqdn .Values.display_external_ip)}}
         ({{ .Values.external_hostnames.os_image_server }} must resolve to {{ .Values.display_external_ip }})
         {{- end }}
