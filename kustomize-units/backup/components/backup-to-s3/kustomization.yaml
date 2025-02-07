@@ -1,0 +1,94 @@
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
+
+patches:
+  - target:
+      kind: Job
+    patch: |
+      - op: replace
+        path: /spec/template/spec/containers/0/image
+        value: registry.gitlab.com/sylva-projects/sylva-elements/container-images/kube-job/mcli/snapshot:0.0.0-git-854713ce
+      - op: add
+        path: /spec/template/spec/volumes/-
+        value:
+          name: s3-config
+          emptyDir: {}
+      - op: add
+        path: /spec/template/spec/containers/0/volumeMounts/-
+        value:
+          mountPath: /s3-config
+          name: s3-config
+  - target:
+      kind: Job
+    patch: |
+      - op: add
+        path: /spec/template/spec/containers/0/env
+        value:
+        - name: S3_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: backup-store-s3-${CRONJOB_NAME}
+              key: S3_ACCESS_KEY
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: S3_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: backup-store-s3-${CRONJOB_NAME}
+              key: S3_SECRET_KEY
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: S3_BUCKET
+          value: ${S3_BUCKET}
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: S3_HOST
+          value: ${S3_HOST}
+  - target:
+      kind: CronJob
+    patch: |
+      - op: replace
+        path: /spec/jobTemplate/spec/template/spec/containers/0/image
+        value: registry.gitlab.com/sylva-projects/sylva-elements/container-images/kube-job/mcli/snapshot:0.0.0-git-854713ce
+      - op: add
+        path: /spec/jobTemplate/spec/template/spec/volumes/-
+        value:
+          name: s3-config
+          emptyDir: {}
+      - op: add
+        path: /spec/jobTemplate/spec/template/spec/containers/0/volumeMounts/-
+        value:
+          mountPath: /s3-config
+          name: s3-config
+  - target:
+      kind: CronJob
+    patch: |
+      - op: add
+        path: /spec/jobTemplate/spec/template/spec/containers/0/env
+        value:
+        - name: S3_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: backup-store-s3-${CRONJOB_NAME}
+              key: S3_ACCESS_KEY
+      - op: add
+        path: /spec/jobTemplate/spec/template/spec/containers/0/env/-
+        value:
+          name: S3_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: backup-store-s3-${CRONJOB_NAME}
+              key: S3_SECRET_KEY
+      - op: add
+        path: /spec/jobTemplate/spec/template/spec/containers/0/env/-
+        value:
+          name: S3_BUCKET
+          value: ${S3_BUCKET}
+      - op: add
+        path: /spec/jobTemplate/spec/template/spec/containers/0/env/-
+        value:
+          name: S3_HOST
+          value: ${S3_HOST}

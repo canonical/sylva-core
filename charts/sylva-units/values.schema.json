@@ -8548,6 +8548,34 @@
             }
           ]
         },
+        "minio_backup": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "hostname"
+            },
+            {
+              "const": ""
+            },
+            {
+              "$ref": "#/$defs/string-with-gotpl"
+            }
+          ]
+        },
+        "minio_backup_console": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "hostname"
+            },
+            {
+              "const": ""
+            },
+            {
+              "$ref": "#/$defs/string-with-gotpl"
+            }
+          ]
+        },
         "thanos": {
           "anyOf": [
             {
@@ -8714,6 +8742,9 @@
           "$ref": "#/$defs/cert-and-key"
         },
         "minio_logging": {
+          "$ref": "#/$defs/cert-and-key"
+        },
+        "minio_backup": {
           "$ref": "#/$defs/cert-and-key"
         },
         "thanos": {
@@ -9621,6 +9652,34 @@
               ]
             }
           }
+        }
+      }
+    },
+    "backup": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "store": {
+          "oneOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "internalMinio": {
+                  "type": "object"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "s3": {
+                  "type": "object"
+                }
+              }
+            }
+          ]
         }
       }
     },
