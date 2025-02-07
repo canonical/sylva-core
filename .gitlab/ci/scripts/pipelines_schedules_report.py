@@ -303,7 +303,7 @@ if __name__ == '__main__':
     print("retrieving pipeline schedules")
     try:
         pipeline_schedules = project.pipelineschedules.list()
-    except gitlab.exceptions.GitlabHttpError as e:
+    except (gitlab.exceptions.GitlabHttpError, gitlab.exceptions.GitlabListError) as e:
         print(f"error on pipelineschedules.list {e}\n  {e.response_body}")
         raise
 
