@@ -2076,6 +2076,16 @@ units:
               (tuple . "monitoring" | include "unit-enabled")
               | include "set-only-if"
           }}
+        - >-
+          {{ tuple (dict
+                "apiVersion" "v1"
+                "kind" "Secret"
+                "name" "upstream-grafana-oidc"
+                "namespace" "upstream-monitoring"
+              )
+              (tuple . "upstrmonitoring" | include "unit-enabled")
+              | include "set-only-if"
+          }}
         # this secret is a byproduct of the eso-grafana-oidc ExternalSecret resource
         - >-
           {{ tuple (dict
@@ -2100,6 +2110,7 @@ units:
         # this secret is a byproduct of the eso-rancher-oidc ExternalSecret resource
       _components:
         - '{{ tuple "components/grafana-oidc" (tuple . "monitoring" | include "unit-enabled") | include "set-only-if" }}'
+        - '{{ tuple "components/upstream-grafana-oidc" (tuple . "upstrmonitoring" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/flux-webui-oidc" (tuple . "flux-webui" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/rancher-oidc" (tuple . "rancher" | include "unit-enabled") | include "set-only-if" }}'
 
