@@ -4664,6 +4664,29 @@ units:
           name: grafana-general-tls
           namespace: upstream-monitoring
 
+  upstream-sylva-dashboards:
+    info:
+      description: adds Sylva-specific Grafana dashboards
+      maturity: beta
+    enabled_conditions:
+      - '{{ tuple . "upstrmonitoring" | include "unit-enabled" }}'
+    unit_templates:
+    - base-deps
+    depends_on:
+      upstrmonitoring: true
+    repo: sylva-dashboards
+    helm_chart_artifact_name: sylva-dashboards
+    helmrelease_spec:
+      chart:
+        spec:
+          chart: .
+      targetNamespace: sylva-dashboards
+      install:
+        createNamespace: true
+      values:
+        namespace: sylva-dashboards
+        optional_dashboards: '{{ .Values._internal.monitoring.conditionals | include "preserve-type" }}'
+
   #upstream-prometheus:
   #  info:
   #    description: installs upstream kube prometheus stack
