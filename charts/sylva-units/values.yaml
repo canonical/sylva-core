@@ -4466,7 +4466,7 @@ units:
       chart:
         spec:
           chart: prometheus-pushgateway
-          version: 2.17.0
+          version: 3.0.0
       install:
         createNamespace: true
       values:
