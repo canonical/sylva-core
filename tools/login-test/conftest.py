@@ -11,6 +11,17 @@ def page(browser):
     context.close()
 
 
+@pytest.fixture(scope="function")
+def page_thanos(browser):
+    thanos_user = os.getenv("thanos_user")
+    thanos_password = os.getenv("thanos_password")
+    context = browser.new_context(ignore_https_errors=True, locale='en-US', http_credentials={'username': thanos_user, 'password': thanos_password})
+    page = context.new_page()
+    yield page
+    page.close()
+    context.close()
+
+
 @pytest.hookimpl(tryfirst=True, hookwrapper=True)
 def pytest_runtest_makereport(item, call):
     outcome = yield
@@ -64,6 +75,11 @@ def grafana_url():
 @pytest.fixture
 def gitea_url():
     return add_scheme(os.getenv("gitea_url", "https://gitea.sylva"))
+
+
+@pytest.fixture
+def thanos_url():
+    return add_scheme(os.getenv("thanos_url", "https://thanos.sylva"))
 
 
 def pytest_addoption(parser):
