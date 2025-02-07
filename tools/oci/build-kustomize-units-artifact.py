@@ -94,7 +94,7 @@ else:
 
 artifact_branch = run_command(['git', 'branch', '--show-current']).stdout
 
-artifact_tag = run_command(['git', 'rev-parse', '--short', 'HEAD']).stdout
+artifact_tag = run_command(['git', 'rev-parse', '--short=8', 'HEAD']).stdout
 
 artifact_revision = artifact_branch + "/" + artifact_tag
 
