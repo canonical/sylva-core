@@ -388,6 +388,9 @@ properties:
                 - type: string
                   pattern: "^[a-z0-9][a-z0-9-]*[a-z0-9]$"
 
+          one_shot:  # -------------------------------
+            type: boolean
+
           repo:  # -------------------------------
             anyOf:
               - type: string
