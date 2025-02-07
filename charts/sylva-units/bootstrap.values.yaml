@@ -14,7 +14,7 @@ _internal:
     cluster:
       _immutable: false # Disable immutability checks for the bootstrap cluster as it runs in non-HA mode
   default_storage_class_unit: "bootstrap-local-path"
-  libvirt_metal_networks: '[{"name": "provisioning", "namespace": "default",  "ips": ["192.168.10.123"]}, { "name": "management", "namespace": "default"}]'
+  libvirt_metal_networks: '[{"name": "provisioning", "namespace": "sylva-system",  "ips": ["192.168.10.123"]}, { "name": "management", "namespace": "sylva-system"}]'
   bootstrap_node_ip: |-
       {{- $result := "not-found" -}}
       {{- range $address := lookup "v1" "Node" "" "" | dig "items" list | first | default dict |  dig "status" "addresses" list -}}

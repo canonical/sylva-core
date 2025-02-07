@@ -67,7 +67,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: machine-dump
-  namespace: default
+  namespace: sylva-system
 spec:
   ports:
     - name: dump
@@ -81,7 +81,7 @@ apiVersion: discovery.k8s.io/v1
 kind: EndpointSlice
 metadata:
   name: machine-dump
-  namespace: default
+  namespace: sylva-system
   labels:
     kubernetes.io/service-name: machine-dump
 addressType: IPv4
@@ -129,9 +129,9 @@ function get_download_ip {
       let "download_port++"
       # In case of capm3-virt node's machine Ip are not directly accessible
       # we are creating service in bootstrap cluster to access it
-      kubectl patch endpointslices machine-dump -n default --kubeconfig=bootstrap-cluster-kubeconfig \
+      kubectl patch endpointslices machine-dump -n sylva-system --kubeconfig=bootstrap-cluster-kubeconfig \
         --patch '{"endpoints": [{"addresses": ["'$machine_ip'"]}]}'
-      kubectl patch services machine-dump -n default --kubeconfig=bootstrap-cluster-kubeconfig \
+      kubectl patch services machine-dump -n sylva-system --kubeconfig=bootstrap-cluster-kubeconfig \
         --type='json' --patch '[{"op": "replace", "path": "/spec/ports/0/port", "value": '$download_port' }]'
       download_ip="${bootstrap_cluster_ip}"
     else
