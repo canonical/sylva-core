@@ -117,6 +117,16 @@ data:
             honor_labels: true
             static_configs:
             - targets: ['prometheus-pushgateway.pushgateway.svc.cluster.local:9091']
+          - job_name: 'crossplane'
+            kubernetes_sd_configs:
+            - role: pod
+            relabel_configs:
+            - source_labels: [__meta_kubernetes_namespace]
+              action: keep
+              regex: crossplane-system
+            - source_labels: [__meta_kubernetes_pod_label_app]
+              action: keep
+              regex: crossplane
           - job_name: 'snmp-exporter'
             scrape_interval: 90s
             scrape_timeout: 60s
