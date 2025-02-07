@@ -147,6 +147,118 @@ units:
           # regardless of the management cluster name
           management-cluster: true
 
+  upstrmonitoring:
+    depends_on:
+      keycloak-oidc-external-secrets: true
+      keycloak-add-realm-role: true
+      upstream-grafana-init: true
+    annotations:
+      sylvactl/readyMessage: "Grafana UI can be reached at https://{{ .Values.external_hostnames.grafana }} ({{ .Values.external_hostnames.grafana }} must resolve to {{ .Values.display_external_ip }})"
+    helmrelease_spec:
+      values:
+        grafana:
+          envFromSecret: grafana-oidc
+          sidecar:
+            datasources:
+              isDefaultDatasource: false
+          grafana.ini:
+            server:
+              root_url: 'https://{{ .Values.external_hostnames.grafana }}'
+            auth.anonymous:
+              enabled: false
+            auth.generic_oauth:
+              enabled: true
+              name: Keycloak-OAuth
+              scopes: openid email profile offline_access roles
+              email_attribute_path: email
+              login_attribute_path: username
+              name_attribute_path: full_name
+              client_id: grafana
+              auth_url: 'https://{{ .Values.external_hostnames.keycloak }}/realms/sylva/protocol/openid-connect/auth'
+              token_url: 'https://{{ .Values.external_hostnames.keycloak }}/realms/sylva/protocol/openid-connect/token'
+              api_url: 'https://{{ .Values.external_hostnames.keycloak }}/realms/sylva/protocol/openid-connect/userinfo'
+              role_attribute_path: contains(roles[*], 'grafanaadmin') && 'Admin' || 'Viewer'
+              allow_assign_grafana_admin: true
+              groups_attribute_path: groups
+              use_refresh_token: true
+              signout_redirect_url: 'http://{{ .Values.external_hostnames.keycloak }}/realms/sylva/protocol/openid-connect/logout'
+          extraSecretMounts:
+            - name: grafana-tls
+              mountPath: "/etc/ssl/certs"
+              secretName: sylva-ca.crt
+          # Define a custom ingress to directly access Grafana without nginx path rewrite
+          # see https://gitlab.com/sylva-projects/sylva-core/-/issues/1622
+          extraObjects:
+          - apiVersion: v1
+            kind: Service
+            metadata:
+              name: grafana-sylva-service
+              namespace: upstream-monitoring
+            spec:
+              type: ClusterIP
+              ports:
+              - name: grafana-http
+                port: 80
+                protocol: TCP
+                targetPort: 3000
+              selector:
+                app.kubernetes.io/instance: kube-prometheus-stack
+                app.kubernetes.io/name: grafana
+          - apiVersion: networking.k8s.io/v1
+            kind: Ingress
+            metadata:
+              name: grafana-sylva-ingress
+              namespace: upstream-monitoring
+            spec:
+              ingressClassName: nginx
+              tls:
+              - secretName: grafana-general-tls
+                hosts:
+                - '{{ .Values.external_hostnames.grafana }}'
+              rules:
+              - host: '{{ .Values.external_hostnames.grafana }}'
+                http:
+                  paths:
+                  - path: /
+                    pathType: Prefix
+                    backend:
+                      service:
+                        name: grafana-sylva-service
+                        port:
+                          number: 80
+        global:
+          cattle:
+            clusterId: local
+            clusterName: local
+    helm_secret_values:
+      grafana:
+        # https://grafana.com/docs/grafana/latest/administration/provisioning/#example-data-source-config-file
+        additionalDataSources:
+          - name: Thanos
+            type: "prometheus"
+            access: "proxy"
+            url: "http://thanos-query-frontend.thanos:9090"
+            basicAuth: true
+            basicAuthUser: '{{ .Values._internal.thanos_user }}'
+            jsonData:
+              tlsSkipVerify: true
+              timeInterval: 60s
+              prometheusVersion: "0.35.0"
+              customQueryParameters: "deduplicate=1"
+            secureJsonData:
+              basicAuthPassword: '{{ .Values._internal.thanos_password }}'
+            isDefault: true
+          - name: Loki
+            type: "loki"
+            access: "proxy"
+            url: '{{ .Values.logging.loki_url }}'
+            basicAuth: true
+            basicAuthUser: '{{ .Values._internal.loki_user }}'
+            jsonData:
+              tlsSkipVerify: true
+            secureJsonData:
+              basicAuthPassword: '{{ .Values._internal.loki_password }}'
+
   monitoring:
     depends_on:
       keycloak-oidc-external-secrets: true
