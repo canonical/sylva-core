@@ -18,26 +18,7 @@ except ModuleNotFoundError:
     print("[ERROR] it can be installed with: 'pip install --upgrade tabulate'", file=sys.stderr)
     sys.exit(1)
 
-
-PIPELINE_HISTORY_COUNT = int(sys.argv[1])
-print(f"PIPELINE_HISTORY_COUNT={PIPELINE_HISTORY_COUNT}")
-
-gitlab_url = "https://" + os.getenv("CI_SERVER_HOST", default="gitlab.com")
-gl = gitlab.Gitlab(gitlab_url, private_token=os.getenv("PRIVATE_TOKEN"))
-project_id = os.getenv("CI_PROJECT_ID", default="42451983")
-pipeline_schedule_name = os.getenv("PIPELINE_SCHEDULE_NAME_SELECTOR", default="Nightly")
-project = gl.projects.get(project_id)
-print("retrieving pipeline schedules")
-try:
-    pipeline_schedules = project.pipelineschedules.list()
-except gitlab.exceptions.GitlabHttpError as e:
-    print(f"error on pipelineschedules.list {e}\n  {e.response_body}")
-    raise
-
-print("  done")
-
 REPORT_FILE = "report_output.md"
-WIKI_REPORT_PAGE = os.getenv("WIKI_REPORT_PAGE", "Scheduled-pipelines-report")
 
 status_icon = {
     "failed": "❌",
@@ -288,8 +269,28 @@ def delete_old_reports():
             project.wikis.delete(page.slug)
 
 
-create_report()
-publish_report()
+if __name__ == '__main__':
+    PIPELINE_HISTORY_COUNT = int(sys.argv[1])
+    print(f"PIPELINE_HISTORY_COUNT={PIPELINE_HISTORY_COUNT}")
 
-if PIPELINE_HISTORY_COUNT == 1:
-    delete_old_reports()
+    gitlab_url = "https://" + os.getenv("CI_SERVER_HOST", default="gitlab.com")
+    gl = gitlab.Gitlab(gitlab_url, private_token=os.getenv("PRIVATE_TOKEN"))
+    project_id = os.getenv("CI_PROJECT_ID", default="42451983")
+    pipeline_schedule_name = os.getenv("PIPELINE_SCHEDULE_NAME_SELECTOR", default="Nightly")
+    project = gl.projects.get(project_id)
+    print("retrieving pipeline schedules")
+    try:
+        pipeline_schedules = project.pipelineschedules.list()
+    except gitlab.exceptions.GitlabHttpError as e:
+        print(f"error on pipelineschedules.list {e}\n  {e.response_body}")
+        raise
+
+    print("  done")
+
+    WIKI_REPORT_PAGE = os.getenv("WIKI_REPORT_PAGE", "Scheduled-pipelines-report")
+
+    create_report()
+    publish_report()
+
+    if PIPELINE_HISTORY_COUNT == 1:
+        delete_old_reports()
