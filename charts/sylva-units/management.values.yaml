@@ -173,7 +173,7 @@ units:
     helmrelease_spec:
       values:
         grafana:
-          envFromSecret: grafana-oidc
+          envFromSecret: upstream-grafana-oidc
           sidecar:
             datasources:
               isDefaultDatasource: false
