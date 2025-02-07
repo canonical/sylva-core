@@ -3,6 +3,7 @@
 import sys
 import datetime
 import os
+import re
 
 try:
     import gitlab
@@ -43,6 +44,25 @@ def get_status_icon(job):
     else:
         status = job.status
     return status_icon.get(status)
+
+
+def normalize_older_pipeline_name(name):
+    options = []
+    option_match = re.compile(r"🛠️\s*([\w\d,-]+)").findall(name)
+    if option_match:
+        options = option_match[0].split(",")
+
+    # if 'oci' in options, remove it to align with new jobs where 'oci' is implicit
+    # and does not appear in the name anymore
+    if 'oci' in options:
+        options.remove('oci')
+        name = re.sub(
+            r'🛠️\s*([\w\d,-]+)',
+            '🛠️' + ','.join(options),
+            name
+        )
+
+    return name
 
 
 def pipeline_summary(pipeline):
@@ -156,33 +176,35 @@ def create_report():
                     if level1_child.name == "deployment-jobs":
                         for level2_child in project.pipelines.get(level1_child.downstream_pipeline['id']).bridges.list():
                             print(f"      processing child {level2_child.name}")
-                            child_pipelines_reports.setdefault(level2_child.name, dict())
-                            child_pipelines_reports[level2_child.name][pipeline.id] = _get_child_md(level2_child)
+                            child_pipeline_name = normalize_older_pipeline_name(level2_child.name)
+                            child_pipelines_reports.setdefault(child_pipeline_name, dict())
+                            child_pipelines_reports[child_pipeline_name][pipeline.id] = _get_child_md(level2_child)
 
                             # Count successes and total for each child pipeline
-                            total_counts[level2_child.name] = total_counts.get(level2_child.name, 0) + 1
+                            total_counts[child_pipeline_name] = total_counts.get(child_pipeline_name, 0) + 1
                             if level2_child.status == "success":
-                                success_counts[level2_child.name] = success_counts.get(level2_child.name, 0) + 1
-                                if level2_child.name in last_success_dates:
-                                    if last_success_dates[level2_child.name] < level2_child.started_at:
-                                        last_success_dates[level2_child.name] = level2_child.started_at
+                                success_counts[child_pipeline_name] = success_counts.get(child_pipeline_name, 0) + 1
+                                if child_pipeline_name in last_success_dates:
+                                    if last_success_dates[child_pipeline_name] < level2_child.started_at:
+                                        last_success_dates[child_pipeline_name] = level2_child.started_at
                                 else:
-                                    last_success_dates[level2_child.name] = level2_child.started_at
+                                    last_success_dates[child_pipeline_name] = level2_child.started_at
 
                     # keep compatibility with old CI behavior
                     else:
-                        child_pipelines_reports.setdefault(level1_child.name, dict())
-                        child_pipelines_reports[level1_child.name][pipeline.id] = _get_child_md(level1_child)
+                        child_pipeline_name = normalize_older_pipeline_name(level1_child.name)
+                        child_pipelines_reports.setdefault(child_pipeline_name, dict())
+                        child_pipelines_reports[child_pipeline_name][pipeline.id] = _get_child_md(level1_child)
 
                         # Count successes and total for each child pipeline
-                        total_counts[level1_child.name] = total_counts.get(level1_child.name, 0) + 1
+                        total_counts[child_pipeline_name] = total_counts.get(child_pipeline_name, 0) + 1
                         if level1_child.status == "success":
-                            success_counts[level1_child.name] = success_counts.get(level1_child.name, 0) + 1
-                            if level1_child.name in last_success_dates:
-                                if last_success_dates[level1_child.name] < level1_child.started_at:
-                                    last_success_dates[level1_child.name] = level1_child.started_at
+                            success_counts[child_pipeline_name] = success_counts.get(child_pipeline_name, 0) + 1
+                            if child_pipeline_name in last_success_dates:
+                                if last_success_dates[child_pipeline_name] < level1_child.started_at:
+                                    last_success_dates[child_pipeline_name] = level1_child.started_at
                             else:
-                                last_success_dates[level1_child.name] = level1_child.started_at
+                                last_success_dates[child_pipeline_name] = level1_child.started_at
 
             headers = ["name"]
             rows_as_dict = dict()
