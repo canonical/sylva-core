@@ -369,6 +369,17 @@ function cluster_info_dump() {
   kubectl get secret -A --field-selector=type=cluster.x-k8s.io/secret                               > $dump_dir/Secrets-capi.summary.txt
   kubectl get secret -A --field-selector=type=cluster.x-k8s.io/secret -o yaml --show-managed-fields > $dump_dir/Secrets-capi.yaml
 
+  # dump BMH.spec.preprovisioningNetworkDataName secrets, used in a DHCP-less CAPM3 deployment, if present
+  if kubectl get secret -A -o custom-columns=NAME:.metadata.name | grep "preprovisioning-netdata$" > /dev/null 2>&1 ;then
+    kubectl get secret -A | grep -E "NAMESPACE|preprovisioning-netdata" > $dump_dir/Secrets-preprovisioning-netdata.summary.txt
+    kubectl get secret -A -o custom-columns=NAMESPACE:.metadata.namespace,NAME:.metadata.name \
+      | grep "preprovisioning-netdata$" \
+      | while read namespace name; do
+          echo "---"
+          kubectl get secret $name -n $namespace -o yaml --show-managed-fields
+        done > $dump_dir/Secrets-preprovisioning-netdata.yaml
+  fi
+
   # list secrets
   kubectl get secret -A > $dump_dir/Secrets.summary.txt
   kubectl get secret -A -o yaml --show-managed-fields | yq '.items[].data="secrets data is purposefully not dumped" | .items[].metadata.annotations="secrets data is purposefully not dumped"' > $dump_dir/Secrets-censored.yaml
