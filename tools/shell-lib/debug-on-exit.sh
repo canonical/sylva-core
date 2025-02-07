@@ -425,7 +425,7 @@ function cluster_info_dump() {
   echo "Data collection completed. Files saved in $dump_dir."
 
   echo "Displaying collected api response data:"
-  sed -n '2p' "$dump_dir/kubectl-api-response-${timestamp}.log"
+  sed -n -E 's/.*timeout=[^ ]+ //; 2p' "$dump_dir/kubectl-api-response-${timestamp}.log"
 }
 
 echo "Start debug-on-exit at: $(date -Iseconds)"
