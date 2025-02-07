@@ -33,11 +33,8 @@ Process all units
 
   {{- if include "unit-enabled" (tuple $envAll $unit_name) -}}
 
-    {{/* check if any circular dependency for this unit */}}
+    {{/* check if any circular dependency for this unit (all-unit-dependencies will fail if a circular dependency is detected) */}}
     {{- $all_dependencies := index (include "all-unit-dependencies" (tuple $envAll $unit_name list $all_dependencies_cache) | fromJson) "result" -}}
-    {{- if has $unit_name $all_dependencies -}}
-      {{- fail (printf "unit %s is involved in a circular dependency:\n%s" $unit_name $all_dependencies) -}}
-    {{- end -}}
     {{- $_ = set $all_dependencies_cache $unit_name $all_dependencies -}}
 
     {{/* inherit settings from any template specified in unit.<this unit>.unit_templates */}}

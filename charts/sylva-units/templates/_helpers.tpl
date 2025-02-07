@@ -108,7 +108,6 @@ patches:
   {{ end }}
 {{ end }}
 
-
 {{/*
 
 unit-labels
@@ -318,6 +317,8 @@ all-unit-dependencies
 
 this named template compute all the direct and indirect dependencies of a given unit
 
+it fails if any circular dependency is found
+
 usage:
 
   $deps := index (include "all-unit-dependencies" (tuple . "cluster" (list "cluster-machines-ready") dict)
@@ -334,6 +335,22 @@ usage:
 {{- $unit_name := index . 1 -}}
 {{- $ignore_units := index . 2 -}}{{/* list */}}
 {{- $all_dependencies_cache := index . 3 -}}{{/* dict */}}
+{{- include "_all-unit-dependencies" (tuple $envAll $unit_name $ignore_units $all_dependencies_cache list) }}
+{{- end }}
+
+{{/*
+
+internal implementation of all-unit-dependencies that keeps a trace of the dependencies in
+dependents_list and fails if a circular dependency is detected
+
+*/}}
+
+{{- define "_all-unit-dependencies" -}}
+{{- $envAll := index . 0 -}}
+{{- $unit_name := index . 1 -}}
+{{- $ignore_units := index . 2 -}}{{/* list */}}
+{{- $all_dependencies_cache := index . 3 -}}{{/* dict */}}
+{{- $dependents_list := index . 4 -}}{{/* list of dependents used to print circular dependencies */}}
 
 {{- if not $unit_name -}}
   {{- fail "unit name nil/empty" -}}
@@ -342,6 +359,12 @@ usage:
 {{- $result := list -}}
 
 {{- $debug := printf "(start %s " $unit_name }}
+
+{{- if has $unit_name $dependents_list -}}
+  {{- $dependents_list = append $dependents_list $unit_name -}}
+  {{- fail (printf "unit %s is involved in a circular dependency:\n%s" $unit_name (join " -> " $dependents_list)) }}
+{{- end }}
+{{- $dependents_list = append $dependents_list $unit_name -}}
 
 {{- if hasKey $all_dependencies_cache $unit_name -}}
   {{- $result = without (index $all_dependencies_cache $unit_name) $ignore_units -}}
@@ -375,7 +398,7 @@ usage:
       {{- $ignore_units = append $ignore_units $dep_name -}}
 
       {{/* examine the dependency, recursing if needed */}}
-      {{- $recurse := include "all-unit-dependencies" (tuple $envAll $dep_name $ignore_units $all_dependencies_cache) | fromJson -}}
+      {{- $recurse := include "_all-unit-dependencies" (tuple $envAll $dep_name $ignore_units $all_dependencies_cache $dependents_list) | fromJson -}}
       {{- $debug = printf "%s:r:%s" $debug $recurse.debug -}}
 
       {{/* incorporate recursion result in result */}}
