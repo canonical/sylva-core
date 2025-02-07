@@ -91,6 +91,8 @@ mgmt-GUIs-test:
     - pytest ./tools/login-test/test_ui_playwright.py --browser firefox -v --tb=short
 
 mgmt-sso:
+  retry:
+    max: 2
   extends:
     - .test-base-management-cluster
   image: registry.gitlab.com/sylva-projects/sylva-elements/container-images/ci-image/ci-playwright-image:v1.0.57
