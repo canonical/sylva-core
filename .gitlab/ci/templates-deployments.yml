@@ -478,6 +478,7 @@ include:
     paths:
       - debug-on-exit.log
       - bootstrap-cluster-dump/default/
+      - bootstrap-cluster-dump/sylva-system/
       - management-cluster-dump/
       - workload-cluster-dump/
       - crust-gather.tar.gz
