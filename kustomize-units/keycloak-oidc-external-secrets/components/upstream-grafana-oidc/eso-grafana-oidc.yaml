@@ -9,7 +9,7 @@ spec:
     kind: ClusterSecretStore
     name: eso-store-k8s-keycloak
   target:
-    name: grafana-oidc
+    name: upstream-grafana-oidc
     template:
       data:
         GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET: "{{ .clientSecret }}"
