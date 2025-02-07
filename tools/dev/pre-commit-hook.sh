@@ -35,9 +35,6 @@ $BASE_DIR/tools/generate_json_schema.py
 # update unit documentation
 $BASE_DIR/tools/generate_units_documentation.py
 
-# update renovate.json
-$BASE_DIR/tools/generate-renovate-json.sh
-
 # update CI scenario description
 $BASE_DIR/.gitlab/ci/scripts/generate-scenario-description.sh
 
@@ -49,10 +46,6 @@ fi
 if [[ $(git diff $BASE_DIR/charts/sylva-units/units-description.md) ]]; then
     ERRORS=1
     echo "units-description.md was updated. Please include it into this commit"
-fi
-if [[ $(git diff $BASE_DIR/renovate.json) ]]; then
-    ERRORS=1
-    echo "renovate.json was updated. Please include it into this commit"
 fi
 if [[ $(git diff $BASE_DIR/.gitlab/README.md) ]]; then
     ERRORS=1

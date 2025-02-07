@@ -112,9 +112,11 @@ The script uses several environment variables and configuration files to define 
 * **DEPLOYMENT_DESCRIPTION**: Specifies deployment options, containing the key for schedule pipeline definitions.
 * **CI_MERGE_REQUEST_DESCRIPTION**: Description of the merge request.
 * **CI_MERGE_REQUEST_LABELS**: GitLab merge request labels (`~ci-allow-failure` label allows pipelines to fail).
+* **CI_CONFIGURATION_GUEST_TOKEN**: GitLab token (with API scope and guest as max role) to read/create comment in MR when required.
 
 ### Configuration Files
 
 * **PREDEFINED_PIPELINES_CONFIG_FILE**: YAML file for scheduled pipeline configurations (default: `.gitlab/ci/configuration/predefined-pipelines-config.yaml`).
 * **DEFAULT_MR_DESCRIPTION**: Default merge request description file (default: `.gitlab/merge_request_templates/Default.md`).
+* **DEFAULT_RENOVATE_COMMENT**: Default comment content for MR that can't be managed with a description (default: `.gitlab/ci/configuration/default-renovate-comment.md`).
 * **TEMPLATE_FILE**: Base YAML deployment file (default: `.gitlab/ci/deployments-base.yml`), containing scenario definitions.
