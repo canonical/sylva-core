@@ -425,7 +425,7 @@ function cluster_info_dump() {
   echo "Data collection completed. Files saved in $dump_dir."
 
   echo "Displaying collected api response data:"
-  grep -P 'https?://[^\s]+customresourcedefinitions[^\s]+' "$dump_dir/kubectl-api-response-${timestamp}.log" | sed -E 's/.*GET/GET/'
+  sed -nr 's|.*(https://[^ ]*customresourcedefinitions[^ ]*)|\1|p' "$dump_dir/kubectl-api-response-${timestamp}.log"
 }
 
 echo "Start debug-on-exit at: $(date -Iseconds)"
