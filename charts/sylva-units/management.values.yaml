@@ -153,7 +153,7 @@ units:
 
   prometheus-custom-metrics:
     depends_on:
-      monitoring-crd: '{{ not (tuple . "monitoring" | include "unit-enabled") | include "as-bool" }}'
+      monitoring-crd: '{{ (tuple . "monitoring" | include "unit-enabled") | include "as-bool" }}'
 
   sylva-prometheus-rules:
     helmrelease_spec:
