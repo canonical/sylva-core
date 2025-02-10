@@ -36,7 +36,7 @@ mgmt-firewall-verify:
   variables:
     FIREWALL_LOG_FILE: management-firewall.log
     CLUSTER_DIRECTORY: management-cluster-dump
-  image: registry.gitlab.com/sylva-projects/sylva-elements/container-images/ci-image/ci-firewall-logs/snapshot:0.0.0-git-76b67019
+  image: registry.gitlab.com/sylva-projects/sylva-elements/container-images/ci-image/ci-systemd-image:v1.0.58
   artifacts:
     expire_in: 48 hour
     when: always
@@ -58,7 +58,7 @@ wkld-firewall-verify:
   variables:
     FIREWALL_LOG_FILE: workload-firewall.log
     CLUSTER_DIRECTORY: workload-cluster-dump
-  image: registry.gitlab.com/sylva-projects/sylva-elements/container-images/ci-image/ci-firewall-logs/snapshot:0.0.0-git-76b67019
+  image: registry.gitlab.com/sylva-projects/sylva-elements/container-images/ci-image/ci-systemd-image:v1.0.58
   artifacts:
     expire_in: 48 hour
     when: always
