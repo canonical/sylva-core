@@ -415,6 +415,17 @@ function cluster_info_dump() {
   echo -e "\nDisplay cluster resources usage per node"
   # From https://github.com/kubernetes/kubernetes/issues/17512
   kubectl get nodes --no-headers | awk '{print $1}' | xargs -I {} sh -c 'echo {} ; kubectl describe node {} | grep Allocated -A 5 | grep -ve Event -ve Allocated -ve percent -ve -- ; echo '
+
+  # Collect kubectl get data with verbosity level 6
+  local timestamp=$(date +%Y%m%d-%H%M%S)
+  echo "Collecting kubectl get data with fixed verbosity -v=6..."
+  
+  kubectl get crd -A -v=6 > "$dump_dir/kubectl-api-response-${timestamp}.log" 2>&1 && \
+  echo "Collected api response data" || \
+  echo "Data collection completed. Files saved in $dump_dir."
+
+  echo "Displaying collected api response data:"
+  sed -nr 's|.*(https://[^ ]*customresourcedefinitions[^ ]*)|\1|p' "$dump_dir/kubectl-api-response-${timestamp}.log"
 }
 
 echo "Start debug-on-exit at: $(date -Iseconds)"
