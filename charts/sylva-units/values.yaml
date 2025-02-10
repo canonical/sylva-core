@@ -4526,7 +4526,7 @@ units:
       internal: true
     unit_templates:
     - base-deps
-    dependes_on:
+    depends_on:
       upstrmonitoring: true
     repo: sylva-core
     enabled_conditions:
