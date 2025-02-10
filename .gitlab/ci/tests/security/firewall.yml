@@ -29,9 +29,13 @@ mgmt-firewall-verify:
   extends:
     - .test-base-management-cluster
     - .firewall-verify
-  dependencies:
+  needs:
     - job: deploy-management-cluster
+    - job: deploy-workload-cluster
+      optional: true
     - job: update-management-cluster
+      optional: true
+    - job: update-workload-cluster
       optional: true
   variables:
     FIREWALL_LOG_FILE: management-firewall.log
@@ -51,7 +55,7 @@ wkld-firewall-verify:
   extends:
     - .test-base-workload-cluster
     - .firewall-verify
-  dependencies:
+  needs:
     - job: deploy-workload-cluster
     - job: update-workload-cluster
       optional: true
