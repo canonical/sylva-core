@@ -1,0 +1,99 @@
+apiVersion: litmuschaos.io/v1alpha1
+description:
+  message: |
+    Deletes a pod belonging to a deployment/statefulset/daemonset
+kind: ChaosExperiment
+metadata:
+  name: '${UNIT_NAME}'
+  labels:
+    name: '${UNIT_NAME}'
+    app.kubernetes.io/part-of: litmus
+    app.kubernetes.io/component: chaosexperiment
+    app.kubernetes.io/version: 3.10.0
+spec:
+  definition:
+    scope: Namespaced
+    permissions:
+      - apiGroups:
+          - ""
+          - "apps"
+          - "apps.openshift.io"
+          - "argoproj.io"
+          - "batch"
+          - "litmuschaos.io"
+        resources:
+          - "deployments"
+          - "jobs"
+          - "pods"
+          - "pods/log"
+          - "replicationcontrollers"
+          - "deployments"
+          - "statefulsets"
+          - "daemonsets"
+          - "replicasets"
+          - "deploymentconfigs"
+          - "rollouts"
+          - "pods/exec"
+          - "events"
+          - "chaosengines"
+          - "chaosexperiments"
+          - "chaosresults"
+        verbs:
+          - "create"
+          - "list"
+          - "get"
+          - "patch"
+          - "update"
+          - "delete"
+          - "deletecollection"
+    image: 'litmuschaos/go-runner:3.4.0'
+    imagePullPolicy: 'IfNotPresent'
+    args:
+    - -c
+    - ./experiments -name node-memory-hog
+    command:
+    - /bin/bash
+    env:
+
+    - name: TOTAL_CHAOS_DURATION
+      value: ${QUOTE}${TOTAL_CHAOS_DURATION}${QUOTE}
+
+    # Period to wait before and after injection of chaos in sec
+
+    - name: RAMP_TIME
+      value: ''
+
+    - name: CHAOS_INTERVAL
+      value: ${QUOTE}${CHAOS_INTERVAL}${QUOTE}
+
+    - name: NODE_LABEL
+      value: '${NODE_LABEL}'
+
+    # pod failures without '--force' & default terminationGracePeriodSeconds
+    - name: FORCE
+      value: 'false'
+
+    ## percentage of total pods to target
+    - name: NODES_AFFECTED_PERC
+      value: ${QUOTE}${NODES_AFFECTED_PERC}${QUOTE}
+
+    ## Specify the size as percent of total node capacity Ex: '30'
+    ## NOTE: for selecting this option keep MEMORY_CONSUMPTION_MEBIBYTES empty
+    - name: MEMORY_CONSUMPTION_PERCENTAGE
+      value: '100'
+
+    ## Specify the amount of memory to be consumed in mebibytes
+    ## NOTE: for selecting this option keep MEMORY_CONSUMPTION_PERCENTAGE empty
+    - name: MEMORY_CONSUMPTION_MEBIBYTES
+      value: ''
+
+    ## it defines the sequence of chaos execution for multiple target pods
+    ## supported values: serial, parallel
+    - name: SEQUENCE
+      value: '${SEQUENCE}'
+
+    labels:
+      name: '${UNIT_NAME}'
+      app.kubernetes.io/part-of: litmus
+      app.kubernetes.io/component: experiment-job
+      app.kubernetes.io/version: 3.10.0
