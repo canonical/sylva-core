@@ -4036,7 +4036,7 @@ units:
       upgrade:
         force: true
       values:
-        logLevel: debug
+        logLevel: info
         envVars:
         - name: WEAVE_GITOPS_FEATURE_TENANCY
           value: "true"
@@ -4388,7 +4388,7 @@ units:
           version: 1.7.2
       values:
         extraArgs:
-          - -log.level=debug
+          - -log.level=info
           - -hash-jira-label
         existingConfigSecret: sylva-alertmanager-webhook-jiralert  # this Secret is a byproduct of the alertmanager-jiralert-config unit
         fullnameOverride: 'alertmanager-jiralert'
@@ -6551,7 +6551,7 @@ units:
           persistence:
             enabled: false
           enabled: true
-          logLevel: debug
+          logLevel: info
           extraFlags:
             - --deduplication.replica-label="prometheus_replica"
           consistencyDelay: 30m
