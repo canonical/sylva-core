@@ -8,9 +8,11 @@ spec:
     metadata:
       labels:
         kubevirt.io/size: small
-        kubevirt.io/domain: testvm
+        kubevirt.io/domain: cirros
     spec:
       domain:
+        cpu:
+          cores: 1
         devices:
           disks:
             - name: containerdisk
@@ -34,8 +36,4 @@ spec:
             image: quay.io/kubevirt/cirros-container-disk-demo:v1.4.0
         - name: cloudinitdisk
           cloudInitNoCloud:
-            userData: |-
-              #cloud-config
-              bootcmd:
-                - root=/dev/vda
-              # Add other configurations as needed
+            userDataBase64: SGkuXG4=
