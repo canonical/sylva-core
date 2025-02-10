@@ -447,7 +447,7 @@ function display_service_ingresses() {
             if [[ "$ingress_name" == "$unit_name" ]]; then
                 gui_ingresses+=("$ingress_name: https://$ingress_host")
             else
-                gui_ingresses+=("$unit_name: https://$ingress_host")
+                gui_ingresses+=("$unit_name - $ingress_name: https://$ingress_host")
             fi
         fi
     done
