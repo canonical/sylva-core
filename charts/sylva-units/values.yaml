@@ -4363,8 +4363,7 @@ units:
     - base-deps
     repo: sylva-core
     enabled_conditions:
-    - '{{ tuple . "monitoring" | include "unit-enabled" }}'
-    - '{{ tuple . "upstrmonitoring" | include "unit-enabled" }}'
+    - '{{ or (tuple . "monitoring" | include "unit-enabled")  (tuple . "upstrmonitoring" | include "unit-enabled") }}'
     kustomization_spec:
       path: ./kustomize-units/prometheus-custom-metrics
       wait: false
