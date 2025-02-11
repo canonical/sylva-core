@@ -7312,7 +7312,7 @@ units:
       description: installs Thanos
       maturity: beta
     enabled_conditions:
-      - '{{ tuple . "monitoring" | include "unit-enabled" }}'
+      - '{{ tuple . (tuple . "monitoring" | include "unit-enabled") "monitroing" (tuple . "upstrmonitoring" | include "unit-enabled") | include "interpret-ternary" }}'
     unit_templates:
     - base-deps
     depends_on:
@@ -7395,6 +7395,16 @@ units:
                  {{- $count_am = int $count_am -}}
                  {{- range $index_am := until $count_am }}
                  - alertmanager-rancher-monitoring-alertmanager-{{ $index_am }}.alertmanager-operated.cattle-monitoring-system:9093
+                 {{- end -}}
+                {{- end -}}
+                {{- if (tuple . "upstrmonitoring" | include "unit-enabled" | include "as-bool") -}}
+                 {{- $count_am := .Values.units.upstrmonitoring.helmrelease_spec.values.alertmanager.alertmanagerSpec.replicas -}}
+                 {{- if kindIs "string" $count_am -}}
+                  {{- $count_am = tuple . $count_am | include "interpret-as-string" -}}
+                 {{- end -}}
+                 {{- $count_am = int $count_am -}}
+                 {{- range $index_am := until $count_am }}
+                 - alertmanager-kube-prometheus-stack-alertmanager-{{ $index_am }}.alertmanager-operated.upstream-monitoring:9093
                  {{- end -}}
                 {{- end -}}
           existingConfigmap: "sylva-thanos-rules-configmap"  # this ConfigMap is a byproduct of the sylva-thanos-rules unit
