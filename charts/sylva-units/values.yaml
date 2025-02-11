@@ -4413,8 +4413,6 @@ units:
       internal: true
     unit_templates:
     - base-deps
-    depends_on:
-      upstrmonitoring: true
     repo: sylva-core
     enabled_conditions:
     - '{{ tuple . "upstrmonitoring" | include "unit-enabled" }}'
@@ -4536,7 +4534,7 @@ units:
       valuesFrom:
         - kind: ConfigMap
           name: custom-resource-state-config # this configmap is a byproduct of the prometheus-custom-metrics unit
-          optional: true
+          optional: '{{ not (tuple . "prometheus-custom-metrics" | include "unit-enabled") | include "as-bool" }}'
         - kind: ConfigMap
           name: prometheus-config-values # this configmap is a byproduct of the prometheus-resources unit
           optional: '{{ not (tuple . "prometheus-resources" | include "unit-enabled") | include "as-bool" }}'
