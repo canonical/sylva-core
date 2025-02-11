@@ -4449,7 +4449,7 @@ units:
   #    install:
   #      createNamespace: false
 
-   upstream-monitoring-crd:
+  upstream-monitoring-crd:
     info:
       description: installs prometheus operator CRDs
       maturity: stable
