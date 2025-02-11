@@ -2,7 +2,7 @@
 # a Sylva two-node (1 control-plane + 1 worker) mgmt baremetal cluster
 
 sylva_diskimagebuilder_images:
-  ubuntu-jammy-hardened-rke2-1-30-7:
+  ubuntu-jammy-hardened-rke2-1-30-9:
     enabled: true
 
 cluster_virtual_ip: 10.188.36.149
