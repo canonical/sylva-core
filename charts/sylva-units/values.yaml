@@ -8010,6 +8010,8 @@ _internal:
         enabled: '{{ tuple . "kepler" | include "unit-enabled" }}'
       snmp:
         enabled: '{{ tuple . "snmp-exporter" | include "unit-enabled" }}'
+      crossplane:
+        enabled: '{{ tuple . "crossplane" | include "unit-enabled" }}'
 
   # thanos user and password
   thanos_user: '{{ .Values.cluster.name }}'
