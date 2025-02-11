@@ -4534,10 +4534,10 @@ units:
       valuesFrom:
         - kind: ConfigMap
           name: custom-resource-state-config # this configmap is a byproduct of the prometheus-custom-metrics unit
-          optional: '{{ not (tuple . "prometheus-custom-metrics" | include "unit-enabled") | include "as-bool" }}'
+          optional: '{{ not (tuple . "upstream-prometheus-custom-metrics" | include "unit-enabled") | include "as-bool" }}'
         - kind: ConfigMap
           name: prometheus-config-values # this configmap is a byproduct of the prometheus-resources unit
-          optional: '{{ not (tuple . "prometheus-resources" | include "unit-enabled") | include "as-bool" }}'
+          optional: '{{ not (tuple . "upstream-prometheus-resources" | include "unit-enabled") | include "as-bool" }}'
       _postRenderers:
         - kustomize:
             patches:
