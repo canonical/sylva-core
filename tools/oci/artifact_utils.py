@@ -149,12 +149,12 @@ def push_and_sign_with_helm(tgz_file, artifact_name):
     sign(artifact_name, digest)
 
 
-def push_and_sign_with_flux(artifact_name, artifact_version, artifact_source, artifact_revision):
+def push_and_sign_with_flux(artifact_name, artifact_version, artifact_source, artifact_revision, artifact_path="."):
     logger.info(f"Pushing {artifact_name}:{artifact_version} artifact to OCI registry using Flux tool...")
 
     cmd = [
         "flux", "push", "artifact", f"{OCI_REGISTRY}/{artifact_name}:{artifact_version}",
-        "--path", ".", "--source", artifact_source, "--revision", artifact_revision
+        "--path", str(artifact_path), "--source", artifact_source, "--revision", artifact_revision
     ]
     # if we run in a gitlab CI job, then we use the credentials provided by gitlab job environment
     logger.info(f"command: {" ".join(cmd)}")
