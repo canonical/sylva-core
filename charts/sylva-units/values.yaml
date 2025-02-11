@@ -7190,7 +7190,7 @@ units:
       chart:
         spec:
           chart: descheduler
-          version: 0.32.1
+          version: 0.32.2
       values:
         kind: CronJob
         schedule: "*/10 * * * *"
