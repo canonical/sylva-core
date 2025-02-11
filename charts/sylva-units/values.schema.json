@@ -861,6 +861,19 @@
                 }
               ]
             },
+            "os_image_selector": {
+              "anyOf": [
+                {
+                  "type": "object"
+                },
+                {
+                  "$ref": "#/$defs/string-with-gotpl"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
             "image_key": {
               "anyOf": [
                 {
@@ -1219,6 +1232,19 @@
                 }
               ]
             },
+            "os_image_selector": {
+              "anyOf": [
+                {
+                  "type": "object"
+                },
+                {
+                  "$ref": "#/$defs/string-with-gotpl"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
             "image_key": {
               "anyOf": [
                 {
@@ -1444,6 +1470,19 @@
                 {
                   "type": "string",
                   "format": "ipv4"
+                },
+                {
+                  "$ref": "#/$defs/string-with-gotpl"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "os_image_selector": {
+              "anyOf": [
+                {
+                  "type": "object"
                 },
                 {
                   "$ref": "#/$defs/string-with-gotpl"
@@ -2674,6 +2713,19 @@
                         }
                       ]
                     },
+                    "os_image_selector": {
+                      "anyOf": [
+                        {
+                          "type": "object"
+                        },
+                        {
+                          "$ref": "#/$defs/string-with-gotpl"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
                     "image_key": {
                       "anyOf": [
                         {
@@ -3713,6 +3765,19 @@
                     }
                   ]
                 },
+                "os_image_selector": {
+                  "anyOf": [
+                    {
+                      "type": "object"
+                    },
+                    {
+                      "$ref": "#/$defs/string-with-gotpl"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
                 "image_key": {
                   "anyOf": [
                     {
@@ -4243,6 +4308,19 @@
                     {
                       "type": "string",
                       "format": "ipv4"
+                    },
+                    {
+                      "$ref": "#/$defs/string-with-gotpl"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "os_image_selector": {
+                  "anyOf": [
+                    {
+                      "type": "object"
                     },
                     {
                       "$ref": "#/$defs/string-with-gotpl"
@@ -5771,6 +5849,19 @@
                             }
                           ]
                         },
+                        "os_image_selector": {
+                          "anyOf": [
+                            {
+                              "type": "object"
+                            },
+                            {
+                              "$ref": "#/$defs/string-with-gotpl"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
                         "image_key": {
                           "anyOf": [
                             {
@@ -6623,18 +6714,6 @@
                       "network_id",
                       "clouds_yaml",
                       "resources_tag"
-                    ],
-                    "oneOf": [
-                      {
-                        "required": [
-                          "image_name"
-                        ]
-                      },
-                      {
-                        "required": [
-                          "image_key"
-                        ]
-                      }
                     ]
                   },
                   {
@@ -6756,6 +6835,11 @@
                       {
                         "required": [
                           "machine_image_url"
+                        ]
+                      },
+                      {
+                        "required": [
+                          "os_image_selector"
                         ]
                       }
                     ]
