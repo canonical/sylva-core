@@ -136,9 +136,10 @@ variables:
     WC_INITIAL_REVISION: "1.2.1"
     WC_UPDATE_REVISION: "" # Use current commit
     # Increase default timers due to rolling upgrade
-    MGMT_WATCH_TIMEOUT_MIN: "45"
-    APPLY_WATCH_TIMEOUT_MIN: "95"
-    APPLY_WC_WATCH_TIMEOUT_MIN: "95"
+    BOOTSTRAP_WATCH_TIMEOUT_MIN: 75
+    MGMT_WATCH_TIMEOUT_MIN: 145
+    APPLY_WATCH_TIMEOUT_MIN: 195
+    APPLY_WC_WATCH_TIMEOUT_MIN: 175
 
 .scenario_sylva-upgrade-from-1.1.1:
   variables:
@@ -200,6 +201,7 @@ variables:
     include: .gitlab/ci/pipeline-deploy-capm3-virt-equinix.yml
     strategy: depend
   variables:
-    MGMT_WATCH_TIMEOUT_MIN: 35
-    APPLY_WATCH_TIMEOUT_MIN: 95
-    APPLY_WC_WATCH_TIMEOUT_MIN: 95
+    BOOTSTRAP_WATCH_TIMEOUT_MIN: 75
+    MGMT_WATCH_TIMEOUT_MIN: 145
+    APPLY_WATCH_TIMEOUT_MIN: 195
+    APPLY_WC_WATCH_TIMEOUT_MIN: 175
