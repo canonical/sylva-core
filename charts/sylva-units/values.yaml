@@ -4516,6 +4516,84 @@ units:
     helm_secret_values:
       config: '{{ .Values.monitoring.alertmanager.webhooks.jiralert.config | include "preserve-type" }}'
 
+  alertmanager-snmp-notifier:
+    info:
+      description: installs Alertmanager webhook snmp-notifier
+      details: snmp-notifier is an Alertmanager wehbook that sends alerts as snmp traps
+      maturity: beta
+    enabled_conditions:
+    - '{{ tuple . "monitoring" | include "unit-enabled" }}'
+    # only enable if SNMP traps destinations are set
+    - '{{ .Values.monitoring.alertmanager.webhooks.snmp_notifier.config.snmpDestinations | empty | not }}'
+    unit_templates:
+    - base-deps
+    helm_repo_url: https://prometheus-community.github.io/helm-charts
+    helmrelease_spec:
+      targetNamespace: cattle-monitoring-system
+      chart:
+        spec:
+          chart: alertmanager-snmp-notifier
+          version: 0.4.0
+      values:
+        snmpNotifier:
+          extraArgs: |
+            {{ .Values.monitoring.alertmanager.webhooks.snmp_notifier.config.default_extra_args | toYaml }}
+            # only add SNMP v3 args when snmp_version is V3
+            {{ if eq .Values.monitoring.alertmanager.webhooks.snmp_notifier.config.snmp_version "V3" }}
+            {{ .Values.monitoring.alertmanager.webhooks.snmp_notifier.config.snmp_v3_extra_args | toYaml }}
+            {{ end }}
+          # aici
+          snmpCommunity: public
+          snmpAuthenticationUsername: "snmp-user"
+          snmpAuthenticationPassword: "snmp-auth-pass"
+          snmpPrivatePassword: "snmp-priv-pass"
+          snmpDestinations:
+            '{{ .Values.monitoring.alertmanager.webhooks.snmp_notifier.config.snmp_destinations | default list | include "preserve-type" }}'
+        fullnameOverride: 'alertmanager-snmp-notifier'
+        extraConfigmapMounts:
+          - name: snmp-notifier-extra-templates
+            configMap: snmp-notifier-extra-templates # this ConfigMap is a byproduct of the alertmanager-snmp-notifier-config unit
+            mountPath: /etc/snmp_notifier_extra_templates
+            readOnly: true
+        podAnnotations:
+          sylva/snmp-notifier-config: '{{ .Values.monitoring.alertmanager.webhooks.snmp_notifier.config | toJson | sha256sum | trunc 8 }}'
+        replicaCount: '{{ .Values._internal.ha_cluster.is_ha | ternary 2 1 | include "preserve-type" }}'
+        podDisruptionBudget:
+          minAvailable: '{{ .Values._internal.ha_cluster.is_ha | ternary 1 0 | include "preserve-type" }}'
+          unhealthyPodEvictionPolicy: AlwaysAllow
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 65535
+          allowPrivilegeEscalation: false
+          seccompProfile:
+            type: RuntimeDefault
+        resources:
+          limits:
+            cpu: 0.2
+            memory: 256Mi
+          requests:
+            cpu: 0.1
+            memory: 128Mi
+        serviceMonitor:
+          enabled: true
+
+  alertmanager-snmp-notifier-config:
+    info:
+      description: generates the config for snmp-notifier Alertmanager webhook
+      maturity: beta
+    enabled_conditions:
+    - '{{ tuple . "alertmanager-jiralert" | include "unit-enabled" }}'
+    unit_templates:
+    - base-deps
+    depends_on:
+      namespace-defs: true
+    repo: sylva-alertmanager-resources
+    helmrelease_spec:
+      chart:
+        spec:
+          chart: webhooks/snmp-notifier
+      targetNamespace: cattle-monitoring-system
+
   alertmanager-config:
     info:
       description: generates the config for Alertmanager
@@ -7888,6 +7966,30 @@ monitoring:
       jiralert:
         env: {}
         config: {}
+      snmp_notifier:
+        config:
+          snmp_destinations: []
+          snmp_version: V2c # V3
+          default_extra_args:
+            - --alert.severities=critical,error,warning,info
+            - --snmp.extra-field-template=4=/etc/snmp_notifier_extra_templates/platform_tag.tpl
+            - --snmp.extra-field-template=5=/etc/snmp_notifier_extra_templates/alertname.tpl
+            - --snmp.extra-field-template=6=/etc/snmp_notifier_extra_templates/cluster.tpl
+            - --snmp.retries=1
+            - --log.level=debug
+            - --snmp.version={{ .Values.monitoring.alertmanager.webhooks.snmp_notifier.config.snmp_version }}
+          snmp_v3_extra_args:
+            - --snmp.authentication-enabled
+            - --snmp.authentication-protocol=MD5
+            - --snmp.private-enabled
+            - --snmp.private-protocol=DES
+          snmp_auth:
+            # V2c
+            community: "public"
+            # V3
+            authentication_username: "snmp-user"
+            authentication_password: "snmp-auth-pass"
+            private_password: "snmp-priv-pass"
 
 #monitoring:
 #  alertmanager:
