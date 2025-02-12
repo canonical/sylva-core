@@ -292,7 +292,16 @@ class K8sParser(object):
         pods = self.api_core.list_pod_for_all_namespaces(watch=False)
 
         for i in pods.items:
-            ret = self.api_core.read_namespaced_pod(i.metadata.name, i.metadata.namespace, _preload_content=False)
+            try:
+                ret = self.api_core.read_namespaced_pod(i.metadata.name, i.metadata.namespace, _preload_content=False)
+            except ApiException as e:
+                if e.status == 404:
+                    logger.warning(f"Pod {i.metadata.name} in namespace {i.metadata.namespace} not found (404). Skipping.")
+                    continue
+                else:
+                    logger.error(f"Error dealing with : Pod {i.metadata.name} in namespace {i.metadata.namespace}. Reason:\n{e.reason}")
+                    raise
+
             res = Resource.model_validate(json.loads(ret.read()))
 
             containers = i.spec.containers or []
