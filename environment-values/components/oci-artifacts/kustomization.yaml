@@ -3,6 +3,7 @@ kind: Component
 
 resources:
 - oci-repo.yaml
+- create-kustomization.yaml
 
 patches:
 - target:

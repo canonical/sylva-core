@@ -1,6 +1,21 @@
 apiVersion: source.toolkit.fluxcd.io/v1beta2
 kind: OCIRepository
 metadata:
+  name: sylva-units-values
+  namespace: sylva-system
+  labels:
+    copy-from-bootstrap-to-management: ""
+spec:
+  interval: 5m0s
+  provider: generic
+  ref:
+    tag: CURRENT_COMMIT
+  url: oci://SYLVA_BASE_OCI_REGISTRY/sylva-core/sylva-units-values
+
+---
+apiVersion: source.toolkit.fluxcd.io/v1beta2
+kind: OCIRepository
+metadata:
   name: sylva-units
   namespace: sylva-system
 spec:
