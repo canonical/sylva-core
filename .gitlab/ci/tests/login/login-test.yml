@@ -230,6 +230,7 @@ wkld-login:
       junit:
         - $HURL_JUNIT_REPORT
   script:
+    - unset https_proxy http_proxy
     - !reference [.test_scripts, edit_hosts_file]
     - export HURL_token=$(kubectl --kubeconfig management-cluster-kubeconfig -n vault get secrets/vault-unseal-keys -o jsonpath='{.data.vault-root}' | base64 -d)
     - export HURL_vault_url=$(kubectl --kubeconfig management-cluster-kubeconfig get ingress -n vault vault -o jsonpath='{ .spec.tls[].hosts[] }')
