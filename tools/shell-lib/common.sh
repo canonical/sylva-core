@@ -411,9 +411,6 @@ EOC
 }
 
 function display_service_ingresses() {
-    # Fetch all ingress resources from all namespaces
-    ingresses=$(kubectl --kubeconfig management-cluster-kubeconfig get ingress --all-namespaces \
-        -o custom-columns='NAMESPACE:.metadata.namespace,NAME:.metadata.name,HOSTS:.spec.rules[*].host' --no-headers)
 
     # Declare arrays to store GUI ingresses
     gui_ingresses=()
