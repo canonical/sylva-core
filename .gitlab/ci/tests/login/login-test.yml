@@ -234,4 +234,12 @@ wkld-login:
     - export HURL_token=$(kubectl --kubeconfig management-cluster-kubeconfig -n vault get secrets/vault-unseal-keys -o jsonpath='{.data.vault-root}' | base64 -d)
     - export HURL_vault_url=$(kubectl --kubeconfig management-cluster-kubeconfig get ingress -n vault vault -o jsonpath='{ .spec.tls[].hosts[] }')
     - export HURL_rancher_url=$(kubectl --kubeconfig management-cluster-kubeconfig get ingress -n cattle-system rancher -o jsonpath='{ .spec.tls[].hosts[] }')
+    - export HURL_neuvector_url=$(kubectl --kubeconfig workload-cluster-kubeconfig get ingress -n neuvector neuvector-webui-ingress -o jsonpath='{ .spec.tls[].hosts[] }')
+    - export HURL_password_neuvector=$(kubectl --kubeconfig workload-cluster-kubeconfig get configmap -n neuvector neuvector-init -o yaml | yq '.data.userinitcfg*' | yq '.users[].Password')
+    - |
+      if [ -n "${HURL_neuvector_url}" ]; then
+          sleep 2;
+      else
+          rm -rf  ./tools/login-workload/neuvector-wkld-federation.hurl
+      fi
     - hurl -k ./tools/login-test/login-workload/*.hurl --test --color --noproxy=".$domain"  --report-junit $HURL_JUNIT_REPORT --report-html ${CI_PROJECT_DIR}
