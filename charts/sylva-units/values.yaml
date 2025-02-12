@@ -7387,7 +7387,7 @@ units:
                 api_version: v2
                 timeout: 10s
                 static_configs:
-                {{- if (tuple . "monitoring" | include "unit-enabled") | include "as-bool" -}}
+                {{- if ((tuple . "monitoring" | include "unit-enabled") | include "as-bool") -}}
                  {{- $count_am := .Values.units.monitoring.helmrelease_spec.values.alertmanager.alertmanagerSpec.replicas -}}
                  {{- if kindIs "string" $count_am -}}
                   {{- $count_am = tuple . $count_am | include "interpret-as-string" -}}
@@ -7397,7 +7397,7 @@ units:
                  - alertmanager-rancher-monitoring-alertmanager-{{ $index_am }}.alertmanager-operated.cattle-monitoring-system:9093
                  {{- end -}}
                 {{- end -}}
-                {{- if (tuple . "upstrmonitoring" | include "unit-enabled") | include "as-bool" -}}
+                {{- if ((tuple . "upstrmonitoring" | include "unit-enabled") | include "as-bool") -}}
                  {{- $count_am := .Values.units.upstrmonitoring.helmrelease_spec.values.alertmanager.alertmanagerSpec.replicas -}}
                  {{- if kindIs "string" $count_am -}}
                   {{- $count_am = tuple . $count_am | include "interpret-as-string" -}}
