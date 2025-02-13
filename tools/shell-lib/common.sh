@@ -425,7 +425,7 @@ function display_service_ingresses() {
         -o json | jq  --arg ingress_name "$ingress_name"  '.metadata.labels | keys[] | select(endswith("sylva-gui-list-service-\($ingress_name)") or startswith("sylva-gui-list-services"))' 2>/dev/null)
 
         if [ -n "$label_present" ]; then
-            if [[ "$unit_name" == "$ingress_name" ]]; then
+            if [[ "$unit_name" =~ "$ingress_name" ]]; then
                 gui_ingresses+=("$ingress_name: https://$ingress_host")
             else
                 gui_ingresses+=("$unit_name - $ingress_name: https://$ingress_host")
