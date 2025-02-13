@@ -214,6 +214,13 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
       ref:
         tag: redis-cluster/11.0.8
 
+  logging-chart-repository:
+    kind: GitRepository
+    spec:
+      url: https://github.com/kube-logging/logging-operator.git
+      ref:
+        tag: 4.11.4
+
 helm_repo_spec_default:
   interval: 60m0s
 
@@ -757,6 +764,7 @@ units:
         - '{{ tuple "components/kepler" (tuple . "kepler" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/kube-system" (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpr") | include "set-only-if" }}'
         - '{{ tuple "components/neuvector" (tuple . "neuvector" | include "unit-enabled") | include "set-only-if" }}'
+        - '{{ tuple "components/kube-logging" (tuple . "kube-logging" | include "unit-enabled") | include "set-only-if" }}'
 
   cnpg-operator:
     info:
@@ -6672,6 +6680,44 @@ units:
       install:
         createNamespace: false
 
+  kube-logging:
+    enabled: false
+    info:
+      description: installs Rancher Fluentbit/Fluentd logging stack from upstream chart, for log collecting and shipping
+      details: this unit deploys logging component from upstream
+    unit_templates:
+    - base-deps
+    repo: logging-chart-repository
+    helmrelease_spec:
+      targetNamespace: kube-logging
+      chart:
+        spec:
+          chart: charts/logging-operator
+      values:
+        logging:
+          enabled: true
+          fluentbit:
+            customParsers: |
+              [PARSER]
+                Name         crilog
+                Format       regex
+                Regex        ^(?<time>[^ ]+) (?<stream>stdout|stderr) (?<logtag>[^ ]+) (?<log>.*)$
+                Time_Key     time
+                Time_Format  %Y-%m-%dT%H:%M:%S.%L%z
+                Time_Keep    "On"
+            inputTail:
+              Parser: crilog
+              Path_Key: "log_file"
+        image:
+          tag: 4.11.4
+        securityContext:
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
+          seccompProfile:
+            type: RuntimeDefault
+          capabilities:
+            drop: [ "ALL" ]
+
   logging:
     enabled: false
     info:
@@ -6726,11 +6772,11 @@ units:
       description: Configures rancher-logging to ship logs to Loki
       internal: true
     enabled_conditions:
-    - '{{ tuple . "logging" | include "unit-enabled" }}'
+    - '{{ or (tuple . "kube-logging" | include "unit-enabled") (tuple . "logging" | include "unit-enabled") }}'
     unit_templates:
     - base-deps
     depends_on:
-      logging: true
+      '{{ tuple . (tuple . "kube-logging" | include "unit-enabled") "kube-logging" "logging" | include "interpret-ternary" }}': true
       #loki: this dependency is handled in a different way, in management.values.yaml and workload-cluster.values.yaml
     repo: sylva-core
     kustomization_substitute_secrets:
@@ -6743,7 +6789,10 @@ units:
           # we must use external name in order to work also for workload clusters
           LOKI_URL: '{{ .Values.logging.loki_url }}'
           CLUSTER_NAME: '{{ .Values.cluster.name }}'
+          NAMESPACE: '{{ tuple . (tuple . "kube-logging" | include "unit-enabled") "kube-logging" "cattle-logging-system" | include "interpret-ternary" }}'
       wait: true
+      _components:
+        - '{{ tuple "components/host-tailer-rke2" (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" | include "as-bool") | include "set-only-if" }}'
 
   sylva-logging-flows:
     info:
@@ -6754,7 +6803,7 @@ units:
     - base-deps
     enabled: false
     depends_on:
-      logging: true
+      '{{ tuple . (tuple . "kube-logging" | include "unit-enabled") "kube-logging" "logging" | include "interpret-ternary" }}': true
     repo: sylva-logging-flows
     helm_chart_artifact_name: sylva-logging-flows
     # flow, clusterflows, outputs and clusteroutputs values are documented in the sylva-logging-flow helmchart https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-logging-flows
@@ -6762,7 +6811,7 @@ units:
       chart:
         spec:
           chart: .
-      targetNamespace: cattle-logging-system
+      targetNamespace: '{{ tuple . (tuple . "kube-logging" | include "unit-enabled") "kube-logging" "cattle-logging-system" | include "interpret-ternary" }}'
       values:
         flows: '{{ .Values.logging.flows | include "preserve-type" }}'
         clusterflows: '{{ .Values.logging.clusterflows | include "preserve-type" }}'
@@ -6810,7 +6859,7 @@ units:
     depends_on:
       kyverno-policies-ready: true
     enabled_conditions:
-      - '{{ tuple . "logging" | include "unit-enabled" }}'
+      - '{{ or (tuple . "kube-logging" | include "unit-enabled") (tuple . "logging" | include "unit-enabled") }}'
     repo: sylva-core
     kustomization_substitute_secrets:
       PASSWORD: '{{ .Values._internal.loki_password }}'
@@ -6841,9 +6890,9 @@ units:
       loki-init: true
       loki-credentials-secret: true
       minio-logging: true
-      logging-crd: '{{ tuple . "monitoring" | include "unit-enabled" }}'
+      logging-crd: '{{ tuple (tuple . "monitoring" | include "unit-enabled") (tuple . "logging" | include "unit-enabled") | include "set-only-if" }}'
     enabled_conditions:
-      - '{{ tuple . "logging" | include "unit-enabled" }}'
+      - '{{ or (tuple . "kube-logging" | include "unit-enabled") (tuple . "logging" | include "unit-enabled") }}'
     annotations:
       sylvactl/readyMessage: "Loki can be reached at https://{{ .Values.external_hostnames.loki }} ({{ .Values.external_hostnames.loki }} must resolve to {{ .Values.display_external_ip }})"
     repo: loki
