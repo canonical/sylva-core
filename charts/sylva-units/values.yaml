@@ -1629,6 +1629,7 @@ units:
           CERTIFICATE_NAMESPACE: crossplane-system
       _components:
         - "../tls-components/sylva-ca"
+        - '{{ tuple "components/crossplane-monitoring" (tuple . "monitoring" | include "unit-enabled") | include "set-only-if" }}'
       healthChecks:
         - apiVersion: v1
           kind: Secret
