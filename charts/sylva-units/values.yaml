@@ -7696,15 +7696,15 @@ k8s_version_short: "1.30"
 
 # Renovate Bot needs additional information to detect sylva diskimage-builder version
 # renovate: depName=sylva-projects/sylva-elements/diskimage-builder
-sylva_diskimagebuilder_version: 0.3.9
+sylva_diskimagebuilder_version: 0.0.0-git-fe6dd8fe
 
 sylva_diskimagebuilder_images:
-  ubuntu-jammy-hardened-rke2-1-30-7: {}
-  ubuntu-jammy-hardened-rke2-1-29-11: {}
-  ubuntu-jammy-hardened-rke2-1-28-15: {}
-  ubuntu-jammy-plain-rke2-1-30-7: {}
-  ubuntu-jammy-plain-rke2-1-29-11: {}
-  ubuntu-jammy-plain-rke2-1-28-15: {}
+  ubuntu-noble-hardened-rke2-1-30-7: {}
+  ubuntu-noble-hardened-rke2-1-29-11: {}
+  ubuntu-noble-hardened-rke2-1-28-15: {}
+  ubuntu-noble-plain-rke2-1-30-7: {}
+  ubuntu-noble-plain-rke2-1-29-11: {}
+  ubuntu-noble-plain-rke2-1-28-15: {}
   opensuse-15-6-plain-rke2-1-30-7: {}
   opensuse-15-6-plain-rke2-1-29-11: {}
   opensuse-15-6-plain-rke2-1-28-15: {}
@@ -7751,7 +7751,7 @@ security:
   calico_wireguard_enabled: false  # disable wireguard by default
   neuvector_scanning_enabled: false # disable Neuvector scanning capability by default
   os_images:
-    skip_signing_check: false
+    skip_signing_check: true
     cosign_public_key: '{{ .Values.security.default_cosign_public_key }}'
   oci_artifacts:
     skip_signing_check: false

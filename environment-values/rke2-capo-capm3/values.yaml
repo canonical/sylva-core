@@ -3,7 +3,7 @@
 # plus a Metal3 workload cluster with 1 control node and 1 worker node
 
 sylva_diskimagebuilder_images:
-  ubuntu-jammy-hardened-rke2-1-30-7:
+  ubuntu-noble-hardened-rke2-1-30-7:
     enabled: true
 
 cluster:
@@ -11,7 +11,7 @@ cluster:
     infra_provider: capo
     bootstrap_provider: cabpr
   capo:
-    image_key: ubuntu-jammy-hardened-rke2-1-30-7 # OpenStack Glance image (key of image in sylva_diskimagebuilder_images/os_images)
+    image_key: ubuntu-noble-hardened-rke2-1-30-7 # OpenStack Glance image (key of image in sylva_diskimagebuilder_images/os_images)
     ssh_key_name: # put the name of your nova SSH keypair here
     network_id: # the network id is provided by remote target unit if Kustomize remote target is used, but can be overwritten
     flavor_name: # put the name of the flavor from OpenStack

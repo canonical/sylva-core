@@ -5,7 +5,7 @@ cluster:
     infra_provider: capo
     bootstrap_provider: cabpk
   capo:
-    image_key: ubuntu-jammy-plain-kubeadm-1-30-7  # OpenStack Glance image (key of image in sylva_diskimagebuilder_images/os_images)
+    image_key: ubuntu-noble-plain-kubeadm-1-30-7  # OpenStack Glance image (key of image in sylva_diskimagebuilder_images/os_images)
     ssh_key_name: # OpenStack Nova SSH keypair is provided by runner context in CI
     network_id: # OpenStack Neutron network id is provided by runner context in CI
 
@@ -28,7 +28,7 @@ cluster:
   #        - ssh-rsa AAAA...... YOUR KEY HERE ....UqnQ==
 
 sylva_diskimagebuilder_images:
-  ubuntu-jammy-plain-kubeadm-1-30-7:
+  ubuntu-noble-plain-kubeadm-1-30-7:
     enabled: true
 
 openstack:
