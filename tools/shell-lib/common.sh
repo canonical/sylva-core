@@ -420,17 +420,11 @@ EOC
 }
 
 function display_service_ingresses() {
-
-    # Declare arrays to store GUI ingresses
+    # Declare an array to store GUI ingresses
     gui_ingresses=()
 
-    # Get all ingress resources
-    for i in $(kubectl --kubeconfig management-cluster-kubeconfig get ingress -A | sed "s/[ \t]\+/|/gi" | grep -v NAMESPACE); do
-        # Extract the namespace and ingress name
-        namespace=$(echo "$i" | cut -d'|' -f1)
-        ingress_name=$(echo "$i" | cut -d'|' -f2)
-        ingress_host=$(echo "$i" | cut -d'|' -f4)
-
+    # Read ingress details and process them
+    while read -r namespace ingress_name ingress_host; do
         # Extract the unit name using labels from the ingress resource
         unit_name=$(kubectl --kubeconfig management-cluster-kubeconfig get ingress "$ingress_name" -n "$namespace" -o yaml | yq '.metadata.labels."helm.toolkit.fluxcd.io/name" //
             .metadata.labels."kustomize.toolkit.fluxcd.io/name" //
@@ -441,13 +435,13 @@ function display_service_ingresses() {
         -o json | jq  --arg ingress_name "$ingress_name"  '.metadata.labels | keys[] | select(endswith("sylva-gui-list-service-\($ingress_name)") or startswith("sylva-gui-list-services"))' 2>/dev/null)
 
         if [ -n "$label_present" ]; then
-            if [[ "$ingress_name" == "$unit_name" ]]; then
+            if [[ "$unit_name" =~ "$ingress_name" ]]; then
                 gui_ingresses+=("$ingress_name: https://$ingress_host")
             else
                 gui_ingresses+=("$unit_name - $ingress_name: https://$ingress_host")
             fi
         fi
-    done
+    done < <(kubectl --kubeconfig management-cluster-kubeconfig get ingress -A -o custom-columns='NAMESPACE:.metadata.namespace,NAME:.metadata.name,HOSTS:.spec.rules[*].host' --no-headers)
 
     # Output GUI ingresses
     if [ ${#gui_ingresses[@]} -gt 0 ]; then
