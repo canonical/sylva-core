@@ -2329,7 +2329,7 @@ units:
     - base-deps
     depends_on:
       kyverno: true
-      sylva-units-operator: true
+      sylva-units-operator: '{{ tuple true (tuple . "sylva-units-operator" | include "unit-enabled") | include "set-only-if" }}'
     repo: sylva-core
     kustomization_spec:
       path: ./kustomize-units/shared-workload-clusters-settings
