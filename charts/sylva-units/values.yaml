@@ -6949,6 +6949,7 @@ units:
               - scheme: http
                 api_version: v2
                 timeout: 10s
+                monitoring: '{{ tuple . "monitoring" | include "unit-enabled" | include "as-bool" }}'
                 static_configs:
                 {{- if ((tuple . "monitoring" | include "unit-enabled") | include "as-bool") -}}
                  {{- $count_am := .Values.units.monitoring.helmrelease_spec.values.alertmanager.alertmanagerSpec.replicas -}}
