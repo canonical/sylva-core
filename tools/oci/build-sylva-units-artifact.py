@@ -328,7 +328,7 @@ logger.info(f'artifact_version: {artifact_version}')
 artifact_url = f"{OCI_REGISTRY}/{artifact_name}:{artifact_version}"
 if artifact_exists_with_flux(artifact_name, artifact_version, artifact_url):
 
-    fail_if_existing_artifact_differs(artifact_name, artifact_version, artifact_url)
+    fail_if_existing_artifact_differs(artifact_name, artifact_version, artifact_url, dir=cm_dest_dir)
 
     # artifact content hasn't changed, but we may want to sign it
     if 'COSIGN_PUBLIC_KEY' in os.environ:
@@ -342,6 +342,12 @@ if artifact_exists_with_flux(artifact_name, artifact_version, artifact_url):
             sign(artifact_name, ARTIFACT_DIGEST)
     else:
         logger.warning("Unable to sign the kustomize-units, signing material is not set")
+# ######### remove sylva-units-values from pulled artifacts#################
+    for file in PULLED_ARTIFACT_DIR.glob("*.yaml"):
+        try:
+            os.remove(file)
+        except Exception as e:
+            print(f"Not able to delete {file}: {e}")
 else:
     push_and_sign_with_flux(artifact_name, artifact_version, artifact_source, artifact_revision, artifact_path)
 

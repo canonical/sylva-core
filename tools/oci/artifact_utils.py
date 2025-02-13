@@ -110,7 +110,7 @@ def diff(artifact_name, source_dir, dest_dir):
     logger.info("Integrity check: ok")
 
 
-def fail_if_existing_artifact_differs(artifact_name, artifact_version, artifact_url, tgz_file=None):
+def fail_if_existing_artifact_differs(artifact_name, artifact_version, artifact_url, tgz_file=None, dir=ARTIFACT_DIR):
     logger.info(
         f"Checking the integrity of the existing artifact {artifact_name}:{artifact_version} :: "
         f"{artifact_url}")
@@ -122,7 +122,7 @@ def fail_if_existing_artifact_differs(artifact_name, artifact_version, artifact_
         diff(artifact_name, TGZ_ARTIFACT_DIR, PULLED_ARTIFACT_DIR)
     else:
         # artifacts are not packaged in an archive
-        diff(artifact_name, ARTIFACT_DIR, PULLED_ARTIFACT_DIR)
+        diff(artifact_name, dir, PULLED_ARTIFACT_DIR)
 
 
 def signature_is_valid(artifact_name):
