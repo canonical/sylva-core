@@ -28,3 +28,4 @@ publish-sylva-units-artifact:
   script:
     - export HELM_CHART_VERSION=${OCI_TAG}
     - tools/oci/build-sylva-units-artifact.py
+  allow_failure: true
