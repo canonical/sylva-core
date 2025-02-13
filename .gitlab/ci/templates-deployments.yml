@@ -363,7 +363,6 @@ include:
     patches:
     - target:
         kind: OCIRepository
-        name: sylva-units
       patch: |
         - op: replace
           path: /spec/ref/tag
