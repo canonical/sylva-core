@@ -4441,26 +4441,6 @@ units:
           name: grafana-tls
           namespace: cattle-monitoring-system
 
-  #upstream-grafana:
-  #  info:
-  #    description: installs upstream monitoring stack
-  #    maturity: beta
-  #  unit_templates:
-  #  - base-deps
-  #  depends_on:
-  #    namespace-defs: true
-  #    monitoring-crd: true
-  #  helm_repo_url: https://grafana.github.io/helm-charts
-  #  helmrelease_spec:
-  #    releaseName: grafana
-  #    targetNamespace: upstream-monitoring
-  #    chart:
-  #      spec:
-  #        chart: grafana
-  #        version: 8.8.2
-  #    install:
-  #      createNamespace: false
-
   upstream-monitoring-crd:
     info:
       description: installs prometheus operator CRDs
@@ -4742,26 +4722,6 @@ units:
       values:
         namespace: sylva-dashboards
         optional_dashboards: '{{ .Values._internal.monitoring.conditionals | include "preserve-type" }}'
-
-  #upstream-prometheus:
-  #  info:
-  #    description: installs upstream kube prometheus stack
-  #    maturity: beta
-  #  unit_templates:
-  #  - base-deps
-  #  depends_on:
-  #    namespace-defs: true
-  #    monitoring-crd: true
-  #  helm_repo_url: https://prometheus-community.github.io/helm-charts
-  #  helmrelease_spec:
-  #    releaseName: prometheus
-  #    targetNamespace: upstream-monitoring
-  #    chart:
-  #      spec:
-  #        chart: prometheus
-  #        version: 26.1.0
-  #    install:
-  #      createNamespace: false
 
   upstream-prometheus-adaptor:
     info:
