@@ -417,9 +417,7 @@ function display_service_ingresses() {
     # Read ingress details and process them
     while read -r namespace ingress_name ingress_host; do
         # Extract the unit name using labels from the ingress resource
-        unit_name=$(kubectl --kubeconfig management-cluster-kubeconfig get ingress "$ingress_name" -n "$namespace" -o yaml | yq '.metadata.labels."helm.toolkit.fluxcd.io/name" //
-            .metadata.labels."kustomize.toolkit.fluxcd.io/name" //
-            .metadata.labels."app.kubernetes.io/name"')
+        unit_name=$(kubectl --kubeconfig management-cluster-kubeconfig get ingress "$ingress_name" -n "$namespace" -o jsonpath='{.metadata.labels}' | yq '."helm.toolkit.fluxcd.io/name" // ."kustomize.toolkit.fluxcd.io/name" // ."app.kubernetes.io/name"')
 
         # Check if any label starting/ending with "sylva-gui-list-" exists
         label_present=$(kubectl --kubeconfig management-cluster-kubeconfig get kustomization "$unit_name" -n sylva-system \
