@@ -4116,6 +4116,35 @@
                       "type": "null"
                     }
                   ]
+                },
+                "cilium": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "additionalProperties": true,
+                      "properties": {
+                        "helm_values": {
+                          "anyOf": [
+                            {
+                              "type": "object"
+                            },
+                            {
+                              "$ref": "#/$defs/string-with-gotpl"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        }
+                      }
+                    },
+                    {
+                      "$ref": "#/$defs/string-with-gotpl"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
                 }
               }
             },
@@ -5241,6 +5270,23 @@
                       "type": "null"
                     }
                   ]
+                },
+                "cilium": {
+                  "type": "string",
+                  "anyOf": [
+                    {
+                      "pattern": "^oci://.*"
+                    },
+                    {
+                      "const": ""
+                    },
+                    {
+                      "$ref": "#/$defs/string-with-gotpl"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
                 }
               }
             },
@@ -5309,6 +5355,19 @@
                       "type": "null"
                     }
                   ]
+                },
+                "cilium": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "$ref": "#/$defs/string-with-gotpl"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
                 }
               }
             },
@@ -5366,6 +5425,19 @@
                   ]
                 },
                 "calico": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "$ref": "#/$defs/string-with-gotpl"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "cilium": {
                   "anyOf": [
                     {
                       "type": "string"
@@ -10849,6 +10921,9 @@
       "type": "object"
     },
     "metallb_helm_values": {
+      "type": "object"
+    },
+    "cilium_helm_values": {
       "type": "object"
     },
     "_internal": {

@@ -84,7 +84,7 @@ units:
       kyverno-policies-ready: '{{ and (tuple . "kyverno-policies-ready" | include "unit-enabled") .Values._internal.state.is_upgrade }}'
 
   calico-ready:
-    enabled: '{{ .Values._internal.state.is_upgrade }}'
+    enabled: '{{ and (tuple . "calico" | include "unit-enabled") .Values._internal.state.is_upgrade }}'
     # we'll use the kustomization_spec.kubeConfig.secretRef from values.yaml definition
     # but that's fine, since secret is present once pivot happened
     # otherwise we'd need to nullify it here and define it also in bootstrap.values.yaml
