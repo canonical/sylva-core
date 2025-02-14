@@ -2118,7 +2118,10 @@ units:
           replicas: '{{ .Values._internal.default_replicas | include "preserve-type" }}'
           resources:
             limits:
-              memory: 2048Mi
+              memory: 1024Mi
+            requests:
+              memory: 256Mi
+
           rbac:
             coreClusterRole:
               extraResources:
