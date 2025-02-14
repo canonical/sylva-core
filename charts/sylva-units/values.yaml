@@ -4536,13 +4536,12 @@ units:
           version: 0.4.0
       values:
         snmpNotifier:
-          extraArgs: |
-            {{ .Values.monitoring.alertmanager.webhooks.snmp_notifier.config.default_extra_args | toYaml }}
-            # only add SNMP v3 args when snmp_version is V3
+          extraArgs: >-
+            {{ .Values.monitoring.alertmanager.webhooks.snmp_notifier.config.default_extra_args | toYaml | include "preserve-type" }}
             {{ if eq .Values.monitoring.alertmanager.webhooks.snmp_notifier.config.snmp_version "V3" }}
-            {{ .Values.monitoring.alertmanager.webhooks.snmp_notifier.config.snmp_v3_extra_args | toYaml }}
+            # only add SNMP v3 args when snmp_version is V3
+            {{ .Values.monitoring.alertmanager.webhooks.snmp_notifier.config.snmp_v3_extra_args | toYaml | include "preserve-type" }}
             {{ end }}
-          # aici
           snmpCommunity: "{{ .Values.monitoring.alertmanager.webhooks.snmp_notifier.config.snmp_auth.community }}"
           snmpAuthenticationUsername: "{{ .Values.monitoring.alertmanager.webhooks.snmp_notifier.config.snmp_auth.authentication_username }}"
           snmpAuthenticationPassword: "{{ .Values.monitoring.alertmanager.webhooks.snmp_notifier.config.snmp_auth.authentication_password }}"
@@ -4569,11 +4568,11 @@ units:
             type: RuntimeDefault
         resources:
           limits:
-            cpu: 0.2
-            memory: 256Mi
+            cpu: "0.2"
+            memory: "256Mi"
           requests:
-            cpu: 0.1
-            memory: 128Mi
+            cpu: "0.1"
+            memory: "128Mi"
         serviceMonitor:
           enabled: true
 
