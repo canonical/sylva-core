@@ -5,7 +5,6 @@ resources:
 - auto-create.yaml
 - all-nodes-policy.yaml
 - master-nodes-policy.yaml
-- default-policy.yaml
 - cluster-vip-policy.yaml
 - cluster-vip-drop.yaml
 - allow-to-pods.yaml

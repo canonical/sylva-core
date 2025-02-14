@@ -15,3 +15,4 @@ resources:
 - cluster-api-to-vip.yaml
 - kyverno-sync-management-cluster-addresses.yaml
 - keycloak-realm-operator-to-vip.yaml
+- default-policy.yaml

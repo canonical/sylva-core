@@ -7934,10 +7934,10 @@ units:
           ALLOWED_PUBLIC_SUBNETS_TO_GUI: '{{ .Values.security.firewall.allowed_public_subnets_for_gui | default .Values.security.firewall.allowed_public_subnets | toJson }}'
           ALLOWED_PUBLIC_SUBNETS_TO_KUBEAPI: '{{ .Values.security.firewall.allowed_public_subnets_for_kubeapi | default .Values.security.firewall.allowed_public_subnets | toJson }}'
           ALLOWED_PUBLIC_SUBNETS_TO_SSH: '{{ .Values.security.firewall.allowed_public_subnets_for_ssh | default .Values.security.firewall.allowed_public_subnets | toJson }}'
-          DEFAULT_POLICY: '{{ .Values.security.firewall.default_policy }}'
           NTP_SERVERS: '{{ .Values.ntp.servers | toJson }}'
           CLUSTER_PODS_CIDR: '{{ .Values.cluster.cluster_pods_cidrs | toJson }}'
           COREDNS_SELECTOR: '{{ .Values._internal.coredns_selector }}'
+          DEFAULT_POLICY: '{{ .Values.security.firewall.default_policy }}'
         substituteFrom:
         - kind: ConfigMap
           name: capo-cluster-resources
@@ -7969,6 +7969,7 @@ units:
           # Otherwise, CLUSTER_VIRTUAL_IP is substituted from the capo-cluster-resources configmap when using capo
           CLUSTER_VIRTUAL_IP: '{{ .Values._internal.cluster_virtual_ip | include "set-if-defined" }}'
           COREDNS_SELECTOR: '{{ .Values._internal.coredns_selector }}'
+          DEFAULT_POLICY: '{{ .Values.security.firewall.default_policy }}'
         substituteFrom:
         - kind: ConfigMap
           name: capo-cluster-resources
@@ -7998,6 +7999,7 @@ units:
           # _internal.cluster_virtual_ip is defined when not using capo
           # Otherwise, CLUSTER_VIRTUAL_IP is substituted from the capo-cluster-resources configmap when using capo
           CLUSTER_VIRTUAL_IP: '{{ .Values._internal.cluster_virtual_ip | include "set-if-defined" }}'
+          DEFAULT_POLICY: '{{ .Values.security.firewall.default_policy }}'
         substituteFrom:
         - kind: ConfigMap
           name: capo-cluster-resources
