@@ -39,4 +39,3 @@ patches:
         kind: ConfigMap
         name: capm3-virt-values
         valuesKey: capm3-virt-values
-        optional: true

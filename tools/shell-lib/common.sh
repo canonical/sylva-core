@@ -342,6 +342,13 @@ function validate_sylva_units() {
               - op: add
                 path: /spec/targetNamespace
                 value: sylva-units-preview
+          - target:
+              kind: Kustomization
+              namespace: sylva-units-preview
+            patch: |
+              - op: add
+                path: /spec/targetNamespace
+                value: sylva-units-preview
 EOF
 
   if ! [[ ${KUBECONFIG:-} =~ management-cluster-kubeconfig$ ]] || [[ ${1:-} == "force-management" ]]; then

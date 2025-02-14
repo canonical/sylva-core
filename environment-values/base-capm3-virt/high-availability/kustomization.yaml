@@ -24,4 +24,3 @@ patches:
         kind: ConfigMap
         name: capm3-virt-ha-values
         valuesKey: capm3-virt-ha-values
-        optional: true
