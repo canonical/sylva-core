@@ -4524,7 +4524,7 @@ units:
     enabled_conditions:
     - '{{ tuple . "monitoring" | include "unit-enabled" }}'
     # only enable if SNMP traps destinations are set
-    - '{{ .Values.monitoring.alertmanager.webhooks.snmp_notifier.config.snmpDestinations | empty | not }}'
+    - '{{ .Values.monitoring.alertmanager.webhooks.snmp_notifier.config.snmp_destinations | empty | not }}'
     unit_templates:
     - base-deps
     helm_repo_url: https://prometheus-community.github.io/helm-charts
@@ -4543,10 +4543,10 @@ units:
             {{ .Values.monitoring.alertmanager.webhooks.snmp_notifier.config.snmp_v3_extra_args | toYaml }}
             {{ end }}
           # aici
-          snmpCommunity: public
-          snmpAuthenticationUsername: "snmp-user"
-          snmpAuthenticationPassword: "snmp-auth-pass"
-          snmpPrivatePassword: "snmp-priv-pass"
+          snmpCommunity: "{{ .Values.monitoring.alertmanager.webhooks.snmp_notifier.config.snmp_auth.community }}"
+          snmpAuthenticationUsername: "{{ .Values.monitoring.alertmanager.webhooks.snmp_notifier.config.snmp_auth.authentication_username }}"
+          snmpAuthenticationPassword: "{{ .Values.monitoring.alertmanager.webhooks.snmp_notifier.config.snmp_auth.authentication_password }}"
+          snmpPrivatePassword: "{{ .Values.monitoring.alertmanager.webhooks.snmp_notifier.config.snmp_auth.private_password }}"
           snmpDestinations:
             '{{ .Values.monitoring.alertmanager.webhooks.snmp_notifier.config.snmp_destinations | default list | include "preserve-type" }}'
         fullnameOverride: 'alertmanager-snmp-notifier'
