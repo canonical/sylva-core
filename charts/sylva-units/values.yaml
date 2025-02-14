@@ -44,7 +44,7 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
     spec:
       url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-capi-cluster.git
       ref:
-        tag: 0.9.8
+        branch: cm-cilium
 
   sync-openstack-images:
     kind: GitRepository
@@ -3052,9 +3052,9 @@ units:
       longhorn-instance-manager-cleanup: '{{ tuple . "longhorn-instance-manager-cleanup" | include "unit-enabled" }}'
       rke2-helmchart-prevent-uninstall: '{{ and (tuple . "rke2-helmchart-prevent-uninstall" | include "unit-enabled") .Values._internal.state.is_upgrade }}'
       metallb: '{{ and (tuple . "metallb" | include "unit-enabled") .Values._internal.state.is_upgrade }}'
-      calico: '{{ .Values._internal.state.is_upgrade }}'
-      calico-ready: '{{ .Values._internal.state.is_upgrade }}'
       cluster-garbage-collector: '{{ and (tuple . "cluster-garbage-collector" | include "unit-enabled") .Values._internal.state.is_upgrade }}'
+      '{{ .Values.cluster.cni.default_provider }}': '{{ .Values._internal.state.is_upgrade }}'
+      calico-ready: '{{ and (eq .Values.cluster.cni.default_provider "calico") .Values._internal.state.is_upgrade }}'
     kustomization_spec:
       prune: '{{ not (eq .Release.Namespace "sylva-system") | include "preserve-type" }}'
       # we wait on all important resources built by sylva-capi-cluster,
@@ -3503,6 +3503,11 @@ units:
       - '{{ tuple "base-deps" (not .Values._internal.state.is_upgrade) | include "set-only-if" }}'
     depends_on:
       calico-crd: true
+    enabled_conditions:
+      - |-
+        {{- tuple . "_internal.previous_values" | include "interpret" -}}
+        {{ or (eq .Values.cluster.cni.default_provider "calico")
+              (and .Values._internal.state.is_upgrade (eq .Values._internal.previous_values.cluster.cni.default_provider "calico")) }}
     helm_repo_url: https://rke2-charts.rancher.io
     helm_chart_versions:
       v3.29.300: >-
@@ -3557,6 +3562,31 @@ units:
         - apiVersion: operator.tigera.io/v1
           kind: Installation
           name: default
+
+  cilium:
+    info:
+      description: install Cilium CNI
+      maturity: stable
+    labels:
+      sylva-units/protected: ""
+    unit_templates:
+      - '{{ tuple "base-deps" (not .Values._internal.state.is_upgrade) | include "set-only-if" }}'
+    enabled_conditions:
+    - '{{ eq .Values.cluster.cni.default_provider "cilium" }}'
+    helm_repo_url: https://rke2-charts.rancher.io
+    helm_chart_versions:
+      1.16.201: >-
+        {{ include "k8s-version-match" (tuple ">=1.28.0,<1.29.0" .Values._internal.k8s_version) }}
+      1.16.400: >-
+        {{ include "k8s-version-match" (tuple ">=1.29.0" .Values._internal.k8s_version) }}
+    helmrelease_spec:
+      releaseName: '{{ eq .Values.cluster.capi_providers.bootstrap_provider "cabpk" | ternary "cilium" "rke2-cilium" }}'
+      targetNamespace: '{{ eq .Values.cluster.capi_providers.bootstrap_provider "cabpk" | ternary "sylva-system" "kube-system" }}'
+      chart:
+        spec:
+          chart: rke2-cilium
+          version: "" # will be defined by helm_chart_versions
+      values: '{{ .Values.cilium_helm_values | include "preserve-type" }}'
 
   metallb:
     info:
@@ -7931,8 +7961,11 @@ cluster:
   cluster_pods_cidrs:
     - 100.72.0.0/16
   cni:
+    default_provider: calico
     calico:
       helm_values: '{{ .Values.calico_helm_values | include "preserve-type" }}'
+    cilium:
+      helm_values: '{{ .Values.cilium_helm_values | include "preserve-type" }}'
 
   metallb_helm_values: '{{ omit .Values.metallb_helm_values "prometheus" | include "preserve-type" }}'
 
@@ -7949,15 +7982,18 @@ cluster:
     metallb-resources: ""
     calico-crd: ""
     calico: ""
+    cilium: ""
   helm_versions:
     metallb: '{{ .Values.units.metallb.helmrelease_spec.chart.spec.version }}'
     metallb-resources: '{{ .Values.source_templates | dig "metallb-resources" "spec" "ref" "tag" "" }}'
     calico-crd: '{{ tuple . "calico-crd" (index .Values.units "calico-crd") | include "get-helm-version" }}'
     calico: '{{ tuple . "calico" .Values.units.calico | include "get-helm-version" }}'
+    cilium: '{{ tuple . "cilium" .Values.units.cilium | include "get-helm-version" }}'
   helm_extra_ca_certs: # for an OCI-based deployment this is overridden in use-oci-artifacts.values.yaml
     metallb: ""
     metallb-resources: ""
     calico: ""
+    cilium: ""
 
   capv:
     # image_name: # vSphere image name
@@ -8678,6 +8714,8 @@ metallb_helm_values:
       key: node-role.kubernetes.io/master
     - effect: NoSchedule
       key: node-role.kubernetes.io/control-plane
+
+cilium_helm_values: {}
 
 _internal:
 

@@ -1,6 +1,35 @@
 cluster_virtual_ip: 192.168.100.3
 
+cilium_helm_values:
+  global:
+    clusterCIDR: '{{ first .Values.cluster.cluster_pods_cidrs }}'
+    clusterCIDRv4: '{{ first .Values.cluster.cluster_pods_cidrs }}'
+    clusterDNS: '{{ regexReplaceAll "[.]0/.*" (first .Values.cluster.cluster_services_cidrs) ".10" }}'
+    clusterDomain: cluster.local
+    serviceCIDR: '{{ first .Values.cluster.cluster_services_cidrs }}'
+  egressGateway:
+    enabled: true
+  bpf:
+    masquerade: true
+  kubeProxyReplacement: true
+  l7Proxy: false
+  k8sServiceHost: 127.0.0.1
+  k8sServicePort: 6443
+  bgpControlPlane:
+    enabled: false
+  cni:
+    exclusive: false
+  hubble:
+    enabled: true
+    ui:
+      enabled: true
+    relay:
+      enabled: true
+
 cluster:
+  cni:
+    default_provider: cilium
+
   capi_providers:
     infra_provider: capm3
     # bootstrap_provider: cabpr
