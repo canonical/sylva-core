@@ -117,7 +117,7 @@
       "matchPackageNames": [
         "rke2-multus"
       ],
-      "versioning": "regex:^v(?<major>\\d+)(\\.(?<minor>\\d+))?(\\.(?<patch>).*)$"
+      "versioning": "regex:^v(?<major>\\d+)(\\.(?<minor>\\d+))?\\.(?<patch>.*)"
     },
     {
       "description": "Regroup rancher-cis-benchmark updates",
