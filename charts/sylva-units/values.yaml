@@ -3950,6 +3950,8 @@ units:
             enabled: true
           ingressClassResource:
             default: true
+          hostPort:
+            enabled: false
     kustomization_spec:
       healthChecks:
         - apiVersion: apps/v1
