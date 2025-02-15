@@ -2119,6 +2119,9 @@ units:
           resources:
             limits:
               memory: 1024Mi
+            requests:
+              memory: 256Mi
+
           rbac:
             coreClusterRole:
               extraResources:
