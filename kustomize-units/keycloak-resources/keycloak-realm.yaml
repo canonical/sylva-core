@@ -23,6 +23,16 @@ spec:
           composite: false
           clientRole: false
           containerId: sylva
+        - name: grafanaeditor
+          description: "Editor role for Grafana"
+          composite: false
+          clientRole: false
+          containerId: sylva
+        - name: grafanaviewer
+          description: "Viewer role for Grafana"
+          composite: false
+          clientRole: false
+          containerId: sylva
     groups:
     - name: infra-admins
       clientRoles:
