@@ -4547,7 +4547,7 @@ units:
         fullnameOverride: 'alertmanager-snmp-notifier'
         extraConfigmapMounts:
           - name: snmp-notifier-extra-templates
-            configMap: snmp-notifier-extra-templates # this ConfigMap is a byproduct of the alertmanager-snmp-notifier-config unit
+            configMap: sylva-alertmanager-webhook-snmp-notifier # this ConfigMap is a byproduct of the alertmanager-snmp-notifier-config unit
             mountPath: /etc/snmp_notifier_extra_templates
             readOnly: true
         podAnnotations:
