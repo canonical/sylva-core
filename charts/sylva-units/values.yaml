@@ -4537,7 +4537,7 @@ units:
       values:
         snmpNotifier:
           extraArgs:
-            '{{ .Values.monitoring.alertmanager.webhooks.snmp_notifier.config.final_extra_args | include "preserve-type" }}'
+            '{{ .Values.monitoring.alertmanager.webhooks.snmp_notifier.config.final_extra_args }}'
           snmpCommunity: "{{ .Values.monitoring.alertmanager.webhooks.snmp_notifier.config.snmp_auth.community }}"
           snmpAuthenticationUsername: "{{ .Values.monitoring.alertmanager.webhooks.snmp_notifier.config.snmp_auth.authentication_username }}"
           snmpAuthenticationPassword: "{{ .Values.monitoring.alertmanager.webhooks.snmp_notifier.config.snmp_auth.authentication_password }}"
@@ -7980,10 +7980,9 @@ monitoring:
             - --snmp.private-protocol=DES
           final_extra_args: |
             {{ if eq .Values.monitoring.alertmanager.webhooks.snmp_notifier.config.snmp_version "V3" }}
-            {{ $final := concat .Values.monitoring.alertmanager.webhooks.snmp_notifier.config.default_extra_args .Values.monitoring.alertmanager.webhooks.snmp_notifier.config.snmp_v3_extra_args }}
-            {{ $final }}
+            {{ concat .Values.monitoring.alertmanager.webhooks.snmp_notifier.config.default_extra_args .Values.monitoring.alertmanager.webhooks.snmp_notifier.config.snmp_v3_extra_args | include "preserve-type" }}
             {{ else }}
-            {{ .Values.monitoring.alertmanager.webhooks.snmp_notifier.config.default_extra_args }}
+            {{ .Values.monitoring.alertmanager.webhooks.snmp_notifier.config.default_extra_args | include "preserve-type" }}
             {{ end }}
           snmp_auth:
             # V2c
