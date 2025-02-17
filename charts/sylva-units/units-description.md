@@ -88,7 +88,6 @@
 <!-- markdownlint-disable MD044 -->
 | name | full description | source |
 | :----- | :----- | :----- |
-| **admission-policies** | kubernates validating admission policies | Kustomization |
 | **bootstrap-local-path** | installs localpath CSI in bootstrap cluster | Kustomization |
 | **calico-ready** | ensure Calico resources created by the Tigera operator are ready before running further steps<br/><br/>This unit will be enabled in bootstrap cluster to confirm management cluster CNI readiness and in various workload-cluster namespaces in management cluster to do the same for workload clusters | Kustomization |
 | **capi-providers-pivot-ready** | checks if management cluster is ready for pivot<br/><br/>This unit only has dependencies, but does not create resources. It is here only to have a single thing to look at to determine if everything is ready for pivot (see bootstrap.values.yaml pivot unit) | Kustomization |

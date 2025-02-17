@@ -5,3 +5,4 @@ resources:
   - disallow-latest-and-main-tag.yaml
   - ensure-force-cluster-policy.yaml
   - ensure-pdb-unhealthypodeviction.yaml
+  - block-rke2-uninstall-jobs.yaml

@@ -2232,16 +2232,6 @@ units:
             patches:
               - '{{ .Values._internal.pdb_allow_unhealthy_pod_eviction | include "preserve-type" }}'
 
-  admission-policies:
-    info:
-      description: kubernates validating admission policies
-      internal: true
-    unit_templates: []
-    repo: sylva-core
-    kustomization_spec:
-      path: ./kustomize-units/admission-policies
-      wait: true
-
   kyverno-policies:
     info:
       description: configures Kyverno policies
