@@ -4571,6 +4571,7 @@ units:
             memory: "128Mi"
         serviceMonitor:
           enabled: true
+          namespace: cattle-monitoring-system
 
   alertmanager-snmp-notifier-config:
     info:
