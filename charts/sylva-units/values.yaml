@@ -3113,7 +3113,7 @@ units:
     helm_chart_versions: &calico-chart-versions
       v3.28.200: >-
         {{ include "k8s-version-match" (tuple ">=1.28.0,<1.29.0" .Values._internal.k8s_version) }}
-      v3.29.000: >-
+      v3.29.101: >-
         {{ include "k8s-version-match" (tuple ">=1.29.0" .Values._internal.k8s_version) }}
     helmrelease_spec:
       releaseName: rke2-calico-crd
@@ -3763,7 +3763,7 @@ units:
     helm_repo_url: https://rke2-charts.rancher.io
     helm_chart_versions:
       4.10.501: '{{ include "k8s-version-match" (tuple ">=1.28.0,<1.29.0" .Values._internal.k8s_version) }}'
-      4.10.502: '{{ include "k8s-version-match" (tuple ">=1.29.0" .Values._internal.k8s_version) }}'
+      4.12.003: '{{ include "k8s-version-match" (tuple ">=1.29.0" .Values._internal.k8s_version) }}'
     helmrelease_spec:
       releaseName: rke2-ingress-nginx
       targetNamespace: kube-system
