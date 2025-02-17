@@ -360,9 +360,7 @@ units:
           # relying on OCI artifacts)
           valuesFiles: |
             {{- without (lookup "helm.toolkit.fluxcd.io/v2" "HelmRelease" "sylva-system" "sylva-units" | dig "spec" "chart" "spec" "valuesFiles" list) "bootstrap.values.yaml" "charts/sylva-units/bootstrap.values.yaml" | include "preserve-type" -}}
-      # copy values and valuesFrom from current sylva-units HelmRelease
-      # for now we keep the 'cluster' unit disabled, it produces CAPI resources
-      # defining the management cluster, which we can't define before having done the pivot
+      chartRef: '{{ lookup "helm.toolkit.fluxcd.io/v2beta2" "HelmRelease" "sylva-system" "sylva-units" | dig "spec" "chartRef" (dict "kind" "OCIRepository" "name" "not-found" "namespace" "not-found") | include "preserve-type" }}'
       # (this value override is reverted after pivot by the pivot job below)
       values:
         '
