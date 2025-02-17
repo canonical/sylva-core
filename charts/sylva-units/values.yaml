@@ -4537,7 +4537,7 @@ units:
       values:
         snmpNotifier:
           extraArgs:
-            '{{ .Values.monitoring.alertmanager.webhooks.snmp_notifier.config.extra_args | include "preserve-type" }}'
+            '{{ .Values.monitoring.alertmanager.webhooks.snmp_notifier.config.final_extra_args | include "preserve-type" }}'
           snmpCommunity: "{{ .Values.monitoring.alertmanager.webhooks.snmp_notifier.config.snmp_auth.community }}"
           snmpAuthenticationUsername: "{{ .Values.monitoring.alertmanager.webhooks.snmp_notifier.config.snmp_auth.authentication_username }}"
           snmpAuthenticationPassword: "{{ .Values.monitoring.alertmanager.webhooks.snmp_notifier.config.snmp_auth.authentication_password }}"
@@ -7965,7 +7965,7 @@ monitoring:
         config:
           snmp_destinations: []
           snmp_version: V2c # V3
-          extra_args:
+          default_extra_args:
             - --alert.severities=critical,error,warning,info
             - --snmp.extra-field-template=4=/etc/snmp_notifier_extra_templates/platform_tag.tpl
             - --snmp.extra-field-template=5=/etc/snmp_notifier_extra_templates/alertname.tpl
@@ -7973,11 +7973,18 @@ monitoring:
             - --snmp.retries=1
             - --log.level=debug
             - --snmp.version={{ .Values.monitoring.alertmanager.webhooks.snmp_notifier.config.snmp_version }}
-            # SNMP V3 flags
-            #- --snmp.authentication-enabled
-            #- --snmp.authentication-protocol=MD5
-            #- --snmp.private-enabled
-            #- --snmp.private-protocol=DES
+          snmp_v3_extra_args:
+            - --snmp.authentication-enabled
+            - --snmp.authentication-protocol=MD5
+            - --snmp.private-enabled
+            - --snmp.private-protocol=DES
+          final_extra_args: |
+            {{ if eq .Values.monitoring.alertmanager.webhooks.snmp_notifier.config.snmp_version "V3" }}
+            {{ $final := concat .Values.monitoring.alertmanager.webhooks.snmp_notifier.config.default_extra_args .Values.monitoring.alertmanager.webhooks.snmp_notifier.config.snmp_v3_extra_args }}
+            {{ $final }}
+            {{ else }}
+            {{ .Values.monitoring.alertmanager.webhooks.snmp_notifier.config.default_extra_args }}
+            {{ end }}
           snmp_auth:
             # V2c
             community: "public"
