@@ -5,6 +5,7 @@ resources:
 components:
   - ../components/common
   - ../components/extra-config
+  - ../components/persistant-sources
 
 patches:
 - target:
