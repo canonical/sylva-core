@@ -40,8 +40,8 @@ spec:
         protocolMapper: oidc-group-membership-mapper
         config:
           full.path: "false"
-          id.token.claim: "false"
-          access.token.claim: "false"
+          id.token.claim: "true"
+          access.token.claim: "true"
           userinfo.token.claim: "true"
           claim.name: groups
       - name: Client Audience
