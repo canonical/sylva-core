@@ -4536,12 +4536,8 @@ units:
           version: 0.4.0
       values:
         snmpNotifier:
-          extraArgs: >-
-            {{ .Values.monitoring.alertmanager.webhooks.snmp_notifier.config.default_extra_args | toYaml | include "preserve-type" }}
-            {{ if eq .Values.monitoring.alertmanager.webhooks.snmp_notifier.config.snmp_version "V3" }}
-            # only add SNMP v3 args when snmp_version is V3
-            {{ .Values.monitoring.alertmanager.webhooks.snmp_notifier.config.snmp_v3_extra_args | toYaml | include "preserve-type" }}
-            {{ end }}
+          extraArgs:
+            '{{ .Values.monitoring.alertmanager.webhooks.snmp_notifier.config.extra_args | include "preserve-type" }}'
           snmpCommunity: "{{ .Values.monitoring.alertmanager.webhooks.snmp_notifier.config.snmp_auth.community }}"
           snmpAuthenticationUsername: "{{ .Values.monitoring.alertmanager.webhooks.snmp_notifier.config.snmp_auth.authentication_username }}"
           snmpAuthenticationPassword: "{{ .Values.monitoring.alertmanager.webhooks.snmp_notifier.config.snmp_auth.authentication_password }}"
@@ -7969,7 +7965,7 @@ monitoring:
         config:
           snmp_destinations: []
           snmp_version: V2c # V3
-          default_extra_args:
+          extra_args:
             - --alert.severities=critical,error,warning,info
             - --snmp.extra-field-template=4=/etc/snmp_notifier_extra_templates/platform_tag.tpl
             - --snmp.extra-field-template=5=/etc/snmp_notifier_extra_templates/alertname.tpl
@@ -7977,11 +7973,11 @@ monitoring:
             - --snmp.retries=1
             - --log.level=debug
             - --snmp.version={{ .Values.monitoring.alertmanager.webhooks.snmp_notifier.config.snmp_version }}
-          snmp_v3_extra_args:
-            - --snmp.authentication-enabled
-            - --snmp.authentication-protocol=MD5
-            - --snmp.private-enabled
-            - --snmp.private-protocol=DES
+            # SNMP V3 flags
+            #- --snmp.authentication-enabled
+            #- --snmp.authentication-protocol=MD5
+            #- --snmp.private-enabled
+            #- --snmp.private-protocol=DES
           snmp_auth:
             # V2c
             community: "public"
