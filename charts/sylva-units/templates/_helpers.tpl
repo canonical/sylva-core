@@ -395,7 +395,6 @@ dependents_list and fails if a circular dependency is detected
       {{- end -}}
 
       {{- $result = append $result $dep_name -}}
-      {{- $ignore_units = append $ignore_units $dep_name -}}
 
       {{/* examine the dependency, recursing if needed */}}
       {{- $recurse := include "_all-unit-dependencies" (tuple $envAll $dep_name $ignore_units $all_dependencies_cache $dependents_list) | fromJson -}}
@@ -403,10 +402,10 @@ dependents_list and fails if a circular dependency is detected
 
       {{/* incorporate recursion result in result */}}
       {{- $result = concat $result $recurse.result -}}
-      {{- $ignore_units = concat $ignore_units $recurse.result -}}
-
     {{- end -}}
   {{- end -}}
+  {{/* save result in cache */}}
+  {{- $_ := set $all_dependencies_cache $unit_name $result -}}
 {{- end -}}
 
 {{- $debug := printf "%s)" $debug -}}
