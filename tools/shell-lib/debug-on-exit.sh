@@ -31,6 +31,7 @@ additional_resources="
   PersistentVolumeClaims
   ConfigMaps
   Nodes
+  PriorityClasses
   Services
   Endpoints
   EndpointSlices
