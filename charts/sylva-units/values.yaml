@@ -609,7 +609,7 @@ units:
       chart:
         spec:
           chart: cert-manager
-          version: v1.17.0
+          version: v1.17.1
       targetNamespace: cert-manager
       install:
         createNamespace: true
