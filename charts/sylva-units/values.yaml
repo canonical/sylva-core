@@ -1696,7 +1696,7 @@ units:
           seccompProfile:
             type: RuntimeDefault
         metrics:
-          enabled: true
+          enabled: '{{ tuple . "monitoring" | include "unit-enabled" }}'
 
   keycloak:
     info:
