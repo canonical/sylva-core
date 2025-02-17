@@ -17,7 +17,7 @@
 | **cinder-csi** | installs OpenStack Cinder CSI | stable | [Helm chart](https://kubernetes.github.io/cloud-provider-openstack) | 2.31.2 |
 | **cis-operator** | install CIS operator | stable | [Helm chart](https://charts.rancher.io) | 105.1.0+up7.1.1 |
 | **cnpg-operator** | Cloud Native PostgreSQL (CNPG) Operator | stable | [Helm chart](https://cloudnative-pg.github.io/charts) | 0.23.0 |
-| **crossplane** | Installs Crossplane with RBAC Manager | stable | [Helm chart](https://charts.crossplane.io/stable) | 1.18.2 |
+| **crossplane** | Installs Crossplane with RBAC Manager | stable | [Helm chart](https://charts.crossplane.io/stable) | 1.18.3 |
 | **external-secrets-operator** | installs the External Secrets operator | stable | [Helm chart](https://charts.external-secrets.io) | 0.14.2 |
 | **flux-webui** | installs Weave GitOps Flux web GUI | stable | [Helm chart](https://github.com/weaveworks/weave-gitops.git) | v0.38.0 |
 | **gitea** | installs Gitea | stable | [Helm chart](https://dl.gitea.com/charts/) | 10.4.1 |
