@@ -98,10 +98,3 @@ libvirt_metal:
       numCPUs: 4
       enableDHCP: false
 
-units:
-  longhorn:
-    enabled: true
-    helmrelease_spec:
-      values:
-        persistence:
-          defaultClassReplicaCount: 3   # enable data replication

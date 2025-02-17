@@ -268,6 +268,35 @@ unit_templates:
       path: ./kustomize-units/dummy/base
       wait: false
 
+  namespace-defs:
+    repo: sylva-core
+    kustomization_spec:
+      path: ./kustomize-units/namespace-defs
+      wait: true
+      prune: false
+      _components:
+        - '{{ tuple "components/cinder-csi" (tuple . "cinder-csi" | include "unit-enabled") | include "set-only-if" }}'
+        - '{{ tuple "components/metal3" (tuple . "metal3" | include "unit-enabled") | include "set-only-if" }}'
+        - '{{ tuple "components/longhorn" (tuple . "longhorn" | include "unit-enabled") | include "set-only-if" }}'
+        - '{{ tuple "components/keycloak" (tuple . "keycloak" | include "unit-enabled") | include "set-only-if" }}'
+        - '{{ tuple "components/harbor" (tuple . "harbor" | include "unit-enabled") | include "set-only-if" }}'
+        - '{{ tuple "components/vault" (tuple . "vault" | include "unit-enabled") | include "set-only-if" }}'
+        - '{{ tuple "components/rancher" (tuple . "rancher" | include "unit-enabled") | include "set-only-if" }}'
+        - '{{ tuple "components/sriov" (tuple . "sriov-network-operator" | include "unit-enabled") | include "set-only-if" }}'
+        - '{{ tuple "components/cattle-monitoring" (tuple . "monitoring" | include "unit-enabled") | include "set-only-if" }}'
+        - '{{ tuple "components/cattle-fleet" (.Values._internal | dig "sylva_mgmt_enabled_units" "rancher" false) | include "set-only-if" }}'  # effective only in workload clusters
+        - '{{ tuple "components/ceph-csi-cephfs" (tuple . "ceph-csi-cephfs" | include "unit-enabled") | include "set-only-if" }}'
+        - '{{ tuple "components/cattle-logging" (tuple . "logging" | include "unit-enabled") | include "set-only-if" }}'
+        - '{{ tuple "components/gitea" (tuple . "gitea" | include "unit-enabled") | include "set-only-if" }}'
+        - '{{ tuple "components/minio-operator" (tuple . "minio-operator" | include "unit-enabled") | include "set-only-if" }}'
+        - '{{ tuple "components/minio-monitoring" (tuple . "minio-monitoring" | include "unit-enabled") | include "set-only-if" }}'
+        - '{{ tuple "components/minio-logging" (tuple . "minio-logging" | include "unit-enabled") | include "set-only-if" }}'
+        - '{{ tuple "components/thanos" (tuple . "thanos" | include "unit-enabled") | include "set-only-if" }}'
+        - '{{ tuple "components/loki" (tuple . "loki" | include "unit-enabled") | include "set-only-if" }}'
+        - '{{ tuple "components/kepler" (tuple . "kepler" | include "unit-enabled") | include "set-only-if" }}'
+        - '{{ tuple "components/kube-system" (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpr") | include "set-only-if" }}'
+        - '{{ tuple "components/neuvector" (tuple . "neuvector" | include "unit-enabled") | include "set-only-if" }}'
+
   flux-common:
     repo: sylva-core
     kustomization_spec:
@@ -291,6 +320,8 @@ unit_templates:
           SOURCE_CONCURRENT: '{{ .Values.flux.source.concurrent }}'
           SOURCE_LOG_LEVEL: '{{ .Values.flux.source.log_level }}'
           SOURCE_FEATURES_GATES: '{{ tuple .Values.flux.source.features_gates | include "dict_to_key_values_separated_string"  }}'
+          SOURCE_STORAGE_CLASS: '{{ .Values._internal.default_storage_class }}'
+          SOURCE_STORAGE_SIZE: 1Gi
         substituteFrom:
         - kind: ConfigMap
           name: proxy-env-vars
@@ -725,38 +756,12 @@ units:
       internal: true
     unit_templates:
     - base-deps
+    - namespace-defs
     depends_on:
       # namespace-defs can't depend on Kyverno, because Kyverno depends on
       # some namespaces
       kyverno: false
       kyverno-policies: false
-    repo: sylva-core
-    kustomization_spec:
-      path: ./kustomize-units/namespace-defs
-      wait: true
-      prune: false
-      _components:
-        - '{{ tuple "components/cinder-csi" (tuple . "cinder-csi" | include "unit-enabled") | include "set-only-if" }}'
-        - '{{ tuple "components/metal3" (tuple . "metal3" | include "unit-enabled") | include "set-only-if" }}'
-        - '{{ tuple "components/longhorn" (tuple . "longhorn" | include "unit-enabled") | include "set-only-if" }}'
-        - '{{ tuple "components/keycloak" (tuple . "keycloak" | include "unit-enabled") | include "set-only-if" }}'
-        - '{{ tuple "components/harbor" (tuple . "harbor" | include "unit-enabled") | include "set-only-if" }}'
-        - '{{ tuple "components/vault" (tuple . "vault" | include "unit-enabled") | include "set-only-if" }}'
-        - '{{ tuple "components/rancher" (tuple . "rancher" | include "unit-enabled") | include "set-only-if" }}'
-        - '{{ tuple "components/sriov" (tuple . "sriov-network-operator" | include "unit-enabled") | include "set-only-if" }}'
-        - '{{ tuple "components/cattle-monitoring" (tuple . "monitoring" | include "unit-enabled") | include "set-only-if" }}'
-        - '{{ tuple "components/cattle-fleet" (.Values._internal | dig "sylva_mgmt_enabled_units" "rancher" false) | include "set-only-if" }}'  # effective only in workload clusters
-        - '{{ tuple "components/ceph-csi-cephfs" (tuple . "ceph-csi-cephfs" | include "unit-enabled") | include "set-only-if" }}'
-        - '{{ tuple "components/cattle-logging" (tuple . "logging" | include "unit-enabled") | include "set-only-if" }}'
-        - '{{ tuple "components/gitea" (tuple . "gitea" | include "unit-enabled") | include "set-only-if" }}'
-        - '{{ tuple "components/minio-operator" (tuple . "minio-operator" | include "unit-enabled") | include "set-only-if" }}'
-        - '{{ tuple "components/minio-monitoring" (tuple . "minio-monitoring" | include "unit-enabled") | include "set-only-if" }}'
-        - '{{ tuple "components/minio-logging" (tuple . "minio-logging" | include "unit-enabled") | include "set-only-if" }}'
-        - '{{ tuple "components/thanos" (tuple . "thanos" | include "unit-enabled") | include "set-only-if" }}'
-        - '{{ tuple "components/loki" (tuple . "loki" | include "unit-enabled") | include "set-only-if" }}'
-        - '{{ tuple "components/kepler" (tuple . "kepler" | include "unit-enabled") | include "set-only-if" }}'
-        - '{{ tuple "components/kube-system" (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpr") | include "set-only-if" }}'
-        - '{{ tuple "components/neuvector" (tuple . "neuvector" | include "unit-enabled") | include "set-only-if" }}'
 
   cnpg-operator:
     info:
@@ -5009,7 +5014,8 @@ units:
     info:
       description: installs Longhorn CSI
       maturity: stable
-    enabled: false
+    enabled_conditions:
+      - '{{ eq .Values.cluster.capi_providers.infra_provider "capm3" }}'
     unit_templates:
     - base-deps
     depends_on:
@@ -7405,7 +7411,7 @@ cluster:
         | include "set-only-if"
         -}}
 
-  enable_longhorn: '{{ or (tuple . "longhorn" | include "unit-enabled") (tuple . .Values.units.longhorn.enabled | include "interpret-for-test") | include "as-bool" }}'
+  enable_longhorn: '{{ tuple . "longhorn" | include "unit-enabled" | include "as-bool" }}'
 
   timeouts:
     cluster_delete_hook_job_timeout: 300
@@ -8020,7 +8026,8 @@ _internal:
     '{{ .Values.openstack.storageClass.name }}': cinder-csi
     cephfs-csi: ceph-csi-cephfs
 
-  default_storage_class_unit: >-
+  default_storage_class_unit: '{{ tuple . .Values._internal.default_storage_class_unit_ref | include "interpret-as-string" }}'
+  default_storage_class_unit_ref: >-
     {{- tuple . "_internal.default_storage_class" | include "interpret" -}}
     {{- tuple . "_internal.storage_class_unit_map" | include "interpret" -}}
     {{- .Values._internal.storage_class_unit_map | dig .Values._internal.default_storage_class (printf "storage class unit not found for %s" .Values._internal.default_storage_class) -}}
