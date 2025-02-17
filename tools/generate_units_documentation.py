@@ -264,6 +264,10 @@ def convert_to_markdown_table(units, headers, sort_function=sort_by_name):
     for unit in units:
         if unit.get("hidden", False):
             continue
+        unit["name"] = f"**{unit['name']}**"
+        unit["full description"] = f"{unit['description']}"
+        if unit['details']:
+            unit["full description"] += f"<br/><br/>{unit['details']}"
         items = [str(unit[key]).strip().replace("\n", "<br/>") for key in headers]
         table_md_lines.append("| " + " | ".join(items) + " |")
     md_content = "<!-- markdownlint-disable MD044 -->\n"
@@ -281,19 +285,12 @@ def generate_external_units_version_maturity():
 
 def generate_units_description():
     units_data = generate_units_metadata()
-    headers = ["name", "description", "details"]
+    headers = ["name", "full description", "details"]
     return convert_to_markdown_table(units_data, headers)
 
 
 def generate_full_md_table():
     units_data = generate_units_metadata()
-    for unit in units_data:
-        if unit.get("hidden", False):
-            continue
-        unit["name"] = f"**{unit['name']}**"
-        unit["full description"] = f"{unit['description']}"
-        if unit['details']:
-            unit["full description"] += f"<br/><br/>{unit['details']}"
     sylva_core_internal_units = [u for u in units_data
                                  if u['internal']]
     sylva_maintained_units = [u for u in units_data
@@ -308,24 +305,43 @@ def generate_full_md_table():
             f"{convert_to_markdown_table(sylva_core_internal_units, ['name', 'full description', 'source'])}")
 
 
+def generate_unit_table_from_unit_list(unit_list_file, exclude_internal=True):
+    with open(unit_list_file, 'r') as f:
+        selected_units = f.read().split()
+    units_data = generate_units_metadata()
+    units_data_selected = [u for u in units_data if u["name"] in selected_units]
+    if exclude_internal:
+        units_data_selected = [u for u in units_data_selected if not u["internal"]]
+    headers = ["name", "full description", "maturity", "source", "version"]
+    return convert_to_markdown_table(units_data_selected, headers, sort_by_maturity)
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Sylva units documentation generator",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     parser.add_argument(
+        "--from-file",
+        help="Genarate unit table from a list of units in a file",
+        nargs='?',
+    )
+    parser.add_argument(
         "doc_format",
         help="Which kind of documentation to generate",
         nargs='?',
-        choices=["check", "components-versions", "units-description"],
+        choices=["check", "components-versions", "units-description", "units-from-list"],
     )
     args = parser.parse_args()
 
-    if args.doc_format is None:
+    if args.from_file:
+        print(generate_unit_table_from_unit_list(args.from_file))
+
+    elif args.doc_format is None:
         with open(TARGET_DOC_FILE, 'w') as f:
             f.write(generate_full_md_table())
 
-    if args.doc_format == "check":
+    elif args.doc_format == "check":
         expected = generate_full_md_table()
         with open(TARGET_DOC_FILE, 'r') as f:
             actual = f.read()
@@ -338,7 +354,7 @@ if __name__ == "__main__":
             sys.exit(1)
 
     # exemples of units data formatting
-    if args.doc_format == "components-versions":
+    elif args.doc_format == "components-versions":
         print(generate_external_units_version_maturity())
-    if args.doc_format == "units-description":
+    elif args.doc_format == "units-description":
         print(generate_units_description())

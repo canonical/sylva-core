@@ -3,7 +3,7 @@
 set -eu
 set -o pipefail
 
-export BASE_DIR="$(realpath $(dirname $0))"
+export BASE_DIR=${BASE_DIR:-$(realpath $(dirname $0))}
 export PATH=${BASE_DIR}/bin:${PATH}
 export KIND_CLUSTER_NAME=${KIND_CLUSTER_NAME:-sylva}
 
@@ -348,18 +348,19 @@ function validate_sylva_units() {
                 value: sylva-units-preview
 EOF
 
-  if [[ ${KUBECONFIG:-} =~ management-cluster-kubeconfig$ ]] || [[ ${1:-} == "force-management" ]]; then
-    bootstrap=no
-  else
-    bootstrap=yes
-  fi
 
-  # for bootstrap cluster, we need to inject bootstrap values
-  # (for mgmt cluster, we do not so we "pipe through" with "cat")
-  _kustomize ${PREVIEW_DIR} \
-    | define_source \
-    | (if [[ $bootstrap == "yes" ]]; then inject_bootstrap_values ; else cat ; fi) \
-    | kubectl apply -f -
+
+  kustomize_result=$(_kustomize ${PREVIEW_DIR})
+  if [[ ${KUBECONFIG:-} =~ management-cluster-kubeconfig$ ]] || [[ ${1:-} == "force-management" ]]; then
+    kustomize_result=$(echo "$kustomize_result" | define_source)
+  elif [[ ${1:-} == "force-workload" ]]; then
+    # for workload cluster, we need to modify wc namespace
+    kustomize_result=$(echo "$kustomize_result" | define_source | set_wc_namespace)
+  else
+    # for bootstrap cluster, we need to inject bootstrap values
+    kustomize_result=$(echo "$kustomize_result" | define_source | inject_bootstrap_values)
+  fi
+  echo "$kustomize_result" | kubectl apply -f -
   rm -Rf ${PREVIEW_DIR}
 
   # this is just to force-refresh in a dev environment with  refreshed parameters
@@ -424,4 +425,3 @@ function display_final_messages() {
   fi
   echo_b "\U0001F389 All done"
 }
-
