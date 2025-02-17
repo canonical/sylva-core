@@ -1645,6 +1645,7 @@ units:
     depends_on:
       namespace-defs: true
       crossplane-init: true
+      monitoring-crd: '{{ tuple . "monitoring" | include "unit-enabled" }}'
     helm_repo_url: https://charts.crossplane.io/stable
     helmrelease_spec:
       releaseName: crossplane
