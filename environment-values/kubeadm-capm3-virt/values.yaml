@@ -1,6 +1,6 @@
 ---
 sylva_diskimagebuilder_images:
-  ubuntu-jammy-plain-kubeadm-1-30-7:
+  ubuntu-jammy-plain-kubeadm-1-30-9:
     enabled: true
 
 cluster:

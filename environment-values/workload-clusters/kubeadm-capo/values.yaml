@@ -4,7 +4,7 @@ cluster:
     bootstrap_provider: cabpk
   control_plane_replicas: 1
   capo:
-    image_key: ubuntu-jammy-plain-kubeadm-1-30-7
+    image_key: ubuntu-jammy-plain-kubeadm-1-30-9
     ssh_key_name: # put the name of your nova SSH keypair here
     network_id: # OpenStack Neutron network id on which machine will be deployed
   machine_deployments:
@@ -19,5 +19,5 @@ openstack:
     type: "ceph_ssd"
 
 sylva_diskimagebuilder_images:
-  ubuntu-jammy-plain-kubeadm-1-30-7:
+  ubuntu-jammy-plain-kubeadm-1-30-9:
     enabled: true
