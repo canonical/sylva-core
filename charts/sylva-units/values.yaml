@@ -4565,10 +4565,10 @@ units:
         resources:
           limits:
             cpu: "0.2"
-            memory: "256Mi"
+            memory: "128Mi"
           requests:
             cpu: "0.1"
-            memory: "128Mi"
+            memory: "64Mi"
 
   alertmanager-snmp-notifier-config:
     info:
