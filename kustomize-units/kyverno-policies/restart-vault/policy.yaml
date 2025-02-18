@@ -19,11 +19,6 @@ spec:
           - Secret
           names:
           - vault-internal-tls
-    preconditions:
-      all:
-      - key: "{{request.operation || 'BACKGROUND'}}"
-        operator: Equals
-        value: UPDATE
     mutate:
       targets:
         - apiVersion: vault.banzaicloud.com/v1alpha1
