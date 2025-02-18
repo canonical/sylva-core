@@ -1,0 +1,17 @@
+---
+workload_clusters:
+  sylva_source:
+    type: git
+    url: https://gitlab.com/sylva-projects/sylva-core.git
+    branch: new-deployment-gitops-method
+  teams:
+    team-a:
+      kustomization_spec:
+        interval: 15m
+      gitrepository_spec:
+        url: https://github.com/JumpMan35/Sylva
+        ref:
+          branch: main
+        interval: 120m
+      gitrepository_path: "manifests/team-a"
+      git_secret_path: gitsecret
