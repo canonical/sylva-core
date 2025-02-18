@@ -7458,7 +7458,7 @@ audit_log:
 keycloak: {}
 
 # cis benchmark is only for rke2 so far, e.g. rke2-cis-1.23-profile-hardened
-cis_benchmark_scan_profile: '{{ eq .Values.cluster.capi_providers.bootstrap_provider "cabpr" | ternary "rke2-cis-1.8-profile-hardened" "no-scan-profile-defined-for-kubeadm-cluster" }}'
+cis_benchmark_scan_profile: '{{ eq .Values.cluster.capi_providers.bootstrap_provider "cabpr" | ternary "rke2-cis-1.9-profile" "no-scan-profile-defined-for-kubeadm-cluster" }}'
 
 # os_images images that should be served and from where they should be downloaded
 # if empty default value are used
