@@ -18,6 +18,8 @@ additional_resources="
   CustomResourceDefinitions
   MutatingWebhookConfigurations
   ValidatingWebhookConfigurations
+  ValidatingAdmissionPolicy
+  ValidatingAdmissionPolicyBindings
   HelmReleases
   HelmRepositories
   HelmCharts.*source.toolkit.fluxcd.io
