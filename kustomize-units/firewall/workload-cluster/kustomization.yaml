@@ -4,3 +4,4 @@ kind: Kustomization
 resources:
 - cluster-vip-policy-workload-cluster.yaml
 - default-policy.yaml
+- cluster-vip-default.yaml

@@ -6,7 +6,6 @@ resources:
 - all-nodes-policy.yaml
 - master-nodes-policy.yaml
 - cluster-vip-policy.yaml
-- cluster-vip-drop.yaml
 - allow-to-pods.yaml
 - allow-from-pods.yaml
 - coredns-to-vip.yaml

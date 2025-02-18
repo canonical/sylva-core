@@ -12,11 +12,15 @@
           tar -C my-node-logs -z -xf $i || true
           for j in $(find my-node-logs -type d -name journal); do
               echo "Found the journal at path $j"
-              journalctl -D $j | grep "calico-packet:" >> $FIREWALL_LOG_FILE || true
+              if [ -n "$WHITE_LIST" ]; then
+                  journalctl -D $j | grep "calico-packet:" | grep -v "$WHITE_LIST" >> $FIREWALL_LOG_FILE || true
+              else
+                  journalctl -D $j | grep "calico-packet:" >> $FIREWALL_LOG_FILE || true
+              fi
           done
           rm -rf my-node-logs
       done
-    - count=$(cat $FIREWALL_LOG_FILE | wc -l)   # No need to count the packets to a DHCP server which can come from the test environment
+    - count=$(cat $FIREWALL_LOG_FILE | wc -l)
     - |
       if [ $count -ne 0 ]; then
           echo "Some packets reached the default policy:"
@@ -40,6 +44,7 @@ mgmt-firewall-verify:
   variables:
     FIREWALL_LOG_FILE: management-firewall.log
     CLUSTER_DIRECTORY: management-cluster-dump
+    WHITE_LIST: "SPT=6443" # don't keep in CI the packets received from the kube-apiserver of the workload cluster
   image: registry.gitlab.com/sylva-projects/sylva-elements/container-images/ci-image/ci-systemd-image:v1.0.58
   artifacts:
     expire_in: 48 hour

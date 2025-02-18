@@ -7937,7 +7937,6 @@ units:
           NTP_SERVERS: '{{ .Values.ntp.servers | toJson }}'
           CLUSTER_PODS_CIDR: '{{ .Values.cluster.cluster_pods_cidrs | toJson }}'
           COREDNS_SELECTOR: '{{ .Values._internal.coredns_selector }}'
-          DEFAULT_POLICY: '{{ .Values.security.firewall.default_policy }}'
         substituteFrom:
         - kind: ConfigMap
           name: capo-cluster-resources
