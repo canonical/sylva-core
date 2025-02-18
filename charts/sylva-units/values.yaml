@@ -4682,14 +4682,17 @@ units:
       sylva-ca: true
     repo: sylva-core
     kustomization_spec:
-      path: ./kustomize-units/grafana-init
-      targetNamespace: upstream-monitoring
+      path: ./kustomize-units/dummy/base
       postBuild:
         substitute:
-          SERVICE: kube-prometheus-stack-grafana
-          GRAFANA_DNS: '{{ .Values.external_hostnames.grafana }}'
+          SERVICE: grafana
+          SERVICE_DNS: '{{ .Values.external_hostnames.grafana }}'
+          CERTIFICATE_NAMESPACE: upstream-monitoring
+          CERT: '{{ .Values.external_certificates.grafana.cert | default "" | b64enc }}'
+          CACERT: '{{ .Values.external_certificates.cacert | default "" | b64enc }}'
       _components:
-        - "../tls-components/sylva-ca"
+        - '{{ ternary "../../tls-components/tls-secret" "../../tls-components/tls-certificate" (hasKey .Values.external_certificates.grafana "cert") }}'
+        - "../../tls-components/sylva-ca"
       healthChecks:
         - apiVersion: v1
           kind: Secret
@@ -4697,7 +4700,7 @@ units:
           namespace: upstream-monitoring
         - apiVersion: v1
           kind: Secret
-          name: grafana-general-tls
+          name: grafana-tls
           namespace: upstream-monitoring
 
   upstream-sylva-dashboards:
