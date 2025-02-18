@@ -139,6 +139,13 @@ units:
     depends_on:
       monitoring-crd: true
 
+  ingress-nginx:
+    helmrelease_spec:
+      values:
+        controller:
+          config:
+            strict-validate-path-type: false  # workaround an evolution in ingress-nginx 1.12 which prevents the use of "." in the path
+
   monitoring:
     depends_on:
       keycloak-oidc-external-secrets: true
