@@ -1,7 +1,8 @@
 apiVersion: kyverno.io/v1
-kind: ClusterPolicy
+kind: Policy
 metadata:
-  name: restart-sts-on-secret-change
+  name: restart-vault-on-cert-change
+  namespace: vault
   annotations:
     kustomize.toolkit.fluxcd.io/force: Enabled
     policies.kyverno.io/description: >-
@@ -18,8 +19,6 @@ spec:
           - Secret
           names:
           - vault-internal-tls
-          namespaces:
-          - vault
     preconditions:
       all:
       - key: "{{request.operation || 'BACKGROUND'}}"
@@ -30,7 +29,6 @@ spec:
         - apiVersion: vault.banzaicloud.com/v1alpha1
           kind: Vault
           name: vault
-          namespace: vault
       patchStrategicMerge:
         spec:
           annotations:
