@@ -4546,9 +4546,9 @@ units:
             '{{ .Values.monitoring.alertmanager.webhooks.snmp_notifier.config.snmp_destinations | default list | include "preserve-type" }}'
         fullnameOverride: 'alertmanager-snmp-notifier'
         extraConfigmapMounts:
-          - name: snmp-notifier-extra-templates
+          - name: snmp-notifier-templates
             configMap: sylva-alertmanager-webhook-snmp-notifier # this ConfigMap is a byproduct of the alertmanager-snmp-notifier-config unit
-            mountPath: /etc/snmp_notifier_extra_templates
+            mountPath: /etc/snmp_notifier/
             readOnly: true
         podAnnotations:
           sylva/snmp-notifier-config: '{{ .Values.monitoring.alertmanager.webhooks.snmp_notifier.config | toJson | sha256sum | trunc 8 }}'
@@ -4569,9 +4569,6 @@ units:
           requests:
             cpu: "0.1"
             memory: "128Mi"
-        serviceMonitor:
-          enabled: true
-          namespace: cattle-monitoring-system
 
   alertmanager-snmp-notifier-config:
     info:
@@ -7968,11 +7965,12 @@ monitoring:
           snmp_version: V2c # V3
           default_extra_args:
             - --alert.severities=critical,error,warning,info
-            - --snmp.extra-field-template=4=/etc/snmp_notifier_extra_templates/platform_tag.tpl
-            - --snmp.extra-field-template=5=/etc/snmp_notifier_extra_templates/alertname.tpl
-            - --snmp.extra-field-template=6=/etc/snmp_notifier_extra_templates/cluster.tpl
+            - --snmp.extra-field-template=4=/etc/snmp_notifier/platform_tag.tpl
+            - --snmp.extra-field-template=5=/etc/snmp_notifier/alertname.tpl
+            - --snmp.extra-field-template=6=/etc/snmp_notifier/cluster.tpl
+            - --snmp.extra-field-template=7=/etc/snmp_notifier/team.tpl
             - --snmp.retries=1
-            - --log.level=debug
+            - --log.level=info
             - --snmp.version={{ .Values.monitoring.alertmanager.webhooks.snmp_notifier.config.snmp_version }}
           snmp_v3_extra_args:
             - --snmp.authentication-enabled
