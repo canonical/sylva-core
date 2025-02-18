@@ -1325,6 +1325,7 @@ properties:
                         type: array
                         items:
                           type: string
+                          pattern: "^(\\[?[a-zA-Z0-9.-]+\\]?:\\d+)$"
                       version:
                         type: string
                         pattern: "^(V2c|V3)$"

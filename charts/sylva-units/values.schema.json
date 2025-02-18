@@ -9406,7 +9406,8 @@
                         "destinations": {
                           "type": "array",
                           "items": {
-                            "type": "string"
+                            "type": "string",
+                            "pattern": "^(\\[?[a-zA-Z0-9.-]+\\]?:\\d+)$"
                           }
                         },
                         "version": {

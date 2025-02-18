@@ -7962,8 +7962,9 @@ monitoring:
       snmp_notifier:
         config:
           # trapserver destinations
+          # address:port format
           destinations: []
-          # snmp version
+          # SNMP version
           version: V2c # V3
           auth:
             # V2c
@@ -7985,10 +7986,10 @@ monitoring:
             - --log.level=info
             - --snmp.version={{ .Values.monitoring.alertmanager.webhooks.snmp_notifier.config.version | default "V2c" }}
           snmp_v3_extra_args:
-            # --[no-]snmp.authentication-enabled to disable authentication
+            # --no-snmp.authentication-enabled to disable authentication
             - --snmp.authentication-enabled
             - --snmp.authentication-protocol={{ .Values.monitoring.alertmanager.webhooks.snmp_notifier.config.auth.auth_protocol }}
-            # --[no-]snmp.private-enabled to disable encryption
+            # --no-snmp.private-enabled to disable encryption
             - --snmp.private-enabled
             - --snmp.private-protocol={{ .Values.monitoring.alertmanager.webhooks.snmp_notifier.config.auth.priv_protocol }}
           final_extra_args: |
@@ -8005,8 +8006,19 @@ monitoring:
 #      global:
 #        resolve_timeout: 15m
 #      route:
-#         group_by: ['namespace', 'alertname']
+#         group_by: ['namespace', 'alertname', 'cluster', 'severity']
 #         receiver: 'jira_receiver'
+#         routes:
+#         - matchers:
+#           - severity=~".*"
+#           receiver: jira_receiver
+#           continue: true
+#         - matchers:
+#           - severity=~".*"
+#           receiver: snmp_traps_receiver
+#           # disable grouping; send each alert individually
+#           group_by: ["..."]
+#           continue: true
 #      receivers:
 #      - name: 'jira_receiver'
 #        webhook_configs:
@@ -8014,6 +8026,10 @@ monitoring:
 #          send_resolved: false
 #    # Supported values from: https://github.com/prometheus-community/helm-charts/blob/main/charts/jiralert/values.yaml
 #    # Example config file: https://github.com/prometheus-community/jiralert/blob/master/examples/jiralert.yml
+#      - name: 'snmp_traps_receiver'
+#        webhook_configs:
+#        - url: 'http://alertmanager-snmp-notifier:9464/alerts'
+#          send_resolved: false
 #    webhooks:
 #      jiralert:
 #        # If missing, the proxies are those configured in `.Values.proxies`
@@ -8035,6 +8051,28 @@ monitoring:
 #            # Must match the Alertmanager receiver name. Required.
 #            - name: jira_receiver
 #              project: Sylva
+#      snmp_notifier:
+#        config:
+#          # trapserver destinations
+#          destinations:
+#            - 1.2.3.4:162
+#            - a.b.c.d:162
+#          version: V3
+#          auth:
+#            # V3
+#            auth_protocol: "SHA" # MD5 or SHA
+#            priv_protocol: "AES" # DES or AES
+#            username: "snmp-user"
+#            password: "snmp-auth-pass"
+#            priv_password: "snmp-priv-pass"
+#          # update the snmp_v3_extra_args to match the snmptrap sever
+#          # should only need to be modified if disabling authentication and/or encryption
+#          snmp_v3_extra_args:
+#            # use authentication
+#            - --snmp.authentication-enabled
+#            - --snmp.authentication-protocol={{ .Values.monitoring.alertmanager.webhooks.snmp_notifier.config.auth.auth_protocol }}
+#            # but no encryption
+#            - --no-snmp.private-enabled
 
 logging:
   # loki_url:
