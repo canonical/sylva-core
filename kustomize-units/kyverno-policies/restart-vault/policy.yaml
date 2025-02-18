@@ -9,7 +9,7 @@ metadata:
       This policy monitors the vault-internal-tls secret and will set up the annotations in sts so that pods are restarted
       and takes the updated cert after expiration of old one.
 spec:
-  mutateExistingOnPolicyUpdate: false
+  mutateExistingOnPolicyUpdate: true
   rules:
   - name: update-secret
     match:
