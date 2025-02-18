@@ -4524,7 +4524,7 @@ units:
     enabled_conditions:
     - '{{ tuple . "monitoring" | include "unit-enabled" }}'
     # only enable if SNMP traps destinations are set
-    - '{{ .Values.monitoring.alertmanager.webhooks.snmp_notifier.config.snmp_destinations | empty | not }}'
+    - '{{ .Values.monitoring.alertmanager.webhooks.snmp_notifier.config.destinations | empty | not }}'
     unit_templates:
     - base-deps
     helm_repo_url: https://prometheus-community.github.io/helm-charts
@@ -4538,12 +4538,12 @@ units:
         snmpNotifier:
           extraArgs:
             '{{ .Values.monitoring.alertmanager.webhooks.snmp_notifier.config.final_extra_args }}'
-          snmpCommunity: "{{ .Values.monitoring.alertmanager.webhooks.snmp_notifier.config.snmp_auth.community }}"
-          snmpAuthenticationUsername: "{{ .Values.monitoring.alertmanager.webhooks.snmp_notifier.config.snmp_auth.authentication_username }}"
-          snmpAuthenticationPassword: "{{ .Values.monitoring.alertmanager.webhooks.snmp_notifier.config.snmp_auth.authentication_password }}"
-          snmpPrivatePassword: "{{ .Values.monitoring.alertmanager.webhooks.snmp_notifier.config.snmp_auth.private_password }}"
+          snmpCommunity: "{{ .Values.monitoring.alertmanager.webhooks.snmp_notifier.config.auth.community }}"
+          snmpAuthenticationUsername: "{{ .Values.monitoring.alertmanager.webhooks.snmp_notifier.config.auth.username }}"
+          snmpAuthenticationPassword: "{{ .Values.monitoring.alertmanager.webhooks.snmp_notifier.config.auth.password }}"
+          snmpPrivatePassword: "{{ .Values.monitoring.alertmanager.webhooks.snmp_notifier.config.auth.priv_password }}"
           snmpDestinations:
-            '{{ .Values.monitoring.alertmanager.webhooks.snmp_notifier.config.snmp_destinations | default list | include "preserve-type" }}'
+            '{{ .Values.monitoring.alertmanager.webhooks.snmp_notifier.config.destinations | default list | include "preserve-type" }}'
         fullnameOverride: 'alertmanager-snmp-notifier'
         extraConfigmapMounts:
           - name: snmp-notifier-templates
@@ -7961,8 +7961,19 @@ monitoring:
         config: {}
       snmp_notifier:
         config:
-          snmp_destinations: []
-          snmp_version: V2c # V3
+          # trapserver destinations
+          destinations: []
+          # snmp version
+          version: V2c # V3
+          auth:
+            # V2c
+            community: "public"
+            # V3
+            auth_protocol: "SHA" # MD5 or SHA
+            priv_protocol: "AES" # DES or AES
+            username: "snmp-user"
+            password: "snmp-auth-pass"
+            priv_password: "snmp-priv-pass"
           default_extra_args:
             - --alert.severities=critical,error,warning,info
             - --snmp.extra-field-template=4=/etc/snmp_notifier/platform_tag.tpl
@@ -7970,26 +7981,22 @@ monitoring:
             - --snmp.extra-field-template=6=/etc/snmp_notifier/cluster.tpl
             - --snmp.extra-field-template=7=/etc/snmp_notifier/team.tpl
             - --snmp.retries=1
+            - --snmp.timeout=5s
             - --log.level=info
-            - --snmp.version={{ .Values.monitoring.alertmanager.webhooks.snmp_notifier.config.snmp_version }}
+            - --snmp.version={{ .Values.monitoring.alertmanager.webhooks.snmp_notifier.config.version | default "V2c" }}
           snmp_v3_extra_args:
+            # --[no-]snmp.authentication-enabled to disable authentication
             - --snmp.authentication-enabled
-            - --snmp.authentication-protocol=MD5
+            - --snmp.authentication-protocol={{ .Values.monitoring.alertmanager.webhooks.snmp_notifier.config.auth.auth_protocol }}
+            # --[no-]snmp.private-enabled to disable encryption
             - --snmp.private-enabled
-            - --snmp.private-protocol=DES
+            - --snmp.private-protocol={{ .Values.monitoring.alertmanager.webhooks.snmp_notifier.config.auth.priv_protocol }}
           final_extra_args: |
-            {{ if eq .Values.monitoring.alertmanager.webhooks.snmp_notifier.config.snmp_version "V3" }}
+            {{ if eq .Values.monitoring.alertmanager.webhooks.snmp_notifier.config.version "V3" }}
             {{ concat .Values.monitoring.alertmanager.webhooks.snmp_notifier.config.default_extra_args .Values.monitoring.alertmanager.webhooks.snmp_notifier.config.snmp_v3_extra_args | include "preserve-type" }}
             {{ else }}
             {{ .Values.monitoring.alertmanager.webhooks.snmp_notifier.config.default_extra_args | include "preserve-type" }}
             {{ end }}
-          snmp_auth:
-            # V2c
-            community: "public"
-            # V3
-            authentication_username: "snmp-user"
-            authentication_password: "snmp-auth-pass"
-            private_password: "snmp-priv-pass"
 
 #monitoring:
 #  alertmanager:

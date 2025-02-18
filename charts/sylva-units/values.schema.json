@@ -9394,6 +9394,60 @@
                       }
                     }
                   }
+                },
+                "snmp_notifier": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "config": {
+                      "type": "object",
+                      "additionalProperties": true,
+                      "properties": {
+                        "destinations": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "version": {
+                          "type": "string",
+                          "pattern": "^(V2c|V3)$"
+                        },
+                        "auth": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "properties": {
+                            "community": {
+                              "type": "string"
+                            },
+                            "auth_protocol": {
+                              "type": "string",
+                              "pattern": "^(MD5|SHA)$"
+                            },
+                            "priv_protocol": {
+                              "type": "string",
+                              "pattern": "^(DES|AES)$"
+                            },
+                            "username": {
+                              "type": "string"
+                            },
+                            "password": {
+                              "type": "string"
+                            },
+                            "priv_password": {
+                              "type": "string"
+                            }
+                          }
+                        },
+                        "default_extra_args": {
+                          "type": "array"
+                        },
+                        "snmp_v3_extra_args": {
+                          "type": "array"
+                        }
+                      }
+                    }
+                  }
                 }
               }
             }
