@@ -479,10 +479,8 @@ units:
   logging-crd:
     enabled: true
 
-  logging:
-    enabled: true
-
   logging-config:
+    enabled: true
     kustomization_spec:
       targetNamespace: "cattle-logging-system"
 
