@@ -265,9 +265,9 @@ function reconcile_sylva_units() {
     echo "not using --resume-suspended"
     resume_suspended=""
   fi
-
+  suspend_sylva_units $namespace false
   sylvactl watch -n $namespace HelmRelease/$namespace/sylva-units --timeout ${SYLVA_UNITS_RECONCILE_TIMEOUT:-180s} --skip-inventory \
-    --reconcile $resume_suspended \
+    --reconcile \
     --exit-condition reason=UpgradeFailed \
     --exit-condition reason=InstallFailed
 
@@ -286,13 +286,13 @@ function define_source() {
 
 function suspend_sylva_units {
   local ns=${1:-sylva-system}
-
+  local value=${2:-true}
   if [[ $(kubectl -n $ns get helmreleases.helm.toolkit.fluxcd.io sylva-units 2>&1 || true) == *"not found" ]]; then
     echo "no sylva-units HelmRelease found, nothing to suspend"
   else
     echo -e "\U000023F8 Suspend sylva-units HelmRelease/HelmChart"
-    kubectl -n $ns patch helmreleases.helm.toolkit.fluxcd.io sylva-units       --type=merge --patch='{"spec":{"suspend":true}}'
-    kubectl -n $ns patch helmcharts.source.toolkit.fluxcd.io ${ns}-sylva-units --type=merge --patch='{"spec":{"suspend":true}}'
+    kubectl -n $ns patch helmreleases.helm.toolkit.fluxcd.io sylva-units       --type=merge --patch="{\"spec\":{\"suspend\": ${value} }}"
+    kubectl -n $ns patch helmcharts.source.toolkit.fluxcd.io ${ns}-sylva-units --type=merge --patch="{\"spec\":{\"suspend\": ${value} }}"
   fi
 }
 
