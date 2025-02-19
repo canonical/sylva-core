@@ -3226,7 +3226,7 @@ units:
     helm_chart_versions: &calico-chart-versions
       v3.28.200: >-
         {{ include "k8s-version-match" (tuple ">=1.28.0,<1.29.0" .Values._internal.k8s_version) }}
-      v3.29.000: >-
+      v3.29.101: >-
         {{ include "k8s-version-match" (tuple ">=1.29.0" .Values._internal.k8s_version) }}
     helmrelease_spec:
       releaseName: rke2-calico-crd
