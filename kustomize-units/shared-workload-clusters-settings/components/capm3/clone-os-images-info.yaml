@@ -24,5 +24,5 @@ spec:
       namespace: "{{request.object.metadata.name}}"
       synchronize: true
       clone:
-        name: os-images-info
-        namespace: sylva-system
+        name: capm3-os-image-server-os-images-info
+        namespace: os-images
