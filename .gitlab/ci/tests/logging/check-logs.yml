@@ -16,7 +16,7 @@
     - export LOKI_USERNAME=$(kubectl --kubeconfig management-cluster-kubeconfig  get secrets -n $NAMESPACE sylva-units-values -o yaml | yq .data.values | base64 -d | yq ._internal.loki_user)
     - export LOKI_PASSWORD=$(kubectl --kubeconfig management-cluster-kubeconfig get secrets -n $NAMESPACE sylva-units-values -o yaml | yq .data.values | base64 -d | yq ._internal.loki_password)
     - export LOKI_ORG_ID=LOKI_USERNAME
-    - logcli labels cluster --tls-skip-verify > logcli.log
+    - logcli query --quiet --output=raw --since=1h --limit=20 '{cluster="$WORKLOAD_CLUSTER_NAME"} | json | line_format "{{.message}}"' --tls-skip-verify > logcli.log
     - |
       if [ ! -s logcli.log ]; then
         echo "ERROR: logcli.log is empty. Query might have failed or returned no logs."
