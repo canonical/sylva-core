@@ -100,7 +100,7 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
     spec:
       url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/os-image-server.git
       ref:
-        tag: 2.2.0
+        tag: 2.2.1
 
   capo-contrail-bgpaas:
     kind: GitRepository
@@ -5376,6 +5376,7 @@ units:
         createNamespace: true
       timeout: 168h  # leave plenty of time to download OS images in initContainers
       values:
+        outputConfigMapName: capm3-os-image-server-os-images-info
         downloader:
           proxy: '{{ get .Values.proxies "https_proxy" }}'
           no_proxy: '{{ include "sylva-units.no_proxy" (tuple .) }}'
