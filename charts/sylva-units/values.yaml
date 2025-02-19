@@ -6848,7 +6848,7 @@ units:
       description: installs Thanos
       maturity: beta
     enabled_conditions:
-      - '{{ tuple . (tuple . "monitoring" | include "unit-enabled") "monitroing" (tuple . "upstrmonitoring" | include "unit-enabled") | include "interpret-ternary" }}'
+      - '{{ tuple . (tuple . "monitoring" | include "unit-enabled") "monitoring" (tuple . "upstrmonitoring" | include "unit-enabled") | include "interpret-ternary" }}'
     unit_templates:
     - base-deps
     depends_on:
