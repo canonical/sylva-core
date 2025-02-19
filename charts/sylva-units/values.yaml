@@ -7756,7 +7756,7 @@ sylva_diskimagebuilder_images:
 
 os_image_server_additional_selectors:
   default:
-    os: ".*"  # dummy catch-all for now (later when os-images-info will have all images from sylva_diskimagebuilder_images, we'll restrict this)
+    os: ".*"  # dummy catch-all for now (later when os-images-info will have all images from sylva_diskimagebuilder_images, we'll restrict this -- see work in progress in https://gitlab.com/sylva-projects/sylva-core/-/issues/2014 and in particular https://gitlab.com/sylva-projects/sylva-core/-/merge_requests/3794)
 
 # this dict can be enriched at deployment time to feed additional information
 # into the sylva-units-status ConfigMap
