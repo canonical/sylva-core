@@ -7993,7 +7993,7 @@ _internal:
   os_image_server_selectors: >-
     {{
     concat (tuple .Values.cluster | include "find-cluster-image-selectors" | fromJsonArray)
-           (.Values.capm3_os_image_server_additional_selectors | values)
+           (.Values.os_image_server_additional_selectors | values)
       | include "preserve-type"
     }}
 
