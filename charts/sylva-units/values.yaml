@@ -2412,6 +2412,23 @@ units:
       _components:
         - '{{ tuple "components/ha" (.Values._internal.ha_cluster.is_ha) | include "set-only-if" }}'
 
+  capo-orc:
+    info:
+      description: installs OpenStack Resource Controller (orc)
+      details: |
+        The [OpenStack Resource Controller](https://k-orc.cloud/) (a.k.a. ORC) is a component used by CAPO controller
+      maturity: core-component
+    repo: sylva-core
+    unit_templates:
+    - base-deps
+    enabled_conditions:
+    - '{{ tuple . "capo" | include "unit-enabled" }}'
+    depends_on:
+      cert-manager: true
+    kustomization_spec:
+      path: ./kustomize-units/capo-orc
+      wait: true
+
   capo:
     info:
       description: installs OpenStack CAPI infra provider
@@ -2421,6 +2438,7 @@ units:
     - base-deps
     depends_on:
       cert-manager: true
+      capo-orc: true
     kustomization_spec:
       path: ./kustomize-units/capo
       wait: true
