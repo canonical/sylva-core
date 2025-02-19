@@ -12,12 +12,13 @@ spec:
         resources: ["customresourcedefinitions"]
   validations:
     - expression: |
+        has(object.metadata) && has(object.metadata.annotations) && 'cert-manager.io/inject-ca-from' in object.metadata.annotations &&
         has(object.spec.conversion) &&
         has(object.spec.conversion.webhook) &&
         has(object.spec.conversion.webhook.clientConfig) &&
         has(object.spec.conversion.webhook.clientConfig.caBundle) &&
         (
-          !has(oldObject.spec.conversion.webhook.clientConfig.caBundle) || 
+          !has(oldObject.spec.conversion.webhook.clientConfig.caBundle) ||
           object.spec.conversion.webhook.clientConfig.caBundle != oldObject.spec.conversion.webhook.clientConfig.caBundle
         )
         ?
