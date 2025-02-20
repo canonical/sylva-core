@@ -23,21 +23,21 @@ To customize the default pipeline list, edit the merge request description by ad
 ```markdown
 <!-- DEPLOYMENT FLAVOR DEFINITION START -->
 
-* [x] 🎬preview ☁capd 🚀kadm 🐧ubuntu 🛠oci
+* [x] 🎬preview ☁capd 🚀kadm 🐧ubuntu
 * [ ] 🎬preview ☁capo 🚀rke2 🐧suse
 * [ ] 🎬preview ☁capm3 🚀rke2 🐧ubuntu
 
 * [x] ☁capd 🚀kubeadm 🛠light-deploy 🐧ubuntu
-* [ ] ☁capd 🚀rke2 🛠oci,light-deploy 🐧suse
+* [ ] ☁capd 🚀rke2 🛠light-deploy 🐧suse
 
 * [ ] ☁capo 🚀rke2 🐧ubuntu
-* [ ] ☁capo 🚀kadm 🛠oci 🐧suse
+* [ ] ☁capo 🚀kadm 🐧suse
 * [ ] ☁capo 🚀rke2 🎬rolling-update 🛠ha 🐧ubuntu
 * [ ] ☁capo 🚀rke2 🎬mgmt-rolling-update 🛠ha,misc 🐧suse
 * [ ] ☁capo 🚀rke2 🎬sylva-upgrade 🛠misc 🐧ubuntu
 
 * [x] ☁capm3 🚀rke2 🐧suse
-* [ ] ☁capm3 🚀kadm 🛠oci 🐧ubuntu
+* [ ] ☁capm3 🚀kadm 🐧ubuntu
 * [ ] ☁capm3 🚀rke2 🎬sylva-upgrade 🛠misc,ha 🐧suse
 * [x] ☁capm3 🚀rke2 🎬mgmt-rolling-update 🛠ha,misc 🐧ubuntu
 * [ ] ☁capm3 🚀kadm 🎬rolling-update 🛠ha 🐧suse
