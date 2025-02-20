@@ -19,6 +19,17 @@
           echo $access_ip $i >> /etc/hosts
         done
       fi
+      if [[ ! -z $WORKLOAD_CLUSTER_NAME ]]; then
+        wkld_domain=$(kubectl --kubeconfig management-cluster-kubeconfig -n $ENV_NAME get secret sylva-units-values -oyaml | yq '.data.values | @base64d' | yq '.cluster_domain')
+        echo $wkld_domain
+        if [[ $wkld_domain = *.sylva ]]; then
+          echo "-- Get workload ingress saved into /etc/hosts"
+          wkld_access_ip=$(kubectl --kubeconfig management-cluster-kubeconfig -n $ENV_NAME get cm/capo-cluster-resources -o yaml | yq .data.allocated_fip)
+          for i in $(kubectl --kubeconfig workload-cluster-kubeconfig get ingress -A -o custom-columns=:.spec.tls[].hosts[] | grep -v "<none>"); do
+            echo $wkld_access_ip $i >> /etc/hosts
+          done
+        fi
+      fi
   get_ui_ingresses_url:
     - echo -e "\e[1m\e[0Ksection_start:`date +%s`:gitlab_ci_get_ui_ingresses_url[collapsed=true]\r\e[0KGet ui urls from ingresses\e[0m"
     - export flux_url=$(kubectl --kubeconfig management-cluster-kubeconfig get ingress -n flux-system flux-webui-weave-gitops -o jsonpath='{ .spec.tls[].hosts[] }')
