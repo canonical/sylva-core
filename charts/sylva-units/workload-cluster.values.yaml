@@ -324,6 +324,19 @@ units:
           targetPath: controller.service.externalIPs[0]
           optional: '{{ not (.Values.cluster.capi_providers.infra_provider | eq "capo") | include "as-bool" }}'
 
+  upstream-monitoring-crd:
+    enabled: true
+
+  upstrmonitoring:
+    enabled: true
+    depends_on:
+      cluster-import: '{{ tuple . "cluster-import" | include "unit-enabled" }}'
+    helmrelease_spec:
+      valuesFrom:
+        - kind: ConfigMap
+          name: '{{ .Values.cluster.name }}-capi-monitoring-info'  # this configmap is produced by a kyverno policy defined by the "rancher-monitoring-clusterid-inject" mgmt unit
+          optional: false
+
   monitoring-crd:
     enabled: true
 
@@ -340,7 +353,7 @@ units:
   thanos-credentials-secret:
     enabled: true
     enabled_conditions:
-      - '{{ tuple . "monitoring" | include "unit-enabled" }}'
+      - '{{ or (tuple . "monitoring" | include "unit-enabled") (tuple . "upstrmonitoring" | include "unit-enabled") }}'
       - '{{ .Values._internal.sylva_mgmt_enabled_units.thanos }}'
     depends_on:
       kyverno-policies-ready: false
@@ -418,6 +431,7 @@ units:
       kyverno: false
       cluster-reachable: '{{ not .Values._internal.state.is_upgrade }}'
       monitoring-crd: '{{ and (tuple . "monitoring" | include "unit-enabled") (not .Values._internal.state.is_upgrade) }}'
+      upstream-monitoring-crd: '{{ and (tuple . "upstrmonitoring" | include "unit-enabled") (not .Values._internal.state.is_upgrade) }}'
     # in mgmt cluster, kyverno is part of base-deps, so cannot depend on itself, but here in workload-cluster we need it
     unit_templates:
     - base-deps
