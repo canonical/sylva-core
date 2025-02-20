@@ -5427,8 +5427,7 @@ units:
           enabled: true
           size: '{{ .Values.os_images_default_download_storage_space }}'
           storageClass: '{{ .Values._internal.default_storage_class }}'
-        os_image_selectors:
-          - os: '.*'  # for now a single dummy selector matching all OS images
+        os_image_selectors: '{{ .Values._internal.os_image_server_selectors | include "preserve-type" }}'
       valuesFrom:
         - kind: ConfigMap
           name: os-images-info  # this configmap is a byproduct of the os-images-info unit
@@ -7755,6 +7754,10 @@ sylva_diskimagebuilder_images:
   opensuse-15-6-hardened-rke2-1-29-11: {}
   opensuse-15-6-hardened-rke2-1-28-15: {}
 
+os_image_server_additional_selectors:
+  default:
+    os: ".*"  # dummy catch-all for now (later when os-images-info will have all images from sylva_diskimagebuilder_images, we'll restrict this -- see work in progress in https://gitlab.com/sylva-projects/sylva-core/-/issues/2014 and in particular https://gitlab.com/sylva-projects/sylva-core/-/merge_requests/3794)
+
 # this dict can be enriched at deployment time to feed additional information
 # into the sylva-units-status ConfigMap
 additional_sylva_units_status_info: {}
@@ -7986,6 +7989,13 @@ _internal:
         {{- end }}
       {{- end }}
     {{- end }}
+
+  os_image_server_selectors: >-
+    {{
+    concat (tuple .Values.cluster | include "find-cluster-image-selectors" | fromJsonArray)
+           (.Values.os_image_server_additional_selectors | values)
+      | include "preserve-type"
+    }}
 
   # default replica number computed from the ha_cluster.is_ha value
   default_replicas: '{{ tuple . .Values._internal.ha_cluster.is_ha 3 1 | include "interpret-ternary" | int | include "preserve-type" }}'

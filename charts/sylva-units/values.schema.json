@@ -8279,6 +8279,21 @@
         }
       }
     },
+    "os_image_server_additional_selectors": {
+      "type": "object",
+      "additionalProperties": false,
+      "patternProperties": {
+        ".*": {
+          "type": "object",
+          "additionalProperties": false,
+          "patternProperties": {
+            ".*": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
     "openstack": {
       "type": "object"
     },
