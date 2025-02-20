@@ -682,6 +682,18 @@ units:
           scanJobPodTemplatePodSecurityContext:
             runAsGroup: 10000
             runAsUser: 10000
+          scanJobPodTemplateContainerSecurityContext:
+            runAsNonRoot: true
+            seccompProfile:
+              type: RuntimeDefault
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            privileged: false
+            readOnlyRootFilesystem: true
+            runAsGroup: 10000
+            runAsUser: 10000
 
   sylva-ca:
     info:
