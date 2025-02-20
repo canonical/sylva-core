@@ -296,6 +296,11 @@ spec: {{ $helm_repo_spec | toYaml | nindent 2 }}
         {{- $schema := urlParse $unit_def.helm_repo_url -}}
         {{- if $schema.scheme | eq "oci" -}}
           {{- if $unit_name | eq "management-sylva-units"}}
+             {{/*
+               Management-sylva-units  unit still has the chart field because in this case we want
+               to keep use helmrepository of type oci, it's just a temporary solution
+               will be removed when sylva-units HelmRelease will use ocirepository
+              */}}
              {{- $_ := unset $helmrelease_spec "chartRef" -}}
           {{ else }}
              {{- $_ := unset $helmrelease_spec "chart" -}}
