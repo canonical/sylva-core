@@ -46,6 +46,7 @@ sylvactl watch \
   --reconcile \
   --timeout $(ci_remaining_minutes_and_at_most ${BOOTSTRAP_WATCH_TIMEOUT_MIN:-30}) \
   ${SYLVACTL_SAVE:+--save bootstrap-timeline.html} \
+  --record bootstrap-mgt-record.yaml \
   -n sylva-system \
   Kustomization/sylva-system/management-sylva-units
 
@@ -60,6 +61,7 @@ sylvactl watch \
   --kubeconfig management-cluster-kubeconfig \
   --timeout $(ci_remaining_minutes_and_at_most ${MGMT_WATCH_TIMEOUT_MIN:-45}) \
   ${SYLVACTL_SAVE:+--save management-cluster-timeline.html} \
+  --record install-mgt-record.yaml \
   -n sylva-system \
   Kustomization/sylva-system/sylva-units-status
 
