@@ -82,8 +82,7 @@ if [[ $BACKGROUND -eq 1 ]]; then
     crustgather serve -a ${tmp} -s ${SOCKET} -v WARN &
     crustgather_pid=$!
 
-    kubectl config set-context management --namespace sylva-system
-    kubectl config use-context management
+    kubectl config use-context management && kubectl config set-context management --namespace sylva-system
 
     echo "Starting a new shell in crustgather context, hit ctlr+D to exit"
     JOB_PROMPT="crustgather-job-$JOB_ID ~> "
@@ -102,4 +101,3 @@ else
 fi
 
 rm -rf ${tmp}
-
