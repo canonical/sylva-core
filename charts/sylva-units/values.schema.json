@@ -9254,6 +9254,72 @@
               ]
             }
           }
+        },
+        "sbom_operator": {
+          "type": "object",
+          "properties": {
+            "targets": {
+              "type": "string",
+              "pattern": "(configmap|dtrack|oci)(,configmap|dtrack|oci)?(,configmap|dtrack|oci)?"
+            },
+            "dtrack_base_url": {
+              "type": "string",
+              "format": "uri",
+              "pattern": "^(https?://.*|)$"
+            },
+            "dtrack_api_key": {
+              "type": "string"
+            },
+            "oci_registry": {
+              "type": "string",
+              "format": "uri",
+              "pattern": "^oci://.*$"
+            },
+            "oci_user": {
+              "type": "string"
+            },
+            "oci_token": {
+              "type": "string"
+            }
+          },
+          "allOf": [
+            {
+              "required": [
+                "targets"
+              ]
+            },
+            {
+              "if": {
+                "properties": {
+                  "targets": {
+                    "pattern": "^.*dtrack.*$"
+                  }
+                }
+              },
+              "then": {
+                "required": [
+                  "dtrack_base_url",
+                  "dtrack_api_key"
+                ]
+              }
+            },
+            {
+              "if": {
+                "properties": {
+                  "targets": {
+                    "pattern": "oci.*$"
+                  }
+                }
+              },
+              "then": {
+                "required": [
+                  "oci_registry",
+                  "oci_user",
+                  "oci_token"
+                ]
+              }
+            }
+          ]
         }
       }
     },

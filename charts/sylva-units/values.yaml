@@ -296,6 +296,7 @@ unit_templates:
         - '{{ tuple "components/kepler" (tuple . "kepler" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/kube-system" (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpr") | include "set-only-if" }}'
         - '{{ tuple "components/neuvector" (tuple . "neuvector" | include "unit-enabled") | include "set-only-if" }}'
+        - '{{ tuple "components/sbom-operator" (tuple . "sbom-operator" | include "unit-enabled") | include "set-only-if" }}'
 
   flux-common:
     repo: sylva-core
@@ -2035,6 +2036,61 @@ units:
         - '{{ tuple "components/grafana-oidc" (tuple . "monitoring" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/flux-webui-oidc" (tuple . "flux-webui" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/rancher-oidc" (tuple . "rancher" | include "unit-enabled") | include "set-only-if" }}'
+
+  sbom-operator:
+    info:
+      description: installs SBOM operator
+      maturity: beta
+    enabled: no
+    unit_templates:
+    - base-deps
+    depends_on:
+      namespace-defs: true
+      network-policies: true
+    helm_repo_url: https://ckotzbauer.github.io/helm-charts
+    helmrelease_spec:
+      chart:
+        spec:
+          chart: sbom-operator
+          version: 0.36.0
+      targetNamespace: sbom-operator
+      values:
+        args:
+          targets: '{{ .Values.security.sbom_operator.targets }}'
+          dtrack-base-url: '{{ tuple .Values.security.sbom_operator.dtrack_base_url (hasKey .Values.security.sbom_operator "dtrack_base_url") | include "set-only-if" }}'
+          dtrack-api-key: '{{ tuple .Values.security.sbom_operator.dtrack_api_key (hasKey .Values.security.sbom_operator "dtrack-api-key") | include "set-only-if" }}'
+          oci-registry: '{{ tuple .Values.security.sbom_operator.oci_registry (hasKey .Values.security.sbom_operator "dtrack_base_url") | include "set-only-if" }}'
+          oci-user: '{{ tuple .Values.security.sbom_operator.oci_user (hasKey .Values.security.sbom_operator "oci-user") | include "set-only-if" }}'
+          oci-token: '{{ tuple .Values.security.sbom_operator.oci_token (hasKey .Values.security.sbom_operator "oci-token") | include "set-only-if" }}'
+          verbosity: debug
+          format: cyclonedx
+          cron: "*/5 * * * *"
+        envVars:
+          - name: https_proxy
+            value: '{{ .Values.proxies.https_proxy }}'
+          - name: http_proxy
+            value: '{{ .Values.proxies.https_proxy }}'
+          - name: no_proxy
+            value: '{{ include "sylva-units.no_proxy" (tuple .) }}'
+
+  network-policies:
+    info:
+      description: creates sylva-system network-policies to be used by various units
+      internal: true
+    unit_templates:
+    - base-deps
+    depends_on:
+      namespace-defs: true
+    repo: sylva-core
+    kustomization_spec:
+      path: ./kustomize-units/network-policies
+      postBuild:
+        substitute:
+          SBOM_OPERATOR_DENY_NET_LIST: '{{ concat .Values.cluster.cluster_pods_cidrs .Values.cluster.cluster_services_cidrs | toJson }}'
+      wait: true
+      prune: false
+      _components:
+        - '{{ tuple "components/sbom-operator" (tuple . "sbom-operator" | include "unit-enabled") | include "set-only-if" }}'
 
   kyverno:
     info:
@@ -7829,7 +7885,8 @@ security:
       MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEEN6LNycNA/OB8/dtqTPZcPDuLnxW
       hR0Rskmno7Lx1WqBl2ylN/sfkLEAPfCkizceHiu/fw8lnsPq9uSGlAICeQ==
       -----END PUBLIC KEY-----
-
+  sbom_operator:
+    targets: configmap # string with comma separated targets (i.e. places where the SBOM is uploaded). Supported targets are configmap and/or OCI and/or dtrack, e.g. "oci,dtrack"
 
 monitoring:
   platform_tag: Sylva

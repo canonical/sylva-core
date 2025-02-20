@@ -1,0 +1,13 @@
+---
+apiVersion: crd.projectcalico.org/v1
+kind: NetworkPolicy
+metadata:
+  name: deny-internal
+  namespace: sbom-operator
+spec:
+  order: 20
+  selector: app.kubernetes.io/name == 'sbom-operator'
+  egress:
+    - action: Deny
+      destination:
+        nets: ${SBOM_OPERATOR_DENY_NET_LIST}
