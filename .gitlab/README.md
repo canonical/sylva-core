@@ -32,6 +32,7 @@ To customize the default pipeline list, edit the merge request description by ad
 
 * [ ] ☁capo 🚀rke2 🐧ubuntu
 * [ ] ☁capo 🚀kadm 🛠oci 🐧suse
+* [ ] ☁capo 🚀kadm 🎬rolling-update 🛠maxsurge-0 🐧ubuntu
 * [ ] ☁capo 🚀rke2 🎬rolling-update 🛠ha 🐧ubuntu
 * [ ] ☁capo 🚀rke2 🎬mgmt-rolling-update 🛠ha,misc 🐧suse
 * [ ] ☁capo 🚀rke2 🎬sylva-upgrade 🛠misc 🐧ubuntu
@@ -61,7 +62,7 @@ Each pipeline entry should adhere to this format:
 | 🚀    | **Bootstrap Provider**      | `kubeadm` (or `kadm`), `rke2`                                                        |
 | 🐧    | **Operating System**        | `ubuntu`, `suse`                                                                     |
 | 🎬    | **Pipeline Scenarios**      | `rolling-update`, `mgmt-rolling-update`, `k8s-upgrade`, `mgmt-sylva-upgrade`, `sylva-upgrade`, `sylva-upgrade-from-x.x.x` `simple-update`, `preview` |
-| 🛠    | **Deployment Options**      | `light-deploy`, `dev-sources`, `ha`, `misc`                                                   |
+| 🛠    | **Deployment Options**      | `light-deploy`, `dev-sources`, `ha`, `misc`, `maxsurge-0`                                                   |
 
 **Note**: You can freely combine these components, but certain combinations may be incompatible (e.g., `capd` deployments do not support updates). The script does not currently manage all incompatibility rules.
 

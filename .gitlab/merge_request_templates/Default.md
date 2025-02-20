@@ -22,7 +22,7 @@ Below you can choose test deployment variants to run in this MR's CI.
 | ☁   | **Infra Provider**       | `capd`, `capo`, `capm3`                                                   |
 | 🚀  | **Bootstrap Provider**   | `kubeadm` (alias `kadm`), `rke2`                                          |
 | 🐧  | **Node OS**              | `ubuntu`, `suse`                                                          |
-| 🛠  | **Deployment Options**    | `light-deploy`, `dev-sources`, `ha`, `misc`                                       |
+| 🛠  | **Deployment Options**    | `light-deploy`, `dev-sources`, `ha`, `misc`, `maxsurge-0`                                       |
 | 🎬  | **Pipeline Scenarios**   | [Available scenario list and description](https://gitlab.com/sylva-projects/sylva-core/-/blob/main/.gitlab/README.md?ref_type=heads#scenario-description)  |
 
 <!-- DEPLOYMENT FLAVOR DEFINITION START -->
@@ -36,6 +36,7 @@ Below you can choose test deployment variants to run in this MR's CI.
 
 * [x] ☁ capo 🚀 rke2 🐧 suse
 * [x] ☁ capo 🚀 kadm 🐧 ubuntu
+* [ ] ☁ capo 🚀 kadm 🎬 rolling-update 🛠 maxsurge-0 🐧 ubuntu
 * [ ] ☁ capo 🚀 rke2 🎬 rolling-update 🛠 ha 🐧 ubuntu
 * [ ] ☁ capo 🚀 kadm 🎬 wkld-k8s-upgrade 🐧 ubuntu
 * [ ] ☁ capo 🚀 rke2 🎬 rolling-update-no-wkld 🛠 ha,misc 🐧 suse
