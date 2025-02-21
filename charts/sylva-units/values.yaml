@@ -219,7 +219,7 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
     spec:
       url: https://github.com/kube-logging/logging-operator.git
       ref:
-        tag: 4.11.4
+        tag: 5.1.1
 
 helm_repo_spec_default:
   interval: 60m0s
@@ -6804,8 +6804,6 @@ units:
             inputTail:
               Parser: crilog
               Path_Key: "log_file"
-        image:
-          tag: 4.11.4
         securityContext:
           readOnlyRootFilesystem: true
           allowPrivilegeEscalation: false
