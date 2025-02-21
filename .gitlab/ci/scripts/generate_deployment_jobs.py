@@ -203,7 +203,7 @@ def generate_ci_job_struct(job_names, global_options):
                 sys.exit(1)
 
         options = []
-        option_match = re.compile(r"🛠\s*([\w\d,-]+)").findall(job)
+        option_match = re.compile(r"🛠\s*([\w\d\.,-]+)").findall(job)
         if option_match:
             options = option_match[0].split(",")
 
