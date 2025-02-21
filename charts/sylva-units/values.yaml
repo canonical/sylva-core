@@ -1629,6 +1629,7 @@ units:
           CERTIFICATE_NAMESPACE: crossplane-system
       _components:
         - "../tls-components/sylva-ca"
+        - '{{ tuple "components/crossplane-monitoring" (tuple . "monitoring" | include "unit-enabled") | include "set-only-if" }}'
       healthChecks:
         - apiVersion: v1
           kind: Secret
@@ -1644,6 +1645,7 @@ units:
     depends_on:
       namespace-defs: true
       crossplane-init: true
+      monitoring-crd: '{{ tuple . "monitoring" | include "unit-enabled" }}'
     helm_repo_url: https://charts.crossplane.io/stable
     helmrelease_spec:
       releaseName: crossplane
@@ -1695,7 +1697,7 @@ units:
           seccompProfile:
             type: RuntimeDefault
         metrics:
-          enabled: false
+          enabled: '{{ tuple . "monitoring" | include "unit-enabled" }}'
 
   keycloak:
     info:
@@ -8060,6 +8062,8 @@ _internal:
         enabled: '{{ tuple . "kepler" | include "unit-enabled" }}'
       snmp:
         enabled: '{{ tuple . "snmp-exporter" | include "unit-enabled" }}'
+      crossplane:
+        enabled: '{{ tuple . "crossplane" | include "unit-enabled" }}'
 
   # thanos user and password
   thanos_user: '{{ .Values.cluster.name }}'
