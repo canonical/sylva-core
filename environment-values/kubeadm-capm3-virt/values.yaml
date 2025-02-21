@@ -1,6 +1,6 @@
 ---
 sylva_diskimagebuilder_images:
-  ubuntu-jammy-plain-kubeadm-1-30-7:
+  ubuntu-noble-plain-kubeadm-1-30-9:
     enabled: true
 
 cluster:
@@ -20,8 +20,8 @@ cluster:
 ## Expected OS image must be configured here
 
   # capm3:
-  #   image_key: ubuntu-jammy-plain-kubeadm-xxxxxxx
+  #   image_key: ubuntu-noble-plain-kubeadm-xxxxxxx
 
 # sylva_diskimagebuilder_images:
-#   ubuntu-jammy-plain-kubeadm-xxxxxxx:
+#   ubuntu-noble-plain-kubeadm-xxxxxxx:
 #     default_enabled: true
