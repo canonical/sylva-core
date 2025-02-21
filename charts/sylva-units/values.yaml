@@ -4932,7 +4932,7 @@ units:
     unit_templates:
     - base-deps
     depends_on:
-      monitoring: true
+      '{{ tuple . (tuple . "monitoring" | include "unit-enabled") "monitoring" "upstrmonitoring" | include "interpret-ternary" }}': true
     helm_repo_url: https://prometheus-community.github.io/helm-charts
     helmrelease_spec:
       releaseName: prometheus-pushgateway
