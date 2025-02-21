@@ -54,6 +54,7 @@ def get_ci_configuration_from_context():
     global_options = {
         "autorun": True,
         "allow-failure": False,
+        "record-sylvactl-events": False,
     }
 
     # CI variable DEPLOYMENT_DESCRIPTION_OVERRIDE can be used to override CI config in any case
@@ -106,6 +107,7 @@ def get_ci_config_from_mr_description(description=""):
     global_options = {
         "autorun": False,
         "allow-failure": True,
+        "record-sylvactl-events": False,
     }
 
     MR_DESCRIPTION = description
@@ -133,6 +135,10 @@ def get_ci_config_from_mr_description(description=""):
     allowfailure_option = allowfailure_option_pattern.findall(MR_DESCRIPTION)
     if allowfailure_option:
         global_options["allow-failure"] = allowfailure_option[0] == "x"
+    sylvactl_record_option_pattern = re.compile(r"\* \[(.)\] .*-- SYLVACTL RECORD OPTION --")
+    sylvactl_record_option = sylvactl_record_option_pattern.findall(MR_DESCRIPTION)
+    if sylvactl_record_option:
+        global_options["record-sylvactl-events"] = sylvactl_record_option[0] == "x"
 
     if config:
         selected_deployments = re.compile(r"\n\* \[x\] (.*)").findall(config[0])
@@ -175,6 +181,10 @@ def generate_ci_job_struct(job_names, global_options):
         if "skip-tests" in job:
             ci_jobs[job].setdefault("variables", {})
             ci_jobs[job]["variables"]["SKIP_TESTS"] = "true"
+
+        if global_options["record-sylvactl-events"]:
+            ci_jobs[job].setdefault("variables", {})
+            ci_jobs[job]["variables"]["SYLVACTL_RECORD"] = "true"
 
         # Deployment jobs use OCI by default
         ci_jobs[job]["extends"].append(".wait-publish-jobs")
