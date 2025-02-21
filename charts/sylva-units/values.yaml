@@ -8068,9 +8068,9 @@ units:
     unit_templates:
     - base-deps
     depends_on:
-      monitoring: true
+      '{{ tuple . (tuple . "monitoring" | include "unit-enabled") "monitoring" "upstrmonitoring" | include "interpret-ternary" }}': true
     enabled_conditions:
-      - '{{ tuple . "monitoring" | include "unit-enabled" }}'
+      - '{{ or (tuple . "monitoring" | include "unit-enabled") (tuple . "upstrmonitoring" | include "unit-enabled") }}'
     repo: sylva-prometheus-rules
     helm_chart_artifact_name: sylva-prometheus-rules
     helmrelease_spec:
