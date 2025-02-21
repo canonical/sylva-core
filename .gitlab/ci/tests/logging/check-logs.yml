@@ -10,8 +10,10 @@
     - |
       if [[ -n $CHECK_WORKLOAD_CLUSTER ]]; then
         NAMESPACE=$ENV_NAME
+        CLUSTER_NAME=$WORKLOAD_CLUSTER_NAME
       else
         NAMESPACE=sylva-system
+        CLUSTER_NAME=$MANAGEMENT_CLUSTER_NAME
       fi
     - export LOKI_USERNAME=$(kubectl --kubeconfig management-cluster-kubeconfig  get secrets -n $NAMESPACE sylva-units-values -o yaml | yq .data.values | base64 -d | yq ._internal.loki_user)
     - export LOKI_PASSWORD=$(kubectl --kubeconfig management-cluster-kubeconfig get secrets -n $NAMESPACE sylva-units-values -o yaml | yq .data.values | base64 -d | yq ._internal.loki_password)
@@ -33,8 +35,6 @@ mgmt-validate-logging:
   extends:
     - .test-base-management-cluster
     - .check-logging-base
-  variables:
-    CLUSTER_NAME: $MANAGEMENT_CLUSTER_NAME
 
 wkld-validate-logging:
   extends:
@@ -42,4 +42,3 @@ wkld-validate-logging:
     - .check-logging-base
   variables:
     CHECK_WORKLOAD_CLUSTER: "true"
-    CLUSTER_NAME: $WORKLOAD_CLUSTER_NAME
