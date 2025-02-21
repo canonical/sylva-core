@@ -6779,7 +6779,7 @@ units:
   kube-logging:
     enabled: false
     info:
-      description: installs Rancher Fluentbit/Fluentd logging stack from upstream chart, for log collecting and shipping
+      description: Deploys Fluentbit/Fluentd logging stack from upstream logging-operator chart, for log scraping and shipping
       details: this unit deploys logging component from upstream
     unit_templates:
     - base-deps
