@@ -3252,7 +3252,7 @@ units:
     helm_chart_versions: &calico-chart-versions
       v3.28.200: >-
         {{ include "k8s-version-match" (tuple ">=1.28.0,<1.29.0" .Values._internal.k8s_version) }}
-      v3.29.000: >-
+      v3.29.101: >-
         {{ include "k8s-version-match" (tuple ">=1.29.0" .Values._internal.k8s_version) }}
     helmrelease_spec:
       releaseName: rke2-calico-crd
@@ -3970,7 +3970,7 @@ units:
     helm_repo_url: https://rke2-charts.rancher.io
     helm_chart_versions:
       4.10.501: '{{ include "k8s-version-match" (tuple ">=1.28.0,<1.29.0" .Values._internal.k8s_version) }}'
-      4.10.502: '{{ include "k8s-version-match" (tuple ">=1.29.0" .Values._internal.k8s_version) }}'
+      4.12.003: '{{ include "k8s-version-match" (tuple ">=1.29.0" .Values._internal.k8s_version) }}'
     helmrelease_spec:
       releaseName: rke2-ingress-nginx
       targetNamespace: kube-system
@@ -5458,6 +5458,18 @@ units:
       valuesFrom:
         - kind: ConfigMap
           name: os-images-info  # this configmap is a byproduct of the os-images-info unit
+      _postRenderers:  # should go away once https://gitlab.com/sylva-projects/sylva-elements/helm-charts/os-image-server/-/merge_requests/118 lands
+        - kustomize:
+            patches:
+              - target:
+                  kind: Ingress
+                patch: |-
+                  - op: replace
+                    path: /spec/rules/0/http/paths/0/pathType
+                    value: ImplementationSpecific
+                  - op: replace
+                    path: /spec/rules/0/http/paths/1/pathType
+                    value: ImplementationSpecific
 
   capo-contrail-bgpaas:
     info:
@@ -7768,20 +7780,20 @@ k8s_version_short: "1.30"
 
 # Renovate Bot needs additional information to detect sylva diskimage-builder version
 # renovate: depName=sylva-projects/sylva-elements/diskimage-builder
-sylva_diskimagebuilder_version: 0.3.9
+sylva_diskimagebuilder_version: 0.4.3
 
 sylva_diskimagebuilder_images:
-  ubuntu-jammy-hardened-rke2-1-30-7: {}
-  ubuntu-jammy-hardened-rke2-1-29-11: {}
-  ubuntu-jammy-hardened-rke2-1-28-15: {}
-  ubuntu-jammy-plain-rke2-1-30-7: {}
-  ubuntu-jammy-plain-rke2-1-29-11: {}
-  ubuntu-jammy-plain-rke2-1-28-15: {}
-  opensuse-15-6-plain-rke2-1-30-7: {}
-  opensuse-15-6-plain-rke2-1-29-11: {}
+  ubuntu-noble-hardened-rke2-1-30-9: {}
+  ubuntu-noble-hardened-rke2-1-29-13: {}
+  ubuntu-noble-hardened-rke2-1-28-15: {}
+  ubuntu-noble-plain-rke2-1-30-9: {}
+  ubuntu-noble-plain-rke2-1-29-13: {}
+  ubuntu-noble-plain-rke2-1-28-15: {}
+  opensuse-15-6-plain-rke2-1-30-9: {}
+  opensuse-15-6-plain-rke2-1-29-13: {}
   opensuse-15-6-plain-rke2-1-28-15: {}
-  opensuse-15-6-hardened-rke2-1-30-7: {}
-  opensuse-15-6-hardened-rke2-1-29-11: {}
+  opensuse-15-6-hardened-rke2-1-30-9: {}
+  opensuse-15-6-hardened-rke2-1-29-13: {}
   opensuse-15-6-hardened-rke2-1-28-15: {}
 
 os_image_server_additional_selectors:
@@ -8154,8 +8166,8 @@ _internal:
 
   k8s_version_map:
     1.28: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" | ternary "v1.28.15+rke2r1" "v1.28.15" }}'
-    1.29: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" | ternary "v1.29.11+rke2r1" "v1.29.11" }}'
-    "1.30": '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" | ternary "v1.30.7+rke2r1" "v1.30.7" }}'
+    1.29: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" | ternary "v1.29.13+rke2r1" "v1.29.13" }}'
+    "1.30": '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" | ternary "v1.30.9+rke2r1" "v1.30.9" }}'
 
   # total number of nodes in this cluster
   node_count:
