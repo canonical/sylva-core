@@ -422,6 +422,7 @@ include:
       - management-cluster-dump/
       - crust-gather.tar.gz
       - "*-timeline.html"
+      - "*-record.yaml"
       - management-cluster-kubeconfig
       - ci-environment-values.yaml
     name: "artifact-$CI_JOB_ID"
@@ -449,6 +450,7 @@ include:
     paths:
       - debug-on-exit.log
       - bootstrap-cluster-dump/
+      - "*-record.yaml"
 
 .deploy-management:
   extends: .management-base
@@ -486,6 +488,7 @@ include:
       - workload-cluster-dump/
       - crust-gather.tar.gz
       - "*-timeline.html"
+      - "*-record.yaml"
       - management-cluster-kubeconfig
       - ci-environment-values.yaml
   after_script:
