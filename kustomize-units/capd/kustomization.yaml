@@ -28,13 +28,10 @@ patches:
                     value: "${https_proxy}"
                   - name: "no_proxy"
                     value: "localhost,100.96.0.1,${no_proxy},${KIND_POD_SUBNET},${KIND_SVC_SUBNET},.cluster.local.,.cluster.local,.svc"
-    target:
-      kind: Deployment
-      labelSelector: control-plane=controller-manager
-  - patch: |-
-      - op: replace
-        path: /spec/template/spec/volumes/0/hostPath/path
-        value: /run/docker/docker.sock
+          volumes:
+            - name: dockersock
+              hostPath:
+                path: /run/docker/docker.sock
     target:
       kind: Deployment
       labelSelector: control-plane=controller-manager
