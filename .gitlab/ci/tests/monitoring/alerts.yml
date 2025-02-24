@@ -37,6 +37,7 @@ mgmt-thanos-alert:
       fi
   variables:
     ALERT_QUERY: "query=ALERTS{alertstate=\"firing\"}"
+    DESCRIPTION: Check if any critical alerts were raised by Thanos during deployments
   artifacts:
     expire_in: 48 hour
     when: always

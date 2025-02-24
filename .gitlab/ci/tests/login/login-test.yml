@@ -47,6 +47,7 @@ wkld-sso-kubeconfig:
   image: registry.gitlab.com/sylva-projects/sylva-elements/container-images/ci-image/ci-playwright-image:v1.1.0
   variables:
     SCREENSHOTS: ${CI_PROJECT_DIR}/screenshots
+    DESCRIPTION: Obtain the workload-cluster-kubeconfig through the Rancher UI and use it to create a pod.
   artifacts:
     expire_in: 48 hour
     when: always
@@ -78,6 +79,7 @@ mgmt-GUIs-test:
   image: registry.gitlab.com/sylva-projects/sylva-elements/container-images/ci-image/ci-playwright-image:v1.1.0
   variables:
     SCREENSHOTS: ${CI_PROJECT_DIR}/screenshots
+    DESCRIPTION: Test basic authentication login against the GUI.
   artifacts:
     expire_in: 48 hour
     when: always
@@ -98,6 +100,7 @@ mgmt-sso:
   image: registry.gitlab.com/sylva-projects/sylva-elements/container-images/ci-image/ci-playwright-image:v1.1.0
   variables:
     SCREENSHOTS: ${CI_PROJECT_DIR}/screenshots
+    DESCRIPTION: Test Single Sign-On login against the GUI.
   artifacts:
     expire_in: 48 hour
     when: always
@@ -127,12 +130,15 @@ wkld-no-sso-kubeconfig:
     - echo "-- Wait for test-no-sso pod to be created"
     - kubectl wait --for=condition=Ready pod/test-no-sso --kubeconfig workload-cluster-kubeconfig --timeout=60s
     - echo "-- All done"
+  variables:
+    DESCRIPTION: Obtain the workload-cluster-kubeconfig through the Rancher API and use it to create a pod.
 
 mgmt-login:
   extends:
     - .test-base-management-cluster
   variables:
     HURL_JUNIT_REPORT: ${CI_PROJECT_DIR}/login_junit_report.xml
+    DESCRIPTION: Run Hurl Login Tests.
   artifacts:
     expire_in: 48 hour
     when: always
@@ -212,6 +218,7 @@ wkld-login:
     - .test-base-workload-cluster
   variables:
     HURL_JUNIT_REPORT: ${CI_PROJECT_DIR}/login_junit_report.xml
+    DESCRIPTION: Run Hurl Login Tests.
   artifacts:
     expire_in: 48 hour
     when: always
