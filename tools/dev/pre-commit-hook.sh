@@ -41,6 +41,9 @@ $BASE_DIR/tools/generate-renovate-json.sh
 # update CI scenario description
 $BASE_DIR/.gitlab/ci/scripts/generate-scenario-description.sh
 
+# update CI tests description
+$BASE_DIR/.gitlab/ci/scripts/generate-tests-description.sh
+
 ERRORS=0
 if [[ $(git diff $BASE_DIR/charts/sylva-units/values.schema.json) ]]; then
     ERRORS=1
@@ -57,6 +60,10 @@ fi
 if [[ $(git diff $BASE_DIR/.gitlab/README.md) ]]; then
     ERRORS=1
     echo ".gitlab/README.md was updated. Please include it into this commit"
+fi
+if [[ $(git diff $BASE_DIR/.gitlab/ci/tests/README.md) ]]; then
+    ERRORS=1
+    echo ".gitlab/ci/tests/README.md was updated. Please include it into this commit"
 fi
 if [[ $ERRORS == 0 ]]; then
     echo "Pre-commit script succeed"

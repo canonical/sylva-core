@@ -31,6 +31,8 @@ mgmt-test-units:
     - .rules:need-management-cluster
   needs:
     - deploy-management-cluster
+  variables:
+    DESCRIPTION: Assess the status of test units after the management cluster deployment.
 
 mgmt-update-test-units:
   extends:
@@ -38,10 +40,13 @@ mgmt-update-test-units:
     - .rules:need-management-cluster-update
   needs:
     - update-management-cluster
+  variables:
+    DESCRIPTION: Assess the status of test units after the management cluster update.
 
 wkld-test-units:
   variables:
     CHECK_WORKLOAD_CLUSTER: "true"
+    DESCRIPTION: Assess the status of test units after the workload cluster deployment.
   extends:
     - .check-test-units-base
     - .rules:need-workload-cluster
@@ -51,6 +56,7 @@ wkld-test-units:
 wkld-update-test-units:
   variables:
     CHECK_WORKLOAD_CLUSTER: "true"
+    DESCRIPTION: Assess the status of test units after the workload cluster update.
   extends:
     - .check-test-units-base
     - .rules:need-workload-cluster-update

@@ -19,6 +19,8 @@ mgmt-cronjob-testing:
   script:
     - export KUBECONFIG=management-cluster-kubeconfig
     - .gitlab/ci/scripts/cronjob-test.sh
+  variables:
+    DESCRIPTION: Confirm that each Kubernetes CronJob can be executed successfully.
 
 wkld-cronjob-testing:
   extends:
@@ -28,3 +30,5 @@ wkld-cronjob-testing:
     - !reference [.test_scripts, edit_hosts_file]
     - export KUBECONFIG=workload-cluster-kubeconfig
     - .gitlab/ci/scripts/cronjob-test.sh
+  variables:
+    DESCRIPTION: Confirm that each Kubernetes CronJob can be executed successfully.

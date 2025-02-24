@@ -58,4 +58,5 @@ mgmt-avoid-mgmt-deletion-policies:
 
       # try to delete control plane
       fail_if_delete_succeeds $cp_kind $cp_name
-
+  variables:
+    DESCRIPTION: Ensure we can't delete key Sylva Flux and CAPI resources for the mgmt cluster.
