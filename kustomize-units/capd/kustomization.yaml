@@ -31,6 +31,13 @@ patches:
     target:
       kind: Deployment
       labelSelector: control-plane=controller-manager
+  - patch: |-
+      - op: replace
+        path: /spec/template/spec/volumes/0/hostPath/path
+        value: /run/docker/docker.sock
+    target:
+      kind: Deployment
+      labelSelector: control-plane=controller-manager
 
 images:
   - name: gcr.io/k8s-staging-cluster-api/capd-manager
