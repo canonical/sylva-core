@@ -116,7 +116,7 @@ spec:
                         kubectl delete ns "$NS_TO_DELETE" || true
                         log_event Deletion "Deleted namespace: $NS_TO_DELETE"
                     else
-                        echo "No namespace found for deletion."
+                        echo "No  Rancher namespace found for deletion."
                     fi
                     exit 0
                 fi
