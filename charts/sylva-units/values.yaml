@@ -4363,7 +4363,7 @@ units:
     - base-deps
     repo: sylva-core
     enabled_conditions:
-    - '{{ tuple . "monitoring" | include "unit-enabled" }}'
+    - '{{ or (tuple . "monitoring" | include "unit-enabled") (tuple . "upstrmonitoring" | include "unit-enabled") }}'
     kustomization_spec:
       path: ./kustomize-units/prometheus-custom-metrics
       wait: false
@@ -4512,21 +4512,6 @@ units:
     helm_secret_values:
       config: '{{ .Values.monitoring.alertmanager.config | include "preserve-type" }}'
 
-  upstream-prometheus-custom-metrics:
-    info:
-      description: Prometheus configuration for custom resource metrics
-      details: Adding podmonitors for flux controllers and create custom metrics for various resources by configuring kube-state-metrics
-      internal: true
-    unit_templates:
-    - base-deps
-    repo: sylva-core
-    enabled_conditions:
-    - '{{ tuple . "upstrmonitoring" | include "unit-enabled" }}'
-    kustomization_spec:
-      path: ./kustomize-units/prometheus-custom-metrics
-      wait: false
-      force: true
-
   upstrmonitoring:
     info:
       description: installs upstream kube prometheus stack
@@ -4554,7 +4539,7 @@ units:
       chart:
         spec:
           chart: kube-prometheus-stack
-          version: 68.2.2
+          version: 69.4.1
       install:
         createNamespace: false
       values:
@@ -4640,7 +4625,7 @@ units:
       valuesFrom:
         - kind: ConfigMap
           name: custom-resource-state-config # this configmap is a byproduct of the prometheus-custom-metrics unit
-          optional: '{{ not (tuple . "upstream-prometheus-custom-metrics" | include "unit-enabled") | include "as-bool" }}'
+          optional: '{{ not (tuple . "prometheus-custom-metrics" | include "unit-enabled") | include "as-bool" }}'
         - kind: ConfigMap
           name: prometheus-config-values # this configmap is a byproduct of the prometheus-resources unit
           optional: '{{ not (tuple . "upstream-prometheus-resources" | include "unit-enabled") | include "as-bool" }}'
