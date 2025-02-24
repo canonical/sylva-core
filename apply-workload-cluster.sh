@@ -9,7 +9,7 @@ source $(dirname $0)/tools/shell-lib/common.sh
 
 check_args
 
-wc_namespace=$(basename ${ENV_PATH})
+wc_namespace=${WKLD_NAMESPACE:-(basename ${ENV_PATH})}
 
 validate_input_values
 
