@@ -6081,6 +6081,9 @@ units:
       values:
         tenant:
           name: logging
+          serviceMetadata:
+            minioServiceLabels:
+              v1.min.io/tenant: logging
           configSecret:
             existingSecret: true
             name: minio-logging-root
@@ -6258,6 +6261,9 @@ units:
       values:
         tenant:
           name: monitoring
+          serviceMetadata:
+            minioServiceLabels:
+              v1.min.io/tenant: monitoring
           configSecret:
             existingSecret: true
             name: minio-monitoring-root
