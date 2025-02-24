@@ -14,7 +14,7 @@ generate-report:
   variables:
     PRIVATE_TOKEN: ${PIPELINE_REPORT_GENERATION_TOKEN}
   script:
-    - pip install --upgrade tabulate
+    - pip install --upgrade tabulate tenacity
 
     # generate 10 days report => https://gitlab.com/sylva-projects/sylva-core/-/wikis/Scheduled-pipelines-report
     - python3 ./.gitlab/ci/scripts/pipelines_schedules_report.py 10
