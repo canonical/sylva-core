@@ -5,6 +5,9 @@ import datetime
 import os
 import re
 
+import tenacity
+from tenacity import retry
+
 try:
     import gitlab
 except ModuleNotFoundError:
@@ -37,6 +40,38 @@ status_icon = {
 }
 
 
+def log_retry(retry_state: tenacity.RetryCallState):
+    print(f"... {retry_state}")
+
+
+def gitlab_http_500(e: Exception):
+    return isinstance(e, gitlab.exceptions.GitlabHttpError) and e.response_code == 500
+
+
+GITLAB_RETRY_PARAMS = {
+    "stop": tenacity.stop_after_attempt(5),
+    "retry": tenacity.retry_if_exception(gitlab_http_500),
+    "wait": tenacity.wait_fixed(2),
+    "after": log_retry,
+}
+
+
+@retry(**GITLAB_RETRY_PARAMS)
+def get_scheduled_pipelines(project):
+    return project.pipelineschedules.list()
+
+
+@retry(**GITLAB_RETRY_PARAMS)
+def get_scheduled_pipeline(project, pipeline_schedule_id):
+    schedules = project.pipelineschedules.get(pipeline_schedule_id)
+    return schedules.pipelines.list(get_all=True)
+
+
+@retry(**GITLAB_RETRY_PARAMS)
+def get_pipeline_bridges(project, pipeline_id):
+    return project.pipelines.get(pipeline_id).bridges.list()
+
+
 def get_status_icon(job):
     allow_failure = getattr(job, 'allow_failure', False)
     if job.status == "failed" and allow_failure is True:
@@ -65,6 +100,7 @@ def normalize_older_pipeline_name(name):
     return name
 
 
+@retry(**GITLAB_RETRY_PARAMS)
 def pipeline_summary(pipeline):
     if not pipeline:
         return "(no pipeline info)"
@@ -145,8 +181,7 @@ def create_report():
 
             print(f"processing pipeline schedule {pipeline_description}")
 
-            schedules = project.pipelineschedules.get(pipeline_schedule.id)
-            pipelines = schedules.pipelines.list(get_all=True)
+            pipelines = get_scheduled_pipeline(project, pipeline_schedule.id)
             pipelines.reverse()
             newest_pipelines = pipelines[:PIPELINE_HISTORY_COUNT]
 
@@ -171,10 +206,10 @@ def create_report():
             child_pipelines_reports = dict()
             for pipeline in newest_pipelines:
                 print(f"  processing pipeline {pipeline.id}")
-                for level1_child in project.pipelines.get(pipeline.id).bridges.list():
+                for level1_child in get_pipeline_bridges(project, pipeline.id):
                     print(f"    processing child {level1_child.name}")
                     if level1_child.name == "deployment-jobs":
-                        for level2_child in project.pipelines.get(level1_child.downstream_pipeline['id']).bridges.list():
+                        for level2_child in get_pipeline_bridges(project, level1_child.downstream_pipeline['id']):
                             print(f"      processing child {level2_child.name}")
                             child_pipeline_name = normalize_older_pipeline_name(level2_child.name)
                             child_pipelines_reports.setdefault(child_pipeline_name, dict())
@@ -302,7 +337,7 @@ if __name__ == '__main__':
     project = gl.projects.get(project_id)
     print("retrieving pipeline schedules")
     try:
-        pipeline_schedules = project.pipelineschedules.list()
+        pipeline_schedules = get_scheduled_pipelines(project)
     except (gitlab.exceptions.GitlabHttpError, gitlab.exceptions.GitlabListError) as e:
         print(f"error on pipelineschedules.list {e}\n  {e.response_body}")
         raise
