@@ -1,0 +1,17 @@
+apiVersion: logging-extensions.banzaicloud.io/v1alpha1
+kind: HostTailer
+metadata:
+  name: ubuntu-host-tailer
+  namespace: cattle-logging-system
+spec:
+  workloadMetaOverrides:
+    labels:
+      app: ubuntu-host-tailer
+  fileTailers:
+    - name: auth-log
+      path: /var/log/auth.log
+      read_from_head: true
+    - name: messages-log
+      path: /var/log/syslog
+      read_from_head: true
+
