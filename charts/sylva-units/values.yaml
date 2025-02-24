@@ -2303,7 +2303,7 @@ units:
       kyverno: true
     repo: sylva-core
     kustomization_spec:
-      path: ./kustomize-units/kyverno-policies/restart-vault
+      path: ./kustomize-units/kyverno-policies/kyverno-vault-restart-policy
       wait: true
 
   kyverno-metal3-policies:
