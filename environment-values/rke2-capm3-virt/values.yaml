@@ -21,4 +21,5 @@ cluster:
 
 ## Expected OS image must be configured here
   # capm3:
-  #   image_key: ubuntu-noble-hardened-rke2-xxxxxxxx
+  #   os_image_selector:
+  #     os: ubuntu
