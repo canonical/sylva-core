@@ -20,7 +20,8 @@ cluster:
 ## Expected OS image must be configured here
 
   # capm3:
-  #   image_key: ubuntu-noble-plain-kubeadm-xxxxxxx
+  #   os_image_selector:
+  #     os: ubuntu
 
 # sylva_diskimagebuilder_images:
 #   ubuntu-noble-plain-kubeadm-xxxxxxx:

@@ -4,7 +4,9 @@ cluster:
     bootstrap_provider: cabpk
   control_plane_replicas: 1
   capo:
-    image_key: ubuntu-noble-plain-kubeadm-1-30-9
+    os_image_selector:
+      os: ubuntu
+      hardened: false
     ssh_key_name: # put the name of your nova SSH keypair here
     network_id: # OpenStack Neutron network id on which machine will be deployed
   machine_deployments:

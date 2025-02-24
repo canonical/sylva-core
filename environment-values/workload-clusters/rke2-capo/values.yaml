@@ -9,7 +9,9 @@ cluster:
   control_plane_replicas: 1
   capo:
     ssh_key_name: # put the name of your nova SSH keypair here
-    image_key: ubuntu-noble-hardened-rke2-1-30-9
+    os_image_selector:
+      os: ubuntu
+      hardened: true
     network_id: # OpenStack Neutron network id on which machine will be deployed
   machine_deployments:
     md0:
