@@ -75,6 +75,7 @@ mgmt-kube-score:
       optional: true
   variables:
     DUMP_FOLDER: management-cluster-dump
+    DESCRIPTION: Execute the Kubescore tool on the cluster dump generated at the end of the deployment.
 
 wkld-kube-score:
   extends:
@@ -86,3 +87,4 @@ wkld-kube-score:
       optional: true
   variables:
     DUMP_FOLDER: workload-cluster-dump
+    DESCRIPTION: Execute the Kubescore tool on the cluster dump generated at the end of the deployment.

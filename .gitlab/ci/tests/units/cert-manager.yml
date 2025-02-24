@@ -67,6 +67,8 @@ mgmt-cert-manager:
     - .test-base-management-cluster
   script:
     - !reference [.test_cert_manager_scripts, common_test_suite]
+  variables:
+    DESCRIPTION: Test certmanager unit.
 
 wkld-cert-manager:
   extends:
@@ -75,3 +77,5 @@ wkld-cert-manager:
     - unset https_proxy http_proxy
     - !reference [.test_scripts, edit_hosts_file]
     - !reference [.test_cert_manager_scripts, common_test_suite]
+  variables:
+    DESCRIPTION: Test certmanager unit.

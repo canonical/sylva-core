@@ -26,11 +26,13 @@
 mgmt-policy-report:
   variables:
     RESOURCE: "policyreport"
+    DESCRIPTION: Verify if any PolicyReport is in a FAIL, WARN, or ERROR state.
   extends:
     - .check_kyverno_resource
 
 mgmt-cluster-policy-report:
   variables:
     RESOURCE: "clusterpolicyreport"
+    DESCRIPTION: Verify if any ClusterPolicyReport is in a FAIL, WARN, or ERROR state.
   extends:
     - .check_kyverno_resource

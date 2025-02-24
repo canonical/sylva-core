@@ -36,6 +36,8 @@ mgmt-verify-longhorn-cleanup-events:
   extends:
     - .test-base-management-cluster
     - .verify-longhorn-cleanup-events
+  variables:
+    DESCRIPTION: Highlight longhorn-instance-manager-cleanup events.
 
 # ==========================================
 # Workload Cluster: Verify longhorn instance manager cleanup events
@@ -44,3 +46,5 @@ wkld-verify-longhorn-cleanup-events:
   extends:
     - .test-base-workload-cluster
     - .verify-longhorn-cleanup-events
+  variables:
+    DESCRIPTION: Highlight longhorn-instance-manager-cleanup events.

@@ -290,7 +290,7 @@ check-renovate-json:
         - tools/generate-renovate-json.sh
         - renovate.json
 
-check-ci-doc:
+check-ci-scenario-doc:
   extends: [.lint-base]
   script:
     - set -e
@@ -313,6 +313,28 @@ check-ci-doc:
         - .gitlab/README.md
         - .gitlab/ci/scripts/generate-scenario-description.sh
 
+check-ci-tests-doc:
+  extends: [.lint-base]
+  script:
+    - set -e
+    - .gitlab/ci/scripts/generate-tests-description.sh
+    - |
+      if [[ -n $(git status .gitlab/ci/tests/README.md -s --porcelain) ]]; then
+          echo -e "\033[0;31m[ERROR] .gitlab/ci/tests/README.md wasn't regenerated with '.gitlab/ci/scripts/generate-tests-description.sh\033[0m"
+          echo
+          git diff .gitlab/ci/tests/README.md
+          echo
+          echo "Git status:"
+          echo
+          git status .gitlab/ci/tests/README.md -s --porcelain
+          exit 1
+      fi
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+      changes:
+        - .gitlab/ci/main-pipeline-checks.yml
+        - .gitlab/ci/tests/README.md
+        - .gitlab/ci/scripts/generate-tests-description.sh
 
 ###########################
 # Gitleaks customization
