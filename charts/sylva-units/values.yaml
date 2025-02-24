@@ -915,6 +915,7 @@ units:
       postBuild:
         substitute:
           KUBEVIRT_MANAGER_DNS: '{{ .Values.external_hostnames.kubevirt_manager }}'
+          SERVICE: kubevirt-manager
       _patches:
       - target:
           kind: Deployment
