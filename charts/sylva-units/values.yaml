@@ -5848,6 +5848,9 @@ units:
           existingSecret: minio-logging-root
         tenant:
           name: logging
+          serviceMetadata:
+            minioServiceLabels:
+              v1.min.io/tenant: logging
           # The Kubernetes secret name that contains MinIO environment variable configurations:
           configuration:
             name: minio-logging-root
@@ -6022,6 +6025,9 @@ units:
           existingSecret: minio-monitoring-root
         tenant:
           name: monitoring
+          serviceMetadata:
+            minioServiceLabels:
+              v1.min.io/tenant: monitoring
           # The Kubernetes secret name that contains MinIO environment variable configurations:
           configuration:
             name: minio-monitoring-root
