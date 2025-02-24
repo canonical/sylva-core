@@ -115,6 +115,7 @@ cluster:
       bmc:
         disableCertificateVerification: true
       bootMode: legacy
+      automatedCleaningMode: metadata
       rootDeviceHints:
         deviceName: /dev/vda
 
