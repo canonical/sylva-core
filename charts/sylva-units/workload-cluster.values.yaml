@@ -347,11 +347,18 @@ units:
     kustomization_spec:
       healthChecks: [] # Remove healthChecks targeting sylva-system namespace
 
+  external-secrets-operator:
+    enabled: true
+
   kubevirt:
     # can be enabled at runtime if desired
     enabled: false
 
   kubevirt-cdi:
+    enabled: true  # the inherited enabled_condition will ensure that the unit
+                   # is actually enabled if and only if kubevirt is enabled
+
+  kubevirt-manager:
     enabled: true  # the inherited enabled_condition will ensure that the unit
                    # is actually enabled if and only if kubevirt is enabled
 
@@ -518,6 +525,8 @@ units:
 
   sylva-ca:
     enabled: true
+    depends_on:
+      external-secrets-operator: true
     kustomization_spec:
       targetNamespace: "cert-manager"
       postBuild:
@@ -526,6 +535,7 @@ units:
           CA_COMMON_NAME: '{{ .Values.cluster.name }} CA'
           CA_O_NAME: '{{ .Values.cluster.name }}'
       _components:
+        - components/eso
         - '{{ tuple "components/acme-issuer" (eq .Values.security.external_x509_issuer.issuer_type "acme") | include "set-only-if" }}'
         - '{{ tuple "components/vault-issuer" (eq .Values.security.external_x509_issuer.issuer_type "vault") | include "set-only-if"}}'
         - '{{ tuple "components/ca-issuer" (not (hasKey .Values.security.external_x509_issuer "issuer_type")) | include "set-only-if" }}'

@@ -4,7 +4,7 @@ metadata:
   name: kubevirt-manager-certificate
   namespace: kubevirt-manager
 spec:
-  commonName: ${KUBEVIRT_MANAGER_DNS}
+  commonName: ${SERVICE}-cn
   dnsNames:
   - localhost
   - ${KUBEVIRT_MANAGER_DNS}
