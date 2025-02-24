@@ -10,7 +10,9 @@ cluster:
     bootstrap_provider: cabpr
 
   capo:
-    image_key: ubuntu-noble-hardened-rke2-1-30-9  # OpenStack Glance image (key of image in sylva_diskimagebuilder_images/os_images)
+    os_image_selector:
+      os: ubuntu
+      hardened: true
     ssh_key_name: # OpenStack Nova SSH keypair is provided by runner context in CI
     network_id: # OpenStack Neutron network id is provided by runner context in CI
 
