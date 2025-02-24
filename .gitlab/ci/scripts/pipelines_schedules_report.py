@@ -45,7 +45,7 @@ def log_retry(retry_state: tenacity.RetryCallState):
 
 
 def gitlab_http_500(e: Exception):
-    return isinstance(e, gitlab.exceptions.GitlabHttpError) and e.response_code == 500
+    return isinstance(e, gitlab.exceptions.GitlabError) and e.response_code == 500
 
 
 GITLAB_RETRY_PARAMS = {
