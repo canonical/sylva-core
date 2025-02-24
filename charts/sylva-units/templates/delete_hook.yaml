@@ -112,7 +112,7 @@ spec:
                     NS_TO_DELETE=$(kubectl get ns -l fleet.cattle.io/managed=true -o yaml | \
                     yq '.items[] | select(.metadata.annotations."fleet.cattle.io/cluster-namespace" == env(NS)) | .metadata.name')
                     if [[ -n "$NS_TO_DELETE" ]]; then
-                        echo "Namespace to delete: $NS_TO_DELETE"
+                        echo "Rancher Namespace to delete: $NS_TO_DELETE"
                         kubectl delete ns "$NS_TO_DELETE" || true
                         log_event Deletion "Deleted namespace: $NS_TO_DELETE"
                     else
