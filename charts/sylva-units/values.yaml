@@ -6035,9 +6035,6 @@ units:
                 runAsGroup: 1000
                 fsGroup: 1000
                 fsGroupChangePolicy: "OnRootMismatch"
-                runAsNonRoot: true
-                seccompProfile:
-                  type: RuntimeDefault
               resources:
                 limits:
                   cpu: 500m
