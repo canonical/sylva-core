@@ -4689,64 +4689,6 @@ units:
       install:
         createNamespace: false
 
-  upstream-alertmanager-jiralert:
-    info:
-      description: installs Alertmanager webhook Jiralert
-      details: Jiralert is an Alertmanager wehbook that creates Jira issues
-      maturity: beta
-    enabled_conditions:
-    - '{{ tuple . "upstrmonitoring" | include "unit-enabled" }}'
-    - '{{ .Values.monitoring.alertmanager.webhooks.jiralert.config | empty | not }}'
-    unit_templates:
-    - base-deps
-    depends_on:
-      upstream-alertmanager-jiralert-config: true
-    helm_repo_url: https://prometheus-community.github.io/helm-charts
-    helmrelease_spec:
-      targetNamespace: upstream-monitoring
-      chart:
-        spec:
-          chart: jiralert
-          version: 1.7.1
-      values:
-        extraArgs:
-          - -log.level=debug
-          - -hash-jira-label
-        existingConfigSecret: sylva-alertmanager-webhook-jiralert  # this Secret is a byproduct of the alertmanager-jiralert-config unit
-        fullnameOverride: 'alertmanager-jiralert'
-        env:
-          http_proxy: '{{ .Values.monitoring.alertmanager.webhooks.jiralert.env.http_proxy | default .Values.proxies.http_proxy }}'
-          https_proxy: '{{ .Values.monitoring.alertmanager.webhooks.jiralert.env.https_proxy | default .Values.proxies.https_proxy }}'
-          no_proxy: '{{ .Values.monitoring.alertmanager.webhooks.jiralert.env.no_proxy | default (include "sylva-units.no_proxy" (tuple .)) }}'
-        replicaCount: '{{ .Values._internal.ha_cluster.is_ha | ternary 2 1 | include "preserve-type" }}'
-        podDisruptionBudget:
-          minAvailable: '{{ .Values._internal.ha_cluster.is_ha | ternary 1 0 | include "preserve-type" }}'
-          unhealthyPodEvictionPolicy: AlwaysAllow
-        securityContext:
-          runAsNonRoot: true
-          allowPrivilegeEscalation: false
-          seccompProfile:
-            type: RuntimeDefault
-
-  upstream-alertmanager-jiralert-config:
-    info:
-      description: generates the config for Jiralert Alertmanager webhook
-      maturity: beta
-    enabled_conditions:
-    - '{{ tuple . "upstream-alertmanager-jiralert" | include "unit-enabled" }}'
-    unit_templates:
-    - base-deps
-    depends_on:
-      namespace-defs: true
-    repo: sylva-alertmanager-resources
-    helmrelease_spec:
-      chart:
-        spec:
-          chart: webhooks/jiralert
-      targetNamespace: upstream-monitoring
-    helm_secret_values:
-      config: '{{ .Values.monitoring.alertmanager.webhooks.jiralert.config | include "preserve-type" }}'
-
   monitoring:
     info:
       description: installs monitoring stack
@@ -4938,7 +4880,7 @@ units:
       details: Jiralert is an Alertmanager wehbook that creates Jira issues
       maturity: beta
     enabled_conditions:
-    - '{{ tuple . "monitoring" | include "unit-enabled" }}'
+    - '{{ or (tuple . "monitoring" | include "unit-enabled") (tuple . "upstrmonitoring" | include "unit-enabled") }}'
     - '{{ .Values.monitoring.alertmanager.webhooks.jiralert.config | empty | not }}'
     unit_templates:
     - base-deps
@@ -4946,7 +4888,7 @@ units:
       alertmanager-jiralert-config: true
     helm_repo_url: https://prometheus-community.github.io/helm-charts
     helmrelease_spec:
-      targetNamespace: cattle-monitoring-system
+      targetNamespace: '{{ tuple . (tuple . "monitoring" | include "unit-enabled") "cattle-monitoring-system" "upstream-monitoring" | include "interpret-ternary" }}'
       chart:
         spec:
           chart: jiralert
@@ -4988,7 +4930,7 @@ units:
       chart:
         spec:
           chart: webhooks/jiralert
-      targetNamespace: cattle-monitoring-system
+      targetNamespace: '{{ tuple . (tuple . "monitoring" | include "unit-enabled") "cattle-monitoring-system" "upstream-monitoring" | include "interpret-ternary" }}'
     helm_secret_values:
       config: '{{ .Values.monitoring.alertmanager.webhooks.jiralert.config | include "preserve-type" }}'
 
