@@ -209,6 +209,11 @@ def create_report():
                 for level1_child in get_pipeline_bridges(project, pipeline.id):
                     print(f"    processing child {level1_child.name}")
                     if level1_child.name == "deployment-jobs":
+
+                        if not level1_child.downstream_pipeline:
+                            print(f"ERROR, pipeline has no downstream pipeline (check {level1_child.web_url})")
+                            continue  # loop on other level1 children
+
                         for level2_child in get_pipeline_bridges(project, level1_child.downstream_pipeline['id']):
                             print(f"      processing child {level2_child.name}")
                             child_pipeline_name = normalize_older_pipeline_name(level2_child.name)
