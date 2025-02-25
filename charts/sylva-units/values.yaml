@@ -4576,7 +4576,7 @@ units:
         alertmanager:
           alertmanagerSpec:
             useExistingSecret: true
-            configSecret: sylva-alertmanager-config # this Secret is a byproduct of the upstream-alertmanager-config unit
+            configSecret: sylva-alertmanager-config # this Secret is a byproduct of the alertmanager-config unit
             podAntiAffinity: ""
             replicas: '{{ .Values._internal.ha_cluster.is_ha | ternary 2 1 }}'
             storage:
@@ -4654,29 +4654,6 @@ units:
           kind: Secret
           name: grafana-tls
           namespace: upstream-monitoring
-
-  upstream-sylva-dashboards:
-    info:
-      description: adds Sylva-specific Grafana dashboards
-      maturity: beta
-    enabled_conditions:
-      - '{{ tuple . "upstrmonitoring" | include "unit-enabled" }}'
-    unit_templates:
-    - base-deps
-    depends_on:
-      upstrmonitoring: true
-    repo: sylva-dashboards
-    helm_chart_artifact_name: sylva-dashboards
-    helmrelease_spec:
-      chart:
-        spec:
-          chart: .
-      targetNamespace: sylva-dashboards
-      install:
-        createNamespace: true
-      values:
-        namespace: sylva-dashboards
-        optional_dashboards: '{{ .Values._internal.monitoring.conditionals | include "preserve-type" }}'
 
   upstream-prometheus-adaptor:
     info:
@@ -5275,7 +5252,7 @@ units:
       description: adds Sylva-specific Grafana dashboards
       maturity: beta
     enabled_conditions:
-      - '{{ tuple . "monitoring" | include "unit-enabled" }}'
+    - '{{ or (tuple . "monitoring" | include "unit-enabled") (tuple . "upstrmonitoring" | include "unit-enabled") }}'
     unit_templates:
     - base-deps
     depends_on:
