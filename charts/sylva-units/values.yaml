@@ -5205,8 +5205,8 @@ units:
                       echo "There are no replicas from single-replica storageclass hosted on node $NODE"
                   fi
 
-                  NODE_INSTANCE_MANAGER_POD=$(kubectl get pods -n longhorn-system -l longhorn.io/component=instance-manager -l longhorn.io/node=$NODE -o name)
-                  if [[ -n $NODE_INSTANCE_MANAGER_POD ]]; then
+                  NODE_INSTANCE_MANAGER_PODS=$(kubectl get pods -n longhorn-system -l longhorn.io/component=instance-manager -l longhorn.io/node=$NODE -o name)
+                  for NODE_INSTANCE_MANAGER_POD in $NODE_INSTANCE_MANAGER_PODS; do
                       echo "Instance-manager pod is still running on node $NODE with following status:"
                       kubectl get -n longhorn-system instancemanagers.longhorn.io ${NODE_INSTANCE_MANAGER_POD#pod/} -o yaml
                       echo "Deleting instance-manager as it has been left-over"
@@ -5233,7 +5233,8 @@ units:
                           reason: PodDeleted
               EOF
                       log_event $NODE_INSTANCE_MANAGER_POD $NODE
-                  else
+                  done
+                  if [[ -z $NODE_INSTANCE_MANAGER_PODS ]]; then
                       echo "No instance-manager pods found on node $NODE, nothing to do"
                   fi
               done
