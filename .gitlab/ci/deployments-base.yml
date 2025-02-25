@@ -142,9 +142,9 @@ variables:
     DESCRIPTION: |
       Deploy both management and workload clusters, and perform a Kubernetes upgrade on the workload.
     UPDATE_MGMT_CLUSTER: "false"
-    MGMT_INITIAL_ADDITIONAL_VALUES: "serve-k8s-1.29-image.yml"
-    WC_INITIAL_ADDITIONAL_VALUES: "k8s-1.29.yml"
-    WC_UPDATE_ADDITIONAL_VALUES: "k8s-1.30.yml"
+    MGMT_INITIAL_ADDITIONAL_VALUES: "serve-k8s-1.30-image.yml"
+    WC_INITIAL_ADDITIONAL_VALUES: "k8s-1.30.yml"
+    WC_UPDATE_ADDITIONAL_VALUES: "k8s-1.31.yml"
 
 .scenario_nightly:
   extends:
