@@ -2952,6 +2952,15 @@ units:
                         extraArgs:
                         - feature-gates=ValidatingAdmissionPolicy=true
                         - runtime-config=admissionregistration.k8s.io/v1beta1
+                        containers:
+                          - name: kube-apiserver
+                            resources:
+                              requests:
+                                memory: "3Gi"
+                                cpu: "500m"
+                              limits:
+                                memory: "6Gi"
+                                cpu: "1.5"
               - target:
                   kind: KubeadmControlPlane
                 patch: |
@@ -4018,6 +4027,10 @@ units:
             default: true
           hostPort:
             enabled: false
+          resources:
+            requests:
+              memory: "150Mi"
+
     kustomization_spec:
       healthChecks:
         - apiVersion: apps/v1
