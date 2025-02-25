@@ -5108,7 +5108,7 @@ units:
     unit_templates:
     - base-deps
     depends_on:
-      monitoring: true
+      '{{ tuple . (tuple . "monitoring" | include "unit-enabled") "monitoring" "upstrmonitoring" | include "interpret-ternary" }}': true
     repo: sylva-dashboards
     helm_chart_artifact_name: sylva-dashboards
     helmrelease_spec:
