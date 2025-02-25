@@ -4452,7 +4452,7 @@ units:
       chart:
         spec:
           chart: prometheus-operator-crds
-          version: 17.0.2
+          version: 18.0.0
 
   upstream-prometheus-resources:
     info:
