@@ -14,7 +14,7 @@ prepare-tests-env:
       if [[ ${DEPLOY_WORKLOAD_CLUSTER} == 'true' ]]; then
         unset https_proxy http_proxy
         export KUBECONFIG=management-cluster-kubeconfig
-        ./tools/shell-lib/get-wc-kubeconfig-from-rancher.sh $WORKLOAD_CLUSTER_NAME workload-cluster-kubeconfig
+        kubectl get secret -n ${ENV_NAME} ${WORKLOAD_CLUSTER_NAME}-kubeconfig --kubeconfig management-cluster-kubeconfig -o template="{{ .data.value }}" | base64 -d > workload-cluster-kubeconfig
         if [[ ${ENV_NAME} == *'capm3-virt'* ]]; then
           yq -i e '.clusters[].cluster.insecure-skip-tls-verify = true' workload-cluster-kubeconfig
           yq -i e 'del(.clusters[].cluster.certificate-authority-data)' workload-cluster-kubeconfig
