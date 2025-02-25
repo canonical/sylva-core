@@ -22,7 +22,7 @@ Below you can choose test deployment variants to run in this MR's CI.
 | ☁   | **Infra Provider**       | `capd`, `capo`, `capm3`                                                   |
 | 🚀  | **Bootstrap Provider**   | `kubeadm` (alias `kadm`), `rke2`                                          |
 | 🐧  | **Node OS**              | `ubuntu`, `suse`                                                          |
-| 🛠  | **Deployment Options**    | `light-deploy`, `dev-sources`, `ha`, `misc`, `maxsurge-0`, `logging`                                       |
+| 🛠  | **Deployment Options**    | `light-deploy`, `dev-sources`, `ha`, `misc`, `maxsurge-0`, `logging`, `no-logging`                                       |
 | 🎬  | **Pipeline Scenarios**   | [Available scenario list and description](https://gitlab.com/sylva-projects/sylva-core/-/blob/main/.gitlab/README.md?ref_type=heads#scenario-description)  |
 
 <!-- DEPLOYMENT FLAVOR DEFINITION START -->
