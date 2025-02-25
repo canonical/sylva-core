@@ -34,8 +34,7 @@ Process all units
   {{- if include "unit-enabled" (tuple $envAll $unit_name) -}}
 
     {{/* check if any circular dependency for this unit (all-unit-dependencies will fail if a circular dependency is detected) */}}
-    {{- $all_dependencies := index (include "all-unit-dependencies" (tuple $envAll $unit_name list $all_dependencies_cache) | fromJson) "result" -}}
-    {{- $_ = set $all_dependencies_cache $unit_name $all_dependencies -}}
+    {{- $_ := tuple $envAll $unit_name list $all_dependencies_cache | include "all-unit-dependencies" -}}
 
     {{/* inherit settings from any template specified in unit.<this unit>.unit_templates */}}
     {{- $unit_def := include "unit-def" (tuple $envAll $unit_name) | fromJson -}}
