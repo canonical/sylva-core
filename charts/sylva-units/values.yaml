@@ -2952,8 +2952,6 @@ units:
                         extraArgs:
                         - feature-gates=ValidatingAdmissionPolicy=true
                         - runtime-config=admissionregistration.k8s.io/v1beta1
-                    containers:
-                      - name: kube-apiserver
                         resources:
                             requests:
                               memory: "3Gi"
