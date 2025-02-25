@@ -104,25 +104,11 @@ units:
               kubectl get m3mt
               kubectl delete m3mt --all -n sylva-system
               kubectl annotate --overwrite helmrelease/cluster reconcile.fluxcd.io/requestedAt="$(date -uIs)"
-              # Wait for reconciliation, but do not fail the script if it times out
-              echo "Waiting for HelmRelease reconciliation (max 5 minutes)..."
-              timeout 300 bash -c '
-              until kubectl get helmrelease cluster -n sylva-system -o jsonpath="{.status.conditions[?(@.type==\"Ready\")].status}" | grep -q "True"; do
-                echo "Still waiting..."
-                sleep 10
-              done
-              ' || echo "Warning: Helm reconciliation timeout, proceeding anyway."
-              # Unpause the cluster regardless of Helm status
-              echo "Unpausing cluster..."
+              kubectl wait helmrelease cluster --for='jsonpath={.status.history[?(@.status=="deployed")].version}='$deployed_version
+              kubectl wait helmrelease cluster --for condition=Ready
+              echo "-- metal3machinetemplates after helmrelease cluster reconciliation"
+              kubectl get m3mt
               kubectl patch cluster.cluster.x-k8s.io {{ .Values.cluster.name }} --type merge -p '{"spec":{"paused": false}}'
-              # Verify if unpause worked
-              paused_status=$(kubectl get cluster {{ .Values.cluster.name }} -o jsonpath='{.spec.paused}')
-              if [[ "$paused_status" == "true" ]]; then
-                echo "ERROR: Cluster is still paused!"
-                exit 1
-              else
-                echo "Cluster successfully unpaused."
-              fi
 
   kyverno-policy-prevent-mgmt-cluster-delete:
     info:
