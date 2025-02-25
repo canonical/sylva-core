@@ -4018,6 +4018,10 @@ units:
             default: true
           hostPort:
             enabled: false
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "150Mi"
     kustomization_spec:
       healthChecks:
         - apiVersion: apps/v1
