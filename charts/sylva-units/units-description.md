@@ -66,8 +66,11 @@
 | **upstream-kube-prometheus** | installs upstream kube prometheus stack | beta | [Helm chart](https://prometheus-community.github.io/helm-charts) | 68.2.2 |
 =======
 | **trivy-operator** | installs Trivy operator | beta | [Helm chart](https://aquasecurity.github.io/helm-charts/) | 0.25.0 |
+<<<<<<< HEAD
 | **upstream-alertmanager-jiralert** | installs Alertmanager webhook Jiralert<br/><br/>Jiralert is an Alertmanager wehbook that creates Jira issues | beta | [Helm chart](https://prometheus-community.github.io/helm-charts) | 1.7.1 |
 >>>>>>> 7a55b042 (updated sylva-dashboard unit and remove upstream-sylva-dashboard unit)
+=======
+>>>>>>> 52439ea4 (updated values for jiralert and jiralert-config units)
 | **upstream-prometheus-adaptor** | installs upstream prometheus adaptor | beta | [Helm chart](https://prometheus-community.github.io/helm-charts) | 4.11.0 |
 | **upstrmonitoring** | installs upstream kube prometheus stack | beta | [Helm chart](https://prometheus-community.github.io/helm-charts) | 69.4.1 |
 | **descheduler** | install descheduler |  | [Helm chart](https://kubernetes-sigs.github.io/descheduler/) | 0.32.2 |
@@ -91,9 +94,12 @@
 | **sylva-thanos-rules** | installs Thanos rules using external helm chart & rules git repo | [Helm chart](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-thanos-rules.git) | 0.0.3 |
 | **sylva-units-operator** | installs sylva-units operator | [Kustomization](https://gitlab.com/sylva-projects/sylva-elements/sylva-units-operator.git/config/default?ref=v0.1.6) | v0.1.6 |
 <<<<<<< HEAD
+<<<<<<< HEAD
 | **workload-cluster-operator** | installs Sylva operator for managing workload clusters | [Kustomization](https://gitlab.com/sylva-projects/sylva-elements/workload-cluster-operator.git/config/default?ref=0.2.0) | 0.2.0 |
 =======
 | **upstream-alertmanager-jiralert-config** | generates the config for Jiralert Alertmanager webhook | [Helm chart](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-alertmanager-resources.git) | 0.0.3 |
+=======
+>>>>>>> 52439ea4 (updated values for jiralert and jiralert-config units)
 | **workload-cluster-operator** | installs Sylva operator for managing workload clusters | [Kustomization](https://gitlab.com/sylva-projects/sylva-elements/workload-cluster-operator.git/config/default?ref=0.1.3) | 0.1.3 |
 >>>>>>> 7a55b042 (updated sylva-dashboard unit and remove upstream-sylva-dashboard unit)
 | **workload-team-defs** | installs the workload-team-defs chart<br/><br/>installs the workload-team-defs chart to install the workload cluster through CRD | [Helm chart](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/workload-team-defs.git) | 0.1.1 |
