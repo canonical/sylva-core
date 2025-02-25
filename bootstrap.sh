@@ -75,6 +75,7 @@ if [[ -n ${CHECK_TEST_UNITS:-""} ]]; then
       -n sylva-system \
       Kustomization/sylva-system/sylva-units-tests-status \
       || true # test-units failures are not critical
+    sleep 300
 fi
 
 display_final_messages

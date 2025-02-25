@@ -96,7 +96,7 @@ units:
             path: /data/kube-job.sh
             value: |
               #!/bin/bash
-              set -e
+              set -ex
               kubectl patch cluster.cluster.x-k8s.io {{ .Values.cluster.name }} --type merge -p '{"spec":{"paused": true}}'
               deployed_version=$(kubectl get helmrelease cluster -o jsonpath='{.status.history[?(@.status=="deployed")].version}')
               let deployed_version+=1
