@@ -7267,6 +7267,9 @@ units:
               .Values.proxies
             ) | include "interpret-and-hash"
             }}
+          os_image_selectors: >-
+            {{- tuple . "cluster" | include "interpret" -}}
+            {{ tuple .Values.cluster | include "find-cluster-image-selectors" | fromJsonArray | include "preserve-type" }}
     helm_secret_values:
       openstack_clouds_yaml: '{{ .Values.cluster.capo.clouds_yaml | include "preserve-type" }}'
 
