@@ -162,10 +162,7 @@ units:
         # only needs to serve the images needed by the mgmt cluster itself
         os_image_selectors: >-
           {{- tuple . "cluster" | include "interpret" -}}
-          {{
-          concat (tuple .Values.cluster | include "find-cluster-image-selectors" | fromJsonArray)
-            | include "preserve-type"
-          }}
+          {{ tuple .Values.cluster | include "find-cluster-image-selectors" | fromJsonArray | include "preserve-type" }}
 
   calico-crd:
     # overload calico-crd definition in bootstrap context to deploy in the management cluster
