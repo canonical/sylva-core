@@ -3302,8 +3302,6 @@ units:
       namespace-defs: true
     helm_repo_url: https://rke2-charts.rancher.io
     helm_chart_versions: &calico-chart-versions
-      v3.28.200: >-
-        {{ include "k8s-version-match" (tuple ">=1.28.0,<1.29.0" .Values._internal.k8s_version) }}
       v3.29.101: >-
         {{ include "k8s-version-match" (tuple ">=1.29.0" .Values._internal.k8s_version) }}
     helmrelease_spec:
@@ -4022,7 +4020,6 @@ units:
       ingress-nginx-cleanup: '{{ tuple . "ingress-nginx-cleanup" | include "unit-enabled" }}'
     helm_repo_url: https://rke2-charts.rancher.io
     helm_chart_versions:
-      4.10.501: '{{ include "k8s-version-match" (tuple ">=1.28.0,<1.29.0" .Values._internal.k8s_version) }}'
       4.12.003: '{{ include "k8s-version-match" (tuple ">=1.29.0" .Values._internal.k8s_version) }}'
     helmrelease_spec:
       releaseName: rke2-ingress-nginx
@@ -5637,7 +5634,6 @@ units:
       - '{{ eq .Values.cluster.capi_providers.infra_provider "capv" }}'
     helm_repo_url: https://kubernetes.github.io/cloud-provider-vsphere
     helm_chart_versions:
-      1.28.0: '{{ include "k8s-version-match" (tuple ">=1.28.0,<1.29.0" .Values._internal.k8s_version) }}'
       1.29.0: '{{ include "k8s-version-match" (tuple ">=1.29.0,<1.30.0" .Values._internal.k8s_version) }}'
       v1.30.0: '{{ include "k8s-version-match" (tuple ">=1.30.0,<1.31.0" .Values._internal.k8s_version) }}'
       1.31.0: '{{ include "k8s-version-match" (tuple ">=1.31.0" .Values._internal.k8s_version) }}'
@@ -8613,7 +8609,6 @@ _internal:
   bootstrap_node_ip: '{{ lookup "v1" "ConfigMap" "sylva-system" "cluster-public-endpoint" | dig "data" "address" "not_found" | default "not_found" }}'
 
   k8s_version_map:
-    1.28: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" | ternary "v1.28.15+rke2r1" "v1.28.15" }}'
     1.29: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" | ternary "v1.29.13+rke2r1" "v1.29.13" }}'
     "1.30": '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" | ternary "v1.30.9+rke2r1" "v1.30.9" }}'
     1.31: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" | ternary "v1.31.5+rke2r1" "v1.31.5" }}'
