@@ -24,7 +24,9 @@
         echo $wkld_domain
         if [[ $wkld_domain = *.sylva ]]; then
           echo "-- Get workload ingress saved into /etc/hosts"
-          wkld_access_ip=$(kubectl --kubeconfig management-cluster-kubeconfig -n $ENV_NAME get cm/capo-cluster-resources -o yaml | yq .data.allocated_fip)
+          wkld_access_ip=$(kubectl --kubeconfig management-cluster-kubeconfig -n $ENV_NAME get cm/capo-cluster-resources -o yaml | yq .data.allocated_ip)
+          echo "--debug wkld_access_ip"
+          echo $wkld_access_ip
           for i in $(kubectl --kubeconfig workload-cluster-kubeconfig get ingress -A -o custom-columns=:.spec.tls[].hosts[] | grep -v "<none>"); do
             echo $wkld_access_ip $i >> /etc/hosts
           done
