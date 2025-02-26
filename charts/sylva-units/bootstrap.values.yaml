@@ -546,6 +546,8 @@ no_proxy_additional:
   # in KIND_POD_SUBNET and KIND_SVC_SUBNET, which we can retrieve by reading the kubeadm-config configmap
   '{{ .Values._internal.kind_kubeadm_networking.podSubnet }}': true
   '{{ .Values._internal.kind_kubeadm_networking.serviceSubnet }}': true
+  # the bootstrap cluster should never try to reach the mgmt cluster via a proxy
+  '{{ .Values.cluster_virtual_ip }}': true
 
 cluster_public_endpoint: '{{ tuple (printf "https://%s:%s" .Values._internal.bootstrap_node_ip "8443") (tuple . "libvirt-metal" | include "unit-enabled") | include "set-only-if" }}'
 

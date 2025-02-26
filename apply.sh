@@ -10,7 +10,7 @@
 
 source $(dirname $0)/tools/shell-lib/common.sh
 
-check_args
+check_args "$@"
 
 validate_input_values
 
