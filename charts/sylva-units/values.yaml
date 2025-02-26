@@ -4566,10 +4566,11 @@ units:
             cpu: "0.1"
             memory: "64Mi"
     helm_secret_values:
-      snmpCommunity: "{{ .Values.monitoring.alertmanager.webhooks.snmp_notifier.config.auth.community }}"
-      snmpAuthenticationUsername: "{{ .Values.monitoring.alertmanager.webhooks.snmp_notifier.config.auth.username }}"
-      snmpAuthenticationPassword: "{{ .Values.monitoring.alertmanager.webhooks.snmp_notifier.config.auth.password }}"
-      snmpPrivatePassword: "{{ .Values.monitoring.alertmanager.webhooks.snmp_notifier.config.auth.priv_password }}"
+      snmpNotifier:
+        snmpCommunity: "{{ .Values.monitoring.alertmanager.webhooks.snmp_notifier.config.auth.community }}"
+        snmpAuthenticationUsername: "{{ .Values.monitoring.alertmanager.webhooks.snmp_notifier.config.auth.username }}"
+        snmpAuthenticationPassword: "{{ .Values.monitoring.alertmanager.webhooks.snmp_notifier.config.auth.password }}"
+        snmpPrivatePassword: "{{ .Values.monitoring.alertmanager.webhooks.snmp_notifier.config.auth.priv_password }}"
 
   alertmanager-snmp-notifier-config:
     info:
