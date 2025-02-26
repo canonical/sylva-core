@@ -13,7 +13,7 @@ cluster:
         #cloud-config
         users:
           - name: node-admin
-            groups: users
+            groups: users, sylva-ops, sudo
             sudo: ALL=(ALL) NOPASSWD:ALL
             shell: /bin/bash
             lock_passwd: false

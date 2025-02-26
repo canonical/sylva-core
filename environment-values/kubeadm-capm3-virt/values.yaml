@@ -10,7 +10,7 @@ cluster:
   kubeadm:
     users:
       - name: node-admin
-        groups: users
+        groups: users, sylva-ops, sudo
         sudo: ALL=(ALL) NOPASSWD:ALL
         shell: /bin/bash
         lockPassword: false
