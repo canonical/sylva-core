@@ -5,7 +5,7 @@ cluster:
 
   kubeadm:
     users:
-      - name: sylva-user
+      - name: node-admin
         groups: users
         sudo: ALL=(ALL) NOPASSWD:ALL
         shell: /bin/bash
