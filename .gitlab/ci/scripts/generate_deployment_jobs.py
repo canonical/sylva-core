@@ -22,7 +22,9 @@ TEMPLATE_FILE = os.path.abspath(f"{BASE_DIR}/.gitlab/ci/deployments-base.yml")
 PREDEFINED_PIPELINES_CONFIG_FILE = f"{BASE_DIR}/.gitlab/ci/configuration/predefined-pipelines-config.yaml"
 DEFAULT_MR_DESCRIPTION = f"{BASE_DIR}/.gitlab/merge_request_templates/Default.md"
 
-ALLOWED_INFRA = os.getenv("ALLOWED_DEPLOYMENT_INFRA", "capd,capo,capm3")
+ALLOWED_INFRA = os.getenv("ALLOWED_DEPLOYMENT_INFRA", "capd,capo,capm3").split(",")
+ALLOWED_BOOTSTRAP = os.getenv("ALLOWED_DEPLOYMENT_BOOTSTRAP", "kadm,rke2").split(",")
+ALLOWED_OS = os.getenv("ALLOWED_DEPLOYMENT_NODE_OS", "ubuntu,suse").split(",")
 ALLOWED_SCENARIOS = os.getenv(
     "ALLOWED_DEPLOYMENT_SCENARIO",
     ",".join([
@@ -40,7 +42,7 @@ ALLOWED_SCENARIOS = os.getenv(
         "sylva-upgrade-from-1.2.1",
         "sylva-upgrade-from-1.3.x",
     ])
-)
+).split(",")
 
 # Max number of pipelines to be allowed for a MR
 DEPLOY_CHILD_PIPELINE_COUNT_LIMIT = int(os.getenv("DEPLOY_CHILD_PIPELINE_COUNT_LIMIT", "9"))
@@ -168,55 +170,119 @@ def get_default_ci_config():
     )
 
 
+def get_deploy_parameter(deploy_name, emoji_key, as_list=False, can_be_empty=False):
+    """
+    Extract value for a key (emoji) for a deployment variant
+    """
+    match = re.compile(emoji_key + r"\s?" + r"([\w\d,\.-]+)").findall(deploy_name)
+    if len(match) != 1:
+        if len(match) == 0 and can_be_empty is False:
+            logging.error(f"unable to get {emoji_key} value from {deploy_name}")
+            sys.exit(1)
+        if len(match) > 1:
+            logging.error(f"multiple {emoji_key} values from {deploy_name}")
+            sys.exit(1)
+    if match:
+        if as_list is False:
+            return match[0]
+        else:
+            return match[0].split(",")
+    if as_list is True:
+        return []
+
+
+def check_deployments(deployments):
+    """
+    Enforce various rules on selected deployment in order to limit uncompatibilities
+    """
+    # Limit number of generated child pipelines
+    if len(deployments) > DEPLOY_CHILD_PIPELINE_COUNT_LIMIT:
+        logging.error(f"Too many deployments combinations (count={len(deployments)})")
+        logging.error(f"Deployment list: {deployments}")
+        sys.exit(1)
+
+    generated_deployments = []
+
+    for index, deploy_name in enumerate(deployments):
+
+        infra = get_deploy_parameter(deploy_name, "☁")
+        bootstrap = get_deploy_parameter(deploy_name, "🚀")
+        node_os = get_deploy_parameter(deploy_name, "🐧")
+        scenario = get_deploy_parameter(deploy_name, "🎬", can_be_empty=True)
+        options = get_deploy_parameter(deploy_name, "🛠", as_list=True, can_be_empty=True)
+
+        if infra not in ALLOWED_INFRA:
+            logging.error(f"deployment {deploy_name}: infra not allowed")
+            sys.exit(1)
+
+        if bootstrap not in ALLOWED_BOOTSTRAP:
+            logging.error(f"deployment {deploy_name}: bootstrap provider not allowed")
+            sys.exit(1)
+
+        if node_os not in ALLOWED_OS:
+            logging.error(f"deployment {deploy_name}: node OS not allowed")
+            sys.exit(1)
+
+        if scenario and scenario not in ALLOWED_SCENARIOS:
+            logging.error(f"deployment {deploy_name}: scenario not allowed")
+            sys.exit(1)
+
+        if scenario and scenario not in ["simple-update", "preview"] and "ha" not in options:
+            options.append("ha")
+
+        generated_deploy_name = f"☁{infra} 🚀{bootstrap}"
+        if scenario:
+            if scenario == "preview":
+                generated_deploy_name = f"🎬preview {generated_deploy_name}"
+            else:
+                generated_deploy_name = f"{generated_deploy_name} 🎬{scenario}"
+        if options:
+            generated_deploy_name = f"{generated_deploy_name} 🛠{",".join(options)}"
+        generated_deploy_name = f"{generated_deploy_name} 🐧{node_os}"
+
+        generated_deployments.append(generated_deploy_name)
+
+    logging.info("")
+    logging.info("Deployments flavors generated:")
+    [logging.info(f"* {d}") for d in generated_deployments]
+
+    return generated_deployments
+
+
 def generate_ci_job_struct(job_names, global_options):
     ci_jobs = {}
 
     for job in job_names:
-        infra = re.compile(r"☁\s*([\w\d-]+)").findall(job)
-        if len(infra) != 1 or infra[0] not in ALLOWED_INFRA.split(","):
-            logging.error(f"deployment {job}: infra not allowed")
-            sys.exit(1)
-        ci_jobs[job] = {"extends": [f".{infra[0]}"]}
+        infra = get_deploy_parameter(job, "☁")
+        ci_jobs[job] = {"extends": [f".{infra}"]}
 
-        if "skip-tests" in job:
-            ci_jobs[job].setdefault("variables", {})
-            ci_jobs[job]["variables"]["SKIP_TESTS"] = "true"
-
-        if global_options["record-sylvactl-events"]:
-            ci_jobs[job].setdefault("variables", {})
-            ci_jobs[job]["variables"]["SYLVACTL_RECORD"] = "true"
-
-        # Deployment jobs use OCI by default
-        ci_jobs[job]["extends"].append(".wait-publish-jobs")
-
-        scenario = re.compile(r"🎬\s*([\w\d\.-]+)").findall(job)
+        scenario = get_deploy_parameter(job, "🎬", can_be_empty=True)
         if scenario:
-            if scenario[0] in ALLOWED_SCENARIOS.split(","):
-                ci_jobs[job]["extends"].append(f".scenario_{scenario[0]}")
+            ci_jobs[job]["extends"].append(f".scenario_{scenario}")
 
-                # Special temporary exception for capm3 sylva-upgrade from 1.1.1
-                if scenario[0] == "sylva-upgrade-from-1.1.1" and infra[0] in ["capm3", "capm3-virt"]:
-                    ci_jobs[job]["extends"].append(".scenario_sylva-upgrade-capm3-from-1.1.1")
+            # Special temporary exception for capm3 sylva-upgrade
+            if scenario == "sylva-upgrade-from-1.1.1" and infra in ["capm3", "capm3-virt"]:
+                ci_jobs[job]["extends"].append(".scenario_sylva-upgrade-capm3-from-1.1.1")
 
-            else:
-                logging.error(f"deployment {job}: scenario {scenario[0]} not allowed (supported scenarios: {ALLOWED_SCENARIOS})")
-                sys.exit(1)
+        options = get_deploy_parameter(job, "🛠", as_list=True, can_be_empty=True)
+        if "dev-sources" not in options:
+            ci_jobs[job]["extends"].append(".wait-publish-jobs")
 
-        options = []
-        option_match = re.compile(r"🛠\s*([\w\d\.,-]+)").findall(job)
-        if option_match:
-            options = option_match[0].split(",")
-
-        if "dev-sources" in options:
-            ci_jobs[job]["extends"].remove(".wait-publish-jobs")
-
-        if infra[0] == "capm3" and "single-node" not in options:
+        if infra in ["capm3", "capm3-virt"] and "ha" in options:
             ci_jobs[job].setdefault("variables", {})
             ci_jobs[job]["variables"]["EQUINIX_RUNNER_PLAN"] = "m3.large.x86"
 
+        if "skip-tests" in options:
+            ci_jobs[job].setdefault("variables", {})
+            ci_jobs[job]["variables"]["SKIP_TESTS"] = "true"
+
+        # Handle global options
         ci_jobs[job]["allow_failure"] = global_options["allow-failure"]
-        if (not scenario or scenario[0] != "preview") and global_options["autorun"] is False:
+        if (not scenario or scenario != "preview") and global_options["autorun"] is False:
             ci_jobs[job]["when"] = "manual"
+        if global_options["record-sylvactl-events"]:
+            ci_jobs[job].setdefault("variables", {})
+            ci_jobs[job]["variables"]["SYLVACTL_RECORD"] = "true"
 
     return ci_jobs
 
@@ -230,13 +296,7 @@ def output_yaml_file_from_template(ci_jobs):
 
 
 if __name__ == "__main__":
-    selected_deployments, global_options = get_ci_configuration_from_context()
-
-    # Limit number of generated child pipelines
-    if len(selected_deployments) > DEPLOY_CHILD_PIPELINE_COUNT_LIMIT:
-        logging.error(f"Too many deployments combinations (count={len(selected_deployments)})")
-        logging.error(f"Deployment list: {selected_deployments}")
-        sys.exit(1)
-
+    requested_deployments, global_options = get_ci_configuration_from_context()
+    selected_deployments = check_deployments(requested_deployments)
     ci_jobs = generate_ci_job_struct(selected_deployments, global_options)
     output_yaml_file_from_template(ci_jobs)
