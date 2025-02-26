@@ -65,7 +65,7 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
     spec:
       url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sync-openstack-images.git
       ref:
-        tag: 0.3.1
+        tag: 0.4.0
 
   devnull:
     kind: GitRepository
@@ -7242,11 +7242,6 @@ units:
         # os_images:
         - kind: ConfigMap
           name: os-images-info  # by-product of os-images-info unit
-        # max_image_size:
-        - kind: ConfigMap
-          name: os-images-info-max-size
-          valuesKey: MAX_IMAGE_SIZE
-          targetPath: max_image_size
       values:
         downloader:
           insecure_client: '{{ .Values.oci_registry_insecure }}'
