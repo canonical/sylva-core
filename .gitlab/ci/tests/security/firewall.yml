@@ -12,22 +12,29 @@
           tar -C my-node-logs -z -xf $i || true
           for j in $(find my-node-logs -type d -name journal); do
               echo "Found the journal at path $j"
-              if [ -n "$WHITE_LIST" ]; then
-                  journalctl -D $j | grep "calico-packet:" | grep -v "$WHITE_LIST" >> $FIREWALL_LOG_FILE || true
-              else
-                  journalctl -D $j | grep "calico-packet:" >> $FIREWALL_LOG_FILE || true
-              fi
+              journalctl -D $j | grep "calico-packet:" >> $FIREWALL_LOG_FILE || true
           done
           rm -rf my-node-logs
       done
     - count=$(cat $FIREWALL_LOG_FILE | wc -l)
     - |
-      if [ $count -ne 0 ]; then
+      if [ $count -eq 0 ]; then
+          echo "No packet reached the default policy, it is OK"
+          exit 0
+      else
           echo "Some packets reached the default policy:"
           cat $FIREWALL_LOG_FILE
+      fi
+    - if [ -n "$WHITE_LIST" ]; then count=$(cat $FIREWALL_LOG_FILE | grep -vE "$WHITE_LIST" || exit_code=$? | wc -l ); fi
+    - |
+      # do not count known corner cases
+      if [ $count -eq 0 ]; then
+          echo "Some packets reached the default policy but they all correspond to known corner cases"
+          exit 0
+      else
+          echo "Some packets reached the default policy and require an investigation"
           exit 1
       fi
-    - echo "No packet reached the default policy, it is OK"
 
 mgmt-firewall-verify:
   extends:
@@ -44,7 +51,8 @@ mgmt-firewall-verify:
   variables:
     FIREWALL_LOG_FILE: management-firewall.log
     CLUSTER_DIRECTORY: management-cluster-dump
-    WHITE_LIST: "SPT=6443" # don't keep in CI the packets received from the kube-apiserver of the workload cluster
+    WHITE_LIST: "SPT=6443" # variable containing a regexp to detect known corner cases
+                           # 1. case of ACK packets from the kube-apiserver of a workload cluster
   image: registry.gitlab.com/sylva-projects/sylva-elements/container-images/ci-image/ci-systemd-image:v1.0.58
   artifacts:
     expire_in: 48 hour
