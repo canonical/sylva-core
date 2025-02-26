@@ -104,6 +104,7 @@ units:
               kubectl get m3mt
               kubectl delete m3mt --all -n sylva-system
               kubectl annotate --overwrite helmrelease/cluster reconcile.fluxcd.io/requestedAt="$(date -uIs)" reconcile.fluxcd.io/forceAt="$(date -uIs)"
+              kubectl annotate --overwrite kustomization/cluster reconcile.fluxcd.io/requestedAt="$(date -uIs)" reconcile.fluxcd.io/forceAt="$(date -uIs)"
               kubectl wait helmrelease cluster --for='jsonpath={.status.history[?(@.status=="deployed")].version}='$deployed_version
               kubectl wait helmrelease cluster --for condition=Ready
               echo "-- metal3machinetemplates after helmrelease cluster reconciliation"
