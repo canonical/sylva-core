@@ -699,8 +699,11 @@ properties:
     pattern: '^[1-9]+[0-9]*[.]([1-9]+[0-9]|0)*$'
 
   cluster_virtual_ip:  # -------------------------------
-    type: string
-    format: ipv4
+    oneOf:
+      - type: "string"
+        format: "ipv4"
+      - type: "string"
+        enum: [""]
 
   admin_password:  # -------------------------------
     type: string
@@ -751,6 +754,9 @@ properties:
         type: string
 
   display_external_ip:  # ------------------------------
+    type: string
+
+  display_external_ip_msg:  # ------------------------------
     type: string
 
   audit_log:  # -------------------------------
