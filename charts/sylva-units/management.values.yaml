@@ -70,47 +70,6 @@ units:
     # but that's fine, since secret is present once pivot happened
     # otherwise we'd need to nullify it here and define it also in bootstrap.values.yaml
 
-  # Temporary workaround until DriftDetection is fully enabled
-  # see https://gitlab.com/sylva-projects/sylva-core/-/issues/1840
-  refresh-metal3machinetemplates:
-    info:
-      description: Recreate metal3machinetemplates resources via the reconciliation of cluster helmrelease
-      internal: true
-    unit_templates:
-    - base-deps
-    - kube-job
-    enabled_conditions:
-    - '{{ tuple . "metal3" | include "unit-enabled" }}'
-    - '{{ tuple . "cluster" | include "unit-enabled" }}'
-    - '{{ not .Values._internal.state.is_upgrade }}'
-    depends_on:
-      cluster: true
-      cluster-machines-ready: true
-    kustomization_spec:
-      _patches:
-      - target:
-          kind: ConfigMap
-          labelSelector: kube-job=script
-        patch: |
-          - op: replace
-            path: /data/kube-job.sh
-            value: |
-              #!/bin/bash
-              set -ex
-              kubectl patch cluster.cluster.x-k8s.io {{ .Values.cluster.name }} --type merge -p '{"spec":{"paused": true}}'
-              deployed_version=$(kubectl get helmrelease cluster -o jsonpath='{.status.history[?(@.status=="deployed")].version}')
-              let deployed_version+=1
-              echo "-- metal3machinetemplates before deletion"
-              kubectl get m3mt
-              kubectl delete m3mt --all -n sylva-system
-              kubectl annotate --overwrite helmrelease/cluster reconcile.fluxcd.io/requestedAt="$(date -uIs)" reconcile.fluxcd.io/forceAt="$(date -uIs)"
-              kubectl annotate --overwrite kustomization/cluster reconcile.fluxcd.io/requestedAt="$(date -uIs)" reconcile.fluxcd.io/forceAt="$(date -uIs)"
-              kubectl wait helmrelease cluster --for='jsonpath={.status.history[?(@.status=="deployed")].version}='$deployed_version
-              kubectl wait helmrelease cluster --for condition=Ready
-              echo "-- metal3machinetemplates after helmrelease cluster reconciliation"
-              kubectl get m3mt
-              kubectl patch cluster.cluster.x-k8s.io {{ .Values.cluster.name }} --type merge -p '{"spec":{"paused": false}}'
-
   kyverno-policy-prevent-mgmt-cluster-delete:
     info:
       description: Kyverno policies to prevent deletion of critical resources for mgmt cluster
