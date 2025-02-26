@@ -1839,6 +1839,7 @@ units:
         - '{{ tuple "components/neuvector" (tuple . "neuvector" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/harbor" (tuple . "harbor" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/grafana" (tuple . "monitoring" | include "unit-enabled") | include "set-only-if" }}'
+        - '{{ tuple "components/kunai" (tuple . "monitoring" | include "unit-enabled") | include "set-only-if" }}'
       postBuild:
         substitute:
           GRAFANA_DNS: '{{ .Values.external_hostnames.grafana }}'
@@ -1848,6 +1849,7 @@ units:
           NEUVECTOR_DNS: '{{ tuple .Values.external_hostnames.neuvector (tuple . "neuvector" | include "unit-enabled") | include "set-only-if" }}'
           VAULT_DNS: '{{ .Values.external_hostnames.vault }}'
           EXPIRE_PASSWORD_DAYS: '{{ int .Values.keycloak.keycloak_expire_password_days }}'
+          KUNAI_DNS: '{{ tuple .Values.external_hostnames.kunai (tuple . "kunai" | include "unit-enabled") | include "set-only-if" }}'
       healthChecks:  #  cannot use __wait: true__ here, see https://gitlab.com/sylva-projects/sylva-core/-/issues/144
         - apiVersion: legacy.k8s.keycloak.org/v1alpha1
           kind: KeycloakRealm
@@ -1864,6 +1866,7 @@ units:
         - '{{ tuple (dict "apiVersion" "v1" "kind" "Secret" "name" "keycloak-client-secret-neuvector-client" "namespace" "keycloak") (tuple . "neuvector" | include "unit-enabled") | include "set-only-if" }}'  # # this secret is a byproduct of the neuvector client KeycloakClient resource
         - '{{ tuple (dict "apiVersion" "v1" "kind" "Secret" "name" "keycloak-client-secret-harbor-client" "namespace" "keycloak") (tuple . "harbor" | include "unit-enabled") | include "set-only-if" }}'  # # this secret is a byproduct of the harbor client KeycloakClient resource
         - '{{ tuple (dict "apiVersion" "v1" "kind" "Secret" "name" "keycloak-client-secret-grafana-client" "namespace" "keycloak") (tuple . "monitoring" | include "unit-enabled") | include "set-only-if" }}'  # # this secret is a byproduct of the grafana client KeycloakClient resource
+        - '{{ tuple (dict "apiVersion" "v1" "kind" "Secret" "name" "keycloak-client-secret-kunai-client" "namespace" "keycloak") (tuple . "kunai" | include "unit-enabled") | include "set-only-if" }}'  # # this secret is a byproduct of the grafana client KeycloakClient resource
 
 
   keycloak-add-client-scope:
@@ -6021,7 +6024,7 @@ units:
     depends_on:
       namespace-defs: true
       eso-secret-stores: true
-      kunai-keycloak-resources: true
+      keycloak-resources: true
       kunai-secrets: true
     repo: sylva-core
     kustomization_substitute_secrets:
@@ -6053,32 +6056,6 @@ units:
         - '{{ ternary "../../tls-components/tls-secret" "../../tls-components/tls-certificate" (hasKey .Values.external_certificates.kunai "cert") }}'
         - "../../tls-components/sylva-ca"
 
-  kunai-keycloak-resources:
-    info:
-      description: >
-        deploys Kunai OIDC client in Sylva's Keycloak realm
-      internal: true
-    enabled_conditions:
-    - '{{ tuple . "kunai" | include "unit-enabled" }}'
-    unit_templates:
-    - base-deps
-    depends_on:
-      keycloak: true
-      keycloak-legacy-operator: true
-      keycloak-resources: true
-    repo: sylva-core
-    kustomization_spec:
-      path: ./kustomize-units/kunai/keycloak-resources
-      targetNamespace: keycloak
-      postBuild:
-        substitute:
-          KUNAI_DNS: '{{ .Values.external_hostnames.kunai }}'
-      healthChecks:
-        - apiVersion: v1
-          kind: Secret
-          name: keycloak-client-secret-kunai-client  # this secret is a byproduct of the kunai-client KeycloakClient resource
-          namespace: keycloak
-
   kunai-postgres-cnpg:
     info:
       description: Deploy Postgres cluster for Kunai using Cloud Native PostgreSQL (CNPG)
@@ -6092,7 +6069,6 @@ units:
       cnpg-operator: true
       namespace-defs: true
       kunai-eso: true
-      kunai-keycloak-resources: true
       kunai-secrets: true
       '{{ .Values._internal.default_storage_class_unit }}': true
     kustomization_spec:
@@ -6103,7 +6079,6 @@ units:
           podAntiAffinityType: '{{ .Values._internal.ha_cluster.is_ha | ternary "required" "preferred" }}'
       path: ./kustomize-units/kunai-postgres-cnpg
       wait: true
-
 
   kunai:
     info:
@@ -6116,8 +6091,8 @@ units:
     - base-deps
     depends_on:
       cert-manager: true
+      keycloak-resources: true
       kunai-eso: true
-      kunai-keycloak-resources: true
       kunai-secrets: true
       kunai-postgres-cnpg: true
       namespace-defs: true
@@ -6128,7 +6103,7 @@ units:
       chart:
         spec:
           chart: kunai
-          version: "1.3.0"
+          version: "1.3.1"
       targetNamespace: kunai
       values:
         containerSecurityContext:
@@ -6139,9 +6114,6 @@ units:
           existingSecret: cnpg-kunai-app
         persistence:
           enabled: false
-
-        strategy:
-          type: '{{ eq (tuple . .Values._internal.default_storage_class_RWX_support | include "interpret-as-string") "true" | ternary "RollingUpdate" "Recreate" }}'
         kunai:
           nextAuth:
             enabled: true
@@ -6158,7 +6130,7 @@ units:
           no_proxy: '{{ include "sylva-units.no_proxy" (tuple .) }}'
         ingress:
           enabled: true
-          className: nginx
+          ingressClassName: nginx
           annotations:
             nginx.ingress.kubernetes.io/proxy-body-size: 8m
             nginx.ingress.kubernetes.io/large-client-header-buffers: "4 16k"
@@ -6169,7 +6141,6 @@ units:
                 - '{{ .Values.external_hostnames.kunai }}'
               secretName: kunai-tls
           hostname: '{{ .Values.external_hostnames.kunai }}'
-
 
   minio-operator-init:
     info:

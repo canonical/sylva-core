@@ -1,9 +1,0 @@
-# Keycloak client and user resources that will be used
-# to automate Kunai authentication through Sylva's Keycloak
-
----
-apiVersion: kustomize.config.k8s.io/v1beta1
-kind: Kustomization
-
-resources:
-  - kunai-client.yaml
