@@ -1,0 +1,30 @@
+apiVersion: kyverno.io/v1
+kind: Policy
+metadata:
+  name: restart-vault-on-cert-renewal
+  namespace: vault
+  annotations:
+    kustomize.toolkit.fluxcd.io/force: Enabled
+    policies.kyverno.io/description: >-
+      This policy monitors the vault-internal-tls secret and will set up the annotations in sts so that pods are restarted
+      and takes the updated cert after expiration of old one.
+spec:
+  mutateExistingOnPolicyUpdate: true
+  rules:
+  - name: vault-sts-annotations
+    match:
+      any:
+      - resources:
+          kinds:
+          - Secret
+          names:
+          - vault-internal-tls
+    mutate:
+      targets:
+        - apiVersion: vault.banzaicloud.com/v1alpha1
+          kind: Vault
+          name: vault
+      patchStrategicMerge:
+        spec:
+          annotations:
+            vault.certs: "{{request.object.metadata.resourceVersion}}"
