@@ -443,7 +443,9 @@ units:
       path: ./kustomize-units/rancher-init/components/webhook-ha
 
   cluster-import:
-    enabled: false  # overriden depending on whether Rancher is enabled or not (via mgmt-cluster-state-values)
+    enabled: false  # overriden depending on whether Rancher is enabled or not (eg. via shared-workload-clusters-settings)
+    annotations:
+      sylvactl/unitTimeout: 15m
     info:
       description: imports workload cluster into Rancher
       internal: true
