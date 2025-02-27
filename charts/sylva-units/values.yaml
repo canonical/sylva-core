@@ -2383,7 +2383,7 @@ units:
       kyverno: true
     repo: sylva-core
     kustomization_spec:
-      path: ./kustomize-units/workload-kyverno-policies
+      path: kustomize-units/kyverno-policies/workload-cluster-policies
       wait: true
 
   kyverno-policies-ready:
