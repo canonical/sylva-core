@@ -19,12 +19,12 @@
           echo $access_ip $i >> /etc/hosts
         done
       fi
-      if [[ ! -z $WORKLOAD_CLUSTER_NAME ]]; then
+      if [[ ${DEPLOY_WORKLOAD_CLUSTER} == 'true' ]]; then
         wkld_domain=$(kubectl --kubeconfig management-cluster-kubeconfig -n $ENV_NAME get secret sylva-units-values -oyaml | yq '.data.values | @base64d' | yq '.cluster_domain')
         echo $wkld_domain
         if [[ $wkld_domain = *.sylva ]]; then
           echo "-- Get workload ingress saved into /etc/hosts"
-          wkld_access_ip=$(kubectl --kubeconfig management-cluster-kubeconfig -n $ENV_NAME get cm/capo-cluster-resources -o yaml | yq .data.allocated_ip)
+          wkld_access_ip=$(kubectl --kubeconfig workload-cluster-kubeconfig -n neuvector get Ingress/neuvector-managedsvc-ingress -o yaml | yq .status.loadBalancer.ingress[0].ip)
           echo "--debug wkld_access_ip"
           echo $wkld_access_ip
           for i in $(kubectl --kubeconfig workload-cluster-kubeconfig get ingress -A -o custom-columns=:.spec.tls[].hosts[] | grep -v "<none>"); do
