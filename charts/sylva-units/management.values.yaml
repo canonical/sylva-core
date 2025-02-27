@@ -105,7 +105,6 @@ units:
               kubectl -A get secrets | grep sh.helm.release
               kubectl delete secrets sh.helm.release.v1.cluster
               kubectl describe hr cluster
-              kubectl patch helmrelease cluster --type='merge' -p \ '{"spec":{"values":{"flux_force_reconcile": "'$(date +%s)'"}}}'
               kubectl annotate --overwrite helmrelease/cluster reconcile.fluxcd.io/requestedAt="$(date -uIs)" reconcile.fluxcd.io/forceAt="$(date -uIs)"
               kubectl describe hr cluster
               kubectl -A get secrets | grep sh.helm.release.v1.cluster
