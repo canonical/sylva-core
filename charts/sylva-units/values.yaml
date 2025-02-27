@@ -7122,7 +7122,7 @@ cluster:
     machine_deployment_spec:
       strategy:
         rollingUpdate:
-          maxUnavailable: 1
+          maxUnavailable: '{{ .Values.cluster.capi_providers.infra_provider | eq "capm3" | ternary 1 0 | include "preserve-type" }}'
           # use maxSurge 0 for baremetal deployments
           maxSurge: '{{ .Values.cluster.capi_providers.infra_provider | eq "capm3" | ternary 0 1 | include "preserve-type" }}'
     capo:
