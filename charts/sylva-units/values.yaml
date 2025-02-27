@@ -3124,6 +3124,15 @@ units:
     kustomization_spec:
       _patches:
       - target:
+          kind: ClusterRole
+        patch: |
+          - op: replace
+            path: /rules
+            value:
+              - apiGroups: [""]
+                resources: [nodes]
+                verbs: [list, get, watch]
+      - target:
           kind: Job
         patch: |
           - op: add
@@ -3202,12 +3211,12 @@ units:
               echo "--- waiting for all machines to have a nodeRef (reflects the fact that the Node has joined the cluster)..."
               kubectl wait Machine -l cluster.x-k8s.io/cluster-name={{ .Values.cluster.name }} --for=jsonpath='{.status.nodeRef.name}' --timeout $WAIT_TIMEOUT
 
-              kubectl get secret management-cluster-kubeconfig -n sylva-system -o yaml | yq .data.value | base64 -d > /tmp/kubeconfig
-              nodes=$(kubectl get nodes --kubeconfig /tmp/kubeconfig -A -o jsonpath='{.items[*].metadata.name}')
+              # kubectl get secret management-cluster-kubeconfig -n sylva-system -o yaml | yq .data.value | base64 -d > /tmp/kubeconfig
+              nodes=$(kubectl get nodes -A -o jsonpath='{.items[*].metadata.name}')
               echo $nodes
 
               echo "Checking post command annotations for all nodes..."
-              while ! kubectl get nodes --kubeconfig /tmp/kubeconfig -o json | jq -e '[.items[] | select(.metadata.annotations | has("post-commands-executed") | not)] | length == 0' >/dev/null; do
+              while ! kubectl get nodes -o json | jq -e '[.items[] | select(.metadata.annotations | has("post-commands-executed") | not)] | length == 0' >/dev/null; do
                 echo "..."
                 sleep 5
               done
