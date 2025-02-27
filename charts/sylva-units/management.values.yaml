@@ -101,13 +101,10 @@ units:
               echo "-- metal3machinetemplates before deletion"
               kubectl get m3mt
               kubectl delete m3mt --all -n sylva-system
-              kubectl get secrets -A | grep sh.helm.release.v1.cluster
-              kubectl get secrets -A | grep sh.helm.release
-              kubectl delete secrets sh.helm.release.v1.cluster
+              kubectl get cluster hr -o yaml --show-managed-fields
               kubectl describe hr cluster
               kubectl annotate --overwrite helmrelease/cluster reconcile.fluxcd.io/requestedAt="$(date -uIs)" reconcile.fluxcd.io/forceAt="$(date -uIs)"
-              kubectl describe hr cluster
-              kubectl -A get secrets | grep sh.helm.release.v1.cluster
+              kubectl get cluster hr -o yaml --show-managed-fields
               kubectl wait helmrelease cluster --for='jsonpath={.status.history[?(@.status=="deployed")].version}='$deployed_version
               kubectl wait helmrelease cluster --for condition=Ready
               echo "-- metal3machinetemplates after helmrelease cluster reconciliation"
