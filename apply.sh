@@ -8,7 +8,7 @@
 # This script will act on whatever is the current kubectl config unless
 # the 'management-cluster-kubeconfig' file is found, in which case it will use it.
 
-source $(dirname $0)/tools/shell-lib/common.sh
+source $(dirname $(realpath $0))/tools/shell-lib/common.sh
 
 apply_scripts_init
 
