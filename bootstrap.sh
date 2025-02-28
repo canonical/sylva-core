@@ -1,6 +1,11 @@
 #!/bin/bash
 
-source tools/shell-lib/common.sh
+# source sylva.env first
+if [[ -f "$(realpath $(dirname $0))/sylva.env" ]]; then
+  source $(realpath $(dirname $0))/sylva.env
+fi
+
+source ${SYLVA_CORE_BASE_DIR:-$(dirname $0)}/tools/shell-lib/common.sh
 
 check_args
 
@@ -14,7 +19,7 @@ validate_input_values
 check_pivot_has_ran
 
 echo_b "\U0001F503 Preparing bootstrap cluster"
-tools/kind/bootstrap-cluster.sh
+${SYLVA_CORE_BASE_DIR:-$(dirname $0)}/tools/kind/bootstrap-cluster.sh
 
 ensure_flux
 

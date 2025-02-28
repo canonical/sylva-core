@@ -8,7 +8,12 @@
 # This script will act on whatever is the current kubectl config unless
 # the 'management-cluster-kubeconfig' file is found, in which case it will use it.
 
-source $(dirname $0)/tools/shell-lib/common.sh
+# source sylva.env first
+if [[ -f "$(realpath $(dirname $0))/sylva.env" ]]; then
+  source $(realpath $(dirname $0))/sylva.env
+fi
+
+source ${SYLVA_CORE_BASE_DIR:-$(dirname $0)}/tools/shell-lib/common.sh
 
 check_args
 

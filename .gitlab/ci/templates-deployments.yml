@@ -286,11 +286,11 @@ include:
   - |
     # configure env type
     if [[ ${CLUSTER_TYPE} == 'workload' ]]; then
-        ENV_SUB_PATH="environment-values/workload-clusters"
+        ENV_SUB_PATH=${ENV_SUB_PATH:-"environment-values/workload-clusters"}
         export OCI_COMPONENT_PATH="../../components/workload-cluster-oci-artifacts"
         export CLUSTER_CI_NAME=${WORKLOAD_CLUSTER_NAME}
     else
-        ENV_SUB_PATH="environment-values"
+        ENV_SUB_PATH=${ENV_SUB_PATH:-"environment-values"}
         export OCI_COMPONENT_PATH="../components/oci-artifacts"
         export CLUSTER_CI_NAME=${MANAGEMENT_CLUSTER_NAME}
     fi
@@ -422,6 +422,7 @@ include:
       - "*-timeline.html"
       - management-cluster-kubeconfig
       - ci-environment-values.yaml
+      - sylva.env
     name: "artifact-$CI_JOB_ID"
     # expose_as: $CI_JOB_NAME  # not allowed https://gitlab.com/gitlab-org/gitlab/-/issues/427149
   after_script:
@@ -437,7 +438,7 @@ include:
   timeout: 15min
   script:
     - !reference [.setup_ci_context_and_values]
-    - ./preview.sh environment-values/${ENV_NAME}
+    - ./preview.sh ${ENV_PATH}
   variables:
     SPECIFIC_VALUES_FILE: $MGMT_INITIAL_ADDITIONAL_VALUES
     GIT_REVISION: $MGMT_INITIAL_REVISION
@@ -452,7 +453,7 @@ include:
   extends: .management-base
   script:
     - !reference [.setup_ci_context_and_values]
-    - ./bootstrap.sh environment-values/${ENV_NAME}
+    - ./bootstrap.sh ${ENV_PATH}
   variables:
     SPECIFIC_VALUES_FILE: $MGMT_INITIAL_ADDITIONAL_VALUES
     GIT_REVISION: $MGMT_INITIAL_REVISION
@@ -461,7 +462,7 @@ include:
   extends: .management-base
   script:
     - !reference [.setup_ci_context_and_values]
-    - ./apply.sh environment-values/${ENV_NAME}
+    - ./apply.sh ${ENV_PATH}
   variables:
     SPECIFIC_VALUES_FILE: $MGMT_UPDATE_ADDITIONAL_VALUES
     GIT_REVISION: $MGMT_UPDATE_REVISION
@@ -486,6 +487,7 @@ include:
       - "*-timeline.html"
       - management-cluster-kubeconfig
       - ci-environment-values.yaml
+      - sylva.env
   after_script:
     - |
       echo -e "\e[1m\e[0Ksection_start:`date +%s`:dump_machine_logs[collapsed=true]\r\e[0KDumping machines logs\e[0m"
@@ -499,7 +501,7 @@ include:
   extends: .workload-base
   script:
     - !reference [.setup_ci_context_and_values]
-    - ./apply-workload-cluster.sh environment-values/workload-clusters/${ENV_NAME}
+    - ./apply-workload-cluster.sh ${ENV_PATH}
   variables:
     SPECIFIC_VALUES_FILE: $WC_INITIAL_ADDITIONAL_VALUES
     GIT_REVISION: $WC_INITIAL_REVISION
@@ -507,7 +509,7 @@ include:
   extends: .workload-base
   script:
     - !reference [.setup_ci_context_and_values]
-    - ./apply-workload-cluster.sh environment-values/workload-clusters/${ENV_NAME}
+    - ./apply-workload-cluster.sh ${ENV_PATH}
   variables:
     SPECIFIC_VALUES_FILE: $WC_UPDATE_ADDITIONAL_VALUES
     GIT_REVISION: $WC_UPDATE_REVISION

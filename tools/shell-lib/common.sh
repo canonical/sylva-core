@@ -3,7 +3,7 @@
 set -eu
 set -o pipefail
 
-export BASE_DIR="$(realpath $(dirname $0))"
+export BASE_DIR="${SYLVA_CORE_BASE_DIR:-$(realpath $(dirname $0))}"
 export PATH=${BASE_DIR}/bin:${PATH}
 export KIND_CLUSTER_NAME=${KIND_CLUSTER_NAME:-sylva}
 
@@ -22,9 +22,6 @@ else
   export IN_CI=0
 fi
 
-if [[ -f ${BASE_DIR}/sylva.env ]]; then
-  source ${BASE_DIR}/sylva.env
-fi
 
 function check_args() {
   if ! [[ ${#BASH_ARGV[@]} -eq 1 && (-f ${BASH_ARGV[0]}/kustomization.yaml || -L ${BASH_ARGV[0]}/kustomization.yaml) ]]; then 
@@ -84,9 +81,6 @@ function check_apply_kustomizations() {
     fi
   fi
 }
-
-export CURRENT_COMMIT=$(git rev-parse HEAD)
-export SYLVA_CORE_REPO=${SYLVA_CORE_REPO:-$(git remote get-url origin | sed 's|^git@\([^:]\+\):|https://\1/|' | sed 's|gitlab-ci-token.*@||')}
 
 echo_b() {
   end_section
@@ -161,7 +155,9 @@ function ensure_flux {
             yq -i ".data[\"extra-ca-certs.pem\"]=\"$B64_CERTS\"" ${BASE_DIR}/kustomize-units/flux-system/components/extra-ca/certs.yaml
         fi
         _kustomize ${BASE_DIR}/kustomize-units/flux-system/offline | envsubst | kubectl apply -f -
-        command -v git &>/dev/null && git checkout HEAD -- ${BASE_DIR}/kustomize-units/flux-system/
+        if [ -d "$BASE_DIR/.git" ] && command -v git &>/dev/null ; then
+          (pushd $BASE_DIR && git checkout HEAD -- ./kustomize-units/flux-system/;) &>/dev/null
+        fi
         echo_b "\U000023F3 Wait for Flux to be ready..."
         kubectl wait --for condition=Available --timeout 600s -n flux-system --all deployment
     fi
@@ -279,7 +275,18 @@ function reconcile_sylva_units() {
 }
 
 function define_source() {
-  sed "s/CURRENT_COMMIT/${CURRENT_COMMIT}/" "$@" | \
+
+  if (command -v git && pushd $BASE_DIR && git rev-parse --is-inside-work-tree;) &> /dev/null; then
+    pushd $BASE_DIR &> /dev/null
+    export SYLVA_CORE_COMMIT=${SYLVA_CORE_COMMIT:-$(git rev-parse HEAD)}
+    export SYLVA_CORE_REPO=${SYLVA_CORE_REPO:-$(git remote get-url origin | sed 's|^git@\([^:]\+\):|https://\1/|' | sed 's|gitlab-ci-token.*@||')}
+    popd &> /dev/null
+  else
+    [ -z "${SYLVA_CORE_COMMIT:-}" ] && (echo >&2 "[INFO] Unable to determine current commit. Make sure to use OCI artifacts for deployment";)
+    export SYLVA_CORE_REPO=${SYLVA_CORE_REPO:-"https://gitlab.com/sylva-projects/sylva-core"}
+  fi
+
+  sed "s/CURRENT_COMMIT/${SYLVA_CORE_COMMIT:-"xxxxxx"}/" "$@" | \
     sed "s,SYLVA_CORE_REPO,${SYLVA_CORE_REPO},g" "$@" | \
     sed "s,SYLVA_BASE_OCI_REGISTRY,${SYLVA_BASE_OCI_REGISTRY},g" "$@"
 }
@@ -336,7 +343,7 @@ function validate_sylva_units() {
         resources:
         - $(realpath --relative-to=${PREVIEW_DIR} ${ENV_PATH})
         components:
-        - $(realpath --relative-to=${PREVIEW_DIR} ./environment-values/preview)
+        - $(realpath --relative-to=${PREVIEW_DIR} ${BASE_DIR}/environment-values/preview)
         patches:
           - target:
               kind: Kustomization
@@ -423,4 +430,3 @@ function display_final_messages() {
   fi
   echo_b "\U0001F389 All done"
 }
-

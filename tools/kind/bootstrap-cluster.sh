@@ -11,7 +11,7 @@
 set -ue
 set -o pipefail
 
-export BASE_DIR="$(realpath $(dirname ${BASH_SOURCE[0]})/../..)"
+export BASE_DIR="${SYLVA_CORE_BASE_DIR:-$(realpath $(dirname ${BASH_SOURCE[0]})/../..)}"
 export PATH=${BASE_DIR}/bin:${PATH}
 KIND_CLUSTER_K8S_VERSION=${KIND_CLUSTER_K8S_VERSION:-}
 
