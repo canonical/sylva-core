@@ -100,7 +100,7 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
     spec:
       url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/os-image-server.git
       ref:
-        tag: 2.2.3
+        tag: 2.2.4
 
   capo-contrail-bgpaas:
     kind: GitRepository
@@ -5478,7 +5478,13 @@ units:
           enabled: true
           size: '{{ .Values.os_images_default_download_storage_space }}'
           storageClass: '{{ .Values._internal.default_storage_class }}'
-        os_image_selectors: '{{ .Values._internal.os_image_server_selectors | include "preserve-type" }}'
+        os_image_selectors: >-
+          {{- tuple . "cluster" | include "interpret" -}}
+          {{
+          concat (tuple .Values.cluster | include "find-cluster-image-selectors" | fromJsonArray)
+                 (.Values.os_image_server_additional_selectors | values)
+            | include "preserve-type"
+          }}
       valuesFrom:
         - kind: ConfigMap
           name: os-images-info  # this configmap is a byproduct of the os-images-info unit
@@ -8059,13 +8065,6 @@ _internal:
         {{- end }}
       {{- end }}
     {{- end }}
-
-  os_image_server_selectors: >-
-    {{
-    concat (tuple .Values.cluster | include "find-cluster-image-selectors" | fromJsonArray)
-           (.Values.os_image_server_additional_selectors | values)
-      | include "preserve-type"
-    }}
 
   # default replica number computed from the ha_cluster.is_ha value
   default_replicas: '{{ tuple . .Values._internal.ha_cluster.is_ha 3 1 | include "interpret-ternary" | int | include "preserve-type" }}'
