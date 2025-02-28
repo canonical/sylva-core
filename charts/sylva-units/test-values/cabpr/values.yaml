@@ -3,9 +3,8 @@ cluster:
     bootstrap_provider: cabpr
 
 # to avoid failing the immutability check on upgrade tests:
-_internal:
-  previous_values:
-    cluster:
-      capi_providers:
-        bootstrap_provider: cabpr
+_previous_values:
+  cluster:
+    capi_providers:
+      bootstrap_provider: cabpr
 

@@ -9696,6 +9696,9 @@
     "calico_helm_values": {
       "type": "object"
     },
+    "_previous_values": {
+      "type": "object"
+    },
     "_internal": {
       "type": "object",
       "properties": {

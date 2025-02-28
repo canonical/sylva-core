@@ -438,7 +438,7 @@ NOTE WELL:
 {{- define "internalPersistentRandomPasswd" -}}
 {{- $envAll := index . 0 -}}
 {{- $key := index . 1 -}}
-{{- lookup "v1" "Secret" $envAll.Release.Namespace "sylva-units-values" | dig "data" "values" "" | b64dec | fromYaml | dig "_internal" $key (randAlphaNum 64) -}}
+{{- dig $key (randAlphaNum 64) $envAll.Values._previous_values -}}
 {{- end -}}
 
 
