@@ -18,6 +18,9 @@ spec:
         has(object.spec.conversion.webhook.clientConfig) &&
         has(object.spec.conversion.webhook.clientConfig.caBundle) &&
         (
+          !has(oldObject.spec.conversion) ||
+          !has(oldObject.spec.conversion.webhook) ||
+          !has(oldObject.spec.conversion.webhook.clientConfig) ||
           !has(oldObject.spec.conversion.webhook.clientConfig.caBundle) ||
           object.spec.conversion.webhook.clientConfig.caBundle != oldObject.spec.conversion.webhook.clientConfig.caBundle
         )
