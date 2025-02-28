@@ -189,6 +189,7 @@ def get_deploy_parameter(deploy_name, emoji_key, as_list=False, can_be_empty=Fal
             return match[0].split(",")
     if as_list is True:
         return []
+    return ""
 
 
 def check_deployments(deployments):
@@ -237,7 +238,7 @@ def check_deployments(deployments):
             else:
                 generated_deploy_name = f"{generated_deploy_name} 🎬{scenario}"
         if options:
-            generated_deploy_name = f"{generated_deploy_name} 🛠{",".join(options)}"
+            generated_deploy_name = f"{generated_deploy_name} 🛠{','.join(options)}"
         generated_deploy_name = f"{generated_deploy_name} 🐧{node_os}"
 
         generated_deployments.append(generated_deploy_name)
@@ -253,10 +254,24 @@ def generate_ci_job_struct(job_names, global_options):
     ci_jobs = {}
 
     for job in job_names:
+        ci_jobs[job] = {}
         infra = get_deploy_parameter(job, "☁")
-        ci_jobs[job] = {"extends": [f".{infra}"]}
-
+        bootstrap = get_deploy_parameter(job, "🚀")
+        node_os = get_deploy_parameter(job, "🐧")
         scenario = get_deploy_parameter(job, "🎬", can_be_empty=True)
+        options = get_deploy_parameter(job, "🛠", as_list=True, can_be_empty=True)
+
+        # inject deployment parameters as pipeline variables
+        ci_jobs[job]["variables"] = {
+            "DEPLOYMENT_INFRA_PROV": infra,
+            "DEPLOYMENT_BOOTSTRAP_PROV": bootstrap,
+            "DEPLOYMENT_OS": node_os,
+            "DEPLOYMENT_SCENARIO": scenario,
+            "DEPLOYMENT_OPTIONS": ",".join(options),
+        }
+
+        ci_jobs[job]["extends"] = [f".{infra}"]
+
         if scenario:
             ci_jobs[job]["extends"].append(f".scenario_{scenario}")
 
@@ -264,16 +279,13 @@ def generate_ci_job_struct(job_names, global_options):
             if scenario == "sylva-upgrade-from-1.1.1" and infra in ["capm3", "capm3-virt"]:
                 ci_jobs[job]["extends"].append(".scenario_sylva-upgrade-capm3-from-1.1.1")
 
-        options = get_deploy_parameter(job, "🛠", as_list=True, can_be_empty=True)
         if "dev-sources" not in options:
             ci_jobs[job]["extends"].append(".wait-publish-jobs")
 
         if infra in ["capm3", "capm3-virt"] and "ha" in options:
-            ci_jobs[job].setdefault("variables", {})
             ci_jobs[job]["variables"]["EQUINIX_RUNNER_PLAN"] = "m3.large.x86"
 
         if "skip-tests" in options:
-            ci_jobs[job].setdefault("variables", {})
             ci_jobs[job]["variables"]["SKIP_TESTS"] = "true"
 
         # Handle global options
@@ -281,7 +293,6 @@ def generate_ci_job_struct(job_names, global_options):
         if (not scenario or scenario != "preview") and global_options["autorun"] is False:
             ci_jobs[job]["when"] = "manual"
         if global_options["record-sylvactl-events"]:
-            ci_jobs[job].setdefault("variables", {})
             ci_jobs[job]["variables"]["SYLVACTL_RECORD"] = "true"
 
     return ci_jobs
