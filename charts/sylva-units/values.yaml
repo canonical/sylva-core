@@ -5129,7 +5129,7 @@ units:
             enabled: '{{ .Values._internal.monitoring.enabled | include "preserve-type" }}'
         defaultSettings:
           createDefaultDiskLabeledNodes: true
-          allowVolumeCreationWithDegradedAvailability: true # tentative workaround of https://gitlab.com/sylva-projects/sylva-core/-/issues/1921
+          allowVolumeCreationWithDegradedAvailability: false
           storageMinimalAvailablePercentage: 10
           replicaReplenishmentWaitInterval: '{{ .Values.cluster.capi_providers.infra_provider | eq "capm3" | ternary 3600 600 | include "preserve-type" }}'
           nodeDrainPolicy: block-for-eviction-if-contains-last-replica
