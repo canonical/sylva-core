@@ -23,3 +23,6 @@ mgmt-cis-scan:
     expire_in: 48 hour
     when: always
   allow_failure: true
+  rules:
+    - if: $DEPLOY_MGMT_CLUSTER == "true" && ($DEPLOYMENT_BOOTSTRAP_PROV == "" || $DEPLOYMENT_BOOTSTRAP_PROV == "rke2")
+      when: on_success
