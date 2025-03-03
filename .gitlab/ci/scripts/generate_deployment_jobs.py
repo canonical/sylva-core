@@ -174,7 +174,7 @@ def get_deploy_parameter(deploy_name, emoji_key, as_list=False, can_be_empty=Fal
     """
     Extract value for a key (emoji) for a deployment variant
     """
-    match = re.compile(emoji_key + r"\s?" + r"([\w\d,\.-]+)").findall(deploy_name)
+    match = re.compile(emoji_key + r"\s?([\w\d,\.-]+)").findall(deploy_name)
     if len(match) != 1:
         if len(match) == 0 and can_be_empty is False:
             logging.error(f"unable to get {emoji_key} value from {deploy_name}")
@@ -198,7 +198,7 @@ def check_deployments(deployments):
     """
     # Limit number of generated child pipelines
     if len(deployments) > DEPLOY_CHILD_PIPELINE_COUNT_LIMIT:
-        logging.error(f"Too many deployments combinations (count={len(deployments)})")
+        logging.error(f"Too many deployments combinations ({len(deployments)} > {DEPLOY_CHILD_PIPELINE_COUNT_LIMIT})")
         logging.error(f"Deployment list: {deployments}")
         sys.exit(1)
 
@@ -238,7 +238,7 @@ def check_deployments(deployments):
             else:
                 generated_deploy_name = f"{generated_deploy_name} 🎬{scenario}"
         if options:
-            generated_deploy_name = f"{generated_deploy_name} 🛠{','.join(options)}"
+            generated_deploy_name = f"{generated_deploy_name} 🛠{','.join(sorted(options))}"
         generated_deploy_name = f"{generated_deploy_name} 🐧{node_os}"
 
         generated_deployments.append(generated_deploy_name)
