@@ -32,3 +32,12 @@ patches:
     - op: replace
       path: /spec/template/spec/containers/0/resources/requests/memory
       value: 1Gi
+# workaround for https://gitlab.com/sylva-projects/sylva-core/-/issues/2160
+- target:
+    kind: Deployment
+    name: source-controller
+  patch: |-
+    - op: replace
+      path: /spec/template/spec/containers/0/image
+      value: ghcr.io/fluxcd/source-controller:v1.4.1
+
