@@ -613,6 +613,8 @@ units:
       targetNamespace: cert-manager
       install:
         createNamespace: true
+      upgrade:
+        crds: CreateReplace
       values:
         crds:
           enabled: true
@@ -1169,6 +1171,8 @@ units:
       targetNamespace: vault
       install:
         createNamespace: true
+      upgrade:
+        crds: CreateReplace
       values:
         image:
           repository: ghcr.io/bank-vaults/vault-operator
