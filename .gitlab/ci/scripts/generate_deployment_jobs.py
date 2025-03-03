@@ -228,7 +228,7 @@ def check_deployments(deployments):
             logging.error(f"deployment {deploy_name}: scenario not allowed")
             sys.exit(1)
 
-        if scenario and scenario not in ["simple-update", "preview"] and "ha" not in options:
+        if scenario and scenario not in ["simple-update", "preview"]:
             options.append("ha")
 
         generated_deploy_name = f"☁{infra} 🚀{bootstrap}"
@@ -238,7 +238,7 @@ def check_deployments(deployments):
             else:
                 generated_deploy_name = f"{generated_deploy_name} 🎬{scenario}"
         if options:
-            generated_deploy_name = f"{generated_deploy_name} 🛠{','.join(sorted(options))}"
+            generated_deploy_name = f"{generated_deploy_name} 🛠{','.join(sorted(list(set(options))))}"
         generated_deploy_name = f"{generated_deploy_name} 🐧{node_os}"
 
         generated_deployments.append(generated_deploy_name)
