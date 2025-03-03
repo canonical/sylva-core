@@ -9160,13 +9160,6 @@
         }
       }
     },
-    "bootstrap_os_images_override_enabled": {
-      "type": "array",
-      "items": {
-        "type": "string",
-        "pattern": "^[a-z0-9][a-z0-9-]{1,50}[a-z0-9]$"
-      }
-    },
     "additional_sylva_units_status_info": {
       "type": "object"
     },
