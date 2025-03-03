@@ -1350,6 +1350,8 @@ units:
       targetNamespace: external-secrets
       install:
         createNamespace: true
+      upgrade:
+        crds: CreateReplace
       values:
         installCRDs: true
 
@@ -1385,6 +1387,8 @@ units:
           chart: rancher-cis-benchmark-crd
           version: 105.4.0+up7.4.0
       targetNamespace: cis-operator-system
+      upgrade:
+        crds: CreateReplace
       install:
         createNamespace: true
 
@@ -4271,6 +4275,8 @@ units:
       releaseName: rancher-monitoring-crd
       targetNamespace: cattle-monitoring-system
       storageNamespace: cattle-monitoring-system # see https://gitlab.com/sylva-projects/sylva-core/-/issues/443
+      upgrade:
+        crds: CreateReplace
       chart:
         spec:
           chart: rancher-monitoring-crd
@@ -5004,6 +5010,8 @@ units:
       targetNamespace: cattle-sriov-system
       install:
         createNamespace: false
+      upgrade:
+        crds: CreateReplace
       chart:
         spec:
           chart: sriov-crd
@@ -5211,6 +5219,8 @@ units:
     helmrelease_spec:
       releaseName: longhorn-crd
       targetNamespace: longhorn-system
+      upgrade:
+        crds: CreateReplace
       chart:
         spec:
           chart: longhorn-crd
@@ -6245,6 +6255,8 @@ units:
           chart: helm/operator
       install:
         createNamespace: false
+      upgrade:
+        crds: CreateReplace
       values:
         operator:
           env:
