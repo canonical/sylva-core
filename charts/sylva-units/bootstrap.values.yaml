@@ -42,28 +42,8 @@ _internal:
     # the 0.0.0.0/32 values above are just here to let us use "helm template" with this
     # file without errors
 
-
-  _bootstrap_os_images_override_enabled: |-
-    {{- $mylist := .Values.bootstrap_os_images_override_enabled | default list -}}
-    {{- if and .Values.cluster.control_plane .Values.cluster.control_plane.capm3 .Values.cluster.control_plane.capm3.image_key }}
-      {{- $mylist = append $mylist .Values.cluster.control_plane.capm3.image_key }}
-    {{- else if and .Values.cluster.control_plane .Values.cluster.control_plane.capo .Values.cluster.control_plane.capo.image_key }}
-      {{- $mylist = append $mylist .Values.cluster.control_plane.capo.image_key }}
-    {{- end }}
-    {{- range $md, $config := .Values.cluster.machine_deployments }}
-      {{- if and $config.capo $config.capo.image_key }}
-          {{- $mylist = append $mylist $config.capo.image_key -}}
-      {{- else if and $config.capm3 $config.capm3.image_key }}
-          {{- $mylist = append $mylist $config.capm3.image_key -}}
-      {{- end }}
-    {{- end }}
-    {{- $mylist = append $mylist (.Values.cluster.capo.image_key | default .Values.cluster.capm3.image_key) -}}
-    {{- without $mylist nil | uniq | include "preserve-type" -}}
-
   # value of "node-role.kubernetes.io/control-plane" node label. In bootstrap context, the label is always ""
   cp_node_label_value: ""
-
-bootstrap_os_images_override_enabled: []
 
 unit_templates:
   base-deps:
@@ -177,6 +157,12 @@ units:
           type: NodePort
         osImagePersistenceDefaults:
           storageClass: local-path
+
+        # for bootstrap (contrarily to final mgmt cluster deployment) the os-image-server unit
+        # only needs to serve the images needed by the mgmt cluster itself
+        os_image_selectors: >-
+          {{- tuple . "cluster" | include "interpret" -}}
+          {{ tuple .Values.cluster | include "find-cluster-image-selectors" | fromJsonArray | include "preserve-type" }}
 
   calico-crd:
     # overload calico-crd definition in bootstrap context to deploy in the management cluster
