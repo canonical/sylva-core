@@ -5,10 +5,6 @@ metadata:
   namespace: kube-system
 data:
   Corefile: |
-    ${CLUSTER_DOMAIN}:53 {
-        errors
-        forward ${CLUSTER_DOMAIN} ${CLUSTER_VIRTUAL_IP}
-    }
     .:53 {
         errors
         health {
@@ -21,6 +17,7 @@ data:
            ttl 30
         }
         prometheus :9153
+        forward ${CLUSTER_DOMAIN}. ${CLUSTER_VIRTUAL_IP}
         forward . /etc/resolv.conf {
            max_concurrent 1000
         }
