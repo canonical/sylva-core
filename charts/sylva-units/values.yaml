@@ -5112,12 +5112,17 @@ units:
           chart: longhorn
           version: 105.1.0+up1.7.2
       values:
+        image:
+          longhorn:
+            manager:
+              repository: phanle1010/longhorn-manager
+              tag: v1.7.2-fix-io-error-9939
         metrics:
           serviceMonitor:
             enabled: '{{ .Values._internal.monitoring.enabled | include "preserve-type" }}'
         defaultSettings:
           createDefaultDiskLabeledNodes: true
-          allowVolumeCreationWithDegradedAvailability: true # tentative workaround of https://gitlab.com/sylva-projects/sylva-core/-/issues/1921
+          allowVolumeCreationWithDegradedAvailability: false # NOT USING THE WORKAROUND FOR https://gitlab.com/sylva-projects/sylva-core/-/issues/1921
           storageMinimalAvailablePercentage: 10
           replicaReplenishmentWaitInterval: '{{ .Values.cluster.capi_providers.infra_provider | eq "capm3" | ternary 3600 600 | include "preserve-type" }}'
           nodeDrainPolicy: block-for-eviction-if-contains-last-replica
