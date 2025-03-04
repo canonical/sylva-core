@@ -8,4 +8,5 @@ resources:
 - ensure-pdb-minreplicas.yaml
 - always-allow-pdb-unhealthy-pod-eviction.yaml
 - ensure-pdb-unhealthypodeviction.yaml
+- hpa-require-scaleup.yaml
 
