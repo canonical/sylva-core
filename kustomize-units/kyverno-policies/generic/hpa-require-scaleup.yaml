@@ -1,0 +1,26 @@
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  name: hpa-require-scaleup
+spec:
+  failurePolicy: Fail
+  matchConstraints:
+    resourceRules:
+    - apiGroups: ["autoscaling"]
+      apiVersions: ["v2", "v2beta1", "v2beta2"]
+      operations: ["CREATE", "UPDATE"]
+      resources: ["horizontalpodautoscalers"]
+  validations:
+    - expression: "!(has(object.spec.behavior) && !has(object.spec.behavior.scaleUp))"
+      message: "HorizontalPodAutoscaler must include spec.behavior.scaleUp, if spec.behavior is declared."
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  name: hpa-require-scaleup-binding
+spec:
+  policyName: hpa-require-scaleup
+  validationActions: ["Deny"]
+  matchResources:
+    namespaceSelector: {}
+    objectSelector: {}
