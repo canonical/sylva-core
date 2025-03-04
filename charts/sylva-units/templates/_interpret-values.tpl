@@ -105,6 +105,8 @@ value: "prefix-{{ 42 }}"                                    -> will also produce
   {{/* we need to preserve this, to allow deferring template computation of _unit_name_ in unit-def */}}
   {{ $saved_unit_templates := deepCopy $envAll.Values.unit_templates }}
   {{ $saved_unit_definition_defaults := deepCopy ($envAll.Values.unit_definition_defaults | default dict) }}
+  {{ $previous_values := omit (lookup "v1" "Secret" .Release.Namespace "sylva-units-values" | dig "data" "values" "" | b64dec | fromYaml | default dict) "unit_templates" }}
+  {{ $_ := set $envAll.Values "_previous_values" $previous_values }}
   {{ $_ := set $envAll.Values "unit_templates" dict }}
   {{/* .Values._internal.state is interpreted first */}}
   {{ $_ := set $envAll.Values._internal "state" (index (tuple $envAll $envAll.Values._internal.state | include "interpret-inner-gotpl" | fromJson) "result") }}

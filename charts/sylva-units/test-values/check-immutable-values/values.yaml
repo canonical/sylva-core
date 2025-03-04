@@ -1,8 +1,7 @@
   # this is used for testing charts/sylva-units/templates/sylva-units-values.yaml logic based on default
   # ._internal.immutable_values and expected to fail given the default `.cluster.name: management-cluster` value
-_internal:
 
-  previous_values:
-    cluster:
-      name: old-management-cluster
+_previous_values:
+  cluster:
+    name: old-management-cluster
 

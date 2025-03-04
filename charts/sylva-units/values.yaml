@@ -8028,18 +8028,11 @@ _internal:
 
     # immutable ha_cluster.is_ha : keep track of first install mode HA (true) or non-HA (false)
     is_ha: >-
-      {{
-      lookup "v1" "Secret" .Release.Namespace "sylva-units-values"
-        | dig "data" "values" "" | b64dec | fromYaml | default dict
-        | dig "_internal" "ha_cluster" "is_ha" (ge (int .Values.cluster.control_plane_replicas) 3 | ternary true false)
-        | include "preserve-type"
-      }}
-
+      {{- dig "_internal" "ha_cluster" "is_ha" (ge (int .Values.cluster.control_plane_replicas) 3 | ternary true false) .Values._previous_values | include "preserve-type" -}}
 
     # variable just used to trigger error while requested control_plane_replicas is incompatible with ha_cluster.is_ha computed during first install
     checkpoint: >-
-      {{- $current_config := lookup "v1" "Secret" .Release.Namespace "sylva-units-values" | dig "data" "values" "" | b64dec | fromYaml | default dict -}}
-      {{- $is_ha := dig "_internal" "ha_cluster" "is_ha" "initial run" $current_config | toString -}}
+      {{- $is_ha := dig "_internal" "ha_cluster" "is_ha" "initial run" .Values._previous_values | toString -}}
       {{- if not (eq $is_ha "initial run") -}}
         {{- if (eq $is_ha "false") -}}
           {{- (ge (int .Values.cluster.control_plane_replicas) 3)  | ternary "" "requested control_plane_replicas={{.Values.cluster.control_plane_replicas}} : compatible with initial non HA mode" | required (print "requested control_plane_replicas=" .Values.cluster.control_plane_replicas ": can't continue, first install happened in non-HA mode, this value should be 1") -}}
@@ -8277,8 +8270,6 @@ _internal:
     }}'
 
   loadBalancerClass: '{{ tuple . (eq .Values.cluster.capi_providers.bootstrap_provider "cabpr") "sylva.org/metallb-class" "kube-vip.io/kube-vip-class" | include "interpret-ternary" }}'
-
-  previous_values: '{{ omit (lookup "v1" "Secret" .Release.Namespace "sylva-units-values" | dig "data" "values" "" | b64dec | fromYaml | default dict) "unit_templates" | include "preserve-type" }}'
 
   immutable_values:
     cluster:

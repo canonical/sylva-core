@@ -1,5 +1,5 @@
 cluster:
-  name: test-cluster  # overriden so that we can have a value common for mgmt and workload which we use below in _internal.previous_values
+  name: test-cluster  # overriden so that we can have a value common for mgmt and workload which we use below in _previous_values
 
 _internal:
 
@@ -7,11 +7,11 @@ _internal:
     is_upgrade: true
 
   # we need to give mock "previous values" because
-  # as soon as is_uprade is true the check for immutability
+  # as soon as is_upgrade is true the check for immutability
   # will try to use them
-  previous_values:
-    cluster:
-      name: test-cluster
-      capi_providers:
-        bootstrap_provider: cabpk
-        infra_provider: capd
+_previous_values:
+  cluster:
+    name: test-cluster
+    capi_providers:
+      bootstrap_provider: cabpk
+      infra_provider: capd

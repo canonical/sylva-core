@@ -34,7 +34,7 @@ fi
 #
 test_filter=${2:-*}  # optional
 
-function helm() { $(/usr/bin/which helm) "$@" 2> >(grep -Ev 'found symbolic link|destination for sylva-units._internal.previous_values is a table' >&2); }
+function helm() { $(/usr/bin/which helm) "$@" 2> >(grep -Ev 'found symbolic link|destination for sylva-units._previous_values is a table' >&2); }
 
 export BASE_DIR=$( cd "$(dirname "${BASH_SOURCE[0]}")/../.." ; pwd -P )
 
