@@ -4577,7 +4577,7 @@ units:
       description: generates the config for snmp-notifier Alertmanager webhook
       maturity: beta
     enabled_conditions:
-    - '{{ tuple . "alertmanager-jiralert" | include "unit-enabled" }}'
+    - '{{ tuple . "alertmanager-snmp-notifier" | include "unit-enabled" }}'
     unit_templates:
     - base-deps
     depends_on:
