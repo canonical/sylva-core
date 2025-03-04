@@ -7266,6 +7266,7 @@ units:
       targetNamespace: '{{ .Release.Namespace }}'
       install:
         createNamespace: false
+      timeout: 30m
       valuesFrom:
         # os_images:
         - kind: ConfigMap
