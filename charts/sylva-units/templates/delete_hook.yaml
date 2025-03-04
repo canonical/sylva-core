@@ -117,11 +117,11 @@ spec:
                         sleep 5  # Adjust the sleep interval as needed
                     done
                     if [[ -n "$NS_TO_DELETE" ]]; then
-                        echo "Namespace to delete: $NS_TO_DELETE"
+                        echo "Rancher Namespace to delete: $NS_TO_DELETE"
                         kubectl delete ns "$NS_TO_DELETE" || true
                         log_event Deletion "Deleted namespace: $NS_TO_DELETE"
                     else
-                        echo "No namespace found for deletion."
+                        echo "No  Rancher namespace found for deletion."
                     fi
                     exit 0
                 fi
