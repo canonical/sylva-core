@@ -7266,6 +7266,7 @@ units:
       targetNamespace: '{{ .Release.Namespace }}'
       install:
         createNamespace: false
+      timeout: 30m
       valuesFrom:
         # os_images:
         - kind: ConfigMap
@@ -7814,7 +7815,7 @@ k8s_version_short: "1.30"
 
 # Renovate Bot needs additional information to detect sylva diskimage-builder version
 # renovate: depName=sylva-projects/sylva-elements/diskimage-builder
-sylva_diskimagebuilder_version: 0.4.3
+sylva_diskimagebuilder_version: 0.4.5
 
 sylva_diskimagebuilder_images:
   ubuntu-noble-hardened-rke2-1-30-9: {}
