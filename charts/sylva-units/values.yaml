@@ -880,7 +880,7 @@ units:
     kustomization_substitute_secrets:
       ADMIN_CREDENTIAL: '{{ (htpasswd .Values._internal.kubevirt_admin_user .Values._internal.kubevirt_admin_password) | b64enc | quote }}'
     annotations:
-      sylvactl/readyMessage: "Kubevirt manager UI can be reached at https://{{ .Values.external_hostnames.kubevirt_manager }} ({{ .Values.external_hostnames.kubevirt_manager }} must resolve to {{ .Values.display_external_ip }})"
+      sylvactl/readyMessage: "Kubevirt manager UI can be reached at https://{{ .Values.external_hostnames.kubevirt_manager }} ({{ .Values.external_hostnames.kubevirt_manager }} {{ .Values.display_external_ip_msg }})"
     kustomization_spec:
       path: ./kustomize-units/kubevirt-manager
       wait: true
@@ -7912,7 +7912,8 @@ flux:
 flux_webui:
   admin_user: admin
 
-display_external_ip: '{{ .Values.openstack.floating_ip | eq "" | ternary (.Values.cluster_virtual_ip | eq "" | ternary "No external IP available" .Values.cluster_virtual_ip) .Values.openstack.floating_ip }}'
+display_external_ip: '{{ .Values.openstack.floating_ip | eq "" | ternary .Values.cluster_virtual_ip .Values.openstack.floating_ip }}'
+display_external_ip_msg: '{{ .Values.display_external_ip | eq "" | ternary "No external IP available. This might be expected in a workload cluster"  "must resolve to .Values.display_external_ip" }}'
 
 cluster_domain: sylva
 
