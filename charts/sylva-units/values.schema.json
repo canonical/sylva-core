@@ -1952,7 +1952,7 @@
                           "pattern": ".*/disk.*by.*"
                         },
                         "then": {
-                          "pattern": "/var/longhorn/disks/disk_by-(uuid_|path_pci-).*"
+                          "pattern": "/var/longhorn/disks/disk_by-(uuid_|id_|partuuid_|sn_|path_(pci|virtio-pci)-).*"
                         },
                         "else": {
                           "pattern": "/var/longhorn/disks/((sd|vd)[a-z]|nvme[0-9]n[0-9])"
