@@ -4058,9 +4058,9 @@ units:
             enabled: false
           resources:
             requests:
-              memory: "200Mi"
-            limits:
               memory: "500Mi"
+            limits:
+              memory: "1Gi"
 
     kustomization_spec:
       healthChecks:
