@@ -5500,18 +5500,6 @@ units:
       valuesFrom:
         - kind: ConfigMap
           name: os-images-info  # this configmap is a byproduct of the os-images-info unit
-      _postRenderers:  # should go away once https://gitlab.com/sylva-projects/sylva-elements/helm-charts/os-image-server/-/merge_requests/118 lands
-        - kustomize:
-            patches:
-              - target:
-                  kind: Ingress
-                patch: |-
-                  - op: replace
-                    path: /spec/rules/0/http/paths/0/pathType
-                    value: ImplementationSpecific
-                  - op: replace
-                    path: /spec/rules/0/http/paths/1/pathType
-                    value: ImplementationSpecific
 
   capo-contrail-bgpaas:
     info:
