@@ -311,6 +311,7 @@ check-ci-scenario-doc:
       changes:
         - .gitlab/ci/main-pipeline-checks.yml
         - .gitlab/README.md
+        - .gitlab/ci/deployments-base.yml
         - .gitlab/ci/scripts/generate-scenario-description.sh
 
 check-ci-tests-doc:
@@ -333,7 +334,7 @@ check-ci-tests-doc:
     - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
       changes:
         - .gitlab/ci/main-pipeline-checks.yml
-        - .gitlab/ci/tests/README.md
+        - .gitlab/ci/tests/**/*
         - .gitlab/ci/scripts/generate-tests-description.sh
 
 ###########################
