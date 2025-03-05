@@ -488,7 +488,7 @@ units:
     enabled: true
 
   logging:
-    enabled: true
+    enabled: false
 
   logging-config:
     enabled: true
