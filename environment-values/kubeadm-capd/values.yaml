@@ -8,7 +8,7 @@ cluster:
   control_plane_replicas: 1
 
   capd:
-    image_name: registry.gitlab.com/sylva-projects/sylva-elements/container-images/rke2-in-docker:0.1.5-v1.31.5rke2r1
+    image_name: kindest/node:v1.31.6
 
 # We can define users if needed (.cluster.kubeadm.users[])
   #kubeadm:
