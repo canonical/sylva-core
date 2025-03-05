@@ -32,7 +32,7 @@
 | **longhorn** | installs Longhorn CSI | stable | [Helm chart](https://charts.rancher.io/) | 104.2.2+up1.7.3 |
 | **metal3** | installs SUSE-maintained Metal3 operator | stable | [Helm chart](https://suse-edge.github.io/charts) | 0.8.3 |
 | **metallb** | installs MetalLB operator | stable | [Helm chart](https://metallb.github.io/metallb) | 0.14.9 |
-| **monitoring** | installs monitoring stack | stable | [Helm chart](https://charts.rancher.io/) | 104.1.2+up57.0.3 |
+| **monitoring** | installs monitoring stack | stable | [Helm chart](https://charts.rancher.io/) | 104.1.4+up57.0.3 |
 | **multus** | installs Multus | stable | [Helm chart](https://rke2-charts.rancher.io/) | v4.1.001 |
 | **postgres** | installs Postgresql for Keycloak | stable | [Helm chart](https://github.com/bitnami/charts.git) | postgresql/15.5.36 |
 | **rancher** | installs Rancher | stable | [Helm chart](https://releases.rancher.com/server-charts/stable) | 2.9.3 |
