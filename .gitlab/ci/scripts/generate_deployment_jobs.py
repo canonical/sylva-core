@@ -57,29 +57,27 @@ DEPLOY_CHILD_PIPELINE_COUNT_LIMIT = int(os.getenv("DEPLOY_CHILD_PIPELINE_COUNT_L
 random.seed(os.getenv("CI_MERGE_REQUEST"))
 
 
-def get_mr_comment_from_user(project_id, mr_id, HEADERS, user_id):
-    """Retrieve first comment of a given user for a given MR, handling pagination."""
+def get_mr_comments(project_id, mr_id, HEADERS, comment_filter_fn):
+    """Retrieve all comments for a given MR, handling pagination."""
     url = f"{GITLAB_API_URL}/projects/{project_id}/merge_requests/{mr_id}/notes"
-    user_comments = []
+    filtered_comments = []
     page = 1
 
-    logging.info(f"Retrieve firt comment of user {user_id} for MR {mr_id}")
+    logging.info(f"Retrieve all comments for MR {mr_id}")
 
     while True:
         response = requests.get(url, headers=HEADERS, params={"page": page})
         response.raise_for_status()
 
         comments = response.json()
-        user_comments.extend(filter(lambda comment: comment["author"]["id"] == user_id, comments))
-        if len(user_comments) > 0:
-            break
-        else:
-            if 'X-Next-Page' in response.headers and response.headers['X-Next-Page']:
-                page += 1
-            else:
-                break
+        filtered_comments.extend(filter(comment_filter_fn, comments))
 
-    return user_comments
+        if 'X-Next-Page' in response.headers and response.headers['X-Next-Page']:
+            page += 1
+        else:
+            break
+
+    return filtered_comments
 
 
 def get_current_user(HEADERS):
@@ -148,7 +146,9 @@ def get_ci_configuration_from_context():
         comment_bot_id = comment_bot["id"]
         comment_bot_name = comment_bot["name"]
 
-        user_comments = get_mr_comment_from_user(GITLAB_PROJECT_ID, GITLAB_MR_ID, HEADERS, comment_bot_id)
+        user_comments = get_mr_comments(
+            GITLAB_PROJECT_ID, GITLAB_MR_ID, HEADERS,
+            lambda comment: comment["author"]["id"] == comment_bot_id)
 
         if len(user_comments) == 0:
             logging.info(f"No comment found for MR {GITLAB_MR_ID}, posting a new one")
