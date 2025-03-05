@@ -43,12 +43,13 @@ ${BASE_DIR}/tools/kind/bootstrap-cluster.sh
 
 ensure_flux
 
+ensure_sylva_units_operator
+
 echo_b "\U0001F50E Validate sylva-units values for management cluster"
-validate_sylva_units force-management
+validate_sylva_units
 
 echo_b "\U0001F5D1 Delete preview chart and namespace for management cluster"
 cleanup_preview
-
 
 set_current_namespace sylva-system
 

@@ -107,6 +107,8 @@ additional_resources="
   SriovNetworkPoolConfigs
   SriovNetworks
   SriovOperatorConfigs
+  SylvaUnitsReleases
+  SylvaWorkloadClusters
 "
 
 function dump_additional_resources() {

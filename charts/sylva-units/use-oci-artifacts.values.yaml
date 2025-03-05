@@ -92,15 +92,6 @@ source_templates:
         tag: '{{ .Values._internal.sylva_core_version }}'
       verify: '{{ (tuple (dict "provider" "cosign" "secretRef" (dict "name" "cosign-public-keys")) (not .Values.security.oci_artifacts.skip_signing_check)) | include "set-only-if" }}'
 
-
-unit_templates:
-  sylva-units:  # this applies to any unit having "unit_templates: ... - sylva-units"
-    helm_repo_url: '{{ .Values.sylva_core_oci_registry }}'
-    helmrelease_spec:
-      chart:
-        spec:
-          version: '{{ .Values._internal.sylva_core_version }}'
-
 units:
   flux-system:
     kustomization_spec:

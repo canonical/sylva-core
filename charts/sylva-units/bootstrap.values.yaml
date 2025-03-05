@@ -276,7 +276,36 @@ units:
               (tuple . (dict .Values._internal.kind_kubeadm_networking.podSubnet false
                              .Values._internal.kind_kubeadm_networking.servicesSubnet false))
             -}}'
+    labels:
+      suspend-on-pivot: "yes"  # this unit must be suspended before pivot
 
+  # FIXME: use shared template with values.yaml
+  # enventually report that
+  #  postBuild:
+  #    substitute:
+  #      # the no_proxy computed for bootstrap cluster includes pods/services subnets for the kind cluster (see no_proxy_additional in this file)
+  #     # but we don't need nor want that in the mgmt cluster
+  #     no_proxy:
+  #       '{{-
+  #       include "sylva-units.no_proxy"
+  #         (tuple . (dict .Values._internal.kind_kubeadm_networking.podSubnet false
+  #                        .Values._internal.kind_kubeadm_networking.servicesSubnet false))
+  #       -}}'
+  management-sylva-units-operator:
+    info:
+      description: installs sylva-units-operator in management cluster during bootstrap
+      internal: true
+    depends_on:
+      cluster-reachable: true
+      calico-ready: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpk" }}'
+    repo: sylva-core
+    unit_templates: []
+    kustomization_spec:
+      kubeConfig:
+        secretRef:
+          name: '{{ .Values.cluster.name }}-kubeconfig'
+      path: ./kustomize-units/sylva-units-operator
+      wait: true
     labels:
       suspend-on-pivot: "yes"  # this unit must be suspended before pivot
 
@@ -287,8 +316,11 @@ units:
     depends_on:
       management-cluster-flux: true
       management-namespace-defs: true
+      management-sylva-units-operator: true
     unit_templates:
     - kube-job
+    labels:
+      suspend-on-pivot: "yes"
     kustomization_spec:
       _patches:
       - target:
@@ -303,8 +335,12 @@ units:
 
               echo "-- Retrieve target cluster kubeconfig"
               kubectl get secret {{ .Values.cluster.name }}-kubeconfig -o jsonpath='{.data.value}' | base64 -d > /tmp/management-cluster-kubeconfig
-              echo "-- Copy secrets and configmaps from bootstrap to management cluster"
-              kubectl get configmaps,secrets,gitrepository,ocirepository,helmrepository \
+              echo "-- Copy secrets, configmaps and SylvaUnitsRelease from bootstrap to management cluster"
+              # SylvaUnitsRelease clusterType is changed from bootstrap to management
+              # For now we keep the 'cluster' and 'cluster-bmh' units disabled, it produces CAPI resources
+              # defining the management cluster, which we can't define before having done the pivot
+              # (this value override is reverted after pivot by the pivot job below)
+              kubectl get configmaps,secrets,sylvaUnitsReleases \
                 -l copy-from-bootstrap-to-management= \
                 -o json \
                   | jq '.items[] | del(.metadata.labels."helm.toolkit.fluxcd.io/name")
@@ -314,75 +350,35 @@ units:
                                  | del(.metadata.annotations."sylvactl/reconcileCompletedAt")
                                  | del(.metadata.resourceVersion)
                                  | del(.metadata.uid)
-                                 | del(.metadata.creationTimestamp)' \
+                                 | del(.metadata.creationTimestamp)
+                                 | select(.kind=="SylvaUnitsRelease").spec.clusterType="management"
+                                 | select(.kind=="SylvaUnitsRelease").spec.values.units.cluster.enabled=false
+                                 | select(.kind=="SylvaUnitsRelease").spec.values.units["cluster-bmh"].enabled=false' \
                   | kubectl --kubeconfig /tmp/management-cluster-kubeconfig apply -f -
 
               echo "-- All done"
 
-  # instantiate 'sylva-units' chart again in the management cluster
   management-sylva-units:
     info:
-      description: installs sylva-units in management cluster during bootstrap
+      description: waits for sylva-units HelmRelease in management cluster to be ready
       internal: true
     depends_on:
       management-cluster-configs: true
       management-namespace-defs: true
       cluster-machines-ready: true
     unit_templates:
-    - sylva-units
+    - dummy
     labels:
-      suspend-on-pivot: "yes"  # this unit must be suspended before pivot
-    # Use a kustomization_spec alongside an helmrelease_spec,
-    # this way we'll create the flux helmrelease into the management cluster
+      suspend-on-pivot: "yes"
     kustomization_spec:
-      commonMetadata:
-        labels: >-
-          {{
-            omit (lookup "helm.toolkit.fluxcd.io/v2" "HelmRelease" "sylva-system" "sylva-units"
-                     | dig "metadata" "labels" dict)
-                  "copy-from-bootstrap-to-management"
-              | include "preserve-type"
-          }}
       kubeConfig:
         secretRef:
           name: '{{ .Values.cluster.name }}-kubeconfig'
-      _patches:  # we need to force the name of the HelmRelease object to `sylva-units`
-        - target:
-            kind: HelmRelease
-            name: management-sylva-units
-          patch: |
-            - op: replace
-              path: /metadata
-              value:
-                namespace: sylva-system
-                name: sylva-units
-    helmrelease_spec:
-      releaseName: sylva-units
-      chart:
-        spec:
-          chart: charts/sylva-units
-          reconcileStrategy: Revision
-          # copy sourceRef from bootstrap HelmRelease:
-          sourceRef: '{{ lookup "helm.toolkit.fluxcd.io/v2" "HelmRelease" "sylva-system" "sylva-units" | dig "spec" "chart" "spec" "sourceRef" (dict "kind" "GitRepository" "name" "not-found" "namespace" "not-found") | include "preserve-type" }}'
-          # we copy the valuesFiles from the bootstrap HelmRelease, skipping
-          # the bootstrap.values.yaml file (with or without the 'charts/sylva-units/'
-          # prefix which is or isn't there depending on whether this is a deployment
-          # relying on OCI artifacts)
-          valuesFiles: |
-            {{- without (lookup "helm.toolkit.fluxcd.io/v2" "HelmRelease" "sylva-system" "sylva-units" | dig "spec" "chart" "spec" "valuesFiles" list) "bootstrap.values.yaml" "charts/sylva-units/bootstrap.values.yaml" | include "preserve-type" -}}
-      # copy values and valuesFrom from current sylva-units HelmRelease
-      # for now we keep the 'cluster' unit disabled, it produces CAPI resources
-      # defining the management cluster, which we can't define before having done the pivot
-      # (this value override is reverted after pivot by the pivot job below)
-      values:
-        '
-        {{- $chartValues := lookup "helm.toolkit.fluxcd.io/v2" "HelmRelease" "sylva-system" "sylva-units" | dig "spec" "values" dict -}}
-        {{- $disableCluster := dict "units" (dict "cluster"     (dict "enabled" false)
-                                                  "cluster-bmh" (dict "enabled" false)
-                                            )
-        -}}
-        {{- mergeOverwrite $chartValues $disableCluster | include "preserve-type" -}}'
-      valuesFrom: '{{ lookup "helm.toolkit.fluxcd.io/v2" "HelmRelease" "sylva-system" "sylva-units" | dig "spec" "valuesFrom" list | include "preserve-type" }}'
+      healthChecks:
+        - apiVersion: helm.toolkit.fluxcd.io/v2
+          kind: HelmRelease
+          name: sylva-units
+          namespace: sylva-system
 
   pivot:
     info:
@@ -475,11 +471,7 @@ units:
 
               echo "-- Patch the mgmt cluster sylva-units HelmRelease to enable 'cluster' unit in the management cluster"
               kubectl --kubeconfig /tmp/management-cluster-kubeconfig \
-                  patch helmrelease sylva-units --type=json --patch='[{"op":"remove","path":"/spec/values/units/cluster/enabled"},{"op":"remove","path":"/spec/values/units/cluster-bmh/enabled"}]'
-
-              # NOTE: here we could add a reference to another valueFile that would deploy units specific to the management cluster
-              # '[{"op":"add","path":"/spec/chart/spec/valuesFiles/-","value":"charts/sylva-units/management.values.yaml"}]'
-              # and/or create a kustomization on management-cluster to manage sylva-units helmRelease from git
+                  patch SylvaUnitsRelease sylva-units --type=json --patch='[{"op":"remove","path":"/spec/values/units/cluster/enabled"},{"op":"remove","path":"/spec/values/units/cluster-bmh/enabled"}]'
 
               echo "-- Freeze reconciliation of current job Kustomization in source cluster as we're done"
               kubectl annotate kustomizations pivot kustomize.toolkit.fluxcd.io/reconcile=disabled --overwrite
@@ -593,6 +585,7 @@ units_override_enabled:
   - calico
   - calico-ready
   - management-cluster-flux
+  - management-sylva-units-operator
   - management-cluster-configs
   - management-sylva-units
   - pivot
