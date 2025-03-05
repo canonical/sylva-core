@@ -156,6 +156,14 @@ units:
       sylvactl/readyMessage: "Grafana UI can be reached at https://{{ .Values.external_hostnames.grafana }} ({{ .Values.external_hostnames.grafana }} must resolve to {{ .Values.display_external_ip }})"
     helmrelease_spec:
       values:
+        defaultRules:
+          rules:
+            kubeApiserverSlos: false
+            kubeStateMetrics: false
+            kubernetesApps: false
+            kubernetesResources: false
+            kubernetesStorage: false
+            kubernetesSystem: false
         grafana:
           envFromSecret: grafana-oidc
           sidecar:
