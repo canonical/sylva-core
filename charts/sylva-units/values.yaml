@@ -7995,6 +7995,8 @@ calico_helm_values:
 
 _internal:
 
+  cluster_virtual_ip: '{{ .Values.cluster_virtual_ip }}'
+
   state:
     # is_upgrade reflects whether or not the currently processed release
     #   is an "upgrade", ie. a new release coming after a full installation
@@ -8287,6 +8289,9 @@ _internal:
   previous_values: '{{ omit (lookup "v1" "Secret" .Release.Namespace "sylva-units-values" | dig "data" "values" "" | b64dec | fromYaml | default dict) "unit_templates" | include "preserve-type" }}'
 
   immutable_values:
+    cluster_virtual_ip: 
+      _immutable: true
+      _immutable_comment: "Changing ip is not allowed"
     cluster:
       name:
         _immutable: true
@@ -8298,6 +8303,9 @@ _internal:
         infra_provider:
           _immutable: true
           _immutable_comment: "Underlying infrastructure of a running cluster can't be changed"
+      cluster_cluster_ip:
+        _immutable: true
+        _immutable_comment: "Changing ip is not allowed"
       _immutable: '{{ not .Values._internal.ha_cluster.is_ha | include "preserve-type" }}'
       _immutable_comment: "Cluster values can't be changed, as they would trigger a rolling upgrade that is not supported in non-HA mode"
 
