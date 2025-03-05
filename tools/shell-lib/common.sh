@@ -410,37 +410,6 @@ EOC
   fi
 }
 
-function display_service_ingresses() {
-    # Declare an array to store GUI ingresses
-    gui_ingresses=()
-
-    # Read ingress details and process them
-    while read -r namespace ingress_name ingress_host; do
-        # Extract the unit name using labels from the ingress resource
-        unit_name=$(kubectl --kubeconfig management-cluster-kubeconfig get ingress "$ingress_name" -n "$namespace" -o jsonpath='{.metadata.labels}' | yq '."helm.toolkit.fluxcd.io/name" // ."kustomize.toolkit.fluxcd.io/name" // ."app.kubernetes.io/name"')
-
-        # Check if any label starting/ending with "sylva-gui-list-" exists
-        label_present=$(kubectl --kubeconfig management-cluster-kubeconfig get kustomization "$unit_name" -n sylva-system \
-        -o json | jq  --arg ingress_name "$ingress_name"  '.metadata.labels | keys[] | select(endswith("sylva-gui-list-service-\($ingress_name)") or startswith("sylva-gui-list-services"))' 2>/dev/null)
-
-        if [ -n "$label_present" ]; then
-            if [[ "$unit_name" =~ "$ingress_name" ]]; then
-                gui_ingresses+=("$ingress_name: https://$ingress_host")
-            else
-                gui_ingresses+=("$unit_name - $ingress_name: https://$ingress_host")
-            fi
-        fi
-    done < <(kubectl --kubeconfig management-cluster-kubeconfig get ingress -A -o custom-columns='NAMESPACE:.metadata.namespace,NAME:.metadata.name,HOSTS:.spec.rules[*].host' --no-headers)
-
-    # Output GUI ingresses
-    if [ ${#gui_ingresses[@]} -gt 0 ]; then
-        echo "GUIs:"
-        for ingress in "${gui_ingresses[@]}"; do
-            echo "* $ingress"
-        done
-    fi
-}
-
 function display_final_messages() {
   CALLER_SCRIPT_NAME=$(basename ${BASH_SOURCE[1]})
   if [[ $CALLER_SCRIPT_NAME != *"apply-workload-cluster.sh"* ]]; then
@@ -451,7 +420,7 @@ function display_final_messages() {
 
   if [[ $CALLER_SCRIPT_NAME == *"bootstrap.sh"* ]]; then
     echo_b "\U0001F331 You can access following UIs"
-    display_service_ingresses
+    kubectl --kubeconfig management-cluster-kubeconfig get ingress --all-namespaces
   fi
   echo_b "\U0001F389 All done"
 }
