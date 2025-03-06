@@ -121,7 +121,7 @@ spec:
           template:
             metadata:
               annotations:
-                sylva.org/triggerrestaart: "{{request.object.metadata.resourceVersion}}"
+                sylva.org/triggerrestart: "{{request.object.metadata.resourceVersion}}"
     skipBackgroundRequests: false
   validationFailureAction: Audit
 ---
