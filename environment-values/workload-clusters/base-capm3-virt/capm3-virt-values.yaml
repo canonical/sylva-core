@@ -1,3 +1,5 @@
+cluster_domain: '{{ .Values.cluster.name }}.wclusters.sylva'
+
 cluster_virtual_ip: 192.168.100.3
 
 cluster:

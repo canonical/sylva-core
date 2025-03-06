@@ -2290,7 +2290,7 @@ units:
         - '{{ tuple "components/neuvector-policies" (tuple . "neuvector" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/deny-cabundle-changes" (tuple . "cert-manager" | include "unit-enabled") | include "set-only-if" }}'
         - ../exclude-kube-system  # needs to be last (needed for components above that use sylva.org/kyverno-exclude-kube-system annotation)
-        - '{{ tuple "components/coredns-custom-hosts-import" (tuple . "cabpoa" | include "unit-enabled") | include "set-only-if" }}'
+        - '{{ tuple "components/coredns-custom-hosts-import" (or (tuple . "neuvector" | include "unit-enabled") (tuple . "cabpoa" | include "unit-enabled")) | include "set-only-if" }}'
 
   kyverno-policies-ready:
     info:
@@ -7666,16 +7666,26 @@ units:
     unit_templates:
     - base-deps
     enabled_conditions:
-      - '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpoa" }}'
+      - '{{
+           or (tuple . "neuvector" | include "unit-enabled")
+              (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpoa")
+           }}'
     repo: sylva-core
     kustomization_spec:
       path: ./kustomize-units/coredns-custom-hosts-import
+      _components:
+        - '{{ tuple "components/okd" (tuple . "cabpoa" | include "unit-enabled") | include "set-only-if" }}'
+        - '{{ tuple "components/neuvector-federation" (tuple . "neuvector" | include "unit-enabled") | include "set-only-if" }}'
       postBuild:
         substitute:
           NAMESPACE: '{{ .Release.Namespace }}'
           CLUSTER_NAME: '{{ .Values.cluster.name }}'
           CLUSTER_VIRTUAL_IP: '{{ .Values.cluster_virtual_ip }}'
           CLUSTER_OKD_BASE_DOMAIN: '{{ .Values.cluster.openshift.baseDomain }}'
+          CLUSTER_DOMAIN: '{{ .Values.cluster_domain }}'
+          MGMT_NEUVECTOR_FEDERATION_MASTER_HOSTNAME: '{{ .Values._internal.mgmt_neuvector_federation_master }}'
+          NEUVECTOR_FEDERATION_MANAGED_HOSTNAME: '{{ .Values.external_hostnames.neuvector_federation_managed }}'
+
 
 
 ##### stuff related to the 'cluster' unit #####

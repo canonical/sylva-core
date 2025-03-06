@@ -19,7 +19,7 @@
           echo $access_ip $i >> /etc/hosts
         done
       fi
-      if [[ ${DEPLOY_WORKLOAD_CLUSTER} == 'true' ]]; then
+      if [[ ${DEPLOY_WORKLOAD_CLUSTER} == 'true' && -f workload-cluster-kubeconfig ]]; then
         wkld_domain=$(kubectl --kubeconfig management-cluster-kubeconfig -n $ENV_NAME get secret sylva-units-values -oyaml | yq '.data.values | @base64d' | yq '.cluster_domain')
         echo $wkld_domain
         if [[ $wkld_domain = *.sylva ]]; then
