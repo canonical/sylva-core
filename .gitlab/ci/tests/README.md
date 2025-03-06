@@ -80,6 +80,7 @@ By following these guidelines, developers can effectively contribute to the Sylv
 | Name | Description |
 |------|-------------|
 | `mgmt-image-ref-report`|Generate a list of all images used during the deployment and upload it as an artifact.|
+| `mgmt-validate-logging`|Verify logging stack is enabled by querying recent logs using logcli in the management cluster.|
 | `mgmt-GUIs-test`|Test basic authentication login against the GUI.|
 | `mgmt-sso`|Test Single Sign-On login against the GUI.|
 | `mgmt-login`|Run Hurl Login Tests.|
@@ -101,6 +102,7 @@ By following these guidelines, developers can effectively contribute to the Sylv
 | Name | Description |
 |------|-------------|
 | `wkld-image-ref-report` | Generate a list of all images used during the deployment and upload it as an artifact. |
+| `wkld-validate-logging` | Verify logging stack is enabled by querying recent logs using logcli in the workload cluster. |
 | `wkld-sso-kubeconfig` | Obtain the workload-cluster-kubeconfig through the Rancher UI and use it to create a pod. |
 | `wkld-no-sso-kubeconfig` | Obtain the workload-cluster-kubeconfig through the Rancher API and use it to create a pod. |
 | `wkld-login` | Run Hurl Login Tests. |
