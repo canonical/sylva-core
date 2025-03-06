@@ -7886,7 +7886,7 @@ vsphere:
           datacenters:
             - '{{ .Values.cluster.capv.dataCenter }}'
 
-cluster_virtual_ip: ''
+cluster_virtual_ip: '55.55.55.55'
 
 # Admin password that will be configured by default on various units  # FIXME, only used for SSO today see https://gitlab.com/sylva-projects/sylva-core/-/issues/503
 # [WARNING] This value cannot be overwritten on production environment (env_type: prod)
@@ -7915,7 +7915,7 @@ flux_webui:
 #display_external_ip: '{{ .Values.openstack.floating_ip | eq "" | ternary .Values.cluster_virtual_ip .Values.openstack.floating_ip }}'
 display_external_ip: '{{ not (empty .Values.openstack.floating_ip) | ternary .Values.openstack.floating_ip .Values.cluster_virtual_ip}}'
 #display_external_ip_msg: '{{ .Values.display_external_ip }}'
-display_external_ip_msg: '{{ empty .Values.display_external_ip | ternary "It must resolve to the IP used to reach the cluster" (printf "It must resolve to %s" .Values.display_external_ip ) }}'
+display_external_ip_msg: '{{ .Values.display_external_ip | eq "55.55.55.55" | ternary "It must resolve to the IP used to reach the cluster" (printf "It must resolve to %s" .Values.display_external_ip ) }}'
 
 cluster_domain: sylva
 
