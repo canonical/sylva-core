@@ -8106,7 +8106,7 @@ k8s_version_short: "1.31"
 
 # Renovate Bot needs additional information to detect sylva diskimage-builder version
 # renovate: depName=sylva-projects/sylva-elements/diskimage-builder
-sylva_diskimagebuilder_version: 0.0.0-git-098dca5b
+sylva_diskimagebuilder_version: 0.4.6
 
 # 'sylva_diskimagebuilder_images' determines which images will be available for CAPO and CAPM3
 # via 'os_image_selector' or 'image_keys'
@@ -8203,7 +8203,7 @@ security:
   calico_wireguard_enabled: false  # disable wireguard by default
   neuvector_scanning_enabled: false # disable Neuvector scanning capability by default
   os_images:
-    skip_signing_check: true
+    skip_signing_check: false
     cosign_public_key: '{{ .Values.security.default_cosign_public_key }}'
   oci_artifacts:
     skip_signing_check: false
