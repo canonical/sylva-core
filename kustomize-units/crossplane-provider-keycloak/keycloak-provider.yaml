@@ -5,7 +5,7 @@ metadata:
   name: provider-keycloak
   namespace: crossplane-system
 spec:
-  package: xpkg.upbound.io/crossplane-contrib/provider-keycloak:v1.6.0
+  package: xpkg.upbound.io/crossplane-contrib/provider-keycloak:v1.12.0
   runtimeConfigRef:
     name: provider-runtime-config
 ---

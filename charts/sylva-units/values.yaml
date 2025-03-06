@@ -1766,6 +1766,8 @@ units:
       install:
         createNamespace: false
       values:
+        webhooks:
+          enabled: false
         extraVolumesCrossplane:
           - name: sylva-ca-crt
             secret:
@@ -1775,6 +1777,7 @@ units:
             mountPath: /etc/ssl/certs/ca.crt
             subPath: ca.crt
         extraEnvVarsCrossplane:
+          WEBHOOK_ENABLED: false
           HTTP_PROXY: '{{ .Values.proxies.http_proxy | default "" }}'
           HTTPS_PROXY: '{{ .Values.proxies.https_proxy | default "" }}'
           NO_PROXY: '{{ include "sylva-units.no_proxy" (tuple .) }}'
