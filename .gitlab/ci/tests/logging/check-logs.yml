@@ -1,0 +1,53 @@
+---
+
+# Retrieve logs from loki using logcli
+
+.check-logging-base:
+  script:
+    - unset https_proxy http_proxy
+    - !reference [.test_scripts, edit_hosts_file]
+    - |
+      if kubectl get namespace loki >/dev/null 2>&1; then
+        echo "Loki namespace exists. Running tests..."
+      else
+        echo "Loki namespace does not exist. Exiting successfully."
+        exit 0
+      fi
+    - export LOKI_ADDR=https://$(kubectl --kubeconfig management-cluster-kubeconfig get ingress -n loki loki-gateway -o jsonpath='{ .spec.tls[].hosts[]}')
+    - |
+      if [[ -n $CHECK_WORKLOAD_CLUSTER ]]; then
+        NAMESPACE=$ENV_NAME
+        CLUSTER_NAME=$WORKLOAD_CLUSTER_NAME
+      else
+        NAMESPACE=sylva-system
+        CLUSTER_NAME=$MANAGEMENT_CLUSTER_NAME
+      fi
+    - export LOKI_USERNAME=$(kubectl --kubeconfig management-cluster-kubeconfig  get secrets -n $NAMESPACE sylva-units-values -o yaml | yq .data.values | base64 -d | yq ._internal.loki_user)
+    - export LOKI_PASSWORD=$(kubectl --kubeconfig management-cluster-kubeconfig get secrets -n $NAMESPACE sylva-units-values -o yaml | yq .data.values | base64 -d | yq ._internal.loki_password)
+    - export LOKI_ORG_ID=$LOKI_USERNAME
+    - logcli query --quiet --output=raw --since=1h --limit=20 "{cluster=\"$CLUSTER_NAME\"} | json | line_format \"{{.message}}\"" --tls-skip-verify > logcli.log
+    - |
+      if [ ! -s logcli.log ]; then
+        echo "ERROR: logcli.log is empty. Query might have failed or returned no logs."
+        exit 1
+      fi
+  artifacts:
+    expire_in: 48 hour
+    when: always
+    paths:
+      - logcli.log
+
+mgmt-validate-logging:
+  extends:
+    - .test-base-management-cluster
+    - .check-logging-base
+  variables:
+    DESCRIPTION: Verify logging stack is enabled by querying recent logs using logcli in the management cluster.
+
+wkld-validate-logging:
+  extends:
+    - .test-base-workload-cluster
+    - .check-logging-base
+  variables:
+    CHECK_WORKLOAD_CLUSTER: "true"
+    DESCRIPTION: Verify logging stack is enabled by querying recent logs using logcli in the workload cluster.
