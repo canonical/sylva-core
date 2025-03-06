@@ -169,7 +169,7 @@ function ensure_flux {
 
 function ensure_sylva_toolbox {
     if ! command -v docker >/dev/null; then
-        echo "You must install docker prior to launch sylva"
+        echo "Docker is a prerequisite for the installation of sylva-toolbox"
         exit 1
     fi
     if [[ ! -f  ${BASE_DIR}/bin/sylva-toolbox-version || $(awk -F : '$1=="sylva-toolbox" {print $2}' ${BASE_DIR}/bin/sylva-toolbox-version) != $SYLVA_TOOLBOX_VERSION ]]; then
