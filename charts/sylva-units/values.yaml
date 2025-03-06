@@ -7913,8 +7913,8 @@ flux_webui:
   admin_user: admin
 
 display_external_ip: '{{ .Values.openstack.floating_ip | eq "" | ternary .Values.cluster_virtual_ip .Values.openstack.floating_ip }}'
-display_external_ip_msg: '{{ .Values.display_external_ip | default "No Value Set" }}'
-#display_external_ip_msg: '{{ empty .Values.display_external_ip | ternary "It must resolve to the IP used to reach the cluster" (printf "It must resolve to %s" .Values.display_external_ip ) }}'
+display_external_ip_msg: '{{ .Values.display_external_ip | b64enc }}'
+#display_external_ip_msg: '{{ empty .Values.display_external_ip | ternary "It must resolve to the IP used to reach the cluster" (printf "It must resolve to %v" .Values.display_external_ip ) }}'
 
 cluster_domain: sylva
 
