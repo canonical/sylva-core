@@ -663,7 +663,7 @@ properties:
     pattern: "^(unix|tcp)://.*"
 
   sriov: # -------------------------------
-    # the values are values of the sylva-capi-cluster chart
+    # the values are values of the sriov-resources chart
     # https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sriov-resources
     $ref: "#/$defs/sriov-resources-values"
 
