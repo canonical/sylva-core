@@ -8407,8 +8407,8 @@ _internal:
 
   metallb_service_annotations:
     '{{
-    tuple (dict "metallb.universe.tf/loadBalancerIPs" .Values.cluster_virtual_ip
-                "metallb.universe.tf/allow-shared-ip" "cluster-external-ip")
+    tuple (dict "metallb.io/loadBalancerIPs" .Values.cluster_virtual_ip
+                "metallb.io/allow-shared-ip" "cluster-external-ip")
           (or (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpr")
               (tuple . "metallb" | include "unit-enabled"))
       | include "set-only-if"
