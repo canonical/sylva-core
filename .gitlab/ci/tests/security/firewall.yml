@@ -53,6 +53,7 @@ mgmt-firewall-verify:
     CLUSTER_DIRECTORY: management-cluster-dump
     WHITE_LIST: "SPT=6443" # variable containing a regexp to detect known corner cases
                            # 1. case of ACK packets from the kube-apiserver of a workload cluster
+    DESCRIPTION: Check for packets received by the management cluster which didn't match any network policy
   image: registry.gitlab.com/sylva-projects/sylva-elements/container-images/ci-image/ci-systemd-image:v1.0.58
   artifacts:
     expire_in: 48 hour
@@ -75,6 +76,7 @@ wkld-firewall-verify:
   variables:
     FIREWALL_LOG_FILE: workload-firewall.log
     CLUSTER_DIRECTORY: workload-cluster-dump
+    DESCRIPTION: Check for packets received by the workload cluster which didn't match any network policy
   image: registry.gitlab.com/sylva-projects/sylva-elements/container-images/ci-image/ci-systemd-image:v1.0.58
   artifacts:
     expire_in: 48 hour
