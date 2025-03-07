@@ -7542,7 +7542,6 @@
                       },
                       "required": [
                         "nicSelector",
-                        "nodeSelector",
                         "numVfs",
                         "resourceName"
                       ]
