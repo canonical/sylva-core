@@ -4061,7 +4061,6 @@ units:
               memory: "300Mi"
             limits:
               memory: "1Gi"
-
     kustomization_spec:
       healthChecks:
         - apiVersion: apps/v1
