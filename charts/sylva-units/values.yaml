@@ -4058,7 +4058,7 @@ units:
             enabled: false
           resources:
             requests:
-              memory: "500Mi"
+              memory: "300Mi"
             limits:
               memory: "1Gi"
 
