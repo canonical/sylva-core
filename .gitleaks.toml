@@ -15,6 +15,7 @@ useDefault = true
 [allowlist]
 
 paths = [
+    '''charts/sylva-units/values\.schema\..*''',
     '''environment-values/base/secrets.yaml''',
     '''kustomize-units/kubevirt-manager/kubevirt-manager-secret.yaml''',
     '''sops-howto.md'''
