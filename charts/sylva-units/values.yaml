@@ -6084,7 +6084,10 @@ units:
     info:
       description: installs Kunai
       details: |-
-        [Kunai](https://gitlab.com/sylva-projects/sylva-elements/kunai)
+        The integration of [Kunai](https://gitlab.com/sylva-projects/sylva-elements/kunai) at this stage should be considered experimental.
+        
+        Work is in progress to align its integration with workload-cluster-operator and workload-teams-defs.
+        See https://gitlab.com/groups/sylva-projects/-/epics/58.
       maturity: beta
     enabled: false
     unit_templates:
