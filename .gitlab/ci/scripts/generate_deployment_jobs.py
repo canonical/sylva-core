@@ -147,7 +147,7 @@ def get_ci_configuration_from_context():
         comment_bot = get_current_user(HEADERS)
         comment_bot_id = comment_bot["id"]
         comment_bot_name = comment_bot["name"]
-
+        logging.info(f"{comment_bot_name}")
         user_comments = get_mr_comments(
             GITLAB_PROJECT_ID, GITLAB_MR_ID, HEADERS,
             lambda comment: comment["author"]["id"] == comment_bot_id)
