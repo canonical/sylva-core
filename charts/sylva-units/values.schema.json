@@ -7298,92 +7298,6 @@
         }
       }
     },
-    "unit_info": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "description"
-      ],
-      "properties": {
-        "description": {
-          "type": "string"
-        },
-        "details": {
-          "type": "string"
-        },
-        "internal": {
-          "type": "boolean"
-        },
-        "test": {
-          "type": "boolean"
-        },
-        "maturity": {
-          "type": "string",
-          "enum": [
-            "core-component",
-            "stable",
-            "beta",
-            "experimental"
-          ]
-        },
-        "version": {
-          "type": "string"
-        },
-        "hidden": {
-          "type": "boolean"
-        },
-        "kustomization_path": {
-          "type": "string"
-        }
-      }
-    },
-    "certificate": {
-      "type": "string",
-      "pattern": "^-----BEGIN CERTIFICATE-----"
-    },
-    "cert-and-key": {
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "cert": {
-          "$ref": "#/$defs/certificate"
-        },
-        "key": {
-          "type": "string",
-          "pattern": "^-----BEGIN PRIVATE KEY-----"
-        }
-      },
-      "anyOf": [
-        {
-          "required": [
-            "cert",
-            "key"
-          ]
-        },
-        {
-          "allOf": [
-            {
-              "not": {
-                "required": [
-                  "cert"
-                ]
-              }
-            },
-            {
-              "not": {
-                "required": [
-                  "key"
-                ]
-              }
-            }
-          ]
-        }
-      ]
-    },
-    "pub-key": {
-      "type": "string",
-      "pattern": "^-----BEGIN PUBLIC KEY-----"
-    },
     "sriov-resources-values": {
       "$schema": "https://json-schema.org/draft-07/schema#",
       "title": "Schema for sriov-resources chart values",
@@ -7566,6 +7480,92 @@
           ]
         }
       }
+    },
+    "unit_info": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "description"
+      ],
+      "properties": {
+        "description": {
+          "type": "string"
+        },
+        "details": {
+          "type": "string"
+        },
+        "internal": {
+          "type": "boolean"
+        },
+        "test": {
+          "type": "boolean"
+        },
+        "maturity": {
+          "type": "string",
+          "enum": [
+            "core-component",
+            "stable",
+            "beta",
+            "experimental"
+          ]
+        },
+        "version": {
+          "type": "string"
+        },
+        "hidden": {
+          "type": "boolean"
+        },
+        "kustomization_path": {
+          "type": "string"
+        }
+      }
+    },
+    "certificate": {
+      "type": "string",
+      "pattern": "^-----BEGIN CERTIFICATE-----"
+    },
+    "cert-and-key": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "cert": {
+          "$ref": "#/$defs/certificate"
+        },
+        "key": {
+          "type": "string",
+          "pattern": "^-----BEGIN PRIVATE KEY-----"
+        }
+      },
+      "anyOf": [
+        {
+          "required": [
+            "cert",
+            "key"
+          ]
+        },
+        {
+          "allOf": [
+            {
+              "not": {
+                "required": [
+                  "cert"
+                ]
+              }
+            },
+            {
+              "not": {
+                "required": [
+                  "key"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "pub-key": {
+      "type": "string",
+      "pattern": "^-----BEGIN PUBLIC KEY-----"
     }
   },
   "additionalProperties": false,
@@ -8334,65 +8334,7 @@
       "pattern": "^(unix|tcp)://.*"
     },
     "sriov": {
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "node_policies": {
-          "type": "object",
-          "additionalProperties": {
-            "type": "object",
-            "additionalProperties": false,
-            "required": [
-              "resourceName",
-              "numVfs",
-              "nicSelector",
-              "deviceType"
-            ],
-            "properties": {
-              "nodeSelector": {
-                "type": "object"
-              },
-              "resourceName": {
-                "type": "string",
-                "pattern": "^[a-z0-9][a-z0-9_.]*[a-z0-9]$"
-              },
-              "numVfs": {
-                "type": "integer"
-              },
-              "deviceType": {
-                "type": "string",
-                "pattern": "^(netdevice|vfio-pci)$"
-              },
-              "nicSelector": {
-                "type": "object",
-                "additionalProperties": false,
-                "minProperties": 1,
-                "properties": {
-                  "deviceID": {
-                    "type": "string"
-                  },
-                  "vendor": {
-                    "type": "string",
-                    "pattern": "^[0-9a-f]{4}$"
-                  },
-                  "pfNames": {
-                    "type": "array",
-                    "items": {
-                      "type": "string"
-                    }
-                  },
-                  "rootDevices": {
-                    "type": "array",
-                    "items": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
+      "$ref": "#/$defs/sriov-resources-values"
     },
     "k8s_version_short": {
       "type": "string",
