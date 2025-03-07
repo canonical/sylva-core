@@ -14,19 +14,12 @@ SYLVA_TOOLBOX_REGISTRY=${SYLVA_TOOLBOX_REGISTRY:-${SYLVA_BASE_OCI_REGISTRY}/sylv
 export KIND_POD_SUBNET=${KIND_POD_SUBNET:-100.100.0.0/16}
 export KIND_SVC_SUBNET=${KIND_SVC_SUBNET:-100.96.0.0/16}
 
-export CURRENT_COMMIT=$(git rev-parse HEAD)
-export SYLVA_CORE_REPO=${SYLVA_CORE_REPO:-$(git remote get-url origin | sed 's|^git@\([^:]\+\):|https://\1/|' | sed 's|gitlab-ci-token.*@||')}
-
 if [[ -n "${CI_JOB_NAME:-}" ]]; then
   export IN_CI=1
   SYLVACTL_SAVE=1
   CHECK_TEST_UNITS=1
 else
   export IN_CI=0
-fi
-
-if [[ -f ${BASE_DIR}/sylva.env ]]; then
-  source ${BASE_DIR}/sylva.env
 fi
 
 function check_args() {
@@ -39,15 +32,31 @@ function check_args() {
   fi
 }
 
-if ! python3 -c 'import yaml' &>/dev/null; then
-    echo "PyYAML python package is required to run this script, install it on your system and start over."
-    exit 1
-fi
+function sylva_init {
+  export CURRENT_COMMIT=$(git rev-parse HEAD)
+  export SYLVA_CORE_REPO=${SYLVA_CORE_REPO:-$(git remote get-url origin | sed 's|^git@\([^:]\+\):|https://\1/|' | sed 's|gitlab-ci-token.*@||')}
 
-if ! python3 -c 'import yamllint' &>/dev/null; then
-    echo "yamllint python package is required to run this script, install it on your system and start over."
-    exit 1
-fi
+  if [[ -f ${BASE_DIR}/sylva.env ]]; then
+    source ${BASE_DIR}/sylva.env
+  fi
+
+  if ! python3 -c 'import yaml' &>/dev/null; then
+      echo "PyYAML python package is required to run this script, install it on your system and start over."
+      exit 1
+  fi
+
+  if ! python3 -c 'import yamllint' &>/dev/null; then
+      echo "yamllint python package is required to run this script, install it on your system and start over."
+      exit 1
+  fi
+}
+
+function apply_scripts_init {
+  sylva_init
+  ensure_sylva_toolbox
+  ensure_sylvactl
+  trap exit_trap EXIT
+}
 
 
 function _kustomize {

@@ -2,9 +2,7 @@
 
 source tools/shell-lib/common.sh
 
-ensure_sylva_toolbox
-ensure_sylvactl
-trap exit_trap EXIT
+apply_scripts_init
 
 check_args
 
