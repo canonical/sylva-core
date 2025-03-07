@@ -36,18 +36,15 @@ spec:
     - message: "An image tag is required.Using a mutable image tag e.g. 'latest' is not allowed."
       expression: >-
           (
-              (has(variables.objectSpec.containers) ? variables.objectSpec.containers : []) +
-              (has(variables.objectSpec.initContainers) ? variables.objectSpec.initContainers : []) +
-              (has(variables.objectSpec.ephemeralContainers) ? variables.objectSpec.ephemeralContainers : []) +
-              (has(variables.objectSpec.template) && has(variables.objectSpec.template.spec.containers) ? variables.objectSpec.template.spec.containers : []) +
-              (has(variables.objectSpec.template) && has(variables.objectSpec.template.spec.initContainers) ? variables.objectSpec.template.spec.initContainers : []) +
-              (has(variables.objectSpec.template) && has(variables.objectSpec.template.spec.ephemeralContainers) ? variables.objectSpec.template.spec.ephemeralContainers : []) +
-              (has(variables.objectSpec.jobTemplate) && has(variables.objectSpec.jobTemplate.spec.template) &&
-               has(variables.objectSpec.jobTemplate.spec.template.spec.containers) ? variables.objectSpec.jobTemplate.spec.template.spec.containers : []) +
-              (has(variables.objectSpec.jobTemplate) && has(variables.objectSpec.jobTemplate.spec.template) &&
-               has(variables.objectSpec.jobTemplate.spec.template.spec.initContainers) ? variables.objectSpec.jobTemplate.spec.template.spec.initContainers : []) +
-              (has(variables.objectSpec.jobTemplate) && has(variables.objectSpec.jobTemplate.spec.template) &&
-               has(variables.objectSpec.jobTemplate.spec.template.spec.ephemeralContainers) ? variables.objectSpec.jobTemplate.spec.template.spec.ephemeralContainers : [])
+              (variables.objectSpec.?containers.orValue([])) +
+              (variables.objectSpec.?initContainers.orValue([])) +
+              (variables.objectSpec.?ephemeralContainers.orValue([])) +
+              (variables.objectSpec.?template.spec.containers.orValue([])) +
+              (variables.objectSpec.?template.spec.initContainers.orValue([])) +
+              (variables.objectSpec.?template.spec.ephemeralContainers.orValue([])) +
+              (variables.objectSpec.?jobTemplate.spec.template.spec.containers.orValue([])) +
+              (variables.objectSpec.?jobTemplate.spec.template.spec.initContainers.orValue([])) +
+              (variables.objectSpec.?jobTemplate.spec.template.spec.ephemeralContainers.orValue([]))
           ).all(container,
               container.image.contains(':') &&
               !(container.image.endsWith(':latest')) &&

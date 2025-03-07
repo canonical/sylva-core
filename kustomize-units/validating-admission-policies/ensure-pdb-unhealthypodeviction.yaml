@@ -25,7 +25,7 @@ spec:
     - name: 'is-create-or-update-or-background'
       expression: '!has(request.operation) || request.operation in ["CREATE", "UPDATE", "BACKGROUND"]'
   validations:
-    - expression: "has(object.spec.unhealthyPodEvictionPolicy) && object.spec.unhealthyPodEvictionPolicy == 'AlwaysAllow'"
+    - expression: "object.spec.?unhealthyPodEvictionPolicy.orValue('') == 'AlwaysAllow'"
       message: >-
         The matching PodDisruptionBudget for this resource has its unhealthyPodEvictionPolicy value different from
         'AlwaysAllow' which is not permitted.
