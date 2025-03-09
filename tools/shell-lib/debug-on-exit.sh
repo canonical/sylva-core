@@ -447,7 +447,10 @@ if [[ $(kind get clusters) =~ $KIND_CLUSTER_NAME ]]; then
   crust_gather_collect bootstrap &
   cluster_info_dump bootstrap
   echo -e "\nDump bootstrap node logs"
-  docker ps -q -f name=control-plane* | xargs -I % -r docker exec % journalctl -e > bootstrap-cluster-dump/bootstrap_node.log
+  for c in $(docker ps -a --format '{{.Names}}' | grep -E 'control-plane|lb'); do
+    docker exec $c journalctl -e > bootstrap-cluster-dump/docker-$c-systemd-logs.log &
+    docker logs $c > bootstrap-cluster-dump/docker-$c-container-logs.log &
+  done
 
   wait
 fi
