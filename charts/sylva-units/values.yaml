@@ -2974,6 +2974,14 @@ units:
                         extraArgs:
                         - feature-gates=ValidatingAdmissionPolicy=true
                         - runtime-config=admissionregistration.k8s.io/v1beta1
+                        extraConfig:
+                          resources:
+                            requests:
+                              memory: "2Gi"
+                              cpu: "500m"
+                            limits:
+                              memory: "3Gi"
+                              cpu: "1"
               - target:
                   kind: KubeadmControlPlane
                 patch: |
