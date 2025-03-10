@@ -1040,7 +1040,7 @@ units:
       '{{ .Values._internal.default_storage_class_unit }}': true
       harbor-postgres: true
     annotations:
-      sylvactl/readyMessage: "Harbor UI can be reached at https://{{ .Values.external_hostnames.harbor }} ({{ .Values.external_hostnames.harbor }} must resolve to {{ .Values.display_external_ip }})"
+      sylvactl/readyMessage: "Harbor UI can be reached at https://{{ .Values.external_hostnames.harbor }} ({{ .Values.display_external_ip_msg }})"
     labels:
       sylva-gui-list-services: ""
     helm_repo_url: https://helm.goharbor.io
@@ -1193,7 +1193,7 @@ units:
       '{{ .Values._internal.default_storage_class_unit }}': true
       vault-operator: true
     annotations:
-      sylvactl/readyMessage: "Vault UI can be reached at https://{{ .Values.external_hostnames.vault }} ({{ .Values.external_hostnames.vault }} must resolve to {{ .Values.display_external_ip }})"
+      sylvactl/readyMessage: "Vault UI can be reached at https://{{ .Values.external_hostnames.vault }} ({{ .Values.display_external_ip_msg }})"
     labels:
       sylva-gui-list-services: ""
     repo: sylva-core
@@ -1490,7 +1490,7 @@ units:
       kyverno-policies-ready: true
       ingress-nginx: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpk" }}'
     annotations:
-      sylvactl/readyMessage: "Neuvector UI can be reached at https://{{ .Values.external_hostnames.neuvector }} ({{ .Values.external_hostnames.neuvector }} must resolve to {{ .Values.display_external_ip }})"
+      sylvactl/readyMessage: "Neuvector UI can be reached at https://{{ .Values.external_hostnames.neuvector }} ({{ .Values.display_external_ip_msg }})"
     helm_repo_url: https://neuvector.github.io/neuvector-helm
     helm_chart_artifact_name: neuvector-core
     helmrelease_spec:
@@ -1719,7 +1719,7 @@ units:
       keycloak-postgres: true
       synchronize-secrets: true # make sure that the secret keycloak-initial-admin is ready to be consummed
     annotations:
-      sylvactl/readyMessage: "Keycloak admin console can be reached at https://{{ .Values.external_hostnames.keycloak }}/admin/master/console, user 'admin', password in Vault at secret/keycloak ({{ .Values.external_hostnames.keycloak }} must resolve to {{ .Values.display_external_ip }})"
+      sylvactl/readyMessage: "Keycloak admin console can be reached at https://{{ .Values.external_hostnames.keycloak }}/admin/master/console, user 'admin', password in Vault at secret/keycloak ({{ .Values.display_external_ip_msg }})"
     labels:
       sylva-gui-list-services: ""
     repo: sylva-core
@@ -3620,7 +3620,7 @@ units:
       ingress-nginx: '{{ tuple . "ingress-nginx" | include "unit-enabled" }}'
       synchronize-secrets: true
     annotations:
-      sylvactl/readyMessage: "Rancher UI can be reached at https://{{ .Values.external_hostnames.rancher }} ({{ .Values.external_hostnames.rancher }} must resolve to {{ .Values.display_external_ip }})"
+      sylvactl/readyMessage: "Rancher UI can be reached at https://{{ .Values.external_hostnames.rancher }} ({{ .Values.display_external_ip_msg }})"
     labels:
       sylva-gui-list-services: ""
     helm_repo_url: https://releases.rancher.com/server-charts/stable
@@ -4129,7 +4129,7 @@ units:
       keycloak-oidc-external-secrets: '{{ tuple . "keycloak" | include "unit-enabled" }}'
       flux-webui-init: true
     annotations:
-      sylvactl/readyMessage: "Flux Web UI can be reached at https://{{ .Values.external_hostnames.flux }} ({{ .Values.external_hostnames.flux }} must resolve to {{ .Values.display_external_ip }})"
+      sylvactl/readyMessage: "Flux Web UI can be reached at https://{{ .Values.external_hostnames.flux }} ({{ .Values.display_external_ip_msg }})"
     labels:
       sylva-gui-list-services: ""
     repo: weave-gitops
@@ -5880,7 +5880,7 @@ units:
       namespace-defs: true
       '{{ .Values._internal.default_storage_class_unit }}': true
     annotations:
-      sylvactl/readyMessage: "Gitea can be reached at https://{{ .Values.external_hostnames.gitea }} ({{ .Values.external_hostnames.gitea }} must resolve to {{ .Values.display_external_ip }})"
+      sylvactl/readyMessage: "Gitea can be reached at https://{{ .Values.external_hostnames.gitea }} ({{ .Values.display_external_ip_msg }})"
     helm_repo_url: https://dl.gitea.com/charts/
     helmrelease_spec:
       chart:
@@ -6203,7 +6203,7 @@ units:
       minio-operator-init: true
       ingress-nginx: '{{ tuple . "ingress-nginx" | include "unit-enabled" }}'
     annotations:
-      sylvactl/readyMessage: "minio operator console can be reached at https://{{ .Values.external_hostnames.minio_operator_console }} ({{ .Values.external_hostnames.minio_operator_console }} must resolve to {{ .Values.display_external_ip }})"
+      sylvactl/readyMessage: "minio operator console can be reached at https://{{ .Values.external_hostnames.minio_operator_console }} ({{ .Values.display_external_ip_msg }})"
     labels:
       sylva-gui-list-service-minio-operator-console: ""
     repo: minio-operator
@@ -6338,7 +6338,7 @@ units:
       two-replicas-storageclass: '{{ tuple . "two-replicas-storageclass" | include "unit-enabled" }}'
       '{{ .Values._internal.default_storage_class_unit }}': '{{ not (tuple . "two-replicas-storageclass" | include "unit-enabled") }}'
     annotations:
-      sylvactl/readyMessage: MinIO logging tenant console can be reached at https://{{ .Values.external_hostnames.minio_logging_console }} ({{ .Values.external_hostnames.minio_logging_console }} must resolve to {{ .Values.display_external_ip }})
+      sylvactl/readyMessage: "MinIO logging tenant console can be reached at https://{{ .Values.external_hostnames.minio_logging_console }} ({{ .Values.display_external_ip_msg }})"
     repo: minio-operator
     helmrelease_spec:
       targetNamespace: minio-logging
@@ -6522,7 +6522,7 @@ units:
       two-replicas-storageclass: '{{ tuple . "two-replicas-storageclass" | include "unit-enabled" }}'
       '{{ .Values._internal.default_storage_class_unit }}': '{{ not (tuple . "two-replicas-storageclass" | include "unit-enabled") }}'
     annotations:
-      sylvactl/readyMessage: MinIO monitoring tenant console can be reached at https://{{ .Values.external_hostnames.minio_monitoring_console }} ({{ .Values.external_hostnames.minio_monitoring_console }} must resolve to {{ .Values.display_external_ip }})
+      sylvactl/readyMessage: "MinIO monitoring tenant console can be reached at https://{{ .Values.external_hostnames.minio_monitoring_console }} ({{ .Values.display_external_ip_msg }})"
     labels:
       sylva-gui-list-service-monitoring-console: ""
     repo: minio-operator
@@ -6728,7 +6728,7 @@ units:
       '{{ .Values._internal.default_storage_class_unit }}': true
       ingress-nginx: '{{ tuple . "ingress-nginx" | include "unit-enabled" }}'
     annotations:
-      sylvactl/readyMessage: Thanos UI can be reached at https://{{ .Values.external_hostnames.thanos }} ({{ .Values.external_hostnames.thanos }} must resolve to {{ .Values.display_external_ip }})
+      sylvactl/readyMessage: "Thanos UI can be reached at https://{{ .Values.external_hostnames.thanos }} ({{ .Values.display_external_ip_msg }})"
     labels:
       sylva-gui-list-service-thanos-query: ""
     repo: bitnami-thanos
@@ -7213,7 +7213,7 @@ units:
     enabled_conditions:
       - '{{ tuple . "logging" | include "unit-enabled" }}'
     annotations:
-      sylvactl/readyMessage: "Loki can be reached at https://{{ .Values.external_hostnames.loki }} ({{ .Values.external_hostnames.loki }} must resolve to {{ .Values.display_external_ip }})"
+      sylvactl/readyMessage: "Loki can be reached at https://{{ .Values.external_hostnames.loki }} ({{ .Values.display_external_ip_msg }})"
     repo: loki
     helmrelease_spec:
       targetNamespace: loki
