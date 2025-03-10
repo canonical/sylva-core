@@ -2,7 +2,7 @@ kind: ConfigMap
 apiVersion: v1
 metadata:
   name: prometheus-snmp-sd-files
-  namespace: upstream-monitoring
+  namespace: cattle-monitoring-system
 data:
   snmp_targets.json: |
     ${TARGETS}

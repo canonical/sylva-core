@@ -193,7 +193,7 @@ units:
             kind: Service
             metadata:
               name: grafana-sylva-service
-              namespace: upstream-monitoring
+              namespace: cattle-monitoring-system
             spec:
               type: ClusterIP
               ports:
@@ -208,7 +208,7 @@ units:
             kind: Ingress
             metadata:
               name: grafana-sylva-ingress
-              namespace: upstream-monitoring
+              namespace: cattle-monitoring-system
             spec:
               ingressClassName: nginx
               tls:
