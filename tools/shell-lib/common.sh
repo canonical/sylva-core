@@ -412,45 +412,48 @@ EOC
 
 function display_service_ingresses() {
     local kubeconfig="management-cluster-kubeconfig"
-    local gui_ingresses=()
-    local namespace ingress_name ingress_host unit_name label_present
-    local -r SYLVA_NAMESPACE="sylva-system"
-
-    # Use process substitution to avoid subshell and capture exit code separately
+    local temp_file
+    temp_file=$(mktemp)
+    
+    # Get all ingresses
+    kubectl --kubeconfig "$kubeconfig" get ingress -A \
+        -o custom-columns='NAMESPACE:.metadata.namespace,NAME:.metadata.name,HOSTS:.spec.rules[*].host' \
+        --no-headers 2>/dev/null > "$temp_file" || true
+    
+    # Check if we got any ingresses
+    if [ ! -s "$temp_file" ]; then
+        rm -f "$temp_file"
+        return 0
+    fi
+    
+    # Process ingresses and output directly
+    echo "GUIs:"
     while IFS=" " read -r namespace ingress_name ingress_host; do
-        # Skip empty or malformed entries
-        [[ -z "$namespace" || -z "$ingress_name" || -z "$ingress_host" ]] && continue
-
-        # Get unit name from ingress labels, more efficiently combining commands
+        # Skip empty entries
+        [ -z "$namespace" ] || [ -z "$ingress_name" ] || [ -z "$ingress_host" ] && continue
+        
+        # Get unit name
         unit_name=$(kubectl --kubeconfig "$kubeconfig" get ingress "$ingress_name" -n "$namespace" \
             -o jsonpath='{.metadata.labels.["helm.toolkit.fluxcd.io/name"],"\n",
-                          .metadata.labels.["kustomize.toolkit.fluxcd.io/name"],"\n",
-                          .metadata.labels.["app.kubernetes.io/name"]}' 2>/dev/null | grep -v '^$' | head -1)
+                         .metadata.labels.["kustomize.toolkit.fluxcd.io/name"],"\n",
+                         .metadata.labels.["app.kubernetes.io/name"]}' 2>/dev/null | grep -v '^$' | head -1)
         
-        # Skip if unit_name couldn't be determined
-        [[ -z "$unit_name" ]] && continue
-
-        # Check if GUI list label exists for this ingress - using more efficient command
-        if kubectl --kubeconfig "$kubeconfig" get kustomization "$unit_name" -n "$SYLVA_NAMESPACE" \
-            -o jsonpath='{.metadata.labels}' 2>/dev/null | \
-            grep -q -e "sylva-gui-list-service-$ingress_name" -e "sylva-gui-list-services"; then
+        [ -z "$unit_name" ] && continue
+        
+        # Check for GUI list label - outputting directly when found
+        if kubectl --kubeconfig "$kubeconfig" get kustomization "$unit_name" -n sylva-system \
+           -o jsonpath='{.metadata.labels}' 2>/dev/null | grep -q -e "sylva-gui-list-service-$ingress_name" -e "sylva-gui-list-services"; then
             
-            # Format display string based on pattern matching
             if [[ "$unit_name" =~ $ingress_name ]]; then
-                gui_ingresses+=("$ingress_name: https://$ingress_host")
+                echo "* $ingress_name: https://$ingress_host"
             else
-                gui_ingresses+=("$unit_name - $ingress_name: https://$ingress_host")
+                echo "* $unit_name - $ingress_name: https://$ingress_host"
             fi
         fi
-    done < <(kubectl --kubeconfig "$kubeconfig" get ingress -A \
-        -o custom-columns='NAMESPACE:.metadata.namespace,NAME:.metadata.name,HOSTS:.spec.rules[*].host' \
-        --no-headers 2>/dev/null || echo "")
-
-    # Output GUI ingresses if any were found
-    if (( ${#gui_ingresses[@]} )); then
-        echo "GUIs:"
-        printf "* %s\n" "${gui_ingresses[@]}"
-    fi
+    done < "$temp_file"
+    
+    # Clean up
+    rm -f "$temp_file"
 }
 
 function display_final_messages() {
