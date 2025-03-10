@@ -58,7 +58,7 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
     spec:
       url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-capi-cluster.git
       ref:
-        tag: 0.5.4
+        tag: 0.5.5
 
   sync-openstack-images:
     kind: GitRepository
@@ -2966,15 +2966,12 @@ units:
               - target:
                   kind: RKE2ControlPlane
                 patch: |
-                  kind: _unused_
-                  metadata:
-                    name: _unused_
-                  spec:
-                    serverConfig:
-                      kubeAPIServer:
-                        extraArgs:
-                        - feature-gates=ValidatingAdmissionPolicy=true
-                        - runtime-config=admissionregistration.k8s.io/v1beta1
+                  - op: add
+                    path: /spec/serverConfig/kubeAPIServer/extraArgs/-
+                    value: feature-gates=ValidatingAdmissionPolicy=true
+                  - op: add
+                    path: /spec/serverConfig/kubeAPIServer/extraArgs/-
+                    value: runtime-config=admissionregistration.k8s.io/v1beta1
               - target:
                   kind: KubeadmControlPlane
                 patch: |
