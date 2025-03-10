@@ -6,6 +6,7 @@ cluster_domain: '{{ .Values.cluster.cluster_api_cert_extra_SANs | first }}.nip.i
 cluster_virtual_ip: 192.168.100.2
 
 cluster:
+
   capi_providers:
     infra_provider: capm3
     # bootstrap_provider: cabpr
@@ -38,6 +39,13 @@ cluster:
       bond_mode: "active-backup"
 
   control_plane:
+
+    additional_commands:
+      pre_bootstrap_commands:
+        - echo "Sleep to reproduce reboot delay observed on real baremertal"
+        - sleep 900
+        - echo "Sleep completed"
+
     capm3:
       hostSelector:
         matchLabels:
@@ -63,6 +71,13 @@ cluster:
 
   machine_deployments:
     md0:
+
+      additional_commands:
+        pre_bootstrap_commands:
+          - echo "Sleep to reproduce reboot delay observed on real baremertal"
+          - sleep 900
+          - echo "Sleep completed"
+
       replicas: 0
       capm3:
         hostSelector:
@@ -115,6 +130,7 @@ cluster:
       bmc:
         disableCertificateVerification: true
       bootMode: legacy
+      automatedCleaningMode: metadata
       rootDeviceHints:
         deviceName: /dev/vda
 
