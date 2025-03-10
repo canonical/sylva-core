@@ -411,49 +411,61 @@ EOC
 }
 
 function display_service_ingresses() {
-    local kubeconfig="management-cluster-kubeconfig"
-    local temp_file
-    temp_file=$(mktemp)
-    
-    # Get all ingresses
-    kubectl --kubeconfig "$kubeconfig" get ingress -A \
-        -o custom-columns='NAMESPACE:.metadata.namespace,NAME:.metadata.name,HOSTS:.spec.rules[*].host' \
-        --no-headers 2>/dev/null > "$temp_file" || true
-    
-    # Check if we got any ingresses
-    if [ ! -s "$temp_file" ]; then
-        rm -f "$temp_file"
-        return 0
+    local tmpfile=$(mktemp)
+    local found_any=false
+
+    # Retrieve ingress details safely
+    kubectl_output=$(kubectl --kubeconfig management-cluster-kubeconfig get ingress -A -o custom-columns='NAMESPACE:.metadata.namespace,NAME:.metadata.name,HOSTS:.spec.rules[*].host' --no-headers 2>/dev/null)
+    if [ $? -ne 0 ] || [ -z "$kubectl_output" ]; then
+        echo "No GUIs found."
+        rm -f "$tmpfile"
     fi
-    
-    # Process ingresses and output directly
-    echo "GUIs:"
-    while IFS=" " read -r namespace ingress_name ingress_host; do
-        # Skip empty entries
-        [ -z "$namespace" ] || [ -z "$ingress_name" ] || [ -z "$ingress_host" ] && continue
+
+    # Process each ingress entry
+    while read -r namespace ingress_name ingress_host; do
+        # Ensure fields are not empty
+        if [ -z "$namespace" ] || [ -z "$ingress_name" ] || [ -z "$ingress_host" ]; then
+            continue
+        fi
+
+        # Extract the unit name using labels from the ingress resource
+        unit_name=$(kubectl --kubeconfig management-cluster-kubeconfig get ingress "$ingress_name" -n "$namespace" -o jsonpath='{.metadata.labels}' 2>/dev/null | yq '."helm.toolkit.fluxcd.io/name" // ."kustomize.toolkit.fluxcd.io/name" // ."app.kubernetes.io/name"' 2>/dev/null || echo "")
         
-        # Get unit name
-        unit_name=$(kubectl --kubeconfig "$kubeconfig" get ingress "$ingress_name" -n "$namespace" \
-            -o jsonpath='{.metadata.labels.["helm.toolkit.fluxcd.io/name"],"\n",
-                         .metadata.labels.["kustomize.toolkit.fluxcd.io/name"],"\n",
-                         .metadata.labels.["app.kubernetes.io/name"]}' 2>/dev/null | grep -v '^$' | head -1)
+        if [ -z "$unit_name" ]; then
+            continue
+        fi
+
+        # Fetch kustomization details safely
+        label_json=$(kubectl --kubeconfig management-cluster-kubeconfig get kustomization "$unit_name" -n sylva-system -o json 2>/dev/null)
+        if [ $? -ne 0 ] || [ -z "$label_json" ]; then
+            continue
+        fi
+
+        # Check if any label matches the required pattern
+        label_present=$(echo "$label_json" | jq --arg ingress_name "$ingress_name" '.metadata.labels | keys[] | select(endswith("sylva-gui-list-service-\($ingress_name)") or startswith("sylva-gui-list-services"))' 2>/dev/null)
         
-        [ -z "$unit_name" ] && continue
-        
-        # Check for GUI list label - outputting directly when found
-        if kubectl --kubeconfig "$kubeconfig" get kustomization "$unit_name" -n sylva-system \
-           -o jsonpath='{.metadata.labels}' 2>/dev/null | grep -q -e "sylva-gui-list-service-$ingress_name" -e "sylva-gui-list-services"; then
-            
+        if [ -n "$label_present" ]; then
+            found_any=true
             if [[ "$unit_name" =~ $ingress_name ]]; then
-                echo "* $ingress_name: https://$ingress_host"
+                echo "$ingress_name: https://$ingress_host" >> "$tmpfile"
             else
-                echo "* $unit_name - $ingress_name: https://$ingress_host"
+                echo "$unit_name - $ingress_name: https://$ingress_host" >> "$tmpfile"
             fi
         fi
-    done < "$temp_file"
-    
-    # Clean up
-    rm -f "$temp_file"
+    done <<< "$kubectl_output"  # Use here-string instead of pipe to avoid subshell
+
+    # Output GUI ingresses and ensure proper exit code
+    echo "GUIs:"
+    if [ "$found_any" = true ]; then
+        while read -r line; do
+            echo "* $line"
+        done < "$tmpfile"
+        rm -f "$tmpfile"
+        return 0
+    else
+        echo "* No GUI services available"
+        rm -f "$tmpfile"
+    fi
 }
 
 function display_final_messages() {
@@ -465,7 +477,7 @@ function display_final_messages() {
   fi
 
   if [[ $CALLER_SCRIPT_NAME == *"bootstrap.sh"* ]]; then
-    echo_b "\U0001F331 You can access following UIs"
+    echo_b "\U0001F331 You can access the following UIs"
     display_service_ingresses
   fi
   echo_b "\U0001F389 All done"
