@@ -7912,10 +7912,8 @@ flux:
 flux_webui:
   admin_user: admin
 
-#display_external_ip: '{{ .Values.openstack.floating_ip | eq "" | ternary .Values.cluster_virtual_ip .Values.openstack.floating_ip }}'
-display_external_ip: '{{ not (empty .Values.openstack.floating_ip) | ternary .Values.openstack.floating_ip .Values.cluster_virtual_ip}}'
-#display_external_ip_msg: '{{ eq (printf "%s" .Values.display_external_ip | trim) "55.55.55.55" | ternary "It must resolve to the IP used to reach the cluster" (printf "It must resolve to %s" .Values.display_external_ip ) }}'
-display_external_ip_msg: '{{ or (.Values.display_external_ip | trim | eq "") (not .Values.display_external_ip) | ternary "It must resolve to the IP used to reach the cluster" (printf "It must resolve to %s" .Values.display_external_ip) }}'
+display_external_ip: '{{ .Values.openstack.floating_ip | eq "" | ternary .Values.cluster_virtual_ip .Values.openstack.floating_ip }}'
+display_external_ip_msg: '{{ and (.Values.openstack.floating_ip | eq "") (.Values.cluster_virtual_ip | eq "") | ternary "It must resolve to the IP used to reach the cluster" (printf "It must resolve to %s" .Values.display_external_ip ) }}'
 
 cluster_domain: sylva
 
