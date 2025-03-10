@@ -2,6 +2,8 @@
 
 source tools/shell-lib/common.sh
 
+apply_scripts_init
+
 check_args
 
 if ! command -v helm &>/dev/null; then
