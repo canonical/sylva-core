@@ -22,10 +22,6 @@ else
   export IN_CI=0
 fi
 
-if [[ -f ${BASE_DIR}/sylva.env ]]; then
-  source ${BASE_DIR}/sylva.env
-fi
-
 function check_args() {
   if ! [[ ${#BASH_ARGV[@]} -eq 1 && (-f ${BASH_ARGV[0]}/kustomization.yaml || -L ${BASH_ARGV[0]}/kustomization.yaml) ]]; then 
     echo "Usage: $BASH_ARGV0 [env_name]"
@@ -36,15 +32,31 @@ function check_args() {
   fi
 }
 
-if ! python3 -c 'import yaml' &>/dev/null; then
-    echo "PyYAML python package is required to run this script, install it on your system and start over."
-    exit 1
-fi
+function sylva_init {
+  export CURRENT_COMMIT=$(git rev-parse HEAD)
+  export SYLVA_CORE_REPO=${SYLVA_CORE_REPO:-$(git remote get-url origin | sed 's|^git@\([^:]\+\):|https://\1/|' | sed 's|gitlab-ci-token.*@||')}
 
-if ! python3 -c 'import yamllint' &>/dev/null; then
-    echo "yamllint python package is required to run this script, install it on your system and start over."
-    exit 1
-fi
+  if [[ -f ${BASE_DIR}/sylva.env ]]; then
+    source ${BASE_DIR}/sylva.env
+  fi
+
+  if ! python3 -c 'import yaml' &>/dev/null; then
+      echo "PyYAML python package is required to run this script, install it on your system and start over."
+      exit 1
+  fi
+
+  if ! python3 -c 'import yamllint' &>/dev/null; then
+      echo "yamllint python package is required to run this script, install it on your system and start over."
+      exit 1
+  fi
+}
+
+function apply_scripts_init {
+  sylva_init
+  ensure_sylva_toolbox
+  ensure_sylvactl
+  trap exit_trap EXIT
+}
 
 
 function _kustomize {
@@ -85,17 +97,14 @@ function check_apply_kustomizations() {
   fi
 }
 
-export CURRENT_COMMIT=$(git rev-parse HEAD)
-export SYLVA_CORE_REPO=${SYLVA_CORE_REPO:-$(git remote get-url origin | sed 's|^git@\([^:]\+\):|https://\1/|' | sed 's|gitlab-ci-token.*@||')}
-
-echo_b() {
+function echo_b() {
   end_section
 
   current_section_number=$(( ${current_section_number:-0} + 1))
   echo -e "\e[1m\e[0Ksection_start:`date +%s`:section_${current_section_number}[collapsed=true]\r\e[0K$*\e[0m"
 }
 
-end_section() {
+function end_section() {
   # this is also called from EXIT trap to ensure that we always close the last section
 
   if (( ${current_section_number:-0} > 0 )) ; then
@@ -178,7 +187,7 @@ function ensure_sylva_toolbox {
         docker run --rm ${SYLVA_TOOLBOX_REGISTRY}/${SYLVA_TOOLBOX_IMAGE}:${SYLVA_TOOLBOX_VERSION} | tar xz -C ${BASE_DIR}/bin
     fi
 }
-ensure_sylva_toolbox
+
 
 function ensure_sylvactl {
     if [[ -n ${SYLVACTL_VERSION:-} ]] && [[ ${SYLVACTL_VERSION} != $(${BASE_DIR}/bin/sylvactl version 2>&1) ]]; then
@@ -191,7 +200,6 @@ function ensure_sylvactl {
         chmod +x ${BASE_DIR}/bin/sylvactl
     fi
 }
-ensure_sylvactl
 
 function cleanup_bootstrap_cluster() {
   : ${CLEANUP_BOOTSTRAP_CLUSTER:='yes'}
@@ -235,7 +243,6 @@ function exit_trap() {
     [ -n "$pids" ] && kill $pids || true
     exit $EXIT_CODE
 }
-trap exit_trap EXIT
 
 function reconcile_sylva_units() {
   local namespace=${1:-sylva-system}
@@ -281,8 +288,8 @@ function reconcile_sylva_units() {
 
 function define_source() {
   sed "s/CURRENT_COMMIT/${CURRENT_COMMIT}/" "$@" | \
-    sed "s,SYLVA_CORE_REPO,${SYLVA_CORE_REPO},g" "$@" | \
-    sed "s,SYLVA_BASE_OCI_REGISTRY,${SYLVA_BASE_OCI_REGISTRY},g" "$@"
+  sed "s,SYLVA_CORE_REPO,${SYLVA_CORE_REPO},g" "$@" | \
+  sed "s,SYLVA_BASE_OCI_REGISTRY,${SYLVA_BASE_OCI_REGISTRY},g" "$@"
 }
 
 function suspend_sylva_units {
@@ -424,4 +431,3 @@ function display_final_messages() {
   fi
   echo_b "\U0001F389 All done"
 }
-
