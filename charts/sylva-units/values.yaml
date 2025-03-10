@@ -4372,6 +4372,27 @@ units:
         crds:
           enabled: false
         grafana:
+          extraContainers: |
+            - name: grafana-proxy
+              args:
+              - nginx
+              - -g
+              - daemon off;
+              - -c
+              - /nginx/nginx.conf
+              image: rancher/mirrored-library-nginx:1.24.0-alpine
+              Ports:
+              - containerPort: 8080
+                name: nginx-http
+                protocol: TCP
+              volumeMounts:
+              - mountPath: /nginx
+                name: grafana-nginx
+              - mountPath: /var/cache/nginx
+                name: nginx-home
+              securityContext:
+                runAsUser: 101
+                runAsGroup: 101
           sidecar:
             dashboards:
               enabled: true
