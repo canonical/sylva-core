@@ -199,27 +199,27 @@ units:
               secretName: sylva-ca.crt
           # Define a custom ingress to directly access Grafana without nginx path rewrite
           # see https://gitlab.com/sylva-projects/sylva-core/-/issues/1622
-          extraContainers: '
-          - name: grafana-proxy
-            args:
-            - nginx
-            - -g
-            - daemon off;
-            - -c
-            - /nginx/nginx.conf
-            image: rancher/mirrored-library-nginx:1.24.0-alpine
-            Ports:
-            - containerPort: 8080
-              name: nginx-http
-              protocol: TCP
-            volumeMounts:
-            - mountPath: /nginx
-              name: grafana-nginx
-            - mountPath: /var/cache/nginx
-              name: nginx-home
-            securityContext:
-              runAsUser: 101
-              runAsGroup: 101'
+          extraContainers: |
+            - name: grafana-proxy
+              args:
+                - nginx
+                - -g
+                - daemon off;
+                - -c
+                - /nginx/nginx.conf
+              image: docker.io/rancher/mirrored-library-nginx:1.24.0-alpine
+              ports:
+                - containerPort: 8080
+                  name: nginx-http
+                  protocol: TCP
+              volumeMounts:
+                - mountPath: /nginx
+                  name: grafana-nginx
+                - mountPath: /var/cache/nginx
+                  name: nginx-home
+              securityContext:
+                runAsUser: 101
+                runAsGroup: 101
           extraContainerVolumes:
           - name: nginx-home
             emptyDir: {}
