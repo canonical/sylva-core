@@ -72,7 +72,7 @@ data:
 
           sub_filter_once off;
 
-          sub_filter '"appSubUrl":""' '"appSubUrl":"${PREFIX_URL}${CLUSTER_ID}${NAMESPACE}/services/http:${SERVICE}:${PORT}/proxy"';
+          sub_filter '"appSubUrl":""' '"appSubUrl":"${PREFIX_URL}${CLUSTER_ID}${NAMESPACE}/services/http:${SERVICE}:${SERVICE_PORT}/proxy"';
 
           sub_filter ':"/avatar/' ':"avatar/';
 
