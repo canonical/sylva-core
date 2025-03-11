@@ -2660,6 +2660,7 @@
               "anyOf": [
                 {
                   "type": "object",
+                  "additionalProperties": false,
                   "properties": {
                     "image_name": {
                       "anyOf": [
