@@ -199,7 +199,7 @@ units:
               secretName: sylva-ca.crt
           # Define a custom ingress to directly access Grafana without nginx path rewrite
           # see https://gitlab.com/sylva-projects/sylva-core/-/issues/1622
-          extraContainers: |
+          extraContainers: '
           - name: grafana-proxy
             args:
             - nginx
@@ -219,7 +219,7 @@ units:
               name: nginx-home
             securityContext:
               runAsUser: 101
-              runAsGroup: 101
+              runAsGroup: 101'
           extraContainerVolumes:
           - name: nginx-home
             emptyDir: {}
