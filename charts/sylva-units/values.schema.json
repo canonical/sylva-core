@@ -8104,6 +8104,9 @@
                 }
               ]
             },
+            "helm_repo_spec": {
+              "type": "object"
+            },
             "helm_chart_versions": {
               "type": "object",
               "items": {
@@ -8131,6 +8134,13 @@
                   "type": "string"
                 }
               }
+            }
+          },
+          "dependencies": {
+            "helm_repo_spec": {
+              "required": [
+                "helm_repo_url"
+              ]
             }
           },
           "dependentRequired": {
