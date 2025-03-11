@@ -3388,8 +3388,6 @@ units:
           priorityClassName: system-cluster-critical
           frr:
             enabled: false
-          nodeSelector:
-            node-role.kubernetes.io/control-plane: '{{ .Values._internal.cp_node_label_value }}'
           tolerations:
           - key: node.cloudprovider.kubernetes.io/uninitialized
             value: "true"
@@ -8253,8 +8251,11 @@ _internal:
               {{- if eq .Values.cluster.capi_providers.infra_provider "capm3" }}
                {{ .Values.cluster.cluster_primary_interfaces | default (list .Values.cluster.control_plane.capm3.primary_pool_interface)  | include "preserve-type" }}
               {{- else -}}
-                {{- dict | include "preserve-type" -}}
+                {{- list | include "preserve-type" -}}
               {{- end }}
+            node_selectors:
+              - matchLabels:
+                  node-role.kubernetes.io/control-plane: '{{ .Values._internal.cp_node_label_value }}'
 
   metallb_service_annotations:
     '{{
