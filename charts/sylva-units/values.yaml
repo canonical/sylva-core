@@ -58,8 +58,7 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
     spec:
       url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-capi-cluster.git
       ref:
-        # tag: 0.5.4
-        branch: cm-no-image-for-okd
+        tag: 0.5.4
 
   sync-openstack-images:
     kind: GitRepository
@@ -2896,8 +2895,8 @@ units:
       longhorn-instance-manager-cleanup: '{{ tuple . "longhorn-instance-manager-cleanup" | include "unit-enabled" }}'
       rke2-helmchart-prevent-uninstall: '{{ and (tuple . "rke2-helmchart-prevent-uninstall" | include "unit-enabled") .Values._internal.state.is_upgrade }}'
       metallb: '{{ and (tuple . "metallb" | include "unit-enabled") .Values._internal.state.is_upgrade }}'
-      calico: '{{ and (tuple . "calico" | include "unit-enabled") .Values._internal.state.is_upgrade }}'
-      calico-ready: '{{ and (tuple . "calico-ready" | include "unit-enabled") .Values._internal.state.is_upgrade }}'
+      calico: '{{ .Values._internal.state.is_upgrade }}'
+      calico-ready: '{{ .Values._internal.state.is_upgrade }}'
     kustomization_spec:
       prune: '{{ not (eq .Release.Namespace "sylva-system") | include "preserve-type" }}'
       # we wait on all important resources built by sylva-capi-cluster,
