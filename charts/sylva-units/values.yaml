@@ -4338,6 +4338,22 @@ units:
       _components:
         - '{{ tuple "components/kyverno-snmp-bmh-policy" (tuple . "metal3" | include "unit-enabled") | include "set-only-if" }}'
 
+  upstream-grafana-nginx:
+    info:
+      description: sets up Grafana nginx configmap
+      internal: true
+    enabled_conditions:
+      - '{{ tuple . "upstrmonitoring" | include "unit-enabled" }}'
+    unit_templates:
+    - base-deps
+    depends_on:
+      upstream-grafana-init: true
+    repo: sylva-core
+    kustomization_spec:
+      path: ./kustomize-units/upstream-grafana-nginx
+      wait: true
+      targetNamespace: cattle-monitoring-system
+
   upstrmonitoring:
     info:
       description: installs upstream kube prometheus stack
@@ -4372,27 +4388,6 @@ units:
         crds:
           enabled: false
         grafana:
-          extraContainers: |
-            - name: grafana-proxy
-              args:
-              - nginx
-              - -g
-              - daemon off;
-              - -c
-              - /nginx/nginx.conf
-              image: rancher/mirrored-library-nginx:1.24.0-alpine
-              Ports:
-              - containerPort: 8080
-                name: nginx-http
-                protocol: TCP
-              volumeMounts:
-              - mountPath: /nginx
-                name: grafana-nginx
-              - mountPath: /var/cache/nginx
-                name: nginx-home
-              securityContext:
-                runAsUser: 101
-                runAsGroup: 101
           sidecar:
             dashboards:
               enabled: true
