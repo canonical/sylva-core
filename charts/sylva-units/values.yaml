@@ -2802,8 +2802,8 @@ units:
       cluster-prevent-rke2-helmcharts-calico-metallb: '{{ tuple . "cluster-prevent-rke2-helmcharts-calico-metallb" | include "unit-enabled" }}'
       rke2-helmchart-prevent-uninstall: '{{ and (tuple . "rke2-helmchart-prevent-uninstall" | include "unit-enabled") .Values._internal.state.is_upgrade }}'
       metallb: '{{ and (tuple . "metallb" | include "unit-enabled") .Values._internal.state.is_upgrade }}'
-      calico: '{{ .Values._internal.state.is_upgrade }}'
-      calico-ready: '{{ .Values._internal.state.is_upgrade }}'
+      calico: '{{ and (tuple . "calico" | include "unit-enabled") .Values._internal.state.is_upgrade }}'
+      calico-ready: '{{ and (tuple . "calico-ready" | include "unit-enabled") .Values._internal.state.is_upgrade }}'
     kustomization_spec:
       prune: '{{ not (eq .Release.Namespace "sylva-system") | include "preserve-type" }}'
       # we wait on all important resources built by sylva-capi-cluster,
