@@ -8253,7 +8253,7 @@ _internal:
   # kubevirt admin user and password
   kubevirt_admin_user: 'admin'
   kubevirt_admin_password: '{{ include "internalPersistentRandomPasswd" (tuple . "kubevirt_admin_password") }}'
-  kubevirt_enable_check: '{{(tuple . "kubevirt-manik" | include "unit-enabled")}}'
+  kubevirt_enable_check: '{{(tuple . "logging" | include "unit-enabled")}}'
 
   default_password: '{{ include "internalPersistentRandomPasswd" (tuple . "default_password") }}'
 
