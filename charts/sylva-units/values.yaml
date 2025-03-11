@@ -7468,7 +7468,7 @@ cluster:
     # Increase max-pods for single-node deployments
     max-pods: '{{ tuple "196" (eq (.Values._internal.node_count | int) 1) | include "set-only-if" }}'
     test1: 'test1'
-    test2: '{{ tuple "printf "196" 196 (eq (.Values._internal.node_count | int) 1) | include "set-only-if" }}'
+    test2: '{{ tuple "printf "196" (eq (.Values._internal.node_count | int) 1) | include "set-only-if" }}'
     test3: '{{ tuple "1000" (not (.Values._internal.kubevirt_enable_check | eq "")) | include "set-only-if" }}'
     test4: '{{ tuple "best-effort" (eq (.Values._internal.node_count | int) 1) | include "set-only-if" }}'
     topology-manager-policy: '{{ tuple "best-effort" (not (.Values._internal.kubevirt_enable_check | eq ""))  | include "set-only-if" }}'
