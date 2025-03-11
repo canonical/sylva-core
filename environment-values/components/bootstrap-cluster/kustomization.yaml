@@ -1,0 +1,16 @@
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
+
+patches:
+- target:
+    kind: HelmRelease
+    name: sylva-units
+  # these patches are called with the 'inject_bootstrap_values' function call in bootstrap.sh
+  patch: |
+    - op: add
+      path: /spec/valuesFrom/1
+      value:
+        kind: ConfigMap
+        name: bootstrap-values
+        valuesKey: bootstrap-values
+        optional: true # only needed for 'validate_sylva_units' preview

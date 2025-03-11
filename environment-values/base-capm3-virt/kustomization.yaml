@@ -34,7 +34,7 @@ patches:
     name: sylva-units
   patch: |
     - op: add
-      path: /spec/valuesFrom/0
+      path: /spec/valuesFrom/-
       value:
         kind: ConfigMap
         name: capm3-virt-values

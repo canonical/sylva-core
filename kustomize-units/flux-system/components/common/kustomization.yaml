@@ -22,3 +22,9 @@ patches:
     target:
       kind: Deployment
       labelSelector: app.kubernetes.io/part-of=flux
+
+# workaround for https://gitlab.com/sylva-projects/sylva-core/-/issues/1738#note_2181546896
+images:
+- name: ghcr.io/fluxcd/helm-controller
+  newName: registry.gitlab.com/sylva-projects/sylva-elements/container-images/sandbox-registry/helm-controller
+  newTag: v1.0.1-helm-oci-replace-underscore-plus

@@ -28,11 +28,11 @@ cleanup_preview
 
 
 set_current_namespace sylva-system
+inject_bootstrap_values
 
 echo_b "\U0001F4DC Install sylva-units Helm release and associated resources"
 _kustomize ${ENV_PATH} | \
   define_source | \
-  inject_bootstrap_values | \
   kubectl apply -f -
 
 echo_b "\U0001F3AF Trigger reconciliation of units"

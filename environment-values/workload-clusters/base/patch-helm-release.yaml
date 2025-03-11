@@ -9,18 +9,18 @@ spec:
     timeout: 5m
   upgrade:
     timeout: 5m
-  chart:
-    spec:
-      valuesFiles:
-        - charts/sylva-units/values.yaml
-        - charts/sylva-units/workload-cluster.values.yaml
   valuesFrom:
+  - kind: ConfigMap
+    name: workload-values
+    valuesKey: workload-values
+    optional: true # only needed for 'validate_sylva_units' preview
   - kind: Secret
     name: shared-workload-clusters-settings
     valuesKey: values
   - kind: ConfigMap
     name: shared-workload-clusters-settings
     valuesKey: values
+    optional: true # avoid of overwiting units before creating workload-values confimap
   - kind: Secret
     name: sylva-units-secrets
     valuesKey: secrets

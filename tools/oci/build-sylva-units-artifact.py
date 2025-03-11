@@ -47,6 +47,7 @@ logger.info(f'helm_chart_version: {helm_chart_version}')
 # Copy the chart directory to the artifact directory and change into it
 chart_source_dir = base_dir / 'charts' / 'sylva-units'
 chart_dest_dir = ARTIFACT_DIR / 'sylva-units'
+cm_dest_dir = base_dir / 'tools' / 'test'
 shutil.copytree(chart_source_dir, chart_dest_dir, ignore=shutil.ignore_patterns('test-values'))
 os.chdir(chart_dest_dir)
 
@@ -283,6 +284,72 @@ if os.getenv("ONLY_PRODUCE_USE_OCI_ARTIFACTS_VALUES", ""):
     logger.info(f"ONLY_PRODUCE_USE_OCI_ARTIFACTS_VALUES is set, will only produce {output_file}")
     save_yaml(oci_values_data, output_file)
     sys.exit(0)
+
+# ##################### get values from sylva-units chart and save them in another file in order to create ConfigMaps  #############################
+for file in chart_dest_dir.glob("*.values.yaml"):
+    destination_file = cm_dest_dir / file.name
+    try:
+        shutil.copyfile(chart_dest_dir / file.name, destination_file)
+    except Exception as e:
+        print(f"Error copying {file}: {e}")
+
+logger.info("  locally rendering remote resources...")
+kustomize_result = run_command(["kustomize", "build", cm_dest_dir,
+                                "-o", "/tmp/local-resources.yaml"],
+                               check=False)
+
+print(kustomize_result.returncode)
+if kustomize_result.returncode != 0:
+    logger.error(f"Unable to flatten {cm_dest_dir} !")
+    sys.exit(1)
+
+logger.info("  OK")
+artifact_name = "sylva-units-values"
+
+
+os.chdir(base_dir)
+# ##################### push the artifact using flux #############################
+if os.getenv('CI_REPOSITORY_URL'):
+    artifact_source = re.sub('gitlab-ci-token.*@', '', os.getenv('CI_REPOSITORY_URL'))
+else:
+    artifact_source = run_command(["git", "config", "--get", "remote.origin.url"]).stdout
+
+artifact_branch = run_command(['git', 'branch', '--show-current']).stdout
+
+artifact_tag = run_command(['git', 'rev-parse', '--short', 'HEAD']).stdout
+
+artifact_path = cm_dest_dir
+artifact_revision = artifact_branch + "/" + artifact_tag
+
+artifact_version = os.getenv('HELM_CHART_VERSION', f"0.0.0-git-{artifact_tag}")
+logger.info(f'artifact_version: {artifact_version}')
+
+
+artifact_url = f"{OCI_REGISTRY}/{artifact_name}:{artifact_version}"
+if artifact_exists_with_flux(artifact_name, artifact_version, artifact_url):
+
+    fail_if_existing_artifact_differs(artifact_name, artifact_version, artifact_url, dir=cm_dest_dir)
+
+    # artifact content hasn't changed, but we may want to sign it
+    if 'COSIGN_PUBLIC_KEY' in os.environ:
+        logger.info(f"Check if artifact {artifact_url} is signed with the correct key")
+
+        try:
+            signature_is_valid(artifact_name)
+            logger.info(f"Artifact {artifact_url} exists and is already signed with the correct key")
+        except ValueError:
+            logger.info(f"Artifact {artifact_url} exists and needs to be signed")
+            sign(artifact_name, ARTIFACT_DIGEST)
+    else:
+        logger.warning("Unable to sign the kustomize-units, signing material is not set")
+# ######### remove sylva-units-values from pulled artifacts#################
+    for file in PULLED_ARTIFACT_DIR.glob("*.yaml"):
+        try:
+            os.remove(file)
+        except Exception as e:
+            print(f"Not able to delete {file}: {e}")
+else:
+    push_and_sign_with_flux(artifact_name, artifact_version, artifact_source, artifact_revision, artifact_path)
 
 # ############################## wrap up Helm packaging  #######################################
 os.chdir(chart_dest_dir)  # Ensure we are in the correct directory

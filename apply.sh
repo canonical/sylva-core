@@ -36,6 +36,8 @@ echo_b "\U0001F4DC Update sylva-units Helm release and associated resources"
 
 suspend_sylva_units
 
+remove_bootstrap_values
+
 _kustomize ${ENV_PATH} | define_source | kubectl apply -f -
 
 echo_b "\U0001F3AF Trigger reconciliation of units"

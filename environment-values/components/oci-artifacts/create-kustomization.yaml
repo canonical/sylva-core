@@ -1,0 +1,15 @@
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: sylva-units-values
+  namespace: sylva-system
+  labels:
+    copy-from-bootstrap-to-management: ""
+spec:
+  prune: true
+  targetNamespace: sylva-system
+  interval: 1m
+  sourceRef:
+    kind: OCIRepository
+    name: sylva-units-values
+

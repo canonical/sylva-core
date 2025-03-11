@@ -25,7 +25,7 @@ else
 fi
 
 function check_args() {
-  if ! [[ ${#BASH_ARGV[@]} -eq 1 && (-f ${BASH_ARGV[0]}/kustomization.yaml || -L ${BASH_ARGV[0]}/kustomization.yaml) ]]; then 
+  if ! [[ ${#BASH_ARGV[@]} -eq 1 && (-f ${BASH_ARGV[0]}/kustomization.yaml || -L ${BASH_ARGV[0]}/kustomization.yaml) ]]; then
     echo "Usage: $BASH_ARGV0 [env_name]"
     echo "This script expects to find a kustomization in [env_name] directory to generate management-cluster configuration and secrets"
     exit 1
@@ -78,7 +78,7 @@ function check_apply_kustomizations() {
       echo "Error: you shouldn't be running apply.sh against a workload cluster directory ($ENV_PATH)."
       exit 1
     fi
-    result=$(_kustomize $ENV_PATH | yq eval-all -e 'select(.kind == "HelmRelease").spec.chart.spec.valuesFiles | any_c(. | test("(^|/)management.values.yaml$")) and select(.kind == "Namespace").metadata.name == "sylva-system"' 2>/dev/null ||:)
+    result=$(_kustomize $ENV_PATH | yq eval-all -e 'select(.kind == "HelmRelease").spec.valuesFrom | any_c(.kind == "ConfigMap" and .name | test("^management-values$")) and select(.kind == "Namespace").metadata.name == "sylva-system"' 2>/dev/null ||:)
     if [[ $result != *"true"* ]]; then
       echo "The directory passed does not contain a management cluster kustomization."
       exit 1
@@ -91,7 +91,7 @@ function check_apply_kustomizations() {
       echo "Error: Please provide a valid workload cluster directory name, other than \"sylva-system\"."
       exit 1
     fi
-    result=$(_kustomize ${ENV_PATH} | set_wc_namespace | yq eval-all -e 'select(.kind == "HelmRelease").spec.chart.spec.valuesFiles | any_c(. | test("(^|/)workload-cluster.values.yaml$")) and select(.kind == "Namespace").metadata.name != "sylva-system"' 2>/dev/null ||:)
+    result=$(_kustomize ${ENV_PATH} | set_wc_namespace | yq eval-all -e 'select(.kind == "HelmRelease").spec.valuesFrom | any_c(.kind == "ConfigMap" and .name | test("^workload-values$")) and select(.kind == "Namespace").metadata.name != "sylva-system"' 2>/dev/null ||:)
     if [[ $result != *"true"* ]]; then
       echo "The directory passed does not contains a workload cluster kustomization."
       exit 1
@@ -190,6 +190,8 @@ function ensure_sylva_toolbox {
     fi
 }
 
+
+SYLVACTL_VERSION=0.0.0-git-8875906f
 
 function ensure_sylvactl {
     if [[ -n ${SYLVACTL_VERSION:-} ]] && [[ ${SYLVACTL_VERSION} != $(${BASE_DIR}/bin/sylvactl version 2>&1) ]]; then
@@ -302,36 +304,31 @@ function suspend_sylva_units {
   else
     echo -e "\U000023F8 Suspend sylva-units HelmRelease/HelmChart"
     kubectl -n $ns patch helmreleases.helm.toolkit.fluxcd.io sylva-units       --type=merge --patch='{"spec":{"suspend":true}}'
-    kubectl -n $ns patch helmcharts.source.toolkit.fluxcd.io ${ns}-sylva-units --type=merge --patch='{"spec":{"suspend":true}}'
+    if [[ $(kubectl -n $ns get helmcharts.source.toolkit.fluxcd.io ${ns}-sylva-units 2>&1 || true) != *"not found" ]]; then
+      kubectl -n $ns patch helmcharts.source.toolkit.fluxcd.io ${ns}-sylva-units --type=merge --patch='{"spec":{"suspend":true}}'
+    fi
   fi
 }
 
 function inject_bootstrap_values() {
-  # this function transforms the output of '_kustomize ${ENV_PATH}'
-  # to add bootstrap.values.yaml into the valuesFiles field of the HelmRelease
-  #
-  # this field is not exactly the same depending on whether we use a GitRepository as sources
-  # or a HelmRepository (which is what we use for a deployment from OCI artifacts)
+  # this function adds a Kustomize Component call for the $ENV_PATH, introducing a patch
+  # to add ConfigMap/bootstrap-values into the valuesFrom field of the HelmRelease/sylva-units
 
-  # additionally, in the case of an OCI-based deployment, we need to insert "bootstrap.values.yaml"
-  # before the "use-oci-artifacts.values.yaml" which has to be the last element to have
-  # precedence over what is defined in "bootstrap.values.yaml"
+  # because it can be multiple times, at least once in 'validate_sylva_units' and once directly in bootstrap.sh
+  # and the Kustomize Component patch adds the ConfigMap at a fixed valuesFrom index
+  # we need to ensure only one such 'components' entry is present, to avoid duplicate ConfigMaps entries
+  if ! yq -e '.components[] | select(. == "../components/bootstrap-cluster")' $ENV_PATH/kustomization.yaml &> /dev/null; then
+    yq -i '(.components |= . + ["../components/bootstrap-cluster"])' $ENV_PATH/kustomization.yaml
+  fi
+}
 
-  # shellcheck disable=SC2016
-  yq eval-all '
-    (select(.kind == "HelmRepository" and .spec.type == "oci") | length > 0 | to_yaml | trim) as $oci
-    | select(.kind == "HelmRelease").spec.chart.spec.valuesFiles = ([
-      {"true":"","false":"charts/sylva-units/"}[$oci] + "values.yaml",
-      {"true":"","false":"charts/sylva-units/"}[$oci] + "management.values.yaml",
-      {"true":"","false":"charts/sylva-units/"}[$oci] + "bootstrap.values.yaml"
-    ] + {"true":["use-oci-artifacts.values.yaml"],"false":[]}[$oci])
-    | select(.kind == "HelmRelease").spec.chart.spec.valuesFiles = (select(.kind == "HelmRelease").spec.chart.spec.valuesFiles | unique)
-  '
-  # explanations on the code above:
-  # - ... as $oci on the first line produces a boolean (or nearly, see below)
-  # - we use the {true: A, false: B}[x] construct to emulate the behavior of 'if x then A else B' (jq has such an if/else statement, but yq does not)
-  # - the keys of this true/false map are actually strings, because yq does not support booleans as indexes
-  # - this is why $oci is made into a string ('| to_yaml | trim' emulates '|tostring' which is not provided by yq)
+function remove_bootstrap_values() {
+  # this function, called in aplly.sh only, removes the Kustomize Component (if present)
+  # brought by 'inject_bootstrap_values' called in bootstraph.sh
+
+  if yq -e '.components[] | select(. == "../components/bootstrap-cluster")' $ENV_PATH/kustomization.yaml &> /dev/null; then
+    yq -i 'del( .components[] | select(. == "../components/bootstrap-cluster") )' $ENV_PATH/kustomization.yaml
+  fi
 }
 
 function validate_sylva_units() {
@@ -355,19 +352,22 @@ function validate_sylva_units() {
               - op: add
                 path: /spec/targetNamespace
                 value: sylva-units-preview
+          - target:
+              kind: Kustomization
+              namespace: sylva-units-preview
+            patch: |
+              - op: add
+                path: /spec/targetNamespace
+                value: sylva-units-preview
 EOF
 
-  if [[ ${KUBECONFIG:-} =~ management-cluster-kubeconfig$ ]] || [[ ${1:-} == "force-management" ]]; then
-    bootstrap=no
-  else
-    bootstrap=yes
+  if ! [[ ${KUBECONFIG:-} =~ management-cluster-kubeconfig$ ]] || [[ ${1:-} == "force-management" ]]; then
+    # for bootstrap cluster, we need to inject bootstrap values
+    inject_bootstrap_values
   fi
 
-  # for bootstrap cluster, we need to inject bootstrap values
-  # (for mgmt cluster, we do not so we "pipe through" with "cat")
   _kustomize ${PREVIEW_DIR} \
     | define_source \
-    | (if [[ $bootstrap == "yes" ]]; then inject_bootstrap_values ; else cat ; fi) \
     | kubectl apply -f -
   rm -Rf ${PREVIEW_DIR}
 

@@ -292,7 +292,7 @@ units:
               echo "-- Retrieve target cluster kubeconfig"
               kubectl get secret {{ .Values.cluster.name }}-kubeconfig -o jsonpath='{.data.value}' | base64 -d > /tmp/management-cluster-kubeconfig
               echo "-- Copy secrets and configmaps from bootstrap to management cluster"
-              kubectl get configmaps,secrets,gitrepository,ocirepository,helmrepository \
+              kubectl get configmaps,secrets,gitrepository,ocirepository,helmrepository,kustomization \
                 -l copy-from-bootstrap-to-management= \
                 -o json \
                   | jq '.items[] | del(.metadata.labels."helm.toolkit.fluxcd.io/name")
@@ -346,19 +346,18 @@ units:
                 name: sylva-units
     helmrelease_spec:
       releaseName: sylva-units
+      interval: 1m0s
       chart:
         spec:
           chart: charts/sylva-units
           reconcileStrategy: Revision
-          # copy sourceRef from bootstrap HelmRelease:
-          sourceRef: '{{ lookup "helm.toolkit.fluxcd.io/v2" "HelmRelease" "sylva-system" "sylva-units" | dig "spec" "chart" "spec" "sourceRef" (dict "kind" "GitRepository" "name" "not-found" "namespace" "not-found") | include "preserve-type" }}'
-          # we copy the valuesFiles from the bootstrap HelmRelease, skipping
-          # the bootstrap.values.yaml file (with or without the 'charts/sylva-units/'
-          # prefix which is or isn't there depending on whether this is a deployment
-          # relying on OCI artifacts)
-          valuesFiles: |
-            {{- without (lookup "helm.toolkit.fluxcd.io/v2" "HelmRelease" "sylva-system" "sylva-units" | dig "spec" "chart" "spec" "valuesFiles" list) "bootstrap.values.yaml" "charts/sylva-units/bootstrap.values.yaml" | include "preserve-type" -}}
       # copy values and valuesFrom from current sylva-units HelmRelease
+          # copy sourceRef from bootstrap HelmRelease, sylva-units templating would not set it if already present (see units.yaml)
+          sourceRef: '{{ lookup "helm.toolkit.fluxcd.io/v2beta2" "HelmRelease" "sylva-system" "sylva-units" | dig "spec" "chart" "spec" "sourceRef" (dict "kind" "GitRepository" "name" "not-found" "namespace" "not-found") | include "preserve-type" }}'
+      # copy chartRef from bootstrap HelmRelease, sylva-units templating would not set it if already present (see units.yaml)
+      # only of HelmRelease.spec.chart.spec.sourceRef (git workflow) or HelmRelease.spec.chartRef (OCI workflow) will be set at a time
+      chartRef: '{{ lookup "helm.toolkit.fluxcd.io/v2beta2" "HelmRelease" "sylva-system" "sylva-units" | dig "spec" "chartRef" (dict "kind" "OCIRepository" "name" "not-found" "namespace" "not-found") | include "preserve-type" }}'
+      # copy values from current sylva-units HelmRelease
       # for now we keep the 'cluster' unit disabled, it produces CAPI resources
       # defining the management cluster, which we can't define before having done the pivot
       # (this value override is reverted after pivot by the pivot job below)
@@ -370,7 +369,10 @@ units:
                                             )
         -}}
         {{- mergeOverwrite $chartValues $disableCluster | include "preserve-type" -}}'
-      valuesFrom: '{{ lookup "helm.toolkit.fluxcd.io/v2" "HelmRelease" "sylva-system" "sylva-units" | dig "spec" "valuesFrom" list | include "preserve-type" }}'
+      # copy valuesFrom from current sylva-units HelmRelease, but without the ConfigMap/bootstrap-values, at index 1
+      valuesFrom: >-
+        {{- $valuesFrom := lookup "helm.toolkit.fluxcd.io/v2beta2" "HelmRelease" "sylva-system" "sylva-units" | dig "spec" "valuesFrom" list -}}
+        {{- concat (slice $valuesFrom 0 1 | default list) (slice $valuesFrom 2 | default list) | include "preserve-type" -}}
 
   pivot:
     info:

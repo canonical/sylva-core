@@ -6,16 +6,17 @@ components:
 
 patches:
   - target:
-      kind: HelmRelease
-      name: sylva-units
-    patch: |
-      - op: replace
-        path: /spec/chart/spec/valuesFiles/1
-        value: workload-cluster.values.yaml
-  - target:
-      kind: HelmRepository
-      name: sylva-units
+      kind: OCIRepository
     patch: |
       - op: replace
         path: /metadata/namespace
+        value: WORKLOAD_CLUSTER_NAMESPACE
+  - target:
+      kind: Kustomization
+    patch: |
+      - op: replace
+        path: /metadata/namespace
+        value: WORKLOAD_CLUSTER_NAMESPACE
+      - op: replace
+        path: /spec/targetNamespace
         value: WORKLOAD_CLUSTER_NAMESPACE

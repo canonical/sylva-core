@@ -24,11 +24,11 @@ components:
 
 patches:
 - target:
-    kind: HelmRelease
+    kind: OCIRepository
     name: sylva-units
   patch: |
     - op: replace
-      path: /spec/chart/spec/version
+      path: /spec/ref/tag
       value: 0.0.0-test   ## <<< the tag you want to use
 ```
 

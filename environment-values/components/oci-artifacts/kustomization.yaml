@@ -2,7 +2,8 @@ apiVersion: kustomize.config.k8s.io/v1alpha1
 kind: Component
 
 resources:
-- helm-repo.yaml
+- oci-repo.yaml
+- create-kustomization.yaml
 
 patches:
 - target:
@@ -13,30 +14,33 @@ patches:
     metadata:
       name: _unused_
     spec:
-      chart:
-        spec:
-          sourceRef:
-            kind: HelmRepository
-            name: sylva-units
-          chart: sylva-units
-          reconcileStrategy: ChartVersion
-          version: TBD  # this needs to be overridden at runtime (see README.md)
+      chartRef:
+        kind: OCIRepository # version is driven by OCIRepository/sylva-units, this needs to be overridden at runtime (see README.md)
+        name: sylva-units
+- target:
+    kind: HelmRelease
+    name: sylva-units
+  # this patch removes the .spec.chart (replaced by .spec.chartRef in case of OCI deployments)
+  patch: |
+    - op: remove
+      path: /spec/chart
 
 - target:
     kind: HelmRelease
     name: sylva-units
-  # those patches should produce, the equivalent of what the inject_bootstrap_values
-  # does when creating the HelmRelease in bootstrap cluster, without bootstrap.values.yaml
+    # this is not 100% right, the ConfigMap/use-oci-artifacts-values should be injected earlier (not last)
+    # to mimic what we used to have:
+    # valuesFiles:
+    #   - charts/sylva-units/values.yaml
+    #   - charts/sylva-units/workload.values.yaml
   patch: |
-    - op: replace
-      path: /spec/chart/spec/valuesFiles/0
-      value: values.yaml
-    - op: replace
-      path: /spec/chart/spec/valuesFiles/1
-      value: management.values.yaml
     - op: add
-      path: /spec/chart/spec/valuesFiles/-
-      value: use-oci-artifacts.values.yaml
+      path: /spec/valuesFrom/-
+      value:
+        kind: ConfigMap
+        name: use-oci-artifacts-values
+        valuesKey: use-oci-artifacts-values
+        optional: true # only needed for 'validate_sylva_units' preview
 
 - target:
     kind: HelmRelease

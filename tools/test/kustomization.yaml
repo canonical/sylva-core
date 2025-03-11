@@ -1,0 +1,27 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+configMapGenerator:
+  - name: management-values
+    options:
+      disableNameSuffixHash: true
+    files:
+    - management-values=management.values.yaml
+
+  - name: bootstrap-values
+    options:
+      disableNameSuffixHash: true
+    files:
+    - bootstrap-values=bootstrap.values.yaml
+
+  - name: workload-values
+    options:
+      disableNameSuffixHash: true
+    files:
+    - workload-values=workload-cluster.values.yaml
+
+  - name: use-oci-artifacts-values
+    options:
+      disableNameSuffixHash: true
+    files:
+    - use-oci-artifacts-values=use-oci-artifacts.values.yaml

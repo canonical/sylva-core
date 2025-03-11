@@ -30,8 +30,12 @@ spec:
         - charts/sylva-units/management.values.yaml
   driftDetection:
     mode: enabled
-  interval: 10m0s
+  interval: 1m0s # needs to be short, because of the issue in https://gitlab.com/sylva-projects/sylva-core/-/merge_requests/3180#note_2177823991
   valuesFrom:
+  - kind: ConfigMap
+    name: management-values
+    valuesKey: management-values
+    optional: true # only needed for 'validate_sylva_units' preview
   - kind: Secret
     name: sylva-units-secrets
     valuesKey: secrets
