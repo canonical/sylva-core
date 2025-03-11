@@ -7467,10 +7467,10 @@ cluster:
   kubelet_extra_args:
     # Increase max-pods for single-node deployments
     max-pods: '{{ tuple "196" (eq (.Values._internal.node_count | int) 1) | include "set-only-if" }}'
-    topology-manager-policy: '{{ .Values._internal.kubevirt_enable_check | default "" | ne "" | ternary "best-effort" nil | quote }}'
-    cpu-manager-policy: '{{ .Values._internal.kubevirt_enable_check | default "" | ne "" | ternary "static" nil | quote }}'
-    system-reserved: '{{ .Values._internal.kubevirt_enable_check | default "" | ne "" | ternary "cpu=100m" nil | quote }}'
-    kube-reserved: '{{ .Values._internal.kubevirt_enable_check | default "" | ne "" | ternary "cpu=100m" nil | quote }}'
+    topology-manager-policy: '{{ .Values._internal.kubevirt_enable_check | default "" | ne "" | ternary "best-effort" nil }}'
+    cpu-manager-policy: '{{ .Values._internal.kubevirt_enable_check | default "" | ne "" | ternary "static" nil }}'
+    system-reserved: '{{ .Values._internal.kubevirt_enable_check | default "" | ne "" | ternary "cpu=100m" nil }}'
+    kube-reserved: '{{ .Values._internal.kubevirt_enable_check | default "" | ne "" | ternary "cpu=100m" nil }}'
 
     #topology-manager-policy: '{{ tuple "best-effort" (not (.Values._internal.kubevirt_enable_check | eq ""))  | include "set-only-if" | fromJson | get "encapsulated-result" | quote}}'
     #cpu-manager-policy: '{{ tuple "static" (not (.Values._internal.kubevirt_enable_check | eq ""))  | include "set-only-if" | fromJson | get "encapsulated-result" | quote}}'
