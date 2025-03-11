@@ -178,7 +178,7 @@ units:
                 configMap:
                   name: prometheus-nginx-proxy-config
                   defaultMode: 438
-            containers: |
+            containers:
               - name: prometheus-proxy
                 args:
                   - nginx
