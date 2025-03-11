@@ -3,3 +3,4 @@ kind: Component
 
 resources:
   - grafana-nginx-proxy-config.yaml
+  - prometheus-nginx-proxy-config.yaml
