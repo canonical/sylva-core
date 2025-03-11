@@ -4375,7 +4375,7 @@ units:
             username: '{{ .Values._internal.thanos_user }}'
             password: '{{ .Values._internal.thanos_password }}'
     helmrelease_spec:
-      releaseName: kube-prometheus-stack
+      releaseName: rancher-monitoring
       storageNamespace: cattle-monitoring-system
       targetNamespace: cattle-monitoring-system
       chart:
@@ -6801,7 +6801,7 @@ units:
                  {{- end -}}
                  {{- $count_am = int $count_am -}}
                  {{- range $index_am := until $count_am }}
-                 - alertmanager-kube-prometheus-stack-alertmanager-{{ $index_am }}.alertmanager-operated.cattle-monitoring-system:9093
+                 - alertmanager-rancher-monitoring-alertmanager-{{ $index_am }}.alertmanager-operated.cattle-monitoring-system:9093
                  {{- end -}}
                 {{- end -}}
           existingConfigmap: "sylva-thanos-rules-configmap"  # this ConfigMap is a byproduct of the sylva-thanos-rules unit
