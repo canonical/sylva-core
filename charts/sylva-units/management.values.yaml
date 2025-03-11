@@ -170,7 +170,7 @@ units:
         prometheus:
           service:
             targetPort: 8081
-          prometheusSepc:
+          prometheusSpec:
             volumes:
               - name: nginx-home
                 emptyDir: {}
