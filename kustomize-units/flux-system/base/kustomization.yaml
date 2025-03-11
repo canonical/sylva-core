@@ -41,3 +41,13 @@ patches:
       path: /spec/template/spec/containers/0/image
       value: ghcr.io/fluxcd/source-controller:v1.4.1
 
+- target:
+    kind: Deployment
+    name: kustomize-controller
+  patch: |-
+    - op: replace
+      path: /spec/template/spec/containers/0/resources/limits/memory
+      value: 1Gi
+    - op: replace
+      path: /spec/template/spec/containers/0/resources/requests/memory
+      value: 512Mi

@@ -363,7 +363,31 @@
                     "config": {
                       "anyOf": [
                         {
-                          "type": "object"
+                          "type": "object",
+                          "properties": {
+                            "users": {
+                              "anyOf": [
+                                {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "object",
+                                    "properties": {
+                                      "name": {
+                                        "type": "string",
+                                        "maxLength": 32
+                                      }
+                                    }
+                                  }
+                                },
+                                {
+                                  "$ref": "#/$defs/string-with-gotpl"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            }
+                          }
                         },
                         {
                           "$ref": "#/$defs/string-with-gotpl"
@@ -449,7 +473,8 @@
                     ],
                     "properties": {
                       "name": {
-                        "type": "string"
+                        "type": "string",
+                        "maxLength": 32
                       },
                       "gecos": {
                         "type": "string"
@@ -1991,7 +2016,7 @@
                           "pattern": ".*/disk.*by.*"
                         },
                         "then": {
-                          "pattern": "/var/longhorn/disks/disk_by-(uuid_|path_pci-).*"
+                          "pattern": "/var/longhorn/disks/disk_by-(uuid_|id_|partuuid_|sn_|path_(pci|virtio-pci)-).*"
                         },
                         "else": {
                           "pattern": "/var/longhorn/disks/((sd|vd)[a-z]|nvme[0-9]n[0-9])"
@@ -7273,92 +7298,6 @@
         }
       }
     },
-    "unit_info": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "description"
-      ],
-      "properties": {
-        "description": {
-          "type": "string"
-        },
-        "details": {
-          "type": "string"
-        },
-        "internal": {
-          "type": "boolean"
-        },
-        "test": {
-          "type": "boolean"
-        },
-        "maturity": {
-          "type": "string",
-          "enum": [
-            "core-component",
-            "stable",
-            "beta",
-            "experimental"
-          ]
-        },
-        "version": {
-          "type": "string"
-        },
-        "hidden": {
-          "type": "boolean"
-        },
-        "kustomization_path": {
-          "type": "string"
-        }
-      }
-    },
-    "certificate": {
-      "type": "string",
-      "pattern": "^-----BEGIN CERTIFICATE-----"
-    },
-    "cert-and-key": {
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "cert": {
-          "$ref": "#/$defs/certificate"
-        },
-        "key": {
-          "type": "string",
-          "pattern": "^-----BEGIN PRIVATE KEY-----"
-        }
-      },
-      "anyOf": [
-        {
-          "required": [
-            "cert",
-            "key"
-          ]
-        },
-        {
-          "allOf": [
-            {
-              "not": {
-                "required": [
-                  "cert"
-                ]
-              }
-            },
-            {
-              "not": {
-                "required": [
-                  "key"
-                ]
-              }
-            }
-          ]
-        }
-      ]
-    },
-    "pub-key": {
-      "type": "string",
-      "pattern": "^-----BEGIN PUBLIC KEY-----"
-    },
     "sriov-resources-values": {
       "$schema": "https://json-schema.org/draft-07/schema#",
       "title": "Schema for sriov-resources chart values",
@@ -7517,7 +7456,6 @@
                       },
                       "required": [
                         "nicSelector",
-                        "nodeSelector",
                         "numVfs",
                         "resourceName"
                       ]
@@ -7541,6 +7479,92 @@
           ]
         }
       }
+    },
+    "unit_info": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "description"
+      ],
+      "properties": {
+        "description": {
+          "type": "string"
+        },
+        "details": {
+          "type": "string"
+        },
+        "internal": {
+          "type": "boolean"
+        },
+        "test": {
+          "type": "boolean"
+        },
+        "maturity": {
+          "type": "string",
+          "enum": [
+            "core-component",
+            "stable",
+            "beta",
+            "experimental"
+          ]
+        },
+        "version": {
+          "type": "string"
+        },
+        "hidden": {
+          "type": "boolean"
+        },
+        "kustomization_path": {
+          "type": "string"
+        }
+      }
+    },
+    "certificate": {
+      "type": "string",
+      "pattern": "^-----BEGIN CERTIFICATE-----"
+    },
+    "cert-and-key": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "cert": {
+          "$ref": "#/$defs/certificate"
+        },
+        "key": {
+          "type": "string",
+          "pattern": "^-----BEGIN PRIVATE KEY-----"
+        }
+      },
+      "anyOf": [
+        {
+          "required": [
+            "cert",
+            "key"
+          ]
+        },
+        {
+          "allOf": [
+            {
+              "not": {
+                "required": [
+                  "cert"
+                ]
+              }
+            },
+            {
+              "not": {
+                "required": [
+                  "key"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "pub-key": {
+      "type": "string",
+      "pattern": "^-----BEGIN PUBLIC KEY-----"
     }
   },
   "additionalProperties": false,
@@ -8309,65 +8333,7 @@
       "pattern": "^(unix|tcp)://.*"
     },
     "sriov": {
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "node_policies": {
-          "type": "object",
-          "additionalProperties": {
-            "type": "object",
-            "additionalProperties": false,
-            "required": [
-              "resourceName",
-              "numVfs",
-              "nicSelector",
-              "deviceType"
-            ],
-            "properties": {
-              "nodeSelector": {
-                "type": "object"
-              },
-              "resourceName": {
-                "type": "string",
-                "pattern": "^[a-z0-9][a-z0-9_.]*[a-z0-9]$"
-              },
-              "numVfs": {
-                "type": "integer"
-              },
-              "deviceType": {
-                "type": "string",
-                "pattern": "^(netdevice|vfio-pci)$"
-              },
-              "nicSelector": {
-                "type": "object",
-                "additionalProperties": false,
-                "minProperties": 1,
-                "properties": {
-                  "deviceID": {
-                    "type": "string"
-                  },
-                  "vendor": {
-                    "type": "string",
-                    "pattern": "^[0-9a-f]{4}$"
-                  },
-                  "pfNames": {
-                    "type": "array",
-                    "items": {
-                      "type": "string"
-                    }
-                  },
-                  "rootDevices": {
-                    "type": "array",
-                    "items": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
+      "$ref": "#/$defs/sriov-resources-values"
     },
     "k8s_version_short": {
       "type": "string",
@@ -9366,6 +9332,61 @@
                         "defaults": [
                           "receivers"
                         ]
+                      }
+                    }
+                  }
+                },
+                "snmp_notifier": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "config": {
+                      "type": "object",
+                      "additionalProperties": true,
+                      "properties": {
+                        "destinations": {
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "pattern": "^(\\[?[a-zA-Z0-9.-]+\\]?:\\d+)$"
+                          }
+                        },
+                        "version": {
+                          "type": "string",
+                          "pattern": "^(V2c|V3)$"
+                        },
+                        "auth": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "properties": {
+                            "community": {
+                              "type": "string"
+                            },
+                            "auth_protocol": {
+                              "type": "string",
+                              "pattern": "^(MD5|SHA)$"
+                            },
+                            "priv_protocol": {
+                              "type": "string",
+                              "pattern": "^(DES|AES)$"
+                            },
+                            "username": {
+                              "type": "string"
+                            },
+                            "password": {
+                              "type": "string"
+                            },
+                            "priv_password": {
+                              "type": "string"
+                            }
+                          }
+                        },
+                        "default_extra_args": {
+                          "type": "array"
+                        },
+                        "snmp_v3_extra_args": {
+                          "type": "array"
+                        }
                       }
                     }
                   }

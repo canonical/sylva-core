@@ -1,0 +1,43 @@
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  name: deny-cabundle-changes
+spec:
+  failurePolicy: Fail
+  matchConstraints:
+    resourceRules:
+      - apiGroups: ["apiextensions.k8s.io"]
+        apiVersions: ["v1"]
+        operations: ["UPDATE"]
+        resources: ["customresourcedefinitions"]
+  validations:
+    - expression: |
+        has(object.metadata) && has(object.metadata.annotations) && 'cert-manager.io/inject-ca-from' in object.metadata.annotations &&
+        has(object.spec.conversion) &&
+        has(object.spec.conversion.webhook) &&
+        has(object.spec.conversion.webhook.clientConfig) &&
+        has(object.spec.conversion.webhook.clientConfig.caBundle) &&
+        (
+          !has(oldObject.spec.conversion) ||
+          !has(oldObject.spec.conversion.webhook) ||
+          !has(oldObject.spec.conversion.webhook.clientConfig) ||
+          !has(oldObject.spec.conversion.webhook.clientConfig.caBundle) ||
+          object.spec.conversion.webhook.clientConfig.caBundle != oldObject.spec.conversion.webhook.clientConfig.caBundle
+        )
+        ?
+        (request.userInfo.username == 'system:serviceaccount:cert-manager:cert-manager-cainjector')
+        :
+        true
+      message: "Modification or addition of caBundle in CRDs is only allowed by cert-manager"
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  name: deny-cabundle-changes-binding
+spec:
+  policyName: deny-cabundle-changes
+  validationActions: [Deny]
+  matchResources:
+    namespaceSelector: {}
+    objectSelector: {}
+

@@ -58,14 +58,14 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
     spec:
       url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-capi-cluster.git
       ref:
-        tag: 0.5.1
+        tag: 0.5.4
 
   sync-openstack-images:
     kind: GitRepository
     spec:
       url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sync-openstack-images.git
       ref:
-        tag: 0.4.0
+        tag: 0.4.1
 
   devnull:
     kind: GitRepository
@@ -86,21 +86,21 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
     spec:
       url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sriov-resources.git
       ref:
-        tag: 0.0.4
+        tag: 0.0.5
 
   metallb-resources:
     kind: GitRepository
     spec:
       url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/metallb-resources.git
       ref:
-        tag: 0.0.5
+        tag: 0.1.0
 
   os-image-server:
     kind: GitRepository
     spec:
       url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/os-image-server.git
       ref:
-        tag: 2.2.4
+        tag: 2.2.5
 
   capo-contrail-bgpaas:
     kind: GitRepository
@@ -177,7 +177,7 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
     spec:
       url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-alertmanager-resources.git
       ref:
-        tag: 0.0.3
+        tag: 0.0.4
 
   workload-team-defs:
     kind: GitRepository
@@ -794,7 +794,7 @@ units:
       chart:
         spec:
           chart: cloudnative-pg
-          version: 0.23.0
+          version: 0.23.2
       targetNamespace: cnpg-system
 
   keycloak-postgres:
@@ -1389,7 +1389,7 @@ units:
       chart:
         spec:
           chart: rancher-cis-benchmark-crd
-          version: 105.2.0+up7.2.0
+          version: 105.3.0+up7.3.0
       targetNamespace: cis-operator-system
       upgrade:
         crds: CreateReplace
@@ -1411,7 +1411,7 @@ units:
       chart:
         spec:
           chart: rancher-cis-benchmark
-          version: 105.2.0+up7.2.0
+          version: 105.3.0+up7.3.0
       targetNamespace: cis-operator-system
 
   cis-operator-scan:
@@ -2276,6 +2276,7 @@ units:
         - '{{ tuple "components/check-images" .Values.security.upstream_images_signature.verify | include "set-only-if" }}'
         - '{{ tuple "components/mutate-job-security-context" (tuple . "rancher" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/neuvector-policies" (tuple . "neuvector" | include "unit-enabled") | include "set-only-if" }}'
+        - '{{ tuple "components/deny-cabundle-changes" (tuple . "cert-manager" | include "unit-enabled") | include "set-only-if" }}'
         - ../exclude-kube-system  # needs to be last (needed for components above that use sylva.org/kyverno-exclude-kube-system annotation)
 
   kyverno-policies-ready:
@@ -2690,7 +2691,7 @@ units:
       chart:
         spec:
           chart: metal3
-          version: 0.9.2
+          version: 0.9.3
       timeout: 30m
       targetNamespace: metal3-system
       values:
@@ -3457,7 +3458,7 @@ units:
       chart:
         spec:
           chart: openstack-cinder-csi
-          version: 2.31.2
+          version: 2.32.0
       targetNamespace: cinder-csi
       install:
         createNamespace: false
@@ -4526,6 +4527,79 @@ units:
     helm_secret_values:
       config: '{{ .Values.monitoring.alertmanager.webhooks.jiralert.config | include "preserve-type" }}'
 
+  alertmanager-snmp-notifier:
+    info:
+      description: installs Alertmanager webhook snmp-notifier
+      details: snmp-notifier is an Alertmanager wehbook that sends alerts as snmp traps
+      maturity: beta
+    enabled_conditions:
+    - '{{ tuple . "monitoring" | include "unit-enabled" }}'
+    # only enable if SNMP traps destinations are set
+    - '{{ .Values.monitoring.alertmanager.webhooks.snmp_notifier.config.destinations | empty | not }}'
+    unit_templates:
+    - base-deps
+    helm_repo_url: https://prometheus-community.github.io/helm-charts
+    helmrelease_spec:
+      targetNamespace: cattle-monitoring-system
+      chart:
+        spec:
+          chart: alertmanager-snmp-notifier
+          version: 0.4.0
+      values:
+        snmpNotifier:
+          extraArgs:
+            '{{ .Values.monitoring.alertmanager.webhooks.snmp_notifier.config.final_extra_args }}'
+          snmpDestinations:
+            '{{ .Values.monitoring.alertmanager.webhooks.snmp_notifier.config.destinations | default list | include "preserve-type" }}'
+        fullnameOverride: 'alertmanager-snmp-notifier'
+        extraConfigmapMounts:
+          - name: snmp-notifier-templates
+            configMap: sylva-alertmanager-webhook-snmp-notifier # this ConfigMap is a byproduct of the alertmanager-snmp-notifier-config unit
+            mountPath: /etc/snmp_notifier/
+            readOnly: true
+        podAnnotations:
+          sylva/snmp-notifier-config: '{{ .Values.monitoring.alertmanager.webhooks.snmp_notifier.config | toJson | sha256sum | trunc 8 }}'
+        replicaCount: '{{ .Values._internal.ha_cluster.is_ha | ternary 2 1 | include "preserve-type" }}'
+        podDisruptionBudget:
+          minAvailable: '{{ .Values._internal.ha_cluster.is_ha | ternary 1 0 | include "preserve-type" }}'
+          unhealthyPodEvictionPolicy: AlwaysAllow
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 65535
+          allowPrivilegeEscalation: false
+          seccompProfile:
+            type: RuntimeDefault
+        resources:
+          limits:
+            cpu: "0.2"
+            memory: "128Mi"
+          requests:
+            cpu: "0.1"
+            memory: "64Mi"
+    helm_secret_values:
+      snmpNotifier:
+        snmpCommunity: "{{ .Values.monitoring.alertmanager.webhooks.snmp_notifier.config.auth.community }}"
+        snmpAuthenticationUsername: "{{ .Values.monitoring.alertmanager.webhooks.snmp_notifier.config.auth.username }}"
+        snmpAuthenticationPassword: "{{ .Values.monitoring.alertmanager.webhooks.snmp_notifier.config.auth.password }}"
+        snmpPrivatePassword: "{{ .Values.monitoring.alertmanager.webhooks.snmp_notifier.config.auth.priv_password }}"
+
+  alertmanager-snmp-notifier-config:
+    info:
+      description: generates the config for snmp-notifier Alertmanager webhook
+      maturity: beta
+    enabled_conditions:
+    - '{{ tuple . "alertmanager-snmp-notifier" | include "unit-enabled" }}'
+    unit_templates:
+    - base-deps
+    depends_on:
+      namespace-defs: true
+    repo: sylva-alertmanager-resources
+    helmrelease_spec:
+      chart:
+        spec:
+          chart: webhooks/snmp-notifier
+      targetNamespace: cattle-monitoring-system
+
   alertmanager-config:
     info:
       description: generates the config for Alertmanager
@@ -4671,7 +4745,7 @@ units:
       chart:
         spec:
           chart: prometheus-snmp-exporter
-          version: 7.0.0
+          version: 8.0.0
       install:
         createNamespace: true
       values:
@@ -5101,7 +5175,7 @@ units:
       chart:
         spec:
           chart: longhorn-crd
-          version: 105.1.0+up1.7.2
+          version: 105.1.1+up1.7.3
 
   longhorn:
     info:
@@ -5124,14 +5198,14 @@ units:
       chart:
         spec:
           chart: longhorn
-          version: 105.1.0+up1.7.2
+          version: 105.1.1+up1.7.3
       values:
         metrics:
           serviceMonitor:
             enabled: '{{ .Values._internal.monitoring.enabled | include "preserve-type" }}'
         defaultSettings:
           createDefaultDiskLabeledNodes: true
-          allowVolumeCreationWithDegradedAvailability: true # tentative workaround of https://gitlab.com/sylva-projects/sylva-core/-/issues/1921
+          allowVolumeCreationWithDegradedAvailability: false
           storageMinimalAvailablePercentage: 10
           replicaReplenishmentWaitInterval: '{{ .Values.cluster.capi_providers.infra_provider | eq "capm3" | ternary 3600 600 | include "preserve-type" }}'
           nodeDrainPolicy: block-for-eviction-if-contains-last-replica
@@ -5502,18 +5576,6 @@ units:
       valuesFrom:
         - kind: ConfigMap
           name: os-images-info  # this configmap is a byproduct of the os-images-info unit
-      _postRenderers:  # should go away once https://gitlab.com/sylva-projects/sylva-elements/helm-charts/os-image-server/-/merge_requests/118 lands
-        - kustomize:
-            patches:
-              - target:
-                  kind: Ingress
-                patch: |-
-                  - op: replace
-                    path: /spec/rules/0/http/paths/0/pathType
-                    value: ImplementationSpecific
-                  - op: replace
-                    path: /spec/rules/0/http/paths/1/pathType
-                    value: ImplementationSpecific
 
   capo-contrail-bgpaas:
     info:
@@ -6166,10 +6228,10 @@ units:
               resources:
                 limits:
                   cpu: 500m
-                  memory: 512Mi
+                  memory: 1024Mi
                 requests:
                   cpu: 100m
-                  memory: 128Mi
+                  memory: 512Mi
               affinity:
                 podAntiAffinity:
                   requiredDuringSchedulingIgnoredDuringExecution:
@@ -7282,6 +7344,7 @@ units:
       targetNamespace: '{{ .Release.Namespace }}'
       install:
         createNamespace: false
+      timeout: 30m
       valuesFrom:
         # os_images:
         - kind: ConfigMap
@@ -7830,7 +7893,7 @@ k8s_version_short: "1.30"
 
 # Renovate Bot needs additional information to detect sylva diskimage-builder version
 # renovate: depName=sylva-projects/sylva-elements/diskimage-builder
-sylva_diskimagebuilder_version: 0.4.3
+sylva_diskimagebuilder_version: 0.4.5
 
 sylva_diskimagebuilder_images:
   ubuntu-noble-hardened-rke2-1-30-9: {}
@@ -7915,6 +7978,45 @@ monitoring:
       jiralert:
         env: {}
         config: {}
+      snmp_notifier:
+        config:
+          # trapserver destinations
+          # address:port format
+          destinations: []
+          # SNMP version
+          version: V2c # V3
+          auth:
+            # V2c
+            community: "public"
+            # V3
+            auth_protocol: "SHA" # MD5 or SHA
+            priv_protocol: "AES" # DES or AES
+            username: "snmp-user"
+            password: "snmp-auth-pass"
+            priv_password: "snmp-priv-pass"
+          default_extra_args:
+            - --alert.severities=critical,error,warning,info
+            - --snmp.extra-field-template=4=/etc/snmp_notifier/platform_tag.tpl
+            - --snmp.extra-field-template=5=/etc/snmp_notifier/alertname.tpl
+            - --snmp.extra-field-template=6=/etc/snmp_notifier/cluster.tpl
+            - --snmp.extra-field-template=7=/etc/snmp_notifier/team.tpl
+            - --snmp.retries=1
+            - --snmp.timeout=5s
+            - --log.level=info
+            - --snmp.version={{ .Values.monitoring.alertmanager.webhooks.snmp_notifier.config.version | default "V2c" }}
+          snmp_v3_extra_args:
+            # --no-snmp.authentication-enabled to disable authentication
+            - --snmp.authentication-enabled
+            - --snmp.authentication-protocol={{ .Values.monitoring.alertmanager.webhooks.snmp_notifier.config.auth.auth_protocol }}
+            # --no-snmp.private-enabled to disable encryption
+            - --snmp.private-enabled
+            - --snmp.private-protocol={{ .Values.monitoring.alertmanager.webhooks.snmp_notifier.config.auth.priv_protocol }}
+          final_extra_args: |
+            {{ if eq .Values.monitoring.alertmanager.webhooks.snmp_notifier.config.version "V3" }}
+            {{ concat .Values.monitoring.alertmanager.webhooks.snmp_notifier.config.default_extra_args .Values.monitoring.alertmanager.webhooks.snmp_notifier.config.snmp_v3_extra_args | include "preserve-type" }}
+            {{ else }}
+            {{ .Values.monitoring.alertmanager.webhooks.snmp_notifier.config.default_extra_args | include "preserve-type" }}
+            {{ end }}
 
 #monitoring:
 #  alertmanager:
@@ -7923,8 +8025,19 @@ monitoring:
 #      global:
 #        resolve_timeout: 15m
 #      route:
-#         group_by: ['namespace', 'alertname']
+#         group_by: ['namespace', 'alertname', 'cluster', 'severity']
 #         receiver: 'jira_receiver'
+#         routes:
+#         - matchers:
+#           - severity=~".*"
+#           receiver: jira_receiver
+#           continue: true
+#         - matchers:
+#           - severity=~".*"
+#           receiver: snmp_traps_receiver
+#           # disable grouping; send each alert individually
+#           group_by: ["..."]
+#           continue: true
 #      receivers:
 #      - name: 'jira_receiver'
 #        webhook_configs:
@@ -7932,6 +8045,10 @@ monitoring:
 #          send_resolved: false
 #    # Supported values from: https://github.com/prometheus-community/helm-charts/blob/main/charts/jiralert/values.yaml
 #    # Example config file: https://github.com/prometheus-community/jiralert/blob/master/examples/jiralert.yml
+#      - name: 'snmp_traps_receiver'
+#        webhook_configs:
+#        - url: 'http://alertmanager-snmp-notifier:9464/alerts'
+#          send_resolved: false
 #    webhooks:
 #      jiralert:
 #        # If missing, the proxies are those configured in `.Values.proxies`
@@ -7953,6 +8070,28 @@ monitoring:
 #            # Must match the Alertmanager receiver name. Required.
 #            - name: jira_receiver
 #              project: Sylva
+#      snmp_notifier:
+#        config:
+#          # trapserver destinations
+#          destinations:
+#            - 1.2.3.4:162
+#            - a.b.c.d:162
+#          version: V3
+#          auth:
+#            # V3
+#            auth_protocol: "SHA" # MD5 or SHA
+#            priv_protocol: "AES" # DES or AES
+#            username: "snmp-user"
+#            password: "snmp-auth-pass"
+#            priv_password: "snmp-priv-pass"
+#          # update the snmp_v3_extra_args to match the snmptrap sever
+#          # should only need to be modified if disabling authentication and/or encryption
+#          snmp_v3_extra_args:
+#            # use authentication
+#            - --snmp.authentication-enabled
+#            - --snmp.authentication-protocol={{ .Values.monitoring.alertmanager.webhooks.snmp_notifier.config.auth.auth_protocol }}
+#            # but no encryption
+#            - --no-snmp.private-enabled
 
 logging:
   # loki_url:
@@ -8285,8 +8424,8 @@ _internal:
 
   metallb_service_annotations:
     '{{
-    tuple (dict "metallb.universe.tf/loadBalancerIPs" .Values.cluster_virtual_ip
-                "metallb.universe.tf/allow-shared-ip" "cluster-external-ip")
+    tuple (dict "metallb.io/loadBalancerIPs" .Values.cluster_virtual_ip
+                "metallb.io/allow-shared-ip" "cluster-external-ip")
           (or (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpr")
               (tuple . "metallb" | include "unit-enabled"))
       | include "set-only-if"

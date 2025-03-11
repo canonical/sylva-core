@@ -266,30 +266,6 @@ check-sylva-unit-dependencies:
           exit 1
       fi
 
-check-renovate-json:
-  extends: [.lint-base]
-  script:
-    - set -e
-    - tools/generate-renovate-json.sh
-    - |
-      if [[ -n $(git status renovate.json -s --porcelain) ]]; then
-          echo -e "\033[0;31m[ERROR] renovate.json wasn't regenerated with 'tools/generate-renovate-json.sh'\033[0m"
-          echo
-          git diff renovate.json
-          echo
-          echo "Git status:"
-          echo
-          git status renovate.json -s --porcelain
-          exit 1
-      fi
-  rules:
-    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
-      changes:
-        - .gitlab/ci/main-pipeline-checks.yml
-        - .gitlab/merge_request_templates/Default.md
-        - tools/generate-renovate-json.sh
-        - renovate.json
-
 check-ci-scenario-doc:
   extends: [.lint-base]
   script:
@@ -311,6 +287,7 @@ check-ci-scenario-doc:
       changes:
         - .gitlab/ci/main-pipeline-checks.yml
         - .gitlab/README.md
+        - .gitlab/ci/deployments-base.yml
         - .gitlab/ci/scripts/generate-scenario-description.sh
 
 check-ci-tests-doc:
@@ -333,7 +310,7 @@ check-ci-tests-doc:
     - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
       changes:
         - .gitlab/ci/main-pipeline-checks.yml
-        - .gitlab/ci/tests/README.md
+        - .gitlab/ci/tests/**/*
         - .gitlab/ci/scripts/generate-tests-description.sh
 
 ###########################
