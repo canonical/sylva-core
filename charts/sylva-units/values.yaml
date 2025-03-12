@@ -4338,7 +4338,7 @@ units:
       _components:
         - '{{ tuple "components/kyverno-snmp-bmh-policy" (tuple . "metal3" | include "unit-enabled") | include "set-only-if" }}'
 
-  upstream-grafana-nginx:
+  upstream-prometheus-nginx:
     info:
       description: sets up Grafana nginx configmap
       internal: true
@@ -4350,7 +4350,7 @@ units:
       upstream-grafana-init: true
     repo: sylva-core
     kustomization_spec:
-      path: ./kustomize-units/upstream-grafana-nginx
+      path: ./kustomize-units/upstream-monitoring-nginx
       wait: true
       targetNamespace: cattle-monitoring-system
 
