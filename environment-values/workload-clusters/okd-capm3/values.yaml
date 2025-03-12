@@ -30,7 +30,7 @@ cluster:
     version: 4.17.0
     releaseImage: quay.io/okd/scos-release:4.17.0-0.okd-scos-2024-09-24-104828
     baseDomain: lab.home
-    sshAuthorizedKey: <ssh key> 
+    sshAuthorizedKey: <ssh key>
     # for OCP install, a real image pull secret is required and can be aquired from: https://console.redhat.com/openshift/install/pull-secret
 
   control_plane:
@@ -62,7 +62,7 @@ cluster:
           cluster-role: control-plane
       bmh_spec:
         bmc:
-          address: redfish-virtualmedia://10.6.74.85/redfish/v1/Systems/1 
+          address: redfish-virtualmedia://10.6.74.85/redfish/v1/Systems/1
           disableCertificateVerification: true
         bootMACAddress: 7c:c2:55:99:1f:d6
       interface_mappings:
@@ -101,4 +101,4 @@ units:
 ntp:
   enabled: true
   servers:
-   - clock.corp.redhat.com
+  - clock.corp.redhat.com
