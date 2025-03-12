@@ -71,18 +71,14 @@ def load_and_prepare_json(file_path: str, keys_to_remove: List[str]) -> Dict:
     :param keys_to_remove: List of key prefixes to identify objects to remove.
     :return: Cleaned JSON data.
     """
-    try:
-        with open(file_path, "r", encoding="utf-8") as file:
-            data = json.load(file)
-            if 'pod_images_dependencies' in data:
-                cleaned_dependencies = {}
-                for image, dependencies in data['pod_images_dependencies'].items():
-                    cleaned_dependencies[image] = remove_keys(dependencies, keys_to_remove)
-                data['pod_images_dependencies'] = cleaned_dependencies
-            return data
-    except Exception as e:
-        print(f"Error reading input file {file_path}: {e}")
-        return {}
+    with open(file_path, "r", encoding="utf-8") as file:
+        data = json.load(file)
+        if 'pod_images_dependencies' in data:
+            cleaned_dependencies = {}
+            for image, dependencies in data['pod_images_dependencies'].items():
+                cleaned_dependencies[image] = remove_keys(dependencies, keys_to_remove)
+            data['pod_images_dependencies'] = cleaned_dependencies
+        return data
 
 
 def merge_images_ref_files(input_files: List[str], output_file: str, keys_to_remove: List[str] = None):
@@ -99,12 +95,9 @@ def merge_images_ref_files(input_files: List[str], output_file: str, keys_to_rem
         data = load_and_prepare_json(input_file, keys_to_remove)
         merged_images_ref = update_images_ref(merged_images_ref, data)
 
-    try:
-        with open(output_file, "w", encoding="utf-8") as out_file:
-            json.dump(merged_images_ref, out_file, indent=4)
-            print(f"Merged result saved to {output_file}")
-    except Exception as e:
-        print(f"Error writing output file {output_file}: {e}")
+    with open(output_file, "w", encoding="utf-8") as out_file:
+        json.dump(merged_images_ref, out_file, indent=4)
+        print(f"Merged result saved to {output_file}")
 
 
 def main():
