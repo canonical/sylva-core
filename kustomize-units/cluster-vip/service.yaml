@@ -5,7 +5,7 @@ metadata:
   name: cluster-vip
   namespace: kube-system
   annotations:
-    metallb.universe.tf/allow-shared-ip: cluster-external-ip
+    metallb.io/allow-shared-ip: cluster-external-ip
     kustomize.toolkit.fluxcd.io/prune: disabled
 spec:
   type: LoadBalancer
