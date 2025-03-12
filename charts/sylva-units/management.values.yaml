@@ -281,7 +281,7 @@ units:
           - apiVersion: v1
             kind: Service
             metadata:
-              name: rancher-monitoring-grafana
+              name: nginx-grafana                        #rancher-monitoring-grafana
               namespace: cattle-monitoring-system
             spec:
               type: ClusterIP
