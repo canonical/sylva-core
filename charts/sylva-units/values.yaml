@@ -4385,6 +4385,7 @@ units:
       install:
         createNamespace: false
       values:
+        nameOverride: rancher-monitoring
         crds:
           enabled: false
         grafana:
