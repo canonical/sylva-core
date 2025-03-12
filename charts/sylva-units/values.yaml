@@ -4389,6 +4389,10 @@ units:
         crds:
           enabled: false
         grafana:
+          service:
+            portName: nginx-http
+            port: 80
+            targetPort: 8080
           sidecar:
             dashboards:
               enabled: true
