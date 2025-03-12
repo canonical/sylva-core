@@ -1,0 +1,104 @@
+# This example environment values files will let you build
+# a one-node OKD worload baremetal cluster
+
+cluster_virtual_ip: 10.6.87.14
+
+cluster:
+  name: okd-sno
+  agent_config_format: "ignition"
+  capi_providers:
+    infra_provider: capm3
+    bootstrap_provider: cabpoa
+  control_plane_replicas: 1
+  cluster_services_cidrs:
+    - 100.75.0.0/16
+  cluster_pods_cidrs:
+    - 100.74.0.0/16
+  capm3:
+    machine_image_checksum: https://abcde
+    machine_image_checksum_type: sha256
+    machine_image_format: live-iso
+    machine_image_url: https://abcde
+    primary_pool_network: 10.6.87.0
+    primary_pool_gateway: 10.6.87.254
+    primary_pool_start: 10.6.87.14
+    primary_pool_end: 10.6.87.16
+    primary_pool_prefix: "24"
+    dns_servers:
+    - 10.6.87.91
+  openshift:
+    version: 4.17.0
+    releaseImage: quay.io/okd/scos-release:4.17.0-0.okd-scos-2024-09-24-104828
+    baseDomain: lab.home
+    sshAuthorizedKey: <ssh key>
+    # for OCP install, a real image pull secret is required and can be aquired from: https://console.redhat.com/openshift/install/pull-secret
+
+  control_plane:
+    capm3:
+      hostSelector:
+        matchLabels:
+          cluster-role: control-plane
+      primary_pool_interface: eno1np0
+
+    network_interfaces:
+      # for CAPM3 folowing are used and mapped to Metal3Data.spec.template.spec.networkData.links
+      eno1np0:
+        type: phy
+
+  baremetal_host_default:
+    bmh_spec:
+      online: true
+      externallyProvisioned: false
+      bmc:
+        disableCertificateVerification: true
+      bootMode: UEFI
+      rootDeviceHints:  # https://github.com/metal3-io/baremetal-operator/blob/main/docs/api.md#rootdevicehints
+        deviceName: /dev/sda
+
+  baremetal_hosts:  # corresponding credentials need to be set in secrets.yaml
+    workload-control:
+      bmh_metadata:
+        labels:
+          cluster-role: control-plane
+      bmh_spec:
+        bmc:
+          address: redfish-virtualmedia://10.6.74.85/redfish/v1/Systems/1
+          disableCertificateVerification: true
+        bootMACAddress: 7c:c2:55:99:1f:d6
+      interface_mappings:
+        eno1np0:
+          mac_address: 7c:c2:55:99:1f:d6
+      ip_preallocations:
+        primary: 10.6.87.14
+
+units:
+  longhorn-crd:
+    enabled: false
+  longhorn:
+    enabled_conditions:
+      - false
+  multus-ready:
+    enabled: false
+  sriov-crd:
+    enabled: false
+  cluster-machines-ready:
+    enabled: false
+  monitoring-crd:
+    enabled: false
+  monitoring:
+    enabled: false
+  calico-crd:
+    enabled: false
+  calico:
+    enabled: false
+  ingress-nginx:
+    enabled: false
+  kyverno:
+    depends_on:
+      monitoring-crd: false
+
+# add ntp servers if you need
+ntp:
+  enabled: true
+  servers:
+  - clock.corp.redhat.com
