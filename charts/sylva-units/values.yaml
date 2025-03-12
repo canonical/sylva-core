@@ -7435,7 +7435,7 @@ units:
   coredns-custom-hosts-import:
     enabled: false
     info:
-      description: create a ConfigMap containing OKD workload cluster's DNS A records in [CoreDNS hosts plugin](https://coredns.io/plugins/hosts/)
+      description: create a ConfigMap containing workload cluster's DNS A records in [CoreDNS hosts plugin](https://coredns.io/plugins/hosts/)
       internal: true
     unit_templates:
     - base-deps

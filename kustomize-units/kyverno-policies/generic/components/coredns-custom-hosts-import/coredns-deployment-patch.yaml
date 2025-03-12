@@ -134,13 +134,13 @@ metadata:
     kustomize.toolkit.fluxcd.io/force: Enabled
     policies.kyverno.io/minversion: 1.12.0
     policies.kyverno.io/description: >-
-      For being able to dinamically provision coredns's hosts files we need to remove the "Corefile" section of it's config
+      For being able to dynamically provision coredns hosts files we need to remove the "Corefile" section of it's config
 spec:
   admission: true
   background: true
   mutateExistingOnPolicyUpdate: true
   rules:
-  - name: remove-configmapp-items
+  - name: remove-configmap-items
     match:
       any:
       - resources:
