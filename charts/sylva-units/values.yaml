@@ -2967,15 +2967,12 @@ units:
               - target:
                   kind: RKE2ControlPlane
                 patch: |
-                  kind: _unused_
-                  metadata:
-                    name: _unused_
-                  spec:
-                    serverConfig:
-                      kubeAPIServer:
-                        extraArgs:
-                        - feature-gates=ValidatingAdmissionPolicy=true
-                        - runtime-config=admissionregistration.k8s.io/v1beta1
+                  - op: add
+                    path: /spec/serverConfig/kubeAPIServer/extraArgs/-
+                    value: feature-gates=ValidatingAdmissionPolicy=true
+                  - op: add
+                    path: /spec/serverConfig/kubeAPIServer/extraArgs/-
+                    value: runtime-config=admissionregistration.k8s.io/v1beta1
               - target:
                   kind: KubeadmControlPlane
                 patch: |
