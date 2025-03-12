@@ -38,6 +38,9 @@ mgmt-verify-longhorn-cleanup-events:
     - .verify-longhorn-cleanup-events
   variables:
     DESCRIPTION: Highlight longhorn-instance-manager-cleanup events.
+  rules:
+    - if: $DEPLOY_MGMT_CLUSTER == "true" && ($DEPLOYMENT_INFRA_PROV == "" || $DEPLOYMENT_INFRA_PROV == "capm3")
+      when: on_success
 
 # ==========================================
 # Workload Cluster: Verify longhorn instance manager cleanup events
@@ -48,3 +51,6 @@ wkld-verify-longhorn-cleanup-events:
     - .verify-longhorn-cleanup-events
   variables:
     DESCRIPTION: Highlight longhorn-instance-manager-cleanup events.
+  rules:
+    - if: $DEPLOY_WKLD_CLUSTER == "true" && ($DEPLOYMENT_INFRA_PROV == "" || $DEPLOYMENT_INFRA_PROV == "capm3")
+      when: on_success
