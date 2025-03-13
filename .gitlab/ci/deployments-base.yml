@@ -239,6 +239,8 @@ variables:
     UPDATE_MGMT_CLUSTER: "false"
     DEPLOY_WORKLOAD_CLUSTER: "false"
     SKIP_TESTS: "true"
+    BOOTSTRAP_WATCH_TIMEOUT_MIN: 10
+    MGMT_WATCH_TIMEOUT_MIN: 20
 
 
 # CAPO -----------------------------------------
