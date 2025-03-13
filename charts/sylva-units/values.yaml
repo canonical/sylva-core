@@ -7464,7 +7464,7 @@ cluster:
   # Nodes number for control-plane
   control_plane_replicas: 3
 
-  kubelet_extra_args:
+  kubelet_extra_args: >-
     # Increase max-pods for single-node deployments
     max-pods: '{{ tuple "196" (eq (.Values._internal.node_count | int) 1) | include "set-only-if" }}'
 
