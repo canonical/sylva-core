@@ -2899,6 +2899,7 @@ units:
       metallb: '{{ and (tuple . "metallb" | include "unit-enabled") .Values._internal.state.is_upgrade }}'
       calico: '{{ .Values._internal.state.is_upgrade }}'
       calico-ready: '{{ .Values._internal.state.is_upgrade }}'
+      cluster-garbage-collector: '{{ and (tuple . "cluster-garbage-collector" | include "unit-enabled") .Values._internal.state.is_upgrade }}'
     kustomization_spec:
       prune: '{{ not (eq .Release.Namespace "sylva-system") | include "preserve-type" }}'
       # we wait on all important resources built by sylva-capi-cluster,
