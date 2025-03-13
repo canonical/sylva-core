@@ -4347,7 +4347,8 @@ units:
     unit_templates:
     - base-deps
     depends_on:
-      upstream-grafana-init: true
+      namespace-defs: true
+      upstream-monitoring-crd: true
     repo: sylva-core
     kustomization_spec:
       path: ./kustomize-units/upstream-monitoring-nginx
