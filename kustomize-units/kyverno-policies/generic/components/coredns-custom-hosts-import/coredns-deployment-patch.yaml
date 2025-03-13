@@ -1,0 +1,161 @@
+---
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: update-coredns-custom-hosts
+  namespace: sylva-system
+  annotations:
+    kustomize.toolkit.fluxcd.io/force: Enabled
+    policies.kyverno.io/minversion: 1.12.0
+    policies.kyverno.io/description: >-
+      This policy updates the content of coredns configmap to include the hosts defined in different other configmaps
+      having the label 'sylva.org/coredns-custom-hosts-import: "true"'. This is usefull when we need custom hostnames
+      from the workload cluster being resolved by the management cluster without using an externally provisioned dns server.
+spec:
+  admission: true
+  background: true
+  mutateExistingOnPolicyUpdate: true
+  rules:
+  - name: remove-coredns-custom-hosts
+    context:
+    - apiCall:
+        method: GET
+        urlPath: /api/v1/configmaps?labelSelector=sylva.org/coredns-custom-hosts-import=true
+      name: configmaps
+    - apiCall:
+        jmesPath: data
+        method: GET
+        urlPath: /api/v1/namespaces/kube-system/configmaps/rke2-coredns-rke2-coredns
+      name: currentConfig
+    - name: corefile
+      variable:
+        value: '{{ currentConfig.Corefile }}'
+    match:
+      any:
+      - resources:
+          kinds:
+          - ConfigMap
+          operations:
+          - DELETE
+          selector:
+            matchLabels:
+              sylva.org/coredns-custom-hosts-import: "true"
+    mutate:
+      targets:
+      - apiVersion: v1
+        kind: ConfigMap
+        name: ${COREDNS_CONFIGMAP_NAME:-coredns}
+        namespace: kube-system
+      patchStrategicMerge:
+        data:
+          '{{request.object.metadata.name}}': ""
+    skipBackgroundRequests: true
+  - name: update-coredns-custom-hosts
+    context:
+    - apiCall:
+        method: GET
+        urlPath: /api/v1/configmaps?labelSelector=sylva.org/coredns-custom-hosts-import=true
+      name: configmaps
+    match:
+      any:
+      - resources:
+          kinds:
+          - ConfigMap
+          selector:
+            matchLabels:
+              sylva.org/coredns-custom-hosts-import: "true"
+      - resources:
+          kinds:
+          - ConfigMap
+          names:
+          - ${COREDNS_CONFIGMAP_NAME:-coredns}
+          namespaces:
+          - kube-system
+    mutate:
+      targets:
+      - apiVersion: v1
+        kind: ConfigMap
+        name: ${COREDNS_CONFIGMAP_NAME:-coredns}
+        namespace: kube-system
+      foreach:
+      - list: configmaps.items[]
+        patchStrategicMerge:
+          data:
+            '{{element.metadata.name}}': '{{element.data.hosts}}'
+    skipBackgroundRequests: true
+  validationFailureAction: Audit
+---
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: reload-coredns
+  namespace: sylva-system
+  annotations:
+    kustomize.toolkit.fluxcd.io/force: Enabled
+    policies.kyverno.io/minversion: 1.12.0
+    policies.kyverno.io/description: >-
+      We need this policy in order to trigger a restart of coredns when its configmap is updated
+spec:
+  admission: true
+  background: true
+  mutateExistingOnPolicyUpdate: true
+  rules:
+  - name: reload-deployment-on-configmap-update
+    match:
+      any:
+      - resources:
+          kinds:
+          - ConfigMap
+          names:
+          - ${COREDNS_CONFIGMAP_NAME:-coredns}
+          namespaces:
+          - kube-system
+    mutate:
+      targets:
+      - apiVersion: apps/v1
+        kind: Deployment
+        name: ${COREDNS_DEPLOYMENT_NAME:-coredns}
+        namespace: kube-system
+      patchStrategicMerge:
+        spec:
+          template:
+            metadata:
+              annotations:
+                sylva.org/triggerrestart: "{{request.object.metadata.resourceVersion}}"
+    skipBackgroundRequests: false
+  validationFailureAction: Audit
+---
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: coredns-load-full-configmap
+  namespace: sylva-system
+  annotations:
+    kustomize.toolkit.fluxcd.io/force: Enabled
+    policies.kyverno.io/minversion: 1.12.0
+    policies.kyverno.io/description: >-
+      For being able to dynamically provision coredns hosts files we need to remove the "Corefile" section of it's config
+spec:
+  admission: true
+  background: true
+  mutateExistingOnPolicyUpdate: true
+  rules:
+  - name: remove-configmap-items
+    match:
+      any:
+      - resources:
+          kinds:
+          - Deployment
+          names:
+          - ${COREDNS_DEPLOYMENT_NAME:-coredns}
+          namespaces:
+          - kube-system
+    mutate:
+      targets:
+      - apiVersion: apps/v1
+        kind: Deployment
+        name: ${COREDNS_DEPLOYMENT_NAME:-coredns}
+        namespace: kube-system
+      patchesJson6902: |-
+          - path: "/spec/template/spec/volumes/0/configMap/items"
+            op: remove
