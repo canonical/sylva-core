@@ -33,6 +33,7 @@ spec:
       namespace: "{{ request.object.metadata.namespace }}"
       data:
         data:
+          CLUSTER_ID: {{ request.object.status.clusterName }}
           values.yaml: |
             global:
               cattle:
