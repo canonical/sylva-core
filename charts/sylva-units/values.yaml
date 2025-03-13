@@ -4389,6 +4389,27 @@ units:
         crds:
           enabled: false
         grafana:
+          extraContainers: |
+            - name: grafana-proxy
+              args:
+                - nginx
+                - -g
+                - daemon off;
+                - -c
+                - /nginx/nginx.conf
+              image: docker.io/rancher/mirrored-library-nginx:1.24.0-alpine
+              ports:
+                - containerPort: 8080
+                  name: nginx-http
+                  protocol: TCP
+              volumeMounts:
+                - mountPath: /nginx
+                  name: grafana-nginx
+                - mountPath: /var/cache/nginx
+                  name: nginx-home
+              securityContext:
+                runAsUser: 101
+                runAsGroup: 101
           service:
             portName: nginx-http
             port: 80
@@ -4403,7 +4424,37 @@ units:
                 etcd:
                   enabled: true
         prometheus:
+          service:
+            targetPort: 8081
           prometheusSpec:
+            containers:
+              - name: prometheus-proxy
+                args:
+                  - nginx
+                  - -g
+                  - daemon off;
+                  - -c
+                  - /nginx/nginx.conf
+                image: docker.io/rancher/mirrored-library-nginx:1.24.0-alpine
+                ports:
+                  - containerPort: 8081
+                    name: nginx-http
+                    protocol: TCP
+                volumeMounts:
+                  - mountPath: /nginx
+                    name: prometheus-nginx
+                  - mountPath: /var/cache/nginx
+                    name: nginx-home
+                securityContext:
+                  runAsUser: 101
+                  runAsGroup: 101
+            volumes:
+              - name: nginx-home
+                emptyDir: {}
+              - name: prometheus-nginx
+                configMap:
+                  name: prometheus-nginx-proxy-config
+                  defaultMode: 438
             scrapeInterval: "60s"
             scrapeTimeout: "30s"
             evaluationInterval: "30s"

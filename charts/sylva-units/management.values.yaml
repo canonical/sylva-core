@@ -181,38 +181,6 @@ units:
       sylvactl/readyMessage: "Grafana UI can be reached at https://{{ .Values.external_hostnames.grafana }} ({{ .Values.external_hostnames.grafana }} must resolve to {{ .Values.display_external_ip }})"
     helmrelease_spec:
       values:
-        prometheus:
-          service:
-            targetPort: 8081
-          prometheusSpec:
-            volumes:
-              - name: nginx-home
-                emptyDir: {}
-              - name: prometheus-nginx
-                configMap:
-                  name: prometheus-nginx-proxy-config
-                  defaultMode: 438
-            containers:
-              - name: prometheus-proxy
-                args:
-                  - nginx
-                  - -g
-                  - daemon off;
-                  - -c
-                  - /nginx/nginx.conf
-                image: docker.io/rancher/mirrored-library-nginx:1.24.0-alpine
-                ports:
-                  - containerPort: 8081
-                    name: nginx-http
-                    protocol: TCP
-                volumeMounts:
-                  - mountPath: /nginx
-                    name: prometheus-nginx
-                  - mountPath: /var/cache/nginx
-                    name: nginx-home
-                securityContext:
-                  runAsUser: 101
-                  runAsGroup: 101
         grafana:
           envFromSecret: upstream-grafana-oidc
           sidecar:
@@ -245,27 +213,6 @@ units:
               secretName: sylva-ca.crt
           # Define a custom ingress to directly access Grafana without nginx path rewrite
           # see https://gitlab.com/sylva-projects/sylva-core/-/issues/1622
-          extraContainers: |
-            - name: grafana-proxy
-              args:
-                - nginx
-                - -g
-                - daemon off;
-                - -c
-                - /nginx/nginx.conf
-              image: docker.io/rancher/mirrored-library-nginx:1.24.0-alpine
-              ports:
-                - containerPort: 8080
-                  name: nginx-http
-                  protocol: TCP
-              volumeMounts:
-                - mountPath: /nginx
-                  name: grafana-nginx
-                - mountPath: /var/cache/nginx
-                  name: nginx-home
-              securityContext:
-                runAsUser: 101
-                runAsGroup: 101
           extraContainerVolumes:
           - name: nginx-home
             emptyDir: {}
@@ -289,21 +236,6 @@ units:
                 port: 80
                 protocol: TCP
                 targetPort: 3000
-              selector:
-                app.kubernetes.io/instance: rancher-monitoring
-                app.kubernetes.io/name: grafana
-          - apiVersion: v1
-            kind: Service
-            metadata:
-              name: nginx-grafana                        #rancher-monitoring-grafana
-              namespace: cattle-monitoring-system
-            spec:
-              type: ClusterIP
-              ports:
-              - name: nginx-http
-                port: 80
-                protocol: TCP
-                targetPort: 8080
               selector:
                 app.kubernetes.io/instance: rancher-monitoring
                 app.kubernetes.io/name: grafana
