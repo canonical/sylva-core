@@ -350,6 +350,9 @@ units:
           name: '{{ .Values.cluster.name }}-capi-monitoring-info'
           optional: false
 
+  upstream-prometheus-nginx:
+    enabled: true
+
   upstream-monitoring-crd:
     enabled: true
 
@@ -358,6 +361,7 @@ units:
     depends_on:
       cluster-import: '{{ tuple . "cluster-import" | include "unit-enabled" }}'
       upstream-grafana-nginx: true
+      upstream-prometheus-nginx: true
     helmrelease_spec:
       values:
         grafana:
