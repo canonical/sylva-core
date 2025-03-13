@@ -2977,6 +2977,7 @@ units:
                         extraArgs:
                         - feature-gates=ValidatingAdmissionPolicy=true
                         - runtime-config=admissionregistration.k8s.io/v1beta1
+                        - v=8
               - target:
                   kind: KubeadmControlPlane
                 patch: |
@@ -7458,6 +7459,50 @@ units:
 
 cluster:
   name: management-cluster
+
+  additional_commands:
+
+    pre_bootstrap_commands:
+      # Run a light http server for log collect in CI
+      - |
+        echo ">> Installing miniserve for log collection in CI"
+        {{- if .Values.proxies.https_proxy }}
+        export https_proxy={{ .Values.proxies.https_proxy }}
+        export no_proxy={{ include "sylva-units.no_proxy" (tuple .) }}
+        {{- end }}
+        MINISERVE_VERSION=v0.27.1
+        MINISERVE_URL={{ .Values._internal.miniserve_url }}
+        curl -L --fail $MINISERVE_URL -o /usr/local/bin/miniserve --retry 3 || wget $MINISERVE_URL -O /usr/local/bin/miniserve --tries=3 || true
+        chmod +x /usr/local/bin/miniserve || true
+        mkdir -p /opt/dump
+        /usr/local/bin/miniserve --enable-tar-gz --interfaces 0.0.0.0 --port 25888 --hidden /opt/dump > /opt/dump/miniserve.log 2>&1 &
+      - |
+        create_link_to_opt_dump() {
+            target=$1
+            target_type=$2
+            suffix=$3
+            echo "link $target into /opt/dump"
+            [ "$target_type" = "dir" ] && mkdir -p $target
+            [ "$target_type" = "file" ] && mkdir -p $(dirname $target) && touch $target
+            echo "ln -sf ${target} /opt/dump/${suffix}-$(echo ${target} | tr '/' '-')"
+            ln -sf ${target} /opt/dump/${suffix}--$(echo ${target} | tr '/' '-')
+        }
+        create_link_to_opt_dump /var/log "dir" "system"
+        if [[ -d /run/log ]]; then
+          create_link_to_opt_dump /run/log "dir" "system"  # our current opensuse images have journald logs under /run/log
+        fi
+        {{- if .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" }}
+        create_link_to_opt_dump /etc/rancher/node "dir" "rke2"
+        create_link_to_opt_dump /var/lib/rancher/rke2/agent/logs "dir" "rke2"
+        create_link_to_opt_dump /var/lib/rancher/rke2/agent/etc "dir" "rke2"
+        create_link_to_opt_dump /var/lib/rancher/rke2/agent/containerd/containerd.log "file" "rke2"
+        {{ end -}}
+      - set -v
+      - echo "... installing debug packages ..."
+      - timeout 120s apt-update || true
+      - timeout 120s zypper refresh || true
+      - timeout 120s apt-get install iputils-ping tcpdump conntrack || true
+      - timeout 120s zypper install -y iputils tcpdump conntrack || true
 
   # can be set to true to do an RKE2 deployment disconnected from the Internet:
   air_gapped: false

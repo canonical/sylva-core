@@ -20,9 +20,9 @@ cluster:
 # We can define users if needed (.cluster.kubeadm.users[])
   #kubeadm:
   #  users:
-  #    - name: sylva-user
+  #    - name: node-admin
   #      passwd: "put your password hash here"  # (copy pasted from /etc/shadow or created with "mkpasswd --method=SHA-512 --stdin")
-  #      groups: users
+  #      groups: users, sylva-ops
   #      sudo: ALL=(ALL) NOPASSWD:ALL
   #      shell: /bin/bash
   #      lockPassword: false
