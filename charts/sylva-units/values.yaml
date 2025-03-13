@@ -6555,6 +6555,47 @@ units:
         - '{{ ternary "../tls-components/tls-secret" "../tls-components/tls-certificate" (hasKey .Values.external_certificates.minio_monitoring "cert") }}'
         - "../tls-components/sylva-ca"
 
+  minio-monitoring-cleanup:
+    info:
+      description: Remove MinIO-monitoring StatefulSet when MinIO tenant is in a failed state (This unit should be removed after Sylva 1.4)
+      internal: true
+    one_shot: true
+    unit_templates:
+    - base-deps
+    - kube-job
+    enabled_conditions:
+    - '{{ tuple . "minio-monitoring" | include "unit-enabled" }}'
+    - '{{ .Values._internal.state.is_upgrade }}'
+    depends_on:
+      minio-monitoring: '{{ tuple . "minio-monitoring" | include "unit-enabled" }}'
+    kustomization_spec:
+      targetNamespace: minio-monitoring
+      _patches:
+      - target:
+          kind: ConfigMap
+          labelSelector: kube-job=script
+        patch: |
+          - op: replace
+            path: /data/kube-job.sh
+            value: |
+              #!/bin/bash
+              set -e
+
+              echo "Waiting for MinIO to enter the failed state..."
+              while true; do
+                  MINIO_STATUS=$(kubectl get tenant monitoring -n minio-monitoring -o jsonpath='{.status.currentState}')
+
+                  if echo "$MINIO_STATUS" | grep -q "server update failed with: open /usr/bin/.minio.check-perm"; then
+                      echo "MinIO is in a failed state. Deleting StatefulSet..."
+                      kubectl delete statefulset monitoring-pool-0 -n minio-monitoring --cascade=orphan
+                      echo "StatefulSet deleted successfully. MinIO operator will recreate it."
+                      break
+                  fi
+
+                  echo "MinIO is still healthy. Retrying in 10 seconds..."
+                  sleep 10  # Wait 10 seconds before checking again
+              done
+
   minio-monitoring:
     info:
       description: creates a MinIO tenant for the monitoring stack, used as S3 storage by Thanos
