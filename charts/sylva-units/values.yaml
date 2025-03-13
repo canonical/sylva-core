@@ -7467,7 +7467,7 @@ cluster:
   kubelet_extra_args:
     # Increase max-pods for single-node deployments
     #max-pods: '{{ tuple "196" (eq (.Values._internal.node_count | int) 1) | include "set-only-if" }}'
-    {{ .Values._internal.kubevirt_args }}
+    '{{ .Values._internal.kubevirt_args }}'
 
     # topology-manager-policy: "best-effort"
     # cpu-manager-policy: "static"
