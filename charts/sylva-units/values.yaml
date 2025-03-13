@@ -6557,7 +6557,7 @@ units:
 
   minio-monitoring-cleanup:
     info:
-      description: Remove MinIO-monitoring StatefulSet when MinIO tenant is in a failed state (This unit should be removed after Sylva 1.4)
+      description: Recreates MinIO-monitoring StatefulSet when MinIO tenant is in a failed state (This unit should be removed after Sylva 1.4)
       internal: true
     one_shot: true
     unit_templates:

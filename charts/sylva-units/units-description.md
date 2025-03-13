@@ -160,6 +160,7 @@
 | **metallb-resources** | configures metallb resources | Helm chart |
 | **mgmt-cluster-ready** | (workload cluster) this unit reflects the readiness of the mgmt cluster<br/><br/>this unit acts as simple dependency lock to prevent deploying a workload cluster before the mgmt cluster is ready | Kustomization |
 | **minio-logging-init** | sets up secrets and certificates for minio-logging | Kustomization |
+| **minio-monitoring-cleanup** | Recreates MinIO-monitoring StatefulSet when MinIO tenant is in a failed state (This unit should be removed after Sylva 1.4) | Kustomization |
 | **minio-monitoring-init** | sets up secrets and certificates for minio-monitoring | Kustomization |
 | **minio-operator-init** | sets up MinIO certificate for minio-operator<br/><br/>it generate certificate | Kustomization |
 | **multus-ready** | checks that Multus is ready<br/><br/>This unit only has dependencies, it does not create resources. It performs healthchecks outside of the multus unit, in order to properly target workload cluster when we deploy multus in it. | Kustomization |
