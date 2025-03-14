@@ -19,7 +19,3 @@ openstack:
   storageClass:
     name: "cinder-ceph-ssd"
     type: "ceph_ssd"
-
-sylva_diskimagebuilder_images:
-  ubuntu-noble-plain-kubeadm-1-30-9:
-    enabled: true

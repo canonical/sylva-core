@@ -1,8 +1,4 @@
 ---
-sylva_diskimagebuilder_images:
-  ubuntu-noble-plain-kubeadm-1-30-9:
-    enabled: true
-
 cluster:
   capi_providers:
     bootstrap_provider: cabpk
@@ -22,7 +18,3 @@ cluster:
   # capm3:
   #   os_image_selector:
   #     os: ubuntu
-
-# sylva_diskimagebuilder_images:
-#   ubuntu-noble-plain-kubeadm-xxxxxxx:
-#     default_enabled: true
