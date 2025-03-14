@@ -2547,6 +2547,50 @@ units:
       _components:
         - '{{ tuple "components/ha" (.Values._internal.ha_cluster.is_ha) | include "set-only-if" }}'
 
+  cabpr-cluster-pause:
+    info:
+      description: unit used to pause the Cluster resource of all clusters
+      details: |-
+        This unit was introduced as a workaround https://github.com/rancher/cluster-api-provider-rke2/issues/596
+
+        The resume is done by a sylva-capi-cluster Helm post-upgrade hook.
+      internal: true
+    one_shot: true
+    unit_templates:
+    - base-deps
+    - kube-job
+    enabled_conditions:
+    - '{{ tuple . "cabpr" | include "unit-enabled" }}'
+    - '{{ .Values._internal.state.is_upgrade }}'
+    kustomization_spec:
+      _patches:
+      - target:
+          kind: ConfigMap
+          labelSelector: kube-job=script
+        patch: |
+          - op: replace
+            path: /data/kube-job.sh
+            value: |
+              #!/bin/bash
+
+              kubectl get cluster.cluster.x-k8s.io --all-namespaces \
+                -o=jsonpath="{range .items[*]}{.metadata.namespace} {.metadata.name} {end}" \
+                | xargs -P10 -t -n2 \
+                  kubectl patch                              \
+                    --field-manager sylva-cabpr-cluster-pause-unit \
+                    --type=merge                             \
+                    --patch '{"spec":{"paused":true}}'       \
+                    cluster.cluster.x-k8s.io -n    # will be followed by <ns> <name>
+      - target:
+          kind: ClusterRole
+        patch: |
+          - op: replace
+            path: /rules
+            value:
+              - apiGroups: [cluster.x-k8s.io]
+                resources: [clusters]
+                verbs: [list, get, patch, update]
+
   cabpr:
     info:
       description: installs RKE2 CAPI bootstrap provider
@@ -2556,6 +2600,7 @@ units:
     - base-deps
     depends_on:
       cert-manager: true
+      cabpr-cluster-pause: '{{ tuple . "cabpr-cluster-pause" | include "unit-enabled" }}'
     kustomization_spec:
       path: ./kustomize-units/cabpr
       wait: true
@@ -2923,6 +2968,7 @@ units:
         resource_groups:
           - cluster-resource
           - base
+        unset_cabpr_upgrade_cluster_paused: '{{ .Values._internal.state.is_upgrade | include "preserve-type" }}'
       valuesFrom:
         - kind: ConfigMap
           name: capo-cluster-resources
