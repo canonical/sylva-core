@@ -93,6 +93,9 @@ Process all units
           {{- $helm_repo_spec = dict "type" "oci" -}}
         {{- end -}}
       {{- $helm_repo_spec = mergeOverwrite $helm_repo_spec (deepCopy $envAll.Values.helm_repo_spec_default) (dict "url" $unit_def.helm_repo_url) -}}
+      {{- if hasKey $unit_def "helm_repo_spec" -}}
+        {{- $helm_repo_spec = mergeOverwrite $helm_repo_spec (deepCopy $unit_def.helm_repo_spec) -}}
+      {{- end -}}
 
       {{/*
       we inject a sourceRef pointing to our dynamically created HelmRepository
