@@ -15,15 +15,11 @@ labels:
 configMapGenerator:
 - name: sylva-units-values
   behavior: merge
-  options:
-    disableNameSuffixHash: true
   files:
   - values=values.yaml
 
 secretGenerator:
 - name: sylva-units-secrets
   behavior: merge
-  options:
-    disableNameSuffixHash: true
   files:
   - secrets=secrets.yaml

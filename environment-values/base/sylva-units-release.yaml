@@ -20,3 +20,4 @@ spec:
       name: sylva-units-secrets
       valuesKey: secrets
   values: {} # Remove that once https://gitlab.com/sylva-projects/sylva-elements/sylva-units-operator/-/issues/34 will be fixed
+
