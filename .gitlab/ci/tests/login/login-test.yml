@@ -40,6 +40,11 @@
     - export thanos_user=$(kubectl --kubeconfig management-cluster-kubeconfig get secrets sylva-units-values -o yaml | yq .data.values | base64 -d | yq ._internal.thanos_user)
     - export thanos_password=$(kubectl --kubeconfig management-cluster-kubeconfig get secrets sylva-units-values -o yaml | yq .data.values | base64 -d | yq ._internal.thanos_password)
     - echo -e "\e[0Ksection_end:`date +%s`:gitlab_ci_get_thanos_login_and_password\r\e[0K"
+  get_grafana_login_and_password:
+    - echo -e "\e[1m\e[0Ksection_start:`date +%s`:gitlab_ci_get_grafana_login_and_password[collapsed=true]\r\e[0KGet grafana user and password\e[0m"
+    - export grafana_user="admin"
+    - export grafana_password=$(kubectl --kubeconfig management-cluster-kubeconfig get secrets sylva-units-values -o yaml | yq .data.values | base64 -d | yq ._internal.grafana_admin_password)
+    - echo -e "\e[0Ksection_end:`date +%s`:gitlab_ci_get_grafana_login_and_password\r\e[0K"
 
 wkld-sso-kubeconfig:
   extends:
