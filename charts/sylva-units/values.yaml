@@ -3363,7 +3363,7 @@ units:
     depends_on:
       '{{ .Values._internal.calico_readiness_unit }}': '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpk" }}'
       cluster-vip: '{{ and (tuple . "cluster-vip" | include "unit-enabled") .Values._internal.state.is_upgrade }}'
-      metallb-resources: '{{ .Values._internal.is_upgrade }}'
+      metallb-resources: '{{ .Values._internal.state.is_upgrade }}'
     helm_repo_url: https://metallb.github.io/metallb
     helmrelease_spec:
       chart:
