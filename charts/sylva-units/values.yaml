@@ -58,7 +58,8 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
     spec:
       url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-capi-cluster.git
       ref:
-        tag: 0.5.5
+        #tag: 0.5.6
+        branch: rke2-cp-move-infraRef  # https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-capi-cluster/-/merge_requests/620
 
   sync-openstack-images:
     kind: GitRepository
@@ -2898,6 +2899,7 @@ units:
       metallb: '{{ and (tuple . "metallb" | include "unit-enabled") .Values._internal.state.is_upgrade }}'
       calico: '{{ .Values._internal.state.is_upgrade }}'
       calico-ready: '{{ .Values._internal.state.is_upgrade }}'
+      cluster-garbage-collector: '{{ and (tuple . "cluster-garbage-collector" | include "unit-enabled") .Values._internal.state.is_upgrade }}'
     kustomization_spec:
       prune: '{{ not (eq .Release.Namespace "sylva-system") | include "preserve-type" }}'
       # we wait on all important resources built by sylva-capi-cluster,
@@ -3361,6 +3363,7 @@ units:
     depends_on:
       '{{ .Values._internal.calico_readiness_unit }}': '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpk" }}'
       cluster-vip: '{{ and (tuple . "cluster-vip" | include "unit-enabled") .Values._internal.state.is_upgrade }}'
+      metallb-resources: '{{ .Values._internal.state.is_upgrade }}'
     helm_repo_url: https://metallb.github.io/metallb
     helmrelease_spec:
       chart:
@@ -3412,7 +3415,7 @@ units:
     unit_templates:
     - base-deps
     depends_on:
-      metallb: true
+      metallb: '{{ not .Values._internal.state.is_upgrade }}'
     repo: metallb-resources
     helm_chart_artifact_name: metallb-resources
     helmrelease_spec:
