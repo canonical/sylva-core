@@ -10,7 +10,7 @@
     {{- fail (printf "sylva_diskimagebuilder_images.%s.os_images_oci_registry ('%s') is not defined in os_images_oci_registries" $os_image_name $os_image_props.os_images_oci_registry) -}}
   {{- end -}}
 
-  {{/* skip image if it's registry is disabled in os_images_oci_registries entry*/}}
+  {{/* skip image if its registry is disabled in os_images_oci_registries entry*/}}
   {{- if not (dig $os_image_props.os_images_oci_registry "enabled" true $os_images_oci_registries) -}}
     {{- continue -}}
   {{- end -}}
