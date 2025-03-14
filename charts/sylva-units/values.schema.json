@@ -4773,7 +4773,37 @@
                             }
                           ]
                         },
-                        "mtu": {
+                        "default_mtu": {
+                          "anyOf": [
+                            {
+                              "type": "integer",
+                              "min": 1280,
+                              "max": 9000
+                            },
+                            {
+                              "$ref": "#/$defs/string-with-gotpl"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "cp_mtu": {
+                          "anyOf": [
+                            {
+                              "type": "integer",
+                              "min": 1280,
+                              "max": 9000
+                            },
+                            {
+                              "$ref": "#/$defs/string-with-gotpl"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "md_mtu": {
                           "anyOf": [
                             {
                               "type": "integer",

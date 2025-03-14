@@ -58,7 +58,7 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
     spec:
       url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-capi-cluster.git
       ref:
-        tag: 0.5.5
+        tag: interface-mtu-settings
 
   sync-openstack-images:
     kind: GitRepository
@@ -7588,7 +7588,7 @@ cluster:
     machine_image_checksum_type: sha256
     image_provisioning_host: '{{ .Values.display_external_ip }}'
     network_interfaces:
-      mtu: >-
+      default_mtu: >-
         {{-
         tuple
           (tuple .
@@ -8136,7 +8136,7 @@ calico_helm_values:
   installation:
     calicoNetwork:
       bgp: Disabled
-      mtu: '{{ tuple .Values.cluster.capm3.network_interfaces.mtu (and (.Values.cluster.capi_providers.infra_provider | eq "capm3") .Values.cluster.capm3.network_interfaces.mtu) | include "set-only-if" }}'
+      mtu: '{{ tuple .Values.cluster.capm3.network_interfaces.default_mtu (and (.Values.cluster.capi_providers.infra_provider | eq "capm3") .Values.cluster.capm3.network_interfaces.default_mtu) | include "set-only-if" }}'
       nodeAddressAutodetectionV4:
         '{{
         tuple
