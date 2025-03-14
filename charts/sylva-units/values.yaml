@@ -3415,7 +3415,7 @@ units:
     unit_templates:
     - base-deps
     depends_on:
-      metallb: '{{ not .Values._internal.is_upgrade }}'
+      metallb: '{{ not .Values._internal.state.is_upgrade }}'
     repo: metallb-resources
     helm_chart_artifact_name: metallb-resources
     helmrelease_spec:
