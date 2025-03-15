@@ -328,8 +328,7 @@ units:
     info:
       description: sets up Grafana nginx configmap
       internal: true
-    enabled_conditions:
-      - '{{ tuple . "upstrmonitoring" | include "unit-enabled" }}'
+    enabled_conditions: true
     unit_templates:
     - base-deps
     depends_on:
