@@ -5,7 +5,7 @@
 apiVersion: kyverno.io/v1
 kind: ClusterPolicy
 metadata:
-  name: set-monitoring-chart-cluster-id
+  name: set-upstrmonitoring-chart-cluster-id
   annotations:
     kustomize.toolkit.fluxcd.io/force: Enabled
 spec:
