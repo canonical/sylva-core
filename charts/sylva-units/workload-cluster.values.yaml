@@ -328,7 +328,7 @@ units:
     info:
       description: sets up Grafana nginx configmap
       internal: true
-    enabled_conditions: true
+    enabled: true
     unit_templates:
     - base-deps
     depends_on:
