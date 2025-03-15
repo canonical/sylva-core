@@ -346,7 +346,7 @@ units:
           PREFIX_URL: '/k8s/clusters/'
         substituteFrom:
         - kind: ConfigMap
-          name: '{{ .Values.cluster.name }}-capi-monitoring-info'
+          name: '{{ .Values.cluster.name }}-capi-upstrmonitoring-info'
           optional: false
 
   upstream-prometheus-nginx:

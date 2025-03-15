@@ -2358,6 +2358,23 @@ units:
       path: ./kustomize-units/rancher-monitoring-clusterid-inject
       wait: true
 
+  rancher-upstrmonitoring-clusterid-inject:
+    info:
+      description: injects Rancher cluster ID in Helm values of Rancher monitoring chart
+      internal: true
+    unit_templates:
+    - base-deps
+    enabled_conditions:
+    - '{{ tuple . "kyverno" | include "unit-enabled" }}'
+    - '{{ tuple . "rancher" | include "unit-enabled" }}'
+    depends_on:
+      kyverno: '{{ tuple . "kyverno" | include "unit-enabled" }}'
+      rancher: true
+    repo: sylva-core
+    kustomization_spec:
+      path: ./kustomize-units/rancher-monitoring-clusterid-inject/wrkload-cluster-inject
+      wait: true
+
   shared-workload-clusters-settings:
     info:
       description: manages parameters which would be shared between management and workload clusters

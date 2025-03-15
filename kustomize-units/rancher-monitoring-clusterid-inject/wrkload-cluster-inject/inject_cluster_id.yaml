@@ -1,0 +1,36 @@
+# the scope of this policy is to add the clusterId into workload monitoring values
+# this action is performed once the workload cluster is successfully enroled
+# into rancher by getting the clusterName and inject it into monitoring hr manifest
+---
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: set-monitoring-chart-cluster-id
+  annotations:
+    kustomize.toolkit.fluxcd.io/force: Enabled
+spec:
+  generateExisting: true
+  rules:
+  - name: create-cluster-cm
+    skipBackgroundRequests: false
+    match:
+      any:
+      - resources:
+          kinds:
+          - provisioning.cattle.io/v1/Cluster
+          selector:
+            matchLabels:
+              capi-rancher-import.cluster-name: "*"
+    preconditions:
+      all:
+      - key: "{{ request.object.status.clusterName }}"
+        operator: NotEquals
+        value: ""
+    generate:
+      kind: ConfigMap
+      apiVersion: v1
+      name: "{{request.object.metadata.name}}-upstrmonitoring-info"
+      namespace: "{{ request.object.metadata.namespace }}"
+      data:
+        data:
+          CLUSTER_ID: "{{ request.object.status.clusterName }}"
