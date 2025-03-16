@@ -8349,13 +8349,20 @@
       "additionalProperties": false,
       "patternProperties": {
         ".*": {
-          "type": "object",
-          "additionalProperties": false,
-          "patternProperties": {
-            ".*": {
-              "type": "string"
+          "anyOf": [
+            {
+              "$ref": "#/$defs/gotpl"
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "patternProperties": {
+                ".*": {
+                  "type": "string"
+                }
+              }
             }
-          }
+          ]
         }
       }
     },
@@ -9022,6 +9029,16 @@
                   "ref": "#/$defs/string-with-gotpl"
                 }
               ]
+            },
+            "enabled": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "ref": "#/$defs/gotpl"
+                }
+              ]
             }
           }
         }
@@ -9154,16 +9171,13 @@
           "type": "object",
           "additionalProperties": false,
           "properties": {
-            "enabled": {
-              "type": "boolean"
-            },
-            "default_enabled": {
-              "type": "boolean"
-            },
             "os_images_oci_registry": {
               "type": "string"
             }
-          }
+          },
+          "required": [
+            "os_images_oci_registry"
+          ]
         }
       }
     },
