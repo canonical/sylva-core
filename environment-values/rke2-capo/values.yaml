@@ -1,8 +1,4 @@
 ---
-sylva_diskimagebuilder_images:
-  ubuntu-noble-hardened-rke2-1-30-9:
-    enabled: true
-
 cluster:
 
   capi_providers:
