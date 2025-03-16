@@ -6676,6 +6676,19 @@
               "type": "null"
             }
           ]
+        },
+        "resume_cluster": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "$ref": "#/$defs/string-with-gotpl"
+            },
+            {
+              "type": "null"
+            }
+          ]
         }
       },
       "allOf": [
