@@ -49,6 +49,7 @@
 | **harbor** | installs Harbor | beta | [Helm chart](https://helm.goharbor.io) | 1.15.2 |
 | **kubevirt** | installs kubevirt | beta | [Helm chart](https://suse-edge.github.io/charts) | 0.4.0 |
 | **kubevirt-cdi** | manages Kubevirt CDI - Container Data Importer | beta | [Helm chart](https://suse-edge.github.io/charts) | 0.4.0 |
+| **kunai** | installs Kunai<br/><br/>The integration of [Kunai](https://gitlab.com/sylva-projects/sylva-elements/kunai) at this stage should be considered experimental.<br/>Work is in progress to align its integration with workload-cluster-operator and workload-teams-defs.<br/>See https://gitlab.com/groups/sylva-projects/-/epics/58. | experimental | [Helm chart](https://gitlab.com/api/v4/projects/sylva-projects%2Fsylva-elements%2Fkunai/packages/helm/stable) | 1.3.1 |
 | **logging** | installs Rancher Fluentbit/Fluentd logging stack, for log collecting and shipping | beta | [Helm chart](https://charts.rancher.io/) | 105.1.0+up4.10.0 |
 | **loki** | installs Loki log storage<br/><br/>installs Loki log storage in simple scalable mode | beta | [Helm chart](https://github.com/grafana/loki.git) | v3.4.2 |
 | **minio-logging** | creates a MinIO tenant for the logging stack, used as S3 storage by Loki | beta | [Helm chart](https://github.com/minio/operator.git) | v7.0.0 |
@@ -131,6 +132,9 @@
 | **kube-storage-version-migrator** | installs kube-storage-version-migrator to assist apiVersion migrations | Kustomization |
 | **kubevirt-manager** | deploys kubevirt-manager UI for kubevirt workloads | Kustomization |
 | **kubevirt-test-vms** | deploys kubevirt VMs for testing | Kustomization |
+| **kunai-eso** | write secrets in kunai namespace in kunai expected format | Kustomization |
+| **kunai-postgres-cnpg** | Deploy Postgres cluster for Kunai using Cloud Native PostgreSQL (CNPG) | Kustomization |
+| **kunai-secrets** | create random secret that will be used by kunai application. secrets are sync with vault. | Kustomization |
 | **kyverno-metal3-policies** | kyverno policies specific to capm3-system | Kustomization |
 | **kyverno-policies** | configures Kyverno policies | Kustomization |
 | **kyverno-policies-ready** | additional delay to ensure that kyverno webhooks are properly installed in api-server | Kustomization |
