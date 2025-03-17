@@ -3361,6 +3361,9 @@ units:
     depends_on:
       '{{ .Values._internal.calico_readiness_unit }}': '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpk" }}'
       cluster-vip: '{{ and (tuple . "cluster-vip" | include "unit-enabled") .Values._internal.state.is_upgrade }}'
+      metallb-resources: '{{ .Values._internal.state.is_upgrade }}'  # on upgrade from Sylva 1.3 to 1.4, we need metallb-resources unit
+                                                                     # to be updated before metallb unit
+                                                                     # (see https://gitlab.com/sylva-projects/sylva-core/-/issues/2210)
     helm_repo_url: https://metallb.github.io/metallb
     helmrelease_spec:
       chart:
@@ -3412,7 +3415,7 @@ units:
     unit_templates:
     - base-deps
     depends_on:
-      metallb: true
+      metallb: '{{ not .Values._internal.state.is_upgrade }}'
     repo: metallb-resources
     helm_chart_artifact_name: metallb-resources
     helmrelease_spec:
