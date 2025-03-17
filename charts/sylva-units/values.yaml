@@ -8486,6 +8486,9 @@ _internal:
       name:
         _immutable: true
         _immutable_comment: "Renaming a cluster is not supported"
+      cluster_virtual_ip:
+        _immutable: true
+        _immutable_comment: "cluster_virtual_ip can't be changed once deployed"
       capi_providers:
         bootstrap_provider:
           _immutable: true
