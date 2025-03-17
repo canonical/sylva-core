@@ -6677,7 +6677,7 @@
             }
           ]
         },
-        "resume_cluster": {
+        "unset_cabpr_upgrade_cluster_paused": {
           "anyOf": [
             {
               "type": "boolean"
