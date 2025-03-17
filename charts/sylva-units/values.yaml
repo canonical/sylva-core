@@ -3171,7 +3171,7 @@ units:
               echo $nodes
 
               echo "Checking post command annotations for all nodes..."
-              while ! kubectl get nodes -o json | jq -e '[.items[] | select(.metadata.annotations | has("post-commands-executed") | not)] | length == 0' >/dev/null; do
+              while ! kubectl get nodes --kubeconfig /tmp/management-cluster-kubeconfig -o json | jq -e '[.items[] | select(.metadata.annotations | has("post-commands-executed") | not)] | length == 0' >/dev/null; do
                 echo "..."
                 sleep 5
               done
