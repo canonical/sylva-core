@@ -310,6 +310,10 @@ def check_deployments(deployments):
             logging.error(f"deployment {deploy_name}: scenario not allowed")
             sys.exit(1)
 
+        if infra == "capd" and (scenario and scenario != "preview"):
+            logging.error(f"deployment {deploy_name}: scenario not allowed")
+            sys.exit(1)
+
         if scenario and scenario not in ["simple-update", "preview"]:
             options.append("ha")
 
