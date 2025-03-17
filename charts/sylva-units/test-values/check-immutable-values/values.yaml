@@ -5,4 +5,4 @@ _internal:
   previous_values:
     cluster:
       name: old-management-cluster
-
+      cluster_virtual_ip: 192.18.0.100
