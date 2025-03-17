@@ -93,6 +93,7 @@
 | name | full description | source |
 | :----- | :----- | :----- |
 | **bootstrap-local-path** | installs localpath CSI in bootstrap cluster | Kustomization |
+| **cabpr-cluster-pause** | unit used to pause the Cluster resource of all clusters<br/><br/>This unit was introduced as a workaround https://github.com/rancher/cluster-api-provider-rke2/issues/596<br/><br/>The resume is done by a sylva-capi-cluster Helm post-upgrade hook. | Kustomization |
 | **calico-ready** | ensure Calico resources created by the Tigera operator are ready before running further steps<br/><br/>This unit will be enabled in bootstrap cluster to confirm management cluster CNI readiness and in various workload-cluster namespaces in management cluster to do the same for workload clusters | Kustomization |
 | **capi-providers-pivot-ready** | checks if management cluster is ready for pivot<br/><br/>This unit only has dependencies, but does not create resources. It is here only to have a single thing to look at to determine if everything is ready for pivot (see bootstrap.values.yaml pivot unit) | Kustomization |
 | **capi-rancher-import** | installs the capi-rancher-import operator, which let's us import Cluster AIP workload clusters in management cluster's Rancher | Helm chart |
