@@ -386,6 +386,10 @@ units:
     # can be enabled at runtime if desired
     enabled: false
 
+  multus-bond-cni:
+    kustomization_spec:
+      targetNamespace: null # cancel targetNamespace set in unit_kustomization_spec_default
+
   multus-ready:
     enabled: true
 

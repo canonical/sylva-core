@@ -4917,6 +4917,22 @@ units:
                       $patch: delete
                       app: whereabouts
 
+  multus-bond-cni:
+    info:
+      description: installs bond CNI binary for multus
+      version: 1.0.0
+      maturity: beta
+    # enable this unit if multus is enabled
+    enabled: '{{ tuple . "multus" | include "unit-enabled" }}'
+    unit_templates:
+    - base-deps
+    depends_on:
+      multus: true
+    repo: sylva-core
+    kustomization_spec:
+      path: ./kustomize-units/multus-bond-cni
+      wait: true
+
   multus-ready:
     info:
       description: checks that Multus is ready
@@ -4932,6 +4948,7 @@ units:
       - '{{ tuple . "multus" | include "unit-enabled" }}'
     depends_on:
       multus: true
+      multus-bond-cni: '{{ tuple . "multus-bond-cni" | include "unit-enabled" }}'
     kustomization_spec:
       healthChecks:
         - apiVersion: apps/v1
