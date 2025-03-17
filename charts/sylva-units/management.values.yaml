@@ -159,12 +159,13 @@ units:
       upstream-grafana-init: true
     repo: sylva-core
     kustomization_spec:
-      path: ./kustomize-units/upstream-monitoring-nginx/mgmt-grafana-nginx
+      path: ./kustomize-units/upstream-monitoring-nginx/wrkload-grafana-nginx
       wait: true
       targetNamespace: cattle-monitoring-system
       postBuild:
         substitute:
-          CLUSTERID: ''
+          CLUSTER_ID: ''
+          MIDDLE_URL: ''
           NAMESPACE: 'cattle-monitoring-system'
           SERVICE: 'rancher-monitoring-grafana'
           SERVICE_PORT: '80'
