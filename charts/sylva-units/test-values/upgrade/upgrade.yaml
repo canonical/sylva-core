@@ -1,6 +1,6 @@
 cluster:
   name: test-cluster  # overriden so that we can have a value common for mgmt and workload which we use below in _internal.previous_values
-  cluster_virtual_ip: 172.18.0.100
+cluster_virtual_ip: 172.18.0.100
 
 _internal:
 
