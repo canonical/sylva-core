@@ -1,6 +1,0 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: minio-operator-init-unit
-data:
-  unit: minio-operator-init

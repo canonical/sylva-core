@@ -1,0 +1,30 @@
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: ${TENANT_NS}-internal-certificate
+  namespace: ${TENANT_NS}
+spec:
+  secretName: ${TENANT_NS}-internal-tls
+  issuerRef:
+    name: certificate-issuer
+    kind: ClusterIssuer
+  commonName: ${TENANT_NS}
+  duration: 2160h # 90d
+  renewBefore: 360h # 15d
+  dnsNames:
+  - minio.${TENANT_NS}
+  - minio.${TENANT_NS}.svc
+
+  - minio.${TENANT_NS}.svc.${CLUSTER_DOMAIN}
+  - "*.${TENANT_NAME}-hl.${TENANT_NS}.svc.${CLUSTER_DOMAIN}"
+  - "*.${TENANT_NS}.svc.${CLUSTER_DOMAIN}"
+  - "*.${TENANT_NAME}.minio.${TENANT_NS}.svc.${CLUSTER_DOMAIN}"
+
+  - minio.${TENANT_NS}.svc.cluster.local
+  - "*.${TENANT_NAME}-hl.${TENANT_NS}.svc.cluster.local"
+  - "*.${TENANT_NS}.svc.cluster.local"
+  - "*.${TENANT_NAME}.minio.${TENANT_NS}.svc.cluster.local"
+
+  ipAddresses:
+  - 127.0.0.1

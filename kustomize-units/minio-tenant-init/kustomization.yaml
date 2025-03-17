@@ -6,3 +6,4 @@ resources:
   - minio-tenant-root-external-secret.yaml
   - minio-tenant-user-random-secret.yaml
   - minio-tenant-user-external-secret.yaml
+  - minio-tenant-internal-certificate.yaml
