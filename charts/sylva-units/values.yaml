@@ -4056,6 +4056,11 @@ units:
             default: true
           hostPort:
             enabled: false
+          resources:
+            requests:
+              memory: "300Mi"
+            limits:
+              memory: "1Gi"
     kustomization_spec:
       healthChecks:
         - apiVersion: apps/v1
