@@ -267,7 +267,7 @@
       "postUpgradeTasks": {
         "commands": [
           "pip install yq",
-          ".gitlab/ci/scripts/generate-diskimage-builder-images.sh {{{newVersion}}}"
+          ".gitlab/ci/scripts/generate-diskimage-builder-images.py {{{newVersion}}}"
         ],
         "fileFilters": [
           "charts/sylva-units/charts/values.yaml"
