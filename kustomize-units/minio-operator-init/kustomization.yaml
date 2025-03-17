@@ -4,4 +4,4 @@ kind: Kustomization
 namespace: minio-operator
 
 resources:
-  - configmap.yaml
+  - minio-operator-internal-certificate.yaml
