@@ -3,10 +3,10 @@
 <!-- markdownlint-disable MD044 -->
 | name | full description | maturity | source | version |
 | :----- | :----- | :----- | :----- | :----- |
-| **cabpk** | installs Kubeadm CAPI bootstrap provider | core-component | [Kustomization](https://github.com/kubernetes-sigs/cluster-api/releases/download/v1.8.8/bootstrap-components.yaml) | v1.8.8 |
+| **cabpk** | installs Kubeadm CAPI bootstrap provider | core-component | [Kustomization](https://github.com/kubernetes-sigs/cluster-api/releases/download/v1.9.5/bootstrap-components.yaml) | v1.9.5 |
 | **cabpr** | installs RKE2 CAPI bootstrap provider | core-component | [Kustomization](https://github.com/rancher/cluster-api-provider-rke2/releases/download/v0.7.1/bootstrap-components.yaml) | v0.7.1 |
-| **capd** | installs Docker CAPI infra provider | core-component | [Kustomization](https://github.com/kubernetes-sigs/cluster-api//test/infrastructure/docker/config/default/?ref=v1.8.8) | v1.8.8 |
-| **capi** | installs Cluster API core operator | core-component | [Kustomization](https://github.com/kubernetes-sigs/cluster-api/releases/download/v1.8.8/core-components.yaml) | v1.8.8 |
+| **capd** | installs Docker CAPI infra provider | core-component | [Kustomization](https://github.com/kubernetes-sigs/cluster-api//test/infrastructure/docker/config/default/?ref=v1.9.5) | v1.9.5 |
+| **capi** | installs Cluster API core operator | core-component | [Kustomization](https://github.com/kubernetes-sigs/cluster-api/releases/download/v1.9.5/core-components.yaml) | v1.9.5 |
 | **capm3** | installs Metal3 CAPI infra provider, for baremetal | core-component | [Kustomization](https://github.com/metal3-io/cluster-api-provider-metal3/releases/download/v1.9.3/infrastructure-components.yaml) | v1.9.3 |
 | **capo** | installs OpenStack CAPI infra provider | core-component | [Kustomization](https://github.com/kubernetes-sigs/cluster-api-provider-openstack/releases/download/v0.12.1/infrastructure-components.yaml) | v0.12.1 |
 | **capo-orc** | installs OpenStack Resource Controller (orc)<br/><br/>The [OpenStack Resource Controller](https://k-orc.cloud/) (a.k.a. ORC) is a component used by CAPO controller | core-component | [Kustomization](https://github.com/k-orc/openstack-resource-controller/dist?ref=v1.0.1) | v1.0.1 |
@@ -68,8 +68,8 @@
 <!-- markdownlint-disable MD044 -->
 | name | full description | source | version |
 | :----- | :----- | :----- | :----- |
-| **cluster** | holds the Cluster API definition for the cluster | [Helm chart](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-capi-cluster.git) | 0.5.4 |
-| **cluster-bmh** | definitions for Cluster API BareMetalHosts resources (capm3) | [Helm chart](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-capi-cluster.git) | 0.5.4 |
+| **cluster** | holds the Cluster API definition for the cluster | [Helm chart](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-capi-cluster.git) | 0.5.5 |
+| **cluster-bmh** | definitions for Cluster API BareMetalHosts resources (capm3) | [Helm chart](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-capi-cluster.git) | 0.5.5 |
 | **heat-operator** | installs OpenStack Heat operator | [Kustomization](https://gitlab.com/sylva-projects/sylva-elements/heat-operator.git/config/default?ref=0.1.0) | 0.1.0 |
 | **capo-contrail-bgpaas** | installs CAPO Contrail BGPaaS controller | [Helm chart](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/capo-contrail-bgpaas.git) | 1.0.4 |
 | **libvirt-metal** | installs libvirt for baremetal emulation<br/><br/>this unit is used in bootstrap cluster for baremetal testing | [Helm chart](https://gitlab.com/sylva-projects/sylva-elements/container-images/libvirt-metal.git) | 0.1.22 |
@@ -80,7 +80,7 @@
 | **sylva-dashboards** | adds Sylva-specific Grafana dashboards | [Helm chart](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-dashboards.git) | 0.0.15 |
 | **sylva-logging-flows** | configures logging flows and output to export the platform logs to an external server | [Helm chart](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-logging-flows.git) | 0.0.1 |
 | **sylva-prometheus-rules** | installs prometheus rules using external helm chart & rules git repo | [Helm chart](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-prometheus-rules.git) | 0.0.15 |
-| **sylva-thanos-rules** | installs Thanos rules using external helm chart & rules git repo | [Helm chart](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-thanos-rules.git) | 0.0.3 |
+| **sylva-thanos-rules** | installs Thanos rules using external helm chart & rules git repo | [Helm chart](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-thanos-rules.git) | 0.1.0 |
 | **sylva-units-operator** | installs sylva-units operator | [Kustomization](https://gitlab.com/sylva-projects/sylva-elements/sylva-units-operator.git/config/default?ref=v0.1.6) | v0.1.6 |
 | **workload-cluster-operator** | installs Sylva operator for managing workload clusters | [Kustomization](https://gitlab.com/sylva-projects/sylva-elements/workload-cluster-operator.git/config/default?ref=0.2.0) | 0.2.0 |
 | **workload-team-defs** | installs the workload-team-defs chart<br/><br/>installs the workload-team-defs chart to install the workload cluster through CRD | [Helm chart](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/workload-team-defs.git) | 0.1.1 |
@@ -110,6 +110,7 @@
 | **cluster-vip** | Defines the cluster-vip Service for MetalLB load-balancing<br/><br/>MetalLB will only handle the VIP if it has a corresponding service with endpoints, but we don't want that the API access (6443) relies on kube-proxy, because on RKE2 agent nodes, kube-proxy uses RKE2 internal load-balancing proxy that may fall-back to the VIP to access the API, which could create a deadlock if endpoints are not up-to-date.<br/>The cluster-vip Service that plays this role. This unit manages this resource, taking over the control after the initial creation of this Service by a cloud-init post command on the first node). | Kustomization |
 | **cluster-vip-fix-lbclass** | Set loadBalancerClass to cluster-vip service and metallb components<br/><br/>This unit can be removed after next release when the loadBalancerClass is set by default | Kustomization |
 | **coredns** | configures DNS inside cluster | Kustomization |
+| **coredns-custom-hosts-import** | create a ConfigMap containing workload cluster's DNS A records in [CoreDNS hosts plugin](https://coredns.io/plugins/hosts/) | Kustomization |
 | **crossplane-init** | sets up Crossplane prerequisites<br/><br/>it creates the namespace and generates CA certificate secret to be used by 'crossplane' unit | Kustomization |
 | **eso-secret-stores** | defines External Secrets stores | Kustomization |
 | **first-login-rancher** | configure Rancher authentication for admin | Kustomization |

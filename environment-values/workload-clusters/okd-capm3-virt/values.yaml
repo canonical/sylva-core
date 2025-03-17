@@ -1,0 +1,38 @@
+---
+units:
+  longhorn:
+    enabled: false
+  monitoring:
+    enabled: false
+  calico:
+    enabled: false
+  tigera-clusterrole:
+    enabled: false
+  ingress-nginx:
+    enabled: false
+  cluster:
+    depends_on:
+      calico: '{{ and (tuple . "calico" | include "unit-enabled") .Values._internal.state.is_upgrade }}'
+      calico-ready: '{{ and (tuple . "calico-ready" | include "unit-enabled") .Values._internal.state.is_upgrade }}'
+
+cluster_machines_ready:
+  wait_timeout: 900s
+
+cluster_domain: okd
+
+cluster:
+  name: okd-capm3
+  agent_config_format: "ignition"
+  capi_providers:
+    bootstrap_provider: cabpoa
+
+  capm3:
+    machine_image_checksum: https://abcde
+    machine_image_checksum_type: sha256
+    machine_image_format: live-iso
+    machine_image_url: https://abcdef
+    dns_servers: '{{ list .Values.cluster.mgmt_cluster_ip }}'
+
+  openshift:
+    ingressVIP: 192.168.100.4
+    baseDomain: okd

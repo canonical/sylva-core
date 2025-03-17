@@ -15,7 +15,7 @@ spec:
       containers:
       - name: delete-hook
         # renovate: datasource=docker
-        image: registry.gitlab.com/sylva-projects/sylva-elements/container-images/kube-job:v1.1.0
+        image: registry.gitlab.com/sylva-projects/sylva-elements/container-images/kube-job:v1.1.1
         command:
           - "/bin/bash"
           - "-c"

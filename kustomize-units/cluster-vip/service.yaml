@@ -5,11 +5,11 @@ metadata:
   name: cluster-vip
   namespace: kube-system
   annotations:
-    metallb.universe.tf/allow-shared-ip: cluster-external-ip
+    metallb.io/allow-shared-ip: cluster-external-ip
+    metallb.io/loadBalancerIPs: ${allocated_ip}
     kustomize.toolkit.fluxcd.io/prune: disabled
 spec:
   type: LoadBalancer
-  loadBalancerIP: "${allocated_ip}"
   loadBalancerClass: "${lb_class}"
   ports:
   - name: rke2-proxy

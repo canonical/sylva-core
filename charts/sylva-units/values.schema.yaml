@@ -511,6 +511,9 @@ properties:
               - $ref: "#/$defs/gotpl"
               - const: ""
 
+          helm_repo_spec:  # -------------------------------
+            type: object
+
           helm_chart_versions:  # -------------------------------
             type: object
             items:
@@ -530,6 +533,11 @@ properties:
             patternProperties:
               "^.*$":
                 type: string
+
+        dependencies:
+          helm_repo_spec:
+            required:
+              - helm_repo_url
 
         dependentRequired:
           kustomization_substitute_secrets:
@@ -639,11 +647,13 @@ properties:
     additionalProperties: false
     patternProperties:
       ".*":  # -------------------------------
-        type: object  # this is an "OS image selector", as defined in sylva-library (validated by validate-selector from same library)
-        additionalProperties: false
-        patternProperties:
-          ".*":  # -------------------------------
-            type: string
+        anyOf:
+          - $ref: "#/$defs/gotpl"
+          - type: object  # this is an "OS image selector", as defined in sylva-library (validated by validate-selector from same library)
+            additionalProperties: false
+            patternProperties:
+              ".*":  # -------------------------------
+                type: string
 
   openstack:  # -------------------------------
     type: object
@@ -1046,6 +1056,10 @@ properties:
             anyOf:
               - ref: "#/$defs/pub-key"
               - ref: "#/$defs/string-with-gotpl"
+          enabled:
+            anyOf:
+              - type: boolean
+              - ref: "#/$defs/gotpl"
 
   oci_registry_extra_ca_certs:  # -------------------------------
     type: string
@@ -1136,12 +1150,10 @@ properties:
         type: object
         additionalProperties: false
         properties:
-          enabled:
-            type: boolean
-          default_enabled:
-            type: boolean
           os_images_oci_registry:
             type: string
+        required:
+        - os_images_oci_registry
 
   additional_sylva_units_status_info:  # -------------------------------
     type: object

@@ -543,6 +543,11 @@ units:
         - '{{ tuple "components/ca-issuer" (not (hasKey .Values.security.external_x509_issuer "issuer_type")) | include "set-only-if" }}'
 
 
+  coredns-custom-hosts-import:
+    enabled: true
+    unit_templates:
+    - kustomization-deployed-on-mgmt-cluster
+
 cluster_domain: '{{ .Values.cluster.name }}.{{ .Values._internal.workload_clusters_cluster_subdomain }}'
 
 _internal:

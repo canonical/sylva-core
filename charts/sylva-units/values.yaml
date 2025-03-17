@@ -58,7 +58,7 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
     spec:
       url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-capi-cluster.git
       ref:
-        tag: 0.5.4
+        tag: 0.5.5
 
   sync-openstack-images:
     kind: GitRepository
@@ -170,7 +170,7 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
     spec:
       url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-thanos-rules.git
       ref:
-        tag: 0.0.3
+        tag: 0.1.0
 
   sylva-alertmanager-resources:
     kind: GitRepository
@@ -2267,6 +2267,8 @@ units:
           DIGEST: '{{ .Values.security.upstream_images_signature.policy_action | eq "Enforce" }}'
           COSIGN_PUBLIC_KEY: '{{ .Values.security.upstream_images_signature.cosign_public_key | quote }}'
           IMAGE_LIST: '{{ .Values.security.upstream_images_signature.images_list | toJson }}'
+          COREDNS_DEPLOYMENT_NAME: '{{ tuple (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpk" | ternary "coredns" "rke2-coredns-rke2-coredns") (tuple . "cabpoa" | include "unit-enabled") | include "set-only-if" }}'
+          COREDNS_CONFIGMAP_NAME: '{{ tuple (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpk" | ternary "coredns" "rke2-coredns-rke2-coredns") (tuple . "cabpoa" | include "unit-enabled") | include "set-only-if" }}'
       _components:
         - '{{ tuple "components/bootstrap-cluster-only" .Values._internal.bstrp_cluster | include "set-only-if" }}'
         - '{{ tuple "components/management-cluster-only" .Values._internal.mgmt_cluster | include "set-only-if" }}'
@@ -2278,6 +2280,7 @@ units:
         - '{{ tuple "components/neuvector-policies" (tuple . "neuvector" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/deny-cabundle-changes" (tuple . "cert-manager" | include "unit-enabled") | include "set-only-if" }}'
         - ../exclude-kube-system  # needs to be last (needed for components above that use sylva.org/kyverno-exclude-kube-system annotation)
+        - '{{ tuple "components/coredns-custom-hosts-import" (tuple . "cabpoa" | include "unit-enabled") | include "set-only-if" }}'
 
   kyverno-policies-ready:
     info:
@@ -2418,6 +2421,7 @@ units:
       postBuild:
         substitute:
           force_var_substitution_enabled: "true"  # dummy value to ensure substitution of defaults
+          EXP_MACHINE_SET_PREFLIGHT_CHECKS: "false"  # https://gitlab.com/sylva-projects/sylva-core/-/issues/1658
       wait: true
       _components:
         - '{{ tuple "components/ha" (.Values._internal.ha_cluster.is_ha) | include "set-only-if" }}'
@@ -2973,15 +2977,12 @@ units:
               - target:
                   kind: RKE2ControlPlane
                 patch: |
-                  kind: _unused_
-                  metadata:
-                    name: _unused_
-                  spec:
-                    serverConfig:
-                      kubeAPIServer:
-                        extraArgs:
-                        - feature-gates=ValidatingAdmissionPolicy=true
-                        - runtime-config=admissionregistration.k8s.io/v1beta1
+                  - op: add
+                    path: /spec/serverConfig/kubeAPIServer/extraArgs/-
+                    value: feature-gates=ValidatingAdmissionPolicy=true
+                  - op: add
+                    path: /spec/serverConfig/kubeAPIServer/extraArgs/-
+                    value: runtime-config=admissionregistration.k8s.io/v1beta1
               - target:
                   kind: KubeadmControlPlane
                 patch: |
@@ -3397,8 +3398,6 @@ units:
           priorityClassName: system-cluster-critical
           frr:
             enabled: false
-          nodeSelector:
-            node-role.kubernetes.io/control-plane: '{{ .Values._internal.cp_node_label_value }}'
           tolerations:
           - key: node.cloudprovider.kubernetes.io/uninitialized
             value: "true"
@@ -7368,9 +7367,9 @@ units:
               .Values.proxies
             ) | include "interpret-and-hash"
             }}
-          os_image_selectors: >-
-            {{- tuple . "cluster" | include "interpret" -}}
-            {{ tuple .Values.cluster | include "find-cluster-image-selectors" | fromJsonArray | include "preserve-type" }}
+        os_image_selectors: >-
+          {{- tuple . "cluster" | include "interpret" -}}
+          {{ tuple .Values.cluster | include "find-cluster-image-selectors" | fromJsonArray | include "preserve-type" }}
     helm_secret_values:
       openstack_clouds_yaml: '{{ .Values.cluster.capo.clouds_yaml | include "preserve-type" }}'
 
@@ -7446,6 +7445,26 @@ units:
         workload_cluster_teams: '{{ .Values.workload_clusters.teams | include "preserve-type" }}'
         managed_clusters_settings: '{{ tuple . "shared_workload_clusters_values" | include "interpret" }}{{ .Values.shared_workload_clusters_values | include "preserve-type" }}'
         workload_cluster_sylva_source: '{{ .Values.workload_clusters.sylva_source | include "preserve-type" }}'
+
+  coredns-custom-hosts-import:
+    enabled: false
+    info:
+      description: create a ConfigMap containing workload cluster's DNS A records in [CoreDNS hosts plugin](https://coredns.io/plugins/hosts/)
+      internal: true
+    unit_templates:
+    - base-deps
+    enabled_conditions:
+      - '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpoa" }}'
+    repo: sylva-core
+    kustomization_spec:
+      path: ./kustomize-units/coredns-custom-hosts-import
+      postBuild:
+        substitute:
+          NAMESPACE: '{{ .Release.Namespace }}'
+          CLUSTER_NAME: '{{ .Values.cluster.name }}'
+          CLUSTER_VIRTUAL_IP: '{{ .Values.cluster_virtual_ip }}'
+          CLUSTER_OKD_BASE_DOMAIN: '{{ .Values.cluster.openshift.baseDomain }}'
+
 
 ##### stuff related to the 'cluster' unit #####
 #
@@ -7598,6 +7617,9 @@ cluster:
         -}}
 
   enable_longhorn: '{{ tuple . "longhorn" | include "unit-enabled" | include "as-bool" }}'
+
+  openshift:
+    baseDomain: '{{ .Values.cluster_domain }}'
 
   timeouts:
     cluster_delete_hook_job_timeout: 300
@@ -7888,6 +7910,7 @@ os_images_oci_registries:
     url: '{{ .Values.sylva_base_oci_registry }}/sylva-elements/diskimage-builder'
     tag: '{{ .Values.sylva_diskimagebuilder_version }}'
     cosign_publickey: '{{ .Values.security.os_images.cosign_public_key }}'
+    enabled: true  # can be set to false to disable all the images under sylva_diskimagebuilder_images that have 'os_images_oci_registry: sylva'
 
 k8s_version_short: "1.30"
 
@@ -7895,23 +7918,55 @@ k8s_version_short: "1.30"
 # renovate: depName=sylva-projects/sylva-elements/diskimage-builder
 sylva_diskimagebuilder_version: 0.4.5
 
+# 'sylva_diskimagebuilder_images' determines which images will be available for CAPO and CAPM3
+# via 'os_image_selector' or 'image_keys'
+#
+# by default it lists OCI artifacts found at gitlab.com/sylva-projects/sylva-elements/diskimage-builder
+# or a mirror repo if os_images_oci_registries.sylva is overridden
+#
 sylva_diskimagebuilder_images:
-  ubuntu-noble-hardened-rke2-1-30-9: {}
-  ubuntu-noble-hardened-rke2-1-29-13: {}
-  ubuntu-noble-hardened-rke2-1-28-15: {}
-  ubuntu-noble-plain-rke2-1-30-9: {}
-  ubuntu-noble-plain-rke2-1-29-13: {}
-  ubuntu-noble-plain-rke2-1-28-15: {}
-  opensuse-15-6-plain-rke2-1-30-9: {}
-  opensuse-15-6-plain-rke2-1-29-13: {}
-  opensuse-15-6-plain-rke2-1-28-15: {}
-  opensuse-15-6-hardened-rke2-1-30-9: {}
-  opensuse-15-6-hardened-rke2-1-29-13: {}
-  opensuse-15-6-hardened-rke2-1-28-15: {}
+  ubuntu-noble-hardened-rke2-1-30-9:
+    os_images_oci_registry: sylva
+  ubuntu-noble-hardened-rke2-1-29-13:
+    os_images_oci_registry: sylva
+  ubuntu-noble-hardened-rke2-1-28-15:
+    os_images_oci_registry: sylva
+  ubuntu-noble-plain-rke2-1-30-9:
+    os_images_oci_registry: sylva
+  ubuntu-noble-plain-rke2-1-29-13:
+    os_images_oci_registry: sylva
+  ubuntu-noble-plain-rke2-1-28-15:
+    os_images_oci_registry: sylva
+  ubuntu-noble-plain-kubeadm-1-30-9:
+    os_images_oci_registry: sylva
+  ubuntu-noble-plain-kubeadm-1-29-13:
+    os_images_oci_registry: sylva
+  ubuntu-noble-plain-kubeadm-1-28-15:
+    os_images_oci_registry: sylva
+  opensuse-15-6-plain-rke2-1-30-9:
+    os_images_oci_registry: sylva
+  opensuse-15-6-plain-rke2-1-29-13:
+    os_images_oci_registry: sylva
+  opensuse-15-6-plain-rke2-1-28-15:
+    os_images_oci_registry: sylva
+  opensuse-15-6-hardened-rke2-1-30-9:
+    os_images_oci_registry: sylva
+  opensuse-15-6-hardened-rke2-1-29-13:
+    os_images_oci_registry: sylva
+  opensuse-15-6-hardened-rke2-1-28-15:
+    os_images_oci_registry: sylva
 
-os_image_server_additional_selectors:
-  default:
-    os: ".*"  # dummy catch-all for now (later when os-images-info will have all images from sylva_diskimagebuilder_images, we'll restrict this -- see work in progress in https://gitlab.com/sylva-projects/sylva-core/-/issues/2014 and in particular https://gitlab.com/sylva-projects/sylva-core/-/merge_requests/3794)
+# this dictionary can be extended to let os-image-server serve additional OS images
+# if the mgmt cluster uses capm3, the os-image-server by default will serve the OS images used by the mgmt cluster
+# os_image_server_additional_selectors is used to serve additional OS images for workload clusters
+#
+# os_image_server_additional_selectors:
+#   k28-for-my-workload-clusters:
+#     os: opensuse
+#     os-version: 15.6
+#     k8s-version: v1.28.*
+#     k8s-flavor: kubeadm
+os_image_server_additional_selectors: {}
 
 # this dict can be enriched at deployment time to feed additional information
 # into the sylva-units-status ConfigMap
@@ -8419,8 +8474,11 @@ _internal:
               {{- if eq .Values.cluster.capi_providers.infra_provider "capm3" }}
                {{ .Values.cluster.cluster_primary_interfaces | default (list .Values.cluster.control_plane.capm3.primary_pool_interface)  | include "preserve-type" }}
               {{- else -}}
-                {{- dict | include "preserve-type" -}}
+                {{- list | include "preserve-type" -}}
               {{- end }}
+            node_selectors:
+              - matchLabels:
+                  node-role.kubernetes.io/control-plane: '{{ .Values._internal.cp_node_label_value }}'
 
   metallb_service_annotations:
     '{{
@@ -8434,6 +8492,10 @@ _internal:
   loadBalancerClass: '{{ tuple . (eq .Values.cluster.capi_providers.bootstrap_provider "cabpr") "sylva.org/metallb-class" "kube-vip.io/kube-vip-class" | include "interpret-ternary" }}'
 
   previous_values: '{{ omit (lookup "v1" "Secret" .Release.Namespace "sylva-units-values" | dig "data" "values" "" | b64dec | fromYaml | default dict) "unit_templates" | include "preserve-type" }}'
+
+  mgmt_cluster_default_os_selector: >-
+    {{- $selector := .Values.cluster | dig .Values.cluster.capi_providers.infra_provider "os_image_selector" dict | deepCopy -}}
+    {{- tuple .Values.cluster $selector | include "finalize-os-image-selector" | fromJson | include "preserve-type" -}}
 
   immutable_values:
     cluster:
