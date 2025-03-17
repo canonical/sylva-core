@@ -4128,7 +4128,6 @@ units:
         createNamespace: false
       upgrade:
         force: true
-        crds: Skip
       values:
         logLevel: info
         envVars:
