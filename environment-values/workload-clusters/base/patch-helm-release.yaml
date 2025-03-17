@@ -15,11 +15,8 @@ spec:
         - charts/sylva-units/values.yaml
         - charts/sylva-units/workload-cluster.values.yaml
   valuesFrom:
-  - kind: Secret
-    name: shared-workload-clusters-settings
-    valuesKey: values
   - kind: ConfigMap
-    name: shared-workload-clusters-settings
+    name: mgmt-cluster-state-values
     valuesKey: values
   - kind: Secret
     name: sylva-units-secrets

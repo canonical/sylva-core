@@ -12,7 +12,7 @@ units:
     enabled: false
   capi-rancher-import:
     enabled: false
-  shared-workload-clusters-settings:
+  mgmt-cluster-state-values:
     enabled: false
   harbor:
     enabled: false

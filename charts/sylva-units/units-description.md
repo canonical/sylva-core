@@ -160,6 +160,7 @@
 | **metal3-sylva-ca-init** | injects sylva-ca certificate in metal3<br/><br/>this certificate is needed to download baremetal os images via https | Kustomization |
 | **metallb-resources** | configures metallb resources | Helm chart |
 | **mgmt-cluster-ready** | (workload cluster) this unit reflects the readiness of the mgmt cluster<br/><br/>this unit acts as simple dependency lock to prevent deploying a workload cluster before the mgmt cluster is ready | Kustomization |
+| **mgmt-cluster-state-values** | manages workload cluster parameters which reflect management cluster state | Kustomization |
 | **minio-logging-cleanup** | Recreates MinIO-logging StatefulSet to avoid upgrade failure (This unit will be removed after Sylva 1.4) | Kustomization |
 | **minio-logging-init** | sets up secrets and certificates for minio-logging | Kustomization |
 | **minio-monitoring-cleanup** | Recreates MinIO-monitoring StatefulSet to avoid upgrade failure (This unit will be removed after Sylva 1.4) | Kustomization |
@@ -183,7 +184,6 @@
 | **rke2-helmchart-prevent-uninstall** | Kyverno policy to prevent key Helm charts from being uninstalled by RKE2 HelmChart controller | Kustomization |
 | **root-dependency** | special unit ensuring ordered updates of all Kustomizations<br/><br/>All Kustomizations will depend on this Kustomization, whose name is `root-dependency-<n>` and changes at each update of the sylva-units Helm release. This Kustomization does not become ready before all other Kustomizations have been updated.<br/>This unit also manages the `root-dependency-<n>` HelmRelease that acts as a lock to prevent HelmReleases from reconciling before units they depend on are ready.<br/>All this ensures in a race-free way that during an update, units will be reconciled in an order matching dependency declarations. | Helm chart |
 | **sandbox-privileged-namespace** | creates the sandbox namespace used to perform privileged operations like debugging a node. It cannot be enabled when env_type=prod | Kustomization |
-| **shared-workload-clusters-settings** | manages parameters which would be shared between management and workload clusters | Kustomization |
 | **single-replica-storageclass** | Defines a Longhorn storage class with a single replica | Kustomization |
 | **sriov** | obsolete - replaced by sriov-network-operator<br/><br/>dummy unit which only enables sriov-network-operator for backwark compatibility | Kustomization |
 | **sriov-resources** | configures SRIOV resources | Helm chart |

@@ -2431,9 +2431,9 @@ units:
       path: ./kustomize-units/rancher-monitoring-clusterid-inject
       wait: true
 
-  shared-workload-clusters-settings:
+  mgmt-cluster-state-values:
     info:
-      description: manages parameters which would be shared between management and workload clusters
+      description: manages workload cluster parameters which reflect management cluster state
       internal: true
     unit_templates:
     - base-deps
@@ -2442,7 +2442,7 @@ units:
       sylva-units-operator: '{{ tuple . "sylva-units-operator" | include "unit-enabled" }}'
     repo: sylva-core
     kustomization_spec:
-      path: ./kustomize-units/shared-workload-clusters-settings
+      path: ./kustomize-units/mgmt-cluster-state-values
       wait: true
       force: true
       targetNamespace: sylva-system
@@ -2453,14 +2453,10 @@ units:
             - op: replace
               path: /data/values
               value: |
-            {{- tuple . "shared_workload_clusters_values" | include "interpret" }}
-            {{ .Values.shared_workload_clusters_values | toYaml | indent 4 }}
+            {{- tuple . "mgmt_cluster_state_values" | include "interpret" }}
+            {{ .Values.mgmt_cluster_state_values | toYaml | indent 4 }}
       _components:
         - '{{ tuple "components/capm3" (tuple . "capm3" | include "unit-enabled") | include "set-only-if" }}'
-    kustomization_substitute_secrets:
-      SECRET_VALUES: >-
-        {{- tuple . "shared_workload_clusters_secret_values" | include "interpret" -}}
-        {{- .Values.shared_workload_clusters_secret_values | toYaml | b64enc -}}
 
   capi:
     info:
@@ -7848,7 +7844,7 @@ units:
           chart: .
       values:
         workload_cluster_teams: '{{ .Values.workload_clusters.teams | include "preserve-type" }}'
-        managed_clusters_settings: '{{ tuple . "shared_workload_clusters_values" | include "interpret" }}{{ .Values.shared_workload_clusters_values | include "preserve-type" }}'
+        managed_clusters_settings: '{{ tuple . "mgmt_cluster_state_values" | include "interpret" }}{{ .Values.mgmt_cluster_state_values | include "preserve-type" }}'
         workload_cluster_sylva_source: '{{ .Values.workload_clusters.sylva_source | include "preserve-type" }}'
 
   coredns-custom-hosts-import:
@@ -8417,7 +8413,7 @@ monitoring:
   thanos:
     # receive_url:
     # - for mgmt cluster, the local thanos k8s service is used (the URL below)
-    # - for workload clusters, this is overridden via shared_workload_clusters_values.monitoring.thanos.receive_url
+    # - for workload clusters, this is overridden via mgmt_cluster_state_values.monitoring.thanos.receive_url
     #   to point to the mgmt cluster Thanos receive ingress
     receive_url: http://thanos-receive.thanos.svc.cluster.local:19291/api/v1/receive
 
@@ -8573,7 +8569,7 @@ monitoring:
 logging:
   # loki_url:
   # - for mgmt cluster, the local Loki k8s service is used
-  # - for workload clusters, this is overridden via shared_workload_clusters_values.logging.loki_url
+  # - for workload clusters, this is overridden via mgmt_cluster_state_values.logging.loki_url
   #   to point to the mgmt cluster Loki
   loki_url: http://loki-gateway.loki.svc.cluster.local
   # the following values are mapped into sylva-logging-flows Helm unit values
@@ -9150,27 +9146,12 @@ _internal:
     {{- $mtu := sub .Values._internal.base_cni_mtu $max_overhead -}}
     {{- $mtu | include "preserve-type" -}}
 
-shared_workload_clusters_values:
-  ntp: '{{ .Values.ntp | include "set-if-defined" }}'
-  proxies: '{{ .Values.proxies | include "set-if-defined" }}'
-  registry_mirrors: '{{ .Values.registry_mirrors | include "set-if-defined" }}'
-
-  sylva_base_oci_registry: '{{ .Values.sylva_base_oci_registry }}'
-  oci_registry_extra_ca_certs: '{{ .Values.oci_registry_extra_ca_certs | include "set-if-defined" }}'
-  oci_registry_insecure: '{{ .Values.oci_registry_insecure | include "set-if-defined" }}'
-
+mgmt_cluster_state_values:
   cluster:
-    air_gapped: '{{ .Values.cluster.air_gapped | include "set-if-defined" }}'
-    capi_providers: '{{ .Values.cluster.capi_providers | include "preserve-type" }}'
     mgmt_cluster_ip: '{{ .Values.display_external_ip }}'
     capm3:
       image_provisioning_host: '{{ .Values.display_external_ip }}'
       image_provisioning_scheme: '{{ .Values.cluster.capm3.image_provisioning_scheme  }}'
-    default_node_class: '{{ .Values.cluster.default_node_class }}'
-    node_classes: '{{ .Values.cluster.node_classes | include "preserve-type" }}'
-
-  openstack:
-    storageClass: '{{ .Values.openstack.storageClass | include "set-if-defined" }}'
 
   units:
     cluster-import:
@@ -9194,8 +9175,6 @@ shared_workload_clusters_values:
       {{- $units | include "preserve-type" -}}
     mgmt_cluster_service_names: >-
       {{- range $name, $hostname := .Values.external_hostnames }}{{ if has $name (list "loki" "rancher" "thanos_receive" "harbor") }}{{ $hostname }}{{print " "}}{{ end }}{{ end }}
-
-shared_workload_clusters_secret_values: {}
 
 workload_clusters:
   teams: {}
