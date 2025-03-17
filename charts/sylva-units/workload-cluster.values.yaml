@@ -344,6 +344,7 @@ units:
           SERVICE: 'rancher-monitoring-grafana'
           SERVICE_PORT: '80'
           PREFIX_URL: '/k8s/clusters/'
+          MIDDLE_URL: '/api/v1/namespaces/'
         substituteFrom:
         - kind: ConfigMap
           name: '{{ .Values.cluster.name }}-capi-upstrmonitoring-info'
