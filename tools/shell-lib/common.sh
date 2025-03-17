@@ -426,13 +426,14 @@ function display_service_ingresses() {
     # Read ingress details and process them
     while read -r namespace ingress_name ingress_host; do
         # Extract the unit name using labels from the ingress resource
-        unit_name=$(kubectl --kubeconfig management-cluster-kubeconfig get ingress "$ingress_name" -n "$namespace" -o jsonpath='{.metadata.labels}' | yq '."helm.toolkit.fluxcd.io/name" // ."kustomize.toolkit.fluxcd.io/name" // ."app.kubernetes.io/name"')
+        unit_name=$(kubectl --kubeconfig management-cluster-kubeconfig get ingress "$ingress_name" -n "$namespace" -o jsonpath='{.metadata.labels}' | \
+            yq '."helm.toolkit.fluxcd.io/name" // ."kustomize.toolkit.fluxcd.io/name" // ."app.kubernetes.io/name"')
 
-        # Check if any label starting/ending with "sylva-gui-list-" exists
-        label_present=$(kubectl --kubeconfig management-cluster-kubeconfig get kustomization "$unit_name" -n sylva-system \
-        -o json | jq  --arg ingress_name "$ingress_name"  '.metadata.labels | keys[] | select(endswith("sylva-gui-list-service-\($ingress_name)") or startswith("sylva-gui-list-services"))' 2>/dev/null)
+        # Check if any label matches the required pattern
+        label_present=$(kubectl --kubeconfig management-cluster-kubeconfig get kustomization "$unit_name" -n sylva-system -o json | \
+            yq e ".metadata.labels | keys | map(select(test(\"sylva-gui-list-service-$ingress_name\$\") or test(\"^sylva-gui-list-services\"))) | length" -)
 
-        if [ -n "$label_present" ]; then
+        if [ "$label_present" -gt 0 ]; then
             if [[ "$unit_name" =~ "$ingress_name" ]]; then
                 gui_ingresses+=("$ingress_name: https://$ingress_host")
             else
