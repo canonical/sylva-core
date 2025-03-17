@@ -419,6 +419,64 @@ EOC
   fi
 }
 
+function display_service_ingresses() {
+    local tmpfile=$(mktemp)
+    local found_any=false
+
+    # Retrieve ingress details safely
+    kubectl_output=$(kubectl --kubeconfig management-cluster-kubeconfig get ingress -A -o custom-columns='NAMESPACE:.metadata.namespace,NAME:.metadata.name,HOSTS:.spec.rules[*].host' --no-headers 2>/dev/null)
+    if [ $? -ne 0 ] || [ -z "$kubectl_output" ]; then
+        echo "No GUIs found."
+        rm -f "$tmpfile"
+    fi
+
+    # Process each ingress entry
+    while read -r namespace ingress_name ingress_host; do
+        # Ensure fields are not empty
+        if [ -z "$namespace" ] || [ -z "$ingress_name" ] || [ -z "$ingress_host" ]; then
+            continue
+        fi
+
+        # Extract the unit name using labels from the ingress resource
+        unit_name=$(kubectl --kubeconfig management-cluster-kubeconfig get ingress "$ingress_name" -n "$namespace" -o jsonpath='{.metadata.labels}' 2>/dev/null | yq '."helm.toolkit.fluxcd.io/name" // ."kustomize.toolkit.fluxcd.io/name" // ."app.kubernetes.io/name"' 2>/dev/null || echo "")
+        
+        if [ -z "$unit_name" ]; then
+            continue
+        fi
+
+        # Fetch kustomization details safely
+        label_json=$(kubectl --kubeconfig management-cluster-kubeconfig get kustomization "$unit_name" -n sylva-system -o json 2>/dev/null)
+        if [ $? -ne 0 ] || [ -z "$label_json" ]; then
+            continue
+        fi
+
+        # Check if any label matches the required pattern
+        label_present=$(echo "$label_json" | jq --arg ingress_name "$ingress_name" '.metadata.labels | keys[] | select(endswith("sylva-gui-list-service-\($ingress_name)") or startswith("sylva-gui-list-services"))' 2>/dev/null)
+        
+        if [ -n "$label_present" ]; then
+            found_any=true
+            if [[ "$unit_name" =~ $ingress_name ]]; then
+                echo "$ingress_name: https://$ingress_host" >> "$tmpfile"
+            else
+                echo "$unit_name - $ingress_name: https://$ingress_host" >> "$tmpfile"
+            fi
+        fi
+    done <<< "$kubectl_output"  # Use here-string instead of pipe to avoid subshell
+
+    # Output GUI ingresses and ensure proper exit code
+    echo "GUIs:"
+    if [ "$found_any" = true ]; then
+        while read -r line; do
+            echo "* $line"
+        done < "$tmpfile"
+        rm -f "$tmpfile"
+        return 0
+    else
+        echo "* No GUI services available"
+        rm -f "$tmpfile"
+    fi
+}
+
 function display_final_messages() {
   CALLER_SCRIPT_NAME=$(basename ${BASH_SOURCE[1]})
   if [[ $CALLER_SCRIPT_NAME != *"apply-workload-cluster.sh"* ]]; then
@@ -428,8 +486,8 @@ function display_final_messages() {
   fi
 
   if [[ $CALLER_SCRIPT_NAME == *"bootstrap.sh"* ]]; then
-    echo_b "\U0001F331 You can access following UIs"
-    kubectl --kubeconfig management-cluster-kubeconfig get ingress --all-namespaces
+    echo_b "\U0001F331 You can access the following UIs"
+    display_service_ingresses
   fi
   echo_b "\U0001F389 All done"
 }
