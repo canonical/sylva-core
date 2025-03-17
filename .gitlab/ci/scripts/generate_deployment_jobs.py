@@ -311,7 +311,7 @@ def check_deployments(deployments):
             sys.exit(1)
 
         if infra == "capd" and (scenario and scenario != "preview"):
-            logging.error(f"deployment {deploy_name}: scenario not allowed")
+            logging.error(f"deployment {deploy_name}: scenario other than 'preview' is not allowed with capd")
             sys.exit(1)
 
         if scenario and scenario not in ["simple-update", "preview"]:
