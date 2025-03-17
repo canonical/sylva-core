@@ -44,7 +44,7 @@
 wkld-sso-kubeconfig:
   extends:
     - .test-base-workload-cluster
-  image: registry.gitlab.com/sylva-projects/sylva-elements/container-images/ci-image/ci-playwright-image:v1.1.1
+  image: registry.gitlab.com/sylva-projects/sylva-elements/container-images/ci-image/ci-playwright-image:v1.1.2
   variables:
     SCREENSHOTS: ${CI_PROJECT_DIR}/screenshots
     DESCRIPTION: Obtain the workload-cluster-kubeconfig through the Rancher UI and use it to create a pod.
@@ -76,7 +76,7 @@ wkld-sso-kubeconfig:
 mgmt-GUIs-test:
   extends:
     - .test-base-management-cluster
-  image: registry.gitlab.com/sylva-projects/sylva-elements/container-images/ci-image/ci-playwright-image:v1.1.1
+  image: registry.gitlab.com/sylva-projects/sylva-elements/container-images/ci-image/ci-playwright-image:v1.1.2
   variables:
     SCREENSHOTS: ${CI_PROJECT_DIR}/screenshots
     DESCRIPTION: Test basic authentication login against the GUI.
@@ -97,7 +97,7 @@ mgmt-sso:
     max: 2
   extends:
     - .test-base-management-cluster
-  image: registry.gitlab.com/sylva-projects/sylva-elements/container-images/ci-image/ci-playwright-image:v1.1.1
+  image: registry.gitlab.com/sylva-projects/sylva-elements/container-images/ci-image/ci-playwright-image:v1.1.2
   variables:
     SCREENSHOTS: ${CI_PROJECT_DIR}/screenshots
     DESCRIPTION: Test Single Sign-On login against the GUI.
