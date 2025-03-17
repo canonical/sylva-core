@@ -364,6 +364,22 @@ units:
     helmrelease_spec:
       values:
         grafana:
+          grafana.ini:
+            users:
+              auto_assign_org_role: Viewer
+            auth:
+              disable_login_form: false
+            auth.anonymous:
+              enabled: true
+              org_role: Viewer
+            auth.basic:
+              enabled: false
+            dashboards:
+              # Modify this value to change the default dashboard shown on the main Grafana page
+              default_home_dashboard_path: /tmp/dashboards/rancher-default-home.json
+            security:
+              # Required to embed dashboards in Rancher Cluster Overview Dashboard on Cluster Explorer
+              allow_embedding: true
           extraContainerVolumes:
           - name: nginx-home
             emptyDir: {}
