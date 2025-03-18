@@ -326,6 +326,12 @@ include:
         elif [[ "$DEPLOYMENT_INFRA_PROV" == "capm3-virt" ]] && [[ "${CLUSTER_TYPE}" == "workload" ]]; then
           update_values_file misc-units-in-capm3-wkld.yml
         fi
+      elif [[ $option == "okd-wkld" ]]; then
+        if [[ "${CLUSTER_TYPE}" == "management" ]]; then
+          update_values_file okd.yml
+        elif [[ "${CLUSTER_TYPE}" == "workload" ]]; then
+          update_values_file okd-wkld.yml
+        fi
       else
         update_values_file ${option}.yml
       fi

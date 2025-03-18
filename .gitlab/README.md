@@ -69,6 +69,8 @@ Each pipeline entry should adhere to this format:
 
 * `no-wkld`: Deploy the management cluster without any updates.
 
+* `no-update`: Deploy the management and workload clusters without any updates.
+
 * `simple-update`: Deploy both management and workload clusters, and perform a values update.
 
 * `simple-update-no-wkld`: Deploy the management cluster and perform a values update.

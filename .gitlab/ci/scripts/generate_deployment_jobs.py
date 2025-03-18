@@ -37,6 +37,7 @@ ALLOWED_SCENARIOS = os.getenv(
     "ALLOWED_DEPLOYMENT_SCENARIO",
     ",".join([
         "no-wkld",
+        "no-update",
         "simple-update",
         "simple-update-no-wkld",
         "rolling-update",

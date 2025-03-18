@@ -58,7 +58,8 @@ variables:
   SYLVA_CI_VALUES_FOLDER: environment-values/sylva-core-ci-values
   # Reference to checkout for CI values, by default we use the same for all stages but it can be overriden
   # eg: if we have a breaking change during an upgrade we could use a different branch for the deployment and update
-  SYLVA_CI_VALUES_REVISION: 0.4.47
+  #SYLVA_CI_VALUES_REVISION: 0.4.40
+  SYLVA_CI_VALUES_REVISION: cm-okd-wkld
 
   # Use CI values for specific version
   # If not specified $GIT_REVISION if set is used or "current" otherwise
@@ -102,6 +103,13 @@ variables:
       Deploy the management cluster without any updates.
     UPDATE_MGMT_CLUSTER: "false"
     DEPLOY_WORKLOAD_CLUSTER: "false"
+
+.scenario_no-update:
+  variables:
+    DESCRIPTION: |
+      Deploy the management and workload clusters without any updates.
+    UPDATE_MGMT_CLUSTER: "false"
+    UPDATE_WORKLOAD_CLUSTER: "false"
 
 .scenario_simple-update:
   variables:
