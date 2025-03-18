@@ -6,5 +6,4 @@ namespace: vault
 resources:
 - password-policy.yaml
 - random-rancher-secret.yaml
-- random-flux-webui-secret.yaml
 - random-cluster-creator-password.yaml

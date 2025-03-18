@@ -3542,14 +3542,7 @@ units:
       _components:
         - '{{ tuple "components/keycloak" (tuple . "keycloak" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/rancher" (tuple . "rancher" | include "unit-enabled") | include "set-only-if" }}'
-      postBuild:
-        substitute:
-          FLUX_ADMIN_USERNAME: '{{ .Values.flux_webui.admin_user }}'
       healthChecks:
-        - apiVersion: v1
-          kind: Secret
-          name: cluster-user-auth
-          namespace: flux-system
         - apiVersion: v1
           kind: Secret
           name: cluster-creator-secret
@@ -4158,10 +4151,6 @@ units:
         - name: WEAVE_GITOPS_FEATURE_OIDC_BUTTON_LABEL
           value: "Log in with Keycloak"
         installCRDs: true
-        adminUser:
-          create: true
-          username: '{{ .Values.flux_webui.admin_user }}'
-          createSecret: false
         rbac:
           impersonationResourceNames: ["admin", "sylva-admin@example.com"] # the Keycloak username set in unit keycloak-resources; cannot use "infra-admins" group here, see https://gitlab.com/sylva-projects/sylva-core/-/issues/427
           additionalRules:
@@ -4200,14 +4189,11 @@ units:
                   kind: ClusterRoleBinding
                   apiVersion: rbac.authorization.k8s.io/v1
                   metadata:
-                    name: '{{ .Values.flux_webui.admin_user }}-user-read-resources-cr'
+                    name: 'flux-user-read-resources-cr'
                   subjects:
                     - apiGroup: rbac.authorization.k8s.io
                       kind: User
-                      name: '{{ .Values.flux_webui.admin_user }}'
-                    - apiGroup: rbac.authorization.k8s.io
-                      kind: User
-                      name: sylva-admin@example.com  # add same RBAC for the SSO user, so that when flux-webui SA impersonates it has privileges; cannot use "infra-admins" group here, see https://gitlab.com/sylva-projects/sylva-core/-/issues/427
+                      name: sylva-admin@example.com  # add  RBAC for the SSO user, so that when flux-webui SA impersonates it has privileges; cannot use "infra-admins" group here, see https://gitlab.com/sylva-projects/sylva-core/-/issues/427
               - patch: |-
                   kind: Deployment
                   apiVersion: apps/v1
@@ -7913,9 +7899,6 @@ flux:
     concurrent: 2
     log_level: info
     features_gates: {}
-
-flux_webui:
-  admin_user: admin
 
 display_external_ip: '{{ .Values.openstack.floating_ip | eq "" | ternary .Values.cluster_virtual_ip .Values.openstack.floating_ip }}'
 
