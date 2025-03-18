@@ -2354,7 +2354,9 @@
               "anyOf": [
                 {
                   "type": "object",
-                  "additionalProperties": false,
+                  "propertyNames": {
+                    "pattern": "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$"
+                  },
                   "patternProperties": {
                     ".*": {
                       "anyOf": [
@@ -2947,6 +2949,9 @@
                       "anyOf": [
                         {
                           "type": "object",
+                          "propertyNames": {
+                            "pattern": "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$"
+                          },
                           "patternProperties": {
                             ".*": {
                               "anyOf": [
@@ -4477,25 +4482,46 @@
                   "anyOf": [
                     {
                       "type": "object",
+                      "propertyNames": {
+                        "pattern": "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$"
+                      },
+                      "required": [
+                        "primary"
+                      ],
                       "patternProperties": {
                         ".*": {
                           "anyOf": [
                             {
                               "type": "object",
                               "additionalProperties": false,
-                              "if": {
-                                "required": [
-                                  "network"
-                                ]
-                              },
-                              "then": {
-                                "required": [
-                                  "prefix",
-                                  "start",
-                                  "end"
-                                ]
-                              },
                               "properties": {
+                                "interface": {
+                                  "anyOf": [
+                                    {
+                                      "type": "string",
+                                      "$ref": "#/$defs/linux-ifname"
+                                    },
+                                    {
+                                      "$ref": "#/$defs/string-with-gotpl"
+                                    },
+                                    {
+                                      "type": "null"
+                                    }
+                                  ]
+                                },
+                                "routes": {
+                                  "anyOf": [
+                                    {
+                                      "$ref": "#/$defs/capm3-NetworkDataRoutev4"
+                                    },
+                                    {
+                                      "$ref": "#/$defs/string-with-gotpl"
+                                    },
+                                    {
+                                      "type": "null"
+                                    }
+                                  ]
+                                },
                                 "subnet": {
                                   "anyOf": [
                                     {
@@ -4551,39 +4577,12 @@
                                     }
                                   ]
                                 },
-                                "interface": {
-                                  "anyOf": [
-                                    {
-                                      "type": "string",
-                                      "$ref": "#/$defs/linux-ifname"
-                                    },
-                                    {
-                                      "$ref": "#/$defs/string-with-gotpl"
-                                    },
-                                    {
-                                      "type": "null"
-                                    }
-                                  ]
-                                },
                                 "mtu": {
                                   "anyOf": [
                                     {
                                       "type": "integer",
                                       "min": 1280,
                                       "max": 9000
-                                    },
-                                    {
-                                      "$ref": "#/$defs/string-with-gotpl"
-                                    },
-                                    {
-                                      "type": "null"
-                                    }
-                                  ]
-                                },
-                                "routes": {
-                                  "anyOf": [
-                                    {
-                                      "$ref": "#/$defs/capm3-NetworkDataRoutev4"
                                     },
                                     {
                                       "$ref": "#/$defs/string-with-gotpl"
