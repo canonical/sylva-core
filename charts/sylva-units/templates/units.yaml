@@ -283,7 +283,7 @@ spec: {{ $helm_repo_spec | toYaml | nindent 2 }}
         {{- end }}
         {{- if not $unit_def.helmrelease_spec.chart.spec.version -}}
           {{- $_ := set $unit_def.helmrelease_spec.chart.spec "version" $helm_chart_versions_selection -}}
-        {{- end }}
+        {{- end }}             
       {{- end }}
 
       {{/* produce the HelmRelease specification, merging the different sources we have */}}
@@ -374,7 +374,7 @@ stringData:
       {{- range $dep_unit_name, $is_depend_on := $unit_def.depends_on -}}
         {{- if tuple $envAll $is_depend_on (printf "%s, depends on %s" $unit_name $dep_unit_name) | include "interpret-for-test" -}}
           {{- if $dep_unit_name | contains "/" -}}{{/* dependency expressed as ns/kustomization, using it as-is */}}
-            {{- $dependsOnList = append $dependsOnList (dict "namespace" (regexReplaceAll "/.*" $dep_unit_name "") "name" (regexReplaceAll ".*/" $dep_unit_name "")) -}}
+            {{- $dependsOnList = append $dependsOnList (dict "namespace" (regexReplaceAll "/.*" $dep_unit_name "") "name" (regexReplaceAll ".*/" $dep_unit_name "")) -}}  
           {{- else -}}{{/* dependency expressed as a unit name, let's do smarter things */}}
             {{- if not (hasKey $envAll.Values.units $dep_unit_name) -}}
               {{- fail (printf "unit '%s' is declared with a dependency on non-existing unit '%s'" $unit_name $dep_unit_name) -}}
@@ -441,7 +441,7 @@ stringData:
       {{- end -}}
     {{- end -}}
 
-    {{/*
+    {{/* 
     if healthChecks is specified on kustomization_spec while helmrelease_spec is defined,
     then we inject a reference to the HelmRelease in the healthChecks, to ensure
     that the HelmRelease object will not be omitted
