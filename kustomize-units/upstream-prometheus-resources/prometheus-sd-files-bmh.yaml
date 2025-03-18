@@ -2,4 +2,4 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: prometheus-snmp-sd-files-bmh
-  namespace: upstream-monitoring
+  namespace: cattle-monitoring-system
