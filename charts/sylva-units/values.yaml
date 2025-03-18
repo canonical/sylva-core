@@ -4383,7 +4383,7 @@ units:
     - base-deps
     repo: sylva-core
     kustomization_spec:
-      path: ./kustomize-units/upstream-monitoring-nginx/wrkload-grafana-nginx
+      path: ./kustomize-units/upstream-monitoring-nginx/grafana-nginx
       wait: true
       targetNamespace: cattle-monitoring-system
 
@@ -4443,6 +4443,16 @@ units:
               securityContext:
                 runAsUser: 101
                 runAsGroup: 101
+          extraContainerVolumes:
+          - name: nginx-home
+            emptyDir: {}
+          - name: grafana-nginx
+            configMap:
+              name: grafana-nginx-proxy-config
+              items:
+                - key: nginx.conf
+                  mode: 438
+                  path: nginx.conf
           service:
             portName: nginx-http
             port: 80
