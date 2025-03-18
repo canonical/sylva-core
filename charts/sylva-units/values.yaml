@@ -2140,6 +2140,11 @@ units:
           replicas: '{{ .Values._internal.default_replicas | include "preserve-type" }}'
           serviceMonitor:
             enabled: '{{ .Values._internal.monitoring.enabled | include "preserve-type" }}'
+          resources:
+            limits:
+              memory: 256Mi
+            requests:
+              memory: 128Mi
           rbac:
             clusterRole:
               extraResources:
