@@ -6676,6 +6676,19 @@
               "type": "null"
             }
           ]
+        },
+        "unset_cabpr_upgrade_cluster_paused": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "$ref": "#/$defs/string-with-gotpl"
+            },
+            {
+              "type": "null"
+            }
+          ]
         }
       },
       "allOf": [
