@@ -1660,7 +1660,7 @@ units:
       chart:
         spec:
           chart: crossplane
-          version: 1.18.3
+          version: 1.19.0
       install:
         createNamespace: false
       values:
