@@ -148,20 +148,7 @@ units:
           management-cluster: true
 
   upstream-grafana-nginx:
-    info:
-      description: sets up Grafana nginx configmap
-      internal: true
-    enabled_conditions:
-      - '{{ tuple . "upstrmonitoring" | include "unit-enabled" }}'
-    unit_templates:
-    - base-deps
-    depends_on:
-      upstream-grafana-init: true
-    repo: sylva-core
     kustomization_spec:
-      path: ./kustomize-units/upstream-monitoring-nginx/wrkload-grafana-nginx
-      wait: true
-      targetNamespace: cattle-monitoring-system
       postBuild:
         substitute:
           CLUSTER_ID: ''
