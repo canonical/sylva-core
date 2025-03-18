@@ -2425,7 +2425,6 @@ units:
       postBuild:
         substitute:
           force_var_substitution_enabled: "true"  # dummy value to ensure substitution of defaults
-          EXP_MACHINE_SET_PREFLIGHT_CHECKS: "false"  # https://gitlab.com/sylva-projects/sylva-core/-/issues/1658
       wait: true
       _components:
         - '{{ tuple "components/ha" (.Values._internal.ha_cluster.is_ha) | include "set-only-if" }}'
@@ -2586,7 +2585,7 @@ units:
               #!/bin/bash
 
               kubectl get cluster.cluster.x-k8s.io --all-namespaces \
-                -o=jsonpath="{range .items[*]}{.metadata.namespace} {.metadata.name}{end}" \
+                -o=jsonpath="{range .items[*]}{.metadata.namespace} {.metadata.name} {end}" \
                 | xargs -P10 -t -n2 \
                   kubectl patch                              \
                     --field-manager sylva-cabpr-cluster-pause-unit \
@@ -2955,6 +2954,7 @@ units:
       metallb: '{{ and (tuple . "metallb" | include "unit-enabled") .Values._internal.state.is_upgrade }}'
       calico: '{{ .Values._internal.state.is_upgrade }}'
       calico-ready: '{{ .Values._internal.state.is_upgrade }}'
+      cluster-garbage-collector: '{{ and (tuple . "cluster-garbage-collector" | include "unit-enabled") .Values._internal.state.is_upgrade }}'
     kustomization_spec:
       prune: '{{ not (eq .Release.Namespace "sylva-system") | include "preserve-type" }}'
       # we wait on all important resources built by sylva-capi-cluster,
@@ -2979,7 +2979,7 @@ units:
         resource_groups:
           - cluster-resource
           - base
-        unset_cabpr_upgrade_cluster_paused: true
+        unset_cabpr_upgrade_cluster_paused: '{{ .Values._internal.state.is_upgrade | include "preserve-type" }}'
       valuesFrom:
         - kind: ConfigMap
           name: capo-cluster-resources
