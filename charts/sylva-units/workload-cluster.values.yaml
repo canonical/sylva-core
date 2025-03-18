@@ -325,19 +325,8 @@ units:
           optional: '{{ not (.Values.cluster.capi_providers.infra_provider | eq "capo") | include "as-bool" }}'
 
   upstream-grafana-nginx:
-    info:
-      description: sets up Grafana nginx configmap
-      internal: true
     enabled: true
-    unit_templates:
-    - base-deps
-    depends_on:
-      cluster-import: '{{ tuple . "cluster-import" | include "unit-enabled" }}'
-    repo: sylva-core
     kustomization_spec:
-      path: ./kustomize-units/upstream-monitoring-nginx/wrkload-grafana-nginx
-      wait: true
-      targetNamespace: cattle-monitoring-system
       postBuild:
         substitute:
           NAMESPACE: 'cattle-monitoring-system'
