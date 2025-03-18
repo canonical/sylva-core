@@ -2114,9 +2114,10 @@ units:
               - apiGroups: ["*"]
                 resources: ["*"]
                 verbs: ["get", "list", "watch"]
-          resources:
-            limits:
-              memory: 1024Mi
+          container:
+            resources:
+              limits:
+                memory: 1024Mi
           serviceMonitor:
             enabled: '{{ .Values._internal.monitoring.enabled | include "preserve-type" }}'
         cleanupController:
