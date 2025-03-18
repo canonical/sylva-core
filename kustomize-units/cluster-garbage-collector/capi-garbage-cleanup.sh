@@ -69,14 +69,16 @@ for TEMPLATE_CR in ${TEMPLATE_TYPES_CR[@]}; do
                 if [[ $TEMPLATE_RESOURCE =~ .*MachineTemplate ]]; then
 
                     # Check there's no KubeadmControlPlane.spec.machineTemplate.infrastructureRef.name
-                    # or RKE2ControlPlane.spec.infrastructureRef.name
-                    # or OpenshiftAssistedControlPlane.spec.machineTemplate.infrastructureRef.name
+                    #                 or  RKE2ControlPlane.spec.machineTemplate.infrastructureRef.name
+                    #  or (old location)  RKE2ControlPlane.spec.infrastructureRef.name 
+                    #    or  OpenshiftAssistedControlPlane.spec.machineTemplate.infrastructureRef.name
                     # usage for the template resource instance
                     if kubectl api-resources | grep -i KubeadmControlPlane > /dev/null ; then
                         kubectl -n "$TARGET_NAMESPACE" get KubeadmControlPlane -o=custom-columns=KIND:.kindNAME:.metadata.name,INFRASTRUCTURE_REF_NAME:.spec.machineTemplate.infrastructureRef.name,INFRASTRUCTURE_REF_KIND:.spec.machineTemplate.infrastructureRef.kind --no-headers >> /tmp/template_resources_consumers.txt
                     fi
                     if kubectl api-resources | grep -i RKE2ControlPlane > /dev/null; then
                         kubectl -n "$TARGET_NAMESPACE" get RKE2ControlPlane -o=custom-columns=KIND:.kind,NAME:.metadata.name,INFRASTRUCTURE_REF_NAME:.spec.infrastructureRef.name,INFRASTRUCTURE_REF_KIND:.spec.infrastructureRef.kind --no-headers >> /tmp/template_resources_consumers.txt
+                        kubectl -n "$TARGET_NAMESPACE" get RKE2ControlPlane -o=custom-columns=KIND:.kind,NAME:.metadata.name,INFRASTRUCTURE_REF_NAME:.spec.machineTemplate.infrastructureRef.name,INFRASTRUCTURE_REF_KIND:.spec.infrastructureRef.kind --no-headers >> /tmp/template_resources_consumers.txt
                     fi
                     if kubectl api-resources | grep -i OpenshiftAssistedControlPlane > /dev/null; then
                         kubectl -n "$TARGET_NAMESPACE" get OpenshiftAssistedControlPlane -o=custom-columns=KIND:.kind,NAME:.metadata.name,INFRASTRUCTURE_REF_NAME:.spec.machineTemplate.infrastructureRef.name,INFRASTRUCTURE_REF_KIND:.spec.machineTemplate.infrastructureRef.kind --no-headers >> /tmp/template_resources_consumers.txt
