@@ -1899,8 +1899,6 @@ units:
         - '{{ tuple (dict "apiVersion" "v1" "kind" "Secret" "name" "keycloak-client-secret-kunai-client" "namespace" "keycloak") (tuple . "kunai" | include "unit-enabled") | include "set-only-if" }}'  # # this secret is a byproduct of the grafana client KeycloakClient resource
         - '{{ tuple (dict "apiVersion" "v1" "kind" "Secret" "name" "keycloak-client-secret-grafana-client" "namespace" "keycloak") (tuple . "upstrmonitoring" | include "unit-enabled") | include "set-only-if" }}'  # # this secret is a byproduct of the grafana client KeycloakClient resource
 
-
-
   keycloak-add-client-scope:
     info:
       description: configures Keycloak client-scope
@@ -2054,7 +2052,7 @@ units:
                 "apiVersion" "v1"
                 "kind" "Secret"
                 "name" "upstream-grafana-oidc"
-                "namespace" "upstream-monitoring"
+                "namespace" "cattle-monitoring-system"
               )
               (tuple . "upstrmonitoring" | include "unit-enabled")
               | include "set-only-if"
@@ -2436,6 +2434,23 @@ units:
     repo: sylva-core
     kustomization_spec:
       path: ./kustomize-units/rancher-monitoring-clusterid-inject
+      wait: true
+
+  rancher-upstrmonitoring-clusterid-inject:
+    info:
+      description: injects Rancher cluster ID in Helm values of Rancher monitoring chart
+      internal: true
+    unit_templates:
+    - base-deps
+    enabled_conditions:
+    - '{{ tuple . "kyverno" | include "unit-enabled" }}'
+    - '{{ tuple . "rancher" | include "unit-enabled" }}'
+    depends_on:
+      kyverno: '{{ tuple . "kyverno" | include "unit-enabled" }}'
+      rancher: true
+    repo: sylva-core
+    kustomization_spec:
+      path: ./kustomize-units/rancher-monitoring-clusterid-inject/wrkload-cluster-inject
       wait: true
 
   shared-workload-clusters-settings:
@@ -4420,8 +4435,8 @@ units:
     helm_repo_url: https://prometheus-community.github.io/helm-charts
     helmrelease_spec:
       releaseName: prometheus-operator-crds
-      targetNamespace: upstream-monitoring
-      storageNamespace: upstream-monitoring # see https://gitlab.com/sylva-projects/sylva-core/-/issues/443
+      targetNamespace: cattle-monitoring-system
+      storageNamespace: cattle-monitoring-system # see https://gitlab.com/sylva-projects/sylva-core/-/issues/443
       chart:
         spec:
           chart: prometheus-operator-crds
@@ -4464,6 +4479,40 @@ units:
       _components:
         - '{{ tuple "components/kyverno-snmp-bmh-policy" (tuple . "metal3" | include "unit-enabled") | include "set-only-if" }}'
 
+  upstream-prometheus-nginx:
+    info:
+      description: sets up Grafana nginx configmap
+      internal: true
+    enabled_conditions:
+      - '{{ tuple . "upstrmonitoring" | include "unit-enabled" }}'
+    unit_templates:
+    - base-deps
+    depends_on:
+      namespace-defs: true
+      upstream-monitoring-crd: true
+    repo: sylva-core
+    kustomization_spec:
+      path: ./kustomize-units/upstream-monitoring-nginx
+      wait: true
+      targetNamespace: cattle-monitoring-system
+
+  upstream-grafana-nginx:
+    info:
+      description: sets up Grafana nginx configmap
+      internal: true
+    enabled_conditions:
+      - '{{ tuple . "upstrmonitoring" | include "unit-enabled" }}'
+    depends_on:
+      namespace-defs: true
+      upstream-monitoring-crd: true
+    unit_templates:
+    - base-deps
+    repo: sylva-core
+    kustomization_spec:
+      path: ./kustomize-units/upstream-monitoring-nginx/grafana-nginx
+      wait: true
+      targetNamespace: cattle-monitoring-system
+
   upstrmonitoring:
     info:
       description: installs upstream kube prometheus stack
@@ -4485,9 +4534,9 @@ units:
             username: '{{ .Values._internal.thanos_user }}'
             password: '{{ .Values._internal.thanos_password }}'
     helmrelease_spec:
-      releaseName: kube-prometheus-stack
-      storageNamespace: upstream-monitoring
-      targetNamespace: upstream-monitoring
+      releaseName: rancher-monitoring
+      storageNamespace: cattle-monitoring-system
+      targetNamespace: cattle-monitoring-system
       chart:
         spec:
           chart: kube-prometheus-stack
@@ -4495,9 +4544,45 @@ units:
       install:
         createNamespace: false
       values:
+        nameOverride: rancher-monitoring
         crds:
           enabled: false
         grafana:
+          extraContainers: |
+            - name: grafana-proxy
+              args:
+                - nginx
+                - -g
+                - daemon off;
+                - -c
+                - /nginx/nginx.conf
+              image: docker.io/rancher/mirrored-library-nginx:1.24.0-alpine
+              ports:
+                - containerPort: 8080
+                  name: nginx-http
+                  protocol: TCP
+              volumeMounts:
+                - mountPath: /nginx
+                  name: grafana-nginx
+                - mountPath: /var/cache/nginx
+                  name: nginx-home
+              securityContext:
+                runAsUser: 101
+                runAsGroup: 101
+          extraContainerVolumes:
+          - name: nginx-home
+            emptyDir: {}
+          - name: grafana-nginx
+            configMap:
+              name: grafana-nginx-proxy-config
+              items:
+                - key: nginx.conf
+                  mode: 438
+                  path: nginx.conf
+          service:
+            portName: nginx-http
+            port: 80
+            targetPort: 8080
           sidecar:
             dashboards:
               enabled: true
@@ -4508,7 +4593,37 @@ units:
                 etcd:
                   enabled: true
         prometheus:
+          service:
+            targetPort: 8081
           prometheusSpec:
+            containers:
+              - name: prometheus-proxy
+                args:
+                  - nginx
+                  - -g
+                  - daemon off;
+                  - -c
+                  - /nginx/nginx.conf
+                image: docker.io/rancher/mirrored-library-nginx:1.24.0-alpine
+                ports:
+                  - containerPort: 8081
+                    name: nginx-http
+                    protocol: TCP
+                volumeMounts:
+                  - mountPath: /nginx
+                    name: prometheus-nginx
+                  - mountPath: /var/cache/nginx
+                    name: nginx-home
+                securityContext:
+                  runAsUser: 101
+                  runAsGroup: 101
+            volumes:
+              - name: nginx-home
+                emptyDir: {}
+              - name: prometheus-nginx
+                configMap:
+                  name: prometheus-nginx-proxy-config
+                  defaultMode: 438
             scrapeInterval: "60s"
             scrapeTimeout: "30s"
             evaluationInterval: "30s"
@@ -4612,7 +4727,7 @@ units:
         substitute:
           SERVICE: grafana
           SERVICE_DNS: '{{ .Values.external_hostnames.grafana }}'
-          CERTIFICATE_NAMESPACE: upstream-monitoring
+          CERTIFICATE_NAMESPACE: cattle-monitoring-system
           CERT: '{{ .Values.external_certificates.grafana.cert | default "" | b64enc }}'
           CACERT: '{{ .Values.external_certificates.cacert | default "" | b64enc }}'
       _components:
@@ -4622,11 +4737,11 @@ units:
         - apiVersion: v1
           kind: Secret
           name: sylva-ca.crt
-          namespace: upstream-monitoring
+          namespace: cattle-monitoring-system
         - apiVersion: v1
           kind: Secret
           name: grafana-tls
-          namespace: upstream-monitoring
+          namespace: cattle-monitoring-system
 
   upstream-prometheus-adaptor:
     info:
@@ -4641,7 +4756,7 @@ units:
     helm_repo_url: https://prometheus-community.github.io/helm-charts
     helmrelease_spec:
       releaseName: prometheus-adapter
-      targetNamespace: upstream-monitoring
+      targetNamespace: cattle-monitoring-system
       chart:
         spec:
           chart: prometheus-adapter
@@ -4848,7 +4963,7 @@ units:
       alertmanager-jiralert-config: true
     helm_repo_url: https://prometheus-community.github.io/helm-charts
     helmrelease_spec:
-      targetNamespace: '{{ tuple . (tuple . "monitoring" | include "unit-enabled") "cattle-monitoring-system" "upstream-monitoring" | include "interpret-ternary" }}'
+      targetNamespace: '{{ tuple . (tuple . "monitoring" | include "unit-enabled") "cattle-monitoring-system" "cattle-monitoring-system" | include "interpret-ternary" }}'
       chart:
         spec:
           chart: jiralert
@@ -4890,7 +5005,7 @@ units:
       chart:
         spec:
           chart: webhooks/jiralert
-      targetNamespace: '{{ tuple . (tuple . "monitoring" | include "unit-enabled") "cattle-monitoring-system" "upstream-monitoring" | include "interpret-ternary" }}'
+      targetNamespace: '{{ tuple . (tuple . "monitoring" | include "unit-enabled") "cattle-monitoring-system" "cattle-monitoring-system" | include "interpret-ternary" }}'
     helm_secret_values:
       config: '{{ .Values.monitoring.alertmanager.webhooks.jiralert.config | include "preserve-type" }}'
 
@@ -4984,7 +5099,7 @@ units:
       chart:
         spec:
           chart: config
-      targetNamespace: '{{ tuple . (tuple . "monitoring" | include "unit-enabled") "cattle-monitoring-system" "upstream-monitoring" | include "interpret-ternary" }}'
+      targetNamespace: '{{ tuple . (tuple . "monitoring" | include "unit-enabled") "cattle-monitoring-system" "cattle-monitoring-system" | include "interpret-ternary" }}'
     helm_secret_values:
       config: '{{ .Values.monitoring.alertmanager.config | include "preserve-type" }}'
 
@@ -7223,7 +7338,7 @@ units:
                  {{- end -}}
                  {{- $count_am = int $count_am -}}
                  {{- range $index_am := until $count_am }}
-                 - alertmanager-kube-prometheus-stack-alertmanager-{{ $index_am }}.alertmanager-operated.upstream-monitoring:9093
+                 - alertmanager-rancher-monitoring-alertmanager-{{ $index_am }}.alertmanager-operated.cattle-monitoring-system:9093
                  {{- end -}}
                 {{- end -}}
           existingConfigmap: "sylva-thanos-rules-configmap"  # this ConfigMap is a byproduct of the sylva-thanos-rules unit
