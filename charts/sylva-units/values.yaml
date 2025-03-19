@@ -5145,6 +5145,10 @@ units:
         storageClass:
           name: nfs-ganesha
           allowVolumeExpansion: true
+          mountOptions:
+            - vers=4.1
+            - retrans=2
+            - timeo=30
 
   test-nfs-ganesha:
     enabled: '{{ .Values.env_type | eq "ci" }}'
