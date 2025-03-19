@@ -5,8 +5,10 @@ It combines multiple JSON files containing image references into a single JSON f
 It also provides an option to clean pod_images_dependencies by removing keys that start with specific prefixes (default: "Pod/" or "ReplicaSet/").
 
 The script is designed to be run from the command line and accepts input and output file paths as arguments.
-Usage:
-    python merge_image_refs.py -i input1.json input2.json -o output.json
+Example usage:
+    python3 merge_image_refs.py -i input_1.json input_x.json -o output.json
+    or
+    python3 merge_image_refs.py -i input_1.json -i input_x.json -o output.json
 """
 import argparse
 import json
@@ -108,6 +110,7 @@ def main():
     parser = argparse.ArgumentParser(description='Merge multiple images_ref files into one.')
     parser.add_argument('-i', '--input',
                         required=True,
+                        action='extend',
                         nargs='+',
                         help='Paths to input images_ref files.')
     parser.add_argument('-o', '--output',
@@ -116,12 +119,16 @@ def main():
     parser.add_argument('-r', '--remove-keys',
                         required=False,
                         nargs='+',
-                        default=["ReplicaSet/", "Pod/"],
+                        action='extend',
                         help='Prefixes of keys to remove. Example: "Pod/", "ReplicaSet/" ')
-
     args = parser.parse_args()
 
-    merge_images_ref_files(args.input, args.output, args.remove_keys)
+    if args.remove_keys:
+        remove_keys = args.remove_keys
+    else:
+        remove_keys = ["ReplicaSet/", "Pod/"]
+
+    merge_images_ref_files(args.input, args.output, remove_keys)
 
 
 if __name__ == "__main__":
