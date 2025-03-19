@@ -19,6 +19,18 @@ data:
     os_images:
 EOF
 
+# Validate YAML syntax
+if ! yq e '.' /opt/images.yaml >/dev/null 2>&1; then
+  echo "[ERROR] Invalid YAML format in /opt/images.yaml"
+  exit 1
+fi
+
+# Check if there are any OS images before entering the loop
+if [[ -z $(yq '.os_images | keys | .[]' /opt/images.yaml) ]]; then
+  sed -i '$s/os_images:/os_images: {}/' $configmap_file
+  echo "[WARNING] No OS images found in /opt/images.yaml. Skipping processing."
+fi
+
 echo "Looping over OS images..."
 
 while read os_image_key; do
