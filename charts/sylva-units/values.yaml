@@ -8193,6 +8193,10 @@ sylva_diskimagebuilder_images:
     os_images_oci_registry: sylva
   opensuse-15-6-hardened-rke2-1-28-15:
     os_images_oci_registry: sylva
+  opensuse-15-6-plain-kubeadm-1-31-5:
+    os_images_oci_registry: sylva
+  opensuse-15-6-hardened-kubeadm-1-31-5:
+    os_images_oci_registry: sylva
 
 # this dictionary can be extended to let os-image-server serve additional OS images
 # if the mgmt cluster uses capm3, the os-image-server by default will serve the OS images used by the mgmt cluster
