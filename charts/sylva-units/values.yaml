@@ -2798,7 +2798,7 @@ units:
     - dummy
     # we copy the dependencies of the 'cluster' unit
     # (with the exception of "capo-cluster-resources" which we don't need, given how what it produces is consumed)
-    depends_on: '{{ omit .Values.units.cluster.depends_on "capo-cluster-resources" "cluster-bmh" | include "preserve-type" }}'
+    depends_on: '{{ omit .Values.units.cluster.depends_on "capo-cluster-resources" "cluster-bmh" "os-image-server" | include "preserve-type" }}'
 
   local-path-provisioner:
     info:
