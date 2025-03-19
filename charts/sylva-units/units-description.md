@@ -130,6 +130,7 @@
 | **keycloak-oidc-external-secrets** | configures OIDC secrets for Keycloak | Kustomization |
 | **keycloak-postgres** | Deploy Postgres cluster for Keycloak using Cloud Native PostgreSQL (CNPG) | Kustomization |
 | **keycloak-resources** | configures keycloak resources | Kustomization |
+| **kube-storage-version-migrator** | installs kube-storage-version-migrator to assist apiVersion migrations | Kustomization |
 | **kubevirt-manager** | deploys kubevirt-manager UI for kubevirt workloads | Kustomization |
 | **kubevirt-test-vms** | deploys kubevirt VMs for testing | Kustomization |
 | **kunai-eso** | write secrets in kunai namespace in kunai expected format | Kustomization |
@@ -139,7 +140,6 @@
 | **kyverno-policies** | configures Kyverno policies | Kustomization |
 | **kyverno-policies-ready** | additional delay to ensure that kyverno webhooks are properly installed in api-server | Kustomization |
 | **kyverno-policy-prevent-mgmt-cluster-delete** | Kyverno policies to prevent deletion of critical resources for mgmt cluster | Kustomization |
-| **kyverno-policy-rancher-webhook-ha** | Kyverno policy for rancher-webhook HA | Kustomization |
 | **kyverno-policy-rancher-webhook-ha** | Kyverno policy for rancher-webhook HA | Kustomization |
 | **kyverno-update-namespace-and-psa** | grants to Kyverno the permission to update namespaces using the "updatepsa" verb (Rancher-specific)<br/><br/>This unit allows Kyverno to define namespaces with specific PodSecurityAdmission levels. It is useful for situations where namespaces need to be mutated (with PSA labels) in order to accomodate privileged pods (for which PSA level restricted at cluster level is not enough), when namespace creation is not controlled | Kustomization |
 | **kyverno-vault-restart-policy** | restart vault after certs renewal | Kustomization |
