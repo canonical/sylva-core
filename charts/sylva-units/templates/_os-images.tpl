@@ -38,6 +38,6 @@ os_images:
 {{ $images_from_diskimagebuilder | toYaml | indent 2}}
   {{- end }}
   {{- if and (not .Values.os_images) (not $images_from_diskimagebuilder) }}
-{{ dict | toYaml }}
+{{ dict | toYaml | indent 2}}
   {{- end }}
 {{- end }}
