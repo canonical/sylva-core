@@ -8,7 +8,7 @@
 | **capd** | installs Docker CAPI infra provider | core-component | [Kustomization](https://github.com/kubernetes-sigs/cluster-api//test/infrastructure/docker/config/default/?ref=v1.9.5) | v1.9.5 |
 | **capi** | installs Cluster API core operator | core-component | [Kustomization](https://github.com/kubernetes-sigs/cluster-api/releases/download/v1.9.5/core-components.yaml) | v1.9.5 |
 | **capm3** | installs Metal3 CAPI infra provider, for baremetal | core-component | [Kustomization](https://github.com/metal3-io/cluster-api-provider-metal3/releases/download/v1.9.3/infrastructure-components.yaml) | v1.9.3 |
-| **capo** | installs OpenStack CAPI infra provider | core-component | [Kustomization](https://github.com/kubernetes-sigs/cluster-api-provider-openstack/releases/download/v0.12.1/infrastructure-components.yaml) | v0.12.1 |
+| **capo** | installs OpenStack CAPI infra provider | core-component | [Kustomization](https://github.com/kubernetes-sigs/cluster-api-provider-openstack/releases/download/v0.12.2/infrastructure-components.yaml) | v0.12.2 |
 | **capo-orc** | installs OpenStack Resource Controller (orc)<br/><br/>The [OpenStack Resource Controller](https://k-orc.cloud/) (a.k.a. ORC) is a component used by CAPO controller | core-component | [Kustomization](https://github.com/k-orc/openstack-resource-controller/dist?ref=v1.0.1) | v1.0.1 |
 | **capv** | installs vSphere CAPI infra provider | core-component | [Kustomization](https://github.com/kubernetes-sigs/cluster-api-provider-vsphere/releases/download/v1.12.0/infrastructure-components.yaml) | v1.12.0 |
 | **cert-manager** | installs cert-manager, an X.509 certificate controller | core-component | [Helm chart](https://charts.jetstack.io) | v1.17.1 |
