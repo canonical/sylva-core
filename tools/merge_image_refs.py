@@ -84,7 +84,7 @@ def load_and_prepare_json(file_path: str, keys_to_remove: List[str]) -> Dict:
         return data
 
 
-def merge_images_ref_files(input_files: List[str], output_file: str, keys_to_remove: List[str] = None):
+def merge_images_ref_files(input_files: List[str], output_file: str, keys_to_remove: List[str]):
     """
     Merge multiple images_ref files into one.
 
@@ -92,6 +92,11 @@ def merge_images_ref_files(input_files: List[str], output_file: str, keys_to_rem
     :param output_file: Path to the output file.
     :param keys_to_remove: List of key prefixes to identify objects to remove.
     """
+
+    print(f"Input files: {input_files}")
+    print(f"Output file: {output_file}")
+    print(f"Keys removed from pod_images_dependencies: {keys_to_remove}\n")
+
     merged_images_ref = {}
 
     for input_file in input_files:
@@ -127,6 +132,11 @@ def main():
         remove_keys = args.remove_keys
     else:
         remove_keys = ["ReplicaSet/", "Pod/"]
+
+    if len(args.input) < 2:
+        print("Please provide at least two input files.")
+        print("Usage: python3 merge_image_refs.py -i input_1.json input_2.json -o output.json")
+        return
 
     merge_images_ref_files(args.input, args.output, remove_keys)
 
