@@ -28,7 +28,7 @@ def update_images_ref(images_ref: Dict[str, Any], new_data: Dict[str, Any]) -> D
         if key in images_ref:
             if isinstance(images_ref[key], list) and isinstance(value, list):
                 # Merge lists and remove duplicates
-                images_ref[key] = list(set(images_ref[key] + value))
+                images_ref[key] = sorted(list(set(images_ref[key] + value)))
             elif isinstance(images_ref[key], dict) and isinstance(value, dict):
                 # Recursively merge dictionaries
                 images_ref[key] = update_images_ref(images_ref[key], value)
@@ -38,7 +38,7 @@ def update_images_ref(images_ref: Dict[str, Any], new_data: Dict[str, Any]) -> D
                     images_ref[key] = [images_ref[key]]
                 if not isinstance(value, list):
                     value = [value]
-                images_ref[key] = list(set(images_ref[key] + value))
+                images_ref[key] = sorted(list(set(images_ref[key] + value)))
         else:
             images_ref[key] = value
     return images_ref
