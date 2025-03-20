@@ -11,7 +11,7 @@ kubectl get secrets sylva-units-values -o template="{{ .data.values }}" | base64
 
 */}}
 {{- $envAll := set . "Values" (include "interpret-values-gotpl" . | fromJson) -}}
-{{/* Remove raw protected keys from _internal values __key__ */}}
+{{/* Remove raw protected raw marker from _internal values __raw__{{ }} */}}
 {{- $_ := set $envAll "Values" (index (tuple $envAll $envAll.Values | include "strip-raw-escape-blocks" | fromJson) "result") }}
 
 {{/*
