@@ -6581,8 +6581,20 @@ units:
               #!/bin/bash
               set -e
 
-              echo "Waiting for MinIO to enter the failed state..."
+              echo "Checking for MinIO error state..."
+
+              TIMEOUT=45
+              START_TIME=$(date +%s)
+
               while true; do
+                  CURRENT_TIME=$(date +%s)
+                  ELAPSED_TIME=$((CURRENT_TIME - START_TIME))
+
+                  if [ $ELAPSED_TIME -gt $TIMEOUT ]; then
+                      echo "Timed out after ${TIMEOUT}s. MinIO tenant seems healthy."
+                      exit 0
+                  fi
+
                   MINIO_STATUS=$(kubectl get tenant monitoring -n minio-monitoring -o jsonpath='{.status.currentState}')
 
                   if echo "$MINIO_STATUS" | grep -q "server update failed with: open /usr/bin/.minio.check-perm"; then
@@ -6592,8 +6604,9 @@ units:
                       break
                   fi
 
-                  echo "MinIO is still healthy. Retrying in 10 seconds..."
-                  sleep 10  # Wait 10 seconds before checking again
+                  echo "MinIO not yet in expected failed state. Current state: $MINIO_STATUS"
+                  echo "Waiting 10 seconds before checking again... (${ELAPSED_TIME}/${TIMEOUT}s elapsed)"
+                  sleep 10
               done
 
   minio-monitoring:
