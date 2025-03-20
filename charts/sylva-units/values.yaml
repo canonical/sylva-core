@@ -7466,20 +7466,16 @@ cluster:
 
   kubelet_extra_args:
     # Increase max-pods for single-node deployments
-    # topology-manager-policy: '{{ tuple "best-effort" (not (.Values._internal.kubevirt_enable_check | eq ""))  | include "set-only-if" | toString }}'
-    # cpu-manager-policy: '{{ tuple "static" (not (.Values._internal.kubevirt_enable_check | eq ""))  | include "set-only-if" | toString }}'
-    # system-reserved: '{{ tuple "cpu=100m" (not (.Values._internal.kubevirt_enable_check | eq ""))  | include "set-only-if" | toString }}'
-    # kube-reserved: '{{ tuple "cpu=100m" (not (.Values._internal.kubevirt_enable_check | eq ""))  | include "set-only-if" | toString }}'
+    topology-manager-policy: '{{ tuple ("best-effort" | quote) (not (.Values._internal.kubevirt_enable_check | eq ""))  | include "set-only-if" }}'
+    cpu-manager-policy: '{{ tuple ("static" | quote) (not (.Values._internal.kubevirt_enable_check | eq ""))  | include "set-only-if" }}'
+    system-reserved: '{{ tuple ("cpu=100m" | quote) (not (.Values._internal.kubevirt_enable_check | eq ""))  | include "set-only-if" }}'
+    kube-reserved: '{{ tuple ("cpu=100m" | quote) (not (.Values._internal.kubevirt_enable_check | eq ""))  | include "set-only-if" }}'
     max-pods: '{{ tuple "196" (eq (.Values._internal.node_count | int) 1) | include "set-only-if" }}'
 
-    topology-manager-policy: "best-effort"
-    cpu-manager-policy: "static"
-    system-reserved: "cpu=100m"
-    kube-reserved: "cpu=100m"
-    # topology-manager-policy: '{{ .Values._internal.kubevirt_enable_check | default "" | ne "" | ternary "best-effort" nil }}'
-    # cpu-manager-policy: '{{ .Values._internal.kubevirt_enable_check | default "" | ne "" | ternary "static" nil }}'
-    # system-reserved: '{{ .Values._internal.kubevirt_enable_check | default "" | ne "" | ternary "cpu=100m" nil }}'
-    # kube-reserved: '{{ .Values._internal.kubevirt_enable_check | default "" | ne "" | ternary "cpu=100m" nil }}'
+    # topology-manager-policy: "best-effort"
+    # cpu-manager-policy: "static"
+    # system-reserved: "cpu=100m"
+    # kube-reserved: "cpu=100m"
 
     # topology-manager-policy: '{{ tuple "best-effort" (not (.Values._internal.kubevirt_enable_check | eq ""))  | include "set-only-if" }}'
     # cpu-manager-policy: '{{ tuple "static" (not (.Values._internal.kubevirt_enable_check | eq ""))  | include "set-only-if" }}'
