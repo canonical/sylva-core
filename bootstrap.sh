@@ -57,6 +57,10 @@ if kill $KUBECONFIG_PID &>/dev/null; then
     exit 1
 fi
 
+echo_b "\U000023F3 Testing Manik"
+helm --kubeconfig management-cluster-kubeconfig get values sylva-units --all
+helm --kubeconfig management-cluster-kubeconfig get manifest sylva-units
+
 echo_b "\U000023F3 Wait for units installed on management cluster to be ready"
 sylvactl watch \
   --reconcile \
@@ -78,5 +82,11 @@ if [[ -n ${CHECK_TEST_UNITS:-""} ]]; then
       Kustomization/sylva-system/sylva-units-tests-status \
       || true # test-units failures are not critical
 fi
+
+echo_b "\U000023F3 Testing Bindlish"
+helm --kubeconfig management-cluster-kubeconfig get values sylva-units --all
+helm --kubeconfig management-cluster-kubeconfig get manifest sylva-units
+kubectl --kubeconfig management-cluster-kubeconfig get ks -A
+echo_b "\U000023F3 Testing Bindlish2"
 
 display_final_messages

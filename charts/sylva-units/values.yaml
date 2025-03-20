@@ -7717,8 +7717,28 @@ cluster:
   control_plane_replicas: 3
 
   kubelet_extra_args:
-    # increase max-pods for single-node deployments
+    # Increase max-pods for single-node deployments
+    # topology-manager-policy: '{{ tuple "best-effort" (not (.Values._internal.kubevirt_enable_check | eq ""))  | include "set-only-if" }}'
+    # cpu-manager-policy: '{{ tuple "static" (not (.Values._internal.kubevirt_enable_check | eq ""))  | include "set-only-if" }}'
+    # system-reserved: '{{ tuple "cpu=100m" (not (.Values._internal.kubevirt_enable_check | eq ""))  | include "set-only-if" }}'
+    # kube-reserved: '{{ tuple "cpu=100m" (not (.Values._internal.kubevirt_enable_check | eq ""))  | include "set-only-if" }}'
     max-pods: '{{ tuple "196" (eq (.Values._internal.node_count | int) 1) | include "set-only-if" }}'
+
+    topology-manager-policy: "best-effort"
+    cpu-manager-policy: "static"
+    system-reserved: "cpu=100m"
+    kube-reserved: "cpu=100m"
+
+    # topology-manager-policy: '{{ tuple "best-effort" (not (.Values._internal.kubevirt_enable_check | eq ""))  | include "set-only-if" }}'
+    # cpu-manager-policy: '{{ tuple "static" (not (.Values._internal.kubevirt_enable_check | eq ""))  | include "set-only-if" }}'
+    # system-reserved: '{{ tuple "cpu=100m" (not (.Values._internal.kubevirt_enable_check | eq ""))  | include "set-only-if" }}'
+    # kube-reserved: '{{ tuple "cpu=100m" (not (.Values._internal.kubevirt_enable_check | eq ""))  | include "set-only-if" }}'
+
+    # topology-manager-policy: '{{ tuple "best-effort" (tuple . "kubevirt" | include "unit-enabled") | include "set-only-if" }}'
+    # cpu-manager-policy: '{{ tuple "static" (tuple . "kubevirt" | include "unit-enabled") | include "set-only-if" }}'
+    # system-reserved: '{{ tuple "cpu=100m" (tuple . "kubevirt" | include "unit-enabled") | include "set-only-if" }}'
+    # kube-reserved: '{{ tuple "cpu=100m" (tuple . "kubevirt" | include "unit-enabled") | include "set-only-if" }}'
+
 
   capo:
     # flavor_name: m1.large # Openstack flavor name
@@ -8540,6 +8560,12 @@ _internal:
   # kubevirt admin user and password
   kubevirt_admin_user: 'admin'
   kubevirt_admin_password: '{{ include "internalPersistentRandomPasswd" (tuple . "kubevirt_admin_password") }}'
+  kubevirt_enable_check: '{{(tuple . "kubevirt" | include "unit-enabled")}}'
+  kubevirt_args:
+    topology-manager-policy: '{{ tuple "best-effort" (tuple . "kubevirt" | include "unit-enabled")  | include "set-only-if" }}'
+    cpu-manager-policy: '{{ tuple "static" (tuple . "kubevirt" | include "unit-enabled")  | include "set-only-if" }}'
+    system-reserved: '{{ tuple "cpu=100m" (tuple . "kubevirt" | include "unit-enabled")  | include "set-only-if" }}'
+    kube-reserved: '{{ tuple "cpu=100m" (tuple . "kubevirt" | include "unit-enabled")  | include "set-only-if" }}'
 
   default_password: '{{ include "internalPersistentRandomPasswd" (tuple . "default_password") }}'
 
