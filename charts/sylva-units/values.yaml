@@ -7392,6 +7392,8 @@ units:
           service:
             publishNotReadyAddresses: true
         gateway:
+          nginxConfig:
+            clientMaxBodySize: 30M
           replicas: '{{ int .Values._internal.node_count | gt 2 | ternary 1 2 }}'
           ingress:
             enabled: true
