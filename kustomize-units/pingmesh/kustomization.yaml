@@ -1,0 +1,38 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: pingmesh
+
+resources:
+  - daemonset.yaml
+  - service-account.yaml
+  - namespace.yaml
+  - podmonitor.yaml
+  - prometheus-alerts.yaml
+
+labels:
+- includeSelectors: true
+  pairs:
+    app.kubernetes.io/part-of: pingmesh
+
+configMapGenerator:
+
+- name: pingmesh-tool
+  namespace: pingmesh
+  files:
+  - pingmesh.py=pingmesh.py
+
+- name: pingmesh-config
+  namespace: pingmesh
+  files:
+  - pingmesh-config.yaml=pingmesh-config.yaml
+
+- name: pingmesh-grafana-dashboards
+  namespace: pingmesh
+  files:
+  - node.json=grafana-dashboard-node.json
+  - overview.json=grafana-dashboard-overview.json
+  options:
+    disableNameSuffixHash: true
+    labels:
+      grafana_dashboard: "1"

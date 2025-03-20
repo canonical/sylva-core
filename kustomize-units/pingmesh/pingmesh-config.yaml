@@ -1,0 +1,17 @@
+staticDestinations: {}
+  # proxy.rd.francetelecom.fr:
+  # foo:
+  #   ip: 10.193.21.160
+  # plop.plop.plop:
+  #   properties:
+  #     comment: this is a test
+
+podLabelSelector:
+  app: pingmesh
+
+tests:
+  simple-ping:
+    type: fping
+    #fpingOptions: ""
+
+testPeriodSeconds: 20

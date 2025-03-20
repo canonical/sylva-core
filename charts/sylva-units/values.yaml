@@ -2951,7 +2951,9 @@ units:
       #  ready (for the controlplane nodes, the kubeadm controlplane provider ignores that)
       healthChecks: >-
         {{
-        (include "cluster-healthchecks" (dict "ns" .Release.Namespace "cluster" .Values.cluster "includeMDs" false) | fromYaml).result
+        (include "cluster-healthchecks" (dict "ns" .Release.Namespace
+                                              "cluster" .Values.cluster
+                                              "includeMDs" false) | fromYaml).result
         | include "preserve-type"
         }}
     helmrelease_spec:
@@ -7560,7 +7562,7 @@ units:
       targetNamespace: '{{ .Release.Namespace }}'
       install:
         createNamespace: false
-      timeout: 30m
+      timeout: '{{ }}'
       valuesFrom:
         # os_images:
         - kind: ConfigMap
@@ -7681,6 +7683,16 @@ units:
           CLUSTER_NAME: '{{ .Values.cluster.name }}'
           CLUSTER_VIRTUAL_IP: '{{ .Values.cluster_virtual_ip }}'
           CLUSTER_OKD_BASE_DOMAIN: '{{ .Values.cluster.openshift.baseDomain }}'
+
+  pingmesh:
+    info:
+      description: Prometheus/Grafana tool to monitor connectivity
+      internal: true
+    unit_templates:
+    - base-deps
+    repo: sylva-core
+    kustomization_spec:
+      path: ./kustomize-units/pingmesh
 
 
 ##### stuff related to the 'cluster' unit #####
