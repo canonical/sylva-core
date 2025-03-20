@@ -3213,11 +3213,6 @@ units:
     kustomization_spec:
       path: ./kustomize-units/heat-operator
       wait: true
-      images:
-        - name: controller
-          newName: registry.gitlab.com/sylva-projects/sylva-elements/heat-operator
-          newTag: 0.1.0
-
 
   sylva-units-operator:
     info:
@@ -3231,10 +3226,6 @@ units:
     kustomization_spec:
       path: ./kustomize-units/sylva-units-operator
       wait: true
-      images:
-        - name: controller
-          newName: registry.gitlab.com/sylva-projects/sylva-elements/sylva-units-operator
-          newTag: v0.1.6
 
   workload-cluster-operator:
     info:
@@ -3248,10 +3239,6 @@ units:
     kustomization_spec:
       path: ./kustomize-units/workload-cluster-operator
       wait: true
-      images:
-        - name: controller
-          newName: registry.gitlab.com/sylva-projects/sylva-elements/workload-cluster-operator
-          newTag: 0.2.0
 
   capo-cloud-config:
     info:

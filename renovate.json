@@ -335,11 +335,9 @@
     {
       "description": "Match images used by operators",
       "customType": "regex",
-      "fileMatch": "charts/sylva-units/values.yaml",
-      "matchStringsStrategy": "recursive",
+      "fileMatch": "kustomize-units/*/kustomization.yaml",
       "matchStrings": [
-        "units:[\\w\\W]*[ ]+",
-        "\\n\\s+newName:\\s+(?<registryUrl>.*?)/(?<depName>.*)\\n[\\w\\W]*?newTag:\\s+\"?(?<currentValue>[^\"\\n]+)\"?\\n"
+        "\\n\\s+newName:\\s+(?<registryUrl>.*?)/(?<depName>.*)\\n[\\w\\W]*?newTag:\\s+\"?(?<currentValue>[^\"\\n]+)\"?"
       ],
       "registryUrlTemplate": "https://{{{ registryUrl }}}",
       "datasourceTemplate": "docker"

@@ -3,3 +3,8 @@ kind: Kustomization
 
 resources:
 - https://gitlab.com/sylva-projects/sylva-elements/workload-cluster-operator.git/config/default?ref=0.2.0
+
+images:
+  - name: controller
+    newName: registry.gitlab.com/sylva-projects/sylva-elements/workload-cluster-operator
+    newTag: 0.2.0
