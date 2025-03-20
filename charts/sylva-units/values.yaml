@@ -2170,8 +2170,7 @@ units:
                   - "jobs"
                 verbs: ["get", "list", "patch", "update", "watch"]
               - apiGroups: ["minio.min.io"]
-                resources:
-                  -"tenants"
+                resources: ["tenants"]
                 verbs: ["get", "list", "watch", "patch", "update"]
               - apiGroups: ["vault.banzaicloud.com"]
                 resources:
@@ -2267,6 +2266,7 @@ units:
         - '{{ tuple "components/mutate-job-security-context" (tuple . "rancher" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/neuvector-policies" (tuple . "neuvector" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/deny-cabundle-changes" (tuple . "cert-manager" | include "unit-enabled") | include "set-only-if" }}'
+        - '{{ tuple "components/restart-minio-on-cert-renewal" (tuple . "cert-manager" | include "unit-enabled") | include "set-only-if" }}'
         - ../exclude-kube-system  # needs to be last (needed for components above that use sylva.org/kyverno-exclude-kube-system annotation)
         - '{{ tuple "components/coredns-custom-hosts-import" (tuple . "cabpoa" | include "unit-enabled") | include "set-only-if" }}'
 
