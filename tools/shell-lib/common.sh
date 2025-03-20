@@ -423,22 +423,32 @@ function display_service_ingresses() {
     # Declare an array to store GUI ingresses
     gui_ingresses=()
 
-    ## Read ingress details and process them
+    # Read ingress details and process them
     while read -r namespace ingress_name ingress_host; do
         # Extract the unit name using labels from the ingress resource
         unit_name=$(kubectl --kubeconfig management-cluster-kubeconfig get ingress "$ingress_name" -n "$namespace" -o jsonpath='{.metadata.labels}' | \
             yq '."helm.toolkit.fluxcd.io/name" // ."kustomize.toolkit.fluxcd.io/name" // ."app.kubernetes.io/name"')
 
-        # Check if any label matches the required pattern
+        # If unit_name is empty or null, skip this ingress
+        if [ -z "$unit_name" ]; then
+            echo "Warning: Skipping ingress '$ingress_name' in namespace '$namespace' because unit name is missing or invalid." >&2
+            continue
+        fi
+
+        # Check if the ingress is for a GUI by checking for a specific label pattern
         label_present=$(kubectl --kubeconfig management-cluster-kubeconfig get kustomization "$unit_name" -n sylva-system -o json | \
             yq e ".metadata.labels | keys | map(select(test(\"sylva-gui-list-service-$ingress_name\$\") or test(\"^sylva-gui-list-services\"))) | length" -)
 
-        if [ "$label_present" -gt 0 ]; then
-            if [[ "$unit_name" =~ "$ingress_name" ]]; then
-                gui_ingresses+=("$ingress_name: https://$ingress_host")
-            else
-                gui_ingresses+=("$unit_name - $ingress_name: https://$ingress_host")
-            fi
+        # If no label matches GUI criteria, skip and don't show a warning
+        if [ "$label_present" -eq 0 ]; then
+            continue
+        fi
+
+        # If label is present, include the ingress in the final list
+        if [[ "$unit_name" =~ "$ingress_name" ]]; then
+            gui_ingresses+=("$ingress_name: https://$ingress_host")
+        else
+            gui_ingresses+=("$unit_name - $ingress_name: https://$ingress_host")
         fi
     done < <(kubectl --kubeconfig management-cluster-kubeconfig get ingress -A -o custom-columns='NAMESPACE:.metadata.namespace,NAME:.metadata.name,HOSTS:.spec.rules[*].host' --no-headers)
 
@@ -448,6 +458,8 @@ function display_service_ingresses() {
         for ingress in "${gui_ingresses[@]}"; do
             echo "* $ingress"
         done
+    else
+        echo "No valid GUI ingresses found." >&2
     fi
 }
 
