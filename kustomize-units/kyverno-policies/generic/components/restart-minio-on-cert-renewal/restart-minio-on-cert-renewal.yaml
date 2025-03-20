@@ -1,0 +1,77 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: restart-minio-on-cert-renewal
+  annotations:
+    policies.kyverno.io/description: >-
+      This policy monitors MinIO certificate secrets and will update annotations
+      to trigger pod rollouts when certificates are renewed.
+spec:
+  mutateExistingOnPolicyUpdate: true
+  rules:
+  - name: minio-operator-restart
+    match:
+      any:
+      - resources:
+          kinds:
+          - Secret
+          names:
+          - operator-ca-tls
+          namespaces:
+          - minio-operator
+    mutate:
+      targets:
+        - apiVersion: apps/v1
+          kind: Deployment
+          name: minio-operator
+          namespace: minio-operator
+      patchStrategicMerge:
+        spec:
+          template:
+            metadata:
+              annotations:
+                minio-operator/triggerrestart: "{{request.object.metadata.resourceVersion}}"
+
+  - name: minio-monitoring-tenant-restart
+    match:
+      any:
+      - resources:
+          kinds:
+          - Secret
+          names:
+          - minio-monitoring-internal-tls
+          namespaces:
+          - minio-monitoring
+    mutate:
+      targets:
+        - apiVersion: minio.min.io/v2
+          kind: Tenant
+          name: monitoring
+          namespace: minio-monitoring
+      patchStrategicMerge:
+        spec:
+          poolsMetadata:
+            annotations:
+              minio-monitoring/triggerrestart: "{{request.object.metadata.resourceVersion}}"
+
+  - name: minio-logging-tenant-restart
+    match:
+      any:
+      - resources:
+          kinds:
+          - Secret
+          names:
+          - minio-logging-internal-tls
+          namespaces:
+          - minio-logging
+    mutate:
+      targets:
+        - apiVersion: minio.min.io/v2
+          kind: Tenant
+          name: logging
+          namespace: minio-logging
+      patchStrategicMerge:
+        spec:
+          poolsMetadata:
+            annotations:
+              minio-logging/triggerrestart: "{{request.object.metadata.resourceVersion}}"
