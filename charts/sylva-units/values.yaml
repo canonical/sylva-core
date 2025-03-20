@@ -7466,10 +7466,10 @@ cluster:
 
   kubelet_extra_args:
     # Increase max-pods for single-node deployments
-    topology-manager-policy: '{{ tuple ("best-effort" | quote) (not (.Values._internal.kubevirt_enable_check | eq ""))  | include "set-only-if" }}'
-    cpu-manager-policy: '{{ tuple ("static" | quote) (not (.Values._internal.kubevirt_enable_check | eq ""))  | include "set-only-if" }}'
-    system-reserved: '{{ tuple ("cpu=100m" | quote) (not (.Values._internal.kubevirt_enable_check | eq ""))  | include "set-only-if" }}'
-    kube-reserved: '{{ tuple ("cpu=100m" | quote) (not (.Values._internal.kubevirt_enable_check | eq ""))  | include "set-only-if" }}'
+    topology-manager-policy: '{{ tuple (best-effort | quote) (not (.Values._internal.kubevirt_enable_check | eq ""))  | include "set-only-if" }}'
+    cpu-manager-policy: '{{ tuple (static | quote) (not (.Values._internal.kubevirt_enable_check | eq ""))  | include "set-only-if" }}'
+    system-reserved: '{{ tuple (cpu=100m | quote) (not (.Values._internal.kubevirt_enable_check | eq ""))  | include "set-only-if" }}'
+    kube-reserved: '{{ tuple (cpu=100m | quote) (not (.Values._internal.kubevirt_enable_check | eq ""))  | include "set-only-if" }}'
     max-pods: '{{ tuple "196" (eq (.Values._internal.node_count | int) 1) | include "set-only-if" }}'
 
     # topology-manager-policy: "best-effort"
