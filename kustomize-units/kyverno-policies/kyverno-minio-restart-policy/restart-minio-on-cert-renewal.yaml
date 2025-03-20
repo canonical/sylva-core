@@ -3,6 +3,7 @@ kind: ClusterPolicy
 metadata:
   name: restart-minio-on-cert-renewal
   annotations:
+    kustomize.toolkit.fluxcd.io/force: Enabled
     policies.kyverno.io/description: >-
       This policy monitors MinIO certificate secrets and will update annotations
       to trigger pod rollouts when certificates are renewed.
