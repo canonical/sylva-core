@@ -8155,15 +8155,13 @@ sylva_diskimagebuilder_images:
     os_images_oci_registry: sylva
   opensuse-15-6-hardened-rke2-1-28-15:
     os_images_oci_registry: sylva
+  opensuse-15-6-plain-kubeadm-1-31-5:
+    os_images_oci_registry: sylva
   opensuse-15-6-plain-kubeadm-1-30-9:
     os_images_oci_registry: sylva
   opensuse-15-6-plain-kubeadm-1-29-13:
     os_images_oci_registry: sylva
   opensuse-15-6-plain-kubeadm-1-28-15:
-    os_images_oci_registry: sylva
-  opensuse-15-6-plain-kubeadm-1-31-5:
-    os_images_oci_registry: sylva
-  opensuse-15-6-plain-kubeadm-1-30-9:
     os_images_oci_registry: sylva
 
 # this dictionary can be extended to let os-image-server serve additional OS images
