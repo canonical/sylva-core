@@ -2673,6 +2673,8 @@ units:
     - '{{ tuple . "cabpoa" | include "unit-enabled" }}'
     annotations:
       sylvactl/readyMessage: "{{ .Values.openshift.assisted.serviceHostname | default .Values.external_hostnames.openshift_assisted_service }} and {{ .Values.openshift.assisted.imageHostname | default .Values.external_hostnames.openshift_assisted_images }} must resolve to {{ .Values.display_external_ip }}"
+    labels:
+      sylva-gui-list-services: ""
     kustomization_spec:
       path: ./kustomize-units/openshift-assisted-installer
       postBuild:
