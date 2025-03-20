@@ -423,7 +423,7 @@ function display_service_ingresses() {
     # Declare an array to store GUI ingresses
     gui_ingresses=()
 
-    # Read ingress details and process them
+    ## Read ingress details and process them
     while read -r namespace ingress_name ingress_host; do
         # Extract the unit name using labels from the ingress resource
         unit_name=$(kubectl --kubeconfig management-cluster-kubeconfig get ingress "$ingress_name" -n "$namespace" -o jsonpath='{.metadata.labels}' | \
