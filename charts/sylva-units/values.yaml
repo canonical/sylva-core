@@ -2306,23 +2306,6 @@ units:
       path: ./kustomize-units/kyverno-policies/kyverno-vault-restart-policy
       wait: true
 
-  kyverno-minio-restart-policy:
-    info:
-      description: restart minIO pods on certificate renewal
-      internal: true
-    unit_templates:
-      - base-deps
-    enabled_conditions:
-      - '{{ tuple . "kyverno" | include "unit-enabled" }}'
-      - '{{ tuple . "minio-operator" | include "unit-enabled" }}'
-    depends_on:
-      kyverno: true
-      minio-operator: true
-    repo: sylva-core
-    kustomization_spec:
-      path: ./kustomize-units/kyverno-policies/kyverno-minio-restart-policy
-      wait: true
-
   kyverno-metal3-policies:
     info:
       description: kyverno policies specific to capm3-system
@@ -6227,6 +6210,7 @@ units:
       _components:
         - '{{ ternary "../tls-components/tls-secret" "../tls-components/tls-certificate" (hasKey .Values.external_certificates.minio_operator "cert") }}'
         - "../tls-components/sylva-ca"
+        - "../kyverno-policies/minio-policies/minio-operator-policies"
 
   minio-operator:
     info:
@@ -6339,6 +6323,7 @@ units:
       vault: true
       vault-config-operator: true
       eso-secret-stores: true
+      minio-operator: true
     repo: sylva-core
     kustomization_substitute_secrets:
       KEY: '{{ .Values.external_certificates.minio_logging.key | default "" | b64enc }}'
@@ -6358,6 +6343,7 @@ units:
       _components:
         - '{{ ternary "../tls-components/tls-secret" "../tls-components/tls-certificate" (hasKey .Values.external_certificates.minio_logging "cert") }}'
         - "../tls-components/sylva-ca"
+        - "../kyverno-policies/minio-policies/minio-logging-tenant-policies"
 
   minio-logging:
     info:
@@ -6523,6 +6509,7 @@ units:
       vault: true
       vault-config-operator: true
       eso-secret-stores: true
+      minio-operator: true
     repo: sylva-core
     kustomization_substitute_secrets:
       KEY: '{{ .Values.external_certificates.minio_monitoring.key | default "" | b64enc }}'
@@ -6542,6 +6529,7 @@ units:
       _components:
         - '{{ ternary "../tls-components/tls-secret" "../tls-components/tls-certificate" (hasKey .Values.external_certificates.minio_monitoring "cert") }}'
         - "../tls-components/sylva-ca"
+        - "../kyverno-policies/minio-policies/minio-monitoring-tenant-policies"
 
   minio-monitoring:
     info:
