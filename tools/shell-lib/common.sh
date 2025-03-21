@@ -431,7 +431,7 @@ function display_service_ingresses() {
         unit_name=$(echo "$labels" | yq '."helm.toolkit.fluxcd.io/name" // ."kustomize.toolkit.fluxcd.io/name" // ."app.kubernetes.io/name"')
 
         if [[ -z "$unit_name" || "$unit_name" == "null" ]]; then
-            echo "WARNING: Skipping ingress '$ingress_name' in namespace '$namespace' - Unit name is empty/null"
+            echo "WARNING: Skipping ingress '$ingress_name' in namespace '$namespace' - Unable to relate it to a unit and determine if it's a GUI or not"
             continue
         fi
 
