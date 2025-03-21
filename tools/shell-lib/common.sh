@@ -420,18 +420,29 @@ EOC
 }
 
 function display_service_ingresses() {
-    # Declare an array to store GUI ingresses
     gui_ingresses=()
 
-    # Read ingress details and process them
     while read -r namespace ingress_name ingress_host; do
-        # Extract the unit name using labels from the ingress resource
-        unit_name=$(kubectl --kubeconfig management-cluster-kubeconfig get ingress "$ingress_name" -n "$namespace" -o jsonpath='{.metadata.labels}' | \
-            yq '."helm.toolkit.fluxcd.io/name" // ."kustomize.toolkit.fluxcd.io/name" // ."app.kubernetes.io/name"')
+        # Fetch labels and annotations
+        labels=$(kubectl --kubeconfig management-cluster-kubeconfig get ingress "$ingress_name" -n "$namespace" -o jsonpath='{.metadata.labels}')
+        annotations=$(kubectl --kubeconfig management-cluster-kubeconfig get ingress "$ingress_name" -n "$namespace" -o jsonpath='{.metadata.annotations}')
 
-        # Check if any label matches the required pattern
-        label_present=$(kubectl --kubeconfig management-cluster-kubeconfig get kustomization "$unit_name" -n sylva-system -o json | \
+        # Extract unit name from labels
+        unit_name=$(echo "$labels" | yq '."helm.toolkit.fluxcd.io/name" // ."kustomize.toolkit.fluxcd.io/name" // ."app.kubernetes.io/name"')
+
+        if [[ -z "$unit_name" || "$unit_name" == "null" ]]; then
+            echo "WARNING: Skipping ingress '$ingress_name' in namespace '$namespace' - Unable to relate it to a unit and determine if it's a GUI or not"
+            continue
+        fi
+
+        # Check label presence in kustomization
+        label_present=$(kubectl --kubeconfig management-cluster-kubeconfig get kustomization "$unit_name" -n sylva-system -o json 2>/dev/null | \
             yq e ".metadata.labels | keys | map(select(test(\"sylva-gui-list-service-$ingress_name\$\") or test(\"^sylva-gui-list-services\"))) | length" -)
+
+        if [[ -z "$label_present" || "$label_present" == "null" ]]; then
+            echo "WARNING: Could not retrieve labels for kustomization '$unit_name'. Skipping..."
+            continue
+        fi
 
         if [ "$label_present" -gt 0 ]; then
             if [[ "$unit_name" =~ "$ingress_name" ]]; then
@@ -442,12 +453,13 @@ function display_service_ingresses() {
         fi
     done < <(kubectl --kubeconfig management-cluster-kubeconfig get ingress -A -o custom-columns='NAMESPACE:.metadata.namespace,NAME:.metadata.name,HOSTS:.spec.rules[*].host' --no-headers)
 
-    # Output GUI ingresses
     if [ ${#gui_ingresses[@]} -gt 0 ]; then
         echo "GUIs:"
         for ingress in "${gui_ingresses[@]}"; do
             echo "* $ingress"
         done
+    else
+        echo "No ingresses detected."
     fi
 }
 
