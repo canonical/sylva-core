@@ -2203,6 +2203,10 @@ units:
               - apiGroups: ["*"]
                 resources: [ "secrets" ]
                 verbs: ["get", "list", "watch"]
+              - apiGroups: ["crd.projectcalico.org"]
+                resources:
+                - globalnetworksets
+                verbs: ["get", "list"]
           container:
             resources:
               limits:
