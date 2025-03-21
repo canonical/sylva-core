@@ -422,7 +422,7 @@ EOC
 function display_service_ingresses() {
    kustomizations=$(kubectl --kubeconfig ./management-cluster-kubeconfig get kustomization -A -o yaml | yq '.items[] | select(.metadata.annotations."sylvactl/readyMessage" != null) | .metadata.name')
    for ks in $kustomizations; do
-       message=$(kubectl --kubeconfig ./management-cluster-kubeconfig get kustomization $ks -o yaml | yq '.metadata.annotations."sylvactl/readyMessage"')
+       message=$(kubectl --kubeconfig ./management-cluster-kubeconfig get kustomization $ks -o yaml | yq '.metadata.annotations."sylvactl/readyMessage"' | cut -f1 -d "(" )
        if [[ $message == *UI* ]]; then
            echo "* $ks - $message"
        fi
