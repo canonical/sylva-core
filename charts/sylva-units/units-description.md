@@ -137,7 +137,6 @@
 | **kunai-postgres-cnpg** | Deploy Postgres cluster for Kunai using Cloud Native PostgreSQL (CNPG) | Kustomization |
 | **kunai-secrets** | create random secret that will be used by kunai application. secrets are sync with vault. | Kustomization |
 | **kyverno-metal3-policies** | kyverno policies specific to capm3-system | Kustomization |
-| **kyverno-minio-restart-policy** | restart minIO pods on certificate renewal | Kustomization |
 | **kyverno-policies** | configures Kyverno policies | Kustomization |
 | **kyverno-policies-ready** | additional delay to ensure that kyverno webhooks are properly installed in api-server | Kustomization |
 | **kyverno-policy-prevent-mgmt-cluster-delete** | Kyverno policies to prevent deletion of critical resources for mgmt cluster | Kustomization |
