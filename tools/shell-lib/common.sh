@@ -282,7 +282,7 @@ function reconcile_sylva_units() {
     --exit-condition reason=InstallFailed
 
   helm_release_version=$(kubectl get -n $namespace HelmRelease sylva-units -o yaml | yq -r '.status.history[0].version')
-  if ! [[ $_options == *"skip-root-dependency-wait"* ]]; then
+  if ! [[ $_options == *"skip-root-dependency-wait"* ]] && kubectl get -n $namespace Kustomization root-dependency-$helm_release_version &>/dev/null; then
     echo "waiting for root-dependency-$helm_release_version to become ready..."
     sylvactl watch -n $namespace Kustomization/$namespace/root-dependency-$helm_release_version --timeout ${SYLVA_UNITS_RECONCILE_TIMEOUT:-180s} --skip-inventory --reconcile
   fi
