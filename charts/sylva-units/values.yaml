@@ -2880,6 +2880,7 @@ units:
     enabled_conditions:
     - '{{ tuple . "kyverno" | include "unit-enabled" }}'
     - '{{ .Values.cluster.capi_providers.infra_provider | eq "capm3" }}'
+    - '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" }}'
     depends_on:
       kyverno: true
     repo: sylva-core
