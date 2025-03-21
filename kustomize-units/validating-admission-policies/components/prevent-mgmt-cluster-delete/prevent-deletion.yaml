@@ -1,0 +1,80 @@
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  name: avoid-delete-mgmt-resources-flux
+spec:
+  failurePolicy: Fail
+  matchConstraints:
+    resourceRules:
+      - apiGroups: ["helm.toolkit.fluxcd.io"]
+        apiVersions: ["*"]
+        resources: ["helmreleases"]
+        operations: ["DELETE"]
+      - apiGroups: ["kustomize.toolkit.fluxcd.io"]
+        apiVersions: ["*"]
+        resources: ["kustomizations"]
+        operations: ["DELETE"]
+  matchConditions:
+    - name: match-label
+      expression: >-
+        has(oldObject.metadata) && has(oldObject.metadata.labels) &&
+        'sylva-units/protected' in oldObject.metadata.labels
+  validations:
+    - expression: "false"
+      message: >-
+        This is a mandatory resource, deleting it is not possible without
+        breaking the Sylva management cluster.
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  name: avoid-delete-mgmt-resources-flux
+spec:
+  policyName: avoid-delete-mgmt-resources-flux
+  validationActions: [Deny]
+  matchResources:
+    namespaceSelector:
+      matchExpressions:
+        - key: "kubernetes.io/metadata.name"
+          operator: "NotIn"
+          values: ["kube-system"]
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  name: avoid-delete-mgmt-resources-capi
+spec:
+  failurePolicy: Fail
+  matchConstraints:
+    resourceRules:
+      - apiGroups: ["cluster.x-k8s.io"]
+        apiVersions: ["*"]
+        resources: ["cluster"]
+        operations: ["DELETE"]
+      - apiGroups: ["controlplane.cluster.x-k8s.io"]
+        apiVersions: ["*"]
+        resources: ["*"]
+        operations: ["DELETE"]
+  validations:
+    - expression: "false"
+      message: >-
+        Deleting the Sylva CAPI resources that describe the Cluster API cluster
+        for the management cluster is not possible without breaking the Sylva
+        management cluster..
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  name: avoid-delete-mgmt-resources-capi
+spec:
+  policyName: avoid-delete-mgmt-resources-flux
+  validationActions: [Deny]
+  matchResources:
+    namespaceSelector:
+      matchExpressions:
+        - key: "kubernetes.io/metadata.name"
+          operator: "In"
+          values: ["sylva-system"]
+        - key: "kubernetes.io/metadata.name"
+          operator: "NotIn"
+          values: ["kube-system"]

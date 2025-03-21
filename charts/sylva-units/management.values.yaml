@@ -59,7 +59,7 @@ units:
       os-image-server: '{{ .Values.cluster.capi_providers.infra_provider | eq "capm3" }}'
       # we need this unit to be upgraded before 'cluster' unit during the upgrade to Sylva 1.2:
       # this line can be removed after the release of Sylva 1.2 (but it won't cause harm if we keep it)
-      kyverno-policy-prevent-mgmt-cluster-delete: '{{ and (tuple . "kyverno-policy-prevent-mgmt-cluster-delete" | include "unit-enabled") (.Values._internal.state.is_upgrade) }}'
+      vap-mgmt-cluster-delete: '{{ and (tuple . "vap-mgmt-cluster-delete" | include "unit-enabled") (.Values._internal.state.is_upgrade) }}'
       # related to the above: we need to ensure that the new policy defined in the unit
       # mentioned above is ready before we update 'cluster' unit
       kyverno-policies-ready: '{{ and (tuple . "kyverno-policies-ready" | include "unit-enabled") .Values._internal.state.is_upgrade }}'
@@ -110,20 +110,18 @@ units:
               kubectl get m3mt
               kubectl patch cluster.cluster.x-k8s.io {{ .Values.cluster.name }} --type merge -p '{"spec":{"paused": false}}'
 
-  kyverno-policy-prevent-mgmt-cluster-delete:
+  vap-prevent-mgmt-cluster-delete:
     info:
-      description: Kyverno policies to prevent deletion of critical resources for mgmt cluster
+      description: K8S Validation Admission Policies to prevent deletion of critical resources for mgmt cluster
       internal: true
-    enabled_conditions:
-    - '{{ tuple . "kyverno" | include "unit-enabled"  }}'
+    enabled: true
     depends_on:
-      kyverno: true
       capi: true
     unit_templates:
     - base-deps
     repo: sylva-core
     kustomization_spec:
-      path: ./kustomize-units/kyverno-policies/prevent-mgmt-cluster-delete
+      path: ./kustomize-units/validating-admission-policies/components/prevent-mgmt-cluster-delete
       wait: true
 
   os-image-server:
