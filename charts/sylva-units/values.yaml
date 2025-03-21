@@ -6758,7 +6758,7 @@ units:
     annotations:
       sylvactl/readyMessage: "Thanos UI can be reached at https://{{ .Values.external_hostnames.thanos }} ({{ .Values.display_external_ip_msg }})"
     labels:
-      sylva-gui-list-service-thanos-query: ""
+      sylva-gui-list-service-thanos-query-frontend: ""
     repo: bitnami-thanos
     helmrelease_spec:
       targetNamespace: thanos
