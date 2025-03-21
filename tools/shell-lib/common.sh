@@ -426,7 +426,7 @@ function display_service_ingresses() {
        if [[ $message == *UI* ]]; then
            echo "* $ks - $message"
        fi
-       done
+   done
 }
 
 function display_final_messages() {
