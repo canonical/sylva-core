@@ -8019,6 +8019,7 @@ registry_mirrors:
 #   - mirror_url: http://your.mirror/docker
 #     registry_settings:                     # <<< Host settings can be used to override default_settings
 #       skip_verify: false
+#     is_default_mirror: true                # <<< The server configuration will be the same as host. In case of failure, upstream registry won't be used and keep the environment controlled.
 #   registry.k8s.io:
 #   - mirror_url: ...
 #   _default:
