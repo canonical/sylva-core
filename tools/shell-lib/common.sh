@@ -420,27 +420,39 @@ EOC
 }
 
 function display_service_ingresses() {
-    # Declare an array to store GUI ingresses
+    echo "Starting ingress discovery..."
     gui_ingresses=()
 
-    # Read ingress details and process them
     while read -r namespace ingress_name ingress_host; do
-        # Extract the unit name using labels from the ingress resource
-        unit_name=$(kubectl --kubeconfig management-cluster-kubeconfig get ingress "$ingress_name" -n "$namespace" -o jsonpath='{.metadata.labels}' | \
-            yq '."helm.toolkit.fluxcd.io/name" // ."kustomize.toolkit.fluxcd.io/name" // ."app.kubernetes.io/name"')
+        echo "DEBUG: Processing ingress - Namespace: $namespace, Name: $ingress_name, Host: $ingress_host"
 
-        # Skip processing if unit_name is empty or null
-        if [ -z "$unit_name" ]; then
-            echo "Warning: Skipping ingress '$ingress_name' in namespace '$namespace' because required label is missing."
+        # Fetch labels and annotations
+        labels=$(kubectl --kubeconfig management-cluster-kubeconfig get ingress "$ingress_name" -n "$namespace" -o jsonpath='{.metadata.labels}')
+        annotations=$(kubectl --kubeconfig management-cluster-kubeconfig get ingress "$ingress_name" -n "$namespace" -o jsonpath='{.metadata.annotations}')
+
+        echo "DEBUG: Labels for $ingress_name: $labels"
+        echo "DEBUG: Annotations for $ingress_name: $annotations"
+
+        # Extract unit name from labels
+        unit_name=$(echo "$labels" | yq '."helm.toolkit.fluxcd.io/name" // ."kustomize.toolkit.fluxcd.io/name" // ."app.kubernetes.io/name"')
+
+        if [[ -z "$unit_name" || "$unit_name" == "null" ]]; then
+            echo "WARNING: Skipping ingress '$ingress_name' in namespace '$namespace' - Unit name is empty/null"
             continue
         fi
 
-        # Check if any label matches the required pattern
+        echo "DEBUG: Extracted Unit Name: $unit_name"
+
+        # Check label presence in kustomization
         label_present=$(kubectl --kubeconfig management-cluster-kubeconfig get kustomization "$unit_name" -n sylva-system -o json 2>/dev/null | \
             yq e ".metadata.labels | keys | map(select(test(\"sylva-gui-list-service-$ingress_name\$\") or test(\"^sylva-gui-list-services\"))) | length" -)
 
-        # If label_present is null or empty, set it to 0
-        label_present=${label_present:-0}
+        if [[ -z "$label_present" || "$label_present" == "null" ]]; then
+            echo "WARNING: Could not retrieve labels for kustomization '$unit_name'. Skipping..."
+            continue
+        fi
+
+        echo "DEBUG: Label Presence for '$unit_name': $label_present"
 
         if [ "$label_present" -gt 0 ]; then
             if [[ "$unit_name" =~ "$ingress_name" ]]; then
@@ -451,17 +463,13 @@ function display_service_ingresses() {
         fi
     done < <(kubectl --kubeconfig management-cluster-kubeconfig get ingress -A -o custom-columns='NAMESPACE:.metadata.namespace,NAME:.metadata.name,HOSTS:.spec.rules[*].host' --no-headers)
 
-    # Output GUI ingresses
     if [ ${#gui_ingresses[@]} -gt 0 ]; then
         echo "🌱 You can access the following UIs:"
         for ingress in "${gui_ingresses[@]}"; do
             echo "* $ingress"
         done
-    else
-        echo "No GUI ingresses found."
     fi
 }
-
 
 function display_final_messages() {
   CALLER_SCRIPT_NAME=$(basename ${BASH_SOURCE[1]})
