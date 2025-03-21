@@ -51,3 +51,21 @@ patches:
     - op: replace
       path: /spec/template/spec/containers/0/resources/requests/memory
       value: 512Mi
+
+- target:
+    kind: Deployment
+    labelSelector: app.kubernetes.io/component in (kustomize-controller,helm-controller,source-controller)
+  patch: |
+    - op: add
+      path: /spec/template/spec/containers/0/args/-
+      value: --requeue-dependency=8s
+    - op: add
+      path: /spec/template/spec/containers/0/args/-
+      value: --concurrent=10
+- target:
+    kind: Deployment
+    labelSelector: app.kubernetes.io/component=kustomize-controller
+  patch: |
+    - op: add
+      path: /spec/template/spec/containers/0/args/-
+      value: --concurrent-ssa=10
