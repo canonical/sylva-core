@@ -5914,7 +5914,7 @@ units:
       chart:
         spec:
           chart: gitea
-          version: 10.4.1
+          version: 11.0.0
       targetNamespace: gitea
       releaseName: gitea
       values:
