@@ -429,39 +429,39 @@ function display_service_ingresses() {
         unit_name=$(kubectl --kubeconfig management-cluster-kubeconfig get ingress "$ingress_name" -n "$namespace" -o jsonpath='{.metadata.labels}' | \
             yq '."helm.toolkit.fluxcd.io/name" // ."kustomize.toolkit.fluxcd.io/name" // ."app.kubernetes.io/name"')
 
-        # If unit_name is empty or null, skip this ingress
+        # Skip processing if unit_name is empty or null
         if [ -z "$unit_name" ]; then
-            echo "Warning: Skipping ingress '$ingress_name' in namespace '$namespace' because unit name is missing or invalid." >&2
+            echo "Warning: Skipping ingress '$ingress_name' in namespace '$namespace' because required label is missing."
             continue
         fi
 
-        # Check if the ingress is for a GUI by checking for a specific label pattern
-        label_present=$(kubectl --kubeconfig management-cluster-kubeconfig get kustomization "$unit_name" -n sylva-system -o json | \
+        # Check if any label matches the required pattern
+        label_present=$(kubectl --kubeconfig management-cluster-kubeconfig get kustomization "$unit_name" -n sylva-system -o json 2>/dev/null | \
             yq e ".metadata.labels | keys | map(select(test(\"sylva-gui-list-service-$ingress_name\$\") or test(\"^sylva-gui-list-services\"))) | length" -)
 
-        # If no label matches GUI criteria, skip and don't show a warning
-        if [ "$label_present" -eq 0 ]; then
-            continue
-        fi
+        # If label_present is null or empty, set it to 0
+        label_present=${label_present:-0}
 
-        # If label is present, include the ingress in the final list
-        if [[ "$unit_name" =~ "$ingress_name" ]]; then
-            gui_ingresses+=("$ingress_name: https://$ingress_host")
-        else
-            gui_ingresses+=("$unit_name - $ingress_name: https://$ingress_host")
+        if [ "$label_present" -gt 0 ]; then
+            if [[ "$unit_name" =~ "$ingress_name" ]]; then
+                gui_ingresses+=("$ingress_name: https://$ingress_host")
+            else
+                gui_ingresses+=("$unit_name - $ingress_name: https://$ingress_host")
+            fi
         fi
     done < <(kubectl --kubeconfig management-cluster-kubeconfig get ingress -A -o custom-columns='NAMESPACE:.metadata.namespace,NAME:.metadata.name,HOSTS:.spec.rules[*].host' --no-headers)
 
     # Output GUI ingresses
     if [ ${#gui_ingresses[@]} -gt 0 ]; then
-        echo "GUIs:"
+        echo "🌱 You can access the following UIs:"
         for ingress in "${gui_ingresses[@]}"; do
             echo "* $ingress"
         done
     else
-        echo "No valid GUI ingresses found." >&2
+        echo "No GUI ingresses found."
     fi
 }
+
 
 function display_final_messages() {
   CALLER_SCRIPT_NAME=$(basename ${BASH_SOURCE[1]})
