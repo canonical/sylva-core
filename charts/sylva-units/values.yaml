@@ -1715,7 +1715,7 @@ units:
       keycloak-postgres: true
       synchronize-secrets: true # make sure that the secret keycloak-initial-admin is ready to be consummed
     annotations:
-      sylvactl/readyMessage: "Keycloak UI admin console can be reached at https://{{ .Values.external_hostnames.keycloak }}/admin/master/console, user 'admin', password in Vault at secret/keycloak ({{ .Values.external_hostnames.keycloak }} must resolve to {{ .Values.display_external_ip })"
+      sylvactl/readyMessage: "Keycloak UI admin console can be reached at https://{{ .Values.external_hostnames.keycloak }}/admin/master/console, user 'admin', password in Vault at secret/keycloak ({{ .Values.external_hostnames.keycloak }} must resolve to {{ .Values.display_external_ip }})"
     repo: sylva-core
     kustomization_substitute_secrets:
       KEY: '{{ .Values.external_certificates.keycloak.key | default "" | b64enc }}'
@@ -6536,7 +6536,7 @@ units:
       two-replicas-storageclass: '{{ tuple . "two-replicas-storageclass" | include "unit-enabled" }}'
       '{{ .Values._internal.default_storage_class_unit }}': '{{ not (tuple . "two-replicas-storageclass" | include "unit-enabled") }}'
     annotations:
-      sylvactl/readyMessage: "MinIO monitoring UI tenant console can be reached at https://{{ .Values.external_hostnames.minio_monitoring_console }} ({{ .Values.external_hostnames.minio_monitoring_console }} {{ .Values.display_external_ip }})"
+      sylvactl/readyMessage: "MinIO monitoring UI tenant console can be reached at https://{{ .Values.external_hostnames.minio_monitoring_console }} ({{ .Values.external_hostnames.minio_monitoring_console }} must resolve to {{ .Values.display_external_ip }})"
     repo: minio-operator
     helmrelease_spec:
       targetNamespace: minio-monitoring
@@ -6740,7 +6740,7 @@ units:
       '{{ .Values._internal.default_storage_class_unit }}': true
       ingress-nginx: '{{ tuple . "ingress-nginx" | include "unit-enabled" }}'
     annotations:
-      sylvactl/readyMessage: "Thanos UI can be reached at https://{{ .Values.external_hostnames.thanos }} ({{ .Values.external_hostnames.thanos }} {{ .Values.display_external_ip }})"
+      sylvactl/readyMessage: "Thanos UI can be reached at https://{{ .Values.external_hostnames.thanos }} ({{ .Values.external_hostnames.thanos }} must resolve to {{ .Values.display_external_ip }})"
     repo: bitnami-thanos
     helmrelease_spec:
       targetNamespace: thanos
