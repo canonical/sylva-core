@@ -2640,13 +2640,13 @@ units:
     info:
       description: installs OKD/OpenShift CAPI bootstrap/controlplane provider
       maturity: experimental
-    enabled: false
     repo: sylva-core
     unit_templates:
     - base-deps
     depends_on:
-      capm3: true
       openshift-assisted-installer: true
+    enabled_conditions:
+    - '{{ tuple . "capm3" | include "unit-enabled" }}'
     kustomization_spec:
       path: ./kustomize-units/cabpoa
       wait: true
