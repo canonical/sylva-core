@@ -1292,7 +1292,7 @@ properties:
                   const: oci
           then:
             required: [oci_registry, oci_user, oci_token]
- 
+
       firewall:
         type: object
         additionalProperties: false
