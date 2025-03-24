@@ -1,0 +1,33 @@
+---
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+   name: neuvector-oidc-init
+   namespace: neuvector
+spec:
+   secretStoreRef:
+      name: eso-store-k8s-keycloak
+      kind: ClusterSecretStore
+   target:
+      creationPolicy: Orphan
+      name: neuvector-oidc-init
+      template:
+         type: Opaque
+         data:  # see https://open-docs.neuvector.com/deploying/production/configmap
+            oidcinitcfg: |
+              Enable: true
+              Client_ID: neuvector
+              Client_Secret: "{{ .clientSecret | toString }}"
+              Issuer: https://${KEYCLOAK_DNS}/realms/sylva
+              Default_Role: null
+              group_claim: roles
+              group_mapped_roles:
+                - group: infra-admins
+                  global_role: admin
+                - group: neuvector-readers
+                  global_role: reader
+   data:
+   - secretKey: clientSecret
+     remoteRef:
+        key: keycloak-client-secret-neuvector-client
+        property: CLIENT_SECRET

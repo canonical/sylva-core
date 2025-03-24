@@ -1,0 +1,91 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: merge-kubevirt-manager-secrets
+  namespace: sylva-system
+  annotations:
+    kustomize.toolkit.fluxcd.io/force: Enabled
+    policies.kyverno.io/title: Merge kubevirt-manager secrets for OIDC
+    policies.kyverno.io/minversion: 1.12.0
+    policies.kyverno.io/description: >-
+      Merge kubevirt-manager secrets to create init config
+spec:
+  mutateExistingOnPolicyUpdate: true
+  rules:
+  - name: merge-kubevirt-manager-secrets
+    match:
+      any:
+        - resources:
+            kinds:
+            - Secret
+            namespaces:
+            - kubevirt-manager
+            names:
+            - kubevirt-manager-oidc-init
+            - kubevirt-manager-usercfg
+    context:
+      - name: oidcKubevirtManager
+        apiCall:
+          urlPath: "/api/v1/namespaces/kubevirt-manager/secrets/kubevirt-manager-oidc-init"
+          jmesPath: "data.oidcinitcfg || `{}`"
+      - name: passwordprofileinitcfg
+        apiCall:
+          urlPath: "/api/v1/namespaces/kubevirt-manager/secrets/kubevirt-manager-usercfg"
+          jmesPath: "data.passwordprofileinitcfg || `{}`"
+      - name: userinitcfg
+        apiCall:
+          urlPath: "/api/v1/namespaces/kubevirt-manager/secrets/kubevirt-manager-usercfg"
+          jmesPath: "data.userinitcfg || `{}`"
+    generate:
+      apiVersion: v1
+      kind: Secret
+      name: kubevirt-manager-init
+      namespace: kubevirt-manager
+      data:
+        metadata:
+          annotations:
+            reconcile.fluxcd.io/requestedAt: "{{ time_now_utc() }}"
+            kyverno.merge-kubevirt-manager-secrets/requestedAt: "{{ time_now_utc() }}"
+        data:
+          oidcinitcfg.yaml: |
+            {{ oidcKubevirtManager }}
+          passwordprofileinitcfg.yaml: |
+            {{ passwordprofileinitcfg }}
+          userinitcfg.yaml: |
+            {{ userinitcfg }}
+
+---
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: add-sylva-ca
+  annotations:
+    kustomize.toolkit.fluxcd.io/force: Enabled
+spec:
+  rules:
+  - name: add-sylva-ca
+    match:
+      resources:
+        kinds:
+        - Deployment
+        names:
+        - kubevirt-manager-controller-pod
+        namespaces:
+        - kubevirt-manager
+    mutate:
+      patchStrategicMerge:
+        metadata:
+          labels:
+            name: "{{request.object.metadata.name}}"
+        spec:
+          template:
+            spec:
+              containers:
+                - name: kubevirt-manager-controller-pod
+                  volumeMounts:
+                    - name: keycloak-ca
+                      mountPath: /etc/ssl/certs
+              volumes:
+                - name: keycloak-ca
+                  secret:
+                    secretName: sylva-ca.crt
