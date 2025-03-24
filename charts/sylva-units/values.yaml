@@ -2876,17 +2876,12 @@ units:
     enabled_conditions:
     - '{{ tuple . "kyverno" | include "unit-enabled" }}'
     - '{{ .Values.cluster.capi_providers.infra_provider | eq "capm3" }}'
-    - '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" }}'
     depends_on:
       kyverno: true
     repo: sylva-core
     kustomization_spec:
       path: ./kustomize-units/kyverno-policies/cluster-node-provider-id-blacklist
       wait: true
-      postBuild:
-        substitute:
-          # We have to set FailurePolicy to Ignore for rke2, otherwise we would hit https://gitlab.com/sylva-projects/sylva-core/-/issues/794
-          FAILURE_POLICY: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpk" | ternary "Fail" "Ignore" }}'
 
   rke2-helmchart-prevent-uninstall:
     info:
