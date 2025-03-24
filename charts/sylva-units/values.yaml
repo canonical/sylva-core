@@ -2861,6 +2861,7 @@ units:
     - '{{ tuple . "kyverno" | include "unit-enabled" }}'
     depends_on:
       kyverno: true
+      capi: '{{ not .Values._internal.state.is_upgrade }}'
     repo: sylva-core
     kustomization_spec:
       path: ./kustomize-units/kyverno-policies/cluster-node-deletion-timeout-fix
