@@ -36,3 +36,12 @@ spec:
       - ${CLUSTER_VIRTUAL_IP}
       ports:
       - 53
+  - action: Allow
+    protocol: UDP
+    source:
+      selector: has(kubernetes.io/hostname)
+    destination:
+      nets:
+      - ${CLUSTER_VIRTUAL_IP}
+      ports:
+      - 53
