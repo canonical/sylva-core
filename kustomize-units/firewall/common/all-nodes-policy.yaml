@@ -32,6 +32,8 @@ spec:
       - 9099 # calico health checks
       - 9796 # prometheus node exporter
       - 9808 # liveness probe
+      - 7472 # metallb
+      - 7946 # metallb
   - action: Allow
     protocol: UDP
     source:
@@ -39,6 +41,7 @@ spec:
     destination:
       ports:
       - 4789 # calico VXLAN
+      - 7946 # metallb
   - action: Allow
     protocol: UDP
     source:
