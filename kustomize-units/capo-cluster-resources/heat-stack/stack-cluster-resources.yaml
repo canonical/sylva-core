@@ -120,6 +120,10 @@ spec:
           condition: vip_requested
           properties:
             network: { get_param: network }
+            name:
+              list_join: ['-', [ {get_param: OS::stack_name}, 'sylva-virtual-ip-port-DO-NOT-DELETE-even-if-DOWN']]
+            tags:
+              - sylva-vip-port
         adopted-port:
           type: OS::Neutron::Port
           condition: adopt_port
