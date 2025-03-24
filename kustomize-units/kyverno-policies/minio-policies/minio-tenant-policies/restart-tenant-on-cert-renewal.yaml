@@ -10,6 +10,8 @@ metadata:
       to trigger pod rollouts when certificates are renewed.
 spec:
   mutateExistingOnPolicyUpdate: true
+  webhookConfiguration:
+    failurePolicy: Ignore
   rules:
   - name: ${TENANT_NS}-tenant-restart
     match:
@@ -21,14 +23,13 @@ spec:
           - ${TENANT_NS}-internal-tls
     mutate:
       targets:
-        - apiVersion: apps/v1
-          kind: StatefulSet
-          name: ${TENANT_NAME}-pool-0
+        - apiVersion: minio.min.io/v2
+          kind: Tenant
+          name: ${TENANT_NAME}
           namespace: ${TENANT_NS}
       patchStrategicMerge:
         spec:
-          template:
-            metadata:
-              annotations:
-                ${TENANT_NS}/triggerrestart: "{{request.object.metadata.resourceVersion}}"
+          poolsMetadata:
+            annotations:
+              ${TENANT_NS}/triggerrestart: "{{request.object.metadata.resourceVersion}}"
 
