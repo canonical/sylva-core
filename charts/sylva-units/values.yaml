@@ -2318,6 +2318,15 @@ units:
                 resources:
                 - globalnetworksets
                 verbs: ["create", "update", "patch", "delete", "get", "list", "watch"]
+              - apiGroups: ["infrastructure.cluster.x-k8s.io"]
+                resources:
+                - openstackmachines
+                - metal3machines
+                verbs: ["get", "list", "watch"]
+              - apiGroups: ["ipam.metal3.io"]
+                resources:
+                - ippools
+                verbs: ["get", "list", "watch"]
               - apiGroups: ["metal3.io"]
                 resources:
                   - baremetalhosts
