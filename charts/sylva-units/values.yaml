@@ -2881,6 +2881,7 @@ units:
     enabled_conditions:
     - '{{ tuple . "kyverno" | include "unit-enabled" }}'
     - '{{ .Values.cluster.capi_providers.infra_provider | eq "capm3" }}'
+    - '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" }}'
     depends_on:
       kyverno: true
     repo: sylva-core
@@ -5638,7 +5639,8 @@ units:
     helm_chart_versions:
       1.28.0: '{{ include "k8s-version-match" (tuple ">=1.28.0,<1.29.0" .Values._internal.k8s_version) }}'
       1.29.0: '{{ include "k8s-version-match" (tuple ">=1.29.0,<1.30.0" .Values._internal.k8s_version) }}'
-      v1.30.0: '{{ include "k8s-version-match" (tuple ">=1.30.0" .Values._internal.k8s_version) }}'
+      v1.30.0: '{{ include "k8s-version-match" (tuple ">=1.30.0,<1.31.0" .Values._internal.k8s_version) }}'
+      1.31.0: '{{ include "k8s-version-match" (tuple ">=1.31.0" .Values._internal.k8s_version) }}'
     helmrelease_spec:
       chart:
         spec:
@@ -8101,11 +8103,11 @@ os_images_oci_registries:
     cosign_publickey: '{{ .Values.security.os_images.cosign_public_key }}'
     enabled: true  # can be set to false to disable all the images under sylva_diskimagebuilder_images that have 'os_images_oci_registry: sylva'
 
-k8s_version_short: "1.30"
+k8s_version_short: "1.31"
 
 # Renovate Bot needs additional information to detect sylva diskimage-builder version
 # renovate: depName=sylva-projects/sylva-elements/diskimage-builder
-sylva_diskimagebuilder_version: 0.4.5
+sylva_diskimagebuilder_version: 0.4.6
 
 # 'sylva_diskimagebuilder_images' determines which images will be available for CAPO and CAPM3
 # via 'os_image_selector' or 'image_keys'
@@ -8114,11 +8116,15 @@ sylva_diskimagebuilder_version: 0.4.5
 # or a mirror repo if os_images_oci_registries.sylva is overridden
 #
 sylva_diskimagebuilder_images:
+  ubuntu-noble-hardened-rke2-1-31-5:
+    os_images_oci_registry: sylva
   ubuntu-noble-hardened-rke2-1-30-9:
     os_images_oci_registry: sylva
   ubuntu-noble-hardened-rke2-1-29-13:
     os_images_oci_registry: sylva
   ubuntu-noble-hardened-rke2-1-28-15:
+    os_images_oci_registry: sylva
+  ubuntu-noble-plain-rke2-1-31-5:
     os_images_oci_registry: sylva
   ubuntu-noble-plain-rke2-1-30-9:
     os_images_oci_registry: sylva
@@ -8126,11 +8132,15 @@ sylva_diskimagebuilder_images:
     os_images_oci_registry: sylva
   ubuntu-noble-plain-rke2-1-28-15:
     os_images_oci_registry: sylva
+  ubuntu-noble-plain-kubeadm-1-31-5:
+    os_images_oci_registry: sylva
   ubuntu-noble-plain-kubeadm-1-30-9:
     os_images_oci_registry: sylva
   ubuntu-noble-plain-kubeadm-1-29-13:
     os_images_oci_registry: sylva
   ubuntu-noble-plain-kubeadm-1-28-15:
+    os_images_oci_registry: sylva
+  opensuse-15-6-plain-rke2-1-31-5:
     os_images_oci_registry: sylva
   opensuse-15-6-plain-rke2-1-30-9:
     os_images_oci_registry: sylva
@@ -8138,11 +8148,15 @@ sylva_diskimagebuilder_images:
     os_images_oci_registry: sylva
   opensuse-15-6-plain-rke2-1-28-15:
     os_images_oci_registry: sylva
+  opensuse-15-6-hardened-rke2-1-31-5:
+    os_images_oci_registry: sylva
   opensuse-15-6-hardened-rke2-1-30-9:
     os_images_oci_registry: sylva
   opensuse-15-6-hardened-rke2-1-29-13:
     os_images_oci_registry: sylva
   opensuse-15-6-hardened-rke2-1-28-15:
+    os_images_oci_registry: sylva
+  opensuse-15-6-plain-kubeadm-1-31-5:
     os_images_oci_registry: sylva
   opensuse-15-6-plain-kubeadm-1-30-9:
     os_images_oci_registry: sylva
@@ -8602,6 +8616,7 @@ _internal:
     1.28: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" | ternary "v1.28.15+rke2r1" "v1.28.15" }}'
     1.29: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" | ternary "v1.29.13+rke2r1" "v1.29.13" }}'
     "1.30": '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" | ternary "v1.30.9+rke2r1" "v1.30.9" }}'
+    1.31: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" | ternary "v1.31.5+rke2r1" "v1.31.5" }}'
 
   # total number of nodes in this cluster
   node_count:
