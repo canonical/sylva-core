@@ -1551,6 +1551,9 @@ properties:
                 buffer:  # -------------------------------
                   type: object
 
+  metallb:
+    type: object
+
   calico_helm_values:
     type: object
 

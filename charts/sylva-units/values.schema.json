@@ -9671,6 +9671,9 @@
         }
       }
     },
+    "metallb": {
+      "type": "object"
+    },
     "calico_helm_values": {
       "type": "object"
     },
