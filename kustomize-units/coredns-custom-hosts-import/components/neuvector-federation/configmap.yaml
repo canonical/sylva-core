@@ -10,7 +10,6 @@ data:
   hosts: |
     ${CLUSTER_NAME}.hosts ${CLUSTER_NAME}.${CLUSTER_DOMAIN} {
         hosts {
-            ${CLUSTER_VIRTUAL_IP} ${MGMT_NEUVECTOR_FEDERATION_MASTER_HOSTNAME}
             ${CLUSTER_VIRTUAL_IP} ${NEUVECTOR_FEDERATION_MANAGED_HOSTNAME}
             fallthrough
         }
