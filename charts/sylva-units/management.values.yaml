@@ -164,6 +164,8 @@ units:
             kubernetesResources: false
             kubernetesStorage: false
             kubernetesSystem: false
+            network: false
+            nodeExporterAlerting: false
         grafana:
           envFromSecret: grafana-oidc
           sidecar:
