@@ -7792,6 +7792,9 @@ cluster:
 
   capm3:
     machine_image_checksum_type: sha256
+    networks:
+      primary:
+        interface: ""
     image_provisioning_host: '{{ .Values.display_external_ip }}'
     default_network_settings:
       mtu: >-
@@ -8395,7 +8398,17 @@ calico_helm_values:
   installation:
     calicoNetwork:
       bgp: Disabled
-      mtu: '{{ tuple .Values.cluster.capm3.default_network_settings.mtu (and (.Values.cluster.capi_providers.infra_provider | eq "capm3") .Values.cluster.capm3.default_network_settings.mtu) | include "set-only-if" }}'
+      mtu: |
+        {{- $control_plane_primary_interface := .Values.cluster | dig "control_plane" "capm3" "networks" "primary" "interface" .Values.cluster.capm3.networks.primary.interface -}}
+        {{- if not (eq $control_plane_primary_interface "") -}}
+        {{ tuple (dict "Values" (dict "capm3" .Values.cluster.capm3))
+                 $control_plane_primary_interface
+                 (.Values.cluster.control_plane.network_interfaces | dig $control_plane_primary_interface dict)
+                 .Values.cluster.capm3.networks
+                 .Values.cluster.control_plane.network_interfaces | include "calculate-mtu" }}
+        {{- else -}}
+          {{ .Values.cluster.capm3.default_network_settings.mtu }}
+        {{- end -}}
       nodeAddressAutodetectionV4:
         '{{
         tuple
