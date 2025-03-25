@@ -5016,6 +5016,9 @@ units:
           version: 1.4.0
       values:
         cert_manager: true
+    kustomization_spec:
+      _components:
+      - ../kyverno-policies/sriov-network-operator
 
   sriov:
     info:
