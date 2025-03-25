@@ -58,7 +58,7 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
     spec:
       url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-capi-cluster.git
       ref:
-        tag: 0.5.6
+        branch: test_set_command
 
   sync-openstack-images:
     kind: GitRepository
@@ -3195,6 +3195,17 @@ units:
 
               echo "--- waiting for all machines to have a nodeRef (reflects the fact that the Node has joined the cluster)..."
               kubectl wait Machine -l cluster.x-k8s.io/cluster-name={{ .Values.cluster.name }} --for=jsonpath='{.status.nodeRef.name}' --timeout $WAIT_TIMEOUT
+
+              kubectl get secret {{ .Values.cluster.name }}-kubeconfig -o jsonpath='{.data.value}' | base64 -d > /tmp/management-cluster-kubeconfig
+              nodes=$(kubectl get nodes -A --kubeconfig /tmp/management-cluster-kubeconfig -o jsonpath='{.items[*].metadata.name}')
+              echo $nodes
+
+              echo "Checking post command annotations for all nodes..."
+              while ! kubectl get nodes -A --kubeconfig /tmp/management-cluster-kubeconfig -o json | jq -e '[.items[] | select(.metadata.annotations | has("post-commands-executed") | not)] | length == 0' >/dev/null; do
+                echo "..."
+                sleep 5
+              done
+              echo "All Post commands executed successfully"
 
   heat-operator:
     info:
