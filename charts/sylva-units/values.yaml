@@ -2963,7 +2963,7 @@ units:
         | include "preserve-type"
         }}
     helmrelease_spec:
-      # Setting drift detection mode to warn for cluster HR till https://gitlab.com/sylva-projects/sylva-core/-/issues/1812 is solved.
+      # Setting drift detection mode to disabled for cluster HR till https://gitlab.com/sylva-projects/sylva-core/-/issues/1812 is solved.
       driftDetection:
         mode: disabled
 
