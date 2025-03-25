@@ -4683,6 +4683,7 @@ units:
     depends_on:
       namespace-defs: true
       sriov-crd: true
+      kyverno: true
     helm_repo_url: https://suse-edge.github.io/charts/
     helmrelease_spec:
       releaseName: sriov
@@ -4693,6 +4694,9 @@ units:
           version: 1.3.0
       values:
         cert_manager: true
+    kustomization_spec:
+      _components:
+      - ../kyverno-policies/sriov-network-operator
 
   sriov:
     info:
