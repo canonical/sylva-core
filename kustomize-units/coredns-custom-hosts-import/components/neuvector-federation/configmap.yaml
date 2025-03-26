@@ -8,7 +8,7 @@ metadata:
     sylva.org/coredns-custom-hosts-import: "true"
 data:
   hosts: |
-    ${CLUSTER_NAME}.hosts ${CLUSTER_NAME}.${CLUSTER_DOMAIN} {
+    ${CLUSTER_NAME}.hosts ${CLUSTER_DOMAIN} ${CLUSTER_NAME}.${CLUSTER_DOMAIN} {
         hosts {
             ${CLUSTER_VIRTUAL_IP} ${NEUVECTOR_FEDERATION_MANAGED_HOSTNAME}
             fallthrough

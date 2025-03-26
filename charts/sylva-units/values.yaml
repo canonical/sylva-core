@@ -7683,7 +7683,6 @@ units:
           CLUSTER_VIRTUAL_IP: '{{ .Values.cluster_virtual_ip }}'
           CLUSTER_OKD_BASE_DOMAIN: '{{ .Values.cluster.openshift.baseDomain }}'
           CLUSTER_DOMAIN: '{{ .Values.cluster_domain }}'
-          MGMT_NEUVECTOR_FEDERATION_MASTER_HOSTNAME: '{{ .Values._internal.mgmt_neuvector_federation_master }}'
           NEUVECTOR_FEDERATION_MANAGED_HOSTNAME: '{{ .Values.external_hostnames.neuvector_federation_managed }}'
 
 
