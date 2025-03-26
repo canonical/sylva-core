@@ -30,8 +30,6 @@ spec:
         volumeMounts:
         - mountPath: /opt/
           name: script-volume
-      imagePullSecrets:
-      - name: registry-secret
       restartPolicy: Never
       serviceAccountName: ${JOB_NAME}-sa
       securityContext:
