@@ -1,0 +1,96 @@
+---
+suite: Circular Dependencies test
+set:
+  units:
+    foo:
+      info:
+        description: a foo unit
+      enabled: true
+      unit_templates:
+        - dummy
+    bar:
+      info:
+        description: a bar unit
+      enabled: true
+      depends_on:
+        foo: true
+      unit_templates:
+        - dummy
+    baz:
+      info:
+        description: a baz unit
+      enabled: true
+      depends_on:
+        bar: true
+      unit_templates:
+        - dummy
+    qux:
+      info:
+        description: a qux unit
+      enabled: true
+      unit_templates:
+        - dummy
+templates:
+  - units.yaml
+tests:
+  - it: "Reference test: foo, bar and baz kustomizations; bar dependsOn foo, baz dependsOn bar"  # foo <- bar <- baz
+    asserts:
+      - containsDocument:
+          apiVersion: kustomize.toolkit.fluxcd.io/v1
+          kind: Kustomization
+          name: foo
+          any: true
+      - containsDocument:
+          apiVersion: kustomize.toolkit.fluxcd.io/v1
+          kind: Kustomization
+          name: bar
+          any: true
+      - containsDocument:
+          apiVersion: kustomize.toolkit.fluxcd.io/v1
+          kind: Kustomization
+          name: baz
+          any: true
+      - contains:
+          path: spec.dependsOn
+          content:
+            name: foo
+        documentSelector:
+          path: metadata.name
+          value: bar
+      - contains:
+          path: spec.dependsOn
+          content:
+            name: bar
+        documentSelector:
+          path: metadata.name
+          value: baz
+  - it: Foo dependsOn Bar  # bar <- foo <- bar <- baz
+    set:
+      units:
+        foo:
+          depends_on:
+            bar: true
+    asserts:
+      - failedTemplate:
+          errorMessage: "bar -> foo -> bar"
+  - it: Foo dependsOn Baz  # baz <- foo <- bar <- baz
+    set:
+      units:
+        foo:
+          depends_on:
+            baz: true
+    asserts:
+      - failedTemplate:
+          errorMessage: "bar -> foo -> baz -> bar"
+  - it: Qux provides Bar and dependsOn Baz  # foo <- bar <- baz
+    set:                                    #         ^ qux -> baz
+      units:
+        bar:
+          abstract: true
+        qux:
+          provides: bar
+          depends_on:
+            baz: true
+    asserts:
+      - failedTemplate:
+          errorMessage: "baz -> qux -> baz"

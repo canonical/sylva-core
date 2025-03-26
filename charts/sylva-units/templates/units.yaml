@@ -6,6 +6,12 @@ Interpret templating statements in values.
 {{- $envAll := set . "Values" (include "interpret-values-gotpl" . | fromJson) -}}
 
 {{/*
+
+Compute abstract units and associated providers
+
+*/}}
+{{- $abstract_unit_providers := include "abstract-unit-providers" $envAll | fromJson -}}
+{{/*
 compute .Values._internal.cluster_machines_ready_unit_deps (which is used by unit_templates.base-deps)
 
 this is done here because doing it in values.yaml ._internal does not work, because
@@ -14,7 +20,7 @@ resulting in interpreting 'depends_on.cluster-machines-ready' which itself relie
 causing a variable interpretation loop
 */}}
 {{- $_ := set .Values._internal "cluster_machines_ready_unit_deps"
-                                (index (include "all-unit-dependencies" (tuple . "cluster-machines-ready" (list "cluster-machines-ready") dict)
+                                (index (include "all-unit-dependencies" (tuple . "cluster-machines-ready" (list "cluster-machines-ready") $abstract_unit_providers dict)
                                         | fromJson) "result")
 -}}
 {{/*
@@ -31,10 +37,11 @@ Process all units
     {{- fail (printf "unit %s should not have 'repo' and 'helmrelease_spec.chart.spec.version' defined (when 'repo' is set the version used is taken from 'source_templates.<repo>' GitRepository object" $unit_name) -}}
   {{- end -}}
 
-  {{- if include "unit-enabled" (tuple $envAll $unit_name) -}}
+  {{- if and (include "unit-enabled" (tuple $envAll $unit_name))
+             ($unit_def | dig "abstract" false | not) -}}
 
     {{/* check if any circular dependency for this unit (all-unit-dependencies will fail if a circular dependency is detected) */}}
-    {{- $_ := tuple $envAll $unit_name list $all_dependencies_cache | include "all-unit-dependencies" -}}
+    {{- $_ := tuple $envAll $unit_name list $abstract_unit_providers $all_dependencies_cache | include "all-unit-dependencies" -}}
 
     {{/* inherit settings from any template specified in unit.<this unit>.unit_templates */}}
     {{- $unit_def := include "unit-def" (tuple $envAll $unit_name) | fromJson -}}
@@ -187,7 +194,7 @@ spec: {{ $helm_repo_spec | toYaml | nindent 2 }}
         {{- end }}
         {{- if not $unit_def.helmrelease_spec.chart.spec.version -}}
           {{- $_ := set $unit_def.helmrelease_spec.chart.spec "version" $helm_chart_versions_selection -}}
-        {{- end }}             
+        {{- end }}
       {{- end }}
 
       {{/* produce the HelmRelease specification, merging the different sources we have */}}
@@ -253,7 +260,7 @@ stringData:
       {{- range $dep_unit_name, $is_depend_on := $unit_def.depends_on -}}
         {{- if tuple $envAll $is_depend_on (printf "%s, depends on %s" $unit_name $dep_unit_name) | include "interpret-for-test" -}}
           {{- if $dep_unit_name | contains "/" -}}{{/* dependency expressed as ns/kustomization, using it as-is */}}
-            {{- $dependsOnList = append $dependsOnList (dict "namespace" (regexReplaceAll "/.*" $dep_unit_name "") "name" (regexReplaceAll ".*/" $dep_unit_name "")) -}}  
+            {{- $dependsOnList = append $dependsOnList (dict "namespace" (regexReplaceAll "/.*" $dep_unit_name "") "name" (regexReplaceAll ".*/" $dep_unit_name "")) -}}
           {{- else -}}{{/* dependency expressed as a unit name, let's do smarter things */}}
             {{- if not (hasKey $envAll.Values.units $dep_unit_name) -}}
               {{- fail (printf "unit '%s' is declared with a dependency on non-existing unit '%s'" $unit_name $dep_unit_name) -}}
@@ -261,7 +268,7 @@ stringData:
               {{- fail (printf "unit '%s' is declared with a dependency on disabled unit '%s'" $unit_name $dep_unit_name) -}}
             {{- end -}}
             {{- $dependsOnList = append $dependsOnList (
-                    dict "name" (include "kustomization-name" (tuple $envAll $dep_unit_name))
+                    dict "name" (include "kustomization-name" (tuple $envAll ($abstract_unit_providers | dig $dep_unit_name $dep_unit_name )))
                 )
             -}}
           {{- end -}}
@@ -320,7 +327,7 @@ stringData:
       {{- end -}}
     {{- end -}}
 
-    {{/* 
+    {{/*
     if healthChecks is specified on kustomization_spec while helmrelease_spec is defined,
     then we inject a reference to the HelmRelease in the healthChecks, to ensure
     that the HelmRelease object will not be omitted
