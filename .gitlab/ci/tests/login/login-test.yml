@@ -29,6 +29,7 @@
     - export neuvector_url=$(kubectl --kubeconfig management-cluster-kubeconfig get ingress -n neuvector neuvector-webui-ingress  -o jsonpath='{ .spec.tls[].hosts[] }')
     - export gitea_url=$(kubectl --kubeconfig management-cluster-kubeconfig get ingress -n gitea gitea -o jsonpath='{ .spec.tls[].hosts[] }')
     - export thanos_url=$(kubectl --kubeconfig management-cluster-kubeconfig get ingress -n thanos thanos-query-frontend -o jsonpath='{ .spec.tls[].hosts[] }')
+    - export kubevirt_url=$(kubectl --kubeconfig management-cluster-kubeconfig get ingress -n kubevirt-manager kubevirt-manager -o jsonpath='{ .spec.tls[].hosts[] }')
     - echo -e "\e[0Ksection_end:`date +%s`:gitlab_ci_get_ui_ingresses_url\r\e[0K"
   get_sso_login_and_password:
     - echo -e "\e[1m\e[0Ksection_start:`date +%s`:gitlab_ci_get_sso_login_and_password[collapsed=true]\r\e[0KGet sso login and password\e[0m"
