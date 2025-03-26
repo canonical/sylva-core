@@ -7819,9 +7819,9 @@ cluster:
 
   ### !!! The Values.cluster.metallb should not be user provided. Use Values.metallb instead !!!
   metallb: >-
-    {{- $resources := dict }}
-    {{- tuple $resources .Values.metallb .Values._internal.metallb | include "merge-append" }}
-    {{ $resources | include "preserve-type" }}
+    {{- $cluster_metallb_resources := dict }}
+    {{- tuple $cluster_metallb_resources .Values.metallb .Values._internal.metallb | include "merge-append" }}
+    {{ $cluster_metallb_resources | include "preserve-type" }}
 
 cluster_machines_ready:
   wait_timeout: 600s
@@ -8545,7 +8545,7 @@ _internal:
   default_replicas: '{{ tuple . .Values._internal.ha_cluster.is_ha 3 1 | include "interpret-ternary" | int | include "preserve-type" }}'
 
   # value of "node-role.kubernetes.io/control-plane" node label that differs between kubeadm and rke2
-  cp_node_label_value: '{{ (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpr") | ternary "true" "" }}'
+  cp_node_label_value: '{{ ((tuple . .Values.cluster.capi_providers.bootstrap_provider | include "interpret-as-string") | eq "cabpr") | ternary "true" "" }}'
 
   monitoring:
     enabled: '{{ tuple . "monitoring" | include "unit-enabled" | include "as-bool" }}'
