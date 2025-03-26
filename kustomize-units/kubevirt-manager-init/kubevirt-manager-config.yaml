@@ -2,46 +2,22 @@
 apiVersion: external-secrets.io/v1beta1
 kind: ExternalSecret
 metadata:
-   name: neuvector-usercfg
-   namespace: neuvector
+   name: kubevirt-admin
+   namespace: kubevirt-manager
 spec:
    secretStoreRef:
       name: vault
       kind: ClusterSecretStore
+   refreshInterval: 0s  # `vault-config-operator` can create new versions (>1) of the Vault secret/rancher value and ESO would by default sync that in Rancher's bootstrap secret, but Rancher app itself would only be using the initial version 1; this stops new version sync
    target:
       creationPolicy: Orphan
-      name: neuvector-usercfg
+      name: kubevirt-admin
       template:
-         type: Opaque
-         data:  # see https://open-docs.neuvector.com/deploying/production/configmap
-            passwordprofileinitcfg: |
-              always_reload: true
-              active_profile_name: default
-              pwd_profiles:
-              - name: default
-                comment: default from Secret
-                min_len: 12
-                min_uppercase_count: 1
-                min_lowercase_count: 1
-                min_digit_count: 1
-                min_special_count: 0
-                enable_block_after_failed_login: false
-                block_after_failed_login_count: 0
-                block_minutes: 0
-                enable_password_expiration: true
-                password_expire_after_days: 30
-                enable_password_history: false
-                password_keep_history_count: 0
-                session_timeout: 600  # Optional. value between 30 -- 3600  default 300
-            userinitcfg: |
-              always_reload: true
-              users:
-              - Fullname: admin
-                Role: admin
-                username: admin
-                Password: "{{ .password | toString }}"
+         data:
+            username: kubevirt-admin
+            password: '{{ .password }}'
    data:
    - secretKey: password
      remoteRef:
-        key: secret/data/neuvector
+        key: secret/data/kubevirt-admin-user
         property: password

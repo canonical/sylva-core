@@ -21,7 +21,7 @@ DOMAIN=$1
 # ORGANISATIONAL_UNIT=DEV   # CHANGE_ME
 # COUNTRY=FR                # CHANGE_ME
 
-SERVICES="rancher keycloak vault flux neuvector harbor gitea"
+SERVICES="rancher keycloak vault flux neuvector harbor gitea kubevirt-manager"
 
 for BASE_NAME in $SERVICES; do
   echo =========

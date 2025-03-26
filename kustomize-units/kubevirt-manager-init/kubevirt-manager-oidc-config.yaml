@@ -1,33 +1,35 @@
----
 apiVersion: external-secrets.io/v1beta1
 kind: ExternalSecret
 metadata:
-   name: neuvector-oidc-init
-   namespace: neuvector
+  name: kubevirt-manager-oidc-init
+  namespace: kubevirt-manager
 spec:
-   secretStoreRef:
-      name: eso-store-k8s-keycloak
-      kind: ClusterSecretStore
-   target:
-      creationPolicy: Orphan
-      name: neuvector-oidc-init
-      template:
-         type: Opaque
-         data:  # see https://open-docs.neuvector.com/deploying/production/configmap
-            oidcinitcfg: |
-              Enable: true
-              Client_ID: neuvector
-              Client_Secret: "{{ .clientSecret | toString }}"
-              Issuer: https://${KEYCLOAK_DNS}/realms/sylva
-              Default_Role: null
-              group_claim: roles
-              group_mapped_roles:
-                - group: infra-admins
-                  global_role: admin
-                - group: neuvector-readers
-                  global_role: reader
-   data:
-   - secretKey: clientSecret
-     remoteRef:
-        key: keycloak-client-secret-neuvector-client
+  refreshInterval: 1h
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: eso-store-k8s-keycloak
+  target:
+    name: kubevirt-manager-oidc-init # name of the k8s Secret to be created in the same namespace as ExternalSecret
+    template:
+      engineVersion: v2
+      data:
+        CONFIG_OVERWRITE_JSON: |
+          {
+            "auth_mode": "oidc_auth",
+            "oidc_name": "keycloak",
+            "oidc_endpoint": "https://${KEYCLOAK_DNS}/realms/sylva",
+            "oidc_groups_claim": "groups",
+            "oidc_admin_group": "infra-admins",
+            "oidc_client_id": "harbor",
+            "oidc_client_secret": "{{ .clientSecret }}",
+            "oidc_scope": "openid,email,profile,offline_access",
+            "oidc_verify_cert": "true",
+            "oidc_auto_onboard": "true",
+            "oidc_user_claim": "preferred_username",
+            "project_creation_restriction": "adminonly"
+          }
+  data:
+    - secretKey: clientSecret
+      remoteRef:
+        key: keycloak-client-secret-harbor-client  # this secret is a byproduct of the harbor-client KeycloakClient resource
         property: CLIENT_SECRET
