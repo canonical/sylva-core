@@ -7490,7 +7490,6 @@
   },
   "additionalProperties": false,
   "required": [
-    "registry_secret",
     "git_repo_spec_default",
     "source_templates",
     "helm_repo_spec_default",
@@ -7513,22 +7512,6 @@
     },
     "nameOverride": {
       "type": "string"
-    },
-    "registry_secret": {
-      "type": "object",
-      "patternProperties": {
-        "^[a-z0-9][a-z0-9.-]*[a-z0-9]$": {
-          "anyOf": [
-            {
-              "type": "string",
-              "pattern": "{{ .* }}"
-            },
-            {
-              "$ref": "#/$defs/username-password"
-            }
-          ]
-        }
-      }
     },
     "git_repo_spec_default": {
       "type": "object"
