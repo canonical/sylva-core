@@ -2387,7 +2387,6 @@ units:
         - '{{ tuple "components/restart-kyverno-on-minio-tenant-crd" (tuple . "minio-operator" | include "unit-enabled") | include "set-only-if" }}'
         - ../exclude-kube-system  # needs to be last (needed for components above that use sylva.org/kyverno-exclude-kube-system annotation)
         - '{{ tuple "components/coredns-custom-hosts-import" (tuple . "cabpoa" | include "unit-enabled") | include "set-only-if" }}'
-        - '{{ tuple "components/kubevirt-manager-policies" (tuple . "kubevirt-manager" | include "unit-enabled") | include "set-only-if" }}'
 
   kyverno-policies-ready:
     info:

@@ -53,10 +53,3 @@ spec:
           access.token.claim: "false"
           userinfo.token.claim: "true"
           claim.name: full_group_path
-      - name: client roles
-        protocol: openid-connect
-        protocolMapper: oidc-usermodel-client-role-mapper
-        config:
-          access.token.claim: "true"
-          claim.name: resource_access.$${client_id}.roles
-          multivalued: "true"
