@@ -1875,15 +1875,10 @@
                       },
                       "path": {
                         "type": "string",
-                        "if": {
-                          "pattern": ".*/disk.*by.*"
-                        },
-                        "then": {
-                          "pattern": "/var/longhorn/disks/disk_by-(uuid_|id_|partuuid_|sn_|path_(pci|virtio-pci)-).*"
-                        },
-                        "else": {
-                          "pattern": "/var/longhorn/disks/((sd|vd)[a-z]|nvme[0-9]n[0-9])"
-                        }
+                        "pattern": "/var/longhorn/disks/.*"
+                      },
+                      "forcePath": {
+                        "type": "boolean"
                       },
                       "storageReserved": {
                         "type": "integer",
@@ -1901,6 +1896,52 @@
                     },
                     "required": [
                       "path"
+                    ],
+                    "oneOf": [
+                      {
+                        "required": [
+                          "forcePath"
+                        ],
+                        "properties": {
+                          "forcePath": {
+                            "enum": [
+                              true
+                            ]
+                          }
+                        }
+                      },
+                      {
+                        "allOf": [
+                          {
+                            "properties": {
+                              "forcePath": {
+                                "enum": [
+                                  false,
+                                  null
+                                ]
+                              }
+                            }
+                          },
+                          {
+                            "anyOf": [
+                              {
+                                "properties": {
+                                  "path": {
+                                    "pattern": "/var/longhorn/disks/disk_by-(uuid_|id_|partuuid_|sn_|path_(pci|virtio-pci)-).*"
+                                  }
+                                }
+                              },
+                              {
+                                "properties": {
+                                  "path": {
+                                    "pattern": "/var/longhorn/disks/((sd|vd)[a-z]|nvme[0-9]n[0-9])"
+                                  }
+                                }
+                              }
+                            ]
+                          }
+                        ]
+                      }
                     ]
                   }
                 },
