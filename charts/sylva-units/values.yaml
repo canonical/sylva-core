@@ -5006,6 +5006,7 @@ units:
     depends_on:
       namespace-defs: true
       sriov-crd: true
+      kyverno: true
     helm_repo_url: https://suse-edge.github.io/charts/
     helmrelease_spec:
       releaseName: sriov
