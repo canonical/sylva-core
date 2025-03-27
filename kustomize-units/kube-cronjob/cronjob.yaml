@@ -35,8 +35,6 @@ spec:
             volumeMounts:
             - mountPath: /opt/
               name: script-volume
-          imagePullSecrets:
-          - name: registry-secret
           restartPolicy: Never
           serviceAccountName: ${CRONJOB_NAME}-sa
           securityContext:
