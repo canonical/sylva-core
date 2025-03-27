@@ -1,0 +1,39 @@
+apiVersion: kyverno.io/v1
+kind: Policy
+metadata:
+  name: sort-sriov-device-plugin-node-selectors
+  namespace: cattle-sriov-system
+  annotations:
+    kustomize.toolkit.fluxcd.io/force: Enabled
+    policies.kyverno.io/description: >-
+      This policy orders the nodeSelector list of sriov-device plugin statefulset
+      to avoid unseless rollout of these pods when sriov operator changes its order.
+spec:
+  background: false
+  rules:
+  - name: sort-node-selectors
+    match:
+      any:
+      - resources:
+          kinds:
+          - DaemonSet
+          names:
+          - sriov-device-plugin
+    preconditions:
+      any:
+      - key: "{{ request.object.spec.template.spec.affinity.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms || `[]` }}"
+        operator: NotEquals
+        value: []
+    context:
+    - name: nodeSelectorTerms
+      variable:
+        value: "{{ request.object.spec.template.spec.affinity.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms }}"
+    mutate:
+      patchStrategicMerge:
+        spec:
+          template:
+            spec:
+              affinity:
+                nodeAffinity:
+                  requiredDuringSchedulingIgnoredDuringExecution:
+                    nodeSelectorTerms: "{{ nodeSelectorTerms | sort_by(@, &to_string(@)) }}"
