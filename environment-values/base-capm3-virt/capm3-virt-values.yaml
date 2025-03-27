@@ -20,22 +20,23 @@ cluster:
     os_image_selector:
       os: ubuntu
       hardened: true
-    primary_pool_network: 192.168.100.0
-    primary_pool_gateway: 192.168.100.1
-    primary_pool_start: 192.168.100.20
-    primary_pool_end: 192.168.100.50
-    primary_pool_prefix: "24"
-    provisioning_pool_network: 192.168.10.0
-    provisioning_pool_gateway: 192.168.10.1
-    provisioning_pool_start: 192.168.10.20
-    provisioning_pool_end: 192.168.10.50
-    provisioning_pool_prefix: "24"
-
+    networks:
+      primary:
+        subnet: 192.168.100.0/24
+        gateway: 192.168.100.1
+        start: 192.168.100.20
+        end: 192.168.100.50
+        interface: bond0.100
+      provisioning:
+        subnet: 192.168.10.0/24
+        start: 192.168.10.20
+        end: 192.168.10.50
+        interface: bond0
     dns_servers:
     - 1.1.1.1
     - 8.8.8.8
 
-    network_interfaces:
+    default_network_settings:
       bondXmitHashPolicy: "layer2"
       bond_mode: "active-backup"
 
@@ -44,9 +45,6 @@ cluster:
       hostSelector:
         matchLabels:
           cluster-role: control-plane
-
-      provisioning_pool_interface: bond0
-      primary_pool_interface: bond0.100
 
     network_interfaces:
       bond0:
@@ -70,9 +68,6 @@ cluster:
         hostSelector:
           matchLabels:
             cluster-role: worker
-
-        provisioning_pool_interface: bond0
-        primary_pool_interface: bond0.100
 
       network_interfaces:
         bond0:
