@@ -15,11 +15,8 @@ Ensure that no_proxy covers everything that we need by adding the values defined
     {{/* we start building the list of no_proxy items, accumulating them in $no_proxy_list... */}}
     {{- $no_proxy_list := concat $envAll.Values.cluster.cluster_pods_cidrs $envAll.Values.cluster.cluster_services_cidrs -}}
     {{- if $envAll.Values.cluster.capm3 -}}
-      {{- if $envAll.Values.cluster.capm3.primary_pool_network -}}
-        {{- $no_proxy_list = append $no_proxy_list (printf "%s/%s" $envAll.Values.cluster.capm3.primary_pool_network $envAll.Values.cluster.capm3.primary_pool_prefix) -}}
-      {{- end -}}
-      {{- if $envAll.Values.cluster.capm3.provisioning_pool_network -}}
-        {{- $no_proxy_list = append $no_proxy_list (printf "%s/%s" $envAll.Values.cluster.capm3.provisioning_pool_network $envAll.Values.cluster.capm3.provisioning_pool_prefix) -}}
+      {{- range $envAll.Values.cluster.capm3.networks -}}
+        {{- $no_proxy_list = append $no_proxy_list .subnet -}}
       {{- end -}}
       {{- range $envAll.Values.cluster.baremetal_hosts -}}
         {{- $bmc_mgmt := urlParse (tuple $envAll .bmh_spec.bmc.address | include "interpret-as-string") -}}
