@@ -28,16 +28,16 @@ cluster:
     os_image_selector:
       os: ubuntu
       hardened: true
-    primary_pool_network: 10.188.36.128
-    primary_pool_gateway: 10.188.36.129
-    primary_pool_start: 10.188.36.148
-    primary_pool_end: 10.188.36.148
-    primary_pool_prefix: "26"
-    provisioning_pool_network: 10.199.39.192
-    provisioning_pool_gateway: 10.199.39.193
-    provisioning_pool_start: 10.199.39.219
-    provisioning_pool_end: 10.199.39.219
-    provisioning_pool_prefix: "27"
+    networks:
+      primary:
+        subnet: 10.188.36.128/26
+        gateway: 10.188.36.129
+        start: 10.188.36.148
+        end: 10.188.36.148
+      provisioning:
+        subnet: 10.199.39.192/27
+        start: 10.199.39.219
+        end: 10.199.39.219
     dns_servers:
     - 1.2.3.4
     - 8.8.8.8
@@ -48,9 +48,11 @@ cluster:
       hostSelector:  # criteria for matching labels on BareMetalHost objects defined by baremetal_hosts value
         matchLabels:
           cluster-role: control-plane
-
-      provisioning_pool_interface: bond0
-      primary_pool_interface: bond0.13
+      networks:
+        primary:
+          interface: bond0.13
+        provisioning:
+          interface: bond0
 
     network_interfaces:
       # for CAPM3 folowing are used and mapped to Metal3Data.spec.template.spec.networkData.links
@@ -72,9 +74,11 @@ cluster:
       hostSelector:
         matchLabels:
           cluster-role: worker
-
-      provisioning_pool_interface: bond0
-      primary_pool_interface: bond0.13
+      networks:
+        primary:
+          interface: bond0.13
+        provisioning:
+          interface: bond0
 
   machine_deployments:
     md0:
