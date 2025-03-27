@@ -6782,6 +6782,15 @@ units:
       sylvactl/readyMessage: "Thanos UI can be reached at https://{{ .Values.external_hostnames.thanos }} ({{ .Values.external_hostnames.thanos }} must resolve to {{ .Values.display_external_ip }})"
     repo: bitnami-thanos
     helmrelease_spec:
+      driftDetection:
+        ignore:
+          - target:
+            # Thanos-compactor replicas is managed by  Kyverno policies (kustomize-units/kyverno-policies/generic/components/thanos)
+            # Hence, drift detection should ignore it.
+              kind: Deployment
+              name: thanos-compactor
+            paths:
+            - /spec/replicas
       targetNamespace: thanos
       install:
         createNamespace: false
