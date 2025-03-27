@@ -7944,7 +7944,7 @@ flux:
       OOMWatch: true
       DetectDrift: true
       CorrectDrift: true
-    log_level: info
+    log_level: debug
   source:
     concurrent: 2
     log_level: info
