@@ -314,30 +314,48 @@ properties:
                       anyOf:
                         - $ref: "#/$defs/gotpl"
                         - type: object
+                          additionalProperties: false
+                          allOf:
+                            - if:
+                                properties:
+                                  provider:
+                                    const: cosign
+                              then:
+                                anyOf:
+                                  - required:
+                                    - provider
+                                    - secretRef
+                                  - required:
+                                    - provider
+                                    - matchOIDCIdentity
+                            - if:
+                                properties:
+                                  provider:
+                                    const: notary
+                              then:
+                                required:
+                                  - provider
+                                  - secretRef
                           properties:
                             provider:  # -------------------------------
+                              enum:
+                                - cosign
+                                - notary
+                            secretRef:
                               type: object
                               additionalProperties: false
-                              anyOf:
-                                - required:
-                                    - secretRef
-                                - required:
-                                    - matchOIDCIdentity
-                              patternProperties:
-                                secretRef:
-                                  type: object
-                                  properties:
-                                    name:
-                                      type: string
-                                matchOIDCIdentity:
-                                  type: array
-                                  items:
-                                    type: object
-                                    properties:
-                                      issuer:
-                                        type: string
-                                      subject:
-                                        type: string
+                              properties:
+                                name:
+                                  type: string
+                            matchOIDCIdentity:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  issuer:
+                                    type: string
+                                  subject:
+                                    type: string
                         - type: "null"
 
   helm_repo_spec_default:  # -------------------------------
