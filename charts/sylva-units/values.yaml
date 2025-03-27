@@ -1160,7 +1160,7 @@ units:
             port: "5432"
             username: "app"
             coreDatabase: "app"
-            existingSecret: "harbor-postgres-secrets"
+            existingSecret: "cnpg-harbor-app"
         notary:
           enabled: false
         trivy:
