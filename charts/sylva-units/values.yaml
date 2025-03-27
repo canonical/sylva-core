@@ -1163,8 +1163,8 @@ units:
           external:
             host: cnpg-harbor-rw.harbor.svc.cluster.local
             port: "5432"
-            username: "harbor"
-            coreDatabase: "harbor"
+            username: "postgres"
+            coreDatabase: "postgres"
             existingSecret: "harbor-postgres-secrets"
         notary:
           enabled: false
