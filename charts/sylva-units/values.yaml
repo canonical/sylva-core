@@ -4914,7 +4914,7 @@ units:
       chart:
         spec:
           chart: rke2-multus
-          version: v4.1.404
+          version: v4.2.000
       targetNamespace: kube-system
       install:
         createNamespace: false
