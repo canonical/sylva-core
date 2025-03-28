@@ -901,15 +901,15 @@ units:
       path: ./kustomize-units/kubevirt-manager
       wait: true
       targetNamespace: kubevirt-manager
-      healthChecks:
-        # - apiVersion: v1
-        #   kind: Secret
-        #   name: kubevirt-manager-init
-        #   namespace: kubevirt-manager
-        - apiVersion: v1
-          kind: Secret
-          name: kubevirt-manager-oidc-init
-          namespace: kubevirt-manager
+      # healthChecks:
+      #   - apiVersion: v1
+      #     kind: Secret
+      #     name: kubevirt-manager-init
+      #     namespace: kubevirt-manager
+      #   - apiVersion: v1
+      #     kind: Secret
+      #     name: kubevirt-manager-oidc-init
+      #     namespace: kubevirt-manager
       postBuild:
         substitute:
           KUBEVIRT_MANAGER_DNS: '{{ .Values.external_hostnames.kubevirt_manager }}'
