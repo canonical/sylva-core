@@ -29,4 +29,4 @@ spec:
           template:
             metadata:
               annotations:
-                ${TENANT_NS}/triggerrestart: "{{request.object.metadata.resourceVersion}}"
+                ${TENANT_NS}/triggerrestart: "{{ request.object.data || '' | to_string(@) | sha256(@) | truncate(@,`12`) }}"
