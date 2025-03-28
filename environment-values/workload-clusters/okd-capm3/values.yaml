@@ -19,11 +19,12 @@ cluster:
     machine_image_checksum_type: sha256
     machine_image_format: live-iso
     machine_image_url: https://abcde
-    primary_pool_network: 10.6.87.0
-    primary_pool_gateway: 10.6.87.254
-    primary_pool_start: 10.6.87.14
-    primary_pool_end: 10.6.87.16
-    primary_pool_prefix: "24"
+    networks:
+      primary:
+        subnet: 10.6.87.0/24
+        gateway: 10.6.87.254
+        start: 10.6.87.14
+        end: 10.6.87.16
     dns_servers:
     - 10.6.87.91
   openshift:
@@ -38,7 +39,9 @@ cluster:
       hostSelector:
         matchLabels:
           cluster-role: control-plane
-      primary_pool_interface: eno1np0
+      networks:
+        primary:
+          interface: eno1np0
 
     network_interfaces:
       # for CAPM3 folowing are used and mapped to Metal3Data.spec.template.spec.networkData.links
