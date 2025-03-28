@@ -4020,7 +4020,7 @@ units:
       ingress-nginx-cleanup: '{{ tuple . "ingress-nginx-cleanup" | include "unit-enabled" }}'
     helm_repo_url: https://rke2-charts.rancher.io
     helm_chart_versions:
-      4.12.003: '{{ include "k8s-version-match" (tuple ">=1.29.0" .Values._internal.k8s_version) }}'
+      4.12.100: '{{ include "k8s-version-match" (tuple ">=1.29.0" .Values._internal.k8s_version) }}'
     helmrelease_spec:
       releaseName: rke2-ingress-nginx
       targetNamespace: kube-system
