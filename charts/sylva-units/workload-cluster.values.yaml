@@ -417,6 +417,7 @@ units:
     repo: sylva-core
     depends_on:
       neuvector: false
+      coredns-custom-hosts-import: true
     unit_templates:
     - kustomization-deployed-on-mgmt-cluster
     kustomization_spec:
@@ -643,6 +644,13 @@ units:
     enabled: true
     unit_templates:
     - kustomization-deployed-on-mgmt-cluster
+    kustomization_spec:
+      targetNamespace: "cert-manager"
+      postBuild:
+        substituteFrom:
+          - kind: ConfigMap
+            name: capo-cluster-resources
+            optional: '{{ not (.Values.cluster.capi_providers.infra_provider | eq "capo") | include "as-bool" }}'
 
   backup-etcd:
     enabled: true

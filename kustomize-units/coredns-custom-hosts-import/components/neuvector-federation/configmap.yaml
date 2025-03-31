@@ -1,0 +1,18 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: coredns-custom-${CLUSTER_NAME}
+  namespace: "${NAMESPACE:-kube-system}"
+  labels:
+    sylva.org/coredns-custom-hosts-import: "true"
+data:
+  hosts: |
+    ${CLUSTER_NAME}.hosts ${CLUSTER_DOMAIN} ${CLUSTER_NAME}.${CLUSTER_DOMAIN} {
+        hosts {
+            ${allocated_ip} ${NEUVECTOR_FEDERATION_MANAGED_HOSTNAME}
+            fallthrough
+        }
+        whoami
+    }
+
