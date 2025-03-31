@@ -6,13 +6,6 @@
 nameOverride: ""
 fullnameOverride: ""
 
-# registry secrets
-registry_secret: {}
-  # when using gitlab, git creds can be used as registry creds
-  #registry.gitlab.com:
-  #  username: your_user_name
-  #  password: glpat-XXXXX
-
 git_repo_spec_default:
   interval: 60m0s
 
