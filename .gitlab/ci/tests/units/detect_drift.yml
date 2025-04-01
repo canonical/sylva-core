@@ -1,4 +1,4 @@
-detect-drift:
+.detect-drift:
   script:
     - kubectl logs -l app=helm-controller -n flux-system > helm_controller.log
     - ./tools/detect_drift.sh helm_controller.log
