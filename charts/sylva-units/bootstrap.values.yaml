@@ -344,6 +344,16 @@ units:
               value:
                 namespace: sylva-system
                 name: sylva-units
+            {{- $verify := lookup "helm.toolkit.fluxcd.io/v2" "HelmRelease" "sylva-system" "sylva-units" | dig "spec" "chart" "spec" "verify" "" -}}
+            {{- if $verify -}}
+             - op: replace
+               path: /spec/chart/spec/verify
+               values:
+                  {{ $verify }}
+             {{ else }}
+             - op: remove
+               path: /spec/chart/spec/verify
+             {{ end }}
     helmrelease_spec:
       releaseName: sylva-units
       chart:

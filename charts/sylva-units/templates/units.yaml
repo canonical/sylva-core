@@ -105,6 +105,9 @@ Process all units
       {{- if not ($unit_def.helmrelease_spec | dig "chart" "spec" "sourceRef" dict) -}}
         {{- $helmrelease_spec_overrides = dict "chart" (dict "spec" (dict "sourceRef" (dict "kind" "HelmRepository" "name" (printf "unit-%s" $unit_name)))) -}}
       {{- end }}
+      {{- if not ($unit_def.helmrelease_spec | dig "chart" "spec" "verify" dict) -}}
+        {{- $helmrelease_spec_overrides = mergeOverwrite $helmrelease_spec_overrides (dict "chart" (dict "spec" (dict "verify" (dict "provider" "cosign" "secretRef" (dict "name" "cosign-public-keys"))))) -}}
+      {{- end }}
 ---
 apiVersion: source.toolkit.fluxcd.io/v1
 kind: HelmRepository
