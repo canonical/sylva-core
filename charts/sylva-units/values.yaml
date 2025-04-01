@@ -2361,7 +2361,7 @@ units:
     - base-deps
     depends_on:
       kyverno: true
-      sylva-units-operator: '{{ tuple true (tuple . "sylva-units-operator" | include "unit-enabled") | include "set-only-if" }}'
+      sylva-units-operator: '{{ tuple . "sylva-units-operator" | include "unit-enabled" }}'
     repo: sylva-core
     kustomization_spec:
       path: ./kustomize-units/shared-workload-clusters-settings
@@ -3224,7 +3224,7 @@ units:
     - base-deps
     repo: sylva-core
     depends_on:
-      sylva-units-operator: '{{ tuple true (tuple . "sylva-units-operator" | include "unit-enabled") | include "set-only-if" }}'
+      sylva-units-operator: '{{ tuple . "sylva-units-operator" | include "unit-enabled" }}'
     kustomization_spec:
       path: ./kustomize-units/workload-cluster-operator
       wait: true
@@ -7605,7 +7605,7 @@ units:
     unit_templates:
     - base-deps
     depends_on:
-      sylva-units-operator: '{{ tuple true (tuple . "sylva-units-operator" | include "unit-enabled") | include "set-only-if" }}'
+      sylva-units-operator: '{{ tuple . "sylva-units-operator" | include "unit-enabled" }}'
     enabled_conditions:
       - '{{ tuple . "workload-cluster-operator" | include "unit-enabled" }}'
     helm_chart_artifact_name: workload-team-defs
