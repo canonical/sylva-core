@@ -7686,7 +7686,7 @@ units:
         #  {{- end }}  
         ## the toolkit environment needs a bit of tunning depending on the bootstrap provider used (i.e., cabpr or cabpk)
         toolkit:
-         env: >-
+         env: |-
          {{- if (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpr") }}
          - name: CONTAINERD_CONFIG
            value: /var/lib/rancher/rke2/agent/etc/containerd/config.toml
