@@ -197,4 +197,4 @@
 | **vault-oidc** | configures Vault to be used with OIDC | Kustomization |
 | **vault-secrets** | generates random secrets in vault, configure password policy, authentication backends, etc... | Kustomization |
 | **vsphere-cpi** | configures Vsphere Cloud controller manager | Helm chart |
-| **nvidia-gpu-operator** | installs NVIDIA GPU operator | stable | [Helm chart](https://nvidia.github.io/gpu-operator/) | v24.9.2 |
+|
