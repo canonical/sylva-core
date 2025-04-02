@@ -9,7 +9,7 @@ ALLOWED_EXCEPTIONS=(
 )
 
 # Extract HelmReleases that had drift corrections
-DRIFTED_HRS=$(awk '/correct cluster drift/ {match($0, /"HelmRelease":\{"name":"([^"]+)"/, arr); if(arr[1]!="") print arr[1]}' "$LOG_FILE" | sort | uniq)
+DRIFTED_HRS=$(grep "running 'correct cluster drift'" "$LOG_FILE" | sed -E 's/.*"HelmRelease":\{"name":"([^"]+)".*/\1/' | sort | uniq)
 
 # Track unexpected drifts
 UNEXPECTED_DRIFTS=()
