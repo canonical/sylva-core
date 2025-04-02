@@ -2,6 +2,7 @@ apiVersion: v1
 kind: Pod
 metadata:
   name: longhorn-performance-pod
+  namespace: longhorn-benchmarking 
 spec:
   containers:
     - name: longhorn-performance
