@@ -290,6 +290,7 @@ unit_templates:
         - '{{ tuple "components/kube-system" (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpr") | include "set-only-if" }}'
         - '{{ tuple "components/neuvector" (tuple . "neuvector" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/kunai" (tuple . "kunai" | include "unit-enabled") | include "set-only-if" }}'
+        - '{{ tuple "components/nvidia-gpu" (tuple . "nvidia-gpu-operator" | include "unit-enabled") | include "set-only-if" }}'
 
   flux-common:
     repo: sylva-core
@@ -7653,6 +7654,53 @@ units:
           CLUSTER_NAME: '{{ .Values.cluster.name }}'
           CLUSTER_VIRTUAL_IP: '{{ .Values.cluster_virtual_ip }}'
           CLUSTER_OKD_BASE_DOMAIN: '{{ .Values.cluster.openshift.baseDomain }}'
+
+  nvidia-gpu-operator:
+    info:
+      description: installs NVIDIA GPU operator, only when using cabpr or cabpk, not deployed on cabpoa
+      maturity: experimental
+    unit_templates:
+    - base-deps
+    enabled: false
+    enabled_conditions:
+      - '{{ if or (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpr") (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpk") }}'
+    depends_on:
+      namespace-defs: true
+    helm_repo_url: https://nvidia.github.io/gpu-operator/
+    helmrelease_spec:
+      releaseName: nvidia-gpu-operator
+      targetNamespace: nvidia-gpu-operator
+      chart:
+        spec:
+          chart: gpu-operator
+          version: v24.9.2
+      values:
+        ## by default NFD is set to true in NVIDIA gpu-operator chart, but we need to set NFD to false if the NFD is to be deployed by others (e.g. sriov-network-operator)
+        ## yet, when NFD is deployed by sriov-network-operator, we need to check if the appropriate NodeFeatures for nvidia gpu are also handled (e.g, using kyverno policy?, something else?)
+        ## likewise, if the sriov-network-operator is deployed later on at runtime after nvidia-gpu-operator, we need to ensure that sriov-network-operator is not deploying again the NFD ??!! 
+        ## (i.e., another kyverno policy this time with appropriate NodeFeatures for NIC cards?, or removing the NFD already deployed by nvidia-gpu-operator and using the NFD just deployed by sriov-network-operator?)       
+        nfd:
+          {{- if (tuple . "sriov-network-operator" | include "unit-enabled") }}
+          enabled: false   
+          {{- end }}  
+        ## the toolkit environment needs a bit of tunning depending on the bootstrap provider used (i.e., cabpr or cabpk)
+        toolkit:
+         env: >-         
+         {{- if (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpr") }}
+         - name: CONTAINERD_CONFIG
+           value: /var/lib/rancher/rke2/agent/etc/containerd/config.toml
+         - name: CONTAINERD_SOCKET
+           value: /run/k3s/containerd/containerd.sock
+         {{- else if (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpk") }}
+         - name: CONTAINERD_CONFIG
+           value: /etc/containerd/config.toml
+         - name: CONTAINERD_SOCKET
+           value: /run/containerd/containerd.sock
+         {{- end }}         
+         - name: CONTAINERD_RUNTIME_CLASS
+           value: nvidia
+         - name: CONTAINERD_SET_AS_DEFAULT
+           value: true   # set to false if we want to impose that only pods with  ''runtimeClassName: nvidia''  in their spec can be run on the gpu
 
 
 ##### stuff related to the 'cluster' unit #####
