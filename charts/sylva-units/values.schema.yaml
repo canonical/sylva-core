@@ -57,6 +57,10 @@ $defs:
     type: string
     pattern: "^{{(.|\r?\n)*}}$"
 
+  rawgotpl:
+    type: string
+    pattern: "^__raw__{{(.|\r?\n)*}}$"
+
   username-password:
     anyOf:
       - type: object
@@ -429,6 +433,10 @@ properties:
 
           suspend:  # -------------------------------
             type: boolean
+
+          raw_goes_to_tpl:
+            anyOf:
+              - $ref: "#/$defs/rawgotpl"
 
           kustomization_name:  # -------------------------------
             anyOf:
