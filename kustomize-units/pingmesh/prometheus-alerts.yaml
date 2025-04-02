@@ -1,0 +1,27 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: pingmesh
+  namespace: sylva-system ### important ?
+spec:
+  groups:
+  - name: Pingmesh rules
+    rules:
+    - alert: Pingmesh_pod_connectivity_NOK
+      annotations:
+        description: >
+          Pingmesh pod {{ $labels.pod }} on node {{ $labels.pingmesh_source_name }} has incomplete pod-to-pod connectivity
+      expr: pingmesh_connectivity_ratio{pingmesh_dest_type="pods"} < 1
+      for: 10m
+      labels:
+        severity: warning
+        sylva_alert: true
+    - alert: Pingmesh_node_connectivity_NOK
+      annotations:
+        description: >
+          Pingmesh pod {{ $labels.pod }} on node {{ $labels.pingmesh_source_name }} can't ping all nodes in the cluster
+      expr: pingmesh_connectivity_ratio{pingmesh_dest_type="nodes"} < 1
+      for: 10m
+      labels:
+        severity: warning
+        sylva_alert: true

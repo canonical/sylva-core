@@ -1,0 +1,23 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: pingmesh
+  labels:
+    app.kubernetes.io/part-of: pingmesh
+  namespace: sylva-system ### important ?   ########################################### FIXME
+spec:
+  jobLabel: app # useful ?   ##################################################### FIXME
+  namespaceSelector:
+    matchNames:
+    - pingmesh
+  selector:
+    matchLabels:
+      app: pingmesh
+  podMetricsEndpoints:
+  - port: prom-exporter
+    interval: 20s
+    relabelings:
+    - action: replace
+      sourceLabels:
+      - __meta_kubernetes_pod_node_name
+      targetLabel: instance

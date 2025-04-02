@@ -1,0 +1,79 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: pingmesh
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/part-of: pingmesh
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/part-of: pingmesh
+        app: pingmesh
+    spec:
+      containers:
+      - image: registry.gitlab.com/tmmorin/pingmesh:0.0.0
+        imagePullPolicy: IfNotPresent
+        command:
+          - python
+          - /opt/pingmesh/pingmesh.py
+        env:
+        - name: PINGMESH_CONFIG_PATH
+          value: /etc/pingmesh/pingmesh-config.yaml
+        - name: NODENAME
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: spec.nodeName
+        - name: NAMESPACE
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.namespace
+        name: pingmesh
+        resources:
+          limits:
+            cpu: 100m
+            memory: 500M
+          requests:
+            cpu: 100m
+            memory: 250M
+        ports:
+        - name: prom-exporter
+          containerPort: 8000
+          protocol: TCP
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 80
+          initialDelaySeconds: 30
+          periodSeconds: 30
+          timeoutSeconds: 5
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: 80
+          periodSeconds: 300
+          timeoutSeconds: 5
+        volumeMounts:
+        - name: tool
+          mountPath: /opt/pingmesh
+          readOnly: true
+        - name: config
+          mountPath: /etc/pingmesh
+          readOnly: true
+      volumes:
+      - name: tool
+        configMap:
+          name: pingmesh-tool
+      - name: config
+        configMap:
+          name: pingmesh-config
+      serviceAccountName: pingmesh
+      terminationGracePeriodSeconds: 5
+  updateStrategy:
+    rollingUpdate:
+      maxSurge: 0
+      maxUnavailable: 1
+    type: RollingUpdate
