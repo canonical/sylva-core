@@ -296,6 +296,7 @@ unit_templates:
         - '{{ tuple "components/kunai" (tuple . "kunai" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/sbom-operator" (tuple . "sbom-operator" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/nvidia-gpu" (tuple . "nvidia-gpu-operator" | include "unit-enabled") | include "set-only-if" }}'
+        - '{{ tuple "components/nvidia-gpu" (tuple . "nvidia-gpu-operator" | include "unit-enabled") | include "set-only-if" }}'
 
   flux-common:
     repo: sylva-core
