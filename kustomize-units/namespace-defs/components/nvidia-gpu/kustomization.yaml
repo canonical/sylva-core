@@ -4,3 +4,10 @@ kind: Component
 
 resources:
   - nvidia-gpu-namespace.yaml
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+  
+>>>>>>> ec730c1ee (add new line at the end of files, to pass linter)
+=======
+>>>>>>> 498f5a002 (yaml)
