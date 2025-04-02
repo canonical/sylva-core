@@ -7646,7 +7646,8 @@ units:
     - base-deps
     enabled: false
     enabled_conditions:
-      - '{{ if or (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpr") (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpk") }}'
+      - '{{ eq .Values.cluster.capi_providers.infra_provider "cabpr" }}'
+    #  - '{{ if or (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpr") (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpk") }}'
     depends_on:
       namespace-defs: true
     helm_repo_url: https://nvidia.github.io/gpu-operator/
