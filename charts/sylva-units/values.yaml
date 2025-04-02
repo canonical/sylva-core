@@ -7662,13 +7662,13 @@ units:
         ## yet, when NFD is deployed by sriov-network-operator, we need to check if the appropriate NodeFeatures for nvidia gpu are also handled (e.g, using kyverno policy?, something else?)
         ## likewise, if the sriov-network-operator is deployed later on at runtime after nvidia-gpu-operator, we need to ensure that sriov-network-operator is not deploying again the NFD ??!! 
         ## (i.e., another kyverno policy this time with appropriate NodeFeatures for NIC cards?, or removing the NFD already deployed by nvidia-gpu-operator and using the NFD just deployed by sriov-network-operator?)       
-        nfd:
-          {{- if (tuple . "sriov-network-operator" | include "unit-enabled") }}
+        nfd: >-
+        {{- if (tuple . "sriov-network-operator" | include "unit-enabled") }}
           enabled: false   
-          {{- end }}  
+        {{- end }}  
         ## the toolkit environment needs a bit of tunning depending on the bootstrap provider used (i.e., cabpr or cabpk)
         toolkit:
-         env: >-         
+         env: >-
          {{- if (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpr") }}
          - name: CONTAINERD_CONFIG
            value: /var/lib/rancher/rke2/agent/etc/containerd/config.toml
