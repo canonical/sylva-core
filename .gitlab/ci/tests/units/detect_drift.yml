@@ -1,6 +1,6 @@
 .detect-drift:
   script:
-    - kubectl logs -l app=helm-controller -n flux-system > helm_controller.log
+    - kubectl logs $(kubectl get pods -n flux-system  -o custom-columns=":metadata.name" | grep -i helm) -n flux-system > helm_controller.log
     - ./tools/detect_drift.sh helm_controller.log
   artifacts:
     expire_in: 48 hour
