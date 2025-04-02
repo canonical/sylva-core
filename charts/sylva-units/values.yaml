@@ -4406,7 +4406,7 @@ units:
               platform_tag: '{{ .Values.monitoring.platform_tag }}'
             remoteWriteDashboards: true
             remoteWrite:
-              - url: '{{ .Values.monitoring.thanos_receive_url }}'
+              - url: '{{ .Values.monitoring.thanos.receive_url }}'
                 name: '{{ .Values.cluster.name }}'
                 basicAuth:
                   username:
@@ -7064,19 +7064,7 @@ units:
                   insecure_skip_verify: true
               static_configs: ["thanos-query-frontend:9090"]
               scheme: http
-      objstoreConfig:
-        type: "S3"
-        config:
-          bucket: "thanos"
-          endpoint: minio.minio-monitoring.svc.cluster.local
-          insecure: false
-          http_config:
-            tls_config:
-              insecure_skip_verify: true
-            insecure_skip_verify: true
-          # Use reduced reduncancy storage class (EC:1) as we are using two replicas in longhorn
-          put_user_metadata:
-            X-Amz-Storage-Class: REDUCED_REDUNDANCY
+      objstoreConfig: '{{ .Values.monitoring.thanos.objstoreConfig | include "preserve-type" }}'
   logging-crd:
     info:
       description: install rancher-logging CRD
@@ -8258,11 +8246,25 @@ security:
 monitoring:
   platform_tag: Sylva
 
-  # thanos_receive_url:
-  # - for mgmt cluster, the local thanos k8s service is used (the URL below)
-  # - for workload clusters, this is overridden via shared_workload_clusters_values.monitoring.thanos_receive_url
-  #   to point to the mgmt cluster Thanos receive ingress
-  thanos_receive_url: http://thanos-receive.thanos.svc.cluster.local:19291/api/v1/receive
+  thanos:
+    # receive_url:
+    # - for mgmt cluster, the local thanos k8s service is used (the URL below)
+    # - for workload clusters, this is overridden via shared_workload_clusters_values.monitoring.thanos.receive_url
+    #   to point to the mgmt cluster Thanos receive ingress
+    receive_url: http://thanos-receive.thanos.svc.cluster.local:19291/api/v1/receive
+    objstoreConfig:
+      type: "S3"
+      config:
+        bucket: "thanos"
+        endpoint: minio.minio-monitoring.svc.cluster.local
+        insecure: false
+        http_config:
+          tls_config:
+            insecure_skip_verify: true
+          insecure_skip_verify: true
+        # Use reduced reduncancy storage class (EC:1) as we are using two replicas in longhorn
+        put_user_metadata:
+          X-Amz-Storage-Class: REDUCED_REDUNDANCY
 
   alertmanager:
     config: {}
@@ -8853,7 +8855,8 @@ shared_workload_clusters_values:
       enabled: '{{ tuple . "rancher" | include "unit-enabled" }}'
 
   monitoring:
-    thanos_receive_url: https://{{ .Values.external_hostnames.thanos_receive }}/api/v1/receive
+    thanos:
+      receive_url: "https://{{ .Values.external_hostnames.thanos_receive }}/api/v1/receive"
   logging:
     loki_url: "https://{{ .Values.external_hostnames.loki }}"
 

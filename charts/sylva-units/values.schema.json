@@ -9301,16 +9301,24 @@
         "platform_tag": {
           "type": "string"
         },
-        "thanos_receive_url": {
-          "anyOf": [
-            {
-              "type": "string",
-              "format": "uri"
+        "thanos": {
+          "type": "object",
+          "properties": {
+            "objstoreConfig": {
+              "type": "object"
             },
-            {
-              "$ref": "#/$defs/string-with-gotpl"
+            "receive_url": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uri"
+                },
+                {
+                  "$ref": "#/$defs/string-with-gotpl"
+                }
+              ]
             }
-          ]
+          }
         },
         "alertmanager": {
           "type": "object",
