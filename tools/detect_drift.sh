@@ -5,6 +5,7 @@ LOG_FILE=$1
 ALLOWED_EXCEPTIONS=(
   "metallb-resources"
   "ingress-nginx"
+  "k8s-gateway"
   # Add more exceptions here if needed
 )
 
@@ -17,7 +18,7 @@ UNEXPECTED_DRIFTS=()
 echo "🚨 Drift detected in the following components:"
 
 for hr in $DRIFTED_HRS; do
-  echo "🔹 $hr"
+  echo "   🔹 $hr"
   if ! printf "%s\n" "${ALLOWED_EXCEPTIONS[@]}" | grep -qFx "$hr"; then
     UNEXPECTED_DRIFTS+=("$hr")
   fi
