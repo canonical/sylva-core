@@ -1020,6 +1020,20 @@ units:
             patches:
             - '{{ .Values._internal.pdb_allow_unhealthy_pod_eviction | include "preserve-type" }}'
 
+  longhorn-performance:
+    info:
+      description: Run longhorn
+      internal: true
+      test: true
+      maturity: beta
+    unit_templates:
+    - base-deps
+    depends_on:
+      longhorn: true
+    repo: sylva-core
+    kustomization_spec:
+      path: ./kustomize-units/longhorn-performance
+
   harbor:
     info:
       description: installs Harbor

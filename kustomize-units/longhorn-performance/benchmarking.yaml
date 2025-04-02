@@ -1,0 +1,28 @@
+apiVersion: litmuschaos.io/v1alpha1
+kind: ChaosEngine
+metadata:
+  name: 'storage-benchmarking'
+  namespace: 'longhorn-benchmarking'
+  annotations:
+    kustomize.toolkit.fluxcd.io/ssa: IfNotPresent
+spec:
+  appinfo:
+    appns: ''
+    applabel: ''
+
+  ## It can be true/false
+  annotationCheck: 'false'
+  # It can be active/stop
+  engineState: 'active'
+  chaosServiceAccount: 'storage-benchmarking'
+  monitoring: false
+  # It can be delete/retain
+  jobCleanUpPolicy: 'retain'
+  experiments:
+    - name: 'storage-benchmarking'
+      spec:
+        components:
+          env:
+
+            - name: APP_NAMESPACE
+              value: 'longhorn-benchmarking'

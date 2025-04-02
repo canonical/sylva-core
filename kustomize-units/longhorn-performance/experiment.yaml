@@ -1,0 +1,96 @@
+apiVersion: litmuschaos.io/v1alpha1
+description:
+  message: |
+    Exhausts memory resource for target nodes
+kind: ChaosExperiment
+metadata:
+  name: storage-benchmarking
+  namespace: longhorn-benchmarking
+  labels:
+    name: storage-benchmarking
+    app.kubernetes.io/part-of: litmus
+    app.kubernetes.io/component: chaosexperiment
+    app.kubernetes.io/version: 3.4.0
+spec:
+  definition:
+    scope: Namespaced
+    permissions:
+      - apiGroups:
+          - ""
+          - "apps"
+          - "apps.openshift.io"
+          - "argoproj.io"
+          - "batch"
+          - "litmuschaos.io"
+        resources:
+          - "deployments"
+          - "jobs"
+          - "pods"
+          - "pods/log"
+          - "replicationcontrollers"
+          - "deployments"
+          - "statefulsets"
+          - "daemonsets"
+          - "replicasets"
+          - "deploymentconfigs"
+          - "rollouts"
+          - "pods/exec"
+          - "events"
+          - "chaosengines"
+          - "chaosexperiments"
+          - "chaosresults"
+        verbs:
+          - "create"
+          - "list"
+          - "get"
+          - "patch"
+          - "update"
+          - "delete"
+          - "deletecollection"
+    image: 'enilegu/go-runner:storage-benchmarking-v1'
+    imagePullPolicy: 'IfNotPresent'
+    args:
+    - -c
+    - ./experiments -name storage-benchmarking
+    command:
+    - /bin/bash
+    env:
+    - name: TARGET_PODS
+      value: 'longhorn-bench-pod'
+
+    - name: TOTAL_CHAOS_DURATION
+      value: '1800'
+
+    - name: CHAOS_INTERVAL
+      value: '1800'
+
+    - name: IODEPTH
+      value: '1'
+
+    - name: OPERATIONS
+      value: 'read,write,randread,randwrite'
+
+    - name: BLOCK_STORAGE
+      value: '32k,64k,128k,256k,512k,64k,2M,4M'
+      #value: '4k,8k,16k,32k,64k,128k,256k,512k'
+
+    - name: FIO_REPLICAS
+      value: '2'
+
+    - name: TEST_SIZE
+      value: '3G'
+
+    - name: STORAGE_CLASS
+      value: 'longhorn'
+
+    - name: PVC_STORAGE
+      value: '5Gi'
+
+    - name: ACCESS_MODE
+      value: 'ReadWriteOnce'
+
+    labels:
+      name: storage-benchmarking
+      app.kubernetes.io/part-of: litmus
+      app.kubernetes.io/component: experiment-job
+      app.kubernetes.io/version: 3.4.0

@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: longhorn-bench-pod
+  labels:
+    app: demo
+  namespace: longhorn-benchmarking
+spec:
+  containers:
+  - name: longhorn-bench-pod
+    image: nginx:stable-perl
+    securityContext:
+      allowPrivilegeEscalation: true
+

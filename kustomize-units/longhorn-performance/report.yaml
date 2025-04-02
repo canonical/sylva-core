@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: longhorn-performance-pod
+spec:
+  containers:
+    - name: longhorn-performance
+      image: enilegu/longhorn-benchmarking:v1.0.0
+      command: ["/bin/bash", "-c"]
+      args: ["/longhorn-performance/scripts/store-data.sh"]
