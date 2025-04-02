@@ -7664,27 +7664,21 @@ units:
         ## (i.e., another kyverno policy this time with appropriate NodeFeatures for NIC cards?, or removing the NFD already deployed by nvidia-gpu-operator and using the NFD just deployed by sriov-network-operator?)       
         nfd:
           enabled: true
-        #  {{- if (tuple . "sriov-network-operator" | include "unit-enabled") }}
+        #  {{- if (tuple . "sriov-network-operator" | include "unit-enabled") }}  TO BE DONE...
         #   enabled: false   
         #  {{- end }}  
-        ## the toolkit environment needs a bit of tunning depending on the bootstrap provider used (i.e., cabpr or cabpk)
+        ## the toolkit environment needs a bit of tunning depending on the bootstrap provider used (i.e., here below the config for cabpr)
         toolkit:
-         env: |-
-         {{- if (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpr") }}
+         env: 
          - name: CONTAINERD_CONFIG
            value: /var/lib/rancher/rke2/agent/etc/containerd/config.toml
          - name: CONTAINERD_SOCKET
-           value: /run/k3s/containerd/containerd.sock
-         {{- else if (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpk") }}
-         - name: CONTAINERD_CONFIG
-           value: /etc/containerd/config.toml
-         - name: CONTAINERD_SOCKET
-           value: /run/containerd/containerd.sock
-         {{- end }}         
+           value: /run/k3s/containerd/containerd.sock  
          - name: CONTAINERD_RUNTIME_CLASS
            value: nvidia
          - name: CONTAINERD_SET_AS_DEFAULT
            value: true   # set to false if we want to impose that only pods with  ''runtimeClassName: nvidia''  in their spec can be run on the gpu
+         ##{{- else if (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpk") }}  TO BE DONE...
 
 
 ##### stuff related to the 'cluster' unit #####
