@@ -1,0 +1,16 @@
+.detect-drift:
+  script:
+    - kubectl logs --kubeconfig management-cluster-kubeconfig $(kubectl get pods --kubeconfig management-cluster-kubeconfig  -n flux-system  -o custom-columns=":metadata.name" | grep -i helm) -n flux-system > helm_controller.log
+    - ./tools/detect_drift.sh helm_controller.log
+  artifacts:
+    expire_in: 48 hour
+    when: always
+    paths:
+      - helm_controller.log
+
+mgmt-detect-drift:
+  extends:
+    - .test-base-management-cluster
+    - .detect-drift
+  variables:
+    DESCRIPTION: Check for drifts in the helm controller logs in the mgmt cluster

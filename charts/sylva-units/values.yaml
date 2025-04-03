@@ -222,6 +222,8 @@ unit_kustomization_spec_default: # default .spec for a Kustomization
 # this defines the default .spec for a HelmRelease resource
 # generated a unit with a "helmrelease_spec" field
 unit_helmrelease_spec_default:  # default for the .spec of a HelmRelease
+  driftDetection:
+    mode: enabled
   interval: 15m
   # the following dependsOn is used to prevent periodic reconciliation during the upgrades:
   # As root-dependency-<n> HelmRelease will be pruned when root-dependency-<n+1> will be
@@ -2828,6 +2830,16 @@ units:
     kustomization_spec:
       prune: '{{ not (eq .Release.Namespace "sylva-system") | include "preserve-type" }}'
     helmrelease_spec:
+      driftDetection:
+      # The 'online' parameter is managed by BareMetal and Metal3 operators,
+      # while 'automatedCleaningMode' is managed by a Kyverno policy (https://gitlab.com/sylva-projects/sylva-core/-/merge_requests/3073).
+      # Therefore, drift detection should ignore these fields.
+        ignore:
+          - target:
+              kind: BareMetalHost
+            paths:
+            - /spec/online
+            - /spec/automatedCleaningMode
       targetNamespace: '{{ .Release.Namespace }}'
       chart:
         spec:
@@ -2944,6 +2956,10 @@ units:
         | include "preserve-type"
         }}
     helmrelease_spec:
+      # Setting drift detection mode to disabled for cluster HR till https://gitlab.com/sylva-projects/sylva-core/-/issues/1812 is solved.
+      driftDetection:
+        mode: disabled
+
       uninstall:
         timeout: '{{ mul .Values.cluster.timeouts.cluster_delete_hook_job_timeout 1.2 }}s'
       targetNamespace: '{{ .Release.Namespace }}'
@@ -3318,6 +3334,9 @@ units:
     helm_repo_url: https://rke2-charts.rancher.io
     helm_chart_versions: *calico-chart-versions  # we use a YAML anchor rather than templating so that this file can be read by tools/generate_units_documentation.py
     helmrelease_spec:
+      # Setting drift detection mode to warn for calico till https://gitlab.com/sylva-projects/sylva-core/-/issues/1814 is solved.
+      driftDetection:
+        mode: warn
       releaseName: '{{ eq .Values.cluster.capi_providers.bootstrap_provider "cabpk" | ternary "calico" "rke2-calico" }}'
       targetNamespace: '{{ eq .Values.cluster.capi_providers.bootstrap_provider "cabpk" | ternary "sylva-system" "kube-system" }}'
       chart:
@@ -3384,6 +3403,9 @@ units:
                                                                      # (see https://gitlab.com/sylva-projects/sylva-core/-/issues/2210)
     helm_repo_url: https://metallb.github.io/metallb
     helmrelease_spec:
+      # Setting drift detection mode to warn for metallb till https://gitlab.com/sylva-projects/sylva-core/-/issues/2238 is solved.
+      driftDetection:
+        mode: warn
       chart:
         spec:
           chart: metallb
@@ -4319,6 +4341,24 @@ units:
       prometheus-resources: '{{ tuple . "prometheus-resources" | include "unit-enabled" }}'
     helm_repo_url: https://charts.rancher.io/
     helmrelease_spec:
+      driftDetection:
+        ignore:
+          - target:
+            # The Prometheus Operator annotates 'PrometheusRule' resources with 'prometheus-operator-validated: true'
+            # after validation checks. This occurs only at apply time, so drift detection should ignore it.
+              kind: PrometheusRule
+            paths:
+            - /metadata/annotations/prometheus-operator-validated
+          - target:
+            # The certgen webhook injects the caBundle at runtime, so drift detection should ignore it.
+              kind: ValidatingWebhookConfiguration
+            paths:
+            - /webhooks[0]/clientConfig/caBundle
+          - target:
+            # The certgen webhook injects the caBundle at runtime, so drift detection should ignore it.
+              kind: MutatingWebhookConfiguration
+            paths:
+            - /webhooks[0]/clientConfig/caBundle
       releaseName: rancher-monitoring
       targetNamespace: cattle-monitoring-system
       storageNamespace: cattle-monitoring-system # see https://gitlab.com/sylva-projects/sylva-core/-/issues/443
@@ -4426,13 +4466,6 @@ units:
       _postRenderers:
         - kustomize:
             patches:
-            # Disable drift detection for rancher-monitoring webhooks
-            - target:
-                kind: (ValidatingWebhookConfiguration|MutatingWebhookConfiguration)
-              patch: |
-                - op: add
-                  path: /metadata/annotations/helm.toolkit.fluxcd.io~1driftDetection
-                  value: disabled
             - '{{ .Values._internal.pdb_allow_unhealthy_pod_eviction | include "preserve-type" }}'
     helm_secret_values:
       grafana:
@@ -6739,6 +6772,15 @@ units:
       sylvactl/readyMessage: "Thanos UI can be reached at https://{{ .Values.external_hostnames.thanos }} ({{ .Values.external_hostnames.thanos }} must resolve to {{ .Values.display_external_ip }})"
     repo: bitnami-thanos
     helmrelease_spec:
+      driftDetection:
+        ignore:
+          - target:
+            # Thanos-compactor replicas is managed by  Kyverno policies (kustomize-units/kyverno-policies/generic/components/thanos)
+            # Hence, drift detection should ignore it.
+              kind: Deployment
+              name: thanos-compactor
+            paths:
+            - /spec/replicas
       targetNamespace: thanos
       install:
         createNamespace: false
@@ -7904,7 +7946,7 @@ flux:
       OOMWatch: true
       DetectDrift: true
       CorrectDrift: true
-    log_level: info
+    log_level: debug
   source:
     concurrent: 2
     log_level: info
