@@ -7670,21 +7670,25 @@ units:
         #  {{- if (tuple . "sriov-network-operator" | include "unit-enabled") }}  TO BE DONE...
         #   enabled: false
         #  {{- end }}
-        ## the toolkit environment needs a bit of tunning depending on the bootstrap provider used (i.e., here below the config for cabpr)
+        ## the toolkit environment needs a bit of tunning depending on the bootstrap provider used (i.e., here below the config for cabpr and capbk)
         toolkit:
-          env: >-
-          {{- if (eq .Values.cluster.capi_providers.bootstrap_provider "cabpr") -}}
+          env:
           - name: CONTAINERD_CONFIG
+          {{- if (eq .Values.cluster.capi_providers.bootstrap_provider "cabpr") }}
             value: /var/lib/rancher/rke2/agent/etc/containerd/config.toml
+          {{- else if (eq .Values.cluster.capi_providers.bootstrap_provider "cabpk") }}
+            value: /etc/containerd/config.toml          
+          {{- end }}
           - name: CONTAINERD_SOCKET
+          {{- if (eq .Values.cluster.capi_providers.bootstrap_provider "cabpr") }}
             value: /run/k3s/containerd/containerd.sock
-          {{- end -}}
+          {{- else if (eq .Values.cluster.capi_providers.bootstrap_provider "cabpk") }}
+            value: /run/containerd/containerd.sock
+          {{- end }}
           - name: CONTAINERD_RUNTIME_CLASS
             value: nvidia
           - name: CONTAINERD_SET_AS_DEFAULT
             value: true   # set to false if we want to impose that only pods with  ''runtimeClassName: nvidia''  in their spec can be run on the gpu
-         ##{{- else if (eq .Values.cluster.capi_providers.bootstrap_provider "cabpk") }}  TO BE DONE (maybe te default toolkit env is enough)...
-
 
 ##### stuff related to the 'cluster' unit #####
 #
