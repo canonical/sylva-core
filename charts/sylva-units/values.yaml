@@ -7816,7 +7816,6 @@ units:
           chart: gpu-operator
           version: v24.9.2
       values:
-
         ## by default NFD is set to true in NVIDIA gpu-operator chart, but we need to set NFD to false if the NFD is to be deployed by others (e.g. sriov-network-operator)
         ## yet, when NFD is deployed by sriov-network-operator, we need to check if the appropriate NodeFeatures for nvidia gpu are also handled (e.g, using kyverno policy?, something else?)
         ## likewise, if the sriov-network-operator is deployed later on at runtime after nvidia-gpu-operator, we need to ensure that sriov-network-operator is not deploying again the NFD ??!! 
