@@ -7677,7 +7677,7 @@ units:
              {{ if (eq .Values.cluster.capi_providers.bootstrap_provider "cabpr") }}
              value: /var/lib/rancher/rke2/agent/etc/containerd/config.toml
              {{ else if (eq .Values.cluster.capi_providers.bootstrap_provider "cabpk") }}
-             value: /etc/containerd/config.toml          
+             value: /etc/containerd/config.toml
              {{ end }}
            - name: CONTAINERD_SOCKET
              {{ if (eq .Values.cluster.capi_providers.bootstrap_provider "cabpr") }}
