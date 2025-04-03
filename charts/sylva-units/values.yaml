@@ -7674,17 +7674,17 @@ units:
         toolkit:
           env: >-
           - name: CONTAINERD_CONFIG
-             {{- if (eq .Values.cluster.capi_providers.bootstrap_provider "cabpr") }}
-             value: /var/lib/rancher/rke2/agent/etc/containerd/config.toml
-             {{- else if (eq .Values.cluster.capi_providers.bootstrap_provider "cabpk") }}
-             value: /etc/containerd/config.toml          
-             {{- end }}
+            {{ if (eq .Values.cluster.capi_providers.bootstrap_provider "cabpr") }}
+            value: /var/lib/rancher/rke2/agent/etc/containerd/config.toml
+            {{ else if (eq .Values.cluster.capi_providers.bootstrap_provider "cabpk") }}
+            value: /etc/containerd/config.toml          
+            {{ end }}
           - name: CONTAINERD_SOCKET
-             {{- if (eq .Values.cluster.capi_providers.bootstrap_provider "cabpr") }}
-             value: /run/k3s/containerd/containerd.sock
-             {{- else if (eq .Values.cluster.capi_providers.bootstrap_provider "cabpk") }}
-             value: /run/containerd/containerd.sock
-             {{- end }}
+            {{ if (eq .Values.cluster.capi_providers.bootstrap_provider "cabpr") }}
+            value: /run/k3s/containerd/containerd.sock
+            {{ else if (eq .Values.cluster.capi_providers.bootstrap_provider "cabpk") }}
+            value: /run/containerd/containerd.sock
+            {{ end }}
           - name: CONTAINERD_RUNTIME_CLASS
             value: nvidia
           - name: CONTAINERD_SET_AS_DEFAULT
