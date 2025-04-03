@@ -6720,7 +6720,7 @@ units:
       minio-monitoring-init: true
     repo: sylva-core
     kustomization_spec:
-      path: '{{if .Values.monitoring.thanos.use_internal_storage }}./kustomize-units/thanos-init{{ else }}./kustomize-units/dummy{{ end }}'
+      path: '{{if .Values.monitoring.thanos.use_internal_storage }}./kustomize-units/thanos-init{{ else }}./kustomize-units/dummy/base{{ end }}'
       wait: true
       postBuild:
         substitute:
