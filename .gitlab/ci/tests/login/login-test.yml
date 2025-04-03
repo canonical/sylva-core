@@ -95,6 +95,7 @@ mgmt-GUIs-test:
     - !reference [.test_scripts, edit_hosts_file]
     - !reference [.test_scripts, get_ui_ingresses_url]
     - !reference [.test_scripts, get_thanos_login_and_password]
+    - !reference [.test_scripts, get_grafana_login_and_password]
     - pytest ./tools/login-test/test_ui_playwright.py --browser firefox -v --tb=short
 
 mgmt-sso:
