@@ -6720,7 +6720,7 @@ units:
       minio-monitoring-init: true
     repo: sylva-core
     kustomization_spec:
-      path: ./kustomize-units/thanos-init
+      path: '{{if .Values.monitoring.thanos.use_internal_storage }}./kustomize-units/thanos-init{{ else }}./kustomize-units/dummy{{ end }}'
       wait: true
       postBuild:
         substitute:
@@ -8252,6 +8252,9 @@ monitoring:
     # - for workload clusters, this is overridden via shared_workload_clusters_values.monitoring.thanos.receive_url
     #   to point to the mgmt cluster Thanos receive ingress
     receive_url: http://thanos-receive.thanos.svc.cluster.local:19291/api/v1/receive
+    # use_internal_storage: false to configure an external storage
+    use_internal_storage: true
+
     objstoreConfig:
       # https://github.com/thanos-io/objstore#supported-providers-clients
       # lists all supported provides
