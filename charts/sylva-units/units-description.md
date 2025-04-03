@@ -38,19 +38,16 @@
 | **multus** | installs Multus | stable | [Helm chart](https://rke2-charts.rancher.io/) | v4.2.000 |
 | **rancher** | installs Rancher | stable | [Helm chart](https://releases.rancher.com/server-charts/stable) | 2.10.3 |
 | **sriov-network-operator** | installs SR-IOV operator | stable | [Helm chart](https://suse-edge.github.io/charts/) | 1.4.0 |
-| **nvidia-gpu-operator** | installs NVIDIA GPU operator | experimental | [Helm chart](https://nvidia.github.io/gpu-operator/) | v24.9.2 |
 | **vault** | installs Vault<br/><br/>Vault assumes that the certificate vault-tls has been issued | stable | [Kustomization](https://raw.githubusercontent.com/banzaicloud/bank-vaults/1.19.0/operator/deploy/rbac.yaml) | 1.19.0 |
 | **vault-config-operator** | installs Vault config operator | stable | [Helm chart](https://redhat-cop.github.io/vault-config-operator) | v0.8.31 |
 | **vault-operator** | installs Vault operator | stable | [Helm chart](https://github.com/bank-vaults/vault-operator.git) | v1.22.5 |
 | **vsphere-csi-driver** | installs Vsphere CSI | stable | [Kustomization](https://raw.githubusercontent.com/kubernetes-sigs/vsphere-csi-driver/v3.3.1/manifests/vanilla/vsphere-csi-driver.yaml) | v3.3.1 |
 | **alertmanager-jiralert** | installs Alertmanager webhook Jiralert<br/><br/>Jiralert is an Alertmanager wehbook that creates Jira issues | beta | [Helm chart](https://prometheus-community.github.io/helm-charts) | 1.7.2 |
 | **alertmanager-snmp-notifier** | installs Alertmanager webhook snmp-notifier<br/><br/>snmp-notifier is an Alertmanager wehbook that sends alerts as snmp traps | beta | [Helm chart](https://prometheus-community.github.io/helm-charts) | 0.4.0 |
-| **cabpoa** | installs OKD/OpenShift CAPI bootstrap/controlplane provider | experimental | [Kustomization](https://github.com/openshift-assisted/cluster-api-agent/releases/download/v0.2.0/bootstrap-components.yaml) | v0.2.0 |
 | **ceph-csi-cephfs** | Installs Ceph-CSI | beta | [Helm chart](https://ceph.github.io/csi-charts) | 3.12.3 |
 | **harbor** | installs Harbor | beta | [Helm chart](https://helm.goharbor.io) | 1.15.2 |
 | **kubevirt** | installs kubevirt | beta | [Helm chart](https://suse-edge.github.io/charts) | 0.4.0 |
 | **kubevirt-cdi** | manages Kubevirt CDI - Container Data Importer | beta | [Helm chart](https://suse-edge.github.io/charts) | 0.4.0 |
-| **kunai** | installs Kunai<br/><br/>The integration of [Kunai](https://gitlab.com/sylva-projects/sylva-elements/kunai) at this stage should be considered experimental.<br/>Work is in progress to align its integration with workload-cluster-operator and workload-teams-defs.<br/>See https://gitlab.com/groups/sylva-projects/-/epics/58. | experimental | [Helm chart](https://gitlab.com/api/v4/projects/sylva-projects%2Fsylva-elements%2Fkunai/packages/helm/stable) | 1.3.1 |
 | **logging** | installs Rancher Fluentbit/Fluentd logging stack, for log collecting and shipping | beta | [Helm chart](https://charts.rancher.io/) | 105.1.0+up4.10.0 |
 | **loki** | installs Loki log storage<br/><br/>installs Loki log storage in simple scalable mode | beta | [Helm chart](https://github.com/grafana/loki.git) | v3.4.2 |
 | **minio-logging** | creates a MinIO tenant for the logging stack, used as S3 storage by Loki | beta | [Helm chart](https://github.com/minio/operator.git) | v7.0.0 |
@@ -58,12 +55,15 @@
 | **minio-operator** | install MinIO operator<br/><br/>MinIO operator is used to manage multiple S3 tenants | beta | [Helm chart](https://github.com/minio/operator.git) | v7.0.0 |
 | **multus-bond-cni** | installs bond CNI binary for multus | beta | Kustomization | 1.0.0 |
 | **neuvector** | installs Neuvector | beta | [Helm chart](https://neuvector.github.io/neuvector-helm) | 2.8.3 |
-| **nfs-ganesha** | manages NFS Ganesha CSI provisioner | experimental | [Helm chart](https://kubernetes-sigs.github.io/nfs-ganesha-server-and-external-provisioner/) | 1.8.0 |
-| **openshift-assisted-installer** | installs assisted installer operator for OKD | experimental | [Kustomization](https://raw.githubusercontent.com/openshift/assisted-service/v2.33.0/hack/crds/hive.openshift.io_clusterdeployments.yaml) | v2.33.0 |
 | **prometheus-pushgateway** | installs Prometheus Push-gateway exporter | beta | [Helm chart](https://prometheus-community.github.io/helm-charts) | 3.0.0 |
 | **snmp-exporter** | installs SNMP exporter | beta | [Helm chart](https://prometheus-community.github.io/helm-charts) | 8.0.0 |
 | **thanos** | installs Thanos | beta | [Helm chart](https://github.com/bitnami/charts.git) | thanos/15.8.0 |
 | **trivy-operator** | installs Trivy operator | beta | [Helm chart](https://aquasecurity.github.io/helm-charts/) | 0.26.0 |
+| **cabpoa** | installs OKD/OpenShift CAPI bootstrap/controlplane provider | experimental | [Kustomization](https://github.com/openshift-assisted/cluster-api-agent/releases/download/v0.2.0/bootstrap-components.yaml) | v0.2.0 |
+| **kunai** | installs Kunai<br/><br/>The integration of [Kunai](https://gitlab.com/sylva-projects/sylva-elements/kunai) at this stage should be considered experimental.<br/>Work is in progress to align its integration with workload-cluster-operator and workload-teams-defs.<br/>See https://gitlab.com/groups/sylva-projects/-/epics/58. | experimental | [Helm chart](https://gitlab.com/api/v4/projects/sylva-projects%2Fsylva-elements%2Fkunai/packages/helm/stable) | 1.3.1 |
+| **nfs-ganesha** | manages NFS Ganesha CSI provisioner | experimental | [Helm chart](https://kubernetes-sigs.github.io/nfs-ganesha-server-and-external-provisioner/) | 1.8.0 |
+| **nvidia-gpu-operator** | installs NVIDIA GPU operator | experimental | [Helm chart](https://nvidia.github.io/gpu-operator/) | v24.9.2 |
+| **openshift-assisted-installer** | installs assisted installer operator for OKD | experimental | [Kustomization](https://raw.githubusercontent.com/openshift/assisted-service/v2.33.0/hack/crds/hive.openshift.io_clusterdeployments.yaml) | v2.33.0 |
 | **descheduler** | install descheduler |  | [Helm chart](https://kubernetes-sigs.github.io/descheduler/) | 0.32.2 |
 
 ## Units for operators, tools or Helm charts maintained in Sylva project
