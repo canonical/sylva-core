@@ -7657,7 +7657,9 @@ units:
 
   nvidia-gpu-operator:
     info:
-      description: installs NVIDIA GPU operator, only when using cabpr or cabpk, not deployed on cabpoa
+      description: installs NVIDIA GPU operator
+      details: |-
+        installs NVIDIA GPU operator only when using cabpr or cabpk, not deployed on cabpoa
       maturity: experimental
     unit_templates:
     - base-deps
