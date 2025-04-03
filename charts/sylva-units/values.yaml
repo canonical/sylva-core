@@ -8296,8 +8296,8 @@ monitoring:
       config:
         # uncomment when using external S3 service
         # when using internal MinIO they are set up in thanos-init
-        # access_key: "access"
-        # secret_key: "secret"
+        access_key: "access"
+        secret_key: "secret"
         bucket: "thanos"
         endpoint: "minio.minio-monitoring.svc.cluster.local"
         insecure: false
