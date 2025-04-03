@@ -7673,12 +7673,12 @@ units:
         ## the toolkit environment needs a bit of tunning depending on the bootstrap provider used (i.e., here below the config for cabpr)
         toolkit:
           env: >-
-          {{- if (eq .Values.cluster.capi_providers.bootstrap_provider "cabpr") }}
+          {{- if (eq .Values.cluster.capi_providers.bootstrap_provider "cabpr") -}}
           - name: CONTAINERD_CONFIG
             value: /var/lib/rancher/rke2/agent/etc/containerd/config.toml
           - name: CONTAINERD_SOCKET
             value: /run/k3s/containerd/containerd.sock
-          {{- end }}
+          {{- end -}}
           - name: CONTAINERD_RUNTIME_CLASS
             value: nvidia
           - name: CONTAINERD_SET_AS_DEFAULT
