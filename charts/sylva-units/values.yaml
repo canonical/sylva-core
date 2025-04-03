@@ -7053,12 +7053,12 @@ units:
           name: thanos-minio-user
           valuesKey: CONSOLE_ACCESS_KEY
           targetPath: objstoreConfig.config.access_key
-          optional: true
+          optional: '{{ not .Values.monitoring.thanos.use_internal_storage | include "preserve-type" }}'
         - kind: Secret
           name: thanos-minio-user
           valuesKey: CONSOLE_SECRET_KEY
           targetPath: objstoreConfig.config.secret_key
-          optional: true
+          optional: '{{ not .Values.monitoring.thanos.use_internal_storage | include "preserve-type" }}'
         # Use tenant list built by kyverno policy thanos-aggregated-secret to fill auth.basicAuthUsers object
         - kind: Secret
           name: thanos-secrets
