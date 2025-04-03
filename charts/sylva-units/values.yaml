@@ -7020,16 +7020,6 @@ units:
                   - '{{ .Values.external_hostnames.thanos_receive }}'
                 secretName: thanos-tls
       valuesFrom:
-        - kind: Secret
-          name: thanos-minio-user
-          valuesKey: CONSOLE_ACCESS_KEY
-          targetPath: objstoreConfig.config.access_key
-          optional: false
-        - kind: Secret
-          name: thanos-minio-user
-          valuesKey: CONSOLE_SECRET_KEY
-          targetPath: objstoreConfig.config.secret_key
-          optional: false
         # Use tenant list built by kyverno policy thanos-aggregated-secret to fill auth.basicAuthUsers object
         - kind: Secret
           name: thanos-secrets
@@ -8253,10 +8243,21 @@ monitoring:
     #   to point to the mgmt cluster Thanos receive ingress
     receive_url: http://thanos-receive.thanos.svc.cluster.local:19291/api/v1/receive
     objstoreConfig:
+      # https://github.com/thanos-io/objstore#supported-providers-clients
+      # lists all supported provides
+
+      # For S3 type https://github.com/thanos-io/objstore#s3 shows all the options
+      # At a minimum, you will need to provide a value for the
+      # bucket, endpoint, access_key, and secret_key keys under config
+      # The rest of the keys are optional.
       type: "S3"
       config:
+        # access_key - handled by thanos-init
+        # secret_key - handled by thanos-init
+        access_key: '{{ lookup "v1" "Secret" "sylva-system" "thanos-minio-user" | dig "data" "CONSOLE_ACCESS_KEY" "" | b64dec | fromYaml | default "" | include "preserve-type" }}'
+        secret_key: '{{ lookup "v1" "Secret" "sylva-system" "thanos-minio-user" | dig "data" "CONSOLE_SECRET_KEY" "" | b64dec | fromYaml | default "" | include "preserve-type" }}'
         bucket: "thanos"
-        endpoint: minio.minio-monitoring.svc.cluster.local
+        endpoint: "minio.minio-monitoring.svc.cluster.local"
         insecure: false
         http_config:
           tls_config:

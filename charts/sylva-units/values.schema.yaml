@@ -1229,6 +1229,9 @@ properties:
         properties:
           objstoreConfig:
             type: object
+            properties:
+              type:
+                type: string
           receive_url:
             anyOf:
             - type: string
