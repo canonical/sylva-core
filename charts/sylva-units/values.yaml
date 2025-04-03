@@ -6763,7 +6763,7 @@ units:
               #!/bin/bash
               # delete resource used by thanos to store credentials for minio-monitoring resource
               kubectl -n sylva-system delete externalsecrets.external-secrets.io thanos-minio-user --ignore-not-found=true
-              kubectl -n sylva-system delete secret thanos-minio-user
+              kubectl -n sylva-system delete secret thanos-minio-user --ignore-not-found=true
 
   thanos-credentials-secret:
     info:
