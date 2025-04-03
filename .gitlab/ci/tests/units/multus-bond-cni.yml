@@ -1,0 +1,20 @@
+---
+# This job tests multus-bond-cni unit behavior
+
+wkld-multus-bond-cni:
+  extends:
+    - .test-base-workload-cluster
+  script:
+    - unset https_proxy http_proxy
+    - |
+      if ! kubectl --kubeconfig management-cluster-kubeconfig get kustomization multus -n "${WORKLOAD_CLUSTER_NAME}" &>/dev/null; then
+        echo "Multus is not configured on workload cluster, skipping this check."
+        exit 0
+      fi
+      nodes=$(kubectl --kubeconfig workload-cluster-kubeconfig get nodes -o jsonpath='{.items[*].metadata.name}')
+      for node in $nodes; do
+          echo "Checking node: $node"
+          kubectl --kubeconfig workload-cluster-kubeconfig debug node/$node -n kube-system -it --image=alpine:edge -- /bin/sh -c 'CNI_COMMAND="VERSION" chroot /host /opt/cni/bin/bond || { echo "Could not execute /opt/cni/bin/bond"; exit 1; }'
+      done
+  variables:
+    DESCRIPTION: Makes sure the bond CNI is installed.
