@@ -6736,6 +6736,35 @@ units:
         - '{{ ternary "../tls-components/tls-secret" "../tls-components/tls-certificate" (hasKey .Values.external_certificates.thanos "cert") }}'
         - "../tls-components/sylva-ca"
 
+  thanos-init-post:
+    info:
+      description: Remove secrets and externalsecrets used by Thanos to connect to internal Minio service
+      details: This enables use of external storage by Thanos
+      internal: true
+    one_shot: true
+    unit_templates:
+    - base-deps
+    - kube-job
+    enabled_conditions:
+    - '{{ tuple . "thanos" | include "unit-enabled" }}'
+    - '{{ not .Values.monitoring.thanos.use_internal_storage | include "preserve-type" }}'
+    depends_on:
+      thanos-init: true
+    kustomization_spec:
+      targetNamespace: sylva-system
+      _patches:
+      - target:
+          kind: ConfigMap
+          labelSelector: kube-job=script
+        patch: |
+          - op: replace
+            path: /data/kube-job.sh
+            value: |
+              #!/bin/bash
+              # delete resource used by thanos to store credentials for minio-monitoring resource
+              kubectl -n sylva-system delete externalsecrets.external-secrets.io thanos-minio-user --ignore-not-found=true
+              kubectl -n sylva-system delete secret thanos-minio-user
+
   thanos-credentials-secret:
     info:
       description: create a secret containing tenant's thanos credentials
