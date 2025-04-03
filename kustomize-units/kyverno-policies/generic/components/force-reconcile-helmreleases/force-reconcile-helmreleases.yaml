@@ -52,13 +52,13 @@ spec:
     preconditions:
       all:
       # Install or upgrade has failed
-      - key: "{{ request.object.status.conditions || '[]' | [?type == 'Ready'].reason | [0] || 'NotFound' }}"
+      - key: "{{ request.object.status.conditions || `[]` | [?type == 'Ready'].reason | [0] || 'NotFound' }}"
         operator: AnyIn
         value:
         - InstallFailed
         - UpgradeFailed
       # Request reconciliation once flux is not reconciling any more
-      - key: "{{ request.object.status.conditions || '[]' | [?type == 'Reconciling'] | length(@) }}"
+      - key: "{{ request.object.status.conditions || `[]` | [?type == 'Reconciling'] | length(@) }}"
         operator: Equals
         value: 0
       # Reconciliation should not be requested more than 3 times for a given release

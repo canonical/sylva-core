@@ -6,13 +6,6 @@
 nameOverride: ""
 fullnameOverride: ""
 
-# registry secrets
-registry_secret: {}
-  # when using gitlab, git creds can be used as registry creds
-  #registry.gitlab.com:
-  #  username: your_user_name
-  #  password: glpat-XXXXX
-
 git_repo_spec_default:
   interval: 60m0s
 
@@ -1295,7 +1288,7 @@ units:
       chart:
         spec:
           chart: vault-config-operator
-          version: v0.8.30
+          version: v0.8.31
       targetNamespace: vault
       values:
         enableCertManager: true
@@ -1349,7 +1342,7 @@ units:
       chart:
         spec:
           chart: external-secrets
-          version: 0.15.0
+          version: 0.15.1
       targetNamespace: external-secrets
       install:
         createNamespace: true
@@ -1386,7 +1379,7 @@ units:
       chart:
         spec:
           chart: rancher-cis-benchmark-crd
-          version: 105.3.0+up7.3.0
+          version: 105.4.0+up7.4.0
       targetNamespace: cis-operator-system
       install:
         createNamespace: true
@@ -1406,7 +1399,7 @@ units:
       chart:
         spec:
           chart: rancher-cis-benchmark
-          version: 105.3.0+up7.3.0
+          version: 105.4.0+up7.4.0
       targetNamespace: cis-operator-system
 
   cis-operator-scan:
@@ -2723,7 +2716,7 @@ units:
       chart:
         spec:
           chart: metal3
-          version: 0.10.1
+          version: 0.9.3
       timeout: 30m
       targetNamespace: metal3-system
       values:
@@ -5905,7 +5898,7 @@ units:
       chart:
         spec:
           chart: gitea
-          version: 11.0.0
+          version: 11.0.1
       targetNamespace: gitea
       releaseName: gitea
       values:
