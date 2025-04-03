@@ -7020,6 +7020,16 @@ units:
                   - '{{ .Values.external_hostnames.thanos_receive }}'
                 secretName: thanos-tls
       valuesFrom:
+        - kind: Secret
+          name: thanos-minio-user
+          valuesKey: CONSOLE_ACCESS_KEY
+          targetPath: objstoreConfig.config.access_key
+          optional: true
+        - kind: Secret
+          name: thanos-minio-user
+          valuesKey: CONSOLE_SECRET_KEY
+          targetPath: objstoreConfig.config.secret_key
+          optional: true
         # Use tenant list built by kyverno policy thanos-aggregated-secret to fill auth.basicAuthUsers object
         - kind: Secret
           name: thanos-secrets
@@ -8252,10 +8262,8 @@ monitoring:
       # The rest of the keys are optional.
       type: "S3"
       config:
-        # access_key - handled by thanos-init
-        # secret_key - handled by thanos-init
-        access_key: '{{ lookup "v1" "Secret" "sylva-system" "thanos-minio-user" | dig "data" "CONSOLE_ACCESS_KEY" "" | b64dec | fromYaml | default "" | include "preserve-type" }}'
-        secret_key: '{{ lookup "v1" "Secret" "sylva-system" "thanos-minio-user" | dig "data" "CONSOLE_SECRET_KEY" "" | b64dec | fromYaml | default "" | include "preserve-type" }}'
+        access_key: "xxx"
+        secret_key: "yyy"
         bucket: "thanos"
         endpoint: "minio.minio-monitoring.svc.cluster.local"
         insecure: false
