@@ -1700,6 +1700,7 @@ units:
     info:
       description: initializes and configures Keycloak
       maturity: stable
+      internal: true
     unit_templates:
     - base-deps
     depends_on:
