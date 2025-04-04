@@ -7093,7 +7093,8 @@ units:
                   insecure_skip_verify: true
               static_configs: ["thanos-query-frontend:9090"]
               scheme: http
-      objstoreConfig: '{{ .Values.monitoring.thanos.objstoreConfig | include "preserve-type" }}'
+      objstoreConfig:
+        '{{ .Values.monitoring.thanos.objstoreConfig | include "preserve-type" }}'
   logging-crd:
     info:
       description: install rancher-logging CRD
@@ -8284,7 +8285,24 @@ monitoring:
     # use_internal_storage: false to configure an external storage
     use_internal_storage: true
 
-    objstoreConfig:
+    store_config_internal:
+      bucket: "thanos"
+      endpoint: "minio.minio-monitoring.svc.cluster.local"
+      insecure: false
+      http_config:
+        tls_config:
+          insecure_skip_verify: true
+        insecure_skip_verify: true
+      # Use reduced reduncancy storage class (EC:1) as we are using two replicas in longhorn
+      put_user_metadata:
+        X-Amz-Storage-Class: REDUCED_REDUNDANCY
+
+
+    # only taken into account when use_internal_storage: false
+    store_type: "S3"
+
+    # store config
+    store_config_external: {}
       # https://github.com/thanos-io/objstore#supported-providers-clients
       # lists all supported provides
 
@@ -8292,22 +8310,18 @@ monitoring:
       # At a minimum, you will need to provide a value for the
       # bucket, endpoint, access_key, and secret_key keys under config
       # The rest of the keys are optional.
-      type: "S3"
-      config:
-        # uncomment when using external S3 service
-        # when using internal MinIO they are set up in thanos-init
-        access_key: "access"
-        secret_key: "secret"
-        bucket: "thanos"
-        endpoint: "minio.minio-monitoring.svc.cluster.local"
-        insecure: false
-        http_config:
-          tls_config:
-            insecure_skip_verify: true
-          insecure_skip_verify: true
-        # Use reduced reduncancy storage class (EC:1) as we are using two replicas in longhorn
-        put_user_metadata:
-          X-Amz-Storage-Class: REDUCED_REDUNDANCY
+
+    # do not override directly!
+    # instead use 'monitoring.thanos.store_type' and 'monitoring.thanos.store_config_external'
+    # when using an external store
+    objstoreConfig:
+      type: '{{ ternary "S3" .Values.monitoring.thanos.store_type .Values.monitoring.thanos.use_internal_storage }}'
+      config: |-
+        {{ if .Values.monitoring.thanos.use_internal_storage }}
+        {{ .Values.monitoring.thanos.store_config_internal | include "preserve-type" }}
+        {{ else }}
+        {{ .Values.monitoring.thanos.store_config_external | include "preserve-type" }}
+        {{ end }}
 
   alertmanager:
     config: {}
