@@ -1777,6 +1777,7 @@ units:
     info:
       description: installs Keycloak "legacy" operator
       maturity: stable
+      internal: true
     unit_templates:
     - base-deps
     enabled_conditions:
