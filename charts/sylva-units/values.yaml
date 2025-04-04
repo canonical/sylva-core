@@ -6751,6 +6751,8 @@ units:
     depends_on:
       thanos-init: true
     kustomization_spec:
+      upgrade:
+        force: true
       targetNamespace: sylva-system
       _patches:
       - target:
