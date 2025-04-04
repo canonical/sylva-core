@@ -5922,6 +5922,7 @@ units:
       path: ./kustomize-units/gitea-postgres
       wait: true
       _components:
+        - '{{ tuple "./components/ha" (.Values._internal.ha_cluster.is_ha) | include "set-only-if" }}'
         - '{{ tuple "./components/gitea-upgrade-db" (and .Values._internal.state.is_upgrade (tuple . "gitea" | include "unit-enabled")) | include "set-only-if" }}'
 
   gitea:
@@ -5938,6 +5939,7 @@ units:
       gitea-secrets: true
       gitea-redis: true
       gitea-postgresql-ha: true
+      gitea-cnpg-postgres: true
       namespace-defs: true
       '{{ .Values._internal.default_storage_class_unit }}': true
     annotations:
@@ -6005,9 +6007,9 @@ units:
               ENABLE_PPROF: true
             database:
               DB_TYPE: postgres
-              HOST: gitea-postgres-postgresql-ha-pgpool.gitea.svc.cluster.local:5432
-              NAME: gitea
-              USER: gitea
+              HOST: cnpg-gitea-rw.gitea.svc.cluster.local:5432
+              NAME: app
+              USER: app
               # define by env variable: PASSWD
               SCHEMA: public
             session:
@@ -6028,7 +6030,7 @@ units:
               valueFrom:
                 secretKeyRef:
                   key: password
-                  name: gitea-postgres-secrets
+                  name: cnpg-gitea-app
             - name: GITEA__QUEUE__CONN_STR # redis connection string for queue
               valueFrom:
                 secretKeyRef:
