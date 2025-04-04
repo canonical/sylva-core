@@ -6804,6 +6804,7 @@ units:
     depends_on:
       namespace-defs: true
       thanos-init: true
+      thanos-init-post: '{{ tuple . "thanos-init-post" | include "unit-enabled" }}'
       thanos-credentials-secret: true
       minio-monitoring: true
       '{{ .Values._internal.default_storage_class_unit }}': true
