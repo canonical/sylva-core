@@ -6741,7 +6741,6 @@ units:
       description: Remove secrets and externalsecrets used by Thanos to connect to internal Minio service
       details: This enables use of external storage by Thanos
       internal: true
-    one_shot: true
     unit_templates:
     - base-deps
     - kube-job
@@ -6751,8 +6750,6 @@ units:
     depends_on:
       thanos-init: true
     kustomization_spec:
-      upgrade:
-        force: true
       targetNamespace: sylva-system
       _patches:
       - target:
