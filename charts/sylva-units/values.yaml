@@ -135,7 +135,7 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
     spec:
       url: https://github.com/grafana/loki.git
       ref:
-        tag: v3.3.2
+        tag: v3.3.4
 
   sylva-logging-flows:
     kind: GitRepository
