@@ -1176,7 +1176,6 @@ units:
       details: |
         Vault assumes that the certificate vault-tls has been issued
       maturity: stable
-      internal: true
     unit_templates:
     - base-deps
     depends_on:
@@ -1700,7 +1699,6 @@ units:
     info:
       description: initializes and configures Keycloak
       maturity: stable
-      internal: true
     unit_templates:
     - base-deps
     depends_on:
@@ -1777,7 +1775,6 @@ units:
     info:
       description: installs Keycloak "legacy" operator
       maturity: stable
-      internal: true
     unit_templates:
     - base-deps
     enabled_conditions:
