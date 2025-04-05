@@ -9057,7 +9057,6 @@ shared_workload_clusters_values:
     air_gapped: '{{ .Values.cluster.air_gapped | include "set-if-defined" }}'
     capi_providers: '{{ .Values.cluster.capi_providers | include "preserve-type" }}'
     mgmt_cluster_ip: '{{ .Values.display_external_ip }}'
-    mgmt_cluster_service_names: '{{ .Values._internal.mgmt_cluster_service_names }}'
     capm3:
       image_provisioning_host: '{{ .Values.display_external_ip }}'
     default_node_class: '{{ .Values.cluster.default_node_class }}'
