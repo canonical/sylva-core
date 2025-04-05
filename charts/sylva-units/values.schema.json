@@ -3123,16 +3123,6 @@
         {
           "type": "object",
           "additionalProperties": false,
-          "required": [
-            "non_hugepages_minimum_memory_gb",
-            "kernel_cmdline",
-            "kubelet_extra_args",
-            "kubelet_config_file_options",
-            "nodeTaints",
-            "nodeLabels",
-            "nodeAnnotations",
-            "additional_commands"
-          ],
           "properties": {
             "non_hugepages_minimum_memory_gb": {
               "anyOf": [
