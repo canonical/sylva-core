@@ -23,13 +23,10 @@
 cluster:
   name: '{{ .Release.Namespace }}'
 
-  default_node_class: generic
-  node_classes:
-    generic:
-      additional_commands:
-        pre_bootstrap_commands:
-        - update-ca-certificates
-        - '{{ tuple "echo {{ .Values.cluster.mgmt_cluster_ip }} harbor.sylva >>  /etc/hosts" (.Values._internal | dig "sylva_mgmt_enabled_units" "harbor" true) | include "set-only-if"  }}'
+  additional_commands:
+    pre_bootstrap_commands:
+    - update-ca-certificates
+    - '{{ tuple "echo {{ .Values.cluster.mgmt_cluster_ip }} harbor.sylva >>  /etc/hosts" (.Values._internal | dig "sylva_mgmt_enabled_units" "harbor" true) | include "set-only-if"  }}'
 
 # ensure that our unit Kustomizations are deployed
 # in the workload cluster
