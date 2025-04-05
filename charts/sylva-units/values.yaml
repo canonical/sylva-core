@@ -702,14 +702,9 @@ units:
           runAsNonRoot: true
           seccompProfile:
             type: RuntimeDefault
-          allowPrivilegeEscalation: false
-          capabilities:
-            drop:
-            - ALL
           privileged: false
           readOnlyRootFilesystem: true
           runAsGroup: 10000
-          runAsUser: 10000
         serviceAccount:
           annotations: {}
           create: true
@@ -1096,56 +1091,21 @@ units:
         - kustomize:
             patches:
               - target:
-                  kind: Deployment|StatefulSet
-                patch: |-
-                  - op: add
-                    path: /spec/template/spec/containers/0/securityContext
-                    value:
-                      runAsNonRoot: true
-                      seccompProfile:
-                        type: RuntimeDefault
-                      allowPrivilegeEscalation: false
-                      capabilities:
-                        drop:
-                          - ALL
-              - target:
-                  kind: Deployment
-                  name: harbor-registry
-                patch: |-
-                  - op: add
-                    path: /spec/template/spec/containers/1/securityContext
-                    value:
-                      runAsNonRoot: true
-                      seccompProfile:
-                        type: RuntimeDefault
-                      allowPrivilegeEscalation: false
-                      capabilities:
-                        drop:
-                          - ALL
-              - target:
                   kind: StatefulSet
                   name: harbor-database
                 patch: |-
                   - op: add
+                    path: /spec/template/spec/containers/0/securityContext
+                    value:
+                      runAsUser: 999
+                  - op: add
                     path: /spec/template/spec/initContainers/0/securityContext
                     value:
-                      runAsNonRoot: true
-                      seccompProfile:
-                        type: RuntimeDefault
-                      allowPrivilegeEscalation: false
-                      capabilities:
-                        drop:
-                          - ALL
+                      runAsUser: 999
                   - op: add
                     path: /spec/template/spec/initContainers/1/securityContext
                     value:
-                      runAsNonRoot: true
-                      seccompProfile:
-                        type: RuntimeDefault
-                      allowPrivilegeEscalation: false
-                      capabilities:
-                        drop:
-                          - ALL
+                      runAsUser: 999
       install:
         createNamespace: true
 
@@ -1437,7 +1397,6 @@ units:
       sylva-ca: true
       vault: true
       vault-config-operator: true
-      kyverno: true
       keycloak-add-client-scope: true
       keycloak-oidc-external-secrets: true
     repo: sylva-core
@@ -2230,8 +2189,6 @@ units:
     unit_templates: [] # we intendedly don't inherit from base-deps, because kyverno-policies is itself part of base dependencies
     enabled_conditions:
     - '{{ tuple . "kyverno" | include "unit-enabled" }}'
-    depends_on:
-      kyverno: true
     repo: sylva-core
     kustomization_spec:
       path: ./kustomize-units/kyverno-policies/generic
@@ -2346,7 +2303,6 @@ units:
     - '{{ tuple . "kyverno" | include "unit-enabled" }}'
     - '{{ tuple . "rancher" | include "unit-enabled" }}'
     depends_on:
-      kyverno: '{{ tuple . "kyverno" | include "unit-enabled" }}'
       rancher: true
     repo: sylva-core
     kustomization_spec:
@@ -2725,6 +2681,9 @@ units:
           provisioningInterface: eth0
         metal3-ironic:
           fullnameOverride: metal3-ironic
+          podSecurityContext:
+            runAsUser: 10475
+            fsGroup: 10475
           service:
             type: LoadBalancer
             externalIPs:
@@ -2740,6 +2699,9 @@ units:
         metal3-baremetal-operator:
           replicaCount: '{{ .Values._internal.ha_cluster.is_ha | ternary 2 1 | include "preserve-type" }}'
         metal3-mariadb:
+          securityContext:
+            runAsUser: 10060
+            fsGroup: 10060
           persistence:
             storageClass: '{{ .Values._internal.default_storage_class }}'
       _postRenderers:
@@ -3862,15 +3824,8 @@ units:
                         containers:
                         - name: k8s-gateway
                           securityContext:
-                            allowPrivilegeEscalation: false
-                            capabilities:
-                              drop:
-                              - ALL
-                            runAsNonRoot: true
                             runAsGroup: 1000
                             runAsUser: 1000
-                            seccompProfile:
-                              type: RuntimeDefault
 
   cluster-vip-fix-lbclass:
     info:
@@ -3959,10 +3914,10 @@ units:
               - ALL
           privileged: false
           runAsNonRoot: true
-          runAsGroup: 10000
-          runAsUser: 10000
           seccompProfile:
             type: RuntimeDefault
+          runAsGroup: 1
+          runAsUser: 1
         conf:
           env:
             - name: URL_REMAP
@@ -4220,17 +4175,10 @@ units:
                         containers:
                         - name: weave-gitops
                           securityContext:
-                            allowPrivilegeEscalation: false
-                            capabilities:
-                              drop:
-                              - ALL
                             privileged: false
                             readOnlyRootFilesystem: true
-                            runAsNonRoot: true
                             runAsGroup: 1000
                             runAsUser: 1000
-                            seccompProfile:
-                              type: RuntimeDefault
 
   prometheus-custom-metrics:
     info:
@@ -4834,15 +4782,8 @@ units:
             - name: no_proxy
               value: '{{ include "sylva-units.no_proxy" (tuple .) | quote }}'
           securityContext:
-            capabilities:
-              drop:
-              - ALL
-            runAsNonRoot: true
             runAsUser: 1000
             readOnlyRootFilesystem: true
-            allowPrivilegeEscalation: false
-            seccompProfile:
-              type: RuntimeDefault
           volumeMounts:
             - mountPath: /config
               name: config
@@ -5440,7 +5381,6 @@ units:
     - base-deps
     depends_on:
       cluster-creator-login: true
-      kyverno: true
     repo: sylva-core
     kustomization_spec:
       path: ./kustomize-units/cluster-creator-policy
@@ -5572,27 +5512,6 @@ units:
           proxy: '{{ get .Values.proxies "https_proxy" }}'
           no_proxy: '{{ include "sylva-units.no_proxy" (tuple .) }}'
           extra_ca_certs: '{{ .Values.oci_registry_extra_ca_certs | include "set-if-defined" }}'
-          securityContext:
-            capabilities:
-              drop:
-              - ALL
-            runAsNonRoot: true
-            runAsUser: 10000
-            readOnlyRootFilesystem: true
-            allowPrivilegeEscalation: false
-            seccompProfile:
-              type: RuntimeDefault
-        nginx:
-          securityContext:
-            capabilities:
-              drop:
-              - ALL
-            runAsNonRoot: true
-            runAsUser: 10000
-            readOnlyRootFilesystem: true
-            allowPrivilegeEscalation: false
-            seccompProfile:
-              type: RuntimeDefault
         ingress:
           className: nginx
           hosts:
@@ -5926,8 +5845,8 @@ units:
               - ALL
           privileged: false
           readOnlyRootFilesystem: true
-          runAsGroup: 1000
           runAsNonRoot: true
+          runAsGroup: 1000
           runAsUser: 1000
           seccompProfile:
             type: RuntimeDefault
@@ -6414,13 +6333,13 @@ units:
                 seccompProfile:
                   type: RuntimeDefault
               securityContext:
+                runAsNonRoot: true
+                seccompProfile:
+                  type: RuntimeDefault
                 runAsUser: 1000
                 runAsGroup: 1000
                 fsGroup: 1000
                 fsGroupChangePolicy: "OnRootMismatch"
-                runAsNonRoot: true
-                seccompProfile:
-                  type: RuntimeDefault
               resources:
                 limits:
                   cpu: 500m
@@ -6887,6 +6806,20 @@ units:
               - hosts:
                   - '{{ .Values.external_hostnames.thanos_query }}'
                 secretName: thanos-tls
+          containerSecurityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            seccompProfile:
+              type: RuntimeDefault
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            seccompProfile:
+              type: RuntimeDefault
         queryFrontend:
           loglevel: info
           extraFlags:
@@ -6915,6 +6848,20 @@ units:
               - hosts:
                   - '{{ .Values.external_hostnames.thanos }}'
                 secretName: thanos-tls
+          containerSecurityContext:
+            capabilities:
+              drop:
+                - ALL
+            seccompProfile:
+              type: RuntimeDefault
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            runAsNonRoot: true
+            seccompProfile:
+              type: RuntimeDefault
         storegateway:
           enabled: true
           logLevel: info
@@ -6973,6 +6920,20 @@ units:
           - --enable-auto-gomemlimit
           - --tsdb.max-retention-bytes=12GB
           - --tsdb.wal-compression
+          containerSecurityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            seccompProfile:
+              type: RuntimeDefault
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            seccompProfile:
+              type: RuntimeDefault
           ingress:
             enabled: true
             ingressClassName: "nginx"
@@ -7105,7 +7066,6 @@ units:
             auditFilename: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" | ternary "/var/lib/rancher/rke2/server/logs/audit.log" "" }}'
             enabled: '{{ and (gt (int .Values.audit_log.level) 0) (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" ) | include "as-bool" }}'
         securityContext:
-          allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
           capabilities:
             drop: ["ALL"]
@@ -7352,6 +7312,17 @@ units:
             minReplicas: 2
             maxReplicas: 6
             targetCPUUtilizationPercentage: 40
+          podSecurityContext:
+            seccompProfile:
+              type: RuntimeDefault
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            runAsNonRoot: true
+            seccompProfile:
+              type: RuntimeDefault
           extraVolumes:
             - name: data
               emptyDir: {}
@@ -7366,10 +7337,32 @@ units:
           replicas: '{{ int .Values._internal.node_count | gt 2 | ternary 1 2 }}'
           persistence:
             size: 3Gi
+          podSecurityContext:
+            seccompProfile:
+              type: RuntimeDefault
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            runAsNonRoot: true
+            seccompProfile:
+              type: RuntimeDefault
         backend:
           replicas: '{{ int .Values._internal.node_count | gt 2 | ternary 1 2 }}'
           persistence:
             size: 3Gi
+          podSecurityContext:
+            seccompProfile:
+              type: RuntimeDefault
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            runAsNonRoot: true
+            seccompProfile:
+              type: RuntimeDefault
         memberlist:
           service:
             publishNotReadyAddresses: true

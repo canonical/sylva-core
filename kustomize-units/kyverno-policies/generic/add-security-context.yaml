@@ -1,0 +1,77 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: add-security-context
+  annotations:
+    pod-policies.kyverno.io/autogen-controllers: none
+    policies.kyverno.io/title: add security context
+    policies.kyverno.io/category: Other
+    policies.kyverno.io/severity: medium
+    policies.kyverno.io/minversion: 1.6.0
+    policies.kyverno.io/subject: Pod
+    policies.kyverno.io/description: >-
+      This kyverno policy is to add security context to all pods as it was being very repetitive in values.yaml for every unit.
+      This policy is a bit flexible in terms of if someone wants to exclude some resource from this policy, "skipSecurityContext: "true" can be used.
+      Also, this policy is flexible on setting runAsUser, If nothing will be set, the default will be set which is:
+        - runAsUser: 10000
+spec:
+  rules:
+  - name: add-security-context
+    match:
+      any:
+      - resources:
+          kinds:
+          - StatefulSet
+          - Deployment
+          - Job
+          - DaemonSet
+    exclude:
+      any:
+      - resources:
+          selector:
+            matchLabels:
+              skipSecurityContext: "true"
+      - resources:
+          namespaces:
+          - calico-system
+      - resources:
+          namespaceSelector:
+            matchExpressions:
+            - key: skipSecurityContext
+              operator: In
+              values:
+              - "true"
+    mutate:
+      foreach:
+      - list: request.object.spec.template.spec.containers[]
+        patchStrategicMerge:
+          spec:
+            template:
+              spec:
+                containers:
+                - name: "{{ element.name }}"
+                  securityContext:
+                    +(allowPrivilegeEscalation): false
+                    capabilities:
+                      drop:
+                      - ALL
+                    runAsNonRoot: true
+                    seccompProfile:
+                      type: RuntimeDefault
+                    +(runAsUser): 10000
+      - list: request.object.spec.template.spec.initContainers[]
+        patchStrategicMerge:
+          spec:
+            template:
+              spec:
+                initContainers:
+                - name: "{{ element.name }}"
+                  securityContext:
+                    +(allowPrivilegeEscalation): false
+                    capabilities:
+                      drop:
+                      - ALL
+                    runAsNonRoot: true
+                    seccompProfile:
+                      type: RuntimeDefault
+                    +(runAsUser): 10000
