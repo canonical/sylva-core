@@ -24,7 +24,6 @@ cluster:
   name: '{{ .Release.Namespace }}'
   additional_commands:
     pre_bootstrap_commands:
-    - update-ca-certificates
     - echo "{{ .Values.cluster.mgmt_cluster_ip }} {{ .Values._internal.mgmt_cluster_service_names  }}"  >>  /etc/hosts
 # ensure that our unit Kustomizations are deployed
 # in the workload cluster
