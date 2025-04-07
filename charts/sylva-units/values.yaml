@@ -7076,7 +7076,7 @@ units:
               static_configs: ["thanos-query-frontend:9090"]
               scheme: http
       objstoreConfig:
-        '{{ .Values.monitoring.thanos.objstoreConfig | include "preserve-type" }}'
+        '{{ .Values._internal.thanos.objstoreConfig | include "preserve-type" }}'
 
   logging-crd:
     info:
@@ -8277,33 +8277,6 @@ monitoring:
       # https://github.com/thanos-io/objstore#supported-providers-clients
       # lists all supported provides
 
-    ### do not edit!
-    # default settings for internal MinIO storage
-    store_config_internal:
-      bucket: "thanos"
-      endpoint: "minio.minio-monitoring.svc.cluster.local"
-      insecure: false
-      http_config:
-        tls_config:
-          insecure_skip_verify: true
-        insecure_skip_verify: true
-      # Use reduced reduncancy storage class (EC:1) as we are using two replicas in longhorn
-      put_user_metadata:
-        X-Amz-Storage-Class: REDUCED_REDUNDANCY
-
-    # do not override directly!
-    # instead use 'monitoring.thanos.store_type' and 'monitoring.thanos.store_config_external'
-    # when using an external store
-    objstoreConfig:
-      type: '{{ ternary "S3" .Values.monitoring.thanos.store_type .Values.monitoring.thanos.use_sylva_internal_storage }}'
-      config: |-
-        {{ if .Values.monitoring.thanos.use_sylva_internal_storage }}
-        {{ .Values.monitoring.thanos.store_config_internal | include "preserve-type" }}
-        {{ else }}
-        {{ .Values.monitoring.thanos.store_config_external | include "preserve-type" }}
-        {{ end }}
-   ###
-
   alertmanager:
     config: {}
     webhooks:
@@ -8351,6 +8324,27 @@ monitoring:
             {{ end }}
 
 #monitoring:
+#  thanos:
+#    # use external storage
+#    use_sylva_internal_storage: false
+#    # of Google Cloud Storage
+#    store_type: "GCS"
+#    # https://github.com/thanos-io/objstore#gcs
+#    store_config_external:
+#      bucket: "test"
+#      service_account: |-
+#        {
+#          "type": "service_account",
+#          "project_id": "project",
+#          "private_key_id": "abcdefghijklmnopqrstuvwxyz12345678906666",
+#          "private_key": "-----BEGIN PRIVATE KEY-----\...\n-----END PRIVATE KEY-----\n",
+#          "client_email": "thanos@example.com",
+#          "client_id": "123456789012345678901",
+#          "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+#          "token_uri": "https://oauth2.googleapis.com/token",
+#          "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+#          "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/thanos%40gitpods.iam.gserviceaccount.com"
+#          }
 #  alertmanager:
 #    # Supported values from: https://prometheus.io/docs/alerting/latest/configuration/
 #    config:
@@ -8617,6 +8611,31 @@ _internal:
         enabled: '{{ tuple . "snmp-exporter" | include "unit-enabled" }}'
       crossplane:
         enabled: '{{ tuple . "crossplane" | include "unit-enabled" }}'
+
+  thanos:
+    # default settings for internal MinIO storage
+    store_config_internal:
+      bucket: "thanos"
+      endpoint: "minio.minio-monitoring.svc.cluster.local"
+      insecure: false
+      http_config:
+        tls_config:
+          insecure_skip_verify: true
+        insecure_skip_verify: true
+      # Use reduced reduncancy storage class (EC:1) as we are using two replicas in longhorn
+      put_user_metadata:
+        X-Amz-Storage-Class: REDUCED_REDUNDANCY
+
+    # construct objstoreConfig for intenal MinIO storage
+    # or user defined options
+    objstoreConfig:
+      type: '{{ ternary "S3" .Values.monitoring.thanos.store_type .Values.monitoring.thanos.use_sylva_internal_storage }}'
+      config: |-
+        {{ if .Values.monitoring.thanos.use_sylva_internal_storage }}
+        {{ .Values._internal.thanos.store_config_internal | include "preserve-type" }}
+        {{ else }}
+        {{ .Values.monitoring.thanos.store_config_external | include "preserve-type" }}
+        {{ end }}
 
   # thanos user and password
   thanos_user: '{{ .Values.cluster.name }}'

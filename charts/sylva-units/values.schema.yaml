@@ -1227,16 +1227,27 @@ properties:
       thanos:
         type: object
         properties:
-          objstoreConfig:
-            type: object
-            properties:
-              type:
-                type: string
           receive_url:
             anyOf:
             - type: string
               format: uri
             - $ref: "#/$defs/string-with-gotpl"
+          use_sylva_internal_storage:
+            type: boolean
+          store_type:
+            type: string
+          store_config_external:
+            type: object
+        type: object
+        if:
+          properties:
+            use_sylva_internal_storage:
+              const: false
+        then:
+          properties:
+            store_config_external:
+              minProperties: 1
+
       alertmanager:
         type: object
         properties:

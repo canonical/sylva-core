@@ -9304,14 +9304,6 @@
         "thanos": {
           "type": "object",
           "properties": {
-            "objstoreConfig": {
-              "type": "object",
-              "properties": {
-                "type": {
-                  "type": "string"
-                }
-              }
-            },
             "receive_url": {
               "anyOf": [
                 {
@@ -9322,6 +9314,29 @@
                   "$ref": "#/$defs/string-with-gotpl"
                 }
               ]
+            },
+            "use_sylva_internal_storage": {
+              "type": "boolean"
+            },
+            "store_type": {
+              "type": "string"
+            },
+            "store_config_external": {
+              "type": "object"
+            }
+          },
+          "if": {
+            "properties": {
+              "use_sylva_internal_storage": {
+                "const": false
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "store_config_external": {
+                "minProperties": 1
+              }
             }
           }
         },
