@@ -1238,7 +1238,6 @@ properties:
             type: string
           store_config_external:
             type: object
-        type: object
         if:
           properties:
             use_sylva_internal_storage:
