@@ -9769,6 +9769,20 @@
               "$ref": "#/$defs/string-with-gotpl"
             }
           ]
+        },
+        "oauth2_proxy": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "hostname"
+            },
+            {
+              "const": ""
+            },
+            {
+              "$ref": "#/$defs/string-with-gotpl"
+            }
+          ]
         }
       }
     },
@@ -9825,6 +9839,9 @@
           "$ref": "#/$defs/cert-and-key"
         },
         "kubevirt_manager": {
+          "$ref": "#/$defs/cert-and-key"
+        },
+        "oauth2_proxy": {
           "$ref": "#/$defs/cert-and-key"
         }
       }
@@ -11065,6 +11082,20 @@
           "pattern": "(\\*|[0-5]?[0-9]|\\*/[0-9]+)\\s+(\\*|1?[0-9]|2[0-3]|\\*/[0-9]+)\\s+(\\*|[1-2]?[0-9]|3[0-1]|\\*/[0-9]+)\\s+(\\*|[0-9]|1[0-2]|\\*/[0-9]+|jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\\s+(\\*/[0-9]+|\\*|[0-7]|sun|mon|tue|wed|thu|fri|sat)\\s*(\\*/[0-9]+|\\*|[0-9]+)?"
         }
       }
+    },
+    "oauth2_proxy": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "hostname"
+        },
+        {
+          "const": ""
+        },
+        {
+          "$ref": "#/$defs/string-with-gotpl"
+        }
+      ]
     }
   },
   "allOf": [

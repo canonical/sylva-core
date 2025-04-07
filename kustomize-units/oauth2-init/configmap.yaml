@@ -1,0 +1,7 @@
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: oauth2-proxy-unit
+data:
+  unit: oauth2-proxy

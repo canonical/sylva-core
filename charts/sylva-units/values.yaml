@@ -290,6 +290,7 @@ unit_templates:
         - '{{ tuple "components/kube-system" (list "cabpr" "cabpck" | has .Values.cluster.capi_providers.bootstrap_provider) | include "set-only-if" }}'
         - '{{ tuple "components/neuvector" (tuple . "neuvector" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/kunai" (tuple . "kunai" | include "unit-enabled") | include "set-only-if" }}'
+        - '{{ tuple "components/oauth2-proxy" (tuple . "oauth2-proxy" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/sbom-operator" (tuple . "sbom-operator" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/rancher-turtles" (tuple . "rancher-turtles" | include "unit-enabled") | include "set-only-if" }}'
 
@@ -2144,6 +2145,75 @@ units:
         dtrack-api-key: '{{ tuple .Values.security.sbom_operator.dtrack_api_key (hasKey .Values.security.sbom_operator "dtrack-api-key") | include "set-only-if" }}'
         oci-user: '{{ tuple .Values.security.sbom_operator.oci_user (hasKey .Values.security.sbom_operator "oci-user") | include "set-only-if" }}'
         oci-token: '{{ tuple .Values.security.sbom_operator.oci_token (hasKey .Values.security.sbom_operator "oci-token") | include "set-only-if" }}'
+
+  oauth2-init:
+    info:
+      description: initializes and configures oauth2-proxy
+      maturity: beta
+      internal: true
+    unit_templates:
+    - base-deps
+    depends_on:
+      sylva-ca: true
+      namespace-defs: true
+      ingress-nginx: '{{ tuple . "ingress-nginx" | include "unit-enabled" }}'
+    repo: sylva-core
+#    kustomization_substitute_secrets:
+#      KEY: '{{ .Values.external_certificates.flux.key | default "" | b64enc }}'
+    kustomization_spec:
+      path: ./kustomize-units/oauth2-init
+      targetNamespace: oauth2-proxy
+      postBuild:
+        substitute:
+          SERVICE: oauth2-proxy
+          SERVICE_DNS: '{{ .Values.external_hostnames.oauth2_proxy }}'
+          CERT: '{{ .Values.external_certificates.oauth2_proxy.cert | default "" | b64enc }}'
+          CACERT: '{{ .Values.external_certificates.cacert | default "" | b64enc }}'
+      _components:
+        - '{{ ternary "../tls-components/tls-secret" "../tls-components/tls-certificate" (hasKey .Values.external_certificates.oauth2_proxy "cert") }}'
+        - "../tls-components/sylva-ca"
+      healthChecks:
+        - apiVersion: v1
+          kind: Secret
+          name: oauth2-proxy-tls
+          namespace: oauth2-proxy
+
+  oauth2-proxy:
+  # mount sylva certs so oauth2 trusts them
+    info:
+      description: installs OAuth2-Proxy for OIDC authentication
+      maturity: stable
+    unit_templates:
+    - base-deps
+    annotations:
+      sylvactl/readyMessage: "OAuth2-Proxy can be reached at https://{{ .Values.external_hostnames.oauth2_proxy }} ({{ .Values.external_hostnames.oauth2_proxy }} must resolve to {{ .Values.display_external_ip }})"
+    depends_on:
+      namespace-defs: true
+      keycloak-resources: true
+    helm_repo_url: https://oauth2-proxy.github.io/manifests
+    helmrelease_spec:
+      releaseName: oauth2-proxy
+      targetNamespace: oauth2-proxy
+      install:
+        createNamespace: false
+      chart:
+        spec:
+          chart: oauth2-proxy
+          version: 7.8.2
+      values:
+        ingress:
+          enabled: true
+          hosts:
+            - '{{ .Values.external_hostnames.oauth2_proxy }}' #createcerts
+          tls:
+            - secretName: oauth2-proxy-tls
+              hosts:
+                - '{{ .Values.external_hostnames.oauth2_proxy }}'
+        service:
+          type: ClusterIP
+          portNumber: 80
+          appProtocol: http
+          annotations: {}
 
   kyverno:
     info:
@@ -8323,6 +8393,7 @@ external_hostnames:
   openshift_assisted_service: 'openshift-assisted-service.{{ .Values.cluster_domain }}'
   # openshift_assisted_images can be overwritten by openshift.assisted.imageHostname
   openshift_assisted_images: 'openshift-assisted-images.{{ .Values.cluster_domain }}'
+  oauth2_proxy: 'oauth2-proxy.{{ .Values.cluster_domain }}'
 
 external_certificates:
   rancher: {}
@@ -8341,6 +8412,7 @@ external_certificates:
   grafana: {}
   kubevirt_manager: {}
   kunai: {}
+  oauth2_proxy: {}
 
 audit_log:
   level: 0

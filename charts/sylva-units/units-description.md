@@ -37,6 +37,7 @@
 | **metallb** | installs MetalLB operator | stable | [Helm chart](https://metallb.github.io/metallb) | 0.14.9 |
 | **monitoring** | installs monitoring stack | stable | [Helm chart](https://charts.rancher.io/) | 105.2.0+up66.7.1-rancher.10 |
 | **multus** | installs Multus | stable | [Helm chart](https://rke2-charts.rancher.io/) | v4.2.002 |
+| **oauth2-proxy** | installs OAuth2-Proxy for OIDC authentication | stable | [Helm chart](https://oauth2-proxy.github.io/manifests) | 7.8.2 |
 | **rancher** | installs Rancher | stable | [Helm chart](https://releases.rancher.com/server-charts/stable) | 2.10.3 |
 | **sriov-network-operator** | installs SR-IOV operator | stable | [Helm chart](https://suse-edge.github.io/charts/) | 1.5.2+up1.5.0 |
 | **vault** | installs Vault<br/><br/>Vault assumes that the certificate vault-tls has been issued | stable | [Kustomization](https://raw.githubusercontent.com/banzaicloud/bank-vaults/1.19.0/operator/deploy/rbac.yaml) | 1.19.0 |
@@ -177,6 +178,7 @@
 | **neuvector-init** | sets up Neuvector prerequisites<br/><br/>it generates certificate, admin password, policy exception for using latest tag images (required for the pod managing the database of vulnerabilities since this DB is updated often) | Kustomization |
 | **neuvector-tls** | configures Neuvector TLS<br/><br/>enable TLS protocol when using Neuvector | Kustomization |
 | **nfs-ganesha-init** | Define persistent volume claim for NFS Ganesha | Kustomization |
+| **oauth2-init** | initializes and configures oauth2-proxy | Kustomization |
 | **openshift-security-context-constraints** | sets up openshift security context constraints for operators not installed via RedHat operator lifecycle manager(OLM) | Kustomization |
 | **os-images-info** | Creates a list of os images<br/><br/>This unit creates a configmap containing information on operating system images for use with CAPO and CAPM3. | Kustomization |
 | **pivot** | moves ClusterAPI objects from bootstrap cluster to management cluster | Kustomization |
