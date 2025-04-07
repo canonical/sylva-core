@@ -7020,6 +7020,7 @@ units:
                   - '{{ .Values.external_hostnames.thanos_receive }}'
                 secretName: thanos-tls
       valuesFrom:
+        # use values from thanos-minio-user only when using internal MinIO storage
         - >-
           {{ tuple (dict
                 "kind" "Secret"
@@ -7042,6 +7043,7 @@ units:
               (.Values.monitoring.thanos.use_sylva_internal_storage)
               | include "set-only-if"
           }}
+        # Use tenant list built by kyverno policy thanos-aggregated-secret to fill auth.basicAuthUsers object
         - kind: Secret
           name: thanos-secrets
           valuesKey: secrets
