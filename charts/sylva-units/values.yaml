@@ -6581,33 +6581,22 @@ units:
               #!/bin/bash
               set -e
 
-              echo "Checking for MinIO error state..."
+              echo "Checking for MinIO image mismatch..."
 
-              TIMEOUT=45
-              START_TIME=$(date +%s)
+              TENANT_IMAGE=$(kubectl get tenants.minio.min.io -n minio-monitoring monitoring -o jsonpath='{.spec.image}')
+              STATEFULSET_IMAGE=$(kubectl get sts -n minio-monitoring monitoring-pool-0 -o jsonpath='{.spec.template.spec.containers[0].image}')
 
-              while true; do
-                  CURRENT_TIME=$(date +%s)
-                  ELAPSED_TIME=$((CURRENT_TIME - START_TIME))
+              # Exit early if images match
+              if [ "$TENANT_IMAGE" = "$STATEFULSET_IMAGE" ]; then
+                  echo "MinIO images are matching. No action needed."
+                  exit 0
+              fi
 
-                  if [ $ELAPSED_TIME -gt $TIMEOUT ]; then
-                      echo "Timed out after ${TIMEOUT}s. MinIO tenant seems healthy."
-                      exit 0
-                  fi
-
-                  MINIO_STATUS=$(kubectl get tenant monitoring -n minio-monitoring -o jsonpath='{.status.currentState}')
-
-                  if echo "$MINIO_STATUS" | grep -q "server update failed with: open /usr/bin/.minio.check-perm"; then
-                      echo "MinIO is in a failed state. Deleting StatefulSet..."
-                      kubectl delete statefulset monitoring-pool-0 -n minio-monitoring --cascade=orphan
-                      echo "StatefulSet deleted successfully. MinIO operator will recreate it."
-                      break
-                  fi
-
-                  echo "MinIO not yet in expected failed state. Current state: $MINIO_STATUS"
-                  echo "Waiting 10 seconds before checking again... (${ELAPSED_TIME}/${TIMEOUT}s elapsed)"
-                  sleep 10
-              done
+              # Delete StatefulSet if images don't match
+              echo "Image mismatch detected. Deleting StatefulSet to trigger recreation..."
+              kubectl delete statefulset monitoring-pool-0 -n minio-monitoring --cascade=orphan
+              echo "StatefulSet deleted successfully. MinIO operator will recreate it with the correct image."
+              exit 0
 
   minio-monitoring:
     info:
