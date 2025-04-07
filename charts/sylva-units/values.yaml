@@ -6720,7 +6720,7 @@ units:
       minio-monitoring-init: true
     repo: sylva-core
     kustomization_spec:
-      path: '{{if .Values.monitoring.thanos.use_internal_storage }}./kustomize-units/thanos-init{{ else }}./kustomize-units/thanos-dummy{{ end }}'
+      path: ./kustomize-units/thanos-init
       wait: true
       postBuild:
         substitute:
@@ -6735,34 +6735,6 @@ units:
       _components:
         - '{{ ternary "../tls-components/tls-secret" "../tls-components/tls-certificate" (hasKey .Values.external_certificates.thanos "cert") }}'
         - "../tls-components/sylva-ca"
-
-  thanos-init-post:
-    info:
-      description: Remove secrets and externalsecrets used by Thanos to connect to internal Minio service
-      details: This enables use of external storage by Thanos
-      internal: true
-    unit_templates:
-    - base-deps
-    - kube-job
-    enabled_conditions:
-    - '{{ tuple . "thanos" | include "unit-enabled" }}'
-    - '{{ not .Values.monitoring.thanos.use_internal_storage | include "preserve-type" }}'
-    depends_on:
-      thanos-init: true
-    kustomization_spec:
-      targetNamespace: sylva-system
-      _patches:
-      - target:
-          kind: ConfigMap
-          labelSelector: kube-job=script
-        patch: |
-          - op: replace
-            path: /data/kube-job.sh
-            value: |
-              #!/bin/bash
-              # delete resource used by thanos to store credentials for minio-monitoring resource
-              kubectl -n sylva-system delete externalsecrets.external-secrets.io thanos-minio-user --ignore-not-found=true
-              kubectl -n sylva-system delete secret thanos-minio-user --ignore-not-found=true
 
   thanos-credentials-secret:
     info:
@@ -6803,7 +6775,6 @@ units:
     depends_on:
       namespace-defs: true
       thanos-init: true
-      thanos-init-post: '{{ tuple . "thanos-init-post" | include "unit-enabled" }}'
       thanos-credentials-secret: true
       minio-monitoring: true
       '{{ .Values._internal.default_storage_class_unit }}': true
@@ -7049,17 +7020,28 @@ units:
                   - '{{ .Values.external_hostnames.thanos_receive }}'
                 secretName: thanos-tls
       valuesFrom:
-        - kind: Secret
-          name: thanos-minio-user
-          valuesKey: CONSOLE_ACCESS_KEY
-          targetPath: objstoreConfig.config.access_key
-          optional: '{{ not .Values.monitoring.thanos.use_internal_storage | include "preserve-type" }}'
-        - kind: Secret
-          name: thanos-minio-user
-          valuesKey: CONSOLE_SECRET_KEY
-          targetPath: objstoreConfig.config.secret_key
-          optional: '{{ not .Values.monitoring.thanos.use_internal_storage | include "preserve-type" }}'
-        # Use tenant list built by kyverno policy thanos-aggregated-secret to fill auth.basicAuthUsers object
+        - >-
+          {{ tuple (dict
+                "kind" "Secret"
+                "name" "thanos-minio-user"
+                "valuesKey" "CONSOLE_ACCESS_KEY"
+                "targetPath" "objstoreConfig.config.access_key"
+                "optional" "true"
+              )
+              (.Values.monitoring.thanos.use_sylva_internal_storage)
+              | include "set-only-if"
+          }}
+        - >-
+          {{ tuple (dict
+                "kind" "Secret"
+                "name" "thanos-minio-user"
+                "valuesKey" "CONSOLE_ACCESS_KEY"
+                "targetPath" "objstoreConfig.config.secret_key"
+                "optional" "true"
+              )
+              (.Values.monitoring.thanos.use_sylva_internal_storage)
+              | include "set-only-if"
+          }}
         - kind: Secret
           name: thanos-secrets
           valuesKey: secrets
@@ -7095,6 +7077,7 @@ units:
               scheme: http
       objstoreConfig:
         '{{ .Values.monitoring.thanos.objstoreConfig | include "preserve-type" }}'
+
   logging-crd:
     info:
       description: install rancher-logging CRD
@@ -8282,9 +8265,20 @@ monitoring:
     # - for workload clusters, this is overridden via shared_workload_clusters_values.monitoring.thanos.receive_url
     #   to point to the mgmt cluster Thanos receive ingress
     receive_url: http://thanos-receive.thanos.svc.cluster.local:19291/api/v1/receive
-    # use_internal_storage: false to configure an external storage
-    use_internal_storage: true
 
+    # use_sylva_internal_storage: false to configure an external storage
+    use_sylva_internal_storage: true
+
+    # only taken into account when use_sylva_internal_storage: false
+    store_type: "S3"
+
+    # custom store config
+    store_config_external: {}
+      # https://github.com/thanos-io/objstore#supported-providers-clients
+      # lists all supported provides
+
+    ### do not edit!
+    # default settings for internal MinIO storage
     store_config_internal:
       bucket: "thanos"
       endpoint: "minio.minio-monitoring.svc.cluster.local"
@@ -8297,31 +8291,18 @@ monitoring:
       put_user_metadata:
         X-Amz-Storage-Class: REDUCED_REDUNDANCY
 
-
-    # only taken into account when use_internal_storage: false
-    store_type: "S3"
-
-    # store config
-    store_config_external: {}
-      # https://github.com/thanos-io/objstore#supported-providers-clients
-      # lists all supported provides
-
-      # For S3 type https://github.com/thanos-io/objstore#s3 shows all the options
-      # At a minimum, you will need to provide a value for the
-      # bucket, endpoint, access_key, and secret_key keys under config
-      # The rest of the keys are optional.
-
     # do not override directly!
     # instead use 'monitoring.thanos.store_type' and 'monitoring.thanos.store_config_external'
     # when using an external store
     objstoreConfig:
-      type: '{{ ternary "S3" .Values.monitoring.thanos.store_type .Values.monitoring.thanos.use_internal_storage }}'
+      type: '{{ ternary "S3" .Values.monitoring.thanos.store_type .Values.monitoring.thanos.use_sylva_internal_storage }}'
       config: |-
-        {{ if .Values.monitoring.thanos.use_internal_storage }}
+        {{ if .Values.monitoring.thanos.use_sylva_internal_storage }}
         {{ .Values.monitoring.thanos.store_config_internal | include "preserve-type" }}
         {{ else }}
         {{ .Values.monitoring.thanos.store_config_external | include "preserve-type" }}
         {{ end }}
+   ###
 
   alertmanager:
     config: {}
