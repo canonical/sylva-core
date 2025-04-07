@@ -4853,6 +4853,8 @@ units:
         spec:
           chart: prometheus-snmp-exporter
           version: 9.2.1
+      install:
+        createNamespace: true
       values:
         fullnameOverride: 'snmp-exporter'
         replicas: 1
