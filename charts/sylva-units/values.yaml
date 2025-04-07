@@ -7669,43 +7669,41 @@ units:
       - '{{ or (eq .Values.cluster.capi_providers.bootstrap_provider "cabpr") (eq .Values.cluster.capi_providers.bootstrap_provider "cabpk") }}'
     depends_on:
       namespace-defs: true
-    helm_repo_url: https://nvidia.github.io/gpu-operator/
+    helm_repo_url: https://helm.ngc.nvidia.com/nvidia/
     helmrelease_spec:
       releaseName: nvidia-gpu-operator
       targetNamespace: nvidia-gpu-operator
       chart:
         spec:
           chart: gpu-operator
-          version: v24.9.2
+          version: v25.3.0
       values:
-        ## by default NFD is set to true in NVIDIA gpu-operator chart, but we need to set NFD to false if the NFD is to be deployed by others (e.g. sriov-network-operator)
-        ## yet, when NFD is deployed by sriov-network-operator, we need to check if the appropriate NodeFeatures for nvidia gpu are also handled (e.g, using kyverno policy?, something else?)
-        ## likewise, if the sriov-network-operator is deployed later on at runtime after nvidia-gpu-operator, we need to ensure that sriov-network-operator is not deploying again the NFD ??!!
-        ## (i.e., another kyverno policy this time with appropriate NodeFeatures for NIC cards?, or removing the NFD already deployed by nvidia-gpu-operator and using the NFD just deployed by sriov-network-operator?)
+        ## by default NFD is set to true in NVIDIA gpu-operator chart, do we need to set NFD to false if the NFD is to be deployed by others (e.g. sriov-network-operator)?
+        ## yet, when NFD is deployed by sriov-network-operator, we need to check if the appropriate NodeFeaturesRules for nvidia gpu are also handled (e.g, using kyverno policy?, something else?)
+        ## likewise, the sriov-network-operator can be deployed later on at runtime after nvidia-gpu-operator, this time with appropriate NodeFeaturesRules for NIC cards
         nfd:
-          enabled: true
-        #  {{- if (tuple . "sriov-network-operator" | include "unit-enabled") }}  TO BE DONE...
-        #   enabled: false
-        #  {{- end }}
+          enabled: true   # prefer for now to deploy this NFD as it comes configured for nvidia GPUs, with the 'risk' of having two NFD when sriov-network-operator is also deploying its NFD...
         ## the toolkit environment needs a bit of tunning depending on the bootstrap provider used (i.e., here below the config for cabpr and capbk)
         toolkit:
           env: >-
-           - name: CONTAINERD_CONFIG
-             {{ if (eq .Values.cluster.capi_providers.bootstrap_provider "cabpr") }}
-             value: /var/lib/rancher/rke2/agent/etc/containerd/config.toml
-             {{ else if (eq .Values.cluster.capi_providers.bootstrap_provider "cabpk") }}
-             value: /etc/containerd/config.toml
-             {{ end }}
-           - name: CONTAINERD_SOCKET
-             {{ if (eq .Values.cluster.capi_providers.bootstrap_provider "cabpr") }}
-             value: /run/k3s/containerd/containerd.sock
-             {{ else if (eq .Values.cluster.capi_providers.bootstrap_provider "cabpk") }}
-             value: /run/containerd/containerd.sock
-             {{ end }}
-           - name: CONTAINERD_RUNTIME_CLASS
-             value: nvidia
-           - name: CONTAINERD_SET_AS_DEFAULT
-             value: true   # set to false if we want to impose that only pods with  ''runtimeClassName: nvidia''  in their spec can be run on the gpu
+            - name: CONTAINERD_CONFIG
+              value: >-
+                {{- if (eq .Values.cluster.capi_providers.bootstrap_provider "cabpr") }}
+                /var/lib/rancher/rke2/agent/etc/containerd/config.toml
+                {{- else if (eq .Values.cluster.capi_providers.bootstrap_provider "cabpk") }}
+                /etc/containerd/config.toml
+                {{- end }}
+            - name: CONTAINERD_SOCKET
+              value: >-
+                {{- if (eq .Values.cluster.capi_providers.bootstrap_provider "cabpr") }}
+                /run/k3s/containerd/containerd.sock
+                {{- else if (eq .Values.cluster.capi_providers.bootstrap_provider "cabpk") }}
+                /run/containerd/containerd.sock
+                {{- end }}
+            - name: CONTAINERD_RUNTIME_CLASS
+              value: nvidia
+            - name: CONTAINERD_SET_AS_DEFAULT
+              value: true   # set to false if we want to impose that only pods with  ''runtimeClassName: nvidia''  in their spec can be run on the gpu
 
 ##### stuff related to the 'cluster' unit #####
 #
