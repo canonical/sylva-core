@@ -7859,17 +7859,7 @@ cluster:
         interface: ""
     image_provisioning_host: '{{ .Values.display_external_ip }}'
     default_network_settings:
-      mtu: >-
-        {{-
-        tuple
-          (tuple .
-          (.Values.security.calico_wireguard_enabled)
-          (1440 | include "preserve-type")
-          (1450 | include "preserve-type")
-          | include "interpret-ternary")
-        (.Values.cluster.capi_providers.infra_provider | eq "capm3")
-        | include "set-only-if"
-        -}}
+      mtu: 1500 # set network interfaces MTU size
 
   enable_longhorn: '{{ tuple . "longhorn" | include "unit-enabled" | include "as-bool" }}'
 
@@ -8822,7 +8812,7 @@ _internal:
     serviceCIDR: '{{ first .Values.cluster.cluster_services_cidrs }}'
 
   calico_mtu: |-
-    {{- $mtu := .Values.cluster.capm3.network_interfaces.mtu | int -}}
+    {{- $mtu := .Values.cluster.capm3.default_network_settings.mtu | int -}}
     {{- $encapsulation_header := dict
         "ipip" 20
         "ipipcrosssubnet" 20
