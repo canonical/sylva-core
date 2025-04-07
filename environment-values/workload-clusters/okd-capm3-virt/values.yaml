@@ -36,3 +36,11 @@ cluster:
   openshift:
     ingressVIP: 192.168.100.4
     baseDomain: okd
+
+  baremetal_hosts:
+    workload-md-0:
+      interface_mappings:
+        ens4:
+          mac_address: 52:54:00:44:44:07
+        ens5:
+          mac_address: 52:54:00:55:55:07
