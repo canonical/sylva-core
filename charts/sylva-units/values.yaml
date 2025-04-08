@@ -8599,23 +8599,7 @@ calico_helm_values:
   installation:
     calicoNetwork:
       bgp: Disabled
-      mtu: |
-        {{/*
-        ensure that .Values.cluster.capm3.default_network_settings is interpreted before we use it
-          (keeping in mind that it is used by sylva-library "calculate-mtu" named template)
-        */}}
-        {{- tuple . "cluster.capm3.default_network_settings" | include "interpret" -}}
-        {{- $control_plane_primary_interface := .Values.cluster | dig "control_plane" "capm3" "networks" "primary" "interface" .Values.cluster.capm3.networks.primary.interface -}}
-        {{- if not (eq $control_plane_primary_interface "") -}}
-          {{ tuple (dict "Values" (dict "capm3" .Values.cluster.capm3))
-                   $control_plane_primary_interface
-                   (.Values.cluster.control_plane.network_interfaces | dig $control_plane_primary_interface dict)
-                   .Values.cluster.capm3.networks
-                   .Values.cluster.control_plane.network_interfaces
-             | include "calculate-mtu" | int |  include "preserve-type" }}
-        {{- else -}}
-          {{ .Values.cluster.capm3.default_network_settings.mtu | default 1450 | include "preserve-type" }}
-        {{- end -}}
+      mtu: '{{ .Values._internal.calico_mtu }}'
       nodeAddressAutodetectionV4:
         '{{
         tuple
@@ -9056,7 +9040,17 @@ _internal:
     serviceCIDR: '{{ first .Values.cluster.cluster_services_cidrs }}'
 
   calico_mtu: |-
-    {{- $mtu := .Values.cluster.capm3.default_network_settings.mtu | int -}}
+    {{- $base_mtu := 0 -}}
+    {{- $control_plane_primary_interface := .Values.cluster | dig "control_plane" "capm3" "networks" "primary" "interface" .Values.cluster.capm3.networks.primary.interface -}}
+    {{- if not (eq $control_plane_primary_interface "") -}}
+        {{- $base_mtu = tuple (dict "Values" (dict "capm3" .Values.cluster.capm3))
+                 $control_plane_primary_interface
+                 (.Values.cluster.control_plane.network_interfaces | dig $control_plane_primary_interface dict)
+                 .Values.cluster.capm3.networks
+                 .Values.cluster.control_plane.network_interfaces | include "calculate-mtu" | int -}}
+    {{- else -}}
+        {{- $base_mtu = .Values.cluster.capm3.default_network_settings.mtu | int -}}
+    {{- end -}}
     {{- $encapsulation_header := dict
         "ipip" 20
         "ipipcrosssubnet" 20
@@ -9079,9 +9073,9 @@ _internal:
       {{- end }}
     {{- end }}
     {{- if gt $max_overhead 0 }}
-      {{- $mtu = sub $mtu $max_overhead -}}
+      {{- $base_mtu = sub $base_mtu $max_overhead -}}
     {{- end }}
-    {{- $mtu | include "preserve-type" -}}
+    {{- $base_mtu | include "preserve-type" -}}
 
 shared_workload_clusters_values:
   ntp: '{{ .Values.ntp | include "set-if-defined" }}'
