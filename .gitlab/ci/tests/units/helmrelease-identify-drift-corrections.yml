@@ -1,6 +1,6 @@
 .detect-drift:
   script:
-    - ./tools/detect_drift.sh
+    - ./tools/helmrelease-identify-drift-corrections.sh
   artifacts:
     expire_in: 48 hour
     when: always
