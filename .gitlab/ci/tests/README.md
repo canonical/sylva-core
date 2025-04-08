@@ -93,7 +93,7 @@ By following these guidelines, developers can effectively contribute to the Sylv
 | `mgmt-test-units`|Assess the status of test units after the management cluster deployment.|
 | `mgmt-update-test-units`|Assess the status of test units after the management cluster update.|
 | `mgmt-cronjob-testing`|Confirm that each Kubernetes CronJob can be executed successfully.|
-| `mgmt-detect-drift`|Check for drifts in the helm controller logs in the mgmt cluster|
+| `mgmt-drift-corrections`|Check for drifts in the helm controller logs in the mgmt cluster|
 | `mgmt-avoid-mgmt-deletion-policies`|Ensure we can't delete key Sylva Flux and CAPI resources for the mgmt cluster.|
 | `mgmt-verify-longhorn-cleanup-events`|Highlight longhorn-instance-manager-cleanup events.|
 
