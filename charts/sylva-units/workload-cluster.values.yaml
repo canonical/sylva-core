@@ -389,6 +389,9 @@ units:
           name: '{{ .Values.cluster.name }}-capi-monitoring-info'  # this configmap is produced by a kyverno policy defined by the "rancher-monitoring-clusterid-inject" mgmt unit
           optional: false
 
+  sylva-dashboards:
+    enabled: true
+
   thanos-credentials-secret:
     enabled: true
     enabled_conditions:
