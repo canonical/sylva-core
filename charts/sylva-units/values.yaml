@@ -2786,7 +2786,7 @@ units:
       chart:
         spec:
           chart: metal3
-          version: 0.9.3
+          version: 0.10.1
       timeout: 30m
       targetNamespace: metal3-system
       values:
@@ -2794,6 +2794,10 @@ units:
           ironicIP: '{{ .Values.display_external_ip }}'
           provisioningInterface: eth0
         metal3-ironic:
+          images:
+            ironicIPADownloader:
+              repository: registry.opensuse.org/isv/suse/edge/metal3/ironic/2024.2/containerfile/ironic-ipa-downloader
+              tag: 3.0.4
           fullnameOverride: metal3-ironic
           service:
             type: LoadBalancer
