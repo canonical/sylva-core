@@ -7036,7 +7036,7 @@ units:
           {{ tuple (dict
                 "kind" "Secret"
                 "name" "thanos-minio-user"
-                "valuesKey" "CONSOLE_ACCESS_KEY"
+                "valuesKey" "CONSOLE_SECRET_KEY"
                 "targetPath" "objstoreConfig.config.secret_key"
                 "optional" true
               )
