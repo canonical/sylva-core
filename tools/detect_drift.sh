@@ -42,10 +42,10 @@ for hr in $DRIFTED_HRS; do
   
   # Check if this specific action is allowed for this helm release
   for exception in "${ALLOWED_EXCEPTIONS[@]}"; do
-    exception_resource="${exception%%:*}"
+    exception_helmrelease="${exception%%:*}"
     exception_pattern="${exception#*:}"
     
-    if [[ "$hr" == "$exception_resource" ]]; then
+    if [[ "$hr" == "$exception_helmrelease" ]]; then
       if [[ "$exception_pattern" == "*" ]] || [[ -n "$actions" && "$actions" =~ $exception_pattern ]]; then
         is_unexpected=false
         break
