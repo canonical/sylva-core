@@ -7027,7 +7027,7 @@ units:
                 "name" "thanos-minio-user"
                 "valuesKey" "CONSOLE_ACCESS_KEY"
                 "targetPath" "objstoreConfig.config.access_key"
-                "optional" "true"
+                "optional" true
               )
               (.Values.monitoring.thanos.use_sylva_internal_storage)
               | include "set-only-if"
@@ -7038,7 +7038,7 @@ units:
                 "name" "thanos-minio-user"
                 "valuesKey" "CONSOLE_ACCESS_KEY"
                 "targetPath" "objstoreConfig.config.secret_key"
-                "optional" "true"
+                "optional" true
               )
               (.Values.monitoring.thanos.use_sylva_internal_storage)
               | include "set-only-if"
