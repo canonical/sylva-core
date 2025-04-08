@@ -1,0 +1,15 @@
+.detect-drift:
+  script:
+    - ./tools/detect_drift.sh
+  artifacts:
+    expire_in: 48 hour
+    when: always
+    paths:
+      - helm_controller.log
+
+mgmt-drift-corrections:
+  extends:
+    - .test-base-management-cluster
+    - .detect-drift
+  variables:
+    DESCRIPTION: Check for drifts in the helm controller logs in the mgmt cluster
