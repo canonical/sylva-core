@@ -128,7 +128,7 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
     spec:
       url: https://github.com/minio/operator.git
       ref:
-        tag: v7.0.0
+        tag: v7.0.1
 
   sylva-snmp-resources:
     kind: GitRepository
