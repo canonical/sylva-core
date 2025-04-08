@@ -7859,7 +7859,7 @@ cluster:
         interface: ""
     image_provisioning_host: '{{ .Values.display_external_ip }}'
     default_network_settings:
-      mtu: 1500 # set network interfaces MTU size
+      mtu: 1500 # set the default network interfaces MTU size
 
   enable_longhorn: '{{ tuple . "longhorn" | include "unit-enabled" | include "as-bool" }}'
 
@@ -8430,8 +8430,6 @@ calico_helm_values:
     key: node.kubernetes.io/network-unavailable
     operator: Exists
   global:
-    clusterCIDR: '{{ .Values._internal.calico.clusterCIDR }}'
-    clusterCIDRv4: '{{ .Values._internal.calico.clusterCIDRv4 }}'
     clusterDNS: '{{ .Values._internal.calico.clusterDNS }}'
     clusterDomain: '{{ .Values._internal.calico.clusterDomain }}'
     serviceCIDR: '{{ .Values._internal.calico.serviceCIDR }}'
