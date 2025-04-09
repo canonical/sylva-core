@@ -4548,6 +4548,9 @@ units:
         nameOverride: rancher-monitoring
         crds:
           enabled: false
+        kube-state-metrics:
+          extraArgs:
+          - --metric-labels-allowlist=namespaces=[field.cattle.io/projectId]
         grafana:
           extraContainers: |
             - name: grafana-proxy
