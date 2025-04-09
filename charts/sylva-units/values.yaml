@@ -3302,8 +3302,6 @@ units:
     helmrelease_spec:
       releaseName: rke2-calico-crd
       targetNamespace: kube-system
-      upgrade:
-        crds: Skip
       chart:
         spec:
           chart: rke2-calico-crd
