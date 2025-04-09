@@ -2776,21 +2776,6 @@ units:
       path: ./kustomize-units/metal3-pdb
       wait: true
 
-  capi-providers-pivot-ready:
-    info:
-      description: checks if management cluster is ready for pivot
-      details: >
-        This unit only has dependencies, but does not create resources.
-        It is here only to have a single thing to look at to determine
-        if everything is ready for pivot (see bootstrap.values.yaml pivot unit)
-      internal: true
-    unit_templates:
-    - base-deps
-    - dummy
-    # we copy the dependencies of the 'cluster' unit
-    # (with the exception of "capo-cluster-resources" which we don't need, given how what it produces is consumed)
-    depends_on: '{{ omit .Values.units.cluster.depends_on "capo-cluster-resources" "cluster-bmh" | include "preserve-type" }}'
-
   local-path-provisioner:
     info:
       description: installs local-path CSI
