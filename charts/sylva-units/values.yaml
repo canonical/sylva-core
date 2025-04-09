@@ -6,13 +6,6 @@
 nameOverride: ""
 fullnameOverride: ""
 
-# registry secrets
-registry_secret: {}
-  # when using gitlab, git creds can be used as registry creds
-  #registry.gitlab.com:
-  #  username: your_user_name
-  #  password: glpat-XXXXX
-
 git_repo_spec_default:
   interval: 60m0s
 
@@ -58,14 +51,14 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
     spec:
       url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-capi-cluster.git
       ref:
-        tag: 0.5.5
+        tag: 0.6.0
 
   sync-openstack-images:
     kind: GitRepository
     spec:
       url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sync-openstack-images.git
       ref:
-        tag: 0.4.1
+        tag: 0.4.3
 
   devnull:
     kind: GitRepository
@@ -135,7 +128,7 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
     spec:
       url: https://github.com/minio/operator.git
       ref:
-        tag: v7.0.0
+        tag: v7.0.1
 
   sylva-snmp-resources:
     kind: GitRepository
@@ -170,7 +163,7 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
     spec:
       url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-thanos-rules.git
       ref:
-        tag: 0.1.0
+        tag: 0.1.1
 
   sylva-alertmanager-resources:
     kind: GitRepository
@@ -298,6 +291,7 @@ unit_templates:
         - '{{ tuple "components/kepler" (tuple . "kepler" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/kube-system" (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpr") | include "set-only-if" }}'
         - '{{ tuple "components/neuvector" (tuple . "neuvector" | include "unit-enabled") | include "set-only-if" }}'
+        - '{{ tuple "components/kunai" (tuple . "kunai" | include "unit-enabled") | include "set-only-if" }}'
 
   flux-common:
     repo: sylva-core
@@ -784,7 +778,9 @@ units:
     enabled_conditions:
       - '{{ or (tuple . "keycloak" | include "unit-enabled")
             (tuple . "harbor" | include "unit-enabled")
-            (tuple . "gitea" | include "unit-enabled") }}'
+            (tuple . "gitea" | include "unit-enabled")
+            (tuple . "kunai" | include "unit-enabled")
+         }}'
     unit_templates:
       - base-deps
     helm_repo_url: https://cloudnative-pg.github.io/charts
@@ -1294,7 +1290,7 @@ units:
       chart:
         spec:
           chart: vault-config-operator
-          version: v0.8.29
+          version: v0.8.31
       targetNamespace: vault
       values:
         enableCertManager: true
@@ -1348,7 +1344,7 @@ units:
       chart:
         spec:
           chart: external-secrets
-          version: 0.14.3
+          version: 0.15.1
       targetNamespace: external-secrets
       install:
         createNamespace: true
@@ -1385,7 +1381,7 @@ units:
       chart:
         spec:
           chart: rancher-cis-benchmark-crd
-          version: 105.3.0+up7.3.0
+          version: 105.4.0+up7.4.0
       targetNamespace: cis-operator-system
       install:
         createNamespace: true
@@ -1405,7 +1401,7 @@ units:
       chart:
         spec:
           chart: rancher-cis-benchmark
-          version: 105.3.0+up7.3.0
+          version: 105.4.0+up7.4.0
       targetNamespace: cis-operator-system
 
   cis-operator-scan:
@@ -1655,7 +1651,7 @@ units:
       chart:
         spec:
           chart: crossplane
-          version: 1.18.3
+          version: 1.19.1
       install:
         createNamespace: false
       values:
@@ -1714,7 +1710,7 @@ units:
       keycloak-postgres: true
       synchronize-secrets: true # make sure that the secret keycloak-initial-admin is ready to be consummed
     annotations:
-      sylvactl/readyMessage: "Keycloak admin console can be reached at https://{{ .Values.external_hostnames.keycloak }}/admin/master/console, user 'admin', password in Vault at secret/keycloak ({{ .Values.external_hostnames.keycloak }} must resolve to {{ .Values.display_external_ip }})"
+      sylvactl/readyMessage: "Keycloak UI admin console can be reached at https://{{ .Values.external_hostnames.keycloak }}/admin/master/console, user 'admin', password in Vault at secret/keycloak ({{ .Values.external_hostnames.keycloak }} must resolve to {{ .Values.display_external_ip }})"
     repo: sylva-core
     kustomization_substitute_secrets:
       KEY: '{{ .Values.external_certificates.keycloak.key | default "" | b64enc }}'
@@ -1838,6 +1834,7 @@ units:
         - '{{ tuple "components/neuvector" (tuple . "neuvector" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/harbor" (tuple . "harbor" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/grafana" (tuple . "monitoring" | include "unit-enabled") | include "set-only-if" }}'
+        - '{{ tuple "components/kunai" (tuple . "monitoring" | include "unit-enabled") | include "set-only-if" }}'
       postBuild:
         substitute:
           GRAFANA_DNS: '{{ .Values.external_hostnames.grafana }}'
@@ -1847,6 +1844,7 @@ units:
           NEUVECTOR_DNS: '{{ tuple .Values.external_hostnames.neuvector (tuple . "neuvector" | include "unit-enabled") | include "set-only-if" }}'
           VAULT_DNS: '{{ .Values.external_hostnames.vault }}'
           EXPIRE_PASSWORD_DAYS: '{{ int .Values.keycloak.keycloak_expire_password_days }}'
+          KUNAI_DNS: '{{ tuple .Values.external_hostnames.kunai (tuple . "kunai" | include "unit-enabled") | include "set-only-if" }}'
       healthChecks:  #  cannot use __wait: true__ here, see https://gitlab.com/sylva-projects/sylva-core/-/issues/144
         - apiVersion: legacy.k8s.keycloak.org/v1alpha1
           kind: KeycloakRealm
@@ -1863,6 +1861,7 @@ units:
         - '{{ tuple (dict "apiVersion" "v1" "kind" "Secret" "name" "keycloak-client-secret-neuvector-client" "namespace" "keycloak") (tuple . "neuvector" | include "unit-enabled") | include "set-only-if" }}'  # # this secret is a byproduct of the neuvector client KeycloakClient resource
         - '{{ tuple (dict "apiVersion" "v1" "kind" "Secret" "name" "keycloak-client-secret-harbor-client" "namespace" "keycloak") (tuple . "harbor" | include "unit-enabled") | include "set-only-if" }}'  # # this secret is a byproduct of the harbor client KeycloakClient resource
         - '{{ tuple (dict "apiVersion" "v1" "kind" "Secret" "name" "keycloak-client-secret-grafana-client" "namespace" "keycloak") (tuple . "monitoring" | include "unit-enabled") | include "set-only-if" }}'  # # this secret is a byproduct of the grafana client KeycloakClient resource
+        - '{{ tuple (dict "apiVersion" "v1" "kind" "Secret" "name" "keycloak-client-secret-kunai-client" "namespace" "keycloak") (tuple . "kunai" | include "unit-enabled") | include "set-only-if" }}'  # # this secret is a byproduct of the grafana client KeycloakClient resource
 
 
   keycloak-add-client-scope:
@@ -2099,14 +2098,15 @@ units:
         admissionController:
           replicas: '{{ .Values._internal.default_replicas | include "preserve-type" }}'
           rbac:
-            coreClusterRole:
+            clusterRole:
               extraResources:
               - apiGroups: ["*"]
-                resources: ["*"]
+                resources: [ "secrets" ]
                 verbs: ["get", "list", "watch"]
-          resources:
-            limits:
-              memory: 1024Mi
+          container:
+            resources:
+              limits:
+                memory: 1024Mi
           serviceMonitor:
             enabled: '{{ .Values._internal.monitoring.enabled | include "preserve-type" }}'
         cleanupController:
@@ -2127,14 +2127,19 @@ units:
             enabled: '{{ .Values._internal.monitoring.enabled | include "preserve-type" }}'
         reportsController:
           replicas: '{{ .Values._internal.default_replicas | include "preserve-type" }}'
+          serviceMonitor:
+            enabled: '{{ .Values._internal.monitoring.enabled | include "preserve-type" }}'
+          resources:
+            limits:
+              memory: 256Mi
+            requests:
+              memory: 128Mi
           rbac:
-            coreClusterRole:
+            clusterRole:
               extraResources:
               - apiGroups: ["*"]
                 resources: ["*"]
                 verbs: ["get", "list", "watch"]
-          serviceMonitor:
-            enabled: '{{ .Values._internal.monitoring.enabled | include "preserve-type" }}'
         backgroundController:
           replicas: '{{ .Values._internal.default_replicas | include "preserve-type" }}'
           resources:
@@ -2144,36 +2149,16 @@ units:
               memory: 256Mi
 
           rbac:
-            coreClusterRole:
-              extraResources:
-              - apiGroups:
-                  - '*'
-                resources:
-                  - '*'
-                verbs: ["get", "list", "watch"]
-              - apiGroups:
-                  - networking.k8s.io
-                resources:
-                  - ingresses
-                  - ingressclasses
-                  - networkpolicies
-                verbs: ["create", "update", "patch", "delete"]
-              - apiGroups:
-                  - rbac.authorization.k8s.io
-                resources:
-                  - rolebindings
-                  - roles
-                verbs: ["create", "update", "patch", "delete"]
-              - apiGroups:
-                  - ''
-                resources:
-                  - configmaps
-                  - secrets
-                  - resourcequotas
-                  - limitranges
-                verbs: ["create", "update", "patch", "delete"]
             clusterRole:
               extraResources:
+              - apiGroups: [""]
+                resources:
+                  - "secrets"
+                verbs: ["get", "list", "patch", "update", "watch", "create", "delete"]
+              - apiGroups: ["provisioning.cattle.io"]  # for set-monitoring-chart-cluster-id ClusterPolicy
+                resources:
+                  - "clusters"
+                verbs: ["get", "list", "watch"]
               - apiGroups: ["batch"]
                 resources:
                   - "cronjobs"
@@ -2378,7 +2363,7 @@ units:
     - base-deps
     depends_on:
       kyverno: true
-      sylva-units-operator: true
+      sylva-units-operator: '{{ tuple . "sylva-units-operator" | include "unit-enabled" }}'
     repo: sylva-core
     kustomization_spec:
       path: ./kustomize-units/shared-workload-clusters-settings
@@ -2415,7 +2400,6 @@ units:
       postBuild:
         substitute:
           force_var_substitution_enabled: "true"  # dummy value to ensure substitution of defaults
-          EXP_MACHINE_SET_PREFLIGHT_CHECKS: "false"  # https://gitlab.com/sylva-projects/sylva-core/-/issues/1658
       wait: true
       _components:
         - '{{ tuple "components/ha" (.Values._internal.ha_cluster.is_ha) | include "set-only-if" }}'
@@ -2549,6 +2533,50 @@ units:
       _components:
         - '{{ tuple "components/ha" (.Values._internal.ha_cluster.is_ha) | include "set-only-if" }}'
 
+  cabpr-cluster-pause:
+    info:
+      description: unit used to pause the Cluster resource of all clusters
+      details: |-
+        This unit was introduced as a workaround https://github.com/rancher/cluster-api-provider-rke2/issues/596
+
+        The resume is done by a sylva-capi-cluster Helm post-upgrade hook.
+      internal: true
+    one_shot: true
+    unit_templates:
+    - base-deps
+    - kube-job
+    enabled_conditions:
+    - '{{ tuple . "cabpr" | include "unit-enabled" }}'
+    - '{{ .Values._internal.state.is_upgrade }}'
+    kustomization_spec:
+      _patches:
+      - target:
+          kind: ConfigMap
+          labelSelector: kube-job=script
+        patch: |
+          - op: replace
+            path: /data/kube-job.sh
+            value: |
+              #!/bin/bash
+
+              kubectl get cluster.cluster.x-k8s.io --all-namespaces \
+                -o=jsonpath="{range .items[*]}{.metadata.namespace} {.metadata.name} {end}" \
+                | xargs -P10 -t -n2 \
+                  kubectl patch                              \
+                    --field-manager sylva-cabpr-cluster-pause-unit \
+                    --type=merge                             \
+                    --patch '{"spec":{"paused":true}}'       \
+                    cluster.cluster.x-k8s.io -n    # will be followed by <ns> <name>
+      - target:
+          kind: ClusterRole
+        patch: |
+          - op: replace
+            path: /rules
+            value:
+              - apiGroups: [cluster.x-k8s.io]
+                resources: [clusters]
+                verbs: [list, get, patch, update]
+
   cabpr:
     info:
       description: installs RKE2 CAPI bootstrap provider
@@ -2558,6 +2586,7 @@ units:
     - base-deps
     depends_on:
       cert-manager: true
+      cabpr-cluster-pause: '{{ tuple . "cabpr-cluster-pause" | include "unit-enabled" }}'
     kustomization_spec:
       path: ./kustomize-units/cabpr
       wait: true
@@ -2827,6 +2856,7 @@ units:
     - '{{ tuple . "kyverno" | include "unit-enabled" }}'
     depends_on:
       kyverno: true
+      capi: '{{ not .Values._internal.state.is_upgrade }}'
     repo: sylva-core
     kustomization_spec:
       path: ./kustomize-units/kyverno-policies/cluster-node-deletion-timeout-fix
@@ -2846,6 +2876,7 @@ units:
     enabled_conditions:
     - '{{ tuple . "kyverno" | include "unit-enabled" }}'
     - '{{ .Values.cluster.capi_providers.infra_provider | eq "capm3" }}'
+    - '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" }}'
     depends_on:
       kyverno: true
     repo: sylva-core
@@ -2900,6 +2931,7 @@ units:
       metallb: '{{ and (tuple . "metallb" | include "unit-enabled") .Values._internal.state.is_upgrade }}'
       calico: '{{ .Values._internal.state.is_upgrade }}'
       calico-ready: '{{ .Values._internal.state.is_upgrade }}'
+      cluster-garbage-collector: '{{ and (tuple . "cluster-garbage-collector" | include "unit-enabled") .Values._internal.state.is_upgrade }}'
     kustomization_spec:
       prune: '{{ not (eq .Release.Namespace "sylva-system") | include "preserve-type" }}'
       # we wait on all important resources built by sylva-capi-cluster,
@@ -2924,6 +2956,7 @@ units:
         resource_groups:
           - cluster-resource
           - base
+        unset_cabpr_upgrade_cluster_paused: '{{ .Values._internal.state.is_upgrade | include "preserve-type" }}'
       valuesFrom:
         - kind: ConfigMap
           name: capo-cluster-resources
@@ -3171,11 +3204,6 @@ units:
     kustomization_spec:
       path: ./kustomize-units/heat-operator
       wait: true
-      images:
-        - name: controller
-          newName: registry.gitlab.com/sylva-projects/sylva-elements/heat-operator
-          newTag: 0.1.0
-
 
   sylva-units-operator:
     info:
@@ -3189,10 +3217,6 @@ units:
     kustomization_spec:
       path: ./kustomize-units/sylva-units-operator
       wait: true
-      images:
-        - name: controller
-          newName: registry.gitlab.com/sylva-projects/sylva-elements/sylva-units-operator
-          newTag: v0.1.6
 
   workload-cluster-operator:
     info:
@@ -3202,14 +3226,10 @@ units:
     - base-deps
     repo: sylva-core
     depends_on:
-      sylva-units-operator: true
+      sylva-units-operator: '{{ tuple . "sylva-units-operator" | include "unit-enabled" }}'
     kustomization_spec:
       path: ./kustomize-units/workload-cluster-operator
       wait: true
-      images:
-        - name: controller
-          newName: registry.gitlab.com/sylva-projects/sylva-elements/workload-cluster-operator
-          newTag: 0.2.0
 
   capo-cloud-config:
     info:
@@ -3277,8 +3297,6 @@ units:
       namespace-defs: true
     helm_repo_url: https://rke2-charts.rancher.io
     helm_chart_versions: &calico-chart-versions
-      v3.28.200: >-
-        {{ include "k8s-version-match" (tuple ">=1.28.0,<1.29.0" .Values._internal.k8s_version) }}
       v3.29.101: >-
         {{ include "k8s-version-match" (tuple ">=1.29.0" .Values._internal.k8s_version) }}
     helmrelease_spec:
@@ -3365,6 +3383,9 @@ units:
     depends_on:
       '{{ .Values._internal.calico_readiness_unit }}': '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpk" }}'
       cluster-vip: '{{ and (tuple . "cluster-vip" | include "unit-enabled") .Values._internal.state.is_upgrade }}'
+      metallb-resources: '{{ .Values._internal.state.is_upgrade }}'  # on upgrade from Sylva 1.3 to 1.4, we need metallb-resources unit
+                                                                     # to be updated before metallb unit
+                                                                     # (see https://gitlab.com/sylva-projects/sylva-core/-/issues/2210)
     helm_repo_url: https://metallb.github.io/metallb
     helmrelease_spec:
       chart:
@@ -3416,7 +3437,7 @@ units:
     unit_templates:
     - base-deps
     depends_on:
-      metallb: true
+      metallb: '{{ not .Values._internal.state.is_upgrade }}'
     repo: metallb-resources
     helm_chart_artifact_name: metallb-resources
     helmrelease_spec:
@@ -3996,8 +4017,7 @@ units:
       ingress-nginx-cleanup: '{{ tuple . "ingress-nginx-cleanup" | include "unit-enabled" }}'
     helm_repo_url: https://rke2-charts.rancher.io
     helm_chart_versions:
-      4.10.501: '{{ include "k8s-version-match" (tuple ">=1.28.0,<1.29.0" .Values._internal.k8s_version) }}'
-      4.12.003: '{{ include "k8s-version-match" (tuple ">=1.29.0" .Values._internal.k8s_version) }}'
+      4.12.100: '{{ include "k8s-version-match" (tuple ">=1.29.0" .Values._internal.k8s_version) }}'
     helmrelease_spec:
       releaseName: rke2-ingress-nginx
       targetNamespace: kube-system
@@ -4043,6 +4063,11 @@ units:
             default: true
           hostPort:
             enabled: false
+          resources:
+            requests:
+              memory: "300Mi"
+            limits:
+              memory: "1Gi"
     kustomization_spec:
       healthChecks:
         - apiVersion: apps/v1
@@ -4653,7 +4678,7 @@ units:
           - --persistence.interval=5m
         extraContainers:
           - name: prometheus-pushgateway-metrics-purger
-            image: curlimages/curl:8.12.1
+            image: curlimages/curl:8.13.0
             command:
             - sh
             - -c
@@ -4738,7 +4763,7 @@ units:
       chart:
         spec:
           chart: prometheus-snmp-exporter
-          version: 8.0.0
+          version: 9.2.1
       install:
         createNamespace: true
       values:
@@ -4795,7 +4820,7 @@ units:
     helm_secret_values:
       extraInitContainers:
         - name: config-file-create
-          image: registry.gitlab.com/sylva-projects/sylva-elements/container-images/sylva-toolbox:v0.8.0
+          image: registry.gitlab.com/sylva-projects/sylva-elements/container-images/sylva-toolbox:v0.9.0
           command: ["/bin/sh"]
           args:
             - -c
@@ -4886,7 +4911,7 @@ units:
       chart:
         spec:
           chart: rke2-multus
-          version: v4.1.403
+          version: v4.2.001
       targetNamespace: kube-system
       install:
         createNamespace: false
@@ -4916,6 +4941,22 @@ units:
                       $patch: delete
                       app: whereabouts
 
+  multus-bond-cni:
+    info:
+      description: installs bond CNI binary for multus
+      version: 1.0.0
+      maturity: beta
+    # enable this unit if multus is enabled
+    enabled: '{{ tuple . "multus" | include "unit-enabled" }}'
+    unit_templates:
+    - base-deps
+    depends_on:
+      multus: true
+    repo: sylva-core
+    kustomization_spec:
+      path: ./kustomize-units/multus-bond-cni
+      wait: true
+
   multus-ready:
     info:
       description: checks that Multus is ready
@@ -4931,6 +4972,7 @@ units:
       - '{{ tuple . "multus" | include "unit-enabled" }}'
     depends_on:
       multus: true
+      multus-bond-cni: '{{ tuple . "multus-bond-cni" | include "unit-enabled" }}'
     kustomization_spec:
       healthChecks:
         - apiVersion: apps/v1
@@ -4975,6 +5017,7 @@ units:
     depends_on:
       namespace-defs: true
       sriov-crd: true
+      kyverno: true
     helm_repo_url: https://suse-edge.github.io/charts/
     helmrelease_spec:
       releaseName: sriov
@@ -4985,6 +5028,9 @@ units:
           version: 1.4.0
       values:
         cert_manager: true
+    kustomization_spec:
+      _components:
+      - ../kyverno-policies/sriov-network-operator
 
   sriov:
     info:
@@ -5088,6 +5134,10 @@ units:
         storageClass:
           name: nfs-ganesha
           allowVolumeExpansion: true
+          mountOptions:
+            - vers=4.1
+            - retrans=2
+            - timeo=30
 
   test-nfs-ganesha:
     enabled: '{{ .Values.env_type | eq "ci" }}'
@@ -5452,7 +5502,7 @@ units:
             - op: replace
               path: /spec/template/spec/containers/0/image
               # renovate: datasource=docker
-              value: registry.gitlab.com/sylva-projects/sylva-elements/container-images/oci-tools:0.0.14
+              value: registry.gitlab.com/sylva-projects/sylva-elements/container-images/oci-tools:0.1.0
             - op: add
               path: /spec/template/spec/containers/0/env
               value:
@@ -5600,9 +5650,9 @@ units:
       - '{{ eq .Values.cluster.capi_providers.infra_provider "capv" }}'
     helm_repo_url: https://kubernetes.github.io/cloud-provider-vsphere
     helm_chart_versions:
-      1.28.0: '{{ include "k8s-version-match" (tuple ">=1.28.0,<1.29.0" .Values._internal.k8s_version) }}'
       1.29.0: '{{ include "k8s-version-match" (tuple ">=1.29.0,<1.30.0" .Values._internal.k8s_version) }}'
-      v1.30.0: '{{ include "k8s-version-match" (tuple ">=1.30.0" .Values._internal.k8s_version) }}'
+      v1.30.0: '{{ include "k8s-version-match" (tuple ">=1.30.0,<1.31.0" .Values._internal.k8s_version) }}'
+      1.31.0: '{{ include "k8s-version-match" (tuple ">=1.31.0" .Values._internal.k8s_version) }}'
     helmrelease_spec:
       chart:
         spec:
@@ -5861,13 +5911,13 @@ units:
       namespace-defs: true
       '{{ .Values._internal.default_storage_class_unit }}': true
     annotations:
-      sylvactl/readyMessage: "Gitea can be reached at https://{{ .Values.external_hostnames.gitea }} ({{ .Values.external_hostnames.gitea }} must resolve to {{ .Values.display_external_ip }})"
+      sylvactl/readyMessage: "Gitea UI can be reached at https://{{ .Values.external_hostnames.gitea }} ({{ .Values.external_hostnames.gitea }} must resolve to {{ .Values.display_external_ip }})"
     helm_repo_url: https://dl.gitea.com/charts/
     helmrelease_spec:
       chart:
         spec:
           chart: gitea
-          version: 10.4.1
+          version: 11.0.1
       targetNamespace: gitea
       releaseName: gitea
       values:
@@ -5989,6 +6039,157 @@ units:
             readOnly: true
             subPath: ca.crt
 
+  # Kunai-unit
+  kunai-secrets:
+    info:
+      description: >
+        create random secret that will be used by kunai application.
+        secrets are sync with vault.
+      internal: true
+    enabled_conditions:
+    - '{{ tuple . "kunai" | include "unit-enabled" }}'
+    unit_templates:
+    - base-deps
+    depends_on:
+      namespace-defs: true
+      vault-config-operator: true
+    repo: sylva-core
+    kustomization_spec:
+      path: ./kustomize-units/kunai/secrets
+      wait: true
+
+  kunai-eso:
+    info:
+      description: >
+        write secrets in kunai namespace in kunai expected format
+      internal: true
+    enabled_conditions:
+    - '{{ tuple . "kunai" | include "unit-enabled" }}'
+    unit_templates:
+    - base-deps
+    depends_on:
+      namespace-defs: true
+      eso-secret-stores: true
+      keycloak-resources: true
+      kunai-secrets: true
+    repo: sylva-core
+    kustomization_substitute_secrets:
+      KEY: '{{ .Values.external_certificates.kunai.key | default "" | b64enc }}'
+    kustomization_spec:
+      path: ./kustomize-units/kunai/eso
+      wait: false
+      healthChecks:
+        - apiVersion: v1
+          kind: Secret
+          name: kunai-next-oidc
+          namespace: kunai
+        - apiVersion: v1
+          kind: Secret
+          name: kunai-next-auth
+          namespace: kunai
+        - apiVersion: v1
+          kind: Secret
+          name: sylva-ca.crt
+          namespace: kunai
+      postBuild:
+        substitute:
+          SERVICE: kunai
+          SERVICE_DNS: '{{ .Values.external_hostnames.kunai }}'
+          CERT: '{{ .Values.external_certificates.kunai.cert | default "" | b64enc }}'
+          CACERT: '{{ .Values.external_certificates.cacert | default "" | b64enc }}'
+          KEYCLOAK_DNS: '{{ .Values.external_hostnames.keycloak }}'
+      _components:
+        - '{{ ternary "../../tls-components/tls-secret" "../../tls-components/tls-certificate" (hasKey .Values.external_certificates.kunai "cert") }}'
+        - "../../tls-components/sylva-ca"
+
+  kunai-postgres-cnpg:
+    info:
+      description: Deploy Postgres cluster for Kunai using Cloud Native PostgreSQL (CNPG)
+      internal: true
+    unit_templates:
+      - base-deps
+    enabled_conditions:
+      - '{{ tuple . "kunai" | include "unit-enabled" }}'
+    repo: sylva-core
+    depends_on:
+      cnpg-operator: true
+      namespace-defs: true
+      kunai-eso: true
+      kunai-secrets: true
+      '{{ .Values._internal.default_storage_class_unit }}': true
+    kustomization_spec:
+      postBuild:
+        substitute:
+          KUNAI_POSTGRES_REPLICAS: '{{ .Values._internal.ha_cluster.is_ha | ternary 3 1 }}'
+          storageClass: '{{ .Values._internal.default_storage_class }}'
+          podAntiAffinityType: '{{ .Values._internal.ha_cluster.is_ha | ternary "required" "preferred" }}'
+      path: ./kustomize-units/kunai-postgres-cnpg
+      wait: true
+
+  kunai:
+    info:
+      description: installs Kunai
+      details: |-
+        The integration of [Kunai](https://gitlab.com/sylva-projects/sylva-elements/kunai) at this stage should be considered experimental.
+        Work is in progress to align its integration with workload-cluster-operator and workload-teams-defs.
+        See https://gitlab.com/groups/sylva-projects/-/epics/58.
+      maturity: experimental
+    enabled: false
+    unit_templates:
+    - base-deps
+    depends_on:
+      cert-manager: true
+      keycloak-resources: true
+      kunai-eso: true
+      kunai-secrets: true
+      kunai-postgres-cnpg: true
+      namespace-defs: true
+    annotations:
+      sylvactl/readyMessage: "Kunai UI can be reached at https://{{ .Values.external_hostnames.kunai }} ({{ .Values.external_hostnames.kunai }} must resolve to {{ .Values.display_external_ip }})"
+    helm_repo_url: "https://gitlab.com/api/v4/projects/sylva-projects%2Fsylva-elements%2Fkunai/packages/helm/stable"  # https://gitlab.com/sylva-projects/sylva-elements/kunai
+    helmrelease_spec:
+      chart:
+        spec:
+          chart: kunai
+          version: "1.3.1"
+      targetNamespace: kunai
+      values:
+        containerSecurityContext:
+          readOnlyRootFilesystem: true
+        postgresql:
+          enabled: false
+        externalDatabase:
+          existingSecret: cnpg-kunai-app
+        persistence:
+          enabled: false
+        kunai:
+          nextAuth:
+            enabled: true
+            existingsecretname: kunai-next-auth
+          nextOidc:
+            existingsecretname: kunai-next-oidc
+          extraCaCert:
+            enabled: true
+            existingsecretname: sylva-ca.crt
+            existingsecretkey: ca.crt
+        proxies:
+          http_proxy: '{{ .Values.proxies.http_proxy }}'
+          https_proxy: '{{ .Values.proxies.https_proxy }}'
+          no_proxy: '{{ include "sylva-units.no_proxy" (tuple .) }}'
+        ingress:
+          enabled: true
+          ingressClassName: nginx
+          annotations:
+            nginx.ingress.kubernetes.io/proxy-body-size: 8m
+            nginx.ingress.kubernetes.io/large-client-header-buffers: "4 16k"
+            nginx.ingress.kubernetes.io/proxy-buffer-size: "256k"
+          tls: false
+          extraTls:
+            - hosts:
+                - '{{ .Values.external_hostnames.kunai }}'
+              secretName: kunai-tls
+          hostname: '{{ .Values.external_hostnames.kunai }}'
+
   minio-operator-init:
     info:
       description: sets up MinIO certificate for minio-operator
@@ -6014,6 +6215,7 @@ units:
           CERTIFICATE_NAMESPACE: minio-operator
           CERT: '{{ .Values.external_certificates.minio_operator.cert | default "" | b64enc }}'
           CACERT: '{{ .Values.external_certificates.cacert | default "" | b64enc }}'
+          CACERT_SECRET_NAME: operator-ca-tls
       _components:
         - '{{ ternary "../tls-components/tls-secret" "../tls-components/tls-certificate" (hasKey .Values.external_certificates.minio_operator "cert") }}'
         - "../tls-components/sylva-ca"
@@ -6032,7 +6234,7 @@ units:
       minio-operator-init: true
       ingress-nginx: '{{ tuple . "ingress-nginx" | include "unit-enabled" }}'
     annotations:
-      sylvactl/readyMessage: "minio operator console can be reached at https://{{ .Values.external_hostnames.minio_operator_console }} ({{ .Values.external_hostnames.minio_operator_console }} must resolve to {{ .Values.display_external_ip }})"
+      sylvactl/readyMessage: "MinIO operator console can be reached at https://{{ .Values.external_hostnames.minio_operator_console }} ({{ .Values.external_hostnames.minio_operator_console }} must resolve to {{ .Values.display_external_ip }})"
     repo: minio-operator
     helmrelease_spec:
       targetNamespace: minio-operator
@@ -6043,6 +6245,9 @@ units:
         createNamespace: false
       values:
         operator:
+          env:
+          - name: OPERATOR_STS_AUTO_TLS_ENABLED
+            value: "off"
           containerSecurityContext:
             allowPrivilegeEscalation: false
             capabilities:
@@ -6134,7 +6339,9 @@ units:
       wait: true
       postBuild:
         substitute:
-          TENANT_NAME: minio-logging
+          TENANT_NS: minio-logging
+          TENANT_NAME: logging
+          CLUSTER_DOMAIN: '{{ .Values.cluster_domain }}'
           SERVICE: minio-logging
           SERVICE_DNS: '{{ .Values.external_hostnames.minio_logging }}'
           CERTIFICATE_NAMESPACE: minio-logging
@@ -6160,7 +6367,7 @@ units:
       two-replicas-storageclass: '{{ tuple . "two-replicas-storageclass" | include "unit-enabled" }}'
       '{{ .Values._internal.default_storage_class_unit }}': '{{ not (tuple . "two-replicas-storageclass" | include "unit-enabled") }}'
     annotations:
-      sylvactl/readyMessage: MinIO logging tenant console can be reached at https://{{ .Values.external_hostnames.minio_logging_console }} ({{ .Values.external_hostnames.minio_logging_console }} must resolve to {{ .Values.display_external_ip }})
+      sylvactl/readyMessage: "MinIO UI logging tenant console can be reached at https://{{ .Values.external_hostnames.minio_logging_console }} ({{ .Values.external_hostnames.minio_logging_console }} must resolve to {{ .Values.display_external_ip }})"
     repo: minio-operator
     helmrelease_spec:
       targetNamespace: minio-logging
@@ -6180,6 +6387,12 @@ units:
             name: minio-logging-root
             accessKey: ""
             secretKey: ""
+          # Use certificate generated by cert-manager in minio-logging-init instead of relyin on minio operator
+          certificate:
+            requestAutoCert: false
+            externalCertSecret:
+            - name: minio-logging-internal-tls
+              type: kubernetes.io/tls
           # The Kubernetes secret name that contains MinIO environment variable configurations:
           configuration:
             name: minio-logging-root
@@ -6287,10 +6500,6 @@ units:
           kind: StatefulSet
           name: logging-pool-0  # concatenation from .tenant chart values .name & .pools[0].name
           namespace: minio-logging
-        - apiVersion: v1
-          kind: Secret
-          name: logging-tls
-          namespace: minio-logging
 
   minio-monitoring-init:
     info:
@@ -6314,7 +6523,9 @@ units:
       wait: true
       postBuild:
         substitute:
-          TENANT_NAME: minio-monitoring
+          TENANT_NS: minio-monitoring
+          TENANT_NAME: monitoring
+          CLUSTER_DOMAIN: '{{ .Values.cluster_domain }}'
           SERVICE: minio-monitoring
           SERVICE_DNS: '{{ .Values.external_hostnames.minio_monitoring }}'
           CERTIFICATE_NAMESPACE: minio-monitoring
@@ -6340,7 +6551,7 @@ units:
       two-replicas-storageclass: '{{ tuple . "two-replicas-storageclass" | include "unit-enabled" }}'
       '{{ .Values._internal.default_storage_class_unit }}': '{{ not (tuple . "two-replicas-storageclass" | include "unit-enabled") }}'
     annotations:
-      sylvactl/readyMessage: MinIO monitoring tenant console can be reached at https://{{ .Values.external_hostnames.minio_monitoring_console }} ({{ .Values.external_hostnames.minio_monitoring_console }} must resolve to {{ .Values.display_external_ip }})
+      sylvactl/readyMessage: "MinIO monitoring UI tenant console can be reached at https://{{ .Values.external_hostnames.minio_monitoring_console }} ({{ .Values.external_hostnames.minio_monitoring_console }} must resolve to {{ .Values.display_external_ip }})"
     repo: minio-operator
     helmrelease_spec:
       targetNamespace: minio-monitoring
@@ -6360,6 +6571,12 @@ units:
             name: minio-monitoring-root
             accessKey: ""
             secretKey: ""
+          # Use certificate generated by cert-manager in minio-logging-init instead of relyin on minio operator
+          certificate:
+            requestAutoCert: false
+            externalCertSecret:
+            - name: minio-monitoring-internal-tls
+              type: kubernetes.io/tls
           # The Kubernetes secret name that contains MinIO environment variable configurations:
           configuration:
             name: minio-monitoring-root
@@ -6461,10 +6678,6 @@ units:
           kind: StatefulSet
           name: monitoring-pool-0  # concatenation from .tenant chart values .name & .pools[0].name
           namespace: minio-monitoring
-        - apiVersion: v1
-          kind: Secret
-          name: monitoring-tls
-          namespace: minio-monitoring
 
   thanos-init:
     info:
@@ -6542,7 +6755,7 @@ units:
       '{{ .Values._internal.default_storage_class_unit }}': true
       ingress-nginx: '{{ tuple . "ingress-nginx" | include "unit-enabled" }}'
     annotations:
-      sylvactl/readyMessage: Thanos UI can be reached at https://{{ .Values.external_hostnames.thanos }} ({{ .Values.external_hostnames.thanos }} must resolve to {{ .Values.display_external_ip }})
+      sylvactl/readyMessage: "Thanos UI can be reached at https://{{ .Values.external_hostnames.thanos }} ({{ .Values.external_hostnames.thanos }} must resolve to {{ .Values.display_external_ip }})"
     repo: bitnami-thanos
     helmrelease_spec:
       targetNamespace: thanos
@@ -7025,7 +7238,7 @@ units:
     enabled_conditions:
       - '{{ tuple . "logging" | include "unit-enabled" }}'
     annotations:
-      sylvactl/readyMessage: "Loki can be reached at https://{{ .Values.external_hostnames.loki }} ({{ .Values.external_hostnames.loki }} must resolve to {{ .Values.display_external_ip }})"
+      sylvactl/readyMessage: "Loki UI can be reached at https://{{ .Values.external_hostnames.loki }} ({{ .Values.external_hostnames.loki }} must resolve to {{ .Values.display_external_ip }})"
     repo: loki
     helmrelease_spec:
       targetNamespace: loki
@@ -7163,6 +7376,8 @@ units:
           service:
             publishNotReadyAddresses: true
         gateway:
+          nginxConfig:
+            clientMaxBodySize: 30M
           replicas: '{{ int .Values._internal.node_count | gt 2 | ternary 1 2 }}'
           ingress:
             enabled: true
@@ -7343,16 +7558,6 @@ units:
         job:
           # compute total timeout based on per-image timeout and number of images
           activeDeadlineSeconds: '{{ mul .Values.get_openstack_images_per_image_timeout_minutes 60 (include "generate-os-images" . | fromYaml | dig "os_images" dict | len) }}'
-          checksum: |-
-            {{
-            tuple . (list
-              .Values._internal.sylva_core_version
-              (mergeOverwrite (deepCopy .Values.os_images) .Values.sylva_diskimagebuilder_images)
-              .Values.sylva_diskimagebuilder_version
-              .Values.sylva_base_oci_registry
-              .Values.proxies
-            ) | include "interpret-and-hash"
-            }}
         os_image_selectors: >-
           {{- tuple . "cluster" | include "interpret" -}}
           {{ tuple .Values.cluster | include "find-cluster-image-selectors" | fromJsonArray | include "preserve-type" }}
@@ -7419,7 +7624,7 @@ units:
     unit_templates:
     - base-deps
     depends_on:
-      sylva-units-operator: true
+      sylva-units-operator: '{{ tuple . "sylva-units-operator" | include "unit-enabled" }}'
     enabled_conditions:
       - '{{ tuple . "workload-cluster-operator" | include "unit-enabled" }}'
     helm_chart_artifact_name: workload-team-defs
@@ -7480,7 +7685,7 @@ cluster:
   images:
     kube_vip:
       repository: ghcr.io/kube-vip/kube-vip
-      tag: "v0.8.9"
+      tag: "v0.8.10"
 
   # Nodes number for control-plane
   control_plane_replicas: 3
@@ -7588,8 +7793,11 @@ cluster:
 
   capm3:
     machine_image_checksum_type: sha256
+    networks:
+      primary:
+        interface: ""
     image_provisioning_host: '{{ .Values.display_external_ip }}'
-    network_interfaces:
+    default_network_settings:
       mtu: >-
         {{-
         tuple
@@ -7737,6 +7945,7 @@ external_hostnames:
   harbor: 'harbor.{{ .Values.cluster_domain }}'
   os_image_server: ''
   gitea: 'gitea.{{ .Values.cluster_domain }}'
+  kunai: 'kunai.{{ .Values.cluster_domain }}'
   minio_operator_console: 'minio-operator-console.{{ .Values.cluster_domain }}'
   minio_monitoring: 'minio-monitoring.{{ .Values.cluster_domain }}'
   minio_monitoring_console: 'minio-monitoring-console.{{ .Values.cluster_domain }}'
@@ -7770,6 +7979,7 @@ external_certificates:
   loki: {}
   grafana: {}
   kubevirt_manager: {}
+  kunai: {}
 
 audit_log:
   level: 0
@@ -7898,11 +8108,11 @@ os_images_oci_registries:
     cosign_publickey: '{{ .Values.security.os_images.cosign_public_key }}'
     enabled: true  # can be set to false to disable all the images under sylva_diskimagebuilder_images that have 'os_images_oci_registry: sylva'
 
-k8s_version_short: "1.30"
+k8s_version_short: "1.31"
 
 # Renovate Bot needs additional information to detect sylva diskimage-builder version
 # renovate: depName=sylva-projects/sylva-elements/diskimage-builder
-sylva_diskimagebuilder_version: 0.4.5
+sylva_diskimagebuilder_version: 0.4.6
 
 # 'sylva_diskimagebuilder_images' determines which images will be available for CAPO and CAPM3
 # via 'os_image_selector' or 'image_keys'
@@ -7911,35 +8121,41 @@ sylva_diskimagebuilder_version: 0.4.5
 # or a mirror repo if os_images_oci_registries.sylva is overridden
 #
 sylva_diskimagebuilder_images:
+  ubuntu-noble-hardened-rke2-1-31-5:
+    os_images_oci_registry: sylva
   ubuntu-noble-hardened-rke2-1-30-9:
     os_images_oci_registry: sylva
   ubuntu-noble-hardened-rke2-1-29-13:
     os_images_oci_registry: sylva
-  ubuntu-noble-hardened-rke2-1-28-15:
+  ubuntu-noble-plain-rke2-1-31-5:
     os_images_oci_registry: sylva
   ubuntu-noble-plain-rke2-1-30-9:
     os_images_oci_registry: sylva
   ubuntu-noble-plain-rke2-1-29-13:
     os_images_oci_registry: sylva
-  ubuntu-noble-plain-rke2-1-28-15:
+  ubuntu-noble-plain-kubeadm-1-31-5:
     os_images_oci_registry: sylva
   ubuntu-noble-plain-kubeadm-1-30-9:
     os_images_oci_registry: sylva
   ubuntu-noble-plain-kubeadm-1-29-13:
     os_images_oci_registry: sylva
-  ubuntu-noble-plain-kubeadm-1-28-15:
+  opensuse-15-6-plain-rke2-1-31-5:
     os_images_oci_registry: sylva
   opensuse-15-6-plain-rke2-1-30-9:
     os_images_oci_registry: sylva
   opensuse-15-6-plain-rke2-1-29-13:
     os_images_oci_registry: sylva
-  opensuse-15-6-plain-rke2-1-28-15:
+  opensuse-15-6-hardened-rke2-1-31-5:
     os_images_oci_registry: sylva
   opensuse-15-6-hardened-rke2-1-30-9:
     os_images_oci_registry: sylva
   opensuse-15-6-hardened-rke2-1-29-13:
     os_images_oci_registry: sylva
-  opensuse-15-6-hardened-rke2-1-28-15:
+  opensuse-15-6-plain-kubeadm-1-31-5:
+    os_images_oci_registry: sylva
+  opensuse-15-6-plain-kubeadm-1-30-9:
+    os_images_oci_registry: sylva
+  opensuse-15-6-plain-kubeadm-1-29-13:
     os_images_oci_registry: sylva
 
 # this dictionary can be extended to let os-image-server serve additional OS images
@@ -8171,7 +8387,17 @@ calico_helm_values:
   installation:
     calicoNetwork:
       bgp: Disabled
-      mtu: '{{ tuple .Values.cluster.capm3.network_interfaces.mtu (and (.Values.cluster.capi_providers.infra_provider | eq "capm3") .Values.cluster.capm3.network_interfaces.mtu) | include "set-only-if" }}'
+      mtu: |
+        {{- $control_plane_primary_interface := .Values.cluster | dig "control_plane" "capm3" "networks" "primary" "interface" .Values.cluster.capm3.networks.primary.interface -}}
+        {{- if not (eq $control_plane_primary_interface "") -}}
+        {{ tuple (dict "Values" (dict "capm3" .Values.cluster.capm3))
+                 $control_plane_primary_interface
+                 (.Values.cluster.control_plane.network_interfaces | dig $control_plane_primary_interface dict)
+                 .Values.cluster.capm3.networks
+                 .Values.cluster.control_plane.network_interfaces | include "calculate-mtu" }}
+        {{- else -}}
+          {{ .Values.cluster.capm3.default_network_settings.mtu }}
+        {{- end -}}
       nodeAddressAutodetectionV4:
         '{{
         tuple
@@ -8390,9 +8616,9 @@ _internal:
   bootstrap_node_ip: '{{ lookup "v1" "ConfigMap" "sylva-system" "cluster-public-endpoint" | dig "data" "address" "not_found" | default "not_found" }}'
 
   k8s_version_map:
-    1.28: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" | ternary "v1.28.15+rke2r1" "v1.28.15" }}'
     1.29: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" | ternary "v1.29.13+rke2r1" "v1.29.13" }}'
     "1.30": '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" | ternary "v1.30.9+rke2r1" "v1.30.9" }}'
+    1.31: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" | ternary "v1.31.5+rke2r1" "v1.31.5" }}'
 
   # total number of nodes in this cluster
   node_count:
@@ -8458,7 +8684,8 @@ _internal:
               - lbpool  # this is the pool generated by from cluster_virtual_ip
             interfaces: >-
               {{- if eq .Values.cluster.capi_providers.infra_provider "capm3" }}
-               {{ .Values.cluster.cluster_primary_interfaces | default (list .Values.cluster.control_plane.capm3.primary_pool_interface)  | include "preserve-type" }}
+                {{- $control_plane_networks := mergeOverwrite (deepCopy .Values.cluster.capm3.networks) (deepCopy (.Values.cluster.control_plane.capm3.networks | default dict)) }}
+                {{ .Values.cluster.cluster_primary_interfaces | default (list ( $control_plane_networks.primary.interface)) | include "preserve-type" }}
               {{- else -}}
                 {{- list | include "preserve-type" -}}
               {{- end }}
@@ -8488,6 +8715,9 @@ _internal:
       name:
         _immutable: true
         _immutable_comment: "Renaming a cluster is not supported"
+      cluster_virtual_ip:
+        _immutable: true
+        _immutable_comment: "cluster_virtual_ip can't be changed once deployed"
       capi_providers:
         bootstrap_provider:
           _immutable: true

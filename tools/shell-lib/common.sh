@@ -8,13 +8,11 @@ export PATH=${BASE_DIR}/bin:${PATH}
 export KIND_CLUSTER_NAME=${KIND_CLUSTER_NAME:-sylva}
 
 SYLVA_BASE_OCI_REGISTRY=${SYLVA_BASE_OCI_REGISTRY:-registry.gitlab.com/sylva-projects}
-SYLVA_TOOLBOX_VERSION=${SYLVA_TOOLBOX_VERSION:-"v0.8.0"}
+SYLVA_TOOLBOX_VERSION=${SYLVA_TOOLBOX_VERSION:-"v0.9.0"}
 SYLVA_TOOLBOX_IMAGE=${SYLVA_TOOLBOX_IMAGE:-container-images/sylva-toolbox}
 SYLVA_TOOLBOX_REGISTRY=${SYLVA_TOOLBOX_REGISTRY:-${SYLVA_BASE_OCI_REGISTRY}/sylva-elements}
 export KIND_POD_SUBNET=${KIND_POD_SUBNET:-100.100.0.0/16}
 export KIND_SVC_SUBNET=${KIND_SVC_SUBNET:-100.96.0.0/16}
-
-SYLVACTL_VERSION=v0.6.6
 
 if [[ -n "${CI_JOB_NAME:-}" ]]; then
   export IN_CI=1
@@ -282,7 +280,7 @@ function reconcile_sylva_units() {
     --exit-condition reason=InstallFailed
 
   helm_release_version=$(kubectl get -n $namespace HelmRelease sylva-units -o yaml | yq -r '.status.history[0].version')
-  if ! [[ $_options == *"skip-root-dependency-wait"* ]]; then
+  if ! [[ $_options == *"skip-root-dependency-wait"* ]] && kubectl get -n $namespace Kustomization root-dependency-$helm_release_version &>/dev/null; then
     echo "waiting for root-dependency-$helm_release_version to become ready..."
     sylvactl watch -n $namespace Kustomization/$namespace/root-dependency-$helm_release_version --timeout ${SYLVA_UNITS_RECONCILE_TIMEOUT:-180s} --skip-inventory --reconcile
   fi
@@ -419,6 +417,16 @@ EOC
   fi
 }
 
+function display_service_ingresses() {
+   kustomizations=$(kubectl --kubeconfig ./management-cluster-kubeconfig get kustomization -A -o yaml | yq '.items[] | select(.metadata.annotations."sylvactl/readyMessage" != null) | .metadata.name')
+   for ks in $kustomizations; do
+       message=$(kubectl --kubeconfig ./management-cluster-kubeconfig get kustomization $ks -o yaml | yq '.metadata.annotations."sylvactl/readyMessage"' )
+       if [[ $message == *UI* ]]; then
+           echo "* $ks - $message"
+       fi
+   done
+}
+
 function display_final_messages() {
   CALLER_SCRIPT_NAME=$(basename ${BASH_SOURCE[1]})
   if [[ $CALLER_SCRIPT_NAME != *"apply-workload-cluster.sh"* ]]; then
@@ -429,7 +437,7 @@ function display_final_messages() {
 
   if [[ $CALLER_SCRIPT_NAME == *"bootstrap.sh"* ]]; then
     echo_b "\U0001F331 You can access following UIs"
-    kubectl --kubeconfig management-cluster-kubeconfig get ingress --all-namespaces
+    display_service_ingresses
   fi
   echo_b "\U0001F389 All done"
 }

@@ -173,6 +173,7 @@ units:
     - kustomization-deployed-on-mgmt-cluster
     enabled_conditions: []  # override what is set in values.yaml
     depends_on:
+      capi: false # Cluster API is deployed in management cluster sylva-units release
       kyverno: false  # Kyverno is deployed in management cluster sylva-units release
 
   cluster-node-provider-id-blacklist:
@@ -350,7 +351,7 @@ units:
       healthChecks: [] # Remove healthChecks targeting sylva-system namespace
 
   external-secrets-operator:
-    enabled: true
+    enabled: '{{ tuple . "kubevirt-manager" | include "unit-enabled" }}'
 
   kubevirt:
     # can be enabled at runtime if desired
@@ -385,6 +386,10 @@ units:
   multus:
     # can be enabled at runtime if desired
     enabled: false
+
+  multus-bond-cni:
+    kustomization_spec:
+      targetNamespace: null # cancel targetNamespace set in unit_kustomization_spec_default
 
   multus-ready:
     enabled: true
@@ -528,7 +533,7 @@ units:
   sylva-ca:
     enabled: true
     depends_on:
-      external-secrets-operator: true
+      external-secrets-operator: '{{ tuple . "external-secrets-operator" | include "unit-enabled" }}'
     kustomization_spec:
       targetNamespace: "cert-manager"
       postBuild:
@@ -537,7 +542,7 @@ units:
           CA_COMMON_NAME: '{{ .Values.cluster.name }} CA'
           CA_O_NAME: '{{ .Values.cluster.name }}'
       _components:
-        - components/eso
+        - '{{ tuple "components/eso" (tuple . "external-secrets-operator" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/acme-issuer" (eq .Values.security.external_x509_issuer.issuer_type "acme") | include "set-only-if" }}'
         - '{{ tuple "components/vault-issuer" (eq .Values.security.external_x509_issuer.issuer_type "vault") | include "set-only-if"}}'
         - '{{ tuple "components/ca-issuer" (not (hasKey .Values.security.external_x509_issuer "issuer_type")) | include "set-only-if" }}'

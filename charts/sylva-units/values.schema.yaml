@@ -166,7 +166,6 @@ additionalProperties: false
 # cover the case where a user would mistakenly remove one of them by "nulling" it
 # (e.g. by setting `proxies:` without any subdict in override values)
 required:
-  - registry_secret
   - git_repo_spec_default
   - source_templates
   - helm_repo_spec_default
@@ -189,15 +188,6 @@ properties:
     type: string
   nameOverride:  # -------------------------------
     type: string
-
-  registry_secret: # -------------------------------
-    type: object
-    patternProperties:
-      "^[a-z0-9][a-z0-9.-]*[a-z0-9]$":  # -------------------------------
-        anyOf:
-          - type: string
-            pattern: "{{ .* }}"
-          - $ref: "#/$defs/username-password"
 
   git_repo_spec_default:  # -------------------------------
     type: object
@@ -806,6 +796,12 @@ properties:
             format: hostname
           - const: ''
           - $ref: "#/$defs/string-with-gotpl"
+      kunai:  # -------------------------------
+        anyOf:
+          - type: string
+            format: hostname
+          - const: ''
+          - $ref: "#/$defs/string-with-gotpl"
       minio_operator_console:  # -------------------------------
         anyOf:
           - type: string
@@ -912,6 +908,8 @@ properties:
       os_image_server:  # -------------------------------
         $ref: "#/$defs/cert-and-key"
       gitea:  # -------------------------------
+        $ref: "#/$defs/cert-and-key"
+      kunai:  # -------------------------------
         $ref: "#/$defs/cert-and-key"
       minio_operator:  # -------------------------------
         $ref: "#/$defs/cert-and-key"
