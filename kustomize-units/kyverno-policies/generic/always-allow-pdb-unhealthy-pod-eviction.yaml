@@ -28,6 +28,7 @@ spec:
             namespaces:
             - minio-monitoring
             - minio-logging
+            - minio-velero-backup
       mutate:
         patchStrategicMerge:
           spec:
