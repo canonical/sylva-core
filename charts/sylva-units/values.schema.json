@@ -6631,6 +6631,19 @@
               "type": "null"
             }
           ]
+        },
+        "generateUnitTestData": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "$ref": "#/$defs/string-with-gotpl"
+            },
+            {
+              "type": "null"
+            }
+          ]
         }
       },
       "allOf": [
