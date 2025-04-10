@@ -2233,6 +2233,9 @@ units:
                   - "cronjobs"
                   - "jobs"
                 verbs: ["get", "list", "patch", "update", "watch"]
+              - apiGroups: ["minio.min.io"]
+                resources: ["tenants"]
+                verbs: ["get", "list", "watch", "patch", "update"]
               - apiGroups: ["vault.banzaicloud.com"]
                 resources:
                   - "vaults"
