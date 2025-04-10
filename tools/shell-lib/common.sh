@@ -56,6 +56,7 @@ function apply_scripts_init {
   ensure_sylva_toolbox
   ensure_sylvactl
   trap exit_trap EXIT
+  trap 'echo "Interrupted!"; exit 1' SIGINT
 }
 
 
