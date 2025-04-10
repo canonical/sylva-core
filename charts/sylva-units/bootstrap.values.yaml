@@ -205,6 +205,17 @@ units:
         secretRef:
           name: '{{ .Values.cluster.name }}-kubeconfig'
 
+  spegel:
+    # overload spegel definition in bootstrap context to deploy in the management cluster
+    depends_on:
+      cluster-reachable: true
+    helmrelease_spec:
+      kubeConfig:
+        secretRef:
+          name: '{{ .Values.cluster.name }}-kubeconfig'
+    labels:
+      suspend-on-pivot: "yes"  # this unit must be suspended before pivot
+
   # Install csi in management cluster to support flux
   cinder-csi:
     unit_templates:
@@ -248,6 +259,7 @@ units:
       # cluster readyness will actually be ensured by the retries on installations of this kustomization for now.
       # maybe cluster CRD is not compatible with kstatus? (see https://fluxcd.io/flux/units/kustomize/kustomization/#health-assessment)
       calico-ready: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpk" }}'
+      spegel: '{{ tuple . "spegel" | include "unit-enabled" }}'
     unit_templates:
     - flux-common
     kustomization_spec:
@@ -586,3 +598,4 @@ units_override_enabled:
   - libvirt-metal
   - vsphere-cpi
   - sync-openstack-images
+  - spegel
