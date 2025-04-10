@@ -6372,7 +6372,7 @@ units:
                   - '{{ .Values.external_hostnames.thanos_query }}'
                 secretName: thanos-tls
         queryFrontend:
-          loglevel: info
+          logLevel: info
           extraFlags:
             - --query-frontend.forward-header=Authorization
             - --cache-compression-type=snappy
@@ -6426,7 +6426,7 @@ units:
           persistence:
             enabled: false
           enabled: true
-          logLevel: debug
+          logLevel: info
           extraFlags:
             - --deduplication.replica-label="prometheus_replica"
           consistencyDelay: 30m
