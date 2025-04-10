@@ -32,6 +32,6 @@ spec:
           namespace: ${TENANT_NS}
       patchStrategicMerge:
         spec:
-          poolsMetadata:
-            annotations:
-              ${TENANT_NS}/triggerrestart: "{{request.object.metadata.resourceVersion}}"
+          env:
+          - name: MINIO_TRIGGER_RESTART
+            value: "{{ request.object.data || '' | to_string(@) | sha256(@) | truncate(@,`12`) }}"
