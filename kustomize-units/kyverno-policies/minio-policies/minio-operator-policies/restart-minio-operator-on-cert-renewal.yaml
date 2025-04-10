@@ -35,7 +35,7 @@ spec:
           template:
             metadata:
               annotations:
-                ca-cert/triggerrestart: "{{request.object.metadata.resourceVersion}}"
+                ca-cert/triggerrestart: "{{ request.object.data || '' | to_string(@) | sha256(@) | truncate(@,`12`) }}"
   - name: minio-operator-restart-on-sts-change
     match:
       any:
@@ -60,4 +60,4 @@ spec:
           template:
             metadata:
               annotations:
-                sts-cert/triggerrestart: "{{request.object.metadata.resourceVersion}}"
+                sts-cert/triggerrestart: "{{ request.object.data || '' | to_string(@) | sha256(@) | truncate(@,`12`) }}"
