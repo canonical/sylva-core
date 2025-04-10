@@ -8223,7 +8223,7 @@ proxies:
 no_proxy_additional:
   10.0.0.0/8: true
   192.168.0.0/16: true
-  172.16.0.0/12: true
+  172.16.0.0/12: false
   localhost: true
   127.0.0.1: true
   .svc: true
