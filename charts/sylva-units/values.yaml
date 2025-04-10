@@ -6952,7 +6952,7 @@ units:
                   - '{{ .Values.external_hostnames.thanos_query }}'
                 secretName: thanos-tls
         queryFrontend:
-          loglevel: info
+          logLevel: info
           extraFlags:
             - --query-frontend.forward-header=Authorization
             - --cache-compression-type=snappy
