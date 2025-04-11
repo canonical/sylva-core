@@ -51,7 +51,8 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
     spec:
       url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-capi-cluster.git
       ref:
-        tag: 0.7.0
+        #tag: 0.7.0
+        branch: cm-metallb-values
 
   sync-openstack-images:
     kind: GitRepository
@@ -3432,36 +3433,7 @@ units:
       targetNamespace: metallb-system
       install:
         createNamespace: true
-      values:
-        loadBalancerClass: '{{ .Values._internal.loadBalancerClass }}'
-        controller:
-          nodeSelector:
-            node-role.kubernetes.io/control-plane: '{{ .Values._internal.cp_node_label_value }}'
-          tolerations:
-          - key: node.cloudprovider.kubernetes.io/uninitialized
-            value: "true"
-            effect: NoSchedule
-          - effect: NoExecute
-            key: node-role.kubernetes.io/etcd
-          - effect: NoSchedule
-            key: node-role.kubernetes.io/master
-          - effect: NoSchedule
-            key: node-role.kubernetes.io/control-plane
-        speaker:
-          ignoreExcludeLB: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpk" | include "as-bool" }}'
-          priorityClassName: system-cluster-critical
-          frr:
-            enabled: false
-          tolerations:
-          - key: node.cloudprovider.kubernetes.io/uninitialized
-            value: "true"
-            effect: NoSchedule
-          - effect: NoExecute
-            key: node-role.kubernetes.io/etcd
-          - effect: NoSchedule
-            key: node-role.kubernetes.io/master
-          - effect: NoSchedule
-            key: node-role.kubernetes.io/control-plane
+      values: '{{ .Values.metallb_helm_values | include "preserve-type" }}'
 
   metallb-resources:
     info:
@@ -7815,6 +7787,8 @@ cluster:
     calico:
       helm_values: '{{ .Values.calico_helm_values | include "preserve-type" }}'
 
+  metallb_helm_values: '{{ .Values.metallb_helm_values | include "preserve-type" }}'
+
   ntp: '{{ .Values.ntp | include "preserve-type" }}'
   proxies:
     http_proxy: '{{ .Values.proxies.http_proxy }}'
@@ -8469,6 +8443,37 @@ calico_helm_values:
     registry: UseDefault
   felixConfiguration:
     wireguardEnabled: '{{ .Values.security.calico_wireguard_enabled | include "preserve-type" }}'
+
+metallb_helm_values:
+  loadBalancerClass: '{{ .Values._internal.loadBalancerClass }}'
+  controller:
+    nodeSelector:
+      node-role.kubernetes.io/control-plane: '{{ .Values._internal.cp_node_label_value }}'
+    tolerations:
+    - key: node.cloudprovider.kubernetes.io/uninitialized
+      value: "true"
+      effect: NoSchedule
+    - effect: NoExecute
+      key: node-role.kubernetes.io/etcd
+    - effect: NoSchedule
+      key: node-role.kubernetes.io/master
+    - effect: NoSchedule
+      key: node-role.kubernetes.io/control-plane
+  speaker:
+    ignoreExcludeLB: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpk" | include "as-bool" }}'
+    priorityClassName: system-cluster-critical
+    frr:
+      enabled: false
+    tolerations:
+    - key: node.cloudprovider.kubernetes.io/uninitialized
+      value: "true"
+      effect: NoSchedule
+    - effect: NoExecute
+      key: node-role.kubernetes.io/etcd
+    - effect: NoSchedule
+      key: node-role.kubernetes.io/master
+    - effect: NoSchedule
+      key: node-role.kubernetes.io/control-plane
 
 _internal:
 
