@@ -6274,6 +6274,9 @@ units:
           extraFlags:
           - --query.config-file=/etc/thanos/ruler-queries.yaml
           - --label=platform_tag="{{ .Values.monitoring.platform_tag }}"
+          - --enable-auto-gomemlimit
+          - --tsdb.retention=12h
+          - --tsdb.wal-compression
           extraVolumes:
           - name: thanos-ruler-queries-config
             secret:
@@ -6327,11 +6330,11 @@ units:
                 type: RuntimeDefault
             resources:
               requests:
-                memory: "64Mi"
-                cpu: "100m"
+                memory: 64Mi
+                cpu: 100m
               limits:
-                memory: "128Mi"
-                cpu: "250m"
+                memory: 128Mi
+                cpu: 250m
           persistence:
             enabled: true
             storageClass: '{{ tuple . (tuple . "two-replicas-storageclass" | include "unit-enabled") "two-replicas-storageclass" .Values._internal.default_storage_class | include "interpret-ternary" }}'
@@ -6345,11 +6348,21 @@ units:
           service:
             clusterIP: None
         query:
-          logLevel: debug
+          logLevel: info
           extraFlags:
             - --query.auto-downsampling
             - --query.replica-label=prometheus_replica
             - --query.replica-label=prometheus
+            - --enable-auto-gomemlimit
+            - --query.max-concurrent=20
+            - --query.max-concurrent-select=4
+          resources:
+            requests:
+              cpu: 0.1
+              memory: 256Mi
+            limits:
+              cpu: 0.5
+              memory: 512Mi
           ingress:
             enabled: true
             ingressClassName: "nginx"
@@ -6359,9 +6372,19 @@ units:
                   - '{{ .Values.external_hostnames.thanos_query }}'
                 secretName: thanos-tls
         queryFrontend:
-          loglevel: debug
+          logLevel: info
           extraFlags:
             - --query-frontend.forward-header=Authorization
+            - --cache-compression-type=snappy
+            - --query-range.split-interval=6h
+            - --enable-auto-gomemlimit
+          resources:
+            requests:
+              cpu: 0.1
+              memory: 512Mi
+            limits:
+              cpu: 0.5
+              memory: 1.5Gi
           config: |-
             type: IN-MEMORY
             config:
@@ -6378,7 +6401,10 @@ units:
                 secretName: thanos-tls
         storegateway:
           enabled: true
-          logLevel: debug
+          logLevel: info
+          extraFlags:
+            - --index-cache-size=1GB
+            - --enable-auto-gomemlimit
           persistence:
             enabled: false
           ingress:
@@ -6389,11 +6415,21 @@ units:
               - hosts:
                   - '{{ .Values.external_hostnames.thanos_storegateway }}'
                 secretName: thanos-tls
+          resources:
+            requests:
+              cpu: 0.1
+              memory: 1.5Gi
+            limits:
+              cpu: 0.5
+              memory: 2Gi
         compactor:
+          persistence:
+            enabled: false
           enabled: true
-          logLevel: debug
+          logLevel: info
           extraFlags:
             - --deduplication.replica-label="prometheus_replica"
+          consistencyDelay: 30m
           resources:
             requests:
               cpu: 0.5
@@ -6401,21 +6437,26 @@ units:
             limits:
               cpu: 1
               memory: 1024Mi
-          retentionResolutionRaw: 2d
-          retentionResolution5m: 30d
-          retentionResolution1h: 1y
+          retentionResolutionRaw: 15d
+          retentionResolution5m: 15d
+          retentionResolution1h: 15d
         receive:
           enabled: true
-          logLevel: debug
+          logLevel: info
           resources:
             requests:
               cpu: 0.5
-              memory: 4096Mi
+              memory: 4Gi
             limits:
               cpu: 1
-              memory: 6144Mi
+              memory: 6Gi
           persistence:
             enabled: false
+          tsdbRetention: 12h
+          extraFlags:
+          - --enable-auto-gomemlimit
+          - --tsdb.max-retention-bytes=12GB
+          - --tsdb.wal-compression
           ingress:
             enabled: true
             ingressClassName: "nginx"
