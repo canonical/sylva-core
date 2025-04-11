@@ -6574,6 +6574,67 @@
             }
           ]
         },
+        "capm3_os_image_server_images": {
+          "anyOf": [
+            {
+              "type": "object",
+              "propertyNames": {
+                "pattern": "^[a-f0-9]{64}$"
+              },
+              "patternProperties": {
+                ".*": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "available": {
+                          "anyOf": [
+                            {
+                              "type": "boolean"
+                            },
+                            {
+                              "$ref": "#/$defs/string-with-gotpl"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "image_key": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "pattern": "^[a-z0-9][a-z0-9.-]*[a-z0-9]$"
+                            },
+                            {
+                              "$ref": "#/$defs/string-with-gotpl"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        }
+                      }
+                    },
+                    {
+                      "$ref": "#/$defs/string-with-gotpl"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "$ref": "#/$defs/string-with-gotpl"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
         "default_node_class": {
           "anyOf": [
             {

@@ -20,9 +20,9 @@ spec:
     generate:
       kind: ConfigMap
       apiVersion: v1
-      name: kyverno-cloned-os-images-info-capm3
+      name: kyverno-cloned-os-image-server-images
       namespace: "{{request.object.metadata.name}}"
       synchronize: true
       clone:
-        name: capm3-os-image-server-os-images-info
-        namespace: os-images
+        name: capm3-os-image-server-os-images
+        namespace: sylva-system
