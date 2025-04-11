@@ -9315,27 +9315,15 @@
                 }
               ]
             },
-            "use_sylva_internal_storage": {
-              "type": "boolean"
-            },
-            "store_type": {
-              "type": "string"
-            },
-            "store_config_external": {
-              "type": "object"
-            }
-          },
-          "if": {
-            "properties": {
-              "use_sylva_internal_storage": {
-                "const": false
-              }
-            }
-          },
-          "then": {
-            "properties": {
-              "store_config_external": {
-                "minProperties": 1
+            "objstoreConfig": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string"
+                },
+                "config": {
+                  "type": "object"
+                }
               }
             }
           }

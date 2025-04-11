@@ -6568,6 +6568,8 @@ units:
     - base-deps
     enabled_conditions:
       - '{{ tuple . "thanos" | include "unit-enabled" }}'
+      # only enable when no custom objstoreConfig is provided
+      - '{{ .Values.monitoring.thanos.objstoreConfig.config | empty }}'
     depends_on:
       namespace-defs: true
       minio-operator: true
@@ -6717,7 +6719,7 @@ units:
       namespace-defs: true
       sylva-ca: true
       eso-secret-stores: true
-      minio-monitoring-init: true
+      minio-monitoring-init: '{{ .Values.monitoring.thanos.objstoreConfig.config | empty }}'
     repo: sylva-core
     kustomization_spec:
       path: ./kustomize-units/thanos-init
@@ -6776,7 +6778,7 @@ units:
       namespace-defs: true
       thanos-init: true
       thanos-credentials-secret: true
-      minio-monitoring: true
+      minio-monitoring: '{{ .Values.monitoring.thanos.objstoreConfig.config | empty }}'
       '{{ .Values._internal.default_storage_class_unit }}': true
       ingress-nginx: '{{ tuple . "ingress-nginx" | include "unit-enabled" }}'
     annotations:
@@ -7029,7 +7031,7 @@ units:
                 "targetPath" "objstoreConfig.config.access_key"
                 "optional" true
               )
-              (.Values.monitoring.thanos.use_sylva_internal_storage)
+              (.Values.monitoring.thanos.objstoreConfig.config | empty)
               | include "set-only-if"
           }}
         - >-
@@ -7040,7 +7042,7 @@ units:
                 "targetPath" "objstoreConfig.config.secret_key"
                 "optional" true
               )
-              (.Values.monitoring.thanos.use_sylva_internal_storage)
+              (.Values.monitoring.thanos.objstoreConfig.config | empty)
               | include "set-only-if"
           }}
         # Use tenant list built by kyverno policy thanos-aggregated-secret to fill auth.basicAuthUsers object
@@ -8268,16 +8270,14 @@ monitoring:
     #   to point to the mgmt cluster Thanos receive ingress
     receive_url: http://thanos-receive.thanos.svc.cluster.local:19291/api/v1/receive
 
-    # use_sylva_internal_storage: false to configure an external storage
-    use_sylva_internal_storage: true
+    objstoreConfig:
+      # only taken into account when monitoring.thanos.objstoreConfig.config is not empty
+      type: "S3"
 
-    # only taken into account when use_sylva_internal_storage: false
-    store_type: "S3"
-
-    # custom store config
-    store_config_external: {}
-      # https://github.com/thanos-io/objstore#supported-providers-clients
-      # lists all supported provides
+      # custom store config
+      config: {}
+        # https://github.com/thanos-io/objstore#supported-providers-clients
+        # lists all supported provides
 
   alertmanager:
     config: {}
@@ -8327,26 +8327,24 @@ monitoring:
 
 #monitoring:
 #  thanos:
-#    # use external storage
-#    use_sylva_internal_storage: false
-#    # of Google Cloud Storage
-#    store_type: "GCS"
-#    # https://github.com/thanos-io/objstore#gcs
-#    store_config_external:
-#      bucket: "test"
-#      service_account: |-
-#        {
-#          "type": "service_account",
-#          "project_id": "project",
-#          "private_key_id": "abcdefghijklmnopqrstuvwxyz12345678906666",
-#          "private_key": "-----BEGIN PRIVATE KEY-----\...\n-----END PRIVATE KEY-----\n",
-#          "client_email": "thanos@example.com",
-#          "client_id": "123456789012345678901",
-#          "auth_uri": "https://accounts.google.com/o/oauth2/auth",
-#          "token_uri": "https://oauth2.googleapis.com/token",
-#          "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
-#          "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/thanos%40gitpods.iam.gserviceaccount.com"
-#          }
+#    objstoreConfig:
+#      type: "GCS"
+#      # https://github.com/thanos-io/objstore#gcs
+#      config:
+#        bucket: "test"
+#        service_account: |-
+#          {
+#            "type": "service_account",
+#            "project_id": "project",
+#            "private_key_id": "abcdefghijklmnopqrstuvwxyz12345678906666",
+#            "private_key": "-----BEGIN PRIVATE KEY-----\...\n-----END PRIVATE KEY-----\n",
+#            "client_email": "thanos@example.com",
+#            "client_id": "123456789012345678901",
+#            "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+#            "token_uri": "https://oauth2.googleapis.com/token",
+#            "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+#            "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/thanos%40gitpods.iam.gserviceaccount.com"
+#            }
 #  alertmanager:
 #    # Supported values from: https://prometheus.io/docs/alerting/latest/configuration/
 #    config:
@@ -8615,7 +8613,6 @@ _internal:
         enabled: '{{ tuple . "crossplane" | include "unit-enabled" }}'
 
   thanos:
-    # default settings for internal MinIO storage
     store_config_internal:
       bucket: "thanos"
       endpoint: "minio.minio-monitoring.svc.cluster.local"
@@ -8628,15 +8625,15 @@ _internal:
       put_user_metadata:
         X-Amz-Storage-Class: REDUCED_REDUNDANCY
 
-    # construct objstoreConfig for intenal MinIO storage
-    # or user defined options
     objstoreConfig:
-      type: '{{ ternary "S3" .Values.monitoring.thanos.store_type .Values.monitoring.thanos.use_sylva_internal_storage }}'
+      type: '{{ ternary "S3" .Values.monitoring.thanos.objstoreConfig.type (.Values.monitoring.thanos.objstoreConfig.config | empty) }}'
+      # construct objstoreConfig for intenal MinIO storage
+      # or use user defined options
       config: |-
-        {{ if .Values.monitoring.thanos.use_sylva_internal_storage }}
+        {{ if (.Values.monitoring.thanos.objstoreConfig.config | empty)  }}
         {{ .Values._internal.thanos.store_config_internal | include "preserve-type" }}
         {{ else }}
-        {{ .Values.monitoring.thanos.store_config_external | include "preserve-type" }}
+        {{ .Values.monitoring.thanos.objstoreConfig.config | include "preserve-type" }}
         {{ end }}
 
   # thanos user and password
