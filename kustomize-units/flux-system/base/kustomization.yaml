@@ -58,9 +58,6 @@ patches:
   patch: |
     - op: add
       path: /spec/template/spec/containers/0/args/-
-      value: --requeue-dependency=8s
-    - op: add
-      path: /spec/template/spec/containers/0/args/-
       value: --concurrent=10
 - target:
     kind: Deployment
