@@ -1,5 +1,6 @@
 apiVersion: v1
-data: {}
+data:
+  _dummy_: keep this here so that this dict is never empty
 kind: ConfigMap
 metadata:
   name: nodes-provider-ids
@@ -15,9 +16,19 @@ metadata:
     policies.kyverno.io/description: >-
       This policy tracks providerIDs that have been set to nodes in nodes-provider-ids ConfigMap
 spec:
-  background: true
+  background: false
+  admission: true
   mutateExistingOnPolicyUpdate: true
-  failurePolicy: ${FAILURE_POLICY:-Fail}
+  failurePolicy: Fail
+  # we need to ensure that we never hit the webhook in the early phases of Node creation
+  # since this policy is only meant to allow us to prevent Node recreation with an old providerID
+  # we configure the webhook to only be called on an update that changes spec.unschedulable to true
+  # (this is sufficient to ensure that it will be called when cordoning/draining the node)
+  webhookConfiguration:
+    matchConditions:
+    - name: only-on-update-of-spec-unschedulable-to-true
+      expression: >-
+        object.?spec.unschedulable.orValue(false) == true
   rules:
   - name: generate-nodes-provider-ids-list
     skipBackgroundRequests: false
@@ -47,86 +58,56 @@ spec:
       targets:
       - kind: ConfigMap
         apiVersion: v1
-        name: nodes-provider-ids
+        name: nodes-provider-ids  # this ConfigMap is read by the prevent-node-provider-id-reuse ValidatingAdmissionPolicy
         namespace: sylva-system
       patchStrategicMerge:
         data:
           "{{ providerID }}": "{{ request.object.metadata.creationTimestamp }}"
 ---
-apiVersion: kyverno.io/v1
-kind: ClusterPolicy
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
 metadata:
   name: prevent-node-provider-id-reuse
-  annotations:
-    kustomize.toolkit.fluxcd.io/force: Enabled
-    pod-policies.kyverno.io/autogen-controllers: none
-    policies.kyverno.io/description: >-
-      This policy prevents the creation of a node with a providerID that has already been used in the past
 spec:
-  background: false
-  validationFailureAction: Enforce
-  failurePolicy: ${FAILURE_POLICY:-Fail}
-  rules:
-  - name: prevent-node-provider-id-reuse
-    match:
-      any:
-      - resources:
-          kinds:
-          - /v1/Node
-          operations:
-          - CREATE
-          - UPDATE
-    preconditions:
-      all:
-      - key: "{{ request.oldObject.spec.providerID || '' }}"
-        operator: Equals
-        value: ''
-    context:
+  failurePolicy: Fail
+  matchConstraints:
+    resourceRules:
+    - apiGroups: [""]
+      apiVersions: ["v1"]
+      operations: ["CREATE", "UPDATE"]
+      resources: ["nodes"]
+  matchConditions:
+    - name: node-has-providerID
+      expression: object.spec.?providerID.orValue("") != ""
+    - name: not-providerID-is-unchanged
+      expression: >-
+        ! (request.operation == "UPDATE" &&
+           (oldObject.spec.?providerID == object.spec.?providerID)
+          )
+  paramKind:
+    apiVersion: v1
+    kind: ConfigMap  # the ValidatingAdmissionPolicyBinding will bind this to the nodes-provider-ids ConfigMap
+  variables:
+    - name: blacklistedProviderIDsShort
+      expression: params.data  # this will be the 'data' of the 'nodes-provider-ids' ConfigMap
     - name: providerID
-      variable:
-        value: "{{ request.object.spec.providerID || '' | split(@, '/') | [-1] }}"
-    - name: blacklistedIDs
-      apiCall:
-        urlPath: "/api/v1/namespaces/sylva-system/configmaps/nodes-provider-ids"
-        jmesPath: "data || `{}` | keys(@)"
-    validate:
-      message: Check if node providerID has already been used
-      deny:
-        conditions:
-          any:
-          - key: "{{ blacklistedIDs | contains(@, '{{ providerID }}') }}"
-            operator: Equals
-            value: true
-            message: Blocking node creation as there was already a node with providerID {{ providerID }}
+      expression: object.spec.?providerID.orValue("")
+    - name: providerIDShort
+      expression: variables.providerID.substring(variables.providerID.lastIndexOf("/")+1)
+  validations:
+    - expression: >-
+        ! (variables.providerIDShort in variables.blacklistedProviderIDsShort)
+      messageExpression: >-
+        "node can't reuse an old providerID: " + variables.providerIDShort
 ---
-apiVersion: kyverno.io/v2
-kind: ClusterCleanupPolicy
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
 metadata:
-  name: node-cleanup-policy
-  annotations:
-    kustomize.toolkit.fluxcd.io/force: Enabled
-    policies.kyverno.io/title: Delete node that would be re-created by kubelet after node deletion by capi.
-    policies.kyverno.io/minversion: 1.12.0
+  name: prevent-node-provider-id-reuse
 spec:
-  schedule: "*/1 * * * *"
-  match:
-    any:
-    - resources:
-        kinds:
-          - v1/Node
-  context:
-  - name: blacklistedIDs
-    apiCall:
-      urlPath: "/api/v1/namespaces/sylva-system/configmaps/nodes-provider-ids"
-      jmesPath: "data || `{}`"
-  conditions:
-    all:
-    # the condition to delete a Node is if we have recorded in the "nodes-provider-ids", for the same providerID,
-    # a creationTimestamp different than the one on the Node ; because this corresponds to an already
-    # seen server/machine (same providerID) which has recreated a Node (different creationTimestamp)
-    #
-    # (the "|| target.metadata.creationTimestamp" ensures that for a Node which has just appeared
-    # and which hasn't been tracked in nodes-provider-ids, we take the right decision - no deletion)
-    - key: "{{ lookup(blacklistedIDs, target.spec.providerID || '' | split(@, '/') | [-1] ) || target.metadata.creationTimestamp }}"
-      operator: NotEquals
-      value: "{{ target.metadata.creationTimestamp }}"
+  policyName: prevent-node-provider-id-reuse
+  validationActions: [Deny]
+  paramRef:
+    parameterNotFoundAction: Allow
+    namespace: sylva-system
+    name: nodes-provider-ids  # nodes-provider-ids ConfigMap (populated by nodes-provider-id-blacklist Kyverno policy)
