@@ -51,7 +51,7 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
     spec:
       url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-capi-cluster.git
       ref:
-        tag: 0.6.1
+        tag: 0.7.0
 
   sync-openstack-images:
     kind: GitRepository
@@ -93,7 +93,7 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
     spec:
       url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/os-image-server.git
       ref:
-        tag: 2.2.5
+        tag: 2.3.0
 
   capo-contrail-bgpaas:
     kind: GitRepository
@@ -2992,12 +2992,49 @@ units:
         - kind: ConfigMap
           name: openstack-images-uuids  ## this ConfigMap is a byproduct of the sync-openstack-images job
           optional: '{{ not (.Values.cluster.capi_providers.infra_provider | eq "capo") | include "as-bool" }}'
-        - kind: ConfigMap
-          # this configmap is a byproduct of the os-images-info unit, a different configmap is used for capm3 workload clusters
-          # see workload-cluster.values.yaml
-          name: '{{ .Values._internal.cluster_unit_os_images_info_configmap }}'
-          valuesKey: values.yaml
-          optional: '{{ not (.Values.cluster.capi_providers.infra_provider | eq "capm3") | include "as-bool" }}'
+
+        # os-images-info ConfigMap
+        #
+        # this ConfigMap is a byproduct of the os-images-info unit
+        #
+        # it is used for capo and capm3
+        #
+        # for capm3 workload clusters it is important to have it as an override of the kyverno-cloned-os-images-info-capm3
+        # to ensure that whenever there would be an image with the same image key in workload and mgmt context but for a
+        # different content, the workload cluster sylva-capi-cluster chart receives the one coming from the os-images-info
+        # computed by the workload cluster sylva-units Helm release based on the value of the workload cluster
+        - |
+          {{-
+          tuple
+            (dict "kind" "ConfigMap"
+                  "name" "os-images-info")
+            (or (.Values.cluster.capi_providers.infra_provider | eq "capm3")
+                (.Values.cluster.capi_providers.infra_provider | eq "capo")
+            )
+          | include "set-only-if"
+          -}}
+
+        # ConfigMap for capm3_os_image_server_images
+        # this ConfigMap is a byproduct of the os-image-server unit (from mgmt cluster)
+        #
+        # it is used for capm3 only
+        #
+        # for the mgmt cluster, the configmap is the capm3-os-image-server-os-images ConfigMap produced by os-image-server unit
+        # for for workload clusters, this ConfigMap is a Kyverno-cloned copy, in each cluster namespace, of the output ConfigMap of the os-image-server unit
+        # which reflects what the os-image-server unit in mgmt context is currently serving
+        - |
+          {{-
+          tuple
+            (dict "kind" "ConfigMap"
+                  "name" .Values._internal.os_image_server_images_configmap)
+            (.Values.cluster.capi_providers.infra_provider | eq "capm3")
+          | include "set-only-if"
+          -}}
+
+        # capo-cluster-resources ConfigMap to inject allocated_ip in Calico configuration
+        #
+        # only used for capo
+        # byproduct of the capo-cluster-resources unit
         - |
           {{-
           tuple
@@ -5496,11 +5533,13 @@ units:
     info:
       description: Creates a list of os images
       details: |
-        This unit creates a configmap containing the os images (and their details in the case of Sylva diskimage-builder ones)
-        to be further served by os-image-server
+        This unit creates a configmap containing information on operating system images for use with CAPO and CAPM3.
       internal: true
     enabled_conditions:
-      - '{{ or (tuple . "capm3" | include "unit-enabled") (.Values.cluster.capi_providers.infra_provider | eq "capo") }}'
+      - '{{ or (tuple . "capm3" | include "unit-enabled")
+               (.Values.cluster.capi_providers.infra_provider | eq "capo")
+               (.Values.cluster.capi_providers.infra_provider | eq "capm3")
+         }}'
     unit_templates:
     - base-deps
     - kube-job
@@ -5595,7 +5634,9 @@ units:
         createNamespace: true
       timeout: 168h  # leave plenty of time to download OS images in initContainers
       values:
-        outputConfigMapName: capm3-os-image-server-os-images-info
+        outputConfigMap:
+          namespace: sylva-system
+          name: capm3-os-image-server-os-images
         downloader:
           proxy: '{{ get .Values.proxies "https_proxy" }}'
           no_proxy: '{{ include "sylva-units.no_proxy" (tuple .) }}'
@@ -8689,7 +8730,7 @@ _internal:
     {{- $count -}}
     '
 
-  cluster_unit_os_images_info_configmap: os-images-info
+  os_image_server_images_configmap: capm3-os-image-server-os-images
 
   default_calico_autodetection_method: >-
     {{- if .Values.cluster.capi_providers.bootstrap_provider | eq "cabpk" }}
