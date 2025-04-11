@@ -6722,7 +6722,7 @@ units:
       minio-monitoring-init: '{{ .Values.monitoring.thanos.objstoreConfig.config | empty }}'
     repo: sylva-core
     kustomization_spec:
-      path: ./kustomize-units/thanos-init
+      path: '{{ if .Values.monitoring.thanos.objstoreConfig.config | empty }}./kustomize-units/thanos-init{{ else }}./kustomize-units/thanos-dummy{{ end }}'
       wait: true
       postBuild:
         substitute:
