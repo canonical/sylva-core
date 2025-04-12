@@ -6326,9 +6326,6 @@
             }
           ]
         },
-        "additional_ca":{
-            "type": "object"
-        },
         "additional_files": {
           "anyOf": [
             {
@@ -8312,6 +8309,9 @@
           ]
         }
       }
+    },
+    "additional_ca":{
+        "type": "object"
     },
     "cluster": {
       "$ref": "#/$defs/sylva-capi-cluster-values"
