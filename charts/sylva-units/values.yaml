@@ -7742,7 +7742,7 @@ cluster:
   additional_files: >-
       {{- $cacerts := dict -}}
       {{- range $key, $val := .Values.cluster.additional_ca -}}
-          {{- $_ := set $cacerts $key (tuple .Values $key $val | include "ca-file-content") -}}
+          {{- $_ := set $cacerts $key (tuple $ $key $val | include "ca-file-content") -}}
       {{- end -}}
       {{- $cacerts | include "preserve-type" -}}
 
