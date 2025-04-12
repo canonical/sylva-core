@@ -7747,7 +7747,7 @@ cluster:
        {{- ternary "/usr/local/share/ca-certificates/ca.crt" "/etc/pki/trust/anchors/ca.crt" (eq $provider.os_image_selector.os "ubuntu") -}}
       permissions: "0640"
       content: |
-        {{ .Values.additional_ca | trim | nindent 4 }}
+        {{- .Values.additional_ca | trim | nindent 4 }}
 
   # can be set to true to do an RKE2 deployment disconnected from the Internet:
   air_gapped: false
