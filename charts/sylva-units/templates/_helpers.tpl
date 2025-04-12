@@ -239,7 +239,7 @@ path: '{{ ternary (printf "%s/%s.crt" "/usr/local/share/ca-certificates" $cafile
 owner: root:root
 permissions: "0640"
 content: |
-  {{- $content | trim | nindent 4 }}`
+  {{- $content.cert | trim | nindent 4 }}
 {{- end -}}
 
 {{/*
