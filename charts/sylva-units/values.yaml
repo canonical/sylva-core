@@ -7742,9 +7742,9 @@ cluster:
   additional_files: 
       '{{- $cacerts := dict -}}
       {{- range $key, $val := .Values.additional_ca -}}
-          {{- $_ := set $cacerts $key (tuple $ $key $val | include "ca-file-content") -}}
+          {{- $_ := set $cacerts $key (tuple $ $key $val | include "ca-file-content" | include "preserve-type") -}}
       {{- end -}}
-      {{- $cacerts | toYaml -}}'
+      {{- $cacerts | include "preserve-type" -}}'
 
   # can be set to true to do an RKE2 deployment disconnected from the Internet:
   air_gapped: false
