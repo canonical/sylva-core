@@ -228,6 +228,19 @@ true
   {{- else -}}{{- end -}}{{/* empty return value to mean false */}}
 {{- end -}}
 
+
+
+{{- define "ca-file-content" -}}
+  {{- $envAll := index . 0 -}}
+  {{- $cafile := index . 1 -}}
+  {{- $content := index . 2 -}}
+path: '{{ ternary (printf "%s/%s.crt" "/usr/local/share/ca-certificates" $cafile) (printf "%s/%s.crt" "/etc/pki/trust/anchors/" $cafile) (eq $envAll.os_image_selector.os "ubuntu") }}'
+owner: root:root
+permissions: "0640"
+content: |
+  {{- $content | trim | nindent 4 }}`
+{{- end -}}
+
 {{/*
 
 "one-shot-units"
