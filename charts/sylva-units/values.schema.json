@@ -8311,7 +8311,7 @@
       }
     },
     "additional_ca":{
-        "type": "object"
+        "type": "string"
     },
     "cluster": {
       "$ref": "#/$defs/sylva-capi-cluster-values"
