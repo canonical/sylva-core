@@ -7759,7 +7759,7 @@ cluster:
       sudo cat <<EOF > $CERT_PATH
       {{ .Values.os_extra_ca_certs }}
       EOF
-      update-certificates
+      update-ca-certificates
       {{- end }}
 
   # can be set to true to do an RKE2 deployment disconnected from the Internet:
