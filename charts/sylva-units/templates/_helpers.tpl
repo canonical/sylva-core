@@ -230,16 +230,17 @@ true
 
 
 
-# {{- define "ca-file-content" -}}
+# {{- define "os-extra-ca-certs" -}}
 #   {{- $envAll := index . 0 -}}
-#   {{- $cafile := index . 1 -}}
-#   {{- $content := index . 2 -}}
+#   {{- $machine := index . 1 -}}
 #   {{- $provider := (index $envAll.Values.cluster $envAll.Values.cluster.capi_providers.infra_provider) -}}
-# path: '{{ ternary (printf "%s/%s.crt" "/usr/local/share/ca-certificates" $cafile) (printf "%s/%s.crt" "/etc/pki/trust/anchors/" $cafile) (eq $provider.os_image_selector.os "ubuntu") }}'
-# owner: root:root
-# permissions: "0640"
-# content: |
-#   {{- $content.cert | trim | nindent 4 }}
+#   {{- $image_detail :=  ternary (index $machine $provider) (index $envAll.Values $provider) (hasKey (index $machine $provider) "os_image_selector") -}}
+# rootca:
+#   owner: "root:root"
+#     path: '{{- ternary "/usr/local/share/ca-certificates/ca.crt" "/etc/pki/trust/anchors/ca.crt" (eq $image_detail.os_image_selector.os "ubuntu") -}}'
+#       permissions: "0640"
+#       content: |
+#         {{ .Values.additional_ca }}
 # {{- end -}}
 
 {{/*

@@ -7739,15 +7739,45 @@ units:
 
 cluster:
   name: management-cluster
-  additional_files: 
-    rootca:
-      owner: "root:root"
-      path: >-
-       {{- $provider := (index .Values.cluster .Values.cluster.capi_providers.infra_provider) -}}
-       {{- ternary "/usr/local/share/ca-certificates/ca.crt" "/etc/pki/trust/anchors/ca.crt" (eq $provider.os_image_selector.os "ubuntu") -}}
-      permissions: "0640"
-      content: |
-        hello world
+  additional_commands:
+    pre_bootstrap_commmands:
+    - | 
+      if [ -f /etc/os-release ]; then
+          . /etc/os-release
+      else
+          echo "Cannot detect OS. /etc/os-release not found."
+          exit 1
+      fi
+
+      # Path to the certificate content
+      CERT_CONTENT={{ .Values.additional_ca }}
+
+      # Decide path based on OS
+      case "$ID" in
+          ubuntu)
+              CERT_PATH="/usr/local/share/ca-certificates/ca.crt"
+              ;;
+          opensuse* | sles)
+              CERT_PATH="/etc/pki/trust/anchors/ca.crt"
+              ;;
+          *)
+              echo "Unsupported OS: $ID"
+              exit 1
+              ;;
+      esac
+      echo "$CERT_CONTENT" | sudo tee "$CERT_PATH" > /dev/null
+    - update-ca-certificates
+  #     if 
+  #     {{ }}
+  # additional_files: 
+  #   rootca:
+  #     owner: "root:root"
+  #     path: >-
+  #      {{- $provider := (index .Values.cluster .Values.cluster.capi_providers.infra_provider) -}}
+  #      {{- ternary "/usr/local/share/ca-certificates/ca.crt" "/etc/pki/trust/anchors/ca.crt" (eq $provider.os_image_selector.os "ubuntu") -}}
+  #     permissions: "0640"
+  #     content: |
+  #       hello world
 
   # can be set to true to do an RKE2 deployment disconnected from the Internet:
   air_gapped: false
