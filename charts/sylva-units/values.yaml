@@ -7742,13 +7742,8 @@ cluster:
   additional_commands:
     pre_bootstrap_commands:
     - | 
-      if [ -f /etc/os-release ]; then
-          . /etc/os-release
-      else
-          echo "Cannot detect OS. /etc/os-release not found."
-          exit 1
-      fi
-      case "$ID" in
+      {{- tuple 
+      (case "$(cat /etc/os-release |grep -i ^id=|cut -d'=' -f2)" in
           ubuntu)
               CERT_PATH="/usr/local/share/ca-certificates/ca.crt"
               ;;
@@ -7760,10 +7755,8 @@ cluster:
               exit 1
               ;;
       esac
-      echo "Creating certificate at: $CERT_PATH"
-      printf "{{ .Values.os_extra_ca_certs }}" | sudo tee "$CERT_PATH" > /dev/null
-      echo "Done."
-
+      printf "{{ .Values.os_extra_ca_certs }}" | sudo tee "$CERT_PATH" > /dev/null) (hasKey .Values "os_extra_ca_Certs") | include "set-only-if" 
+      -}}
   # can be set to true to do an RKE2 deployment disconnected from the Internet:
   air_gapped: false
 
