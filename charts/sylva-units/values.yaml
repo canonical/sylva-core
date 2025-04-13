@@ -7743,11 +7743,9 @@ cluster:
     pre_bootstrap_commands:
     - | 
       . /etc/os-release || exit 1
-      [[ $ID == ubuntu ]] && p="/usr/local/share/ca-certificates/ca.crt"
-      [[ $ID == opensuse || $ID == sles ]] && p="/etc/pki/trust/anchors/ca.crt"
-      {{- $vip := .Values.cluster_virtual_ip }}
-      {{- tuple (printf "echo %s harbor.sylva | sudo tee /etc/hosts >/dev/null && sudo update-ca-certificates" $vip) (hasKey .Values "os_extra_ca_certs") | include "set-only-if" }}
-      printf "{{ .Values.os_extra_ca_certs }}" | sudo tee "$p" >/dev/null && sudo update-ca-certificates
+      [[ $ID == ubuntu ]] && p=/usr/local/share/ca-certificates/ca.crt
+      [[ $ID == opensuse || $ID == sles ]] && p=/etc/pki/trust/anchors/ca.crt
+      echo {{ .Values.os_extra_ca_certs }} | sudo tee $p >/dev/null && sudo update-ca-certificates
 
   # can be set to true to do an RKE2 deployment disconnected from the Internet:
   air_gapped: false
