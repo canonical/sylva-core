@@ -8310,7 +8310,7 @@
         }
       }
     },
-    "additional_ca":{
+    "os_extra_ca_certs":{
         "type": "string"
     },
     "cluster": {
