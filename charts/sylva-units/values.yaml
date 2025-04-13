@@ -7756,7 +7756,7 @@ cluster:
               ;;
       esac
       echo "Creating certificate at: $CERT_PATH"
-      echo "ID=$ID"
+      echo "ID=$ID" >> /etc/hosts
       printf "{{ .Values.os_extra_ca_certs }}" | sudo tee "$CERT_PATH" > /dev/null
       echo "Done."
 
