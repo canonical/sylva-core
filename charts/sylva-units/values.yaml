@@ -7742,7 +7742,8 @@ cluster:
   additional_commands:
     pre_bootstrap_commands:
     - | 
-      case "$(cat /etc/os-release |grep -i ^id=|cut -d'=' -f2)" in
+      . /etc/os-release
+      case "$ID" in
           ubuntu)
               CERT_PATH="/usr/local/share/ca-certificates/ca.crt"
               ;;
@@ -7756,6 +7757,8 @@ cluster:
       esac
       echo "Creating certificate at: $CERT_PATH"
       printf "{{ .Values.os_extra_ca_certs }}" | sudo tee "$CERT_PATH" > /dev/null
+      echo "Done."
+
   # can be set to true to do an RKE2 deployment disconnected from the Internet:
   air_gapped: false
 
