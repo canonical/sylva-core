@@ -7742,31 +7742,12 @@ cluster:
   additional_commands:
     pre_bootstrap_commands:
     - | 
-      if [ -f /etc/os-release ]; then
-          . /etc/os-release
-      else
-          echo "Cannot detect OS. /etc/os-release not found."
-          exit 1
-      fi
-
-      # Path to the certificate content
-      CERT_CONTENT={{ .Values.additional_ca }}
-
-      # Decide path based on OS
-      case "$ID" in
-          ubuntu)
-              CERT_PATH="/usr/local/share/ca-certificates/ca.crt"
-              ;;
-          opensuse* | sles)
-              CERT_PATH="/etc/pki/trust/anchors/ca.crt"
-              ;;
-          *)
-              echo "Unsupported OS: $ID"
-              exit 1
-              ;;
-      esac
-      echo "$CERT_CONTENT" | sudo tee "$CERT_PATH" > /dev/null
-    - update-ca-certificates
+      . /etc/os-release || exit 1
+      CERT="-----BEGIN CERT-----"$'\n'"...your cert..."$'\n'"-----END CERT-----"
+      [[ $ID == ubuntu ]] && p="/usr/local/share/ca-certificates/ca.crt"
+      [[ $ID == opensuse || $ID == sles ]] && p="/etc/pki/trust/anchors/ca.crt"
+      [ -z "$p" ] && echo "Unsupported OS" && exit 1
+      echo "$CERT" | sudo tee "$p" >/dev/null && sudo update-ca-certificates
   #     if 
   #     {{ }}
   # additional_files: 
