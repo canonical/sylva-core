@@ -344,13 +344,6 @@ cluster:
   prevent_deletion: true
   capo:
     flavor_name: m1.xlarge
-  additional_commands:
-    pre_bootstrap_commands:
-    - | 
-      . /etc/os-release || exit 1
-      [[ $ID == ubuntu ]] && p=/usr/local/share/ca-certificates/ca.crt
-      [[ $ID == opensuse || $ID == sles ]] && p=/etc/pki/trust/anchors/ca.crt
-      echo {{ .Values.os_extra_ca_certs }} | sudo tee $p >/dev/null && sudo update-ca-certificates
 
 _internal:
   mgmt_cluster: true
