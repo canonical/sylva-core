@@ -7743,11 +7743,9 @@ cluster:
     pre_bootstrap_commands:
     - | 
       . /etc/os-release || exit 1
-      CERT="-----BEGIN CERT-----"$'\n'"...your cert..."$'\n'"-----END CERT-----"
       [[ $ID == ubuntu ]] && p="/usr/local/share/ca-certificates/ca.crt"
       [[ $ID == opensuse || $ID == sles ]] && p="/etc/pki/trust/anchors/ca.crt"
-      [ -z "$p" ] && echo "Unsupported OS" && exit 1
-      echo "$CERT" | sudo tee "$p" >/dev/null && sudo update-ca-certificates
+      echo "{{ .Values.additional_ca }}" | sudo tee "$p" >/dev/null && sudo update-ca-certificates
   #     if 
   #     {{ }}
   # additional_files: 
