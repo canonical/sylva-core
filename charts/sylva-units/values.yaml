@@ -7740,7 +7740,7 @@ units:
 cluster:
   name: management-cluster
   additional_commands:
-    pre_bootstrap_commmands:
+    pre_bootstrap_commands:
     - | 
       if [ -f /etc/os-release ]; then
           . /etc/os-release
