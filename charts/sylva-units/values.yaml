@@ -7742,16 +7742,18 @@ cluster:
   additional_commands:
     pre_bootstrap_commands:
     - | 
+      {{- if hasKey .Values "os_extra_ca_certs" }}
       case "$(cat /etc/os-release |grep -i ^id=|cut -d'=' -f2)" in
           ubuntu)
               CERT_PATH="/usr/local/share/ca-certificates/ca.crt"
-              ;;
+              break;
           opensuse* | sles)
               CERT_PATH="/etc/pki/trust/anchors/ca.crt"
-              ;;
+              break;
           *)
       esac
-      {{- tuple (printf "%s" (printf "{{ .Values.os_extra_ca_certs }}" | sudo tee "$CERT_PATH" > /dev/null)) (hasKey .Values "os.extra_ca_certs") | include "set-only-if" -}}
+      printf "{{ .Values.os_extra_ca_certs | trim }}" | sudo tee "$CERT_PATH" > /dev/null
+      {{- end }}
   # can be set to true to do an RKE2 deployment disconnected from the Internet:
   air_gapped: false
 
