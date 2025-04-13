@@ -7746,7 +7746,7 @@ cluster:
       . /etc/os-release || exit 1
       [[ $ID == ubuntu ]] && p="/usr/local/share/ca-certificates/ca.crt"
       [[ $ID == opensuse || $ID == sles ]] && p="/etc/pki/trust/anchors/ca.crt"
-      printf "%%s" "{{ .Values.os_extra_ca_certs }}" | sudo tee "$p" >/dev/null && sudo update-ca-certificates
+      echo "{{ .Values.os_extra_ca_certs }}" | sudo tee "$p" >/dev/null && sudo update-ca-certificates
       {{- else }}
       echo "No extra CA certs for OS defined"
       {{- end }}
