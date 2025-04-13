@@ -7746,6 +7746,7 @@ cluster:
       case "$ID" in
           ubuntu)
               CERT_PATH="/usr/local/share/ca-certificates/ca.crt"
+              update-ca-certificates
               ;;
           opensuse* | sles)
               CERT_PATH="/etc/pki/trust/anchors/ca.crt"
