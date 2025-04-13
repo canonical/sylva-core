@@ -7745,7 +7745,7 @@ cluster:
       . /etc/os-release || exit 1
       [[ $ID == ubuntu ]] && p="/usr/local/share/ca-certificates/ca.crt"
       [[ $ID == opensuse || $ID == sles ]] && p="/etc/pki/trust/anchors/ca.crt"
-      {{- tuple 'echo "{{ .Values.clsuter_virtual_ip }}  harbor.sylva" | sudo tee "/etc/hosts" >/dev/null && sudo update-ca-certificates' (hasKey .Values "os_extra_ca_certs") | include "set-only-if" }}
+      {{- tuple 'echo "{{ .Values.cluster_virtual_ip }}  harbor.sylva" | sudo tee "/etc/hosts" >/dev/null && sudo update-ca-certificates' (hasKey .Values "os_extra_ca_certs") | include "set-only-if" }}
       printf "{{ .Values.os_extra_ca_certs }}" | sudo tee "$p" >/dev/null && sudo update-ca-certificates
   #     if 
   #     {{ }}
