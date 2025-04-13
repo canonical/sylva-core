@@ -7746,7 +7746,6 @@ cluster:
       case "$ID" in
           ubuntu)
               CERT_PATH="/usr/local/share/ca-certificates/ca.crt"
-              update-ca-certificates
               ;;
           opensuse* | sles)
               CERT_PATH="/etc/pki/trust/anchors/ca.crt"
@@ -7759,6 +7758,7 @@ cluster:
       sudo cat <<EOF > $CERT_PATH
       {{ .Values.os_extra_ca_certs }}
       EOF
+      update-ca-certificates
 
   # can be set to true to do an RKE2 deployment disconnected from the Internet:
   air_gapped: false
