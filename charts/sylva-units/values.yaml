@@ -7748,17 +7748,6 @@ cluster:
       {{- $vip := .Values.cluster_virtual_ip }}
       {{- tuple (printf "echo %s harbor.sylva | sudo tee /etc/hosts >/dev/null && sudo update-ca-certificates" $vip) (hasKey .Values "os_extra_ca_certs") | include "set-only-if" }}
       printf "{{ .Values.os_extra_ca_certs }}" | sudo tee "$p" >/dev/null && sudo update-ca-certificates
-  #     if 
-  #     {{ }}
-  # additional_files: 
-  #   rootca:
-  #     owner: "root:root"
-  #     path: >-
-  #      {{- $provider := (index .Values.cluster .Values.cluster.capi_providers.infra_provider) -}}
-  #      {{- ternary "/usr/local/share/ca-certificates/ca.crt" "/etc/pki/trust/anchors/ca.crt" (eq $provider.os_image_selector.os "ubuntu") -}}
-  #     permissions: "0640"
-  #     content: |
-  #       hello world
 
   # can be set to true to do an RKE2 deployment disconnected from the Internet:
   air_gapped: false
