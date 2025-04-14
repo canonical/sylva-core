@@ -8752,7 +8752,7 @@ k8s_version_short: "1.31"
 # renovate: depName=sylva-projects/sylva-elements/diskimage-builder
 sylva_diskimagebuilder_version: 0.4.12
 
-sylva_kiwi_imagebuilder_version: '0.9'
+sylva_kiwi_imagebuilder_version: 0.1.0
 # 'sylva_diskimagebuilder_images' determines which images will be available for CAPO and CAPM3
 # via 'os_image_selector' or 'image_keys'
 #
@@ -8798,7 +8798,7 @@ sylva_diskimagebuilder_images:
     os_images_oci_registry: sylva
   ubuntu-noble-plain-ck8s-1-31-6:
     os_images_oci_registry: sylva
-  leapmicro-6-0-0-plain-rke2-1-30-9:
+  leapmicro-6-0-plain-rke2-1-31-7:
     os_images_oci_registry: kiwi-imagebuilder
 
 # this dictionary can be extended to let os-image-server serve additional OS images
