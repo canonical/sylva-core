@@ -282,6 +282,9 @@ units:
   harbor-cnpg-postgres:
     enabled: true
 
+  cnpg-operator:
+    enabled: true
+
   harbor:
     # can be enabled at runtime if desired
     enabled: false
