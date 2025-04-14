@@ -465,7 +465,7 @@ Returns:
 {{- $randomString := randAlphaNum $length }}  # Generate random alphanumeric string
 {{- $base64Token := b64enc $randomString }}  # Base64 encode the random string
 {{- $urlSafeToken := $base64Token | replace "+" "-" | replace "/" "_" -}}  # Convert to URL-safe base64
-{{- return $urlSafeToken }}
+{{- $urlSafeToken }}
 {{- end -}}
 
 
