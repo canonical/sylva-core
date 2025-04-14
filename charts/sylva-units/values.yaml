@@ -8012,41 +8012,42 @@ cluster:
       - capo-{{ .Values.cluster.name }}-security-group-common-{{ .Values.cluster.capo.resources_tag }}
     additional_commands:
       post_bootstrap_commands:
-        - |
-          cat <<EOF > /var/lib/rancher/rke2/server/manifests/rke2-metrics-server-config.yaml
-          apiVersion: helm.cattle.io/v1
-          kind: HelmChartConfig
-          metadata:
-            name: rke2-metrics-server
-            namespace: kube-system
-          spec:
-            valuesContent: |-
-              replicas: 2
-              nodeSelector:
-                kubernetes.io/os: linux
-                node-role.kubernetes.io/control-plane: "true"
-              updateStrategy:
-                rollingUpdate:
-                  maxSurge: 1
-                  maxUnavailable: 1
-                type: RollingUpdate
-              podDisruptionBudget:
-                enabled: true
-                minAvailable: 1
-                selector:
-                  matchLabels:
-                    app: rke2-metrics-server
-              affinity:
-                podAntiAffinity:
-                  requiredDuringSchedulingIgnoredDuringExecution:
-                    - labelSelector:
-                        matchLabels:
-                          app: rke2-metrics-server
-                      namespaces:
-                        - kube-system
-                      topologyKey: kubernetes.io/hostname
-          EOF
-        - systemctl restart rke2-server
+        postRKE2Commands:
+          - |
+            cat <<EOF > /var/lib/rancher/rke2/server/manifests/rke2-metrics-server-config.yaml
+            apiVersion: helm.cattle.io/v1
+            kind: HelmChartConfig
+            metadata:
+              name: rke2-metrics-server
+              namespace: kube-system
+            spec:
+              valuesContent: |-
+                replicas: 2
+                nodeSelector:
+                  kubernetes.io/os: linux
+                  node-role.kubernetes.io/control-plane: "true"
+                updateStrategy:
+                  rollingUpdate:
+                    maxSurge: 1
+                    maxUnavailable: 1
+                  type: RollingUpdate
+                podDisruptionBudget:
+                  enabled: true
+                  minAvailable: 1
+                  selector:
+                    matchLabels:
+                      app: rke2-metrics-server
+                affinity:
+                  podAntiAffinity:
+                    requiredDuringSchedulingIgnoredDuringExecution:
+                      - labelSelector:
+                          matchLabels:
+                            app: rke2-metrics-server
+                        namespaces:
+                          - kube-system
+                        topologyKey: kubernetes.io/hostname
+            EOF
+          - systemctl restart rke2-server
 
   machine_deployment_default:
     machine_deployment_spec:
