@@ -447,6 +447,7 @@ spec:
             readOnlyRootFilesystem: true
             runAsUser: 10000
             runAsGroup: 30000
+            runAsNonRoot: true
           env:
             - name: OAUTH2_PROXY_CLIENT_ID
               valueFrom:
