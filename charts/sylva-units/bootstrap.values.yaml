@@ -144,7 +144,9 @@ units:
       values:
         controller:
           nodeSelector:
-            node-role.kubernetes.io/control-plane: ""  # we can't use _internal.cp_node_label_value because here we need to align with kind/kubeadm
+            # In bootstrap context, the label is always ""
+            # we can't use _internal.cp_node_label_value as it depends on the control plane provider used
+            node-role.kubernetes.io/control-plane: ""
                                                        # and cp_node_label_value is computed base on mgmt cluster bootstrap provider (which isn't always kubeadm)
           service:
             externalIPs:
