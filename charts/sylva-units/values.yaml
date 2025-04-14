@@ -51,7 +51,8 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
     spec:
       url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-capi-cluster.git
       ref:
-        tag: 0.7.0
+#        tag: 0.7.0
+        branch: test
 
   sync-openstack-images:
     kind: GitRepository
@@ -7787,13 +7788,6 @@ cluster:
       {{- end -}}
 
   control_plane:
-    additional_commands:
-      post_bootstrap_commands:
-        postRKE2Commands:
-          - echo "control-plane-resource-requests:" >> /etc/rancher/rke2/config.yaml
-          - echo "  - kube-apiserver-cpu=500m" >> /etc/rancher/rke2/config.yaml
-          - echo "  - kube-apiserver-memory=2.5Gi" >> /etc/rancher/rke2/config.yaml
-          - systemctl restart rke2-server
     capo:
       security_group_names:
       - capo-{{ .Values.cluster.name }}-security-group-ctrl-plane-{{ .Values.cluster.capo.resources_tag }}
