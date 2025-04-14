@@ -8444,11 +8444,12 @@ calico_helm_values:
           (not .Values._internal.capo_calico_autodetection_method_use_canReach_vip)
         | include "set-only-if"
         }}'
-      ipPools:
-        - cidr: '{{ first .Values.cluster.cluster_pods_cidrs }}'
-          encapsulation: VXLAN
-          natOutgoing: Enabled
-    registry: UseDefault
+      ipPools: >-
+        {{- $ipPools := list }}
+        {{- range $cidr := .Values.cluster.cluster_pods_cidrs }}
+        {{- $ipPools = append $ipPools (dict "cidr" $cidr "encapsulation" "VXLAN" "natOutgoing" "Enabled") }}
+        {{- end }}
+        {{- $ipPools | include "preserve-type" }}
   felixConfiguration:
     wireguardEnabled: '{{ .Values.security.calico_wireguard_enabled | include "preserve-type" }}'
 
@@ -8819,22 +8820,32 @@ _internal:
         "wireguard" 60
     -}}
     {{- $max_overhead := 0 -}}
-    {{- $ippool_encapsulation := (index .Values.calico_helm_values.installation.calicoNetwork.ipPools 0).encapsulation | lower -}}
-    {{- if $ippool_encapsulation }}
-      {{- $current_overhead := (index $encapsulation_header $ippool_encapsulation) -}}
-      {{- if gt $current_overhead $max_overhead }}
-        {{- $max_overhead = $current_overhead -}}
-      {{- end }}
-    {{- end }}
-    {{- if .Values.security.calico_wireguard_enabled | default false }}
-      {{- $wireguard_overhead := (index $encapsulation_header "wireguard") -}}
-      {{- if gt $wireguard_overhead $max_overhead }}
+
+    {{- /* Iterate through all ipPools to find maximum encapsulation overhead */ -}}
+    {{- range .Values.calico_helm_values.installation.calicoNetwork.ipPools -}}
+      {{- if .encapsulation -}}
+        {{- $current_encapsulation := .encapsulation | lower -}}
+        {{- if hasKey $encapsulation_header $current_encapsulation -}}
+          {{- $current_overhead := index $encapsulation_header $current_encapsulation -}}
+          {{- if gt $current_overhead $max_overhead -}}
+            {{- $max_overhead = $current_overhead -}}
+          {{- end -}}
+        {{- end -}}
+      {{- end -}}
+    {{- end -}}
+
+    {{- /* Check for wireguard if enabled */ -}}
+    {{- if .Values.security.calico_wireguard_enabled | default false -}}
+      {{- $wireguard_overhead := index $encapsulation_header "wireguard" -}}
+      {{- if gt $wireguard_overhead $max_overhead -}}
         {{- $max_overhead = $wireguard_overhead -}}
-      {{- end }}
-    {{- end }}
-    {{- if gt $max_overhead 0 }}
+      {{- end -}}
+    {{- end -}}
+
+    {{- /* Calculate final MTU */ -}}
+    {{- if gt $max_overhead 0 -}}
       {{- $base_mtu = sub $base_mtu $max_overhead -}}
-    {{- end }}
+    {{- end -}}
     {{- $base_mtu | include "preserve-type" -}}
 
 shared_workload_clusters_values:
