@@ -1,0 +1,46 @@
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  name: disallow-default-namespace
+  annotations:
+    policies/title: Disallow Default Namespace
+    policies/category: Best Practices
+    policies/severity: medium
+    policies/subject: Pod
+    policies/description: >-
+      The best practice is that workloads should be isolated with Namespaces.
+      This policy ensures that Pods and Pod controllers cannot be created
+      in the 'default' namespace.
+spec:
+  failurePolicy: Fail
+  matchConstraints:
+    resourceRules:
+      - apiGroups: [""]
+        apiVersions: ["v1"]
+        operations: ["CREATE"]
+        resources: ["pods"]
+      - apiGroups: ["apps"]
+        apiVersions: ["v1"]
+        operations: ["CREATE"]
+        resources: ["daemonsets", "deployments", "statefulsets"]
+      - apiGroups: ["batch"]
+        apiVersions: ["v1"]
+        operations: ["CREATE"]
+        resources: ["jobs"]
+    namespaceSelector:
+      matchExpressions:
+        - key: kubernetes.io/metadata.name
+          operator: In
+          values:
+            - default
+  validations:
+    - expression: "false"
+      message: "Using the 'default' namespace is not allowed."
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  name: disallow-default-namespace
+spec:
+  policyName: disallow-default-namespace
+  validationActions: [Deny]

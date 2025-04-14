@@ -3,4 +3,3 @@ kind: Kustomization
 
 resources:
   - rke2-helmchart-prevent-uninstall.yaml
-  - block-rke2-uninstall-jobs.yaml

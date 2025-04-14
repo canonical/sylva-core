@@ -1,0 +1,54 @@
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  name: pdb-unhealthy-pod-eviction-check
+  annotations:
+    policies/title: Check PodDisruptionBudget unhealthyPodEvictionPolicy
+    policies/category: Other
+    policies/severity: medium
+    policies/subject: PodDisruptionBudget
+    policies/description: >-
+      The default PodDisruptionBudget configuration forbids evicting unhealthy pods,
+      preventing nodes from draining. Filling in the unhealthyPodEvictionPolicy field with the value
+      AlwaysAllow avoids this.
+      A label can be added on the PDB to skip this rule:
+        sylvaproject.org/unhealthy-pod-eviction-policy: any
+spec:
+  failurePolicy: Fail
+  matchConstraints:
+    resourceRules:
+    - apiGroups: ["policy"]
+      apiVersions: ["v1"]
+      operations: ["CREATE", "UPDATE"]
+      resources: ["poddisruptionbudgets"]
+  matchConditions:
+    - name: 'is-create-or-update-or-background'
+      expression: '!has(request.operation) || request.operation in ["CREATE", "UPDATE", "BACKGROUND"]'
+  validations:
+    - expression: "object.spec.?unhealthyPodEvictionPolicy.orValue('') == 'AlwaysAllow'"
+      message: >-
+        The matching PodDisruptionBudget for this resource has its unhealthyPodEvictionPolicy value different from
+        'AlwaysAllow' which is not permitted.
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  name: pdb-unhealthy-pod-eviction-check
+spec:
+  policyName: pdb-unhealthy-pod-eviction-check
+  validationActions: [Audit, Warn]
+  matchResources:
+    namespaceSelector:
+      matchExpressions:
+        - key: "kubernetes.io/metadata.name"
+          operator: "NotIn"
+          # An operator that does not support unhealthyPodEvictionPolicy field configuration is deployed in these namespaces.
+          # The kyverno mutation rule is not working in these cases as the operators overwrite continuously the mutation.
+          # Namespace to be removed once the operators manage unhealthyPodEvictionPolicy field
+          values: ["calico-system", "longhorn-system", "kubevirt", "kube-system"]
+    objectSelector:
+      matchExpressions:
+      - key: sylvaproject.org/unhealthy-pod-eviction-policy
+        operator: NotIn
+        values:
+        - any
