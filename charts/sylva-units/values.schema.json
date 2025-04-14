@@ -9943,6 +9943,28 @@
           "properties": {
             "cluster_virtual_ip": {
               "const": "{{ .Values.cluster_virtual_ip }}"
+            },
+            "metallb_helm_values": {
+              "const": "{{ .Values.metallb_helm_values | include \"preserve-type\" }}"
+            }
+          }
+        }
+      }
+    },
+    {
+      "properties": {
+        "units": {
+          "properties": {
+            "metallb": {
+              "properties": {
+                "helmrelease_spec": {
+                  "properties": {
+                    "values": {
+                      "const": "{{ .Values.metallb_helm_values | include \"preserve-type\" }}"
+                    }
+                  }
+                }
+              }
             }
           }
         }
