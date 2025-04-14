@@ -8010,8 +8010,6 @@ cluster:
       security_group_names:
       - capo-{{ .Values.cluster.name }}-security-group-ctrl-plane-{{ .Values.cluster.capo.resources_tag }}
       - capo-{{ .Values.cluster.name }}-security-group-common-{{ .Values.cluster.capo.resources_tag }}
-
-    '{{- if .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" -}}'
     additional_commands:
       post_bootstrap_commands:
         - |
@@ -8049,7 +8047,6 @@ cluster:
                       topologyKey: kubernetes.io/hostname
           EOF
         - systemctl restart rke2-server
-    '{{- end -}}'
 
   machine_deployment_default:
     machine_deployment_spec:
