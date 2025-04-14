@@ -8010,8 +8010,6 @@ cluster:
       security_group_names:
       - capo-{{ .Values.cluster.name }}-security-group-ctrl-plane-{{ .Values.cluster.capo.resources_tag }}
       - capo-{{ .Values.cluster.name }}-security-group-common-{{ .Values.cluster.capo.resources_tag }}
-
-  control_plane:
     additional_commands:
       post_bootstrap_commands:
         - |
