@@ -56,7 +56,7 @@ data:
 
         # Internal server for Angular UI (served on 8081)
         server {
-            listen 8081;
+            listen 127.0.0.1:8081;
             root /usr/share/nginx/html;
             index index.html;
 

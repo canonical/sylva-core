@@ -408,8 +408,8 @@ spec:
           ports:
           - name: http
             containerPort: 8080
-          - name: app
-            containerPort: 8081
+          # - name: app
+          #   containerPort: 8081
           securityContext:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true
@@ -435,8 +435,8 @@ spec:
             - --http-address=0.0.0.0:4180             # 4180 is oidc port which is listening on 0.0.0.0
             - --cookie-secret=${COOKIE_SECRET}
             - --cookie-secure=false
-            - --client-id=$(OAUTH2_PROXY_CLIENT_ID)
-            - --client-secret=$(OAUTH2_PROXY_CLIENT_SECRET)
+            - --client-id=${OAUTH2_PROXY_CLIENT_ID}
+            - --client-secret=${OAUTH2_PROXY_CLIENT_SECRET}
             - --redirect-url=https://${KUBEVIRT_MANAGER_DNS}/oauth2/callback  # kubevirt-manager exposed as in keycloak client
             - --oidc-issuer-url=https://${KEYCLOAK_DNS}/realms/sylva
           ports:
