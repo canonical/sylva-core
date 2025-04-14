@@ -8045,6 +8045,7 @@ cluster:
                       namespaces:
                         - kube-system
                       topologyKey: kubernetes.io/hostname
+          EOF
         - systemctl restart rke2-server
 
   machine_deployment_default:
