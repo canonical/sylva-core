@@ -18,10 +18,6 @@ Ensure that no_proxy covers everything that we need by adding the values defined
       {{- range $envAll.Values.cluster.capm3.networks -}}
         {{- $no_proxy_list = append $no_proxy_list .subnet -}}
       {{- end -}}
-      {{- range $envAll.Values.cluster.baremetal_hosts -}}
-        {{- $bmc_mgmt := urlParse (tuple $envAll .bmh_spec.bmc.address | include "interpret-as-string") -}}
-        {{- $no_proxy_list = append $no_proxy_list ($bmc_mgmt.host | splitList ":" | first) -}}
-      {{- end -}}
     {{- end -}}
 
     {{- $no_proxy_list = concat $no_proxy_list (splitList "," $envAll.Values.proxies.no_proxy) -}}
