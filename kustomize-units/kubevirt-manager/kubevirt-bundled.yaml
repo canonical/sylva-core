@@ -420,8 +420,10 @@ spec:
             mountPath: /var/cache/nginx
           - name: run-volume
             mountPath: /var/run
+          # - name: auth-config
+          #   mountPath: /etc/nginx/auth.d/
           - name: auth-config
-            mountPath: /etc/nginx/auth.d/
+            mountPath: /etc/nginx/
           - name: auth-secret
             mountPath: /etc/nginx/secret.d/
           - name: prometheus-config
