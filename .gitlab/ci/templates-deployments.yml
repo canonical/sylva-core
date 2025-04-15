@@ -99,6 +99,9 @@ include:
               SYLVA_CI_VERSIONED_CI_VALUES_FOLDER=current
               ;;
 
+            *)   # for an MR not targetting 'main' or 'release-*', we default to "current" directory
+              SYLVA_CI_VERSIONED_CI_VALUES_FOLDER=current
+              ;;
           esac
         # else fallback to use "current" directory
         else
