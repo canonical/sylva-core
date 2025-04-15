@@ -22,6 +22,118 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
   #       branch: main
   #   auth: # optional 'username'/'password' dict containing git authentication information
 
+  bitnami-postgresql:
+    kind: GitRepository
+    spec:
+      url: https://github.com/bitnami/charts.git
+      ref:
+        tag: postgresql/15.5.36
+
+  bitnami-postgresql-ha:
+    kind: GitRepository
+    spec:
+      url: https://github.com/bitnami/charts.git
+      ref:
+        tag: postgresql-ha/14.2.30
+
+  bitnami-redis-cluster:
+    kind: GitRepository
+    spec:
+      url: https://github.com/bitnami/charts.git
+      ref:
+        tag: redis-cluster/11.0.8
+
+  bitnami-thanos:
+    kind: GitRepository
+    spec:
+      url: https://github.com/bitnami/charts.git
+      ref:
+        tag: thanos/15.8.0
+
+  capi-rancher-import:
+    kind: GitRepository
+    spec:
+      url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/capi-rancher-import.git
+      ref:
+        tag: 0.1.10
+
+  capo-contrail-bgpaas:
+    kind: GitRepository
+    spec:
+      url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/capo-contrail-bgpaas.git
+      ref:
+        tag: 1.0.4
+
+  devnull:
+    kind: GitRepository
+    spec:
+      url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/devnull.git
+      ref:
+        tag: 0.1.0
+
+  libvirt-metal:
+    kind: GitRepository
+    spec:
+      url: https://gitlab.com/sylva-projects/sylva-elements/container-images/libvirt-metal.git
+      ref:
+        tag: 0.1.22
+
+  local-path-provisioner:
+    kind: GitRepository
+    spec:
+      url: https://github.com/rancher/local-path-provisioner.git
+      ref:
+        tag: v0.0.31
+
+  loki:
+    kind: GitRepository
+    spec:
+      url: https://github.com/grafana/loki.git
+      ref:
+        tag: v3.4.2
+
+  metallb-resources:
+    kind: GitRepository
+    spec:
+      url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/metallb-resources.git
+      ref:
+        tag: 0.1.0
+
+  minio-operator:
+    kind: GitRepository
+    spec:
+      url: https://github.com/minio/operator.git
+      ref:
+        tag: v7.0.1
+
+  os-image-server:
+    kind: GitRepository
+    spec:
+      url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/os-image-server.git
+      ref:
+        tag: 2.3.0
+
+  sriov-resources:
+    kind: GitRepository
+    spec:
+      url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sriov-resources.git
+      ref:
+        tag: 0.0.5
+
+  sylva-alertmanager-resources:
+    kind: GitRepository
+    spec:
+      url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-alertmanager-resources.git
+      ref:
+        tag: 0.0.4
+
+  sylva-capi-cluster:
+    kind: GitRepository
+    spec:
+      url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-capi-cluster.git
+      ref:
+        tag: 0.7.0
+
   sylva-core:
     kind: GitRepository
     spec:
@@ -32,117 +144,12 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
         # (you can grep the code for "CURRENT_COMMIT" to find out how)
         commit: not-a-real-commit
 
-  capi-rancher-import:
-    kind: GitRepository
-    spec:
-      url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/capi-rancher-import.git
-      ref:
-        tag: 0.1.10
-
-  weave-gitops:
-    kind: GitRepository
-    spec:
-      url: https://github.com/weaveworks/weave-gitops.git
-      ref:
-        tag: v0.38.0
-
-  sylva-capi-cluster:
-    kind: GitRepository
-    spec:
-      url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-capi-cluster.git
-      ref:
-        tag: 0.7.0
-
-  sync-openstack-images:
-    kind: GitRepository
-    spec:
-      url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sync-openstack-images.git
-      ref:
-        tag: 0.4.3
-
-  devnull:
-    kind: GitRepository
-    spec:
-      url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/devnull.git
-      ref:
-        tag: 0.1.0
-
-  local-path-provisioner:
-    kind: GitRepository
-    spec:
-      url: https://github.com/rancher/local-path-provisioner.git
-      ref:
-        tag: v0.0.31
-
-  sriov-resources:
-    kind: GitRepository
-    spec:
-      url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sriov-resources.git
-      ref:
-        tag: 0.0.5
-
-  metallb-resources:
-    kind: GitRepository
-    spec:
-      url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/metallb-resources.git
-      ref:
-        tag: 0.1.0
-
-  os-image-server:
-    kind: GitRepository
-    spec:
-      url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/os-image-server.git
-      ref:
-        tag: 2.3.0
-
-  capo-contrail-bgpaas:
-    kind: GitRepository
-    spec:
-      url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/capo-contrail-bgpaas.git
-      ref:
-        tag: 1.0.4
-
-  libvirt-metal:
-    kind: GitRepository
-    spec:
-      url: https://gitlab.com/sylva-projects/sylva-elements/container-images/libvirt-metal.git
-      ref:
-        tag: 0.1.22
-
-  vault-operator:
-    kind: GitRepository
-    spec:
-      url: https://github.com/bank-vaults/vault-operator.git
-      ref:
-        tag: v1.22.5
-
   sylva-dashboards:
     kind: GitRepository
     spec:
       url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-dashboards.git
       ref:
         tag: 0.0.15
-
-  minio-operator:
-    kind: GitRepository
-    spec:
-      url: https://github.com/minio/operator.git
-      ref:
-        tag: v7.0.1
-
-  sylva-snmp-resources:
-    kind: GitRepository
-    spec:
-      url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-snmp-resources.git
-      ref:
-        tag: 0.0.8
-
-  loki:
-    kind: GitRepository
-    spec:
-      url: https://github.com/grafana/loki.git
-      ref:
-        tag: v3.4.2
 
   sylva-logging-flows:
     kind: GitRepository
@@ -158,6 +165,13 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
       ref:
         tag: 0.0.15
 
+  sylva-snmp-resources:
+    kind: GitRepository
+    spec:
+      url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-snmp-resources.git
+      ref:
+        tag: 0.0.8
+
   sylva-thanos-rules:
     kind: GitRepository
     spec:
@@ -165,12 +179,26 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
       ref:
         tag: 0.1.2
 
-  sylva-alertmanager-resources:
+  sync-openstack-images:
     kind: GitRepository
     spec:
-      url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-alertmanager-resources.git
+      url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sync-openstack-images.git
       ref:
-        tag: 0.0.4
+        tag: 0.4.3
+
+  vault-operator:
+    kind: GitRepository
+    spec:
+      url: https://github.com/bank-vaults/vault-operator.git
+      ref:
+        tag: v1.22.5
+
+  weave-gitops:
+    kind: GitRepository
+    spec:
+      url: https://github.com/weaveworks/weave-gitops.git
+      ref:
+        tag: v0.38.0
 
   workload-team-defs:
     kind: GitRepository
@@ -178,34 +206,6 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
       url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/workload-team-defs.git
       ref:
         tag: 0.1.1
-
-  bitnami-postgresql:
-    kind: GitRepository
-    spec:
-      url: https://github.com/bitnami/charts.git
-      ref:
-        tag: postgresql/15.5.36
-
-  bitnami-postgresql-ha:
-    kind: GitRepository
-    spec:
-      url: https://github.com/bitnami/charts.git
-      ref:
-        tag: postgresql-ha/14.2.30
-
-  bitnami-thanos:
-    kind: GitRepository
-    spec:
-      url: https://github.com/bitnami/charts.git
-      ref:
-        tag: thanos/15.8.0
-
-  bitnami-redis-cluster:
-    kind: GitRepository
-    spec:
-      url: https://github.com/bitnami/charts.git
-      ref:
-        tag: redis-cluster/11.0.8
 
 helm_repo_spec_default:
   interval: 60m0s
