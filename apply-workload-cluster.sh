@@ -57,6 +57,7 @@ sylvactl watch \
   --timeout $(ci_remaining_minutes_and_at_most ${APPLY_WC_WATCH_TIMEOUT_MIN:-30}) \
   ${SYLVACTL_SAVE:+--save apply-workload-cluster-timeline.html} \
   ${SYLVACTL_RECORD:+--record apply-workload-cluster-record.yaml} \
+  ${UNIT_TIMEOUT_FACTOR:+--unit-timeout-factor $UNIT_TIMEOUT_FACTOR} \
   -n $wc_namespace \
   Kustomization/$wc_namespace/sylva-units-status
 
@@ -69,6 +70,7 @@ if [[ -n ${CHECK_TEST_UNITS:-""} ]]; then
       --exit-condition="message=values don't meet the specifications of the schema" \
       --timeout $(ci_remaining_minutes_and_at_most ${APPLY_WC_WATCH_TIMEOUT_MIN:-20}) \
       ${SYLVACTL_SAVE:+--save apply-workload-cluster-tests-timeline.html} \
+      ${UNIT_TIMEOUT_FACTOR:+--unit-timeout-factor $UNIT_TIMEOUT_FACTOR} \
       -n sylva-system \
       Kustomization/sylva-system/sylva-units-tests-status \
       || true # test-units failures are not critical

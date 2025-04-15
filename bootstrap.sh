@@ -50,6 +50,7 @@ sylvactl watch \
   --timeout $(ci_remaining_minutes_and_at_most ${BOOTSTRAP_WATCH_TIMEOUT_MIN:-30}) \
   ${SYLVACTL_SAVE:+--save bootstrap-timeline.html} \
   ${SYLVACTL_RECORD:+--record bootstrap-record.yaml} \
+  ${UNIT_TIMEOUT_FACTOR:+--unit-timeout-factor $UNIT_TIMEOUT_FACTOR} \
   -n sylva-system \
   Kustomization/sylva-system/management-sylva-units
 
@@ -67,6 +68,7 @@ sylvactl watch \
   --unit-timeout $UNIT_TIMEOUT \
   ${SYLVACTL_SAVE:+--save management-cluster-timeline.html} \
   ${SYLVACTL_RECORD:+--record management-cluster-record.yaml} \
+  ${UNIT_TIMEOUT_FACTOR:+--unit-timeout-factor $UNIT_TIMEOUT_FACTOR} \
   -n sylva-system \
   Kustomization/sylva-system/sylva-units-status
 
@@ -77,6 +79,7 @@ if [[ -n ${CHECK_TEST_UNITS:-""} ]]; then
       --reconcile \
       --timeout $(ci_remaining_minutes_and_at_most ${MGMT_WATCH_TIMEOUT_MIN:-20}) \
       ${SYLVACTL_SAVE:+--save apply-management-cluster-tests-timeline.html} \
+      ${UNIT_TIMEOUT_FACTOR:+--unit-timeout-factor $UNIT_TIMEOUT_FACTOR} \
       -n sylva-system \
       Kustomization/sylva-system/sylva-units-tests-status \
       || true # test-units failures are not critical
