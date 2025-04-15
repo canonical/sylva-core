@@ -8767,6 +8767,11 @@ _internal:
       | include "set-only-if"
     }}'
 
+  metallb_values_check: >-
+    {{- if ne (.Values.cluster.metallb_helm_values | toYaml) (.Values.units.metallb.helmrelease_spec.values | toYaml) }}
+      {{ printf "The Helm values for Metallb are different between the cluster and the metallb unit. It is recomended to use `.Values.metallb_helm_values` to ensure consistency." | fail }}
+    {{- end }}
+
   loadBalancerClass: '{{ tuple . (eq .Values.cluster.capi_providers.bootstrap_provider "cabpr") "sylva.org/metallb-class" "kube-vip.io/kube-vip-class" | include "interpret-ternary" }}'
 
   previous_values: '{{ omit (lookup "v1" "Secret" .Release.Namespace "sylva-units-values" | dig "data" "values" "" | b64dec | fromYaml | default dict) "unit_templates" | include "preserve-type" }}'

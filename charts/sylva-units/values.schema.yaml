@@ -1670,18 +1670,6 @@ allOf:
         properties:
           cluster_virtual_ip:  # -------------------------------
             const: '{{ .Values.cluster_virtual_ip }}'  # only the value defined in values.yaml can be used
-          metallb_helm_values:  # -------------------------------
-            const: '{{ .Values.metallb_helm_values | include "preserve-type" }}'  # only the value defined in values.yaml can be used
-  - properties:
-      units:
-        properties:
-          metallb:
-            properties:
-              helmrelease_spec:
-                properties:
-                  values:  # -------------------------------
-                    const: '{{ .Values.metallb_helm_values | include "preserve-type" }}'  # only the value defined in values.yaml can be used
-
 
   - if:
       properties:
