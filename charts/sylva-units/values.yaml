@@ -2824,6 +2824,8 @@ units:
     enabled: false
     unit_templates:
     - base-deps
+    annotations:
+      sylvactl/unitTimeout: 15m
     depends_on:
       metal3-sylva-ca-init: '{{ tuple . "metal3-sylva-ca-init" | include "unit-enabled" }}'
       namespace-defs: true
@@ -4184,6 +4186,8 @@ units:
       maturity: stable
     unit_templates:
     - base-deps
+    annotations:
+      sylvactl/unitTimeout: 10m
     depends_on:
       ingress-nginx-init: '{{ tuple . "ingress-nginx-init" | include "unit-enabled" }}'
       metallb-resources: '{{ tuple . "metallb" | include "unit-enabled" }}'
@@ -7800,7 +7804,6 @@ units:
     - base-deps
     depends_on:
       os-images-info: true
-      capo-cloud-config: true
     annotations:
       sylvactl/unitTimeout: 20m
     enabled_conditions:
