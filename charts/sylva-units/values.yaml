@@ -5260,7 +5260,7 @@ units:
       chart:
         spec:
           chart: longhorn-crd
-          version: 105.1.1+up1.7.3
+          version: 105.2.0+up1.8.1
 
   longhorn:
     info:
@@ -5283,7 +5283,7 @@ units:
       chart:
         spec:
           chart: longhorn
-          version: 105.1.1+up1.7.3
+          version: 105.2.0+up1.8.1
       values:
         metrics:
           serviceMonitor:
