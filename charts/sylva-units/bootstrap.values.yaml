@@ -607,7 +607,7 @@ units_override_enabled:
   - kyverno
   - kyverno-policies
   - kyverno-metal3-policies
-  - spegel
+  - '{{ tuple "spegel" (dig "spegel" "enabled" true .Values.units) | include "set-only-if"}}'
   - calico-crd
   - calico
   - calico-ready

@@ -205,7 +205,7 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
     spec:
       url: https://github.com/spegel-org/spegel.git
       ref:
-        tag: v0.1.1
+        tag: v0.2.0
 
 
 helm_repo_spec_default:
@@ -964,7 +964,7 @@ units:
       targetNamespace: spegel
       values:
         image:
-          tag: v0.1.1
+          tag: "v0.2.0"
         spegel:
           logLevel: "DEBUG"
           containerdSock: '{{ tuple "/run/k3s/containerd/containerd.sock" (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpr") | include "set-only-if" }}'
