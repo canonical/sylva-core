@@ -3,13 +3,16 @@
 # This script can be used to dump sylva clusters state (bootstrap/management/workload)
 # it generates an archive 'sylva-dump-YYYY-MM-DDThh-mm-ss.tar.gz' which may shared (in issue by example)
 
-source tools/shell-lib/common.sh
+source $(dirname $(realpath $0))/tools/shell-lib/common.sh
+
+ensure_sylva_toolbox
 
 echo_b "👀 Dumping sylva state"
-./tools/shell-lib/debug-on-exit.sh 2>&1 | tee sylva-dump.log
+${BASE_DIR}/tools/shell-lib/debug-on-exit.sh 2>&1 | tee sylva-dump.log
 
 archive_name="sylva-dump-$(date -u '+%Y%M%d-%H%M%S').tar.gz"
 contents=""
+[ -d system-dump ] && contents="${contents} system-dump"
 [ -d bootstrap-cluster-dump ] && contents="${contents} bootstrap-cluster-dump"
 [ -d management-cluster-dump ] && contents="${contents} management-cluster-dump"
 [ -d workload-cluster-dump ] && contents="${contents} workload-cluster-dump"
