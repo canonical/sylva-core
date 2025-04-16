@@ -22,7 +22,7 @@ echo "-- Retrieve Keycloak access token"
 ACCESS_TOKEN=$(curl -k -s -X POST \
 -H "Content-Type: application/x-www-form-urlencoded" \
 -d "username=${KEYCLOAK_INITIAL_USERNAME}" \
--d "password=${KEYCLOAK_INITIAL_PASSWORD}" \
+--data-urlencode "password=${KEYCLOAK_INITIAL_PASSWORD}" \
 -d "grant_type=password" \
 -d "client_id=admin-cli" \
 ${KEYCLOAK_BASE_URL}/realms/master/protocol/openid-connect/token \
