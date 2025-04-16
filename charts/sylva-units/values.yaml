@@ -8780,6 +8780,9 @@ _internal:
     {{- tuple .Values.cluster $selector | include "finalize-os-image-selector" | fromJson | include "preserve-type" -}}
 
   immutable_values:
+    cluster_domain:
+      _immutable: true
+      _immutable_comment: "The update of cluster domain is not supported"
     cluster:
       name:
         _immutable: true
