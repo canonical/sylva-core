@@ -5342,6 +5342,19 @@
             }
           ]
         },
+        "metallb_helm_values": {
+          "anyOf": [
+            {
+              "type": "object"
+            },
+            {
+              "$ref": "#/$defs/string-with-gotpl"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
         "metallb": {
           "anyOf": [
             {
@@ -9765,6 +9778,9 @@
       }
     },
     "calico_helm_values": {
+      "type": "object"
+    },
+    "metallb_helm_values": {
       "type": "object"
     },
     "_internal": {

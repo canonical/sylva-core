@@ -42,9 +42,6 @@ _internal:
     # the 0.0.0.0/32 values above are just here to let us use "helm template" with this
     # file without errors
 
-  # value of "node-role.kubernetes.io/control-plane" node label. In bootstrap context, the label is always ""
-  cp_node_label_value: ""
-
 unit_templates:
   base-deps:
     depends_on: null  # don't inherit dependencies from values.yaml or management.values.yaml
@@ -146,6 +143,11 @@ units:
     helmrelease_spec:
       values:
         controller:
+          nodeSelector:
+            # In bootstrap context, the label is always ""
+            # we can't use _internal.cp_node_label_value as it depends on the control plane provider used
+            node-role.kubernetes.io/control-plane: ""
+                                                       # and cp_node_label_value is computed base on mgmt cluster bootstrap provider (which isn't always kubeadm)
           service:
             externalIPs:
               - '{{ .Values._internal.bootstrap_node_ip }}'

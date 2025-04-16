@@ -1541,6 +1541,9 @@ properties:
   calico_helm_values:
     type: object
 
+  metallb_helm_values:
+    type: object
+
   _internal:  # -------------------------------
     type: object
 
