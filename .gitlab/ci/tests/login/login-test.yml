@@ -45,6 +45,9 @@
     - export grafana_user="admin"
     - export grafana_password=$(kubectl --kubeconfig management-cluster-kubeconfig get secrets sylva-units-values -o yaml | yq .data.values | base64 -d | yq ._internal.grafana_admin_password)
     - echo -e "\e[0Ksection_end:`date +%s`:gitlab_ci_get_grafana_login_and_password\r\e[0K"
+  get_kepler_unit_enabled:
+    - echo -e "\e[1m\e[0Ksection_start:`date +%s`:get_kepler_unit_enabled[collapsed=true]\r\e[0KGet Kepler unit status\e[0m"
+    - export kepler_unit_enabled=$(kubectl --kubeconfig management-cluster-kubeconfig get secrets sylva-units-values -o yaml | yq .data.values | base64 -d | yq .units.kepler.enabled)
 
 wkld-sso-kubeconfig:
   extends:
@@ -96,6 +99,7 @@ mgmt-GUIs-test:
     - !reference [.test_scripts, get_ui_ingresses_url]
     - !reference [.test_scripts, get_thanos_login_and_password]
     - !reference [.test_scripts, get_grafana_login_and_password]
+    - !reference [.test_scripts, get_kepler_unit_enabled]
     - pytest ./tools/login-test/test_ui_playwright.py --browser firefox -v --tb=short
 
 mgmt-sso:
