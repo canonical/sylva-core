@@ -422,9 +422,13 @@ units:
               echo "-- Wait for all Kustomizations related to Cluster API to be ready in management cluster"
               kubectl --kubeconfig /tmp/management-cluster-kubeconfig wait --for=condition=Ready --timeout=20m kustomization capi-providers-pivot-ready
 
+
               echo "-- Suspend Kustomizations and HelmReleases in bootstrap cluster that relate to the management cluster"
               kubectl patch $(kubectl get helmreleases.helm.toolkit.fluxcd.io,kustomizations.kustomize.toolkit.fluxcd.io \
                 -l suspend-on-pivot=yes -o name) --type=json --patch '[{"op": "replace", "path": "/spec/suspend", "value": true}]'
+
+              echo "--Extracting sylva-ca certificate---"
+              kubectl -n cert-manager get secret ca-key-pair -o jsonpath='{.data.ca\.crt}' --kubeconfig /tmp/management-cluster-kubeconfig | base64 -d
 
               kubectl patch helmreleases.helm.toolkit.fluxcd.io sylva-units --type=json \
                 --patch '[{"op": "replace", "path": "/spec/suspend", "value": true}]'
