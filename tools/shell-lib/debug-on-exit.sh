@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Grab some info in case of failure, essentially usefull to troubleshoot CI, fell free to add your own commands while troubleshooting
+# Grab some info in case of failure, essentially useful to troubleshoot CI, fell free to add your own commands while troubleshooting
 
 # list of kinds to dump
 #
@@ -180,7 +180,7 @@ function crust_gather_collect() {
 
 
 function remote_command {
-    if [[ $IN_CI -eq 0 ]]; then
+    if [[ -n "${CI:-}" ]]; then
       echo "'remote_command' is available only from CI environments" >&2
       return 1
     fi
@@ -508,5 +508,5 @@ if [[ -d "crust-gather" ]]
 then
   tar -czf crust-gather.tar.gz crust-gather
 
-  [[ $IN_CI ]] && echo -e "Exec following command to serve crust-gather:\n\t./tools/serve-crustgather-artifact.sh -j $CI_JOB_ID"
+  [[ -n "${CI:-}" ]] && echo -e "Exec following command to serve crust-gather:\n\t./tools/serve-crustgather-artifact.sh -j $CI_JOB_ID"
 fi
