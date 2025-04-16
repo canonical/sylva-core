@@ -39,11 +39,10 @@ cluster:
     version: 4.17.0
     releaseImage: quay.io/okd/scos-release:4.17.0-okd-scos.ec.3
 
-  ## Does not work here
-  # baremetal_hosts:
-  #   workload-md-0:
-  #     interface_mappings:
-  #       ens4:
-  #         mac_address: 52:54:00:44:44:07
-  #       ens5:
-  #         mac_address: 52:54:00:55:55:07
+  baremetal_hosts:
+    workload-md-0:
+      interface_mappings:
+        ens4:
+          mac_address: 52:54:00:44:44:07
+        ens5:
+          mac_address: 52:54:00:55:55:07
