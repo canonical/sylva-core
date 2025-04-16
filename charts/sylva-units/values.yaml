@@ -2711,7 +2711,7 @@ units:
     depends_on:
       namespace-defs: true
       cert-manager: true
-      '{{ .Values._internal.default_storage_class_unit }}': true
+      '{{ .Values._internal.default_storage_class_unit }}': '{{ not .Values._internal.state.is_upgrade }}'
       metal3-pdb: '{{ tuple . "metal3-pdb" | include "unit-enabled" }}'
       metallb-resources: '{{ tuple . "metallb" | include "unit-enabled" }}'
     helm_repo_url: https://suse-edge.github.io/charts
@@ -5184,6 +5184,10 @@ units:
       namespace-defs: true
       longhorn-crd: true
       monitoring-crd: '{{ tuple . "monitoring" | include "unit-enabled" }}'
+      # Ensure that longhorn is upgraded after cluster. This should be inherited from base-deps,
+      # but we add this as a safeguard, as some unit could add an indirect dependency of cluster to longhorn.
+      # Following dependency will prevent that as it would create a loop in such cases.
+      cluster-machines-ready: '{{ .Values._internal.state.is_upgrade }}'
     helm_repo_url: https://charts.rancher.io/
     helmrelease_spec:
       releaseName: longhorn
@@ -5510,7 +5514,7 @@ units:
     - base-deps
     depends_on:
       ingress-nginx: '{{ tuple . "ingress-nginx" | include "unit-enabled" }}'
-      '{{ .Values._internal.default_storage_class_unit }}': true
+      '{{ .Values._internal.default_storage_class_unit }}': '{{ not .Values._internal.state.is_upgrade }}'
       os-images-info: true
     repo: os-image-server
     annotations:
