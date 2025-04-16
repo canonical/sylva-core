@@ -7811,6 +7811,7 @@ cluster:
     - 100.73.0.0/16
   cluster_pods_cidrs:
     - 100.72.0.0/16
+    - 100.72.16.0/16
   cni:
     calico:
       helm_values: '{{ .Values.calico_helm_values | include "preserve-type" }}'
@@ -8444,12 +8445,13 @@ calico_helm_values:
           (not .Values._internal.capo_calico_autodetection_method_use_canReach_vip)
         | include "set-only-if"
         }}'
-      ipPools: >-
-        {{- $ipPools := list }}
-        {{- range $cidr := .Values.cluster.cluster_pods_cidrs }}
-        {{- $ipPools = append $ipPools (dict "cidr" $cidr "encapsulation" "VXLAN" "natOutgoing" "Enabled") }}
-        {{- end }}
-        {{- $ipPools | include "preserve-type" }}
+      ipPools:
+        - cidr: 100.72.0.0/16
+          encapsulation: VXLAN
+          natOutgoing: Enabled
+        - cidr: 100.72.16.0/16
+          encapsulation: VXLAN
+          natOutgoing: Enabled
   felixConfiguration:
     wireguardEnabled: '{{ .Values.security.calico_wireguard_enabled | include "preserve-type" }}'
 
@@ -8799,6 +8801,38 @@ _internal:
     clusterDNS: '{{ regexReplaceAll "[.]0/.*" (first .Values.cluster.cluster_services_cidrs) ".10" }}'
     clusterDomain: cluster.local
     serviceCIDR: '{{ first .Values.cluster.cluster_services_cidrs }}'
+
+  ippools_clustercidr_check: >-
+    {{- $cluster_cidrs := .Values.cluster.cluster_pods_cidrs | default list -}}
+
+    {{/* Extract ipPool CIDRs directly from the YAML structure */}}
+    {{- $ippools_cidrs := list -}}
+    {{- if .Values.calico_helm_values.installation.calicoNetwork.ipPools -}}
+      {{- range $pool := .Values.calico_helm_values.installation.calicoNetwork.ipPools -}}
+        {{- if hasKey $pool "cidr" -}}
+          {{- $ippools_cidrs = append $ippools_cidrs $pool.cidr -}}
+        {{- end -}}
+      {{- end -}}
+    {{- end -}}
+
+    {{/* Make sure the counts match first */}}
+    {{- if ne (len $cluster_cidrs) (len $ippools_cidrs) -}}
+      {{ printf "Error: Number of CIDRs in cluster_pods_cidrs (%d) doesn't match number of ipPools CIDRs (%d)" (len $cluster_cidrs) (len $ippools_cidrs) | fail }}
+    {{- end -}}
+
+    {{/* Check that all values match (regardless of order) */}}
+    {{- range $cluster_cidr := $cluster_cidrs -}}
+      {{- if not (has $cluster_cidr $ippools_cidrs) -}}
+        {{ printf "Error: CIDR %s from cluster_pods_cidrs is not found in any ipPool" $cluster_cidr | fail }}
+      {{- end -}}
+    {{- end -}}
+
+    {{/* Check the reverse too - all ipPool CIDRs should be in cluster_cidrs */}}
+    {{- range $ippool_cidr := $ippools_cidrs -}}
+      {{- if not (has $ippool_cidr $cluster_cidrs) -}}
+        {{ printf "Error: CIDR %s in ipPools is not defined in cluster_pods_cidrs" $ippool_cidr | fail }}
+      {{- end -}}
+    {{- end -}}
 
   calico_mtu: |-
     {{- $base_mtu := 0 -}}
