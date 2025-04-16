@@ -365,12 +365,15 @@ function cluster_info_dump() {
   # dump pods
   kubectl get pods -o wide -A > $dump_dir/pods.summary.txt
 
-  # dump CAPI infra secrets
-  kubectl get secret -A --field-selector=type=infrastructure.cluster.x-k8s.io/secret                               > $dump_dir/Secrets-capi-infra.summary.txt
-  kubectl get secret -A --field-selector=type=infrastructure.cluster.x-k8s.io/secret -o yaml --show-managed-fields > $dump_dir/Secrets-capi-infra.yaml
-  # dump CAPI secrets
-  kubectl get secret -A --field-selector=type=cluster.x-k8s.io/secret                               > $dump_dir/Secrets-capi.summary.txt
-  kubectl get secret -A --field-selector=type=cluster.x-k8s.io/secret -o yaml --show-managed-fields > $dump_dir/Secrets-capi.yaml
+  # dump CAPI secrets (only in CI context)
+  if [[ -n "${CI:-}" ]]; then
+    # CAPI infra
+    kubectl get secret -A --field-selector=type=infrastructure.cluster.x-k8s.io/secret                               > $dump_dir/Secrets-capi-infra.summary.txt
+    kubectl get secret -A --field-selector=type=infrastructure.cluster.x-k8s.io/secret -o yaml --show-managed-fields > $dump_dir/Secrets-capi-infra.yaml
+    # CAPI
+    kubectl get secret -A --field-selector=type=cluster.x-k8s.io/secret                               > $dump_dir/Secrets-capi.summary.txt
+    kubectl get secret -A --field-selector=type=cluster.x-k8s.io/secret -o yaml --show-managed-fields > $dump_dir/Secrets-capi.yaml
+  fi
 
   # dump BMH.spec.preprovisioningNetworkDataName secrets, used in a DHCP-less CAPM3 deployment, if present
   if kubectl get secret -A -o custom-columns=NAME:.metadata.name | grep "preprovisioning-netdata$" > /dev/null 2>&1 ;then
@@ -387,8 +390,10 @@ function cluster_info_dump() {
   kubectl get secret -A > $dump_dir/Secrets.summary.txt
   kubectl get secret -A -o yaml --show-managed-fields | yq '.items[].data="secrets data is purposefully not dumped" | .items[].metadata.annotations="secrets data is purposefully not dumped"' > $dump_dir/Secrets-censored.yaml
 
-  # dump RKE2 node-password secrets
-  kubectl -n kube-system get secrets -o yaml | yq '.items=[.items[] | select(.metadata.name | contains(".node-password.rke2"))]' > $dump_dir/Secrets-rke2-node-passwords.yaml
+  # dump RKE2 node-password secrets (only in CI context)
+  if [[ -n "${CI:-}" ]]; then
+    kubectl -n kube-system get secrets -o yaml | yq '.items=[.items[] | select(.metadata.name | contains(".node-password.rke2"))]' > $dump_dir/Secrets-rke2-node-passwords.yaml
+  fi
 
   # dump per-node system information
   echo "Dumping per-node system information..."
@@ -422,7 +427,7 @@ function cluster_info_dump() {
   # Collect kubectl get data with verbosity level 6
   local timestamp=$(date +%Y%m%d-%H%M%S)
   echo "Collecting kubectl get data with fixed verbosity -v=6..."
-  
+
   kubectl get crd -A -v=6 > "$dump_dir/kubectl-api-response-${timestamp}.log" 2>&1 && \
   echo "Collected api response data" || \
   echo "Data collection completed. Files saved in $dump_dir."
