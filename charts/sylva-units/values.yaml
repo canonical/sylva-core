@@ -8447,10 +8447,10 @@ calico_helm_values:
         }}'
       ipPools:
         - cidr: 100.72.0.0/16
-          encapsulation: VXLAN
+          encapsulation: IPIP
           natOutgoing: Enabled
         - cidr: 100.72.16.0/16
-          encapsulation: VXLAN
+          encapsulation: IPIP
           natOutgoing: Enabled
   felixConfiguration:
     wireguardEnabled: '{{ .Values.security.calico_wireguard_enabled | include "preserve-type" }}'
@@ -8794,8 +8794,6 @@ _internal:
         unhealthyPodEvictionPolicy: AlwaysAllow
 
   calico:
-    clusterCIDR: '{{ first .Values.cluster.cluster_pods_cidrs }}'
-    clusterCIDRv4: '{{ first .Values.cluster.cluster_pods_cidrs }}'
     # for clusterDNS, take the .10 of the first subnet of cluster.cluster_services_cidrs
     # FIXME: this will not work for subnets not starting at 0 (e.g. 192.168.1.128/25)
     clusterDNS: '{{ regexReplaceAll "[.]0/.*" (first .Values.cluster.cluster_services_cidrs) ".10" }}'
