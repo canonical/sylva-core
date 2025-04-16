@@ -22,6 +22,9 @@
 
 cluster:
   name: '{{ .Release.Namespace }}'
+  additional_commands:
+    pre_bootstrap_commands:
+    - echo "{{ .Values.cluster.mgmt_cluster_ip }}$(printf '\t'){{ .Values._internal.mgmt_cluster_service_names  }}"  >>  /etc/hosts
 
 # ensure that our unit Kustomizations are deployed
 # in the workload cluster

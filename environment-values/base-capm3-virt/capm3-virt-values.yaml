@@ -133,7 +133,7 @@ units:
       values:
         global:
           # Add console access to IPA - useful for debuging purposes
-          ironicKernelParams: 'console=ttyS0 suse.autologin=ttyS0 rootpwd="$$1$$DAhhpomu$$YqNcZc3ce5H7uswK4skCZ."'  # "secret"
+          ironicKernelParams: 'console=tty1, suse.autologin=tty1, rootpwd="$$1$$DAhhpomu$$YqNcZc3ce5H7uswK4skCZ.", hosts.append={{ .Values.display_external_ip }}_{{ .Values.external_hostnames.os_image_server }}'
 
   monitoring:
     enabled_conditions:

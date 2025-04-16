@@ -1,0 +1,8 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: os-images
+
+resources:
+  - os-image-server-certificate.yaml
+  - namespace.yaml

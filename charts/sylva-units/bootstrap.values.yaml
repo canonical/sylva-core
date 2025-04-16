@@ -539,6 +539,8 @@ cluster_public_endpoint: '{{ tuple (printf "https://%s:%s" .Values._internal.boo
 # note that this list does *not* override enabled_conditions set on the units, those are still applied
 units_override_enabled:
   - cert-manager
+  - sylva-ca
+  - external-secrets-operator
   - capi
   - '{{ .Values.cluster.capi_providers.infra_provider }}'
   - '{{ .Values.cluster.capi_providers.bootstrap_provider }}'
@@ -549,11 +551,13 @@ units_override_enabled:
   - vsphere-csi-driver
   # use following hack to ensure  "units.ceph-csi-cephfs.enabled has precedence over units_override_enabled
   - '{{ tuple "ceph-csi-cephfs" (dig "ceph-csi-cephfs" "enabled" true .Values.units) | include "set-only-if"}}'
+  - metal3-additionalcert-init
   - metal3
   - capo-orc
   - bootstrap-local-path
   - ingress-nginx
   - os-images-info
+  - os-image-server-init
   - os-image-server
   - cluster-bmh
   - cluster
