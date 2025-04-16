@@ -120,8 +120,8 @@ function dump_additional_resources() {
           echo 'You should use "ClusterPolicies.*kyverno.io" or "ClusterPolicies", not "ClusterPolicy"'
           exit 1
       fi
-      echo "Dumping resources $cr in the whole cluster"
-      if kubectl api-resources | grep -qi $cr ; then
+      if kubectl api-resources | grep -qi $cr &>/dev/null ; then
+        echo "Dumping resources $cr in the whole cluster"
         kind=${cr/\*/}  # transform the .* used for matching kubectl api-resource, into a plain '.'
                         # (see Clusters.*cluster.x-k8s.io above)
         base_filename=$cluster_dir/${kind}
@@ -133,6 +133,8 @@ function dump_additional_resources() {
         fi
 
         kubectl get $kind -A -o yaml --show-managed-fields > $base_filename.yaml
+      else
+        echo "Resource $cr doesn't exit in the cluster"
       fi
       } &
     done
@@ -312,7 +314,7 @@ function cluster_info_dump() {
 
   mkdir $dump_dir
 
-  echo "Dumping data for $cluster cluster in $dump_dir"
+  echo ">> Dumping data for $cluster cluster in $dump_dir"
 
   # dump CAPI cluster state
   echo "Dumping clusterctl describe..."
@@ -436,7 +438,7 @@ function cluster_info_dump() {
   sed -nr 's|.*(https://[^ ]*customresourcedefinitions[^ ]*)|\1|p' "$dump_dir/kubectl-api-response-${timestamp}.log"
 }
 
-echo "Start debug-on-exit at: $(date -Iseconds)"
+echo "Start dump at: $(date -Iseconds)"
 
 echo -e "\nDocker containers"
 docker ps
@@ -515,3 +517,5 @@ then
 
   [[ -n "${CI:-}" ]] && echo -e "Exec following command to serve crust-gather:\n\t./tools/serve-crustgather-artifact.sh -j $CI_JOB_ID"
 fi
+
+echo "Dump finished at: $(date -Iseconds)"
