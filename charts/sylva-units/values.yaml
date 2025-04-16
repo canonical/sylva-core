@@ -8929,7 +8929,7 @@ shared_workload_clusters_values:
     capi_providers: '{{ .Values.cluster.capi_providers | include "preserve-type" }}'
     mgmt_cluster_ip: '{{ .Values.display_external_ip }}'
     capm3:
-      image_provisioning_host: "{{ .Values.external_hostnames.os_image_server }}"
+      image_provisioning_host: '{{ .Values.display_external_ip }}'
     default_node_class: '{{ .Values.cluster.default_node_class }}'
     node_classes: '{{ .Values.cluster.node_classes | include "preserve-type" }}'
 
@@ -9021,3 +9021,4 @@ openshift:
     # serviceHostname: openshift-assisted-service.example.com
     # variable to specify the openshift assisted image service hostname
     # imageHostname: openshift-assisted-images.example.com
+    #test
