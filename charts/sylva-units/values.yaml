@@ -2058,6 +2058,8 @@ units:
       install:
         createNamespace: true
       values:
+        global:
+          resyncPeriod: 5m
         config:
           resourceFiltersExclude:
           - "[Node,*,*]"
