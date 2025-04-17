@@ -49,9 +49,6 @@ units:
       kyverno-metal3-policies: '{{ tuple . "kyverno-metal3-policies" | include "unit-enabled" }}'
 
   cluster:
-    additional_commands:
-      pre_bootstrap_commands:
-        - 
     depends_on:
       # these dependencies are set here rather than in values.yaml, because slightly different ones
       # need to be declared for workload clusters in workload-cluster.values.yaml
