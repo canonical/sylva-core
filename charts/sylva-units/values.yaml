@@ -8858,6 +8858,7 @@ shared_workload_clusters_values:
   ntp: '{{ .Values.ntp | include "set-if-defined" }}'
   proxies: '{{ .Values.proxies | include "set-if-defined" }}'
   registry_mirrors: '{{ .Values.registry_mirrors | include "set-if-defined" }}'
+  os_extra_ca_certs: '{{ .Values.os_extra_ca_certs | include "set-if-defined" }}'
 
   sylva_base_oci_registry: '{{ .Values.sylva_base_oci_registry }}'
   oci_registry_extra_ca_certs: '{{ .Values.oci_registry_extra_ca_certs | include "set-if-defined" }}'
