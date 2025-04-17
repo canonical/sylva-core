@@ -6360,6 +6360,7 @@ units:
       vault: true
       vault-config-operator: true
       eso-secret-stores: true
+      minio-operator: true
     repo: sylva-core
     kustomization_substitute_secrets:
       KEY: '{{ .Values.external_certificates.minio_logging.key | default "" | b64enc }}'
@@ -6545,6 +6546,7 @@ units:
       vault: true
       vault-config-operator: true
       eso-secret-stores: true
+      minio-operator: true
     repo: sylva-core
     kustomization_substitute_secrets:
       KEY: '{{ .Values.external_certificates.minio_monitoring.key | default "" | b64enc }}'
