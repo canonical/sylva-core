@@ -3351,7 +3351,7 @@ units:
     depends_on:
       calico-crd: true
     helm_repo_url: https://rke2-charts.rancher.io
-    helm_chart_versions: 
+    helm_chart_versions:
       v3.29.200: >-
         {{ include "k8s-version-match" (tuple ">=1.29.0" .Values._internal.k8s_version) }}
     helmrelease_spec:
