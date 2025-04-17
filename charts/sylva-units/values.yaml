@@ -2059,7 +2059,7 @@ units:
         createNamespace: true
       values:
         global:
-          resyncPeriod: 5m
+          resyncPeriod: 10m
         config:
           resourceFiltersExclude:
           - "[Node,*,*]"
