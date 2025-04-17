@@ -3329,7 +3329,7 @@ units:
     depends_on:
       namespace-defs: true
     helm_repo_url: https://rke2-charts.rancher.io
-    helm_chart_versions: &calico-chart-versions
+    helm_chart_versions:
       v3.29.101: >-
         {{ include "k8s-version-match" (tuple ">=1.29.0" .Values._internal.k8s_version) }}
     helmrelease_spec:
@@ -3351,7 +3351,9 @@ units:
     depends_on:
       calico-crd: true
     helm_repo_url: https://rke2-charts.rancher.io
-    helm_chart_versions: *calico-chart-versions  # we use a YAML anchor rather than templating so that this file can be read by tools/generate_units_documentation.py
+    helm_chart_versions: 
+      v3.29.200: >-
+        {{ include "k8s-version-match" (tuple ">=1.29.0" .Values._internal.k8s_version) }}
     helmrelease_spec:
       # Setting drift detection mode to warn for calico till https://gitlab.com/sylva-projects/sylva-core/-/issues/1814 is solved.
       driftDetection:
