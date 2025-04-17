@@ -51,7 +51,7 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
     spec:
       url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-capi-cluster.git
       ref:
-        tag: 0.7.1
+        tag: 0.7.2
 
   sync-openstack-images:
     kind: GitRepository
@@ -2536,7 +2536,7 @@ units:
       _components:
         - '{{ tuple "components/ha" (.Values._internal.ha_cluster.is_ha) | include "set-only-if" }}'
 
-  cabpr-cluster-pause:
+  cluster-pause:
     info:
       description: unit used to pause the Cluster resource of all clusters
       details: |-
@@ -2566,9 +2566,9 @@ units:
                 -o=jsonpath="{range .items[*]}{.metadata.namespace} {.metadata.name} {end}" \
                 | xargs -P10 -t -n2 \
                   kubectl patch                              \
-                    --field-manager sylva-cabpr-cluster-pause-unit \
+                    --field-manager sylva-cluster-pause-unit \
                     --type=merge                             \
-                    --patch '{"spec":{"paused":true}}'       \
+                    --patch '{"metadata":{"annotations":{"sylva.org/sylva-units-cluster-pause":""}},"spec":{"paused":true}}'       \
                     cluster.cluster.x-k8s.io -n    # will be followed by <ns> <name>
       - target:
           kind: ClusterRole
@@ -2589,7 +2589,7 @@ units:
     - base-deps
     depends_on:
       cert-manager: true
-      cabpr-cluster-pause: '{{ tuple . "cabpr-cluster-pause" | include "unit-enabled" }}'
+      cluster-pause: '{{ tuple . "cluster-pause" | include "unit-enabled" }}'
     kustomization_spec:
       path: ./kustomize-units/cabpr
       wait: true
@@ -2953,7 +2953,7 @@ units:
         resource_groups:
           - cluster-resource
           - base
-        unset_cabpr_upgrade_cluster_paused: '{{ .Values._internal.state.is_upgrade | include "preserve-type" }}'
+        unset_cluster_paused: '{{ .Values._internal.state.is_upgrade | include "preserve-type" }}'
       valuesFrom:
         - kind: ConfigMap
           name: capo-cluster-resources
