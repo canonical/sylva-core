@@ -52,7 +52,7 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
       url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-capi-cluster.git
       ref:
         #tag: 0.7.0
-        branch: dg/add-os-image-server-tls
+        branch: mdv/https_for_os_images
 
   sync-openstack-images:
     kind: GitRepository
@@ -2705,7 +2705,7 @@ units:
 
   metal3-additionalcert-init:
     info:
-      description: creates the tls-ca-additional certificate in metal3-system namespace, from the os-image-server-tls secret
+      description: creates the tls-ca-additional certificate in metal3-system namespace, from the ingress-nginx default secret
       internal: true
     unit_templates:
     - base-deps
@@ -2715,7 +2715,7 @@ units:
     - '{{ tuple . "os-image-server" | include "unit-enabled" }}'
     depends_on:
       namespace-defs: true
-      os-image-server-init: true
+      ingress-nginx-init: true
     kustomization_spec:
       targetNamespace: metal3-system
       _patches:
@@ -2729,13 +2729,13 @@ units:
               #!/bin/bash
               set -e
 
-              # Wait for the os-image-server-tls secret to exist in the metal3-system namespace
-              until kubectl get secret os-image-server-tls -n metal3-system &> /dev/null; do
-                echo "Waiting for os-image-server-tls secret to be created..."
+              # Wait for the default-nginx-tls secret to exist in the metal3-system namespace
+              until kubectl get secret default-nginx-tls -n kube-system &> /dev/null; do
+                echo "Waiting for default-nginx-tls secret to be created..."
                 sleep 5
               done
-              # Fetch the ca.crt from the os-image-server-tls secret in os-images namespace
-              CA_CERT=$(kubectl get secret os-image-server-tls -n metal3-system -o jsonpath='{.data.ca\.crt}')
+              # Fetch the ca.crt from the default-nginx-tls secret
+              CA_CERT=$(kubectl get default-nginx-tls -n kube-system -o jsonpath='{.data.ca\.crt}')
 
               # Create or update the tls-ca-additional secret in the metal3-system namespace
               kubectl apply -f - <<EOF
@@ -4108,6 +4108,30 @@ units:
               #!/bin/bash
               kubectl -n kube-system delete service rke2-ingress-nginx-controller --ignore-not-found=true
 
+  ingress-nginx-init:
+    info:
+      description: prepares default certificate for nginx ingress controler
+      internal: true
+    enabled_conditions:
+      - '{{ tuple . "ingress-nginx" | include "unit-enabled" }}'
+    unit_templates:
+    - base-deps
+    depends_on:
+      namespace-defs: true
+      sylva-ca: true
+      kyverno-policies: true
+    repo: sylva-core
+    kustomization_spec:
+      path: ./kustomize-units/ingress-nginx-init
+      postBuild:
+        substitute:
+          CLUSTER_IP: "{{ .Values.display_external_ip }}"
+      healthChecks:
+        - apiVersion: v1
+          kind: Secret
+          name: default-nginx-tls
+          namespace: kube-system
+
   ingress-nginx:
     info:
       description: installs Nginx ingress controller
@@ -4115,6 +4139,7 @@ units:
     unit_templates:
     - base-deps
     depends_on:
+      ingress-nginx-init: true
       metallb-resources: '{{ tuple . "metallb" | include "unit-enabled" }}'
       '{{ .Values._internal.calico_readiness_unit }}': '{{ tuple . "calico" | include "unit-enabled" }}'
       ingress-nginx-cleanup: '{{ tuple . "ingress-nginx-cleanup" | include "unit-enabled" }}'
@@ -4171,6 +4196,9 @@ units:
               memory: "300Mi"
             limits:
               memory: "1Gi"
+          extraArgs:
+            default-ssl-certificate: "kube-system/default-nginx-tls"
+
     kustomization_spec:
       healthChecks:
         - apiVersion: apps/v1
@@ -5654,32 +5682,32 @@ units:
           name: os-images-info
           namespace: '{{ .Release.Namespace }}'
 
-  os-image-server-init:
-    info:
-      description: sets up os-images namespace and the certificate for TLS integration
-      internal: true
-    enabled_conditions:
-      - '{{ tuple . "metal3" | include "unit-enabled" }}'
-      - '{{ tuple . "os-image-server" | include "unit-enabled" }}'
-    unit_templates:
-    - base-deps
-    depends_on:
-      namespace-defs: true
-      sylva-ca: true
-      kyverno-policies: true
-    repo: sylva-core
-    kustomization_spec:
-      path: ./kustomize-units/os-image-server-init
-      postBuild:
-        substitute:
-          SERVICE: os-image-server
-          OS_IMAGE_SERVER_DNS: "{{ .Values.external_hostnames.os_image_server }}"
-          OS_IMAGE_SERVER_IP: "{{ .Values.display_external_ip }}"
-      healthChecks:
-        - apiVersion: v1
-          kind: Secret
-          name: os-image-server-tls
-          namespace: os-images
+  # os-image-server-init:
+  #   info:
+  #     description: sets up os-images namespace and the certificate for TLS integration
+  #     internal: true
+  #   enabled_conditions:
+  #     - '{{ tuple . "metal3" | include "unit-enabled" }}'
+  #     - '{{ tuple . "os-image-server" | include "unit-enabled" }}'
+  #   unit_templates:
+  #   - base-deps
+  #   depends_on:
+  #     namespace-defs: true
+  #     sylva-ca: true
+  #     kyverno-policies: true
+  #   repo: sylva-core
+  #   kustomization_spec:
+  #     path: ./kustomize-units/os-image-server-init
+  #     postBuild:
+  #       substitute:
+  #         SERVICE: os-image-server
+  #         OS_IMAGE_SERVER_DNS: "{{ .Values.external_hostnames.os_image_server }}"
+  #         OS_IMAGE_SERVER_IP: "{{ .Values.display_external_ip }}"
+  #     healthChecks:
+  #       - apiVersion: v1
+  #         kind: Secret
+  #         name: os-image-server-tls
+  #         namespace: os-images
 
   os-image-server:
     info:
@@ -5695,7 +5723,7 @@ units:
       ingress-nginx: '{{ tuple . "ingress-nginx" | include "unit-enabled" }}'
       '{{ .Values._internal.default_storage_class_unit }}': true
       os-images-info: true
-      os-image-server-init: '{{ tuple . "os-image-server-init" | include "unit-enabled" }}'
+      # os-image-server-init: '{{ tuple . "os-image-server-init" | include "unit-enabled" }}'
     repo: os-image-server
     annotations:
       sylvactl/readyMessage: |
