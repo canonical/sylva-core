@@ -926,6 +926,19 @@
                 }
               ]
             },
+            "configDrive": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "$ref": "#/$defs/string-with-gotpl"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
             "rootVolume": {
               "anyOf": [
                 {
@@ -2671,6 +2684,19 @@
                         }
                       ]
                     },
+                    "configDrive": {
+                      "anyOf": [
+                        {
+                          "type": "boolean"
+                        },
+                        {
+                          "$ref": "#/$defs/string-with-gotpl"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
                     "rootVolume": {
                       "anyOf": [
                         {
@@ -3411,6 +3437,19 @@
             }
           ]
         },
+        "sylva-capi-cluster-base": {
+          "anyOf": [
+            {
+              "type": "object"
+            },
+            {
+              "$ref": "#/$defs/string-with-gotpl"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
         "name": {
           "anyOf": [
             {
@@ -3908,6 +3947,19 @@
                   "anyOf": [
                     {
                       "type": "string"
+                    },
+                    {
+                      "$ref": "#/$defs/string-with-gotpl"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "configDrive": {
+                  "anyOf": [
+                    {
+                      "type": "boolean"
                     },
                     {
                       "$ref": "#/$defs/string-with-gotpl"
@@ -5870,6 +5922,19 @@
                             }
                           ]
                         },
+                        "configDrive": {
+                          "anyOf": [
+                            {
+                              "type": "boolean"
+                            },
+                            {
+                              "$ref": "#/$defs/string-with-gotpl"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
                         "rootVolume": {
                           "anyOf": [
                             {
@@ -6693,7 +6758,7 @@
             }
           ]
         },
-        "unset_cabpr_upgrade_cluster_paused": {
+        "unset_cluster_paused": {
           "anyOf": [
             {
               "type": "boolean"

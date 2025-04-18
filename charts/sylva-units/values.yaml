@@ -51,8 +51,8 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
     spec:
       url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-capi-cluster.git
       ref:
-        tag: 0.7.1
-
+        branch: am/refacto/configdrive
+  
   sync-openstack-images:
     kind: GitRepository
     spec:
@@ -2830,7 +2830,7 @@ units:
       targetNamespace: '{{ .Release.Namespace }}'
       chart:
         spec:
-          chart: .
+          chart: charts/sylva-capi-cluster
       values:
         resource_groups:
           - baremetal-hosts
@@ -2947,12 +2947,12 @@ units:
       targetNamespace: '{{ .Release.Namespace }}'
       chart:
         spec:
-          chart: .
+          chart: charts/sylva-capi-cluster
       values:
         resource_groups:
           - cluster-resource
           - base
-        unset_cabpr_upgrade_cluster_paused: '{{ .Values._internal.state.is_upgrade | include "preserve-type" }}'
+        unset_cluster_paused: '{{ .Values._internal.state.is_upgrade | include "preserve-type" }}'
       valuesFrom:
         - kind: ConfigMap
           name: capo-cluster-resources
