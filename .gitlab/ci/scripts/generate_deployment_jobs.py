@@ -256,7 +256,7 @@ def get_deploy_parameter(deploy_name, emoji_key, as_list=False, can_be_empty=Fal
     """
     Extract value for a key (emoji) for a deployment variant
     """
-    match = re.compile(emoji_key + r"\s?([\w\d,\.-|]+)").findall(deploy_name)
+    match = re.compile(emoji_key + r"\s?([\w\d,\.\-\|]+)").findall(deploy_name)
     if len(match) != 1:
         if len(match) == 0 and can_be_empty is False:
             logging.error(f"unable to get {emoji_key} value from {deploy_name}")
