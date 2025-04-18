@@ -3330,7 +3330,7 @@ units:
     depends_on:
       namespace-defs: true
     helm_repo_url: https://rke2-charts.rancher.io
-    helm_chart_versions: &calico-chart-versions
+    helm_chart_versions:
       v3.29.101: >-
         {{ include "k8s-version-match" (tuple ">=1.29.0" .Values._internal.k8s_version) }}
     helmrelease_spec:
@@ -3352,7 +3352,9 @@ units:
     depends_on:
       calico-crd: true
     helm_repo_url: https://rke2-charts.rancher.io
-    helm_chart_versions: *calico-chart-versions  # we use a YAML anchor rather than templating so that this file can be read by tools/generate_units_documentation.py
+    helm_chart_versions:
+      v3.29.200: >-
+        {{ include "k8s-version-match" (tuple ">=1.29.0" .Values._internal.k8s_version) }}
     helmrelease_spec:
       # Setting drift detection mode to warn for calico till https://gitlab.com/sylva-projects/sylva-core/-/issues/1814 is solved.
       driftDetection:
@@ -8196,7 +8198,7 @@ k8s_version_short: "1.31"
 
 # Renovate Bot needs additional information to detect sylva diskimage-builder version
 # renovate: depName=sylva-projects/sylva-elements/diskimage-builder
-sylva_diskimagebuilder_version: 0.4.6
+sylva_diskimagebuilder_version: 0.4.7
 
 # 'sylva_diskimagebuilder_images' determines which images will be available for CAPO and CAPM3
 # via 'os_image_selector' or 'image_keys'
@@ -8205,41 +8207,41 @@ sylva_diskimagebuilder_version: 0.4.6
 # or a mirror repo if os_images_oci_registries.sylva is overridden
 #
 sylva_diskimagebuilder_images:
-  ubuntu-noble-hardened-rke2-1-31-5:
+  ubuntu-noble-hardened-rke2-1-31-7:
     os_images_oci_registry: sylva
-  ubuntu-noble-hardened-rke2-1-30-9:
+  ubuntu-noble-hardened-rke2-1-30-11:
     os_images_oci_registry: sylva
-  ubuntu-noble-hardened-rke2-1-29-13:
+  ubuntu-noble-hardened-rke2-1-29-15:
     os_images_oci_registry: sylva
-  ubuntu-noble-plain-rke2-1-31-5:
+  ubuntu-noble-plain-rke2-1-31-7:
     os_images_oci_registry: sylva
-  ubuntu-noble-plain-rke2-1-30-9:
+  ubuntu-noble-plain-rke2-1-30-11:
     os_images_oci_registry: sylva
-  ubuntu-noble-plain-rke2-1-29-13:
+  ubuntu-noble-plain-rke2-1-29-15:
     os_images_oci_registry: sylva
-  ubuntu-noble-plain-kubeadm-1-31-5:
+  ubuntu-noble-plain-kubeadm-1-31-7:
     os_images_oci_registry: sylva
-  ubuntu-noble-plain-kubeadm-1-30-9:
+  ubuntu-noble-plain-kubeadm-1-30-11:
     os_images_oci_registry: sylva
-  ubuntu-noble-plain-kubeadm-1-29-13:
+  ubuntu-noble-plain-kubeadm-1-29-15:
     os_images_oci_registry: sylva
-  opensuse-15-6-plain-rke2-1-31-5:
+  opensuse-15-6-plain-rke2-1-31-7:
     os_images_oci_registry: sylva
-  opensuse-15-6-plain-rke2-1-30-9:
+  opensuse-15-6-plain-rke2-1-30-11:
     os_images_oci_registry: sylva
-  opensuse-15-6-plain-rke2-1-29-13:
+  opensuse-15-6-plain-rke2-1-29-15:
     os_images_oci_registry: sylva
-  opensuse-15-6-hardened-rke2-1-31-5:
+  opensuse-15-6-hardened-rke2-1-31-7:
     os_images_oci_registry: sylva
-  opensuse-15-6-hardened-rke2-1-30-9:
+  opensuse-15-6-hardened-rke2-1-30-11:
     os_images_oci_registry: sylva
-  opensuse-15-6-hardened-rke2-1-29-13:
+  opensuse-15-6-hardened-rke2-1-29-15:
     os_images_oci_registry: sylva
-  opensuse-15-6-plain-kubeadm-1-31-5:
+  opensuse-15-6-plain-kubeadm-1-31-7:
     os_images_oci_registry: sylva
-  opensuse-15-6-plain-kubeadm-1-30-9:
+  opensuse-15-6-plain-kubeadm-1-30-11:
     os_images_oci_registry: sylva
-  opensuse-15-6-plain-kubeadm-1-29-13:
+  opensuse-15-6-plain-kubeadm-1-29-15:
     os_images_oci_registry: sylva
 
 # this dictionary can be extended to let os-image-server serve additional OS images
@@ -8731,9 +8733,9 @@ _internal:
   bootstrap_node_ip: '{{ lookup "v1" "ConfigMap" "sylva-system" "cluster-public-endpoint" | dig "data" "address" "not_found" | default "not_found" }}'
 
   k8s_version_map:
-    1.29: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" | ternary "v1.29.13+rke2r1" "v1.29.13" }}'
-    "1.30": '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" | ternary "v1.30.9+rke2r1" "v1.30.9" }}'
-    1.31: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" | ternary "v1.31.5+rke2r1" "v1.31.5" }}'
+    1.29: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" | ternary "v1.29.15+rke2r1" "v1.29.15" }}'
+    "1.30": '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" | ternary "v1.30.11+rke2r1" "v1.30.11" }}'
+    1.31: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" | ternary "v1.31.7+rke2r1" "v1.31.7" }}'
 
   # total number of nodes in this cluster
   node_count:
