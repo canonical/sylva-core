@@ -456,8 +456,10 @@ units:
               bootstrap_cluster_kubeconfig="/tmp/source-kubeconfig"
               clusterctl move --kubeconfig $bootstrap_cluster_kubeconfig --to-kubeconfig /tmp/management-cluster-kubeconfig -v 3
               echo "Extracting and patching certificate"
+              kubectl -n cert-manager get secret ca-key-pair -o jsonpath='{.data.ca\.crt}' --kubeconfig /tmp/management-cluster-kubeconfig | base64 -d | awk '{printf "%s\\n", $0}'
               CA_CERT=$(kubectl -n cert-manager get secret ca-key-pair -o jsonpath='{.data.ca\.crt}' --kubeconfig /tmp/management-cluster-kubeconfig | base64 -d | awk '{printf "%s\\n", $0}')
-              kubectl --kubeconfig /tmp/management-cluster-kubeconfig patch helmreleases.helm.toolkit.fluxcd.io sylva-units --type=json --patch "[{\"op\": \"replace\", \"path\": \"/spec/values/os_extra_ca_certs\", \"value\": \"$CA_CERT\"}]"
+              echo "Value of CA_CERT is $CA_CERT"
+              kubectl --kubeconfig /tmp/management-cluster-kubeconfig patch sylva-units --type=json --patch "[{\"op\": \"add\", \"path\": \"/spec/values/os_extra_ca_certs\", \"value\": \"$CA_CERT\"}]"
 
               echo "-- Patch the mgmt cluster sylva-units HelmRelease to enable 'cluster' unit in the management cluster"
               kubectl --kubeconfig /tmp/management-cluster-kubeconfig \
