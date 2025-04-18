@@ -2993,6 +2993,8 @@ units:
           name: openstack-images-uuids  ## this ConfigMap is a byproduct of the sync-openstack-images job
           optional: '{{ not (.Values.cluster.capi_providers.infra_provider | eq "capo") | include "as-bool" }}'
 
+          
+
         # os-images-info ConfigMap
         #
         # this ConfigMap is a byproduct of the os-images-info unit
