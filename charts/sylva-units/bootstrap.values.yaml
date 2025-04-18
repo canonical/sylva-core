@@ -348,9 +348,8 @@ units:
               path: /spec/valuesFrom/-
               value:
                  kind: Secret
-                 name: ca-key-pair 
-                 namespace: cert-manager
                  optional: true
+                 name: ca-key-pair
                  targetPath: os_extra_ca_certs
                  valuesKey: ca.crt
 

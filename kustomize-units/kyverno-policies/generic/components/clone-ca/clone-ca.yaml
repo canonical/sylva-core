@@ -1,0 +1,23 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: clone-ca-secret-to-sylva
+spec:
+  rules:
+    - name: clone-ca-key-pair
+      match:
+        resources:
+          kinds:
+            - Secret
+          names:
+            - ca-key-pair
+          namespaces:
+            - cert-manager
+      generate:
+        kind: Secret
+        name: ca-key-pair
+        namespace: sylva-system
+        synchronize: true   # 🔁 keep it updated on changes
+        clone:
+          namespace: cert-manager
+          name: ca-key-pair
