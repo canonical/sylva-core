@@ -27,3 +27,8 @@ spec:
   - kind: ConfigMap
     name: sylva-units-values
     valuesKey: values
+  - kind: Secret
+    name: ca-key-pair
+    valuesKey: ca.crt
+    targetPath: os_extra_ca_certs
+    

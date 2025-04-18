@@ -344,14 +344,6 @@ units:
               value:
                 namespace: sylva-system
                 name: sylva-units
-            - op: add
-              path: /spec/valuesFrom/-
-              value:
-                 kind: Secret
-                 optional: true
-                 name: ca-key-pair
-                 targetPath: os_extra_ca_certs
-                 valuesKey: ca.crt
 
     helmrelease_spec:
       releaseName: sylva-units
