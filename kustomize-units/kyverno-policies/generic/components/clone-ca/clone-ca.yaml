@@ -14,6 +14,7 @@ spec:
           namespaces:
             - cert-manager
       generate:
+        apiVersion: v1
         kind: Secret
         name: ca-key-pair
         namespace: sylva-system
