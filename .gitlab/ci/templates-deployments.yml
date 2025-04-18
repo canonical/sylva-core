@@ -216,7 +216,7 @@ include:
     function extract_from_job_name() {
       [ -z "${1:-}" ] && (echo >&2 "Extract function needs a key parameter" ; exit 1;)
       [ -z "${2:-}" ] && (echo >&2 "Extract function needs input string (workflow name basically)" ; exit 1;)
-      echo "$2" | sed -n -e 's/.*'$1'\s\?\([[:alnum:]\.\,\-|]\+\).*/\1/p'
+      echo "$2" | sed -n -e 's/.*'$1'\s\?\([[:alnum:]\.\,\-\|]\+\).*/\1/p'
     }
 
     if echo "$DEPLOYMENT_INFRA_PROV" | grep -q '|'; then
