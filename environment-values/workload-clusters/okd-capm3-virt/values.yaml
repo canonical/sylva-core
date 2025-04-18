@@ -6,8 +6,6 @@ units:
     enabled: false
   calico:
     enabled: false
-  tigera-clusterrole:
-    enabled: false
   ingress-nginx:
     enabled: false
   cluster:
