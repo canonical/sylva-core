@@ -8,11 +8,9 @@ spec:
       match:
         resources:
           kinds:
-            - Secret
+            - Namespace
           names:
-            - ca-key-pair
-          namespaces:
-            - cert-manager
+            - sylva-system
       generate:
         apiVersion: v1
         kind: Secret
