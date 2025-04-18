@@ -6856,7 +6856,7 @@ units:
           # reload thanos-ruler when changes to rule files or alertmanager
           # list are detected
           - name: configmap-reload
-            image: bitnami/configmap-reload:0.14.0
+            image: bitnami/configmap-reload:0.15.0
             args:
             - --volume-dir=/conf/rules/
             - --volume-dir=/conf/alertmanagers/
