@@ -54,12 +54,12 @@ spec:
           selector:
             matchLabels:
               sylva-project.org/shared-workload-cluster-settings: ""
-      generate:
-        apiVersion: v1
-        kind: Secret
+    generate:
+      apiVersion: v1
+      kind: Secret
+      name: ca-key-pair
+      namespace: "{{request.object.metadata.name}}"
+      synchronize: true   # 🔁 keep it updated on changes
+      clone:
+        namespace: cert-manager
         name: ca-key-pair
-        namespace: "{{request.object.metadata.name}}"
-        synchronize: true   # 🔁 keep it updated on changes
-        clone:
-          namespace: cert-manager
-          name: ca-key-pair
