@@ -13,6 +13,7 @@ data:
             ${CLUSTER_VIRTUAL_IP} api.${CLUSTER_NAME}.${CLUSTER_OKD_BASE_DOMAIN}
             ${CLUSTER_VIRTUAL_IP} api-int.${CLUSTER_NAME}.${CLUSTER_OKD_BASE_DOMAIN}
             ${CLUSTER_VIRTUAL_IP} apps.${CLUSTER_NAME}.${CLUSTER_OKD_BASE_DOMAIN}
+            ${CLUSTER_VIRTUAL_IP} console-openshift-console.apps.${CLUSTER_NAME}.${CLUSTER_OKD_BASE_DOMAIN}
             fallthrough
         }
         whoami
