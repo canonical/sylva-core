@@ -6280,7 +6280,7 @@
           ]
         },
         "additional_ca":{
-            "type": "object"
+            "type": "string"
         },
         "additional_files": {
           "anyOf": [
