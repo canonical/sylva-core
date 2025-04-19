@@ -6279,9 +6279,6 @@
             }
           ]
         },
-        "additional_ca":{
-            "type": "string"
-        },
         "additional_files": {
           "anyOf": [
             {
