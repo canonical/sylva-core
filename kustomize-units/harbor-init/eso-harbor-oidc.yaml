@@ -15,7 +15,7 @@ spec:
       data:
         CONFIG_OVERWRITE_JSON: |
           {
-            "auth_mode": "oidc_auth",
+            "auth_mode": "db_auth",
             "oidc_name": "keycloak",
             "oidc_endpoint": "https://${KEYCLOAK_DNS}/realms/sylva",
             "oidc_groups_claim": "groups",
