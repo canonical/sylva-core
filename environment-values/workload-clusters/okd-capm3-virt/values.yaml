@@ -1,13 +1,27 @@
 ---
 units:
+  longhorn-crd:
+    enabled: false
   longhorn:
+    enabled_conditions:
+      - false
+  multus-ready:
+    enabled: false
+  sriov-crd:
     enabled: false
   monitoring:
     enabled: false
+  monitoring-crd:
+    enabled: false
   calico:
+    enabled: false
+  calico-crd:
     enabled: false
   ingress-nginx:
     enabled: false
+  kyverno:
+    depends_on:
+      monitoring-crd: false
   cluster:
     depends_on:
       calico: '{{ and (tuple . "calico" | include "unit-enabled") .Values._internal.state.is_upgrade }}'
@@ -36,6 +50,19 @@ cluster:
     baseDomain: okd
     version: 4.17.0
     releaseImage: quay.io/okd/scos-release:4.17.0-okd-scos.ec.3
+
+  control_plane:
+    capm3:
+      hostSelector:
+        matchLabels:
+          cluster-role: control-plane
+      networks:
+        primary:
+          interface: nic1
+
+    network_interfaces:
+      nic1:
+        type: phy
 
   machine_deployments:
     md0:
