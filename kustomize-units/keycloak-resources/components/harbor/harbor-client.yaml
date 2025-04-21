@@ -20,7 +20,7 @@ spec:
       - "https://${HARBOR_DNS}/c/oidc/callback"
     webOrigins:
       - "https://${HARBOR_DNS}"
-    directAccessGrantsEnabled: true
+    directAccessGrantsEnabled: false
     standardFlowEnabled: true
     attributes:
       use.refresh.tokens: "false"
