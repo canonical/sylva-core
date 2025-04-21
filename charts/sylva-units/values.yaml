@@ -3056,6 +3056,16 @@ units:
                           extraArgs:
                             feature-gates: ValidatingAdmissionPolicy=true
                             runtime-config: admissionregistration.k8s.io/v1beta1
+                      files:
+                        - path: /etc/kubernetes/manifests/kube-apiserver.yaml
+                          content: |
+                            - op: add
+                              path: /spec/containers/0/resources/requests/memory
+                              value: "2.5Gi"
+                            - op: replace
+                              path: /spec/containers/0/resources/requests/cpu
+                              value: "500m"
+
 
     # we pass everything that is under `cluster` to this unit that uses sylva-capi-cluster chart
     # (we do it via a secret because some of the values are credentials in many scenarios)
