@@ -428,17 +428,6 @@ spec:
             mountPath: /etc/nginx/secret.d/
           - name: prometheus-config
             mountPath: /etc/nginx/location.d/
-          env:
-            - name: OAUTH2_PROXY_CLIENT_ID
-              valueFrom:
-                secretKeyRef:
-                  name: auth-secret
-                  key: clientID
-            - name: OAUTH2_PROXY_CLIENT_SECRET
-              valueFrom:
-                secretKeyRef:
-                  name: auth-secret
-                  key: clientSecret
         - name: oauth2-proxy
           image: quay.io/oauth2-proxy/oauth2-proxy:v7.6.0
           args:
