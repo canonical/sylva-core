@@ -442,9 +442,9 @@ spec:
           #   - --client-secret=$(OAUTH2_PROXY_CLIENT_SECRET)
           #   - --redirect-url=https://${KUBEVIRT_MANAGER_DNS}/oauth2/callback  # kubevirt-manager exposed as in keycloak client
           #   - --oidc-issuer-url=https://${KEYCLOAK_DNS}/realms/sylva
-          ports:
-            - containerPort: 4180
-              name: oauth2
+          # ports:
+          #   - containerPort: 4180
+          #     name: oauth2
           securityContext:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true
