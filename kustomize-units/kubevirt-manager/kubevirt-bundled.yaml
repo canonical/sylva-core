@@ -435,10 +435,10 @@ spec:
             - --email-domain=*
             - --upstream=http://127.0.0.1:8081/       #This is local nginx container with 127.0.0.1:<nginx port>
             - --http-address=0.0.0.0:4180             # 4180 is oidc port which is listening on 0.0.0.0
-            - --cookie-secret=${COOKIE_SECRET}
+            - --cookie-secret=$(OAUTH2_PROXY_CLIENT_SECRET)
             - --cookie-secure=false
-            - --client-id=${OAUTH2_PROXY_CLIENT_ID}
-            - --client-secret=${OAUTH2_PROXY_CLIENT_SECRET}
+            - --client-id=$(OAUTH2_PROXY_CLIENT_ID)
+            - --client-secret=$(OAUTH2_PROXY_CLIENT_SECRET)
             - --redirect-url=https://${KUBEVIRT_MANAGER_DNS}/oauth2/callback  # kubevirt-manager exposed as in keycloak client
             - --oidc-issuer-url=https://${KEYCLOAK_DNS}/realms/sylva
           ports:
