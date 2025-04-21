@@ -3168,7 +3168,7 @@ units:
       namespace-defs: true
       calico-rke2-chart-cleanup: '{{ tuple . "calico-rke2-chart-cleanup" | include "unit-enabled" }}'
     helm_repo_url: https://rke2-charts.rancher.io
-    helm_chart_versions: &calico-chart-versions
+    helm_chart_versions:
       v3.28.200: >-
         {{ include "k8s-version-match" (tuple ">=1.28.0,<1.29.0" .Values._internal.k8s_version) }}
       v3.29.101: >-
@@ -3222,7 +3222,11 @@ units:
       calico-crd: true
       calico-rke2-chart-cleanup: '{{ tuple . "calico-rke2-chart-cleanup" | include "unit-enabled" }}'
     helm_repo_url: https://rke2-charts.rancher.io
-    helm_chart_versions: *calico-chart-versions  # we use a YAML anchor rather than templating so that this file can be read by tools/generate_units_documentation.py
+    helm_chart_versions:
+      v3.28.200: >-
+        {{ include "k8s-version-match" (tuple ">=1.28.0,<1.29.0" .Values._internal.k8s_version) }}
+      v3.29.200: >-
+        {{ include "k8s-version-match" (tuple ">=1.29.0" .Values._internal.k8s_version) }}
     helmrelease_spec:
       releaseName: '{{ eq .Values.cluster.capi_providers.bootstrap_provider "cabpk" | ternary "calico" "rke2-calico" }}'
       targetNamespace: '{{ eq .Values.cluster.capi_providers.bootstrap_provider "cabpk" | ternary "sylva-system" "kube-system" }}'
