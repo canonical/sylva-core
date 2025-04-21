@@ -429,7 +429,8 @@ spec:
           - name: prometheus-config
             mountPath: /etc/nginx/location.d/
         - name: oauth2-proxy
-          image: quay.io/oauth2-proxy/oauth2-proxy:v7.6.0
+          # image: quay.io/oauth2-proxy/oauth2-proxy:v7.6.0
+          image: kubevirtmanager/kubevirt-manager:1.4.0
           args:
             - --provider=keycloak
             - --email-domain=*
