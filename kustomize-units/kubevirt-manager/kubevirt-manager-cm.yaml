@@ -34,7 +34,7 @@ data:
             }
 
             # OAuth2 Proxy endpoints
-            location /oauth2/ {
+            location /oauth2/auth
                 proxy_pass       http://127.0.0.1:4180;        #outh:port
                 proxy_set_header Host              $host;
                 proxy_set_header X-Real-IP         $remote_addr;
@@ -53,22 +53,15 @@ data:
 
             # Catch-all: send all traffic through oauth2-proxy (auth first)
             location / {
-                proxy_pass       http://127.0.0.1:4180;       #oauth:port
-                proxy_set_header Host              $host;
-                proxy_set_header X-Real-IP         $remote_addr;
-                proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
-                proxy_set_header X-Forwarded-Proto $scheme;
-            }
+                auth_request /oauth2/auth;
+                root /usr/share/nginx/html;
+                index index.html;
+
+                try_files $uri $uri/ /index.html;
         }
 
         # Internal server for Angular UI (served on 8081)
         server {
             listen 127.0.0.1:8081;
-            root /usr/share/nginx/html;
-            index index.html;
-
-            location / {
-                try_files $uri $uri/ /index.html;
-            }
         }
     }
