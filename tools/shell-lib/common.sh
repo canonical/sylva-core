@@ -3,8 +3,15 @@
 set -eu
 set -o pipefail
 
-export BASE_DIR="$(realpath $(dirname $0))"
-export PATH=${BASE_DIR}/bin:${PATH}
+export BASE_DIR="$(dirname $(realpath $0))"
+export USER_DIR="$(dirname $0)"
+
+# source sylva.env first
+if [[ -f "${USER_DIR}/sylva.env" ]]; then
+  source "${USER_DIR}/sylva.env"
+fi
+
+export PATH=${USER_DIR}/bin:${PATH}
 export KIND_CLUSTER_NAME=${KIND_CLUSTER_NAME:-sylva}
 
 SYLVA_BASE_OCI_REGISTRY=${SYLVA_BASE_OCI_REGISTRY:-registry.gitlab.com/sylva-projects}
@@ -33,13 +40,6 @@ function check_args() {
 }
 
 function sylva_init {
-  export CURRENT_COMMIT=$(git rev-parse HEAD)
-  export SYLVA_CORE_REPO=${SYLVA_CORE_REPO:-$(git remote get-url origin | sed 's|^git@\([^:]\+\):|https://\1/|' | sed 's|gitlab-ci-token.*@||')}
-
-  if [[ -f ${BASE_DIR}/sylva.env ]]; then
-    source ${BASE_DIR}/sylva.env
-  fi
-
   if ! python3 -c 'import yaml' &>/dev/null; then
       echo "PyYAML python package is required to run this script, install it on your system and start over."
       exit 1
@@ -171,7 +171,9 @@ function ensure_flux {
             yq -i ".data[\"extra-ca-certs.pem\"]=\"$B64_CERTS\"" ${BASE_DIR}/kustomize-units/flux-system/components/extra-ca/certs.yaml
         fi
         _kustomize ${BASE_DIR}/kustomize-units/flux-system/offline | envsubst | kubectl apply -f -
-        command -v git &>/dev/null && git checkout HEAD -- ${BASE_DIR}/kustomize-units/flux-system/
+        if [ -d "$BASE_DIR/.git" ] && command -v git &>/dev/null ; then
+          (pushd $BASE_DIR && git checkout HEAD -- ./kustomize-units/flux-system/;) &>/dev/null
+        fi
         echo_b "\U000023F3 Wait for Flux to be ready..."
         kubectl wait --for condition=Available --timeout 600s -n flux-system --all deployment
     fi
@@ -182,23 +184,22 @@ function ensure_sylva_toolbox {
         echo "Docker is a prerequisite for the installation of sylva-toolbox"
         exit 1
     fi
-    if [[ ! -f  ${BASE_DIR}/bin/sylva-toolbox-version || $(awk -F : '$1=="sylva-toolbox" {print $2}' ${BASE_DIR}/bin/sylva-toolbox-version) != $SYLVA_TOOLBOX_VERSION ]]; then
+    if [[ ! -f  ${USER_DIR}/bin/sylva-toolbox-version || $(awk -F : '$1=="sylva-toolbox" {print $2}' ${USER_DIR}/bin/sylva-toolbox-version) != $SYLVA_TOOLBOX_VERSION ]]; then
         echo_b "\U0001F4E5 Installing sylva-toolbox binaries"
-        mkdir -p ${BASE_DIR}/bin
-        docker run --rm ${SYLVA_TOOLBOX_REGISTRY}/${SYLVA_TOOLBOX_IMAGE}:${SYLVA_TOOLBOX_VERSION} | tar xz -C ${BASE_DIR}/bin
+        mkdir -p ${USER_DIR}/bin
+        docker run --rm ${SYLVA_TOOLBOX_REGISTRY}/${SYLVA_TOOLBOX_IMAGE}:${SYLVA_TOOLBOX_VERSION} | tar xz -C ${USER_DIR}/bin
     fi
 }
 
-
 function ensure_sylvactl {
-    if [[ -n ${SYLVACTL_VERSION:-} ]] && [[ ${SYLVACTL_VERSION} != $(${BASE_DIR}/bin/sylvactl version 2>&1) ]]; then
+    if [[ -n ${SYLVACTL_VERSION:-} ]] && [[ ${SYLVACTL_VERSION} != $(${USER_DIR}/bin/sylvactl version 2>&1) ]]; then
         SYLVACTL_RELEASE_NAME="sylvactl"
         UNSTABLE_REGEXP='^0\.0\.0-git-.*|^main$'
         [[ $SYLVACTL_VERSION =~ $UNSTABLE_REGEXP ]] && SYLVACTL_RELEASE_NAME="sylvactl-unstable" || true
         echo_b "\U0001F4E5 Downloading ${SYLVACTL_RELEASE_NAME} version: ${SYLVACTL_VERSION}"
-        mkdir -p ${BASE_DIR}/bin
-        curl -q --progress-bar -f https://gitlab.com/api/v4/projects/43501695/packages/generic/$SYLVACTL_RELEASE_NAME/$SYLVACTL_VERSION/sylvactl -o ${BASE_DIR}/bin/sylvactl
-        chmod +x ${BASE_DIR}/bin/sylvactl
+        mkdir -p ${USER_DIR}/bin
+        curl -q --progress-bar -f https://gitlab.com/api/v4/projects/43501695/packages/generic/$SYLVACTL_RELEASE_NAME/$SYLVACTL_VERSION/sylvactl -o ${USER_DIR}/bin/sylvactl
+        chmod +x ${USER_DIR}/bin/sylvactl
     fi
 }
 
@@ -288,7 +289,19 @@ function reconcile_sylva_units() {
 }
 
 function define_source() {
-  sed "s/CURRENT_COMMIT/${CURRENT_COMMIT}/" "$@" | \
+
+  if (command -v git && pushd $BASE_DIR && git rev-parse --is-inside-work-tree;) &> /dev/null; then
+    pushd $BASE_DIR &> /dev/null
+    export SYLVA_CORE_COMMIT=${SYLVA_CORE_COMMIT:-$(git rev-parse HEAD)}
+    export SYLVA_CORE_REPO=${SYLVA_CORE_REPO:-$(git remote get-url origin | sed 's|^git@\([^:]\+\):|https://\1/|' | sed 's|gitlab-ci-token.*@||')}
+    popd &> /dev/null
+  else
+    [ -z "${SYLVA_CORE_COMMIT:-}" ] && (echo >&2 "[INFO] Unable to determine current commit. Make sure to use OCI artifacts for deployment";)
+    export SYLVA_CORE_REPO=${SYLVA_CORE_REPO:-"https://gitlab.com/sylva-projects/sylva-core"}
+  fi
+  [ -n "${SYLVA_CORE_COMMIT:-}" ] && echo >&2 "[INFO] Using ${SYLVA_CORE_COMMIT:-}";
+
+  sed "s/CURRENT_COMMIT/${SYLVA_CORE_COMMIT:-"xxxxxx"}/" "$@" | \
   sed "s,SYLVA_CORE_REPO,${SYLVA_CORE_REPO},g" "$@" | \
   sed "s,SYLVA_BASE_OCI_REGISTRY,${SYLVA_BASE_OCI_REGISTRY},g" "$@"
 }
@@ -345,7 +358,7 @@ function validate_sylva_units() {
         resources:
         - $(realpath --relative-to=${PREVIEW_DIR} ${ENV_PATH})
         components:
-        - $(realpath --relative-to=${PREVIEW_DIR} ./environment-values/preview)
+        - $(realpath --relative-to=${PREVIEW_DIR} ${BASE_DIR}/environment-values/preview)
         patches:
           - target:
               kind: Kustomization
