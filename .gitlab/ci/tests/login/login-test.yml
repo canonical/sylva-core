@@ -121,6 +121,7 @@ mgmt-sso:
     - !reference [.test_scripts, edit_hosts_file]
     - !reference [.test_scripts, get_ui_ingresses_url]
     - !reference [.test_scripts, get_sso_login_and_password]
+    - !reference [.test_scripts, get_kepler_unit_enabled]
     - pytest ./tools/login-test/test_sso_playwright.py --browser firefox -v --tb=short
 
 wkld-no-sso-kubeconfig:
