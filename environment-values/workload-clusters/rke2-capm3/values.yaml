@@ -22,7 +22,9 @@ cluster:
       config: # String to allows users to specify additional cloud-init configuration
         users:
           - name: ubuntu
-            groups: users, sylva-ops
+            groups:
+              - users
+              - sylva-ops
             sudo: ALL=(ALL) NOPASSWD:ALL
             shell: /bin/bash
             lock_passwd: false
