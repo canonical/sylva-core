@@ -16,8 +16,10 @@ spec:
     protocol: openid-connect
     publicClient: false
     clientAuthenticatorType: client-secret
+    # redirectUris:
+    #   - "https://${KUBEVIRT_MANAGER_DNS}/openId_auth"
     redirectUris:
-      - "https://${KUBEVIRT_MANAGER_DNS}/openId_auth"
+      - "https://${KUBEVIRT_MANAGER_DNS}/oauth2/callback"
     webOrigins:
       - "https://${KUBEVIRT_MANAGER_DNS}"
     standardFlowEnabled: true
