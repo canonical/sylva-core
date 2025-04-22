@@ -449,7 +449,6 @@ spec:
             - --pass-access-token=true
             - --scope=openid profile email
             - --cookie-domain=.sylva
-
           ports:
             - containerPort: 4180
               name: oauth2
