@@ -14,7 +14,6 @@ cluster:
   capm3:
     os_image_selector:
       os: ubuntu
-      hardened: true
     networks:
       primary:
         subnet: 192.168.100.0/24
