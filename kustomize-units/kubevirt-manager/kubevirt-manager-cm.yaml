@@ -34,7 +34,7 @@ data:
             }
 
             # OAuth2 Proxy endpoints
-            location /oauth2/auth
+            location /oauth2/auth {
                 proxy_pass       http://127.0.0.1:4180;        #outh:port
                 proxy_set_header Host              $host;
                 proxy_set_header X-Real-IP         $remote_addr;
@@ -58,6 +58,7 @@ data:
                 index index.html;
 
                 try_files $uri $uri/ /index.html;
+            }
         }
 
         # Internal server for Angular UI (served on 8081)
