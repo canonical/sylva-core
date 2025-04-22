@@ -143,3 +143,12 @@ delete-workload-cluster:
   rules:
     - if: $DEPLOY_WORKLOAD_CLUSTER == "true" && $DELETE_WORKLOAD_CLUSTER == "true"
       when: always
+
+initialize-summary:
+  extends: .summary
+  stage: .post
+  needs: []
+
+update-summary:
+  extends: .summary
+  stage: .post

@@ -3,6 +3,9 @@
 # Generate deployment jobs
 # ==========================================
 
+variables:
+  TOP_LEVEL_PIPELINE_ID: $CI_PIPELINE_ID
+
 .deploy_rules:
   rules:
     - if: $NO_DEPLOYMENTS
