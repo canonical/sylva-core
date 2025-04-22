@@ -6860,6 +6860,7 @@ units:
       thanos-init: true
       thanos-credentials-secret: true
       minio-monitoring: '{{ .Values.monitoring.thanos.objstoreConfig.config | empty }}'
+      minio-monitoring-cleanup: '{{ tuple . "minio-monitoring-cleanup" | include "unit-enabled" }}'
       '{{ .Values._internal.default_storage_class_unit }}': true
       ingress-nginx: '{{ tuple . "ingress-nginx" | include "unit-enabled" }}'
     annotations:
@@ -7354,6 +7355,7 @@ units:
       loki-init: true
       loki-credentials-secret: true
       minio-logging: true
+      minio-logging-cleanup: '{{ tuple . "minio-logging-cleanup" | include "unit-enabled" }}'
       logging-crd: '{{ tuple . "monitoring" | include "unit-enabled" }}'
     enabled_conditions:
       - '{{ tuple . "logging" | include "unit-enabled" }}'
