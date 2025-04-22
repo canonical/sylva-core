@@ -44,6 +44,12 @@ cluster:
     machine_image_format: live-iso
     machine_image_url: https://abcdef
     dns_servers: '{{ list .Values.cluster.mgmt_cluster_ip }}'
+    networks:
+      primary:
+        subnet: 192.168.100.0/24
+        gateway: 192.168.100.1
+        start: 192.168.100.2
+        end: 192.168.100.80
 
   openshift:
     ingressVIP: 192.168.100.4
@@ -67,6 +73,11 @@ cluster:
   machine_deployments:
     md0:
       replicas: 1
+      capm3:
+        hostSelector:
+          matchLabels:
+            cluster-role: worker
+
 
   baremetal_hosts:
     workload-cp-0:
@@ -118,7 +129,6 @@ cluster:
         primary: 192.168.100.72
 
     workload-md-0:
-      # No interface_mappings to test backward compatibility
       bmh_metadata:
         labels:
           cluster-role: worker
