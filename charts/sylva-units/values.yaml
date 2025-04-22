@@ -4407,7 +4407,7 @@ units:
               platform_tag: '{{ .Values.monitoring.platform_tag }}'
             remoteWriteDashboards: true
             remoteWrite:
-              - url: '{{ .Values.monitoring.thanos_receive_url }}'
+              - url: '{{ .Values.monitoring.thanos.receive_url }}'
                 name: '{{ .Values.cluster.name }}'
                 basicAuth:
                   username:
@@ -6569,6 +6569,8 @@ units:
     - base-deps
     enabled_conditions:
       - '{{ tuple . "thanos" | include "unit-enabled" }}'
+      # only enable when no custom objstoreConfig is provided
+      - '{{ .Values.monitoring.thanos.objstoreConfig.config | empty }}'
     depends_on:
       namespace-defs: true
       minio-operator: true
@@ -6718,10 +6720,10 @@ units:
       namespace-defs: true
       sylva-ca: true
       eso-secret-stores: true
-      minio-monitoring-init: true
+      minio-monitoring-init: '{{ .Values.monitoring.thanos.objstoreConfig.config | empty }}'
     repo: sylva-core
     kustomization_spec:
-      path: ./kustomize-units/thanos-init
+      path: '{{ if .Values.monitoring.thanos.objstoreConfig.config | empty }}./kustomize-units/thanos-init{{ else }}./kustomize-units/thanos-dummy{{ end }}'
       wait: true
       postBuild:
         substitute:
@@ -6777,7 +6779,7 @@ units:
       namespace-defs: true
       thanos-init: true
       thanos-credentials-secret: true
-      minio-monitoring: true
+      minio-monitoring: '{{ .Values.monitoring.thanos.objstoreConfig.config | empty }}'
       '{{ .Values._internal.default_storage_class_unit }}': true
       ingress-nginx: '{{ tuple . "ingress-nginx" | include "unit-enabled" }}'
     annotations:
@@ -7021,16 +7023,29 @@ units:
                   - '{{ .Values.external_hostnames.thanos_receive }}'
                 secretName: thanos-tls
       valuesFrom:
-        - kind: Secret
-          name: thanos-minio-user
-          valuesKey: CONSOLE_ACCESS_KEY
-          targetPath: objstoreConfig.config.access_key
-          optional: false
-        - kind: Secret
-          name: thanos-minio-user
-          valuesKey: CONSOLE_SECRET_KEY
-          targetPath: objstoreConfig.config.secret_key
-          optional: false
+        # use values from thanos-minio-user only when using internal MinIO storage
+        - >-
+          {{ tuple (dict
+                "kind" "Secret"
+                "name" "thanos-minio-user"
+                "valuesKey" "CONSOLE_ACCESS_KEY"
+                "targetPath" "objstoreConfig.config.access_key"
+                "optional" true
+              )
+              (.Values.monitoring.thanos.objstoreConfig.config | empty)
+              | include "set-only-if"
+          }}
+        - >-
+          {{ tuple (dict
+                "kind" "Secret"
+                "name" "thanos-minio-user"
+                "valuesKey" "CONSOLE_SECRET_KEY"
+                "targetPath" "objstoreConfig.config.secret_key"
+                "optional" true
+              )
+              (.Values.monitoring.thanos.objstoreConfig.config | empty)
+              | include "set-only-if"
+          }}
         # Use tenant list built by kyverno policy thanos-aggregated-secret to fill auth.basicAuthUsers object
         - kind: Secret
           name: thanos-secrets
@@ -7066,18 +7081,8 @@ units:
               static_configs: ["thanos-query-frontend:9090"]
               scheme: http
       objstoreConfig:
-        type: "S3"
-        config:
-          bucket: "thanos"
-          endpoint: minio.minio-monitoring.svc.cluster.local
-          insecure: false
-          http_config:
-            tls_config:
-              insecure_skip_verify: true
-            insecure_skip_verify: true
-          # Use reduced reduncancy storage class (EC:1) as we are using two replicas in longhorn
-          put_user_metadata:
-            X-Amz-Storage-Class: REDUCED_REDUNDANCY
+        '{{ .Values._internal.thanos.objstoreConfig | include "preserve-type" }}'
+
   logging-crd:
     info:
       description: install rancher-logging CRD
@@ -8309,11 +8314,21 @@ security:
 monitoring:
   platform_tag: Sylva
 
-  # thanos_receive_url:
-  # - for mgmt cluster, the local thanos k8s service is used (the URL below)
-  # - for workload clusters, this is overridden via shared_workload_clusters_values.monitoring.thanos_receive_url
-  #   to point to the mgmt cluster Thanos receive ingress
-  thanos_receive_url: http://thanos-receive.thanos.svc.cluster.local:19291/api/v1/receive
+  thanos:
+    # receive_url:
+    # - for mgmt cluster, the local thanos k8s service is used (the URL below)
+    # - for workload clusters, this is overridden via shared_workload_clusters_values.monitoring.thanos.receive_url
+    #   to point to the mgmt cluster Thanos receive ingress
+    receive_url: http://thanos-receive.thanos.svc.cluster.local:19291/api/v1/receive
+
+    objstoreConfig:
+      # only taken into account when monitoring.thanos.objstoreConfig.config is not empty
+      type: "S3"
+
+      # custom store config
+      config: {}
+        # https://github.com/thanos-io/objstore#supported-providers-clients
+        # lists all supported provides
 
   alertmanager:
     config: {}
@@ -8362,6 +8377,25 @@ monitoring:
             {{ end }}
 
 #monitoring:
+#  thanos:
+#    objstoreConfig:
+#      type: "GCS"
+#      # https://github.com/thanos-io/objstore#gcs
+#      config:
+#        bucket: "test"
+#        service_account: |-
+#          {
+#            "type": "service_account",
+#            "project_id": "project",
+#            "private_key_id": "abcdefghijklmnopqrstuvwxyz12345678906666",
+#            "private_key": "-----BEGIN PRIVATE KEY-----\...\n-----END PRIVATE KEY-----\n",
+#            "client_email": "thanos@example.com",
+#            "client_id": "123456789012345678901",
+#            "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+#            "token_uri": "https://oauth2.googleapis.com/token",
+#            "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+#            "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/thanos%40gitpods.iam.gserviceaccount.com"
+#            }
 #  alertmanager:
 #    # Supported values from: https://prometheus.io/docs/alerting/latest/configuration/
 #    config:
@@ -8628,6 +8662,30 @@ _internal:
         enabled: '{{ tuple . "snmp-exporter" | include "unit-enabled" }}'
       crossplane:
         enabled: '{{ tuple . "crossplane" | include "unit-enabled" }}'
+
+  thanos:
+    store_config_internal:
+      bucket: "thanos"
+      endpoint: "minio.minio-monitoring.svc.cluster.local"
+      insecure: false
+      http_config:
+        tls_config:
+          insecure_skip_verify: true
+        insecure_skip_verify: true
+      # Use reduced reduncancy storage class (EC:1) as we are using two replicas in longhorn
+      put_user_metadata:
+        X-Amz-Storage-Class: REDUCED_REDUNDANCY
+
+    objstoreConfig:
+      type: '{{ ternary "S3" .Values.monitoring.thanos.objstoreConfig.type (.Values.monitoring.thanos.objstoreConfig.config | empty) }}'
+      # construct objstoreConfig for intenal MinIO storage
+      # or use user defined options
+      config: |-
+        {{ if (.Values.monitoring.thanos.objstoreConfig.config | empty)  }}
+        {{ .Values._internal.thanos.store_config_internal | include "preserve-type" }}
+        {{ else }}
+        {{ .Values.monitoring.thanos.objstoreConfig.config | include "preserve-type" }}
+        {{ end }}
 
   # thanos user and password
   thanos_user: '{{ .Values.cluster.name }}'
@@ -8904,7 +8962,8 @@ shared_workload_clusters_values:
       enabled: '{{ tuple . "rancher" | include "unit-enabled" }}'
 
   monitoring:
-    thanos_receive_url: https://{{ .Values.external_hostnames.thanos_receive }}/api/v1/receive
+    thanos:
+      receive_url: "https://{{ .Values.external_hostnames.thanos_receive }}/api/v1/receive"
   logging:
     loki_url: "https://{{ .Values.external_hostnames.loki }}"
 
