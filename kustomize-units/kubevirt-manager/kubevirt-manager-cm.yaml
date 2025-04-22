@@ -60,6 +60,7 @@ data:
                 proxy_set_header X-Forwarded-Proto https;
             }
 
+
             # Catch-all route for Angular app - enforce auth
             location / {
                 auth_request /oauth2/auth;
