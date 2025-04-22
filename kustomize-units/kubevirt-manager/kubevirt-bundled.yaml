@@ -441,9 +441,9 @@ spec:
             - --client-secret=$(OAUTH2_PROXY_CLIENT_SECRET)
             - --redirect-url=https://${KUBEVIRT_MANAGER_DNS}/oauth2/callback  # kubevirt-manager exposed as in keycloak client
             - --oidc-issuer-url=https://${KEYCLOAK_DNS}/realms/sylva
-            - --login-url=https://${{KEYCLOAK_DNS}}/realms/sylva/protocol/openid-connect/auth
-            - --redeem-url=https://${{KEYCLOAK_DNS}}/realms/sylva/protocol/openid-connect/token
-            - --profile-url=https://${{KEYCLOAK_DNS}}/realms/sylva/protocol/openid-connect/userinfo
+            - --login-url=https://${KEYCLOAK_DNS}/realms/sylva/protocol/openid-connect/auth
+            - --redeem-url=https://${KEYCLOAK_DNS}/realms/sylva/protocol/openid-connect/token
+            - --profile-url=https://${KEYCLOAK_DNS}/realms/sylva/protocol/openid-connect/userinfo
 
           ports:
             - containerPort: 4180
