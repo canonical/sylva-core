@@ -33,35 +33,45 @@ data:
                 add_header Content-Type text/plain;
             }
 
-            # OAuth2 Proxy endpoints
-            location /oauth2/auth {
-                proxy_pass       http://127.0.0.1:4180;        #outh:port
+            # OAuth2 Proxy auth endpoint
+            location = /oauth2/auth {
+                proxy_pass       http://127.0.0.1:4180;
                 proxy_set_header Host              $host;
                 proxy_set_header X-Real-IP         $remote_addr;
                 proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
                 proxy_set_header X-Forwarded-Proto $scheme;
             }
 
-            # Callback after login
-            location /oauth2/callback {
-                proxy_pass       http://127.0.0.1:4180;         #oauth:port
+            # OAuth2 Proxy callback endpoint
+            location /oauth2/ {
+                proxy_pass       http://127.0.0.1:4180;
                 proxy_set_header Host              $host;
                 proxy_set_header X-Real-IP         $remote_addr;
                 proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
                 proxy_set_header X-Forwarded-Proto $scheme;
             }
 
-            # Catch-all: send all traffic through oauth2-proxy (auth first)
+            # Catch-all route for Angular app - enforce auth
             location / {
                 auth_request /oauth2/auth;
+                error_page 401 = /oauth2/start;
+
+                # Pass user info as headers
+                auth_request_set $user  $upstream_http_x_auth_request_user;
+                auth_request_set $email $upstream_http_x_auth_request_email;
+                auth_request_set $groups $upstream_http_x_auth_request_groups;
+
+                proxy_set_header X-User   $user;
+                proxy_set_header X-Email  $email;
+                proxy_set_header X-Groups $groups;
+
                 root /usr/share/nginx/html;
                 index index.html;
-
                 try_files $uri $uri/ /index.html;
             }
         }
 
-        # Internal server for Angular UI (served on 8081)
+        # Optional internal server block placeholder
         server {
             listen 127.0.0.1:8081;
         }
