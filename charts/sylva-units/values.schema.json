@@ -5323,6 +5323,19 @@
             }
           ]
         },
+        "metallb_helm_values": {
+          "anyOf": [
+            {
+              "type": "object"
+            },
+            {
+              "$ref": "#/$defs/string-with-gotpl"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
         "metallb": {
           "anyOf": [
             {
