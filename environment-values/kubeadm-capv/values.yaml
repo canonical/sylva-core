@@ -41,7 +41,6 @@ cluster:
   #      groups:
   #        - users
   #        - sylva-ops
-
   #      sudo: ALL=(ALL) NOPASSWD:ALL
   #      shell: /bin/bash
   #      lockPassword: false
