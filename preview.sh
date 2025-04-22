@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source tools/shell-lib/common.sh
+source $(dirname $(realpath $0))/tools/shell-lib/common.sh
 
 apply_scripts_init
 
@@ -18,7 +18,7 @@ if [[ -f management-cluster-kubeconfig ]]; then
     export KUBECONFIG=${KUBECONFIG:-management-cluster-kubeconfig}
 else
     echo_b "\U0001F503 Preparing bootstrap cluster"
-    tools/kind/bootstrap-cluster.sh
+    ${BASE_DIR}/tools/kind/bootstrap-cluster.sh
 fi
 
 ensure_flux

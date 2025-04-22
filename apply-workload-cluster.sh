@@ -5,7 +5,7 @@
 # This script will act on the kubectl context of a Sylva management cluster,
 # if the 'management-cluster-kubeconfig' file is found, in which case it will use it, otherwise exit.
 
-source $(dirname $0)/tools/shell-lib/common.sh
+source $(dirname $(realpath $0))/tools/shell-lib/common.sh
 
 apply_scripts_init
 
