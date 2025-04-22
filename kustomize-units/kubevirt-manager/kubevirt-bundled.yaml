@@ -448,7 +448,7 @@ spec:
             - --pass-authorization-header=true
             - --pass-access-token=true
             - --scope=openid profile email
-            - --cookie-domain=.sylva
+            - --cookie-domain=kubevirt-manager.sylva
           ports:
             - containerPort: 4180
               name: oauth2
