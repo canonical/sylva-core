@@ -2058,6 +2058,8 @@ units:
       install:
         createNamespace: true
       values:
+        global:
+          resyncPeriod: 10m
         config:
           resourceFiltersExclude:
           - "[Node,*,*]"
@@ -2166,6 +2168,9 @@ units:
                   - "cronjobs"
                   - "jobs"
                 verbs: ["get", "list", "patch", "update", "watch"]
+              - apiGroups: ["minio.min.io"]
+                resources: ["tenants"]
+                verbs: ["get", "list", "watch", "patch", "update"]
               - apiGroups: ["vault.banzaicloud.com"]
                 resources:
                   - "vaults"
@@ -6244,6 +6249,7 @@ units:
       _components:
         - '{{ ternary "../tls-components/tls-secret" "../tls-components/tls-certificate" (hasKey .Values.external_certificates.minio_operator "cert") }}'
         - "../tls-components/sylva-ca"
+        - "../kyverno-policies/minio-policies/minio-operator-policies"
 
   minio-operator:
     info:
@@ -6356,6 +6362,7 @@ units:
       vault: true
       vault-config-operator: true
       eso-secret-stores: true
+      minio-operator: true
     repo: sylva-core
     kustomization_substitute_secrets:
       KEY: '{{ .Values.external_certificates.minio_logging.key | default "" | b64enc }}'
@@ -6375,6 +6382,7 @@ units:
       _components:
         - '{{ ternary "../tls-components/tls-secret" "../tls-components/tls-certificate" (hasKey .Values.external_certificates.minio_logging "cert") }}'
         - "../tls-components/sylva-ca"
+        - "../kyverno-policies/minio-policies/minio-tenant-policies"
 
   minio-logging:
     info:
@@ -6540,6 +6548,7 @@ units:
       vault: true
       vault-config-operator: true
       eso-secret-stores: true
+      minio-operator: true
     repo: sylva-core
     kustomization_substitute_secrets:
       KEY: '{{ .Values.external_certificates.minio_monitoring.key | default "" | b64enc }}'
@@ -6559,6 +6568,7 @@ units:
       _components:
         - '{{ ternary "../tls-components/tls-secret" "../tls-components/tls-certificate" (hasKey .Values.external_certificates.minio_monitoring "cert") }}'
         - "../tls-components/sylva-ca"
+        - "../kyverno-policies/minio-policies/minio-tenant-policies"
 
   minio-monitoring:
     info:
