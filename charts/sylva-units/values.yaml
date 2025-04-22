@@ -3720,8 +3720,9 @@ units:
               - target:
                   labelSelector: app=rancher
                 patch: |
-                  - op: remove
+                  - op: replace
                     path: /metadata/labels/chart
+                    value: rancher
 
     kustomization_spec:
       # these healthChecks are added so that does not become ready before
