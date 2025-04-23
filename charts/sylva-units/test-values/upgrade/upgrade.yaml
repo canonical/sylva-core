@@ -1,19 +1,5 @@
-cluster:
-  name: test-cluster  # overriden so that we can have a value common for mgmt and workload which we use below in _internal.previous_values
 cluster_virtual_ip: 172.18.0.100
 
 _internal:
-
   state: # simulate an upgrade scenario
     is_upgrade: true
-
-  # we need to give mock "previous values" because
-  # as soon as is_uprade is true the check for immutability
-  # will try to use them
-  previous_values:
-    cluster:
-      name: test-cluster
-      cluster_virtual_ip: 172.18.0.100
-      capi_providers:
-        bootstrap_provider: cabpk
-        infra_provider: capd
