@@ -15,7 +15,7 @@ kubectl get secrets sylva-units-values -o template="{{ .data.values }}" | base64
 {{/*
 Checking that all values under ._internal.immutable_values and set with dict "_immutable: true" value will not change during Helm upgrade/rollback.
 */}}
-{{- if .Values._internal.state.is_upgrade -}}
+{{- if and .Values._internal.state.is_upgrade .Values._internal.previous_values -}}
   {{- $previous_values := .Values._internal.previous_values -}}
   {{- tuple .Values._internal.immutable_values $previous_values .Values list | include "check-immutable-values" -}}
 {{- end -}}
