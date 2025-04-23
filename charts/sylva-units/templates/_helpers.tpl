@@ -62,9 +62,10 @@ which is used to create a Flux Kustomization that generates a HelmRelease.
 {{ define "helmrelease-kustomization-patch-template" }}
   {{- $unit_name := index . 0 -}}
   {{- $helmrelease_spec := index . 1 -}}
-  {{- $labels := index . 2 -}}
-  {{- $has_secret := index . 3 -}}
-  {{- $secretHash := index . 4 -}}
+  {{- $annotations := index . 2 -}}
+  {{- $labels := index . 3 -}}
+  {{- $has_secret := index . 4 -}}
+  {{- $secretHash := index . 5 -}}
 patches:
   - target:
       kind: HelmRelease
@@ -74,6 +75,7 @@ patches:
         value:
           namespace: sylva-system
           name: {{ $unit_name }}
+          annotations: {{ $annotations | toYaml | nindent 12 }}
           labels: {{ $labels | toYaml | nindent 12 }}
       - op: replace
         path: /spec
