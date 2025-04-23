@@ -21,11 +21,4 @@ reports/
 report_output.md
 
 # Dump artifacts
-system-dump/
-bootstrap-cluster-dump/
-management-cluster-dump/
-workload-cluster-dump/
-crust-gather/
-crust-gather.tar.gz
-sylva-dump.log
-sylva-dump-*.tar.gz
+dumps/
