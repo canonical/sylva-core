@@ -1648,6 +1648,44 @@ properties:
               - type: object
               - $ref: "#/$defs/gotpl"
 
+  backup:  # -------------------------------
+    type: object
+    additionalProperties: false
+    properties:
+      timestamped:
+        type: boolean
+      store:
+        additionalProperties: false
+        properties:
+          s3:
+            type: object
+            additionalProperties: false
+            properties:
+              host:
+                type: string
+                format: hostname
+              access_key:
+                type: string
+              secret_key:
+                type: string
+              bucket:
+                type: string
+              cert:
+                type: string
+            required:
+              - host
+              - access_key
+              - secret_key
+              - bucket
+        oneOf:
+        - type: object
+          properties:
+            s3: {}
+          required:
+            - s3
+    required:
+      - store
+
   # Placeholder for external units that would need to define their own values
   third_party:  # -------------------------------
     type: object

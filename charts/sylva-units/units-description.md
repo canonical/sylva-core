@@ -64,6 +64,7 @@
 | **snmp-exporter** | installs SNMP exporter | beta | [Helm chart](https://prometheus-community.github.io/helm-charts) | 9.2.1 |
 | **thanos** | installs Thanos | beta | [Helm chart](https://github.com/bitnami/charts.git) | thanos/15.8.0 |
 | **trivy-operator** | installs Trivy operator | beta | [Helm chart](https://aquasecurity.github.io/helm-charts/) | 0.26.0 |
+| **backup-capi-resources** | Backup Cluster API resources<br/><br/>Backup periodically Cluster API resources using clusterctl move |  | Kustomization |  |
 | **descheduler** | install descheduler |  | [Helm chart](https://kubernetes-sigs.github.io/descheduler/) | 0.33.0 |
 
 ## Units for operators, tools or Helm charts maintained in Sylva project
