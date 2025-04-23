@@ -3,10 +3,10 @@
 <!-- markdownlint-disable MD044 -->
 | name | full description | maturity | source | version |
 | :----- | :----- | :----- | :----- | :----- |
-| **cabpk** | installs Kubeadm CAPI bootstrap provider | core-component | [Kustomization](https://github.com/kubernetes-sigs/cluster-api/releases/download/v1.9.6/bootstrap-components.yaml) | v1.9.6 |
+| **cabpk** | installs Kubeadm CAPI bootstrap provider | core-component | [Kustomization](https://github.com/kubernetes-sigs/cluster-api/releases/download/v1.9.7/bootstrap-components.yaml) | v1.9.7 |
 | **cabpr** | installs RKE2 CAPI bootstrap provider | core-component | [Kustomization](https://github.com/rancher/cluster-api-provider-rke2/releases/download/v0.13.0/bootstrap-components.yaml) | v0.13.0 |
-| **capd** | installs Docker CAPI infra provider | core-component | [Kustomization](https://github.com/kubernetes-sigs/cluster-api//test/infrastructure/docker/config/default/?ref=v1.9.6) | v1.9.6 |
-| **capi** | installs Cluster API core operator | core-component | [Kustomization](https://github.com/kubernetes-sigs/cluster-api/releases/download/v1.9.6/core-components.yaml) | v1.9.6 |
+| **capd** | installs Docker CAPI infra provider | core-component | [Kustomization](https://github.com/kubernetes-sigs/cluster-api//test/infrastructure/docker/config/default/?ref=v1.9.7) | v1.9.7 |
+| **capi** | installs Cluster API core operator | core-component | [Kustomization](https://github.com/kubernetes-sigs/cluster-api/releases/download/v1.9.7/core-components.yaml) | v1.9.7 |
 | **capm3** | installs Metal3 CAPI infra provider, for baremetal | core-component | [Kustomization](https://github.com/metal3-io/cluster-api-provider-metal3/releases/download/v1.9.3/infrastructure-components.yaml) | v1.9.3 |
 | **capo** | installs OpenStack CAPI infra provider | core-component | [Kustomization](https://github.com/kubernetes-sigs/cluster-api-provider-openstack/releases/download/v0.12.2/infrastructure-components.yaml) | v0.12.2 |
 | **capo-orc** | installs OpenStack Resource Controller (orc)<br/><br/>The [OpenStack Resource Controller](https://k-orc.cloud/) (a.k.a. ORC) is a component used by CAPO controller | core-component | [Kustomization](https://github.com/k-orc/openstack-resource-controller/releases/download/v2.0.3/install.yaml) | v2.0.3 |
