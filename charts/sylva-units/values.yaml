@@ -2251,17 +2251,15 @@ units:
           COREDNS_DEPLOYMENT_NAME: '{{ tuple (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpk" | ternary "coredns" "rke2-coredns-rke2-coredns") (tuple . "cabpoa" | include "unit-enabled") | include "set-only-if" }}'
           COREDNS_CONFIGMAP_NAME: '{{ tuple (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpk" | ternary "coredns" "rke2-coredns-rke2-coredns") (tuple . "cabpoa" | include "unit-enabled") | include "set-only-if" }}'
       _components:
-        - '{{ tuple "components/bootstrap-cluster-only" .Values._internal.bstrp_cluster | include "set-only-if" }}'
-        - '{{ tuple "components/management-cluster-only" .Values._internal.mgmt_cluster | include "set-only-if" }}'
-        - '{{ tuple "components/descheduler" (tuple . "descheduler" | include "unit-enabled") | include "set-only-if" }}'
-        - '{{ tuple "components/loki-aggregated-secrets" (tuple . "loki" | include "unit-enabled") | include "set-only-if" }}'
-        - '{{ tuple "components/thanos" (tuple . "thanos" | include "unit-enabled") | include "set-only-if" }}'
-        - '{{ tuple "components/check-images" .Values.security.upstream_images_signature.verify | include "set-only-if" }}'
-        - '{{ tuple "components/mutate-job-security-context" (tuple . "rancher" | include "unit-enabled") | include "set-only-if" }}'
-        - '{{ tuple "components/neuvector-policies" (tuple . "neuvector" | include "unit-enabled") | include "set-only-if" }}'
-        - '{{ tuple "components/deny-cabundle-changes" (tuple . "cert-manager" | include "unit-enabled") | include "set-only-if" }}'
-        - ../exclude-kube-system  # needs to be last (needed for components above that use sylva.org/kyverno-exclude-kube-system annotation)
-        - '{{ tuple "components/coredns-custom-hosts-import" (tuple . "cabpoa" | include "unit-enabled") | include "set-only-if" }}'
+        - '{{ tuple "../bootstrap-cluster-only" .Values._internal.bstrp_cluster | include "set-only-if" }}'
+        - '{{ tuple "../management-cluster-only" .Values._internal.mgmt_cluster | include "set-only-if" }}'
+        - '{{ tuple "../components/descheduler" (tuple . "descheduler" | include "unit-enabled") | include "set-only-if" }}'
+        - '{{ tuple "../components/loki-aggregated-secrets" (tuple . "loki" | include "unit-enabled") | include "set-only-if" }}'
+        - '{{ tuple "../components/thanos" (tuple . "thanos" | include "unit-enabled") | include "set-only-if" }}'
+        - '{{ tuple "../components/check-images" .Values.security.upstream_images_signature.verify | include "set-only-if" }}'
+        - '{{ tuple "../components/mutate-job-security-context" (tuple . "rancher" | include "unit-enabled") | include "set-only-if" }}'
+        - '{{ tuple "../components/neuvector-policies" (tuple . "neuvector" | include "unit-enabled") | include "set-only-if" }}'
+        - ../components/exclude-kube-system  # needs to be last (needed for components above that use sylva.org/kyverno-exclude-kube-system annotation)
 
   kyverno-policies-ready:
     info:
@@ -2314,7 +2312,7 @@ units:
       metal3: true
     repo: sylva-core
     kustomization_spec:
-      path: ./kustomize-units/kyverno-policies/metal3-policies
+      path: ./kustomize-units/kyverno-policies/components/metal3-policies
       wait: true
 
   kyverno-update-namespace-and-psa:
@@ -2877,7 +2875,7 @@ units:
       kyverno: true
     repo: sylva-core
     kustomization_spec:
-      path: ./kustomize-units/kyverno-policies/cluster-node-provider-id-blacklist
+      path: ./kustomize-units/kyverno-policies/components/cluster-node-provider-id-blacklist
       wait: true
 
   rke2-helmchart-prevent-uninstall:
@@ -2898,7 +2896,7 @@ units:
                        (tuple . "cluster" | include "unit-enabled") }}'
     repo: sylva-core
     kustomization_spec:
-      path: ./kustomize-units/kyverno-policies/rke2-helmchart-prevent-uninstall
+      path: ./kustomize-units/kyverno-policies/components/rke2-helmchart-prevent-uninstall
       wait: true
 
   cluster:
@@ -5285,7 +5283,7 @@ units:
     - base-deps
     repo: sylva-core
     kustomization_spec:
-      path: ./kustomize-units/kyverno-policies/longhorn-engine-image-cleanup
+      path: ./kustomize-units/kyverno-policies/components/longhorn-engine-image-cleanup
 
   longhorn-instance-manager-cleanup:
     info:
