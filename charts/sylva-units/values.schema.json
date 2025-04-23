@@ -1779,6 +1779,11 @@
                                 "type": "integer",
                                 "min": 0,
                                 "max": 4095
+                              },
+                              "mtu": {
+                                "type": "integer",
+                                "min": 1280,
+                                "max": 9000
                               }
                             }
                           }
@@ -5185,6 +5190,9 @@
                                     "type": "string",
                                     "format": "uri",
                                     "pattern": "^(https?://.*|)$"
+                                  },
+                                  "is_default_mirror": {
+                                    "type": "boolean"
                                   }
                                 }
                               }
