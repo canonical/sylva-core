@@ -8421,7 +8421,7 @@ calico_helm_values:
         ensure that .Values.cluster.capm3.default_network_settings is interpreted before we use it
           (keeping in mind that it is used by sylva-library "calculate-mtu" named template)
         */}}
-        {{- tuple . "cluster.capm3.default_network_settings" "plop" | include "interpret" -}}
+        {{- tuple . "cluster.capm3.default_network_settings" | include "interpret" -}}
         {{- $control_plane_primary_interface := .Values.cluster | dig "control_plane" "capm3" "networks" "primary" "interface" .Values.cluster.capm3.networks.primary.interface -}}
         {{- if not (eq $control_plane_primary_interface "") -}}
           {{ tuple (dict "Values" (dict "capm3" .Values.cluster.capm3))
