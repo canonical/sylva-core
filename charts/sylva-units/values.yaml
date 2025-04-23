@@ -4786,8 +4786,6 @@ units:
         spec:
           chart: prometheus-snmp-exporter
           version: 9.2.1
-      install:
-        createNamespace: true
       values:
         fullnameOverride: 'snmp-exporter'
         replicas: 1
@@ -4829,6 +4827,8 @@ units:
         spec:
           chart: .
       targetNamespace: snmp-exporter
+      install:
+        createNamespace: true
     helm_secret_values:
       auth: '{{ .Values.snmp.auth | include "preserve-type" }}'
 
