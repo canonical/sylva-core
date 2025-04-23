@@ -356,6 +356,9 @@ Example:
 {{- define "interpret" -}}
   {{- $envAll := index . 0 -}}
   {{- $path := index . 1 -}}
+  {{- if gt (len .) 2 -}}
+    {{- fail (printf "'interpret' accepts only 2 parameters, was given %d (arguments after first one: %s)" (len .) (slice . 1|toJson)) -}}
+  {{- end -}}
   {{- $keys := splitList "." $path -}}
   {{- tuple $envAll $envAll.Values ($keys | first) ($keys | rest) "" | include "_interpret" -}}
 {{- end -}}
