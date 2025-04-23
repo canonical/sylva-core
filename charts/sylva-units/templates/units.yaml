@@ -219,9 +219,10 @@ spec: {{ $helm_repo_spec | toYaml | nindent 2 }}
         {{- $_ := set $unit_def "kustomization_substitute_secrets" (dict "VALUES_B64" ($unit_def.helm_secret_values | toYaml | b64enc)) -}}
       {{- end -}}
 
+      {{- $annotations := $unit_def.annotations | default dict }}
       {{- $secretHash := $unit_def.helm_secret_values | default dict | toYaml | sha256sum | trunc 7 }}
       {{/* inject the HelmRelease spec via patches in the Kustomization: */}}
-      {{- $patches = index (include "helmrelease-kustomization-patch-template" (tuple $unit_name $helmrelease_spec $labels (hasKey $unit_def "helm_secret_values") $secretHash) | fromYaml) "patches" -}}
+      {{- $patches = index (include "helmrelease-kustomization-patch-template" (tuple $unit_name $helmrelease_spec $annotations $labels (hasKey $unit_def "helm_secret_values") $secretHash) | fromYaml) "patches" -}}
     {{- end -}}
 
     {{- $kustomization_spec := dict -}}
