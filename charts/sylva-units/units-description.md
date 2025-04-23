@@ -80,6 +80,7 @@
 | **alertmanager-config** | generates the config for Alertmanager | [Helm chart](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-alertmanager-resources.git) | 0.0.4 |
 | **alertmanager-jiralert-config** | generates the config for Jiralert Alertmanager webhook | [Helm chart](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-alertmanager-resources.git) | 0.0.4 |
 | **alertmanager-snmp-notifier-config** | generates the config for snmp-notifier Alertmanager webhook | [Helm chart](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-alertmanager-resources.git) | 0.0.4 |
+| **snmp-exporter-config** | contains OID files and generates configuration needed by the snmp-exporter | [Helm chart](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-snmp-resources.git) | 0.0.9 |
 | **sylva-dashboards** | adds Sylva-specific Grafana dashboards | [Helm chart](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-dashboards.git) | 0.0.15 |
 | **sylva-logging-flows** | configures logging flows and output to export the platform logs to an external server | [Helm chart](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-logging-flows.git) | 0.0.1 |
 | **sylva-prometheus-rules** | installs prometheus rules using external helm chart & rules git repo | [Helm chart](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-prometheus-rules.git) | 0.0.15 |
