@@ -1095,6 +1095,7 @@ units:
           storageClass: '{{ .Values._internal.default_storage_class }}'
           podAntiAffinityType: '{{ .Values._internal.ha_cluster.is_ha | ternary "required" "preferred" }}'
       path: ./kustomize-units/harbor-postgres
+      targetNamespace: harbor
       wait: true
       _components:
         - '{{ tuple "./components/ha" (.Values._internal.ha_cluster.is_ha) | include "set-only-if" }}'
