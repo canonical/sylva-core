@@ -321,7 +321,11 @@ function cluster_info_dump() {
     capi_cluster_name=$3
   else  # management cluster:
     capi_cluster_namespace=sylva-system
-    capi_cluster_name=${MANAGEMENT_CLUSTER_NAME:-management-cluster}
+    if [ -n "${MANAGEMENT_CLUSTER_NAME}" ]; then
+      capi_cluster_name=${MANAGEMENT_CLUSTER_NAME}
+    else
+      capi_cluster_name=$(kubectl get clusters.cluster.x-k8s.io -n $capi_cluster_namespace -oyaml | yq .items[0].metadata.name)
+    fi
   fi
 
   rm -rf $dump_dir  # make sure previous data is removed
