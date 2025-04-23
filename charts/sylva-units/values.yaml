@@ -5026,6 +5026,21 @@ units:
           version: 1.5.0
       values:
         cert_manager: true
+        images:  # these overrides are here to workaround the issue described at https://github.com/suse-edge/charts/issues/203
+          operator:
+            repository: registry.suse.com/rancher/hardened-sriov-network-operator
+          sriovConfigDaemon:
+            repository: registry.suse.com/rancher/hardened-sriov-network-config-daemon
+          sriovCni:
+            repository: registry.suse.com/rancher/hardened-sriov-cni
+          ibSriovCni:
+            repository: registry.suse.com/rancher/hardened-ib-sriov-cni
+          sriovDevicePlugin:
+            repository: registry.suse.com/rancher/hardened-sriov-network-device-plugin
+          resourcesInjector:
+            repository: registry.suse.com/rancher/hardened-sriov-network-resources-injector
+          webhook:
+            repository: registry.suse.com/rancher/hardened-sriov-network-webhook
     kustomization_spec:
       _components:
       - ../kyverno-policies/sriov-network-operator
