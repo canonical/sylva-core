@@ -135,7 +135,7 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
     spec:
       url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-snmp-resources.git
       ref:
-        tag: 0.0.8
+        tag: 0.0.9
 
   loki:
     kind: GitRepository
@@ -4777,6 +4777,7 @@ units:
     - base-deps
     depends_on:
       monitoring: true
+      snmp-exporter-config: true
     helm_repo_url: https://prometheus-community.github.io/helm-charts
     helmrelease_spec:
       releaseName: snmp-exporter
@@ -4785,8 +4786,6 @@ units:
         spec:
           chart: prometheus-snmp-exporter
           version: 9.2.1
-      install:
-        createNamespace: true
       values:
         fullnameOverride: 'snmp-exporter'
         replicas: 1
@@ -4806,94 +4805,32 @@ units:
           capabilities:
             drop:
               - ALL
-        extraManifests:
-          - |
-            apiVersion: v1
-            kind: ConfigMap
-            metadata:
-              name: snmp-exporter-extra-ca-certs
-            data:
-              extra-ca-certs.pem: | {{ .Values.oci_registry_extra_ca_certs | default "" | nindent 4 }}
-      _postRenderers:
-        - kustomize:
-            patches:
-              - patch: |-
-                  kind: Deployment
-                  apiVersion: apps/v1
-                  metadata:
-                    name: snmp-exporter
-                    namespace: snmp-exporter
-                  spec:
-                    template:
-                      spec:
-                        containers:
-                          - name: snmp-exporter
-                            volumeMounts:
-                              - mountPath: /config
-                                name: config
-                        volumes:
-                          - emptyDir: {}
-                            name: config
-                          - name: extra-ca-certs
-                            configMap:
-                              name: snmp-exporter-extra-ca-certs
+        extraConfigmapMounts: # this ConfigMap is a byproduct of the snmp-exporter-config unit
+        - name: snmp-config
+          mountPath: /config
+          configMap: snmp-exporter-config
 
-    helm_secret_values:
-      extraInitContainers:
-        - name: config-file-create
-          image: registry.gitlab.com/sylva-projects/sylva-elements/container-images/sylva-toolbox:v0.10.0
-          command: ["/bin/sh"]
-          args:
-            - -c
-            - >-
-              echo -e '{{ .Values.snmp | toJson }}' > /config/snmp_values.json &&
-              sylva_snmp_resources_source='{{ .Values.sylva_core_oci_registry }}/sylva-snmp-resources' &&
-              sylva_snmp_resources_version='{{ .Values.source_templates | dig "sylva-snmp-resources" "spec" "ref" "tag" true }}' &&
-              flux pull artifact $sylva_snmp_resources_source:$sylva_snmp_resources_version -o /config &&
-              helm template /config/sylva-snmp-resources --values /config/snmp_values.json | yq .out > /config/snmp.yaml
-          env:
-            - name: http_proxy
-              value: '{{ .Values.proxies.http_proxy | default "" }}'
-            - name: https_proxy
-              value: '{{ .Values.proxies.https_proxy | default "" }}'
-            - name: no_proxy
-              value: '{{ include "sylva-units.no_proxy" (tuple .) | quote }}'
-          securityContext:
-            capabilities:
-              drop:
-              - ALL
-            runAsNonRoot: true
-            runAsUser: 1000
-            readOnlyRootFilesystem: true
-            allowPrivilegeEscalation: false
-            seccompProfile:
-              type: RuntimeDefault
-          volumeMounts:
-            - mountPath: /config
-              name: config
-            - name: extra-ca-certs
-              subPath: extra-ca-certs.pem
-              mountPath: /etc/ssl/certs/extra-ca-certs.pem
-              readOnly: true
-
-  snmp-resources:
+  snmp-exporter-config:
     info:
       description: contains OID files and generates configuration needed by the snmp-exporter
-      details: >
-        This unit is not to be enabled, as it will not actually be consumed by sylva-units.
-        It is here only to have sylva-core tools/oci/push-helm-charts-artifacts.py
-        produce an OCI artifact for it, which will be consumed directly by the `snmp-exporter`
-        pods (in its init container).
-      hidden: true
+      maturity: beta
     enabled_conditions:
-      - false
-    unit_templates: []  # see above, this isn't a real unit
+    - '{{ tuple . "snmp-exporter" | include "unit-enabled" }}'
+    unit_templates:
+    - base-deps
+    depends_on:
+      namespace-defs: true
     repo: sylva-snmp-resources
     helm_chart_artifact_name: sylva-snmp-resources
     helmrelease_spec:
       chart:
         spec:
           chart: .
+      targetNamespace: snmp-exporter
+      install:
+        createNamespace: true
+    helm_secret_values:
+      auth: '{{ .Values.snmp.auth | include "preserve-type" }}'
 
   sylva-dashboards:
     info:
