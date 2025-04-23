@@ -51,7 +51,7 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
     spec:
       url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-capi-cluster.git
       ref:
-        tag: 0.7.2
+        tag: 0.7.3
 
   sync-openstack-images:
     kind: GitRepository
@@ -7778,12 +7778,8 @@ cluster:
       mtu: >-
         {{-
         tuple
-          (tuple .
-          (.Values.security.calico_wireguard_enabled)
-          (1440 | include "preserve-type")
-          (1450 | include "preserve-type")
-          | include "interpret-ternary")
-        (.Values.cluster.capi_providers.infra_provider | eq "capm3")
+          (.Values.security.calico_wireguard_enabled | ternary 1440 1450)
+          (.Values.cluster.capi_providers.infra_provider | eq "capm3")
         | include "set-only-if"
         -}}
 
@@ -8394,15 +8390,21 @@ calico_helm_values:
     calicoNetwork:
       bgp: Disabled
       mtu: |
+        {{/*
+        ensure that .Values.cluster.capm3.default_network_settings is interpreted before we use it
+          (keeping in mind that it is used by sylva-library "calculate-mtu" named template)
+        */}}
+        {{- tuple . "cluster.capm3.default_network_settings" | include "interpret" -}}
         {{- $control_plane_primary_interface := .Values.cluster | dig "control_plane" "capm3" "networks" "primary" "interface" .Values.cluster.capm3.networks.primary.interface -}}
         {{- if not (eq $control_plane_primary_interface "") -}}
-        {{ tuple (dict "Values" (dict "capm3" .Values.cluster.capm3))
-                 $control_plane_primary_interface
-                 (.Values.cluster.control_plane.network_interfaces | dig $control_plane_primary_interface dict)
-                 .Values.cluster.capm3.networks
-                 .Values.cluster.control_plane.network_interfaces | include "calculate-mtu" }}
+          {{ tuple (dict "Values" (dict "capm3" .Values.cluster.capm3))
+                   $control_plane_primary_interface
+                   (.Values.cluster.control_plane.network_interfaces | dig $control_plane_primary_interface dict)
+                   .Values.cluster.capm3.networks
+                   .Values.cluster.control_plane.network_interfaces
+             | include "calculate-mtu" | int |  include "preserve-type" }}
         {{- else -}}
-          {{ .Values.cluster.capm3.default_network_settings.mtu }}
+          {{ .Values.cluster.capm3.default_network_settings.mtu | default 1450 | include "preserve-type" }}
         {{- end -}}
       nodeAddressAutodetectionV4:
         '{{
