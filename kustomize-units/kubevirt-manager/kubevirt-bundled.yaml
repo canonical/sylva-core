@@ -451,7 +451,7 @@ spec:
             - --cookie-domain=.sylva
             - --cookie-path=/
             - --reverse-proxy=true
-            - --skip-csrf=true
+
           ports:
             - containerPort: 4180
               name: oauth2
