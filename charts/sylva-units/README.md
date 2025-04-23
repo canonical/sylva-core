@@ -377,24 +377,29 @@ For this to be possible, you **must** use some helpers, as illustrated by the fo
   * this **DOES NOT WORK**:
 
     ```yaml
-    a:
-      foo: bar
-    b: "{{ .Values.a }}"
-    # WRONG nested templating: it breaks because .Values.b.foo isn't a dict
-    d-broken: '{{ .Values.b.foo }}'  # WRONG, .Values.b is not a dict, it still is the '{{ .Values.a }}' string
-    debug-d: '{{ .Values.b | base64 }}'  # here you would get the base64 of the '{{ .Values.a }}' string
+    test:
+      a:
+        foo: bar
+      b: "{{ .Values.test.a }}"
+
+    # WRONG nested templating: it breaks because .Values.test.b.foo isn't a dict
+    d-broken: '{{ .Values.test.b.foo }}'  # WRONG, .Values.test.b is not a dict, it still is the '{{ .Values.test.a }}' string
+    debug-d: '{{ .Values.test.b | base64 }}'  # here you would get the base64 of the '{{ .Values.test.a }}' string
     ```
 
-  * ... you should to do this instead:
+  * ... you should to **do this instead**:
 
     ```yaml
-    a:
-      foo: bar
-    b: "{{ .Values.a }}"
-    # working version (gives "bar", thanks to the call to "interpret" which results in ".Values.b" being the dict from ".Values.a"):
+    test:
+      a:
+        foo: bar
+      b: "{{ .Values.test.a }}"
+
+    # working version (gives "bar", thanks to the call to "interpret" which results
+    # in ".Values.test.b" being the dict from ".Values.test.a"):
     d: >-
-      {{- tuple . "b" | include "interpret" -}}
-      {{- .Values.b.foo -}}
+      {{- tuple . "test.b" | include "interpret" -}}
+      {{- .Values.test.b.foo -}}
     ```
 
   This is required for structured data (dicts and lists), but there are dedicated helpers that can be more convenient
