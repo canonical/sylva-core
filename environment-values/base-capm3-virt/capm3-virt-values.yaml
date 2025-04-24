@@ -144,7 +144,7 @@ libvirt_metal:
     management-cp-0:
       redfishPort: 8000
       memGB: 24
-      numCPUs: 8
+      numCPUs: 10
 
     workload-cp-0:
       redfishPort: 8010
