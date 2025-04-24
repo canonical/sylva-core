@@ -387,6 +387,12 @@ units:
               kubectl patch helmreleases.helm.toolkit.fluxcd.io sylva-units --type=json \
                 --patch '[{"op": "replace", "path": "/spec/suspend", "value": true}]'
 
+              if kubectl get kustomizations capo ; then
+                echo "-- Suspend HeatStack in bootstrap cluster"
+                kubectl patch $(kubectl get heatstacks.heatoperator.sylva -o name) --type=json \
+                  --patch '[{"op": "replace", "path": "/spec/suspend", "value": true}]'
+              fi
+
               echo "-- Move cluster definitions from source to target cluster"
               export CLUSTERCTL_DISABLE_VERSIONCHECK=true
               SA_PATH=/var/run/secrets/kubernetes.io/serviceaccount/
