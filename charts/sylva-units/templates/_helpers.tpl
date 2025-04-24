@@ -336,8 +336,9 @@ usage:
 {{- $envAll := index . 0 -}}
 {{- $unit_name := index . 1 -}}
 {{- $ignore_units := index . 2 -}}{{/* list */}}
-{{- $all_dependencies_cache := index . 3 -}}{{/* dict */}}
-{{- include "_all-unit-dependencies" (tuple $envAll $unit_name $ignore_units $all_dependencies_cache list) }}
+{{- $abstract_unit_providers := index . 3 -}}{{/* dict */}}
+{{- $all_dependencies_cache := index . 4 -}}{{/* dict */}}
+{{- include "_all-unit-dependencies" (tuple $envAll $unit_name $ignore_units $abstract_unit_providers $all_dependencies_cache list) }}
 {{- end }}
 
 {{/*
@@ -351,8 +352,9 @@ dependents_list and fails if a circular dependency is detected
 {{- $envAll := index . 0 -}}
 {{- $unit_name := index . 1 -}}
 {{- $ignore_units := index . 2 -}}{{/* list */}}
-{{- $all_dependencies_cache := index . 3 -}}{{/* dict */}}
-{{- $dependents_list := index . 4 -}}{{/* list of dependents used to print circular dependencies */}}
+{{- $abstract_unit_providers := index . 3 -}}{{/* dict */}}
+{{- $all_dependencies_cache := index . 4 -}}{{/* dict */}}
+{{- $dependents_list := index . 5 -}}{{/* list of dependents used to print circular dependencies */}}
 
 {{- if not $unit_name -}}
   {{- fail "unit name nil/empty" -}}
@@ -396,10 +398,15 @@ dependents_list and fails if a circular dependency is detected
         {{- continue }}
       {{- end -}}
 
+      {{/* if $dep_name is abstract, use the unit that provides it */}}
+      {{- if hasKey $abstract_unit_providers $dep_name -}}
+        {{- $dep_name = index $abstract_unit_providers $dep_name -}}
+      {{- end -}}
+
       {{- $result = append $result $dep_name -}}
 
       {{/* examine the dependency, recursing if needed */}}
-      {{- $recurse := include "_all-unit-dependencies" (tuple $envAll $dep_name $ignore_units $all_dependencies_cache $dependents_list) | fromJson -}}
+      {{- $recurse := include "_all-unit-dependencies" (tuple $envAll $dep_name $ignore_units $abstract_unit_providers $all_dependencies_cache $dependents_list) | fromJson -}}
       {{- $debug = printf "%s:r:%s" $debug $recurse.debug -}}
 
       {{/* incorporate recursion result in result */}}
@@ -575,4 +582,70 @@ Result:
         {{- end }}
     {{- end }}
     {{- $dst := $result }}
+{{- end }}
+
+{{/*
+
+abstract-units-providers template: compute abstract units and the unit that provides it
+
+Usage:
+
+    abstract-units-providers .
+
+Values:
+
+  units:
+    foo:
+      abstract: true
+
+    bar:
+      provides: foo
+
+Result:
+
+    foo: bar
+
+*/}}
+
+{{- define "abstract-unit-providers" -}}
+{{- $envAll := . -}}
+
+{{- $abstract_unit_providers := dict -}}
+
+{{- /* build the enabled abstract units list */}}
+{{- $abstract_units := list -}}
+{{- range $unit_name, $unit_def := .Values.units -}}
+  {{- if and (include "unit-enabled" (tuple $envAll $unit_name))
+             ($unit_def | dig "abstract" false) -}}
+
+    {{- $abstract_units = append $abstract_units $unit_name -}}
+  {{- end -}}
+{{- end -}}
+
+{{- range $unit_name, $unit_def := .Values.units -}}
+  {{- if and (include "unit-enabled" (tuple $envAll $unit_name))
+             ($unit_def | dig "provides" "") -}}
+
+    {{- $provides := index $unit_def "provides" -}}
+    {{- if not (has $provides $abstract_units) -}}
+      {{- fail (printf "'%s' cannot provide '%s' as it is not an abstract unit or disabled." $unit_name $provides) -}}
+    {{- end -}}
+    {{- if index $abstract_unit_providers $provides -}}
+      {{- fail (printf "'%s' cannot provide '%s' abstract unit as '%s' already provides it." $unit_name $provides (index $abstract_unit_providers $provides)) -}}
+    {{- end -}}
+
+    {{- $_ := set $abstract_unit_providers $provides $unit_name -}}
+
+  {{- end -}}
+{{- end -}}
+
+{{- /* check all enabled abstract units are provided */}}
+{{- range $abstract_unit := $abstract_units -}}
+  {{- if not (hasKey $abstract_unit_providers $abstract_unit) -}}
+      {{- fail (printf "'%s' unit is abstract without any associated provider unit." $abstract_unit) -}}
+  {{- end -}}
+{{- end -}}
+
+{{- $abstract_unit_providers | toJson -}}
+
 {{- end }}

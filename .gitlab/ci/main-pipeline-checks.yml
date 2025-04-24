@@ -73,6 +73,17 @@ sylva-units:helm-schema-validation:
   variables:
     HELM_NAME: sylva-units
 
+sylva-units:helm-unit-tests:
+  stage: test
+  extends: .helm-lint
+  image: registry.gitlab.com/sylva-projects/sylva-elements/container-images/helm-toolbox:1.0.10
+  script:
+    - helm dependency update charts/sylva-units
+    - helm unittest -t JUnit -o report.xml charts/sylva-units
+  artifacts:
+    reports:
+      junit: report.xml
+
 # ==========================================
 # kustomize-units & environment-values lint
 # ==========================================

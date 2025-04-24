@@ -1,0 +1,127 @@
+---
+suite: Abstract Units test
+set:
+  units:
+    foo:
+      info:
+        description: a foo unit
+      enabled: true
+      unit_templates:
+        - dummy
+    bar:
+      info:
+        description: a bar unit
+      enabled: true
+      unit_templates:
+        - dummy
+    baz:
+      info:
+        description: a baz unit
+      enabled: true
+      depends_on:
+        foo: true
+      unit_templates:
+        - dummy
+templates:
+  - units.yaml
+tests:
+  - it: "Reference test: foo, bar and baz kustomizations; baz dependsOn foo"
+    asserts:
+      - containsDocument:
+          apiVersion: kustomize.toolkit.fluxcd.io/v1
+          kind: Kustomization
+          name: foo
+          any: true
+      - containsDocument:
+          apiVersion: kustomize.toolkit.fluxcd.io/v1
+          kind: Kustomization
+          name: bar
+          any: true
+      - containsDocument:
+          apiVersion: kustomize.toolkit.fluxcd.io/v1
+          kind: Kustomization
+          name: baz
+          any: true
+      - contains:
+          path: spec.dependsOn
+          content:
+            name: foo
+        documentSelector:
+          path: metadata.name
+          value: baz
+  - it: Foo is abstract and Bar provides it; baz dependsOn foo
+    template: units.yaml
+    set:
+      units:
+        foo:
+          abstract: true
+        bar:
+          provides: foo
+    asserts:
+      - containsDocument:
+          apiVersion: kustomize.toolkit.fluxcd.io/v1
+          kind: Kustomization
+          name: bar
+          any: true
+      - containsDocument:
+          apiVersion: kustomize.toolkit.fluxcd.io/v1
+          kind: Kustomization
+          name: foo
+        not: true
+      - contains:
+          path: spec.dependsOn
+          content:
+            name: bar
+        documentSelector:
+          path: metadata.name
+          value: baz
+      - notContains:
+          path: spec.dependsOn
+          content:
+            name: foo
+        documentSelector:
+          path: metadata.name
+          value: baz
+  - it: Bar provides a disabled abstract unit Foo
+    template: units.yaml
+    set:
+      units:
+        foo:
+          enabled: false
+          abstract: true
+        bar:
+          provides: foo
+    asserts:
+      - failedTemplate:
+          errorMessage: "'bar' cannot provide 'foo' as it is not an abstract unit or disabled."
+  - it: Bar provides a not abstract unit Foo
+    template: units.yaml
+    set:
+      units:
+        bar:
+          provides: foo
+    asserts:
+      - failedTemplate:
+          errorMessage: "'bar' cannot provide 'foo' as it is not an abstract unit or disabled."
+  - it: Foo is abstract and enabled but not provided
+    template: units.yaml
+    set:
+      units:
+        foo:
+          abstract: true
+    asserts:
+      - failedTemplate:
+          errorMessage: "'foo' unit is abstract without any associated provider unit."
+  - it: Bar and Baz provide Foo
+    template: units.yaml
+    set:
+      units:
+        foo:
+          abstract: true
+        bar:
+          provides: foo
+        baz:
+          provides: foo
+    asserts:
+      - failedTemplate:
+          errorMessage: "'baz' cannot provide 'foo' abstract unit as 'bar' already provides it."

@@ -7918,6 +7918,30 @@
                 "$ref": "#/$defs/enabled"
               }
             },
+            "abstract": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "$ref": "#/$defs/gotpl"
+                },
+                {
+                  "$ref": "#/$defs/boolean-string"
+                }
+              ]
+            },
+            "provides": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^([a-z0-9][a-z0-9-]*[a-z0-9](/[a-z0-9][a-z0-9-]*[a-z0-9])?|{{ .* }})$"
+                },
+                {
+                  "$ref": "#/$defs/gotpl"
+                }
+              ]
+            },
             "info": {
               "$ref": "#/$defs/unit_info"
             },
