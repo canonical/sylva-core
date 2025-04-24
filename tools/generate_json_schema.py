@@ -18,7 +18,7 @@ import yaml
 # - dict value defines the relative path of values.schema.json in corresponding project
 # the schema will be appended to $def.[unit-name]-values schema key in sylva-units
 SYLVA_UNITS_CHARTS_SCHEMAS = {
-    "sylva-capi-cluster": "",
+    "sylva-capi-cluster": "charts/sylva-capi-cluster",
     "libvirt-metal": "charts/libvirt-metal",
     "sriov-resources": "",
 }
