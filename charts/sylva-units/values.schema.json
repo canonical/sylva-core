@@ -1779,11 +1779,6 @@
                                 "type": "integer",
                                 "min": 0,
                                 "max": 4095
-                              },
-                              "mtu": {
-                                "type": "integer",
-                                "min": 1280,
-                                "max": 9000
                               }
                             }
                           }
@@ -3403,6 +3398,48 @@
         "cluster_pods_cidrs"
       ],
       "properties": {
+        "console": {
+          "anyOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "redirectConsole": {
+                  "anyOf": [
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "$ref": "#/$defs/string-with-gotpl"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "console_tty": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "$ref": "#/$defs/string-with-gotpl"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "$ref": "#/$defs/string-with-gotpl"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
         "sylva-library": {
           "anyOf": [
             {
@@ -5190,9 +5227,6 @@
                                     "type": "string",
                                     "format": "uri",
                                     "pattern": "^(https?://.*|)$"
-                                  },
-                                  "is_default_mirror": {
-                                    "type": "boolean"
                                   }
                                 }
                               }
@@ -5341,19 +5375,6 @@
                   ]
                 }
               }
-            },
-            {
-              "$ref": "#/$defs/string-with-gotpl"
-            },
-            {
-              "type": "null"
-            }
-          ]
-        },
-        "metallb_helm_values": {
-          "anyOf": [
-            {
-              "type": "object"
             },
             {
               "$ref": "#/$defs/string-with-gotpl"
@@ -6595,67 +6616,6 @@
             }
           ]
         },
-        "capm3_os_image_server_images": {
-          "anyOf": [
-            {
-              "type": "object",
-              "propertyNames": {
-                "pattern": "^[a-f0-9]{64}$"
-              },
-              "patternProperties": {
-                ".*": {
-                  "anyOf": [
-                    {
-                      "type": "object",
-                      "additionalProperties": false,
-                      "properties": {
-                        "available": {
-                          "anyOf": [
-                            {
-                              "type": "boolean"
-                            },
-                            {
-                              "$ref": "#/$defs/string-with-gotpl"
-                            },
-                            {
-                              "type": "null"
-                            }
-                          ]
-                        },
-                        "image_key": {
-                          "anyOf": [
-                            {
-                              "type": "string",
-                              "pattern": "^[a-z0-9][a-z0-9.-]*[a-z0-9]$"
-                            },
-                            {
-                              "$ref": "#/$defs/string-with-gotpl"
-                            },
-                            {
-                              "type": "null"
-                            }
-                          ]
-                        }
-                      }
-                    },
-                    {
-                      "$ref": "#/$defs/string-with-gotpl"
-                    },
-                    {
-                      "type": "null"
-                    }
-                  ]
-                }
-              }
-            },
-            {
-              "$ref": "#/$defs/string-with-gotpl"
-            },
-            {
-              "type": "null"
-            }
-          ]
-        },
         "default_node_class": {
           "anyOf": [
             {
@@ -6701,20 +6661,7 @@
             }
           ]
         },
-        "unset_cluster_paused": {
-          "anyOf": [
-            {
-              "type": "boolean"
-            },
-            {
-              "$ref": "#/$defs/string-with-gotpl"
-            },
-            {
-              "type": "null"
-            }
-          ]
-        },
-        "generateUnitTestData": {
+        "unset_cabpr_upgrade_cluster_paused": {
           "anyOf": [
             {
               "type": "boolean"
