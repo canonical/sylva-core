@@ -1,0 +1,72 @@
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  name: disallow-latest-and-main-tag
+  annotations:
+    policies/title: Disallow Latest and Main Tag
+    policies/category: Best Practices
+    policies/severity: medium
+    policies/subject: Pod
+    policies/description: >-
+      The ':latest' and ':main' tags are mutable and can lead to unexpected errors if the
+      image changes. A best practice is to use an immutable tag that maps to
+      a specific version of an application Pod. This policy validates that the image
+      specifies a tag and that it is not called `latest` or 'main'.
+spec:
+  failurePolicy: Fail
+  matchConstraints:
+    matchPolicy: Equivalent
+    resourceRules:
+    - apiGroups: [""]
+      apiVersions: ["v1"]
+      operations: ["CREATE", "UPDATE"]
+      resources: ["pods", "pods/ephemeralcontainers"]
+    - apiGroups: ["apps"]
+      apiVersions: ["v1"]
+      operations: ["CREATE", "UPDATE"]
+      resources: ["deployments", "daemonsets", "replicasets", "statefulsets"]
+    - apiGroups: ["batch"]
+      apiVersions: ["v1"]
+      operations: ["CREATE", "UPDATE"]
+      resources: ["jobs", "cronjobs"]
+  variables:
+  - name: objectSpec
+    expression: "object.spec"
+  validations:
+    - message: "An image tag is required.Using a mutable image tag e.g. 'latest' is not allowed."
+      expression: >-
+          (
+              (variables.objectSpec.?containers.orValue([])) +
+              (variables.objectSpec.?initContainers.orValue([])) +
+              (variables.objectSpec.?ephemeralContainers.orValue([])) +
+              (variables.objectSpec.?template.spec.containers.orValue([])) +
+              (variables.objectSpec.?template.spec.initContainers.orValue([])) +
+              (variables.objectSpec.?template.spec.ephemeralContainers.orValue([])) +
+              (variables.objectSpec.?jobTemplate.spec.template.spec.containers.orValue([])) +
+              (variables.objectSpec.?jobTemplate.spec.template.spec.initContainers.orValue([])) +
+              (variables.objectSpec.?jobTemplate.spec.template.spec.ephemeralContainers.orValue([]))
+          ).all(container,
+              container.image.contains(':') &&
+              !(container.image.endsWith(':latest')) &&
+              !(container.image.endsWith(':main'))
+          )
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  name: disallow-latest-and-main-tag
+spec:
+  policyName: disallow-latest-and-main-tag
+  validationActions: [Deny]
+  matchResources:
+    objectSelector:
+      matchExpressions:
+      - key: app
+        operator: NotIn
+        values:
+        - neuvector-scanner-pod
+        - neuvector-updater-pod
+      - key: validating-policy.sylva.io/exclude-latest-tag
+        operator: NotIn
+        values:
+        - excluded
