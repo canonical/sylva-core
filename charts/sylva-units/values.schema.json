@@ -1779,6 +1779,11 @@
                                 "type": "integer",
                                 "min": 0,
                                 "max": 4095
+                              },
+                              "mtu": {
+                                "type": "integer",
+                                "min": 1280,
+                                "max": 9000
                               }
                             }
                           }
@@ -4880,6 +4885,23 @@
                     }
                   ]
                 },
+                "metallb-resources": {
+                  "type": "string",
+                  "anyOf": [
+                    {
+                      "pattern": "^oci://.*"
+                    },
+                    {
+                      "const": ""
+                    },
+                    {
+                      "$ref": "#/$defs/string-with-gotpl"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
                 "calico-crd": {
                   "type": "string",
                   "anyOf": [
@@ -4931,6 +4953,19 @@
               "additionalProperties": false,
               "properties": {
                 "metallb": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "$ref": "#/$defs/string-with-gotpl"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "metallb-resources": {
                   "anyOf": [
                     {
                       "type": "string"
@@ -4999,6 +5034,19 @@
                   ]
                 },
                 "metallb": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "$ref": "#/$defs/string-with-gotpl"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "metallb-resources": {
                   "anyOf": [
                     {
                       "type": "string"
@@ -5227,6 +5275,9 @@
                                     "type": "string",
                                     "format": "uri",
                                     "pattern": "^(https?://.*|)$"
+                                  },
+                                  "is_default_mirror": {
+                                    "type": "boolean"
                                   }
                                 }
                               }
@@ -5384,186 +5435,23 @@
             }
           ]
         },
+        "metallb_helm_values": {
+          "anyOf": [
+            {
+              "type": "object"
+            },
+            {
+              "$ref": "#/$defs/string-with-gotpl"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
         "metallb": {
           "anyOf": [
             {
-              "type": "object",
-              "additionalProperties": false,
-              "properties": {
-                "l2_lbs": {
-                  "anyOf": [
-                    {
-                      "type": "object",
-                      "additionalProperties": false,
-                      "properties": {
-                        "address_pools": {
-                          "anyOf": [
-                            {
-                              "$ref": "#/$defs/metallb_address_pools"
-                            },
-                            {
-                              "$ref": "#/$defs/string-with-gotpl"
-                            },
-                            {
-                              "type": "null"
-                            }
-                          ]
-                        },
-                        "l2_options": {
-                          "anyOf": [
-                            {
-                              "type": "object",
-                              "additionalProperties": false,
-                              "properties": {
-                                "advertisements": {
-                                  "anyOf": [
-                                    {
-                                      "type": "array",
-                                      "items": {
-                                        "type": "object",
-                                        "properties": {
-                                          "node_selectors": {
-                                            "type": "array"
-                                          },
-                                          "interface": {
-                                            "type": "string"
-                                          },
-                                          "advertised_pools": {
-                                            "type": "array"
-                                          }
-                                        }
-                                      }
-                                    },
-                                    {
-                                      "$ref": "#/$defs/string-with-gotpl"
-                                    },
-                                    {
-                                      "type": "null"
-                                    }
-                                  ]
-                                }
-                              }
-                            },
-                            {
-                              "$ref": "#/$defs/string-with-gotpl"
-                            },
-                            {
-                              "type": "null"
-                            }
-                          ]
-                        }
-                      }
-                    },
-                    {
-                      "$ref": "#/$defs/string-with-gotpl"
-                    },
-                    {
-                      "type": "null"
-                    }
-                  ]
-                },
-                "bgp_lbs": {
-                  "anyOf": [
-                    {
-                      "type": "object",
-                      "additionalProperties": false,
-                      "properties": {
-                        "address_pools": {
-                          "anyOf": [
-                            {
-                              "$ref": "#/$defs/metallb_address_pools"
-                            },
-                            {
-                              "$ref": "#/$defs/string-with-gotpl"
-                            },
-                            {
-                              "type": "null"
-                            }
-                          ]
-                        },
-                        "l3_options": {
-                          "anyOf": [
-                            {
-                              "type": "object",
-                              "additionalProperties": false,
-                              "properties": {
-                                "bgp_peers": {
-                                  "anyOf": [
-                                    {
-                                      "type": "array",
-                                      "minItems": 1,
-                                      "items": {
-                                        "type": "object",
-                                        "additionalProperties": false,
-                                        "required": [
-                                          "name",
-                                          "local_asn",
-                                          "peer_asn",
-                                          "peer_address"
-                                        ],
-                                        "properties": {
-                                          "name": {
-                                            "type": "string"
-                                          },
-                                          "local_asn": {
-                                            "type": "integer",
-                                            "minimum": 1,
-                                            "maximum": 4294967295
-                                          },
-                                          "peer_asn": {
-                                            "type": "integer",
-                                            "minimum": 1,
-                                            "maximum": 4294967295
-                                          },
-                                          "peer_address": {
-                                            "type": "string",
-                                            "format": "ipv4"
-                                          },
-                                          "advertised_pools": {
-                                            "type": "array",
-                                            "minItems": 1,
-                                            "items": {
-                                              "type": "string"
-                                            }
-                                          },
-                                          "password": {
-                                            "type": "string"
-                                          },
-                                          "passwordSecret": {
-                                            "type": "string"
-                                          }
-                                        }
-                                      }
-                                    },
-                                    {
-                                      "$ref": "#/$defs/string-with-gotpl"
-                                    },
-                                    {
-                                      "type": "null"
-                                    }
-                                  ]
-                                }
-                              }
-                            },
-                            {
-                              "$ref": "#/$defs/string-with-gotpl"
-                            },
-                            {
-                              "type": "null"
-                            }
-                          ]
-                        }
-                      }
-                    },
-                    {
-                      "$ref": "#/$defs/string-with-gotpl"
-                    },
-                    {
-                      "type": "null"
-                    }
-                  ]
-                }
-              }
+              "type": "object"
             },
             {
               "$ref": "#/$defs/string-with-gotpl"
@@ -6616,6 +6504,67 @@
             }
           ]
         },
+        "capm3_os_image_server_images": {
+          "anyOf": [
+            {
+              "type": "object",
+              "propertyNames": {
+                "pattern": "^[a-f0-9]{64}$"
+              },
+              "patternProperties": {
+                ".*": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "available": {
+                          "anyOf": [
+                            {
+                              "type": "boolean"
+                            },
+                            {
+                              "$ref": "#/$defs/string-with-gotpl"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "image_key": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "pattern": "^[a-z0-9][a-z0-9.-]*[a-z0-9]$"
+                            },
+                            {
+                              "$ref": "#/$defs/string-with-gotpl"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        }
+                      }
+                    },
+                    {
+                      "$ref": "#/$defs/string-with-gotpl"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "$ref": "#/$defs/string-with-gotpl"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
         "default_node_class": {
           "anyOf": [
             {
@@ -6661,7 +6610,20 @@
             }
           ]
         },
-        "unset_cabpr_upgrade_cluster_paused": {
+        "unset_cluster_paused": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "$ref": "#/$defs/string-with-gotpl"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "generateUnitTestData": {
           "anyOf": [
             {
               "type": "boolean"

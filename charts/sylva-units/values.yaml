@@ -7656,7 +7656,7 @@ units:
 
 cluster:
   name: management-cluster
-  
+
   console:
     redirectConsole: '{{ ternary true false (or (eq .Values.env_type "ci") (eq .Values.env_type "dev")) | include "preserve-type" }}'
     console_tty: ttyS0
