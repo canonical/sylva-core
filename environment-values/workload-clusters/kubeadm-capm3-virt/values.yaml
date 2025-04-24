@@ -6,7 +6,10 @@ cluster:
   kubeadm:
     users:
       - name: sylva-user
-        groups: users
+        groups:
+          - users
+          - sylva-ops
+
         sudo: ALL=(ALL) NOPASSWD:ALL
         shell: /bin/bash
         lockPassword: false

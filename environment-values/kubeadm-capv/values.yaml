@@ -38,7 +38,10 @@ cluster:
   #  users:
   #    - name: sylva-user
   #      passwd: "put your password hash here"  # (copy pasted from /etc/shadow or created with "mkpasswd --method=SHA-512 --stdin")
-  #      groups: users
+  #      groups:
+  #        - users
+  #        - sylva-ops
+
   #      sudo: ALL=(ALL) NOPASSWD:ALL
   #      shell: /bin/bash
   #      lockPassword: false
