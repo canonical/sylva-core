@@ -348,6 +348,11 @@ function cluster_info_dump() {
     return 0
   fi
 
+  if [[ -n "${CI:-}" ]]; then
+    KUBECONFIG=$MGMT_KUBECONFIG helm get values -n $capi_cluster_namespace cluster | yq eval '(.capo.clouds_yaml.clouds.capo_cloud.auth.password) = "xxx"' - > $dump_dir/sylva-capi-cluster-helm-release-values.yaml
+    KUBECONFIG=$MGMT_KUBECONFIG helm get values -n $capi_cluster_namespace cluster-bmh > $dump_dir/sylva-capi-cluster-bmh-helm-release-values.yaml
+  fi
+
   KUBECONFIG=$MGMT_KUBECONFIG helm get manifest -n $capi_cluster_namespace sylva-units | yq 'select(.kind!="Secret")' > $dump_dir/sylva-units-helm-release-manifest.yaml
 
   kubectl cluster-info dump -A -o yaml --show-managed-fields --output-directory=$dump_dir
@@ -422,7 +427,7 @@ function cluster_info_dump() {
   # Collect kubectl get data with verbosity level 6
   local timestamp=$(date +%Y%m%d-%H%M%S)
   echo "Collecting kubectl get data with fixed verbosity -v=6..."
-  
+
   kubectl get crd -A -v=6 > "$dump_dir/kubectl-api-response-${timestamp}.log" 2>&1 && \
   echo "Collected api response data" || \
   echo "Data collection completed. Files saved in $dump_dir."
