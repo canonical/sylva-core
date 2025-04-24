@@ -58,6 +58,16 @@ else:
     logger.info("TLS Verify is enabled")
 
 
+class TokenAuth(oras.auth.TokenAuth):
+    def get_auth_header(self):
+        if self.token:
+            return super().get_auth_header()
+        return {}
+
+
+oras.auth.auth_backends["token"] = TokenAuth
+
+
 class MyProvider(oras.provider.Registry):
     def get_oci_manifest(self, artifact_url):
         try:
