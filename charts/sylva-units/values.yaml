@@ -1094,6 +1094,8 @@ units:
           HARBOR_POSTGRES_REPLICAS: '{{ .Values._internal.ha_cluster.is_ha | ternary 3 1 }}'
           storageClass: '{{ .Values._internal.default_storage_class }}'
           podAntiAffinityType: '{{ .Values._internal.ha_cluster.is_ha | ternary "required" "preferred" }}'
+          HARBOR_SECRET_NAME: '{{ .Values._internal.mgmt_cluster | ternary "harbor-postgres-secrets" "harbor-postgres" }}'
+          HARBOR_SECRET_KEY_NAME: '{{ .Values._internal.mgmt_cluster | ternary "admin-password" "password" }}'
       path: ./kustomize-units/harbor-postgres
       targetNamespace: harbor
       wait: true
