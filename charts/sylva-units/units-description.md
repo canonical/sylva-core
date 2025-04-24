@@ -189,6 +189,7 @@
 | **thanos-credentials-secret** | create a secret containing tenant's thanos credentials | Kustomization |
 | **thanos-init** | sets up thanos certificate<br/><br/>it generates a multiple CN certificate for all Thanos components | Kustomization |
 | **two-replicas-storageclass** | Defines a Longhorn storage class with two replicas | Kustomization |
+| **validating-admission-policies** | configures validating admission policies | Kustomization |
 | **vault-oidc** | configures Vault to be used with OIDC | Kustomization |
 | **vault-secrets** | generates random secrets in vault, configure password policy, authentication backends, etc... | Kustomization |
 | **vsphere-cpi** | configures Vsphere Cloud controller manager | Helm chart |
