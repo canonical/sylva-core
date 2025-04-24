@@ -10412,7 +10412,7 @@
       }
     },
     "metallb": {
-      "type": "object"
+      "$ref": "#/$defs/metallb-resources-values"
     },
     "calico_helm_values": {
       "type": "object"
@@ -10771,17 +10771,6 @@
                   }
                 }
               }
-            }
-          }
-        }
-      }
-    },
-    {
-      "properties": {
-        "cluster": {
-          "properties": {
-            "metallb": {
-              "$ref": "#/$defs/metallb-resources-values"
             }
           }
         }
