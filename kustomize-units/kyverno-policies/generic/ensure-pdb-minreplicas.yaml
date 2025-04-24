@@ -24,7 +24,7 @@ spec:
     - name: 'is-create-or-update'
       expression: 'request.operation in ["CREATE", "UPDATE"]'
     - name: 'exclude-namespaces' # Exclude some namespaces where resources are modified too frequently
-      expression: '!(request.namespace in ["calico-system", "minio-monitoring", "minio-logging"])'
+      expression: '!(request.namespace in ["calico-system", "minio-monitoring", "minio-logging", "minio-velero-backup"])'
   rules:
     - name: pdb-minavailable
       match:

@@ -8706,6 +8706,34 @@
             }
           ]
         },
+        "minio_velero_backup": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "hostname"
+            },
+            {
+              "const": ""
+            },
+            {
+              "$ref": "#/$defs/string-with-gotpl"
+            }
+          ]
+        },
+        "minio_velero_backup_console": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "hostname"
+            },
+            {
+              "const": ""
+            },
+            {
+              "$ref": "#/$defs/string-with-gotpl"
+            }
+          ]
+        },
         "thanos": {
           "anyOf": [
             {
@@ -8875,6 +8903,9 @@
           "$ref": "#/$defs/cert-and-key"
         },
         "minio_logging": {
+          "$ref": "#/$defs/cert-and-key"
+        },
+        "minio_velero_backup": {
           "$ref": "#/$defs/cert-and-key"
         },
         "thanos": {

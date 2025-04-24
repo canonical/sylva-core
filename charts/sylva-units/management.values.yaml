@@ -292,6 +292,12 @@ units:
   loki:
     enabled: '{{ tuple . "logging" | include "unit-enabled" }}'
 
+  minio-velero-backup:
+    enabled: true 
+  
+  minio-velero-backup-init:
+    enabled: true  
+
   snmp-exporter:
     enabled: '{{ tuple . "capm3" | include "unit-enabled" }}'
 
