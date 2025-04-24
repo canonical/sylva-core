@@ -51,7 +51,7 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
     spec:
       url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-capi-cluster.git
       ref:
-        tag: 0.7.4
+        tag: 0.8.0
 
   sync-openstack-images:
     kind: GitRepository
@@ -86,7 +86,7 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
     spec:
       url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/metallb-resources.git
       ref:
-        tag: 0.1.0
+        tag: 0.2.0
 
   os-image-server:
     kind: GitRepository
@@ -3473,7 +3473,7 @@ units:
         mode: enabled
       values: >-
         {{- $resources := dict }}
-        {{- tuple $resources .Values.cluster.metallb .Values._internal.metallb | include "merge-append" }}
+        {{- tuple $resources .Values.metallb .Values._internal.metallb | include "merge-append" }}
         {{ $resources | include "preserve-type" }}
       valuesFrom:
         # for capo the cluster VIP has to be taken from capo-cluster-resources ConfigMap (and isn't included in .Values._internal.metallb above)
@@ -7809,14 +7809,17 @@ cluster:
 
   helm_oci_url: # for an OCI-based deployment this is overridden in use-oci-artifacts.values.yaml
     metallb: ""
+    metallb-resources: ""
     calico-crd: ""
     calico: ""
   helm_versions:
     metallb: '{{ .Values.units.metallb.helmrelease_spec.chart.spec.version }}'
+    metallb-resources: '{{ .Values.source_templates | dig "metallb-resources" "spec" "ref" "tag" "" }}'
     calico-crd: '{{ tuple . "calico-crd" (index .Values.units "calico-crd") | include "get-helm-version" }}'
     calico: '{{ tuple . "calico" .Values.units.calico | include "get-helm-version" }}'
   helm_extra_ca_certs: # for an OCI-based deployment this is overridden in use-oci-artifacts.values.yaml
     metallb: ""
+    metallb-resources: ""
     calico: ""
 
   capv:
@@ -7877,36 +7880,12 @@ cluster:
     #   additional_commands:
     #     pre_bootstrap_commands: []
     #     post_bootstrap_commands: []
-  metallb: {}
-    #l2_lbs: # add your metallb-l2 config if required
-      #address_pools:
-      #  - name: my-custom-pool
-      #    addresses:
-      #      - 10.122.22.151/32
-      #      - 10.10.10.10-10.10.10.120
-      #l2_options:
-      #  advertisements:
-      #    - node_selectors:
-      #        - kubernetes.io/hostname: hostB #  to limit the set of nodes for a given advertisement, the node selector must be set
-      #      interface: eth1  # interfaces selector can also be used together with node_selectors
-      #      advertised_pools:
-      #        - my-custom-pool # additional IP pools to be advertised to this peer
 
-    #bgp_lbs: # add your metallb-l3 config if required
-      #l3_options:
-      #  bgp_peers:
-      #    - name: peerName
-      #      local_asn: 64511  # example only, must be updated
-      #      peer_asn: 64510  # example only, must be updated
-      #      peer_address: 10.122.22.129
-      #      advertised_pools:
-      #        - lbpool  # default IP pool used for kube-api and ingress exposure
-      #        - my-custom-pool  # additional IP pools to be advertised to this peer
-      #address_pools:
-      #  - name: my-custom-pool
-      #    addresses:
-      #      - 10.122.22.151/32
-      #      - 10.10.10.10-10.10.10.120
+  ### !!! The Values.cluster.metallb should not be user provided. Use Values.metallb instead !!!
+  metallb: >-
+    {{- $cluster_metallb_resources := dict }}
+    {{- tuple $cluster_metallb_resources .Values.metallb .Values._internal.metallb | include "merge-append" }}
+    {{ $cluster_metallb_resources | include "preserve-type" }}
 
 cluster_machines_ready:
   wait_timeout: 600s
@@ -8434,6 +8413,36 @@ logging:
   outputs: {}
   clusteroutputs: {}
 
+metallb: {}
+  #l2_lbs: # add your metallb-l2 config if required
+    #address_pools:
+    #  - name: my-custom-pool
+    #    addresses:
+    #      - 10.122.22.151/32
+    #      - 10.10.10.10-10.10.10.120
+    #l2_options:
+    #  advertisements:
+    #    - node_selectors:
+    #        - kubernetes.io/hostname: hostB #  to limit the set of nodes for a given advertisement, the node selector must be set
+    #      interface: eth1  # interfaces selector can also be used together with node_selectors
+    #      advertised_pools:
+    #        - my-custom-pool # additional IP pools to be advertised to this peer
+
+  #bgp_lbs: # add your metallb-l3 config if required
+    #l3_options:
+    #  bgp_peers:
+    #    - name: peerName
+    #      local_asn: 64511  # example only, must be updated
+    #      peer_asn: 64510  # example only, must be updated
+    #      peer_address: 10.122.22.129
+    #      advertised_pools:
+    #        - lbpool  # default IP pool used for kube-api and ingress exposure
+    #        - my-custom-pool  # additional IP pools to be advertised to this peer
+    #address_pools:
+    #  - name: my-custom-pool
+    #    addresses:
+    #      - 10.122.22.151/32
+    #      - 10.10.10.10-10.10.10.120
 
 calico_helm_values:
   tolerations:
@@ -8600,7 +8609,7 @@ _internal:
   default_replicas: '{{ tuple . .Values._internal.ha_cluster.is_ha 3 1 | include "interpret-ternary" | int | include "preserve-type" }}'
 
   # value of "node-role.kubernetes.io/control-plane" node label that differs between kubeadm and rke2
-  cp_node_label_value: '{{ (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpr") | ternary "true" "" }}'
+  cp_node_label_value: '{{ ((tuple . .Values.cluster.capi_providers.bootstrap_provider | include "interpret-as-string") | eq "cabpr") | ternary "true" "" }}'
 
   monitoring:
     enabled: '{{ tuple . "monitoring" | include "unit-enabled" | include "as-bool" }}'
@@ -8811,7 +8820,7 @@ _internal:
     l2_lbs:
       l2_options:
         advertisements:
-          - name: l2advertisement
+          l2advertisement:
             advertised_pools:
               - lbpool  # this is the pool generated by from cluster_virtual_ip
             interfaces: >-
