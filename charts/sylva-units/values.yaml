@@ -2825,7 +2825,7 @@ units:
     unit_templates:
     - base-deps
     annotations:
-      sylvactl/unitTimeout: 15m
+      sylvactl/unitTimeout: 20m
     depends_on:
       metal3-sylva-ca-init: '{{ tuple . "metal3-sylva-ca-init" | include "unit-enabled" }}'
       namespace-defs: true
@@ -3537,6 +3537,8 @@ units:
     - dummy
     depends_on:
       calico: true
+    annotations:
+      sylvactl/unitTimeout: 15m
     kustomization_spec:
       targetNamespace: default
       kubeConfig:
@@ -3589,6 +3591,8 @@ units:
     - '{{ tuple . "metallb" | include "unit-enabled" }}'
     unit_templates:
     - base-deps
+    annotations:
+      sylvactl/unitTimeout: 20m
     depends_on:
       metallb: '{{ not .Values._internal.state.is_upgrade }}'
     repo: metallb-resources
@@ -5696,7 +5700,7 @@ units:
         {{- if not (eq $osImageFqdn .Values.display_external_ip)}}
         ({{ .Values.external_hostnames.os_image_server }} must resolve to {{ .Values.display_external_ip }})
         {{- end }}
-      sylvactl/unitTimeout: 20m
+      sylvactl/unitTimeout: 30m
     helmrelease_spec:
       chart:
         spec:
