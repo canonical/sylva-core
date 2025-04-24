@@ -12,7 +12,6 @@ LOG_FILE="helm_logs.txt"
 kubectl -n flux-system logs deployments/helm-controller > "$LOG_FILE"
 
 ALLOWED_EXCEPTIONS=(
-  "metallb-resources:*" # Allow all actions for metallb-resources
   "ingress-nginx:Service.*removed" # Only allow service removal for ingress-nginx
   "k8s-gateway:Service.*removed" # Only allow service removal for k8s-gateway
   # Add more exceptions here in the format "resource:action_pattern"
