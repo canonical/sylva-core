@@ -3069,7 +3069,7 @@ units:
       images:
         - name: controller
           newName: registry.gitlab.com/sylva-projects/sylva-elements/heat-operator
-          newTag: 0.0.10
+          newTag: 0.0.11
 
 
   sylva-units-operator:
