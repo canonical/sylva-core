@@ -8864,7 +8864,6 @@ shared_workload_clusters_values:
 
   _internal:
     workload_clusters_cluster_subdomain: wclusters.{{ .Values.cluster_domain }}  # workload clusters cluster_domain will all be under wclusters.<cluster_domain>
-    sylva_system_default_storage_class_unit: '{{ .Values._internal.default_storage_class_unit }}'
     sylva_mgmt_enabled_units: >-
       {{- $units := dict -}}
       {{- range $unit_name, $unit_def := .Values.units -}}
