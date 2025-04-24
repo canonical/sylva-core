@@ -585,6 +585,19 @@ units:
           - op: remove
             path: /spec/dependsOn
 
+  validating-admission-policies:
+    info:
+      description: configures validating admission policies
+      internal: true
+    unit_templates: []
+    depends_on: {}
+    repo: sylva-core
+    kustomization_spec:
+      path: ./kustomize-units/validating-admission-policies
+      wait: true
+      _components:
+        - '{{ tuple "components/management-cluster-only" .Values._internal.mgmt_cluster | include "set-only-if" }}'
+
   flux-system:
     info:
       description: contains Flux definitions *to manage the Flux system itself via gitops*
