@@ -5190,6 +5190,9 @@
                                     "type": "string",
                                     "format": "uri",
                                     "pattern": "^(https?://.*|)$"
+                                  },
+                                  "is_default_mirror": {
+                                    "type": "boolean"
                                   }
                                 }
                               }
@@ -9087,6 +9090,9 @@
                     "type": "string",
                     "format": "uri",
                     "pattern": "^(https?://.*|)$"
+                  },
+                  "is_default_mirror": {
+                    "type": "boolean"
                   }
                 }
               }

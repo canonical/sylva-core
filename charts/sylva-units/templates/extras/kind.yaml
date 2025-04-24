@@ -23,11 +23,23 @@ script: |-
   {{- $registryMirrors := get .Values "registry_mirrors" | default dict -}}
   {{- $defaultSettings := get $registryMirrors "default_settings" | default dict -}}
   {{- range $registry, $mirrors := get $registryMirrors "hosts_config" | default dict }}
+   
+    {{- $registryUrl := printf "https://%s" $registry }}
+    {{- $defaultMirror := $registryUrl }}
+
+    {{- range $_, $config := $mirrors }}
+      {{- if get $config "is_default_mirror" }}
+          {{- if (ne $defaultMirror $registryUrl) }}
+            {{- fail (printf "Error: More than one default mirror found for registry '%s'" $registry) }}
+          {{- end }}
+          {{- $defaultMirror = $config.mirror_url }}
+      {{- end }}
+    {{- end }}
 
   mkdir -p $KIND_CONFIG_DIRECTORY/{{ $registry }}
 
   cat << EOF{{ $index }} > $KIND_CONFIG_DIRECTORY/{{ $registry }}/hosts.toml
-  server = "https://{{ $registry }}"
+  server = "{{ $defaultMirror }}"
   {{- range $_, $config := $mirrors }}
   [host."{{ $config.mirror_url }}"]
   {{- range $setting,$value := mergeOverwrite (deepCopy $defaultSettings) (deepCopy (get $config "registry_settings" | default dict)) }}
