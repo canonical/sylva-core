@@ -8611,6 +8611,12 @@ calico_helm_values:
     wireguardEnabled: '{{ .Values.security.calico_wireguard_enabled | include "preserve-type" }}'
 
 metallb_helm_values:
+  prometheus:
+    rbacPrometheus: true
+    serviceAccount: "rancher-monitoring-prometheus"
+    namespace: "cattle-monitoring-system"
+    serviceMonitor:
+      enabled: true
   loadBalancerClass: '{{ .Values._internal.loadBalancerClass }}'
   controller:
     nodeSelector:
