@@ -51,7 +51,7 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
     spec:
       url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-capi-cluster.git
       ref:
-        tag: 0.9.5
+        branch: ishita/avoid-rolling-update-metallb
 
   sync-openstack-images:
     kind: GitRepository
@@ -3077,6 +3077,7 @@ units:
           - cluster-resource
           - base
         unset_cluster_paused: '{{ .Values._internal.state.is_upgrade | include "preserve-type" }}'
+        freeze_first_node_files: '{{ .Values._internal.state.is_upgrade | include "preserve-type" }}'
       valuesFrom:
         - kind: ConfigMap
           name: capo-cluster-resources
