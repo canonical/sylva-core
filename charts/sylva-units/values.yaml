@@ -3347,146 +3347,6 @@ units:
               echo "--- waiting for all machines to have a nodeRef (reflects the fact that the Node has joined the cluster)..."
               kubectl wait Machine -l cluster.x-k8s.io/cluster-name={{ .Values.cluster.name }} --for=jsonpath='{.status.nodeRef.name}' --timeout $WAIT_TIMEOUT
 
-  cluster-import-init:
-    enabled: false
-    info:
-      description: Remove cattle agents deployed by legacy solution
-      details: >
-        a job to manually delete cattle agent deployed using capi-rancher-import-opertaor
-      internal: true
-    one_shot: true
-    depends_on:
-      calico-ready: true
-      cluster-ready: true
-    unit_templates:
-    - kube-job
-    kustomization_spec:
-      targetNamespace: cattle-system
-      _patches:
-      - target:
-          kind: ConfigMap
-          labelSelector: kube-job=script
-        patch: |
-          - op: replace
-            path: /data/kube-job.sh
-            value: |
-              #/bin/bash
-
-              if [ ${deployment=$(kubectl -n cattle-system get deployment -l kustomize.toolkit.fluxcd.io/name -o name )} ];
-              then
-                echo "Actual cattle agent is based on legacy solution" $deployment;
-                kubectl -n cattle-system delete deployment,svc  --all
-                kubectl delete -n cattle-system MutatingWebhookConfiguration rancher.cattle.io
-                kubectl delete -n cattle-system validatingwebhookconfigurations rancher.cattle.io
-              else
-                echo "No deployment made by legacy solution";
-              fi
-      - target:
-          kind: ClusterRole
-        patch: |
-          - op: replace
-            path: /rules
-            value:
-              - apiGroups: [admissionregistration.k8s.io]
-                resources: [mutatingwebhookconfigurations, validatingwebhookconfigurations]
-                verbs: [list, get, patch, delete]
-
-  cluster-import:
-    enabled: false
-    info:
-      description: unit used to set specific label on workload clusters in order to import them in rancher
-      internal: true
-    one_shot: true
-    enabled_conditions:
-    - '{{ tuple . "cluster" | include "unit-enabled" }}'
-    depends_on:
-      cluster-ready: true
-      cluster-import-init: true
-    unit_templates:
-    - kube-job
-    kustomization_spec:
-      _patches:
-      - target:
-          kind: ConfigMap
-          labelSelector: kube-job=script
-        patch: |
-          - op: replace
-            path: /data/kube-job.sh
-            value: |
-              #!/bin/bash
-              set -e
-              echo "Check if clusters are imported in rancher using legacy solution"
-              if kubectl -n {{ .Release.Namespace }}  get cluster.provisioning -l capi-rancher-import.cluster-name -o name | grep -q .; then
-                 cl_provisioned=$(kubectl -n {{ .Release.Namespace }}  get cluster.provisioning -l capi-rancher-import.cluster-name -o name)
-                 cl_management=$(kubectl -n {{ .Release.Namespace }}  get "$cl_provisioned" -o jsonpath='{.status.clusterName}')
-                 echo "Cluster found:" "$cl_provisioned" "$cl_management"
-                 echo "Delete legacy resources"
-                 kubectl -n {{ .Release.Namespace }}  delete $cl_provisioned
-                 kubectl -n {{ .Release.Namespace }}  delete cluster.management $cl_management
-                 echo "Preparing  cluster to be imported into rancher using rancher-turtle"
-                 kubectl -n {{ .Release.Namespace }} label cluster/{{ .Values.cluster.name }} cluster-api.cattle.io/rancher-auto-import=true
-              else
-                echo "No cluster imported using legacy solution"
-                echo "Preparing existing cluster to be imported into rancher by adding cluster-api.cattle.io/rancher-auto-import=true label"
-                kubectl -n {{ .Release.Namespace }} label cluster/{{ .Values.cluster.name }} cluster-api.cattle.io/rancher-auto-import=true
-              fi
-      - target:
-          kind: ClusterRole
-        patch: |
-          - op: replace
-            path: /rules
-            value:
-              - apiGroups: [management.cattle.io, provisioning.cattle.io]
-                resources: [clusters]
-                verbs: [list, get, delete]
-
-  check-import:
-    enabled: false
-    info:
-      description: unit used to check if workload cluster is succssfully enrolled in Rancher
-      internal: true
-    enabled_conditions:
-    - '{{ tuple . "cluster" | include "unit-enabled" }}'
-    depends_on:
-      calico-ready: true
-      cluster-ready: true
-      cluster-import: '{{ tuple . "cluster-import" | include "unit-enabled" }}'
-    unit_templates:
-    - kube-job
-    kustomization_spec:
-      _patches:
-      - target:
-          kind: ConfigMap
-          labelSelector: kube-job=script
-        patch: |
-          - op: replace
-            path: /data/kube-job.sh
-            value: |
-              #!/bin/bash
-              set -e
-              echo "Checking if cluster has been labeled and prepared to be enrolled into rancher "
-              kubectl -n {{ .Release.Namespace }} wait cluster -l cluster-api.cattle.io/rancher-auto-import=true --for condition=Ready
-              sleep 120;
-              echo "Check if cluster {{ .Values.cluster.name }} is provisioned"
-              provisioned=$(kubectl get cluster.management -l cluster-api.cattle.io/capi-cluster-owner={{ .Values.cluster.name }} -o yaml | yq '.items[].status.conditions[] | select(.type == "Provisioned") | .status == "True"')
-              echo "Check if cattle agent is deployed into {{ .Values.cluster.name }}"
-              agent_deployed=$(kubectl get cluster.management -l cluster-api.cattle.io/capi-cluster-owner={{ .Values.cluster.name }} -o yaml | yq '.items[].status.conditions[] | select(.type == "AgentDeployed") | .status == "True"')
-              if [[ "$provisioned" == "true" && "$agent_deployed" == "true" ]]; then
-                 echo "Cluster {{ .Values.cluster.name }} is present in rancher"
-              else
-                 echo "Cluster {{ .Values.cluster.name }} no present - check if cattle agent is deployed in {{ .Values.cluster.name }} and specific resources (cluster.management/cluster.provisioning) are ready in mgmt cluster"
-                 exit 1
-              fi
-      - target:
-          kind: ClusterRole
-        patch: |
-          - op: replace
-            path: /rules
-            value:
-              - apiGroups: [management.cattle.io]
-                resources: [clusters]
-                verbs: [list, get, patch]
-
   heat-operator:
     info:
       description: installs OpenStack Heat operator
@@ -9252,7 +9112,11 @@ mgmt_cluster_state_values:
       image_provisioning_scheme: '{{ .Values.cluster.capm3.image_provisioning_scheme  }}'
 
   units:
-    rancher-turtle:
+    cluster-import-init:
+      enabled: '{{ tuple . "rancher" | include "unit-enabled" }}'
+    cluster-import:
+      enabled: '{{ tuple . "rancher" | include "unit-enabled" }}'
+    cluster-import-check:
       enabled: '{{ tuple . "rancher" | include "unit-enabled" }}'
 
   monitoring:

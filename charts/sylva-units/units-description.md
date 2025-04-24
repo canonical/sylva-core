@@ -100,11 +100,11 @@
 | **capi-providers-pivot-ready** | checks if management cluster is ready for pivot<br/><br/>This unit only has dependencies, but does not create resources. It is here only to have a single thing to look at to determine if everything is ready for pivot (see bootstrap.values.yaml pivot unit) | Kustomization |
 | **capo-cloud-config** | creates CAPO cloud-config used to produce Heat stack | Kustomization |
 | **capo-cluster-resources** | installs OpenStack Heat stack for CAPO cluster prerequisites | Kustomization |
-| **check-import** | unit used to check if workload cluster is succssfully enrolled in Rancher | Kustomization |
 | **cis-operator-scan** | allows for running a CIS scan for management cluster<br/><br/>it generates a report which can be viewed and downloaded in CSV from the Rancher UI, at https://rancher.sylva/dashboard/c/local/cis/cis.cattle.io.clusterscan | Kustomization |
 | **cluster-garbage-collector** | installs cronjob responsible for unused CAPI resources cleaning | Kustomization |
 | **cluster-import** | unit used to set specific label on workload clusters in order to import them in rancher | Kustomization |
-| **cluster-import-init** | Remove cattle agents deployed by legacy solution<br/><br/>a job to manually delete cattle agent deployed using capi-rancher-import-opertaor | Kustomization |
+| **cluster-import-check** | unit used to check if workload cluster is succssfully enrolled in Rancher | Kustomization |
+| **cluster-import-init** | Remove cattle agents deployed by legacy solution<br/><br/>a job to manually delete cattle agent deployed using capi-rancher-import-operator | Kustomization |
 | **cluster-machines-ready** | unit used to wait for all CAPI resources to be ready<br/><br/>This unit is here so that activity on all units is held off until all the CAPI resources are ready.<br/>This is a distinct unit from 'cluster-ready' because the readiness criteria is different: here<br/>we not only want the cluster to be ready to host some workload (which only requires some CAPI resources<br/>to be ready) we want all CAPI resources to be ready. | Kustomization |
 | **cluster-node-deletion-timeout-fix** | Kyverno policy to fix CAPI nodeDeletionTimeout (temporary fix)<br/><br/>This policy fixes Machine definitions to force their spec.nodeDeletionTimeout.<br/>This is primarily meant to set this timeout to 0 (interpreted as "do infinite retries"<br/>by CAPI Machine controller), to avoid corner case issues due to a failed node<br/>deletion. See https://gitlab.com/sylva-projects/sylva-core/-/issues/1431. | Kustomization |
 | **cluster-node-provider-id-blacklist** | Kyverno policy to prevent nodes from being recreated with a providerID that has already been used | Kustomization |
