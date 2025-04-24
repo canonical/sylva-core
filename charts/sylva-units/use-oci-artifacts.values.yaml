@@ -148,6 +148,7 @@ cluster:
   # to use an OCI artifact as well:
   helm_oci_url:
     metallb: '{{ .Values.sylva_base_oci_registry }}/sylva-core/metallb'
+    metallb-resources: '{{ .Values.sylva_base_oci_registry }}/sylva-core/metallb-resources'
     calico-crd: '{{ .Values.sylva_base_oci_registry }}/sylva-core/rke2-calico-crd'
     calico: '{{ .Values.sylva_base_oci_registry }}/sylva-core/rke2-calico'
   helm_extra_ca_certs:
