@@ -4407,7 +4407,7 @@ units:
       chart:
         spec:
           chart: rancher-monitoring
-          version: 106.0.0+up66.7.1-rancher.2
+          version: 105.1.4+up61.3.2-rancher.5
       install:
         createNamespace: false
       values:
@@ -4485,7 +4485,16 @@ units:
                     requests:
                       # default storage is 2Gi, except for CI and dev environments, 1Gi
                       storage: '{{  has .Values.env_type (list "dev" "ci") | ternary "1Gi" "2Gi" }}'
-            podAntiAffinity: hard #the scheduler is *required* to not schedule two replica pods onto the same node
+            affinity:
+              podAntiAffinity:
+                requiredDuringSchedulingIgnoredDuringExecution:
+                  - labelSelector:
+                      matchExpressions:
+                        - key: app.kubernetes.io/name
+                          operator: In
+                          values:
+                            - alertmanager
+                    topologyKey: "kubernetes.io/hostname"
           podDisruptionBudget:
             enabled: true
             minAvailable: '{{ .Values._internal.ha_cluster.is_ha | ternary 1 0 }}'
