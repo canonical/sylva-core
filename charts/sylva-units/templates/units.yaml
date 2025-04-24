@@ -15,7 +15,7 @@ causing a variable interpretation loop
 */}}
 {{- $_ := set .Values._internal "cluster_machines_ready_unit_deps"
                                 (index (include "all-unit-dependencies" (tuple . "cluster-machines-ready" (list "cluster-machines-ready") dict)
-                                        | fromJson) "result")
+                                        | fromJson) "result" | uniq)
 -}}
 {{/*
 
