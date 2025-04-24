@@ -9,10 +9,7 @@ cluster:
         #cloud-config
         users:
           - name: sylva
-            groups:
-              - users
-              - sylva-ops
-
+            groups: users
             sudo: ALL=(ALL) NOPASSWD:ALL
             shell: /bin/bash
             lock_passwd: false
