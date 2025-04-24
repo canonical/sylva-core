@@ -7121,6 +7121,10 @@ units:
       values:
         logging:
           enabled: true
+          fluentd:
+            security:
+              podSecurityContext:
+                runAsUser: 100
           fluentbit:
             inputTail:
               Parser: crilog
