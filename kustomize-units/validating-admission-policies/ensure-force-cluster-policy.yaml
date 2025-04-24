@@ -1,0 +1,38 @@
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  name: ensure-force-cluster-policy
+  annotations:
+    policies/title: Enforce force re-creation of ClusterPolicy by flux
+    policies/category: Other
+    policies/severity: medium
+    policies/subject: ClusterPolicy
+    policies/description: >-
+      As kyverno cluster policies are immutable, we must ensure that flux will attempt to re-create them on change,
+      otherwise their upgrade will fail. This policy ensures that cluster policies are created with the appropriate annotation.
+spec:
+  failurePolicy: Fail
+  matchConstraints:
+    resourceRules:
+    - apiGroups: ["kyverno.io"]
+      apiVersions: ["v1"]
+      operations: ["CREATE", "UPDATE"]
+      resources: ["clusterpolicies"]
+    objectSelector:
+      matchExpressions:
+      - key: kustomize.toolkit.fluxcd.io/name
+        operator: Exists
+      - key: kustomize.toolkit.fluxcd.io/namespace
+        operator: Exists
+  validations:
+    - expression: >
+        object.metadata.?annotations['kustomize.toolkit.fluxcd.io/force'].orValue("") == 'Enabled'
+      message: "ClusterPolicy must have 'kustomize.toolkit.fluxcd.io/force: Enabled' annotation."
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  name: ensure-force-cluster-policy
+spec:
+  policyName: ensure-force-cluster-policy
+  validationActions: [Deny]
