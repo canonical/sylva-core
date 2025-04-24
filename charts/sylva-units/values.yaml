@@ -7655,7 +7655,7 @@ security:
   calico_wireguard_enabled: false  # disable wireguard by default
   neuvector_scanning_enabled: false # disable Neuvector scanning capability by default
   os_images:
-    skip_signing_check: true
+    skip_signing_check: false
     cosign_public_key: '{{ .Values.security.default_cosign_public_key }}'
   oci_artifacts:
     skip_signing_check: false
