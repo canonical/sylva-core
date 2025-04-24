@@ -231,6 +231,8 @@ units:
       calico-ready: false
     kustomization_spec:
       targetNamespace: null  # if we don't do this, there are errors because namespaces are a non-namespaced resource
+      _components:
+        - components/cattle-system
 
   calico-crd:
     enabled: true
@@ -251,6 +253,24 @@ units:
 
   calico-ready:
     enabled: true
+
+  cluster-import-init:
+    enabled: true
+    unit_templates:
+    - base-deps
+    - kube-job
+
+  cluster-import:
+    enabled: true
+    unit_templates:
+    - kustomization-deployed-on-mgmt-cluster
+    - kube-job
+
+  check-import:
+    enabled: true
+    unit_templates:
+    - kustomization-deployed-on-mgmt-cluster
+    - kube-job
 
   harbor-init:
     # this unit isn't relevant in workload clusters
@@ -334,11 +354,11 @@ units:
   monitoring:
     enabled: true
     depends_on:
-      cluster-import: '{{ tuple . "cluster-import" | include "unit-enabled" }}'
+      check-import: '{{ tuple . "check-import" | include "unit-enabled" }}'
     helmrelease_spec:
       valuesFrom:
         - kind: ConfigMap
-          name: '{{ .Values.cluster.name }}-capi-monitoring-info'  # this configmap is produced by a kyverno policy defined by the "rancher-monitoring-clusterid-inject" mgmt unit
+          name: '{{ .Values.cluster.name }}-monitoring-info'  # this configmap is produced by a kyverno policy defined by the "rancher-monitoring-clusterid-inject" mgmt unit
           optional: false
 
   thanos-credentials-secret:
@@ -441,46 +461,6 @@ units:
     repo: sylva-core
     kustomization_spec:
       path: ./kustomize-units/rancher-init/components/webhook-ha
-
-  cluster-import:
-    enabled: false  # overriden depending on whether Rancher is enabled or not (via mgmt-cluster-state-values)
-    info:
-      description: imports workload cluster into Rancher
-      internal: true
-    unit_templates:
-    - base-deps
-    - kustomization-deployed-on-mgmt-cluster
-    repo: sylva-core
-    kustomization_spec:
-      # this Kustomization lives in the mgmt cluster
-      # **and it needs a specific kubeconfig to make a clean Rancher import**
-      kubeConfig:
-        secretRef:
-          name: cluster-creator-kubeconfig
-          key: kubeconfig
-      targetNamespace: '{{ .Release.Namespace }}'  # (in mgmt cluster)
-      wait: false
-      path: ./kustomize-units/cluster-import
-      postBuild:
-        substitute:
-          CLUSTER_FLAVOR: '{{ upper .Values.cluster.capi_providers.bootstrap_provider }} {{ upper .Values.cluster.capi_providers.infra_provider }}'
-          CLUSTER_NAME: '{{ .Values.cluster.name }}'
-        substituteFrom:
-          - kind: Secret
-            name: cluster-creator-kubeconfig  # this secret is created by a Kyverno policy defined by cluster-creator-login/cluster-creator-policy mgmt units
-      healthChecks:
-        # this resource is created by capi-rancher-import based on the existence of
-        # the Cluster.provisioning.cattle.io produced by the kustomization
-        - apiVersion: kustomize.toolkit.fluxcd.io/v1
-          kind: Kustomization
-          name: "cattle-agent-{{ .Values.cluster.name }}"
-          namespace: '{{ .Release.Namespace }}'
-        # this resource would be checked by "wait: true" but we have
-        # to check it explicitly because we use `healthChecks` which implies `wait: false`
-        - apiVersion: provisioning.cattle.io/v1
-          kind: Cluster
-          name: "{{ .Values.cluster.name }}-capi"
-          namespace: '{{ .Release.Namespace }}'
 
   vsphere-cpi:
     enabled: true

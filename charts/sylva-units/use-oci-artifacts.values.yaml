@@ -93,15 +93,6 @@ source_templates:
       verify: '{{ (tuple (dict "provider" "cosign" "secretRef" (dict "name" "cosign-public-keys")) (not .Values.security.oci_artifacts.skip_signing_check)) | include "set-only-if" }}'
 
 
-  capi-rancher-import:
-    spec:
-      # in OCI deployment, this is only used for 'cattle_agent_kustomize_source' below
-      # we piggyback on the 'url' field here to make it easily tunable
-      #
-      # this URL can be overridden for a deployment to point to an OCI registry
-      # other than the one derived from sylva_base_oci_registry
-      url: '{{ .Values.sylva_base_oci_registry }}/sylva-elements/helm-charts/capi-rancher-import/cattle-kustomize'
-
 unit_templates:
   sylva-units:  # this applies to any unit having "unit_templates: ... - sylva-units"
     helm_repo_url: '{{ .Values.sylva_core_oci_registry }}'
@@ -111,17 +102,6 @@ unit_templates:
           version: '{{ .Values._internal.sylva_core_version }}'
 
 units:
-  capi-rancher-import:
-    helmrelease_spec:
-      values:
-        conf:
-          cattle_agent_kustomize_source_ref: '{"encapsulated-result": none}'  # trick to pass null to capi-rancher-chart without sylva-units value processing to do the special processing of 'null' resulting in removing the key from the dict
-          cattle_agent_kustomize_source:
-            apiVersion: source.toolkit.fluxcd.io/v1beta2
-            kind: OCIRepository
-            spec: '{{ mergeOverwrite .Values.oci_repo_spec_default (deepCopy (dig "capi-rancher-import" "spec" "undefined spec" .Values.source_templates)) | include "preserve-type" }}'
-          cattle_agent_kustomize_path: .
-
   flux-system:
     kustomization_spec:
       _patches:
