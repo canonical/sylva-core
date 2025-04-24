@@ -58,6 +58,7 @@
 | **multus-bond-cni** | installs bond CNI binary for multus | beta | Kustomization | 1.0.0 |
 | **neuvector** | installs Neuvector | beta | [Helm chart](https://neuvector.github.io/neuvector-helm) | 2.8.3 |
 | **nfs-ganesha** | manages NFS Ganesha CSI provisioner | experimental | [Helm chart](https://kubernetes-sigs.github.io/nfs-ganesha-server-and-external-provisioner/) | 1.8.0 |
+| **nvidia-gpu-operator** | installs NVIDIA GPU operator<br/><br/>installs NVIDIA GPU operator only when using cabpr or cabpk, not deployed on cabpoa, also targeting capm3 infra for timebeing | experimental | [Helm chart](https://helm.ngc.nvidia.com/nvidia/) | v25.3.0 |
 | **openshift-assisted-installer** | installs assisted installer operator for OKD | experimental | [Kustomization](https://raw.githubusercontent.com/openshift/assisted-service/v2.33.0/hack/crds/hive.openshift.io_clusterdeployments.yaml) | v2.33.0 |
 | **prometheus-pushgateway** | installs Prometheus Push-gateway exporter | beta | [Helm chart](https://prometheus-community.github.io/helm-charts) | 3.1.0 |
 | **snmp-exporter** | installs SNMP exporter | beta | [Helm chart](https://prometheus-community.github.io/helm-charts) | 9.2.1 |
