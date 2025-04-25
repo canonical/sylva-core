@@ -6372,6 +6372,49 @@ units:
         - '{{ ternary "../tls-components/tls-secret" "../tls-components/tls-certificate" (hasKey .Values.external_certificates.minio_logging "cert") }}'
         - "../tls-components/sylva-ca"
 
+  minio-logging-cleanup:
+    info:
+      description: Recreates MinIO-logging StatefulSet to avoid upgrade failure (This unit will be removed after Sylva 1.4)
+      internal: true
+    one_shot: true
+    unit_templates:
+    - base-deps
+    - kube-job
+    enabled_conditions:
+    - '{{ tuple . "minio-logging" | include "unit-enabled" }}'
+    - '{{ .Values._internal.state.is_upgrade }}'
+    depends_on:
+      minio-logging: '{{ tuple . "minio-logging" | include "unit-enabled" }}'
+    kustomization_spec:
+      targetNamespace: minio-logging
+      _patches:
+      - target:
+          kind: ConfigMap
+          labelSelector: kube-job=script
+        patch: |
+          - op: replace
+            path: /data/kube-job.sh
+            value: |
+              #!/bin/bash
+              set -e
+
+              echo "Checking for MinIO image mismatch..."
+
+              TENANT_IMAGE=$(kubectl get tenants.minio.min.io -n minio-logging logging -o jsonpath='{.spec.image}')
+              STATEFULSET_IMAGE=$(kubectl get sts -n minio-logging logging-pool-0 -o jsonpath='{.spec.template.spec.containers[0].image}')
+
+              # Exit early if images match
+              if [ "$TENANT_IMAGE" = "$STATEFULSET_IMAGE" ]; then
+                  echo "MinIO images are matching. No action needed."
+                  exit 0
+              fi
+
+              # Delete StatefulSet if images don't match
+              echo "Image mismatch detected. Deleting StatefulSet to trigger recreation..."
+              kubectl delete statefulset logging-pool-0 -n minio-logging --cascade=orphan
+              echo "StatefulSet deleted successfully. MinIO operator will recreate it with the correct image."
+              exit 0
+
   minio-logging:
     info:
       description: creates a MinIO tenant for the logging stack, used as S3 storage by Loki
@@ -6555,6 +6598,49 @@ units:
       _components:
         - '{{ ternary "../tls-components/tls-secret" "../tls-components/tls-certificate" (hasKey .Values.external_certificates.minio_monitoring "cert") }}'
         - "../tls-components/sylva-ca"
+
+  minio-monitoring-cleanup:
+    info:
+      description: Recreates MinIO-monitoring StatefulSet to avoid upgrade failure (This unit will be removed after Sylva 1.4)
+      internal: true
+    one_shot: true
+    unit_templates:
+    - base-deps
+    - kube-job
+    enabled_conditions:
+    - '{{ tuple . "minio-monitoring" | include "unit-enabled" }}'
+    - '{{ .Values._internal.state.is_upgrade }}'
+    depends_on:
+      minio-monitoring: '{{ tuple . "minio-monitoring" | include "unit-enabled" }}'
+    kustomization_spec:
+      targetNamespace: minio-monitoring
+      _patches:
+      - target:
+          kind: ConfigMap
+          labelSelector: kube-job=script
+        patch: |
+          - op: replace
+            path: /data/kube-job.sh
+            value: |
+              #!/bin/bash
+              set -e
+
+              echo "Checking for MinIO image mismatch..."
+
+              TENANT_IMAGE=$(kubectl get tenants.minio.min.io -n minio-monitoring monitoring -o jsonpath='{.spec.image}')
+              STATEFULSET_IMAGE=$(kubectl get sts -n minio-monitoring monitoring-pool-0 -o jsonpath='{.spec.template.spec.containers[0].image}')
+
+              # Exit early if images match
+              if [ "$TENANT_IMAGE" = "$STATEFULSET_IMAGE" ]; then
+                  echo "MinIO images are matching. No action needed."
+                  exit 0
+              fi
+
+              # Delete StatefulSet if images don't match
+              echo "Image mismatch detected. Deleting StatefulSet to trigger recreation..."
+              kubectl delete statefulset monitoring-pool-0 -n minio-monitoring --cascade=orphan
+              echo "StatefulSet deleted successfully. MinIO operator will recreate it with the correct image."
+              exit 0
 
   minio-monitoring:
     info:
@@ -6775,6 +6861,7 @@ units:
       thanos-init: true
       thanos-credentials-secret: true
       minio-monitoring: '{{ .Values.monitoring.thanos.objstoreConfig.config | empty }}'
+      minio-monitoring-cleanup: '{{ tuple . "minio-monitoring-cleanup" | include "unit-enabled" }}'
       '{{ .Values._internal.default_storage_class_unit }}': true
       ingress-nginx: '{{ tuple . "ingress-nginx" | include "unit-enabled" }}'
     annotations:
@@ -7269,6 +7356,7 @@ units:
       loki-init: true
       loki-credentials-secret: true
       minio-logging: true
+      minio-logging-cleanup: '{{ tuple . "minio-logging-cleanup" | include "unit-enabled" }}'
       logging-crd: '{{ tuple . "monitoring" | include "unit-enabled" }}'
     enabled_conditions:
       - '{{ tuple . "logging" | include "unit-enabled" }}'
