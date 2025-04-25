@@ -7665,7 +7665,7 @@ units:
     - base-deps
     enabled: false
     enabled_conditions:
-      - '{{ eq .Values.cluster.capi_providers.infra_provider "camp3" }}'
+      - '{{ eq .Values.cluster.capi_providers.infra_provider "capm3" }}'
       - '{{ or (eq .Values.cluster.capi_providers.bootstrap_provider "cabpr") (eq .Values.cluster.capi_providers.bootstrap_provider "cabpk") }}'
     depends_on:
       namespace-defs: true
@@ -7685,7 +7685,7 @@ units:
           enabled: true   # prefer for now to deploy this NFD as it comes configured for nvidia GPUs, with the 'risk' of having two NFD when sriov-network-operator is also deploying its NFD...
         ## the toolkit environment needs a bit of tunning depending on the bootstrap provider used (i.e., here below the config for cabpr and capbk)
         toolkit:
-          env: >-
+          env:
             - name: CONTAINERD_CONFIG
               value: >-
                 {{- if (eq .Values.cluster.capi_providers.bootstrap_provider "cabpr") }}
@@ -7703,7 +7703,7 @@ units:
             - name: CONTAINERD_RUNTIME_CLASS
               value: nvidia
             - name: CONTAINERD_SET_AS_DEFAULT
-              value: true   # set to false if we want to impose that only pods with  ''runtimeClassName: nvidia''  in their spec can be run on the gpu
+              value: "true"   # set to "false" if we want to impose that only pods with  ''runtimeClassName: nvidia''  in their spec can be run on the gpu
 
 ##### stuff related to the 'cluster' unit #####
 #
