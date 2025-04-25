@@ -553,6 +553,10 @@ units:
     unit_templates:
     - kustomization-deployed-on-mgmt-cluster
 
+  sbom-operator:
+    # can be enabled at runtime if desired
+    enabled: false
+
 cluster_domain: '{{ .Values.cluster.name }}.{{ .Values._internal.workload_clusters_cluster_subdomain }}'
 
 _internal:
