@@ -238,14 +238,14 @@ include:
     fi
     DEPLOYMENT_BOOTSTRAP_PROV=${DEPLOYMENT_BOOTSTRAP_PROV:-$(extract_from_job_name 🚀 "$WORKFLOW_NAME")}
     if [[ "$DEPLOYMENT_BOOTSTRAP_PROV" == "kadm" ]]; then export DEPLOYMENT_BOOTSTRAP_PROV="kubeadm"; fi   # kadm is shortcut for kubeadm
-    
+
     if echo "$DEPLOYMENT_OS" | grep -q '|'; then
       if [[ ${CLUSTER_TYPE} == "management" ]]; then
         DEPLOYMENT_OS=$(echo "$DEPLOYMENT_OS" | awk -F '|' '{print $1}')
       else
         DEPLOYMENT_OS=$(echo "$DEPLOYMENT_OS" | awk -F '|' '{print $2}')
       fi
-    fi    
+    fi
     DEPLOYMENT_OS=${DEPLOYMENT_OS:-$(extract_from_job_name 🐧 "$WORKFLOW_NAME")}
     DEPLOYMENT_SCENARIO=${DEPLOYMENT_SCENARIO:-$(extract_from_job_name 🎬 "$WORKFLOW_NAME")}
     DEPLOYMENT_OPTIONS=${DEPLOYMENT_OPTIONS:-$(extract_from_job_name 🛠 "$WORKFLOW_NAME")}
