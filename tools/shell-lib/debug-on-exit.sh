@@ -480,7 +480,7 @@ unset KUBECONFIG
 
 if [[ $(kind get clusters) =~ $KIND_CLUSTER_NAME ]]; then
   crust_gather_collect bootstrap &
-  cluster_info_dump bootstrap
+  cluster_info_dump bootstrap sylva-system ${MANAGEMENT_CLUSTER_NAME:-management-cluster}
   log_info "bootstrap" "Dump bootstrap node logs"
   for c in $(docker ps -a --format '{{.Names}}' | grep -E 'control-plane|-lb'); do
     log_info "bootstrap" ">> Dumping docker logs for container $c..."
@@ -489,7 +489,6 @@ if [[ $(kind get clusters) =~ $KIND_CLUSTER_NAME ]]; then
   done
   wait
 fi
-
 
 
 # 3/ Dump management cluster into ./management-cluster-dump/ directory
@@ -531,7 +530,7 @@ if [[ -f $MGMT_KUBECONFIG ]]; then
     if [ -n "$WORKLOAD_CLUSTER_NAME" ]; then
       # TODO: handle case where there is cluster with same name in different namespace (currently first one is picked)
       workload_cluster_name="$WORKLOAD_CLUSTER_NAME"
-      workload_cluster_namespace=$(echo "$workload_clusters" | yq 'select(.name == env(WORKLOAD_CLUSTER_NAME))' | yq .[0].ns )
+      workload_cluster_namespace=$(echo "$workload_clusters" | yq '.[] | select(.name == env(WORKLOAD_CLUSTER_NAME))' | yq .[0].ns )
     else
       if [[ "$workload_clusters_count" -gt "1" ]]; then
         # TODO: handle dump of several workload clusters - currently only works with one
