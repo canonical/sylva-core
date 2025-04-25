@@ -39,16 +39,9 @@ cluster:
           cluster-role: control-plane
 
     network_interfaces:
-      bond0:
-        type: bond
-        interfaces:
-          - nic1
-          - nic2
-        vlans:
-          - id: 100  # VLAN ID is fixed, per libvirt-metal internals
-      nic1:
+      ens4:
         type: phy
-      nic2:
+      ens5:
         type: phy
 
   control_plane_replicas: 1
@@ -62,13 +55,6 @@ cluster:
             cluster-role: worker
 
       network_interfaces:
-        bond0:
-          type: bond
-          interfaces:
-            - ens4
-            - ens5
-          vlans:
-            - id: 100  # VLAN ID is fixed, per libvirt-metal internals
         ens4:
           type: phy
         ens5:
@@ -102,7 +88,7 @@ cluster:
       interface_mappings:
         nic1:
           mac_address: 52:54:00:44:44:01
-        nic2:
+        ens5:
           inspection_name: ens5
       bmh_metadata:
         labels:
@@ -113,4 +99,3 @@ cluster:
         bootMACAddress: 52:54:00:44:44:01
       ip_preallocations:
         primary: 192.168.100.70
-
