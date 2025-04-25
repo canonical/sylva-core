@@ -9334,6 +9334,84 @@
               ]
             }
           }
+        },
+        "sbom_operator": {
+          "type": "object",
+          "properties": {
+            "targets": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "string",
+                "enum": [
+                  "configmap",
+                  "dtrack",
+                  "oci"
+                ]
+              }
+            },
+            "dtrack_base_url": {
+              "type": "string",
+              "format": "uri",
+              "pattern": "^(https?://.*|)$"
+            },
+            "dtrack_api_key": {
+              "type": "string"
+            },
+            "oci_registry": {
+              "type": "string",
+              "format": "uri",
+              "pattern": "^oci://.*$"
+            },
+            "oci_user": {
+              "type": "string"
+            },
+            "oci_token": {
+              "type": "string"
+            }
+          },
+          "allOf": [
+            {
+              "required": [
+                "targets"
+              ]
+            },
+            {
+              "if": {
+                "properties": {
+                  "targets": {
+                    "contains": {
+                      "const": "dtrack"
+                    }
+                  }
+                }
+              },
+              "then": {
+                "required": [
+                  "dtrack_base_url",
+                  "dtrack_api_key"
+                ]
+              }
+            },
+            {
+              "if": {
+                "properties": {
+                  "targets": {
+                    "contains": {
+                      "const": "oci"
+                    }
+                  }
+                }
+              },
+              "then": {
+                "required": [
+                  "oci_registry",
+                  "oci_user",
+                  "oci_token"
+                ]
+              }
+            }
+          ]
         }
       }
     },
