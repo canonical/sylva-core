@@ -539,8 +539,8 @@ if [[ -f $MGMT_KUBECONFIG ]]; then
         log_info "$workload_clusters"
         exit 2
       else
-      workload_cluster_name=$(echo "$workload_clusters" | yq '.[0].name')
-      workload_cluster_namespace=$(echo "$workload_clusters" | yq '.[0].ns')
+        workload_cluster_name=$(echo "$workload_clusters" | yq '.[0].name')
+        workload_cluster_namespace=$(echo "$workload_clusters" | yq '.[0].ns')
       fi
     fi
 
