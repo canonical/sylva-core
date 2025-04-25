@@ -192,30 +192,6 @@ variables:
     WC_INITIAL_REVISION: "1.2.1"
     WC_UPDATE_REVISION: "" # Use current commit
 
-.scenario_sylva-upgrade-from-1.1.1:
-  extends:
-    - .rolling-upgrade-timeout
-  variables:
-    DESCRIPTION: |
-      Deploy the management cluster and perform a Sylva upgrade from the 1.1.1 version to main.
-    MGMT_INITIAL_REVISION: "1.1.1-ci-tweaks"
-    MGMT_UPDATE_REVISION: "" # Use current commit
-    WC_INITIAL_REVISION: "1.1.1-ci-tweaks"
-    WC_UPDATE_REVISION: "" # Use current commit
-
-.scenario_sylva-upgrade-capm3-from-1.1.1:
-  extends:
-    - .rolling-upgrade-timeout
-  variables:
-    # libvirt-metal-no-bond.yaml file is added to updates values as a temporary fix for capm3 upgrades from 1.1.1,
-    # it can be removed after next release, see https://gitlab.com/sylva-projects/sylva-core/-/issues/1581
-    DESCRIPTION: |
-      Technical scenario. Do NOT use it.
-    MGMT_ADDITIONAL_VALUES: libvirt-metal-no-bond.yaml
-    MGMT_UPDATE_ADDITIONAL_VALUES: disable-interface-mappings-mgmt.yaml
-    WC_ADDITIONAL_VALUES: libvirt-metal-no-bond.yaml
-    WC_UPDATE_ADDITIONAL_VALUES: disable-interface-mappings-wc.yaml
-
 .scenario_preview:
   variables:
     DESCRIPTION: |

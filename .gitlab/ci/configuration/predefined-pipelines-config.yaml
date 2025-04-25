@@ -19,14 +19,6 @@ Nightly - CAPO variants:
   - ☁capo 🚀rke2 🐧suse 🛠ha,misc 🎬nightly
   - ☁capo 🚀rke2 🐧suse 🛠ha,logging 🎬nightly
 
-Nightly - Upgrade from 1.1.1:
-  - ☁capo 🚀kadm 🐧ubuntu 🛠ha 🎬sylva-upgrade-from-1.1.1
-  - ☁capo 🚀kadm 🐧ubuntu 🛠ha,misc 🎬sylva-upgrade-from-1.1.1
-  - ☁capo 🚀rke2 🐧suse 🛠ha 🎬sylva-upgrade-from-1.1.1
-  - ☁capm3 🚀kadm 🐧ubuntu 🛠ha 🎬sylva-upgrade-from-1.1.1
-  - ☁capm3 🚀rke2 🐧suse 🛠ha 🎬sylva-upgrade-from-1.1.1
-  - ☁capm3 🚀rke2 🐧suse 🛠ha,misc 🎬sylva-upgrade-from-1.1.1
-
 Nightly - Upgrade from 1.2.1:
   - ☁capo 🚀kadm 🐧ubuntu 🛠ha 🎬sylva-upgrade-from-1.2.1
   - ☁capo 🚀kadm 🐧ubuntu 🛠ha,misc 🎬sylva-upgrade-from-1.2.1
