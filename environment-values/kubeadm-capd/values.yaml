@@ -8,7 +8,7 @@ cluster:
   control_plane_replicas: 1
 
   capd:
-    image_name: kindest/node:v1.29.8
+    image_name: kindest/node:v1.30.10
 
 # We can define users if needed (.cluster.kubeadm.users[])
   #kubeadm:
