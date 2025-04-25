@@ -46,7 +46,6 @@ ALLOWED_SCENARIOS = os.getenv(
         "wkld-k8s-upgrade",
         "sylva-upgrade",
         "sylva-upgrade-no-wkld",
-        "sylva-upgrade-from-1.1.1",
         "sylva-upgrade-from-1.2.1",
         "sylva-upgrade-from-1.3.x",
     ])
@@ -360,10 +359,6 @@ def generate_ci_job_struct(job_names, global_options):
 
         if scenario:
             ci_jobs[job]["extends"].append(f".scenario_{scenario}")
-
-            # Special temporary exception for capm3 sylva-upgrade
-            if scenario == "sylva-upgrade-from-1.1.1" and infra in ["capm3", "capm3-virt"]:
-                ci_jobs[job]["extends"].append(".scenario_sylva-upgrade-capm3-from-1.1.1")
 
         if "dev-sources" not in options:
             ci_jobs[job]["extends"].append(".wait-publish-jobs")
