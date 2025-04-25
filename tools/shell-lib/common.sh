@@ -266,7 +266,7 @@ function reconcile_sylva_units() {
     resume_suspended=""
   fi
 
-  sylvactl watch -n $namespace HelmRelease/$namespace/sylva-units --timeout ${SYLVA_UNITS_RECONCILE_TIMEOUT:-180s} --skip-inventory \
+  sylvactl watch -n $namespace HelmRelease/$namespace/sylva-units --timeout ${SYLVA_UNITS_RECONCILE_TIMEOUT:-300s} --skip-inventory \
     --reconcile $resume_suspended \
     --exit-condition reason=UpgradeFailed \
     --exit-condition reason=InstallFailed
@@ -274,7 +274,7 @@ function reconcile_sylva_units() {
   helm_release_version=$(kubectl get -n $namespace HelmRelease sylva-units -o yaml | yq -r '.status.history[0].version')
   if ! [[ $_options == *"skip-root-dependency-wait"* ]]; then
     echo "waiting for root-dependency-$helm_release_version to become ready..."
-    sylvactl watch -n $namespace Kustomization/$namespace/root-dependency-$helm_release_version --timeout ${SYLVA_UNITS_RECONCILE_TIMEOUT:-180s} --skip-inventory --reconcile
+    sylvactl watch -n $namespace Kustomization/$namespace/root-dependency-$helm_release_version --timeout ${SYLVA_UNITS_RECONCILE_TIMEOUT:-300s} --skip-inventory --reconcile
   fi
 }
 

@@ -6556,7 +6556,6 @@ units:
         createNamespace: false
 
   logging:
-    enabled: false
     info:
       description: installs Rancher Fluentbit/Fluentd logging stack, for log collecting and shipping
       maturity: beta
