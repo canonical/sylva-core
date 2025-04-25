@@ -6239,6 +6239,7 @@ units:
       _components:
         - '{{ ternary "../tls-components/tls-secret" "../tls-components/tls-certificate" (hasKey .Values.external_certificates.minio_operator "cert") }}'
         - "../tls-components/sylva-ca"
+        - "../kyverno-policies/minio-policies/minio-operator-policies"
 
   minio-operator:
     info:
@@ -6370,6 +6371,7 @@ units:
       _components:
         - '{{ ternary "../tls-components/tls-secret" "../tls-components/tls-certificate" (hasKey .Values.external_certificates.minio_logging "cert") }}'
         - "../tls-components/sylva-ca"
+        - "../kyverno-policies/minio-policies/minio-tenant-policies"
 
   minio-logging-cleanup:
     info:
@@ -6597,6 +6599,7 @@ units:
       _components:
         - '{{ ternary "../tls-components/tls-secret" "../tls-components/tls-certificate" (hasKey .Values.external_certificates.minio_monitoring "cert") }}'
         - "../tls-components/sylva-ca"
+        - "../kyverno-policies/minio-policies/minio-tenant-policies"
 
   minio-monitoring-cleanup:
     info:
