@@ -314,19 +314,9 @@ function _openstack() {
 
 function cluster_info_dump() {
   export cluster=$1
+  local capi_cluster_namespace=$2
+  local capi_cluster_name=$3
   local dump_dir=$cluster-cluster-dump
-
-  if [[ $cluster == "workload" ]]; then
-    capi_cluster_namespace=$2
-    capi_cluster_name=$3
-  else  # management cluster:
-    capi_cluster_namespace=sylva-system
-    if [ -n "${MANAGEMENT_CLUSTER_NAME}" ]; then
-      capi_cluster_name=${MANAGEMENT_CLUSTER_NAME}
-    else
-      capi_cluster_name=$(kubectl get clusters.cluster.x-k8s.io -n $capi_cluster_namespace -oyaml | yq .items[0].metadata.name)
-    fi
-  fi
 
   rm -rf $dump_dir  # make sure previous data is removed
   mkdir -p $dump_dir
@@ -518,7 +508,7 @@ MGMT_KUBECONFIG=${1:-${BASE_DIR}/management-cluster-kubeconfig}
 if [[ -f $MGMT_KUBECONFIG ]]; then
   export KUBECONFIG=${MGMT_KUBECONFIG}
   crust_gather_collect management &
-  cluster_info_dump management
+  cluster_info_dump management sylva-system ${MANAGEMENT_CLUSTER_NAME:-management-cluster}
   wait
 else
   log_error "No kubeconfig for management cluster found"
@@ -532,29 +522,45 @@ if [[ -f $MGMT_KUBECONFIG ]]; then
   echo -e "\n 4️⃣ Dump workload cluster info "
   echo -e "  ############################### \n"
 
-  # TODO: handle several workload clusters - currently only works with one
-  workload_cluster_name=$(kubectl --request-timeout=3s get cluster.cluster -A -o jsonpath='{ $.items[?(@.metadata.namespace != "sylva-system")].metadata.name }')
-  if [[ -z "$workload_cluster_name" ]]; then
+  workload_clusters=$(kubectl --request-timeout=3s get cluster.cluster -A -oyaml | yq '.items[] | select(.metadata.namespace != "sylva-system") | [{"name": .metadata.name, "ns": .metadata.namespace}]')
+  workload_clusters_count=$(echo "$workload_clusters" | yq length)
+  if [[ "$workload_clusters_count" == "0" ]]; then
       log_info "workload" "There's no workload cluster for this deployment. All done"
   else
-      log_info "workload" "Dumping workload cluster $workload_cluster_name"
-      workload_cluster_namespace=$(kubectl get cluster.cluster --all-namespaces -o=custom-columns=NAME:.metadata.name,NAMESPACE:.metadata.namespace | grep "$workload_cluster_name" | awk -F ' ' '{print $2}')
-      kubectl -n $workload_cluster_namespace get secret $workload_cluster_name-kubeconfig -o jsonpath='{.data.value}' | base64 -d > $BASE_DIR/workload-cluster-kubeconfig
 
-      if timeout 10s kubectl --kubeconfig=$BASE_DIR/workload-cluster-kubeconfig get nodes &>/dev/null 2>&1; then
-        export KUBECONFIG=$BASE_DIR/workload-cluster-kubeconfig
+    if [ -n "$WORKLOAD_CLUSTER_NAME" ]; then
+      # TODO: handle case where there is cluster with same name in different namespace (currently first one is picked)
+      workload_cluster_name="$WORKLOAD_CLUSTER_NAME"
+      workload_cluster_namespace=$(echo "$workload_clusters" | yq 'select(.name == env(WORKLOAD_CLUSTER_NAME))' | yq .[0].ns )
+    else
+      if [[ "$workload_clusters_count" -gt "1" ]]; then
+        # TODO: handle dump of several workload clusters - currently only works with one
+        log_error "$workload_clusters_count workload clusters detected. Please specify one"
+        log_info "$workload_clusters"
+        exit 2
       else
-        log_info "workload" "Failed to access cluster k8s API directly (this is expected with libvirt-metal). Trying via Rancher..."
-        # in case of baremetal emulation workload cluster is only accessible from Rancher
-        # and rancher API certificates does not match expected (so kubectl must be used with insecure-skip-tls-verify)
-        $BASE_DIR/tools/shell-lib/get-wc-kubeconfig-from-rancher.sh $workload_cluster_name $BASE_DIR/workload-cluster-kubeconfig-rancher
-        yq -i e '.clusters[].cluster.insecure-skip-tls-verify = true' $BASE_DIR/workload-cluster-kubeconfig-rancher
-        yq -i e 'del(.clusters[].cluster.certificate-authority-data)' $BASE_DIR/workload-cluster-kubeconfig-rancher
-        export KUBECONFIG=$BASE_DIR/workload-cluster-kubeconfig-rancher
+      workload_cluster_name=$(echo "$workload_clusters" | yq '.[0].name')
+      workload_cluster_namespace=$(echo "$workload_clusters" | yq '.[0].ns')
       fi
+    fi
 
-      crust_gather_collect workload &
-      cluster_info_dump workload $workload_cluster_namespace $workload_cluster_name
+    log_info "workload" "Dumping workload cluster $workload_cluster_name in ns $workload_cluster_namespace"
+
+    kubectl -n $workload_cluster_namespace get secret $workload_cluster_name-kubeconfig -o jsonpath='{.data.value}' | base64 -d > $BASE_DIR/workload-cluster-kubeconfig
+    if timeout 10s kubectl --kubeconfig=$BASE_DIR/workload-cluster-kubeconfig get nodes &>/dev/null 2>&1; then
+      export KUBECONFIG=$BASE_DIR/workload-cluster-kubeconfig
+    else
+      log_info "workload" "Failed to access cluster k8s API directly (this is expected with libvirt-metal). Trying via Rancher..."
+      # in case of baremetal emulation workload cluster is only accessible from Rancher
+      # and rancher API certificates does not match expected (so kubectl must be used with insecure-skip-tls-verify)
+      $BASE_DIR/tools/shell-lib/get-wc-kubeconfig-from-rancher.sh $workload_cluster_name $BASE_DIR/workload-cluster-kubeconfig-rancher
+      yq -i e '.clusters[].cluster.insecure-skip-tls-verify = true' $BASE_DIR/workload-cluster-kubeconfig-rancher
+      yq -i e 'del(.clusters[].cluster.certificate-authority-data)' $BASE_DIR/workload-cluster-kubeconfig-rancher
+      export KUBECONFIG=$BASE_DIR/workload-cluster-kubeconfig-rancher
+    fi
+
+    crust_gather_collect workload &
+    cluster_info_dump workload $workload_cluster_namespace $workload_cluster_name
   fi
 
   wait
@@ -566,5 +572,6 @@ then
   [[ -n "${CI:-}" ]] && log_info "INFO" "Exec following command to serve crust-gather:\n\t./tools/serve-crustgather-artifact.sh -j $CI_JOB_ID"
 fi
 
+echo ""
 echo "Dump finished at: $(date -Iseconds)"
 echo "Done"
