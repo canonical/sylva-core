@@ -61,12 +61,7 @@ spec:
   matchResources:
     objectSelector:
       matchExpressions:
-      - key: app
-        operator: NotIn
-        values:
-        - neuvector-scanner-pod
-        - neuvector-updater-pod
-      - key: validating-policy.sylva.io/exclude-latest-tag
+      - key: tag-validating-policy.sylva.io
         operator: NotIn
         values:
         - excluded
