@@ -1595,6 +1595,12 @@ units:
                   path: /spec/startingDeadlineSeconds
                   value: 21600
                 - op: add
+                  path: /metadata/labels/tag-validating-policy.sylva.io
+                  value: excluded
+                - op: add
+                  path: /spec/jobTemplate/spec/template/metadata/labels/tag-validating-policy.sylva.io
+                  value: excluded
+                - op: add
                   path: /spec/jobTemplate/spec/template/spec/containers/0/securityContext
                   value:
                     runAsNonRoot: true
@@ -1606,6 +1612,16 @@ units:
                     capabilities:
                       drop:
                         - ALL
+            - target:
+                kind: Deployment
+                name: neuvector-scanner-pod
+              patch: |-
+                - op: add
+                  path: /metadata/labels/tag-validating-policy.sylva.io
+                  value: excluded
+                - op: add
+                  path: /spec/template/metadata/labels/tag-validating-policy.sylva.io
+                  value: excluded
         ` -}}
         {{- if .Values.security.neuvector_scanning_enabled -}}
         {{- list ($patch | fromYaml) | include "preserve-type" -}}
