@@ -568,6 +568,9 @@ units:
   sylva-prometheus-rules:
     enabled: true
 
+  sylva-dashboards:
+    enabled: true
+
   cert-manager:
     enabled: true
 
