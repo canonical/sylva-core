@@ -87,10 +87,10 @@ cluster:
       bmh_spec:
         bmc:
           address: redfish-virtualmedia://{{ .Values._internal.bootstrap_node_ip }}:8010/redfish/v1/Systems/c0014001-b10b-f001-c0de-feeb1e54ee15
-        bootMACAddress: 52:54:00:44:44:04
+        bootMACAddress: '52:54:00:44:44:04'
       interface_mappings:
         nic1:
-          mac_address: 52:54:00:44:44:04
+          mac_address: '52:54:00:44:44:04'
         nic2:
           inspection_name: ens5
       ip_preallocations:
@@ -103,12 +103,12 @@ cluster:
       bmh_spec:
         bmc:
           address: redfish-virtualmedia://{{ .Values._internal.bootstrap_node_ip }}:8011/redfish/v1/Systems/c0014001-b10b-f001-c0de-feeb1e54ee15
-        bootMACAddress: 52:54:00:44:44:05
+        bootMACAddress: '52:54:00:44:44:05'
       interface_mappings:
         nic1:
           inspection_name: ens4
         nic2:
-          mac_address: 52:54:00:55:55:05
+          mac_address: '52:54:00:55:55:05'
       ip_preallocations:
         primary: 192.168.100.71
 
@@ -119,12 +119,12 @@ cluster:
       bmh_spec:
         bmc:
           address: redfish-virtualmedia://{{ .Values._internal.bootstrap_node_ip }}:8012/redfish/v1/Systems/c0014001-b10b-f001-c0de-feeb1e54ee15
-        bootMACAddress: 52:54:00:44:44:06
+        bootMACAddress: '52:54:00:44:44:06'
       interface_mappings:
         nic1:
-          mac_address: 52:54:00:44:44:06
+          mac_address: '52:54:00:44:44:06'
         nic2:
-          mac_address: 52:54:00:55:55:06
+          mac_address: '52:54:00:55:55:06'
       ip_preallocations:
         primary: 192.168.100.72
 
@@ -135,11 +135,11 @@ cluster:
       bmh_spec:
         bmc:
           address: redfish-virtualmedia://{{ .Values._internal.bootstrap_node_ip }}:8013/redfish/v1/Systems/c0014001-b10b-f001-c0de-feeb1e54ee15
-        bootMACAddress: 52:54:00:44:44:07
+        bootMACAddress: '52:54:00:44:44:07'
       interface_mappings:
         ens4:
-          mac_address: 52:54:00:44:44:07
+          mac_address: '52:54:00:44:44:07'
         ens5:
-          mac_address: 52:54:00:55:55:07
+          mac_address: '52:54:00:55:55:07'
       ip_preallocations:
         primary: 192.168.100.73
