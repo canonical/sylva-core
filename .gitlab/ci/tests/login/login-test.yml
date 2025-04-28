@@ -48,7 +48,7 @@
   get_kepler_unit_enabled:
     - echo -e "\e[1m\e[0Ksection_start:`date +%s`:get_kepler_unit_enabled[collapsed=true]\r\e[0KGet Kepler unit status\e[0m"
     - export kepler_unit_enabled=$(kubectl --kubeconfig management-cluster-kubeconfig get secrets sylva-units-values -o yaml | yq .data.values | base64 -d | yq .units.kepler.enabled)
-
+  - echo -e "\e[0Ksection_end:`date +%s`:get_kepler_unit_enabled\r\e[0K"
 wkld-sso-kubeconfig:
   extends:
     - .test-base-workload-cluster
