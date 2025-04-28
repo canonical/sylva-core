@@ -2698,6 +2698,26 @@ units:
                 capabilities:
                   drop:
                     - ALL
+        - target:
+            group: apps
+            version: v1
+            kind: Deployment
+            name: rke2-bootstrap-controller-manager
+            namespace: rke2-bootstrap-system
+          patch: |-
+            - op: replace
+              path: /spec/template/spec/containers/0/image
+              value: ghcr.io/a-bouts/cluster-api-provider-rke2-bootstrap:fix-1
+        - target:
+            group: apps
+            version: v1
+            kind: Deployment
+            name: rke2-control-plane-controller-manager
+            namespace: rke2-control-plane-system
+          patch: |-
+            - op: replace
+              path: /spec/template/spec/containers/0/image
+              value: ghcr.io/a-bouts/cluster-api-provider-rke2-controlplane:fix-1
 
   cabpoa:
     info:
