@@ -353,6 +353,12 @@ units:
   external-secrets-operator:
     enabled: '{{ tuple . "kubevirt-manager" | include "unit-enabled" }}'
 
+  minio-velero-backup:
+    enabled: false
+  
+  minio-velero-backup-init:
+    enabled: true
+
   kubevirt:
     # can be enabled at runtime if desired
     enabled: false

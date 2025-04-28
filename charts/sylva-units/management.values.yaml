@@ -293,10 +293,10 @@ units:
     enabled: '{{ tuple . "logging" | include "unit-enabled" }}'
 
   minio-velero-backup:
-    enabled: true 
+    enabled: false
   
   minio-velero-backup-init:
-    enabled: true  
+    enabled: true
 
   snmp-exporter:
     enabled: '{{ tuple . "capm3" | include "unit-enabled" }}'

@@ -6667,6 +6667,8 @@ units:
       internal: true
     unit_templates:
     - base-deps
+    enabled_conditions:
+      - '{{ tuple . "minio-velero-backup" | include "unit-enabled" }}' # Ensure it is enabled when minio-velero-backup is enabled
     depends_on:
       namespace-defs: true
       sylva-ca: true
@@ -6695,10 +6697,11 @@ units:
 
   minio-velero-backup:
     info:
-      description: creates a MinIO tenant for the monitoring stack, used as S3 storage by Velero
+      description: creates a MinIO tenant for the minio-velero stack, used as S3 storage by Velero
       maturity: beta
     unit_templates:
     - base-deps
+    enabled: false
     depends_on:
       namespace-defs: true
       minio-operator: true
@@ -6832,7 +6835,7 @@ units:
       healthChecks:
         - apiVersion: apps/v1
           kind: StatefulSet
-          name: backup-pool-0  # concatenation from .tenant chart values .name & .pools[0].name
+          name: velero-backup-pool-0  # concatenation from .tenant chart values .name & .pools[0].name
           namespace: minio-velero-backup
 
   thanos-init:
