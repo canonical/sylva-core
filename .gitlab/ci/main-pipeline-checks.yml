@@ -318,25 +318,17 @@ check-ci-tests-doc:
 ###########################
 
 gitleaks:
-  rules:
-    - when: never
-
-# Customize gitleak job imported from to-be-continuous in order to checkout main
-# (needed for git to be able to retrieve commits from this branch not in main)
-gitleaks-custom:
   stage: gitleaks
   extends: gitleaks
+  interruptible: true
+  tags: []
   needs: []
-  before_script:
-    - echo GITLEAKS_ARGS=$GITLEAKS_ARGS
-    - !reference [gitleaks, before_script]
   variables:
-    GITLEAKS_ARGS: '--verbose --log-opts=origin/main..HEAD'
     GITLEAKS_RULES: .gitleaks.toml
   rules:
     - if: '$CI_PIPELINE_SOURCE == "pipeline"'   # Do not trigger gitleaks for cross-repo pipelines
       when: never
-    - if: $CI_BRANCH_NAME == "main"
+    - if: $CI_COMMIT_BRANCH == "main"
       variables:
         GITLEAKS_ARGS: '--verbose'    # on main, detect leaks on whole repo
     - when: always
