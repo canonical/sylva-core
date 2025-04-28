@@ -6572,13 +6572,16 @@ units:
                   - '{{ .Values.external_hostnames.minio_logging_console }}'
                 secretName: minio-logging-tls
     kustomization_spec:
-      # these healthChecks are added so that MinIO backend setup
-      # for tenant.minio.min.io/logging created by this unit is ready
       healthChecks:
-        - apiVersion: apps/v1
-          kind: StatefulSet
-          name: logging-pool-0  # concatenation from .tenant chart values .name & .pools[0].name
-          namespace: minio-logging
+      - apiVersion: minio.min.io/v2
+        kind: Tenant
+        name: logging
+        namespace: minio-logging
+      healthCheckExprs:
+      - apiVersion: minio.min.io/v2
+        kind: Tenant
+        current: status.healthStatus == "green"
+        failed: status.healthStatus != "green"
 
   minio-monitoring-init:
     info:
@@ -6795,13 +6798,16 @@ units:
                   - '{{ .Values.external_hostnames.minio_monitoring_console }}'
                 secretName: minio-monitoring-tls
     kustomization_spec:
-      # these healthChecks are added so that MinIO backend setup
-      # for tenant.minio.min.io/monitoring created by this unit is ready
       healthChecks:
-        - apiVersion: apps/v1
-          kind: StatefulSet
-          name: monitoring-pool-0  # concatenation from .tenant chart values .name & .pools[0].name
-          namespace: minio-monitoring
+      - apiVersion: minio.min.io/v2
+        kind: Tenant
+        name: monitoring
+        namespace: minio-monitoring
+      healthCheckExprs:
+      - apiVersion: minio.min.io/v2
+        kind: Tenant
+        current: status.healthStatus == "green"
+        failed: status.healthStatus != "green"
 
   thanos-init:
     info:
