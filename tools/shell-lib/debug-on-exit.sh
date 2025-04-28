@@ -135,7 +135,7 @@ function dump_additional_resources() {
 
         kubectl get $kind -A -o yaml --show-managed-fields &> $base_filename.yaml
       else
-        log_info "$cluster" ">> resource $cr doesn't exit in the cluster"
+        log_info "$cluster" ">> resource $cr doesn't exist in the cluster"
       fi
       } &
     done
