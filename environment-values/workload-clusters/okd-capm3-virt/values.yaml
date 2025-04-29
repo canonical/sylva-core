@@ -48,9 +48,9 @@ cluster:
       primary:
         subnet: 192.168.100.0/24
         gateway: 192.168.100.1
-        start: 192.168.100.2
-        end: 192.168.100.80
-
+        start: 192.168.100.60
+        end: 192.168.100.90
+        interface: nic1
   openshift:
     ingressVIP: 192.168.100.4
     baseDomain: okd
