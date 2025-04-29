@@ -1161,9 +1161,9 @@ units:
           external:
             host: cnpg-harbor-rw.harbor.svc.cluster.local
             port: "5432"
-            username: "app"
-            coreDatabase: "app"
-            existingSecret: "cnpg-harbor-app"
+            username: '{{ .Values._internal.mgmt_cluster | ternary "app" "harbor" }}'
+            coreDatabase: '{{ .Values._internal.mgmt_cluster | ternary "app" "harbor" }}'
+            existingSecret: '{{ .Values._internal.mgmt_cluster | ternary "cnpg-harbor-app" "harbor-postgres" }}'
         notary:
           enabled: false
         trivy:
