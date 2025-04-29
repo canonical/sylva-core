@@ -15,6 +15,8 @@ ALLOWED_EXCEPTIONS=(
   "metallb-resources:*" # Allow all actions for metallb-resources
   "ingress-nginx:Service.*removed" # Only allow service removal for ingress-nginx
   "k8s-gateway:Service.*removed" # Only allow service removal for k8s-gateway
+  "minio-monitoring:Tenant/.*/.* changed" # Allow changes for minio-monitoring tenant
+  "minio-logging:Tenant/.*/.* changed" # Allow changes for minio-logging tenant
   # Add more exceptions here in the format "resource:action_pattern"
 )
 
