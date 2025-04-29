@@ -8385,7 +8385,7 @@ metallb: {}
     #      transmitInterval: 1000
     #      detectMultiplier: 3
     #  bgp_peers:
-    #    - name: peerName
+    #    bgp-peer1:
     #      local_asn: 64511  # example only, must be updated
     #      peer_asn: 64510  # example only, must be updated
     #      peer_address: 10.122.22.129
