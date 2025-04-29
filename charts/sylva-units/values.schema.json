@@ -3127,20 +3127,6 @@
                   "type": "object",
                   "additionalProperties": false,
                   "properties": {
-                    "reserved_system_cores": {
-                      "anyOf": [
-                        {
-                          "type": "integer",
-                          "minimum": 1
-                        },
-                        {
-                          "$ref": "#/$defs/string-with-gotpl"
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    },
                     "hugepages": {
                       "anyOf": [
                         {
@@ -6555,7 +6541,7 @@
             {
               "type": "object",
               "patternProperties": {
-                "^[a-z0-9][a-z0-9-_]*[a-z0-9]$": {
+                "^[a-z0-9][a-z0-9-]*[a-z0-9]$": {
                   "anyOf": [
                     {
                       "allOf": [
