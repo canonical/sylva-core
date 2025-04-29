@@ -51,7 +51,8 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
     spec:
       url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-capi-cluster.git
       ref:
-        tag: 0.8.3
+        #tag: 0.8.3
+        branch: cm-freeze-files
 
   sync-openstack-images:
     kind: GitRepository
@@ -7998,6 +7999,8 @@ cluster:
     {{- $cluster_metallb_resources := dict }}
     {{- tuple $cluster_metallb_resources .Values.metallb .Values._internal.metallb | include "merge-append" }}
     {{ $cluster_metallb_resources | include "preserve-type" }}
+
+  freeze_first_node_files: '{{ .Values._internal.state.is_upgrade | include "preserve-type" }}'
 
 cluster_machines_ready:
   wait_timeout: 600s
