@@ -1,0 +1,32 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: generate-longhorn-encryption-secret--per-volume
+spec:
+  rules:
+    - name: generate-secret-on-pvc
+      match:
+        any:
+          - resources:
+              kinds:
+                - PersistentVolumeClaim
+      preconditions:
+        all:
+          - key: "{{ request.object.spec.storageClassName }}"
+            operator: Equals
+            value: "longhorn-encryption-per-volume"
+      generate:
+        apiVersion: v1
+        kind: Secret
+        name: "{{ request.object.metadata.name }}"     # Secret name = PVC name
+        namespace: "{{ request.namespace }}"            # Same namespace as PVC
+        synchronize: true
+        generateExisting: true
+        data:
+          stringData:
+            CRYPTO_KEY_VALUE: "{{ random('[a-z0-9]{32}') }}"
+            CRYPTO_KEY_PROVIDER: "secret"
+            CRYPTO_KEY_CIPHER: "aes-xts-plain64"
+            CRYPTO_KEY_HASH: "sha256"
+            CRYPTO_KEY_SIZE: "256"
+            CRYPTO_PBKDF: "argon2i"

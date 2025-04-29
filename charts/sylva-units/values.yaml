@@ -7938,6 +7938,51 @@ units:
             parameters:
               numberOfReplicas: "2"
 
+  longhorn-encrypted-storageclass:
+    info:
+      description: Defines an encrypted Longhorn storage class
+      internal: true
+    repo: sylva-core
+    unit_templates:
+    - base-deps
+    depends_on:
+      longhorn: true
+    enabled_conditions:
+      - '{{ .Values.cluster.enable_volume_encryption }}'
+      - '{{ tuple . "longhorn" | include "unit-enabled" }}'
+    kustomization_spec:
+      path: ./kustomize-units/longhorn-encrypted-storageclass
+      wait: true
+      postBuild:
+        substitute:
+          NODE_COUNT: '{{ .Values._internal.longhorn_node_count }}'
+      _patches:
+        - target:
+            kind: StorageClass
+          patch: |
+            kind: _unused_
+            metadata:
+              name: _unused_
+              annotations:
+                storageclass.kubernetes.io/is-default-class: '{{ .Values._internal.default_storage_class | eq "longhorn-encryption-per-volume" }}'
+
+  generate-secret-for-longhorn-encrypted-volume:
+    info:
+      description: generate the secret as per pvc name in the same namespace when a pvc using longhorn encrypted sc is used
+      internal: true
+    unit_templates:
+      - base-deps
+    enabled_conditions:
+      - '{{ tuple . "kyverno" | include "unit-enabled" }}'
+      - '{{ .Values.cluster.enable_volume_encryption }}'
+      - '{{ tuple . "longhorn" | include "unit-enabled" }}'
+    depends_on:
+      kyverno: true
+    repo: sylva-core
+    kustomization_spec:
+      path: ./kustomize-units/kyverno-policies/generate-secret-for-longhorn-encrypted-volume
+      wait: true
+
   sylva-prometheus-rules:
     info:
       description: installs prometheus rules using external helm chart & rules git repo
@@ -8456,6 +8501,7 @@ cluster:
       mtu: 1500 # set the default network interfaces MTU size
 
   enable_longhorn: '{{ tuple . "longhorn" | include "unit-enabled" | include "as-bool" }}'
+  enable_volume_encryption: false
 
   openshift:
     baseDomain: '{{ .Values.cluster_domain }}'
@@ -9322,7 +9368,19 @@ _internal:
 
   default_password: '{{ include "internalPersistentRandomPasswd" (tuple . "default_password") }}'
 
-  default_longhorn_storage_class: longhorn
+  default_longhorn_storage_class: >-
+    {{- if .Values.cluster.enable_volume_encryption }}
+      longhorn-encryption-per-volume
+    {{- else }}
+      {{- $nodeCount := int (tuple . .Values._internal.longhorn_node_count | include "interpret-as-string") -}}
+      {{- if eq $nodeCount 1 }}
+        single-replica-storageclass
+      {{- else if eq $nodeCount 2 }}
+        two-replicas-storageclass
+      {{- else }}
+        longhorn
+      {{- end }}
+    {{- end }}
 
   default_storage_class: >-
     {{- if .Values.default_storage_class -}}
