@@ -8402,6 +8402,9 @@ metallb: {}
     #      # or
     #        prefixes:
     #        - prefix: 10.10.10.10/32
+    #        - prefix: 192.168.2.0/24
+    #          ge: 25 
+    #          le: 28
     #address_pools:
     #  my-custom-pool:
     #    addresses:
