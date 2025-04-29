@@ -189,7 +189,10 @@ function crust_gather_collect() {
 
   rm -rf "crust-gather/$cluster"
   mkdir -p "crust-gather/$cluster"
-  https_proxy="" crustgather collect --exclude-group="catalog.cattle.io" --exclude-kind=Secret -f crust-gather/$cluster &> "crust-gather/$cluster/crustgather.log"
+  https_proxy="" crustgather collect \
+      --exclude-kind="(Secret|Token)" \
+      --exclude-group="catalog.cattle.io" \
+      -f crust-gather/$cluster &> "crust-gather/$cluster/crustgather.log"
 
   return 0
 }
