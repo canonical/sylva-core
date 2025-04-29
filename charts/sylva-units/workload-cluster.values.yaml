@@ -285,9 +285,6 @@ units:
 #  cnpg-operator:
 #    enabled: true
 
-  cnpg-operator:
-    enabled: true
-
   harbor:
     # can be enabled at runtime if desired
     enabled: false
