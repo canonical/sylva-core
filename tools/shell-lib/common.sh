@@ -120,7 +120,7 @@ function set_current_namespace {
 function check_pivot_has_ran() {
   if kubectl wait --for condition=complete --timeout=0s job pivot -n sylva-system > /dev/null 2>&1; then
       if [ ! -f "management-cluster-kubeconfig" ]; then
-          kubectl get secret management-cluster-kubeconfig-copy -o jsonpath='{.data.value}' 2>/dev/null | base64 -d > management-cluster-kubeconfig
+        retrieve_kubeconfig "from_copy" 
       fi
       echo_b "\U000274C The pivot job has already ran and moved resources to the management cluster. Please use apply.sh instead of bootstrap.sh"
       exit 1
@@ -138,11 +138,16 @@ function validate_input_values {
 }
 
 function retrieve_kubeconfig {
+    local _options=${1:-}
     orig_umask=$(umask)
     umask og-rw
-    until kubectl get secret $(kubectl get cluster.cluster.x-k8s.io -o jsonpath='{ $.items[*].metadata.name}' 2>/dev/null)-kubeconfig -o jsonpath='{.data.value}' 2>/dev/null | base64 -d > management-cluster-kubeconfig; do
-        sleep 2
-    done
+    if [[ $_options == "from_copy" ]]; then
+      kubectl get secret management-cluster-kubeconfig-copy -o jsonpath='{.data.value}' 2>/dev/null | base64 -d > management-cluster-kubeconfig
+    else
+      until kubectl get secret $(kubectl get cluster.cluster.x-k8s.io -o jsonpath='{ $.items[*].metadata.name}' 2>/dev/null)-kubeconfig -o jsonpath='{.data.value}' 2>/dev/null | base64 -d > management-cluster-kubeconfig; do
+          sleep 2
+      done
+    fi
     # Check if there is an alternative public endpoint declared in values, in which case we modify kubeconfig to use it
     if kubectl get secret sylva-units-values -o template='{{ .data.values }}' | base64 -d | yq -e .cluster_public_endpoint &> /dev/null; then
         CLUSTER_PUBLIC_ENDPOINT=$(kubectl get secret sylva-units-values -o template='{{ .data.values }}' | base64 -d | yq -e .cluster_public_endpoint)
