@@ -3483,6 +3483,19 @@
             }
           ]
         },
+        "check_cluster_name": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "$ref": "#/$defs/string-with-gotpl"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
         "resource_groups": {
           "anyOf": [
             {
@@ -6746,7 +6759,82 @@
                   }
                 ]
               }
-            }
+            },
+            "oneOf": [
+              {
+                "required": [
+                  "name"
+                ],
+                "properties": {
+                  "name": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "format": "hostname",
+                        "pattern": "^[a-zA-Z][a-zA-Z0-9_.-]*$"
+                      },
+                      {
+                        "$ref": "#/$defs/string-with-gotpl"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "check_cluster_name": {
+                    "anyOf": [
+                      {
+                        "enum": [
+                          true
+                        ]
+                      },
+                      {
+                        "$ref": "#/$defs/string-with-gotpl"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                }
+              },
+              {
+                "required": [
+                  "name"
+                ],
+                "properties": {
+                  "name": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "format": "hostname"
+                      },
+                      {
+                        "$ref": "#/$defs/string-with-gotpl"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "check_cluster_name": {
+                    "anyOf": [
+                      {
+                        "enum": [
+                          false
+                        ]
+                      },
+                      {
+                        "$ref": "#/$defs/string-with-gotpl"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                }
+              }
+            ]
           }
         },
         {

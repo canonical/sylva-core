@@ -51,7 +51,8 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
     spec:
       url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-capi-cluster.git
       ref:
-        tag: 0.9.0
+        #tag: 0.9.0
+        branch: ba/cluster_name
 
   sync-openstack-images:
     kind: GitRepository
@@ -7826,6 +7827,8 @@ cluster:
   # cis profile to be used. Curently supported only for rke2 clusters. "cis-1.6" for k8s prior to 1.25, "cis-1.23" for 1.25+
   cis_profile: cis
 
+  # check if the cluster name is starting with a number/applied  only for capo deployments
+  check_cluster_name: true
   # for now, the choice below needs to be made
   # consistently with the choice of a matching kustomization path
   # for the 'cluster' unit
