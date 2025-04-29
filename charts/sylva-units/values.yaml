@@ -4650,7 +4650,7 @@ units:
               platform_tag: '{{ .Values.monitoring.platform_tag }}'
             remoteWriteDashboards: true
             remoteWrite:
-              - url: '{{ .Values.monitoring.thanos_receive_url }}'
+              - url: '{{ .Values.monitoring.thanos.receive_url }}'
                 name: '{{ .Values.cluster.name }}'
                 basicAuth:
                   username:
