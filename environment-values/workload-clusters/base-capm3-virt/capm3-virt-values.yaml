@@ -12,8 +12,6 @@ cluster:
     - '{{ .Values._internal.bootstrap_node_ip }}'
 
   capm3:
-    os_image_selector:
-      os: ubuntu
     networks:
       primary:
         subnet: 192.168.100.0/24
@@ -113,4 +111,3 @@ cluster:
         bootMACAddress: 52:54:00:44:44:01
       ip_preallocations:
         primary: 192.168.100.70
-
