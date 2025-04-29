@@ -7591,7 +7591,7 @@ units:
     depends_on:
       longhorn: true
     enabled_conditions:
-      - '{{ tuple . "minio-monitoring" | include "unit-enabled" }}'
+      - '{{ eq .Values._internal.longhorn_node_count "1" }}'
       - '{{ tuple . "longhorn" | include "unit-enabled" }}'
     kustomization_spec:
       path: ./kustomize-units/longhorn-storageclass
@@ -7621,7 +7621,9 @@ units:
     depends_on:
       longhorn: true
     enabled_conditions:
-      - '{{ or (tuple . "minio-monitoring" | include "unit-enabled") (tuple . "minio-logging" | include "unit-enabled") }}'
+      - '{{ or (tuple . "minio-monitoring" | include "unit-enabled")
+               (tuple . "minio-logging" | include "unit-enabled")
+               (eq .Values._internal.longhorn_node_count "2") }}'
       - '{{ tuple . "longhorn" | include "unit-enabled" }}'
     kustomization_spec:
       path: ./kustomize-units/longhorn-storageclass
@@ -8942,6 +8944,8 @@ _internal:
           {{- end -}}
         {{- end -}}
       {{- end -}}
+      {{- tuple . "_internal.node_count" | include "interpret" -}}
+      {{- $count = min $count .Values._internal.node_count -}}
     {{- $count -}}
     '
 
