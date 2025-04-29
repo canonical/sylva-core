@@ -8397,7 +8397,7 @@ metallb: {}
     #      advertised_pools:
     #        - lbpool  # default IP pool used for kube-api and ingress exposure
     #        - my-custom-pool  # additional IP pools to be advertised to this peer
-    #      receive_routes:
+    #      receive_routes:  # optional, only for learning routes from BGP peers on secondary interfaces
     #        mode: all
     #      # or
     #        prefixes:
