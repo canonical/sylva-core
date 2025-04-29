@@ -2825,7 +2825,7 @@ units:
     unit_templates:
     - base-deps
     annotations:
-      sylvactl/unitTimeout: 20m
+      sylvactl/unitTimeout: '{{ printf "%dm" ( include "cluster-unit-timeout" . | int) }}'
     depends_on:
       metal3-sylva-ca-init: '{{ tuple . "metal3-sylva-ca-init" | include "unit-enabled" }}'
       namespace-defs: true
@@ -3538,7 +3538,7 @@ units:
     depends_on:
       calico: true
     annotations:
-      sylvactl/unitTimeout: 15m
+      sylvactl/unitTimeout: '{{ printf "%dm" ( include "cluster-unit-timeout" . | int) }}'
     kustomization_spec:
       targetNamespace: default
       kubeConfig:
@@ -3592,7 +3592,7 @@ units:
     unit_templates:
     - base-deps
     annotations:
-      sylvactl/unitTimeout: 20m
+      sylvactl/unitTimeout: '{{ printf "%dm" ( include "cluster-unit-timeout" . | int) }}'
     depends_on:
       metallb: '{{ not .Values._internal.state.is_upgrade }}'
     repo: metallb-resources
@@ -4191,7 +4191,7 @@ units:
     unit_templates:
     - base-deps
     annotations:
-      sylvactl/unitTimeout: 10m
+      sylvactl/unitTimeout: '{{ printf "%dm" ( include "cluster-unit-timeout" . | int) }}'
     depends_on:
       ingress-nginx-init: '{{ tuple . "ingress-nginx-init" | include "unit-enabled" }}'
       metallb-resources: '{{ tuple . "metallb" | include "unit-enabled" }}'

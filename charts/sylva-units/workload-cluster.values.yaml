@@ -445,7 +445,7 @@ units:
   cluster-import:
     enabled: false  # overriden depending on whether Rancher is enabled or not (eg. via shared-workload-clusters-settings)
     annotations:
-      sylvactl/unitTimeout: 15m
+      sylvactl/unitTimeout: '{{ printf "%dm" ( include "cluster-unit-timeout" . | int) }}'
     info:
       description: imports workload cluster into Rancher
       internal: true
