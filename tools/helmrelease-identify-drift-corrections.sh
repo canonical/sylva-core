@@ -26,7 +26,7 @@ while IFS= read -r line; do
     # Extract HelmRelease name and the drift action
     hr_name=$(echo "$line" | sed -E 's/.*HelmRelease.*"name":"([^"]+)".*/\1/')
     action=$(echo "$line" | sed -E 's/.*has drifted from the desired state:\\n(.*)"/\1/')
-    
+
     # Store the action for this HelmRelease
     if [[ -z "${DRIFT_ACTIONS[$hr_name]}" ]]; then
       DRIFT_ACTIONS[$hr_name]="$action"
@@ -49,15 +49,15 @@ else
 
   for hr in $DRIFTED_HRS; do
     echo "   🔹 $hr"
-    
+
     is_unexpected=true
     actions="${DRIFT_ACTIONS[$hr]}"
-    
+
     # Check if this specific action is allowed for this helm release
     for exception in "${ALLOWED_EXCEPTIONS[@]}"; do
       exception_helmrelease="${exception%%:*}"
       exception_pattern="${exception#*:}"
-      
+
       if [[ "$hr" == "$exception_helmrelease" ]]; then
         if [[ "$exception_pattern" == "*" ]] || [[ -n "$actions" && "$actions" =~ $exception_pattern ]]; then
           is_unexpected=false
@@ -65,7 +65,7 @@ else
         fi
       fi
     done
-    
+
     if [[ "$is_unexpected" == true ]]; then
       UNEXPECTED_DRIFTS+=("$hr")
     fi
@@ -78,7 +78,7 @@ else
       echo "   🔹 $component"
       echo "      Action: ${DRIFT_ACTIONS[$component]}"
     done
-    
+
     # Clean up log file
     rm -f "$LOG_FILE"
     exit 1
