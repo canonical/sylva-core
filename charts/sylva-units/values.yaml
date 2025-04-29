@@ -7892,7 +7892,7 @@ cluster:
     calico:
       helm_values: '{{ .Values.calico_helm_values | include "preserve-type" }}'
 
-  metallb_helm_values: '{{ .Values.metallb_helm_values | include "preserve-type" }}'
+  metallb_helm_values: '{{ omit .Values.metallb_helm_values "prometheus" | include "preserve-type" }}'
 
   ntp: '{{ .Values.ntp | include "preserve-type" }}'
   proxies:
@@ -8965,7 +8965,9 @@ _internal:
     }}'
 
   metallb_values_check: >-
-    {{- if ne (.Values.cluster.metallb_helm_values | toYaml) (.Values.units.metallb.helmrelease_spec.values | toYaml) }}
+    {{- tuple . "cluster.metallb_helm_values" | include "interpret" -}}
+    {{- tuple . "units.metallb.helmrelease_spec.values" | include "interpret" -}}
+    {{- if ne (omit .Values.cluster.metallb_helm_values "prometheus" | toYaml) (omit .Values.units.metallb.helmrelease_spec.values "prometheus" | toYaml) }}
       {{ printf "The Helm values for Metallb are different between the cluster and the metallb unit. It is recomended to use `.Values.metallb_helm_values` to ensure consistency." | fail }}
     {{- end }}
 
