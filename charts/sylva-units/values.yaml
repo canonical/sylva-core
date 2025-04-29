@@ -8403,7 +8403,7 @@ metallb: {}
     #        prefixes:
     #        - prefix: 10.10.10.10/32
     #address_pools:
-    #  - name: my-custom-pool
+    #  my-custom-pool:
     #    addresses:
     #      - 10.122.22.151/32
     #      - 10.10.10.10-10.10.10.120
