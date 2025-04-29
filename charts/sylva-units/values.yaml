@@ -5056,6 +5056,23 @@ units:
                     # to workaround the issue described at https://github.com/suse-edge/charts/issues/203
           image:
             repository: registry.suse.com/rancher/hardened-node-feature-discovery
+      _postRenderers:
+        - kustomize:
+            patches:
+              - target:
+                  kind: SriovOperatorConfig
+                  name: default
+                  namespace: cattle-sriov-system
+                patch: |
+                  - op: add
+                    path: /spec/disableDrain
+                    value: false
+                  - op: add
+                    path: /spec/enableInjector
+                    value: false
+                  - op: add
+                    path: /spec/enableOperatorWebhook
+                    value: false
     kustomization_spec:
       _components:
       - ../kyverno-policies/sriov-network-operator
