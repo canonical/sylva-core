@@ -7835,23 +7835,6 @@ cluster:
     {{- $cluster_metallb_resources := dict }}
     {{- tuple $cluster_metallb_resources .Values.metallb .Values._internal.metallb | include "merge-append" }}
     {{ $cluster_metallb_resources | include "preserve-type" }}
-      #l3_options:
-      #  bgp_peers:
-      #    - name: peerName
-      #      local_asn: 64511  # example only, must be updated
-      #      peer_asn: 64510  # example only, must be updated
-      #      peer_address: 10.122.22.129
-      #      node_selectors:
-      #        - matchLabels:
-      #            kubernetes.io/hostname: hostB #  to limit BGP peerings to certain nodes
-      #      advertised_pools:
-      #        - lbpool  # default IP pool used for kube-api and ingress exposure
-      #        - my-custom-pool  # additional IP pools to be advertised to this peer
-      #address_pools:
-      #  - name: my-custom-pool
-      #    addresses:
-      #      - 10.122.22.151/32
-      #      - 10.10.10.10-10.10.10.120
 
 cluster_machines_ready:
   wait_timeout: 600s
@@ -8396,14 +8379,29 @@ metallb: {}
 
   #bgp_lbs: # add your metallb-l3 config if required
     #l3_options:
+    #  bfd_profiles:
+    #    bfd-profile-bgp:
+    #      receiveInterval: 1000
+    #      transmitInterval: 1000
+    #      detectMultiplier: 3
     #  bgp_peers:
     #    - name: peerName
     #      local_asn: 64511  # example only, must be updated
     #      peer_asn: 64510  # example only, must be updated
     #      peer_address: 10.122.22.129
+    #      password: bgp-peer-password
+    #      bfd_profile: bfd-profile-bgp
+    #      node_selectors:
+    #        - matchLabels:
+    #            kubernetes.io/hostname: hostB
     #      advertised_pools:
     #        - lbpool  # default IP pool used for kube-api and ingress exposure
     #        - my-custom-pool  # additional IP pools to be advertised to this peer
+    #      receive_routes:
+    #        mode: all
+    #      # or
+    #        prefixes:
+    #        - prefix: 10.10.10.10/32
     #address_pools:
     #  - name: my-custom-pool
     #    addresses:
