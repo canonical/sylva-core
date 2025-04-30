@@ -96,6 +96,17 @@ def test_grafana_sso(page: Page, grafana_url):
     expect(page).to_have_title("Dashboards - Grafana")
 
 
+# Test for Kepler Dashboard reachability
+@pytest.mark.skipif(os.getenv("kepler_unit_enabled") != 'true', reason="Kepler unit is not enabled", all=True)
+@pytest.mark.skipif(not os.getenv("grafana_url"), reason="Grafana URL not provided", all=True)
+def test_grafana_sso_with_kepler(page: Page, grafana_url):
+    test_grafana_sso(page, grafana_url)
+    # filter out other dashboard to avoid scroll down
+    page.goto(grafana_url + "/dashboards?query=kepler")
+    page.locator('a[href*="kepler-exporter-dashboard"]').click()
+    expect(page.locator('span[title="Kepler Exporter Dashboard"]')).to_be_visible()
+
+
 @pytest.mark.skipif(not os.getenv("gitea_url"), reason="Gitea URL not provided", all=True)
 def test_gitea_sso(page: Page, gitea_url):
     response = page.goto(gitea_url)
