@@ -5034,11 +5034,20 @@ units:
           chart: sriov-network-operator
           version: 1.5.0
       values:
-        cert_manager: true
         sriov-nfd:  # override of https://github.com/suse-edge/charts/blob/39a276168895d136c10e5a06d16f85d2d2fb7120/charts/sriov-network-operator/1.5.0/charts/sriov-nfd/values.yaml#L2
                     # to workaround the issue described at https://github.com/suse-edge/charts/issues/203
           image:
             repository: registry.suse.com/rancher/hardened-node-feature-discovery
+        operator:
+          admissionControllers:
+            enabled: true
+            certificates:
+              secretNames:
+                operator: "operator-webhook-cert"
+                injector: "network-resources-injector-cert"
+              certManager:
+                enabled: true
+                generateSelfSigned: true
     kustomization_spec:
       _components:
       - ../kyverno-policies/sriov-network-operator
