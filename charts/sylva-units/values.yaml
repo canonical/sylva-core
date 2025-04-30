@@ -3483,6 +3483,7 @@ units:
       - '{{ or (.Values.cluster.capi_providers.infra_provider | eq "capd")
                (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpr") }}'
     depends_on:
+      monitoring-crd: '{{ tuple . "monitoring-crd" | include "unit-enabled" }}'
       '{{ .Values._internal.calico_readiness_unit }}': '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpk" }}'
       cluster-vip: '{{ and (tuple . "cluster-vip" | include "unit-enabled") .Values._internal.state.is_upgrade }}'
       metallb-resources: '{{ .Values._internal.state.is_upgrade }}'  # on upgrade from Sylva 1.3 to 1.4, we need metallb-resources unit
@@ -8611,12 +8612,18 @@ calico_helm_values:
     wireguardEnabled: '{{ .Values.security.calico_wireguard_enabled | include "preserve-type" }}'
 
 metallb_helm_values:
-  prometheus:
-    rbacPrometheus: true
-    serviceAccount: "rancher-monitoring-prometheus"
-    namespace: "cattle-monitoring-system"
-    serviceMonitor:
-      enabled: true
+  prometheus: >-
+    {{
+    tuple (dict
+               "rbacPrometheus" true
+               "serviceAccount" "rancher-monitoring-prometheus"
+               "namespace"      "cattle-monitoring-system"
+               "serviceMonitor" (dict "enabled" true)
+          )
+          (tuple . "monitoring" | include "unit-enabled")
+      | include "set-only-if"
+    }}
+
   loadBalancerClass: '{{ .Values._internal.loadBalancerClass }}'
   controller:
     nodeSelector:
