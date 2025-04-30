@@ -50,7 +50,6 @@ cluster:
         gateway: 192.168.100.1
         start: 192.168.100.60
         end: 192.168.100.90
-        interface: nic1
   openshift:
     ingressVIP: 192.168.100.4
     baseDomain: okd
@@ -62,13 +61,6 @@ cluster:
       hostSelector:
         matchLabels:
           cluster-role: control-plane
-      networks:
-        primary:
-          interface: nic1
-
-    network_interfaces:
-      nic1:
-        type: phy
 
   machine_deployments:
     md0:
