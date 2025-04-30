@@ -33,6 +33,9 @@ units:
   capv:
     enabled: '{{ .Values.cluster.capi_providers.infra_provider | eq "capv" }}'
 
+  capone:
+    enabled: '{{ .Values.cluster.capi_providers.infra_provider | eq "capone" }}'
+
   cabpk:  # kubeadm
     enabled: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpk" }}'
 
