@@ -15,5 +15,5 @@ labels:
 images:
 - name: ghcr.io/rancher/cluster-api-provider-rke2-controlplane
   newName: registry.gitlab.com/sylva-projects/sylva-elements/container-images/sandbox-registry/cluster-api-provider-rke2-controlplane-amd64
-  newTag: 0.12.0-skip-etcd-membership-removal
+  newTag: 0.13.0-skip-etcd-membership-removal
 
