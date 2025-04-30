@@ -21,12 +21,9 @@ SYLVA_TOOLBOX_REGISTRY=${SYLVA_TOOLBOX_REGISTRY:-${SYLVA_BASE_OCI_REGISTRY}/sylv
 export KIND_POD_SUBNET=${KIND_POD_SUBNET:-100.100.0.0/16}
 export KIND_SVC_SUBNET=${KIND_SVC_SUBNET:-100.96.0.0/16}
 
-if [[ -n "${CI_JOB_NAME:-}" ]]; then
-  export IN_CI=1
+if [[ -n "${CI:-}" ]]; then
   SYLVACTL_SAVE=1
   CHECK_TEST_UNITS=1
-else
-  export IN_CI=0
 fi
 
 function check_args() {
@@ -229,7 +226,7 @@ function exit_trap() {
     EXIT_CODE=$?
 
     # Call debug script if needed
-    if [[ $EXIT_CODE -ne 0 && ${DEBUG_ON_EXIT:-"0"} -eq 1 ]] || [[ $IN_CI -eq 1 ]]; then
+    if [[ $EXIT_CODE -ne 0 && ${DEBUG_ON_EXIT:-"0"} -eq 1 ]] || [[ -n "${CI:-}" ]]; then
         echo_b "gathering debugging logs in debug-on-exit.log file"
         ${BASE_DIR}/tools/shell-lib/debug-on-exit.sh 2>&1 | tee debug-on-exit.log
         end_section
