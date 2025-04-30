@@ -1284,8 +1284,19 @@ properties:
                   const: oci
           then:
             required: [oci_registry, oci_user, oci_token]
-
-
+      trivy_operator:
+        type: object
+        properties:
+          mirrors:
+            type: object
+            patternProperties:
+              "^[a-z0-9][a-z0-9.-]*[a-z0-9]$":
+                type: string
+          insecure_registries:
+            type: object
+            patternProperties:
+              "^[a-z0-9][a-z0-9.-]*[a-z0-9]$":
+                type: string
 
   monitoring:  # -------------------------------
     type: object
