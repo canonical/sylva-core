@@ -191,6 +191,8 @@ units:
           enabled: false
         kubeScheduler:
           enabled: false
+        kubeEtcd:
+          enabled: false
         defaultRules:
           rules:
             kubeApiserverSlos: false
