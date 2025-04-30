@@ -10,5 +10,5 @@ spec:
     address: https://vault.vault.svc.cluster.local:8200
   authentication:
     path: kubernetes
-    role: admin
+    role: oidc-auth-manager
   type: oidc

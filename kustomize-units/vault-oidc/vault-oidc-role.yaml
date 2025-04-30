@@ -11,16 +11,15 @@ spec:
     address: https://vault.vault.svc.cluster.local:8200
   authentication:
     path: kubernetes
-    role: admin
+    role: oidc-auth-manager
   path: oidc
   userClaim: sub
   allowedRedirectURIs:
     - "https://${VAULT_DNS}/v1/auth/oidc/oidc/callback"
     - "https://${VAULT_DNS}/ui/vault/auth/oidc/oidc/callback"
   groupsClaim: group
-  tokenPolicies: # SSO user can read the secret path and gains admin privileges
+  tokenPolicies: # SSO user can read the secret path
     - secret-reader
-    - admin
   tokenTTL: 1h
   boundAudiences:
     - vault

@@ -164,52 +164,47 @@ spec:
   externalConfig:
     policies:
       - name: secret-reader
-        rules: path "secret/*" {
+        rules: |
+         path "secret/*" {
           capabilities = [ "read", "list" ]
-          }
-      - name: secret-writer
+         }
+      - name: secret-rw
         rules: |
          path "secret/data/*" {
-            capabilities = [ "create", "update", "delete" ]
+            capabilities = [ "create", "update", "read", "delete", "list" ]
          }
 
          path "secret/metadata/*" {
             capabilities = [ "delete" ]
          }
 
+         # required to create and use the password policy
+
+         path "sys/policies/password/sylva-password-policy" {
+          capabilities = ["create", "read", "sudo", "update"]
+         }
+
          path "/sys/policies/password/+/generate" {
            capabilities = [ "read" ]
          }
 
-      - name: admin
+      - name: oidc-auth-manager
         rules: |
          path "sys/health" {
           capabilities = ["read", "sudo"]
          }
 
-         # Create and manage system policies broadly across vault using policy api endpoint
-         path "sys/policy/*" {
-          capabilities = ["create", "read", "update", "delete", "list", "sudo"]
+         # Enable and manage oidc auth method
+
+         path "auth/oidc*" {
+           capabilities = ["create", "read", "update", "delete", "sudo"]
          }
 
-         # Create and manage system policies broadly across vault using policies api endpoint
-         path "sys/policies/*" {
-          capabilities = ["create", "read", "update", "delete", "list", "sudo"]
-         }
-
-         # Enable and manage authentication methods broadly across Vault
-
-         path "auth/*" {
-           capabilities = ["create", "read", "update", "delete", "list", "sudo"]
-         }
-
-         # Create, update, and delete auth methods
-
-         path "sys/auth/*" {
+         path "sys/auth/oidc*" {
            capabilities = ["create", "update", "delete", "read", "sudo" ]
          }
 
-         # List auth methods
+         # Read auth methods
          path "sys/auth" {
            capabilities = ["read"]
          }
@@ -223,15 +218,15 @@ spec:
             bound_service_account_namespaces: ["vault"]
             policies: [ "secret-reader"]
             ttl: 1h
-          - name: admin
+          - name: oidc-auth-manager
             bound_service_account_names: [ "default", "vault"]
             bound_service_account_namespaces: ["vault", "keycloak"]
-            policies: [ "admin" ]
+            policies: [ "oidc-auth-manager" ]
             ttl: 1h
-          - name: secret-writer
-            bound_service_account_names: [ "vault"]
+          - name: secret-rw
+            bound_service_account_names: ["vault"]
             bound_service_account_namespaces: ["vault"]
-            policies: [ "secret-writer" ]
+            policies: [ "secret-rw" ]
             ttl: 1h
 
     secrets:
