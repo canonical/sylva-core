@@ -5913,6 +5913,36 @@ units:
             patches:
             - '{{ .Values._internal.pdb_allow_unhealthy_pod_eviction | include "preserve-type" }}'
 
+  gitea-cnpg-postgres:
+    info:
+      description: Deploy Postgres cluster for Gitea using Cloud Native PostgreSQL (CNPG)
+      maturity: stable
+      internal: true
+    depends_on:
+      cnpg-operator: true
+      namespace-defs: true
+      gitea-eso: true
+      gitea-keycloak-resources: true
+      gitea-secrets: true
+      gitea-redis: true
+      '{{ .Values._internal.default_storage_class_unit }}': true
+    unit_templates:
+      - base-deps
+    enabled_conditions:
+      - '{{ tuple . "gitea" | include "unit-enabled" }}'
+    repo: sylva-core
+    kustomization_spec:
+      postBuild:
+        substitute:
+          GITEA_POSTGRES_REPLICAS: '{{ .Values._internal.ha_cluster.is_ha | ternary 3 1 }}'
+          storageClass: '{{ .Values._internal.default_storage_class }}'
+          podAntiAffinityType: '{{ .Values._internal.ha_cluster.is_ha | ternary "required" "preferred" }}'
+      path: ./kustomize-units/gitea-postgres
+      wait: true
+      _components:
+        - '{{ tuple "./components/ha" (.Values._internal.ha_cluster.is_ha) | include "set-only-if" }}'
+        - '{{ tuple "./components/gitea-upgrade-db" (and .Values._internal.state.is_upgrade (tuple . "gitea" | include "unit-enabled")) | include "set-only-if" }}'
+
   gitea:
     info:
       description: installs Gitea
@@ -5927,6 +5957,7 @@ units:
       gitea-secrets: true
       gitea-redis: true
       gitea-postgresql-ha: true
+      gitea-cnpg-postgres: true
       namespace-defs: true
       '{{ .Values._internal.default_storage_class_unit }}': true
     annotations:
@@ -5994,9 +6025,9 @@ units:
               ENABLE_PPROF: true
             database:
               DB_TYPE: postgres
-              HOST: gitea-postgres-postgresql-ha-pgpool.gitea.svc.cluster.local:5432
-              NAME: gitea
-              USER: gitea
+              HOST: cnpg-gitea-rw.gitea.svc.cluster.local:5432
+              NAME: app
+              USER: app
               # define by env variable: PASSWD
               SCHEMA: public
             session:
@@ -6017,7 +6048,7 @@ units:
               valueFrom:
                 secretKeyRef:
                   key: password
-                  name: gitea-postgres-secrets
+                  name: cnpg-gitea-app
             - name: GITEA__QUEUE__CONN_STR # redis connection string for queue
               valueFrom:
                 secretKeyRef:

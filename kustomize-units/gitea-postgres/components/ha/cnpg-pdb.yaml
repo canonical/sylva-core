@@ -1,0 +1,30 @@
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  labels:
+    cnpg.io/cluster: cnpg-gitea
+  name: cnpg-gitea
+  namespace: gitea
+spec:
+  minAvailable: 1
+  unhealthyPodEvictionPolicy: AlwaysAllow
+  selector:
+    matchLabels:
+      cnpg.io/cluster: cnpg-gitea
+      cnpg.io/instanceRole: replica
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  labels:
+    cnpg.io/cluster: cnpg-gitea
+  name: cnpg-gitea-primary
+  namespace: gitea
+spec:
+  minAvailable: 1
+  unhealthyPodEvictionPolicy: AlwaysAllow
+  selector:
+    matchLabels:
+      cnpg.io/cluster: cnpg-gitea
+      cnpg.io/instanceRole: primary
