@@ -26,6 +26,12 @@ spec:
           kinds:
           - helm.toolkit.fluxcd.io/*/HelmRelease
           - helm.toolkit.fluxcd.io/*/HelmRelease/status
+          selector:
+            matchExpressions:
+              - key: metadata.name
+                operator: NotIn
+                values:
+                  - sylva-units
     context:
     - name: reconcileDate
       variable:
@@ -51,10 +57,6 @@ spec:
         value: "{{ request.object.metadata.annotations.\"sylva/force-reconcile-at\" || time_truncate(time_now_utc(), '2h') }}"
     preconditions:
       all:
-      # Do not force reconciliate for "sylva-units" Helm Chart
-      - key: "{{ request.object.spec.chart.name }}"
-        operator: NotEquals
-        value: "sylva-units"
       # Install or upgrade has failed
       - key: "{{ request.object.status.conditions || `[]` | [?type == 'Ready'].reason | [0] || 'NotFound' }}"
         operator: AnyIn
