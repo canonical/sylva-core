@@ -926,6 +926,19 @@
                 }
               ]
             },
+            "configDrive": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "$ref": "#/$defs/string-with-gotpl"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
             "rootVolume": {
               "anyOf": [
                 {
@@ -2676,6 +2689,19 @@
                         }
                       ]
                     },
+                    "configDrive": {
+                      "anyOf": [
+                        {
+                          "type": "boolean"
+                        },
+                        {
+                          "$ref": "#/$defs/string-with-gotpl"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
                     "rootVolume": {
                       "anyOf": [
                         {
@@ -3127,6 +3153,20 @@
                   "type": "object",
                   "additionalProperties": false,
                   "properties": {
+                    "reserved_system_cores": {
+                      "anyOf": [
+                        {
+                          "type": "integer",
+                          "minimum": 1
+                        },
+                        {
+                          "$ref": "#/$defs/string-with-gotpl"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
                     "hugepages": {
                       "anyOf": [
                         {
@@ -3913,6 +3953,19 @@
                   "anyOf": [
                     {
                       "type": "string"
+                    },
+                    {
+                      "$ref": "#/$defs/string-with-gotpl"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "configDrive": {
+                  "anyOf": [
+                    {
+                      "type": "boolean"
                     },
                     {
                       "$ref": "#/$defs/string-with-gotpl"
@@ -5745,6 +5798,19 @@
                             }
                           ]
                         },
+                        "configDrive": {
+                          "anyOf": [
+                            {
+                              "type": "boolean"
+                            },
+                            {
+                              "$ref": "#/$defs/string-with-gotpl"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
                         "rootVolume": {
                           "anyOf": [
                             {
@@ -6541,7 +6607,7 @@
             {
               "type": "object",
               "patternProperties": {
-                "^[a-z0-9][a-z0-9-]*[a-z0-9]$": {
+                "^[a-z0-9][a-z0-9-_]*[a-z0-9]$": {
                   "anyOf": [
                     {
                       "allOf": [
