@@ -51,7 +51,7 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
     spec:
       url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-capi-cluster.git
       ref:
-        tag: 0.8.2
+        branch: refacto/modularity
 
   sync-openstack-images:
     kind: GitRepository
@@ -2896,7 +2896,7 @@ units:
       targetNamespace: '{{ .Release.Namespace }}'
       chart:
         spec:
-          chart: .
+          chart: charts/sylva-capi-cluster
       values:
         resource_groups:
           - baremetal-hosts
@@ -3013,7 +3013,7 @@ units:
       targetNamespace: '{{ .Release.Namespace }}'
       chart:
         spec:
-          chart: .
+          chart: charts/sylva-capi-cluster
       values:
         resource_groups:
           - cluster-resource
