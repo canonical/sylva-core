@@ -2862,9 +2862,60 @@ units:
           - node: DEFAULT_PATH_FOR_NON_LISTED_NODES
             paths:
               - /var/lib/kubelet/local-path-provisioner
-        helperImage:
-          repository: docker.io/library/busybox
-          tag: 1.37.0
+        helperImage: 
+          repository: >-
+            {{- if eq .Values.cluster.capi_providers.bootstrap_provider "cabpoa" }} 
+            registry.access.redhat.com/ubi8
+            {{- else }}
+            docker.io/library/busybox
+            {{- end }}  
+          tag: >-
+            {{- if eq .Values.cluster.capi_providers.bootstrap_provider "cabpoa" }}
+            latest
+            {{- else }}
+            1.37.0
+            {{- end }}
+      _postRenderers:
+        - kustomize:
+            patches:
+              - patch: |-
+                  {{- if eq .Values.cluster.capi_providers.bootstrap_provider "cabpoa" }}
+                  apiVersion: v1
+                  kind: ConfigMap
+                  metadata:
+                    name: local-path-config
+                    namespace: kube-system
+                  data:
+                    helperPod.yaml: |-
+                      apiVersion: v1
+                      kind: Pod
+                      metadata:
+                        name: helper-pod
+                        namespace: local-path-storage
+                      spec:
+                        priorityClassName: system-node-critical
+                        tolerations:
+                          - key: node.kubernetes.io/disk-pressure
+                            operator: Exists
+                            effect: NoSchedule
+                        containers:
+                          - name: helper-pod
+                            image: registry.access.redhat.com/ubi8:latest
+                            imagePullPolicy: IfNotPresent
+                            resources:
+                              {}
+                            securityContext:
+                              privileged: true
+                    setup: |-
+                      #!/bin/sh
+                      set -eu
+                      mkdir -m 0777 -p "$VOL_DIR"
+                      chcon -R -t container_file_t "$VOL_DIR"
+                    teardown: |-
+                      #!/bin/sh
+                      set -eu
+                      rm -rf "$VOL_DIR"
+                  {{- end }}
 
   cluster-bmh:
     info:
