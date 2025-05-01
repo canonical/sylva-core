@@ -58,6 +58,8 @@ cluster:
           mac_address: 52:54:00:44:44:04
         nic2:
           inspection_name: ens5
+        bond0:
+          mac_address: 52:54:00:44:44:06
       bmh_metadata:
         labels:
           cluster-role: control-plane
