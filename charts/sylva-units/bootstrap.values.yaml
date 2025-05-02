@@ -218,6 +218,14 @@ units:
     unit_templates:
     - management-cluster-csi
 
+  single-replica-storageclass:
+    unit_templates:
+    - management-cluster-csi
+
+  two-replicas-storageclass:
+    unit_templates:
+    - management-cluster-csi
+
   local-path-provisioner:
     unit_templates:
     - management-cluster-csi
