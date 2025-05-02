@@ -1,7 +1,12 @@
 apiVersion: kyverno.io/v1
 kind: ClusterPolicy
 metadata:
-  name: generate-longhorn-encryption-secret--per-volume
+  name: generate-longhorn-encryption-secret-per-volume
+  annotations:
+    kustomize.toolkit.fluxcd.io/force: Enabled
+    policies.kyverno.io/description: >-
+      This policy will generate the random secret for the encryption of longhorn volume whenever the pvc
+      is created using sc longhorn-encryption-per-volume.
 spec:
   rules:
     - name: generate-secret-on-pvc

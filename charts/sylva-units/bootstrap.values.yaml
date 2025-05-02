@@ -60,6 +60,12 @@ unit_templates:
   base-deps:
     depends_on: null  # don't inherit dependencies from values.yaml or management.values.yaml
 
+  management-longhorn:
+    kustomization_spec:
+      kubeConfig:
+        secretRef:
+          name: '{{ .Values.cluster.name }}-kubeconfig'
+
   management-cluster-csi:
     depends_on:
       cluster-reachable: true
@@ -233,16 +239,16 @@ units:
     - management-cluster-csi
 
   single-replica-storageclass:
-    kustomization_spec:
-      kubeConfig:
-        secretRef:
-          name: '{{ .Values.cluster.name }}-kubeconfig'
+    unit_templates:
+    - management-longhorn
 
   two-replicas-storageclass:
-    kustomization_spec:
-      kubeConfig:
-        secretRef:
-          name: '{{ .Values.cluster.name }}-kubeconfig'
+    unit_templates:
+    - management-longhorn
+
+  longhorn-encrypted-storageclass:
+    unit_templates:
+    - management-longhorn
 
   local-path-provisioner:
     unit_templates:
@@ -607,6 +613,9 @@ units_override_enabled:
   - calico
   - calico-ready
   - management-cluster-flux
+  - single-replica-storageclass
+  - two-replicas-storageclass
+  - longhorn-encrypted-storageclass
   - management-cluster-configs
   - management-sylva-units
   - pivot

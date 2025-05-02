@@ -303,6 +303,7 @@ unit_templates:
       prune: false
       _components:
       - '{{ tuple "../components/extra-ca" .Values.oci_registry_extra_ca_certs | include "set-only-if" }}'
+      - '{{ tuple "../components/volume_encryption_secret" .Values.cluster.enable_volume_encryption | include "set-only-if" }}'
       postBuild:
         substitute:
           var_substitution_enabled: "true" # To force substitution when configmap does not exist
@@ -318,6 +319,7 @@ unit_templates:
           SOURCE_FEATURES_GATES: '{{ tuple .Values.flux.source.features_gates | include "dict_to_key_values_separated_string"  }}'
           SOURCE_STORAGE_CLASS: >-
             {{ tuple . (tuple . "longhorn" | include "unit-enabled") "single-replica-storageclass" .Values._internal.default_storage_class | include "interpret-ternary" }}
+          VOLUME_ENCRYPTION_KEY: '{{ .Values._internal.flux_encryption_key | default "" }}'
           SOURCE_STORAGE_SIZE: 1Gi
         substituteFrom:
         - kind: ConfigMap
@@ -9366,6 +9368,7 @@ _internal:
   kubevirt_admin_user: 'admin'
   kubevirt_admin_password: '{{ include "internalPersistentRandomPasswd" (tuple . "kubevirt_admin_password") }}'
 
+  flux_encryption_key: '{{ include "internalPersistentRandomPasswd" (tuple . "flux_encryption_key") }}' 
   default_password: '{{ include "internalPersistentRandomPasswd" (tuple . "default_password") }}'
 
   default_longhorn_storage_class: >-
