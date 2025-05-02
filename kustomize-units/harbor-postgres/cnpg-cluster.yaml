@@ -9,15 +9,15 @@ spec:
   # Sets Postgres shared buffers to 1GB
   postgresql:
     parameters:
-      shared_buffers: "1GB"
+      shared_buffers: "128MB"  # <= 25% of 512Mi
   # Sets the resources for Guaranteed QoS
   resources:
     requests:
-      memory: "1Gi"
-      cpu: 1
+      memory: "256Mi"
+      cpu: "100m"
     limits:
-      memory: "1Gi"
-      cpu: 1
+      memory: "512Mi"
+      cpu: "250m"
   # This volume will also be used by the import
   # process to temporarily store the custom format
   # dump coming from the source database
