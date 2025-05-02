@@ -26,6 +26,12 @@ spec:
           kinds:
           - helm.toolkit.fluxcd.io/*/HelmRelease
           - helm.toolkit.fluxcd.io/*/HelmRelease/status
+          selector:
+            matchExpressions:
+              - key: metadata.name
+                operator: NotIn
+                values:
+                  - sylva-units
     context:
     - name: reconcileDate
       variable:
