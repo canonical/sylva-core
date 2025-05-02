@@ -4,4 +4,3 @@ kind: Component
 
 resources:
   - nvidia-gpu-namespace.yaml
-  
