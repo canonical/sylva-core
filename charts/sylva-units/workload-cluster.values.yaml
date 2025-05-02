@@ -279,11 +279,11 @@ units:
         replicationUsername: repl_user
         replicationPassword: '{{ .Values._internal.harbor_postgres_replication_password }}'
 
-#  harbor-cnpg-postgres:
-#    enabled: true
+  harbor-cnpg-postgres:
+    enabled: true
 
-#  cnpg-operator:
-#    enabled: true
+  cnpg-operator:
+    enabled: true
 
   harbor:
     # can be enabled at runtime if desired
