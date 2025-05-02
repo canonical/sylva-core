@@ -479,6 +479,9 @@ units:
   cinder-csi:
     enabled: true
 
+  local-path-provisioner:
+    enabled: true  
+
   ceph-csi-cephfs:
     enabled: false
 
