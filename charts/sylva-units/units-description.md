@@ -47,6 +47,7 @@
 | **cabpoa** | installs OKD/OpenShift CAPI bootstrap/controlplane provider | experimental | [Kustomization](https://github.com/openshift-assisted/cluster-api-agent/releases/download/v0.2.0/bootstrap-components.yaml) | v0.2.0 |
 | **ceph-csi-cephfs** | Installs Ceph-CSI | beta | [Helm chart](https://ceph.github.io/csi-charts) | 3.12.3 |
 | **harbor** | installs Harbor | beta | [Helm chart](https://helm.goharbor.io) | 1.15.2 |
+| **headlamp** | installs headlamp | experimental | [Helm chart](https://github.com/kubernetes-sigs/headlamp.git) | v0.30.0 |
 | **kubevirt** | installs kubevirt | beta | [Helm chart](https://suse-edge.github.io/charts) | 0.4.0 |
 | **kubevirt-cdi** | manages Kubevirt CDI - Container Data Importer | beta | [Helm chart](https://suse-edge.github.io/charts) | 0.4.0 |
 | **kunai** | installs Kunai<br/><br/>The integration of [Kunai](https://gitlab.com/sylva-projects/sylva-elements/kunai) at this stage should be considered experimental.<br/>Work is in progress to align its integration with workload-cluster-operator and workload-teams-defs.<br/>See https://gitlab.com/groups/sylva-projects/-/epics/58. | experimental | [Helm chart](https://gitlab.com/api/v4/projects/sylva-projects%2Fsylva-elements%2Fkunai/packages/helm/stable) | 1.3.1 |

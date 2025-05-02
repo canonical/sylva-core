@@ -179,6 +179,13 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
       ref:
         tag: 0.1.1
 
+  headlamp:
+    kind: GitRepository
+    spec:
+      url: https://github.com/kubernetes-sigs/headlamp.git
+      ref:
+        tag: v0.30.0
+
   bitnami-postgresql:
     kind: GitRepository
     spec:
@@ -2840,6 +2847,22 @@ units:
     kustomization_spec:
       path: ./kustomize-units/metal3-pdb
       wait: true
+
+  headlamp:
+    info:
+      description: installs headlamp
+      maturity: experimental
+    repo: headlamp
+    unit_templates:
+    - base-deps
+    helmrelease_spec:
+      chart:
+        spec:
+          chart: charts/headlamp
+      targetNamespace: kube-system
+      values:
+        podAnnotations:
+          hello/world: headlamptest
 
   local-path-provisioner:
     info:
