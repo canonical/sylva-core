@@ -7585,7 +7585,7 @@ units:
     info:
       description: Defines a Longhorn storage class with a single replica
       internal: true
-    enabled: '{{ eq .Values._internal.longhorn_node_count "1" | include "preserve-type" }}'
+    enabled: '{{ eq .Values._internal.longhorn_node_count "1" }}'
     repo: sylva-core
     unit_templates:
     - base-deps
@@ -7615,9 +7615,12 @@ units:
     info:
       description: Defines a Longhorn storage class with two replicas
       internal: true
-    enabled: '{{ or (tuple . "minio-monitoring" | include "unit-enabled")
-               (tuple . "minio-logging" | include "unit-enabled")
-               (eq .Values._internal.longhorn_node_count "2") | include "preserve-type" }}'
+    enabled: >-
+      {{
+      or (tuple . "minio-monitoring" | include "unit-enabled")
+         (tuple . "minio-logging" | include "unit-enabled")
+         (eq .Values._internal.longhorn_node_count "2")
+      }}
     repo: sylva-core
     unit_templates:
     - base-deps
