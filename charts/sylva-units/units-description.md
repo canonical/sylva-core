@@ -57,18 +57,9 @@
 | **minio-operator** | install MinIO operator<br/><br/>MinIO operator is used to manage multiple S3 tenants | beta | [Helm chart](https://github.com/minio/operator.git) | v7.0.0 |
 | **multus-bond-cni** | installs bond CNI binary for multus | beta | Kustomization | 1.0.0 |
 | **neuvector** | installs Neuvector | beta | [Helm chart](https://neuvector.github.io/neuvector-helm) | 2.8.3 |
-<<<<<<< HEAD
-<<<<<<< HEAD
 | **nfs-ganesha** | manages NFS Ganesha CSI provisioner | experimental | [Helm chart](https://kubernetes-sigs.github.io/nfs-ganesha-server-and-external-provisioner/) | 1.8.0 |
-| **nvidia-gpu-operator** | installs NVIDIA GPU operator<br/><br/>installs NVIDIA GPU operator only when using cabpr or cabpk, not deployed on cabpoa, also targeting capm3 infra for timebeing | experimental | [Helm chart](https://helm.ngc.nvidia.com/nvidia/) | v25.3.0 |
+| **nvidia-gpu-operator** | installs NVIDIA GPU operator<br/><br/>installs NVIDIA GPU operator only when using cabpr or cabpk, not deployed on cabpoa, also targeting capm3 infra for timebeing | experimental | [Helm chart](https://helm.ngc.nvidia.com/nvidia/) | v24.6.2 |
 | **openshift-assisted-installer** | installs assisted installer operator for OKD | experimental | [Kustomization](https://raw.githubusercontent.com/openshift/assisted-service/v2.33.0/hack/crds/hive.openshift.io_clusterdeployments.yaml) | v2.33.0 |
-=======
->>>>>>> 82c4b7f14 (experimental units' description at the end)
-=======
-| **nfs-ganesha** | manages NFS Ganesha CSI provisioner | experimental | [Helm chart](https://kubernetes-sigs.github.io/nfs-ganesha-server-and-external-provisioner/) | 1.8.0 |
-| **nvidia-gpu-operator** | installs NVIDIA GPU operator<br/><br/>installs NVIDIA GPU operator only when using cabpr or cabpk, not deployed on cabpoa, also targeting capm3 infra for timebeing | experimental | [Helm chart](https://helm.ngc.nvidia.com/nvidia/) | v25.3.0 |
-| **openshift-assisted-installer** | installs assisted installer operator for OKD | experimental | [Kustomization](https://raw.githubusercontent.com/openshift/assisted-service/v2.33.0/hack/crds/hive.openshift.io_clusterdeployments.yaml) | v2.33.0 |
->>>>>>> 26c152190 (run generate_units_documentation.py with vscode)
 | **prometheus-pushgateway** | installs Prometheus Push-gateway exporter | beta | [Helm chart](https://prometheus-community.github.io/helm-charts) | 3.0.0 |
 | **snmp-exporter** | installs SNMP exporter | beta | [Helm chart](https://prometheus-community.github.io/helm-charts) | 8.0.0 |
 | **thanos** | installs Thanos | beta | [Helm chart](https://github.com/bitnami/charts.git) | thanos/15.8.0 |
@@ -201,7 +192,3 @@
 | **vault-oidc** | configures Vault to be used with OIDC | Kustomization |
 | **vault-secrets** | generates random secrets in vault, configure password policy, authentication backends, etc... | Kustomization |
 | **vsphere-cpi** | configures Vsphere Cloud controller manager | Helm chart |
-<<<<<<< HEAD
-| **nvidia-gpu-operator** | installs NVIDIA GPU operator | stable | [Helm chart](https://nvidia.github.io/gpu-operator/) | v24.9.2 |
-=======
->>>>>>> 56bfb7775 (minor editorial)
