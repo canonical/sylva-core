@@ -8093,6 +8093,7 @@ external_hostnames:
   os_image_server: ''
   gitea: 'gitea.{{ .Values.cluster_domain }}'
   kunai: 'kunai.{{ .Values.cluster_domain }}'
+  headlamp: 'headlamp.{{ .Values.cluster_domain }}'
   minio_operator_console: 'minio-operator-console.{{ .Values.cluster_domain }}'
   minio_monitoring: 'minio-monitoring.{{ .Values.cluster_domain }}'
   minio_monitoring_console: 'minio-monitoring-console.{{ .Values.cluster_domain }}'
