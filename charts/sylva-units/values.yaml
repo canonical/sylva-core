@@ -51,7 +51,7 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
     spec:
       url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-capi-cluster.git
       ref:
-        tag: 0.8.2
+        tag: 0.8.5
 
   sync-openstack-images:
     kind: GitRepository
@@ -121,7 +121,7 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
     spec:
       url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-dashboards.git
       ref:
-        tag: 0.0.15
+        tag: 0.0.16
 
   minio-operator:
     kind: GitRepository
@@ -142,7 +142,7 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
     spec:
       url: https://github.com/grafana/loki.git
       ref:
-        tag: v3.4.2
+        tag: v3.5.0
 
   sylva-logging-flows:
     kind: GitRepository
@@ -163,7 +163,7 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
     spec:
       url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-thanos-rules.git
       ref:
-        tag: 0.1.2
+        tag: 0.1.3
 
   sylva-alertmanager-resources:
     kind: GitRepository
@@ -3483,6 +3483,7 @@ units:
       - '{{ or (.Values.cluster.capi_providers.infra_provider | eq "capd")
                (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpr") }}'
     depends_on:
+      monitoring-crd: '{{ tuple . "monitoring-crd" | include "unit-enabled" }}'
       '{{ .Values._internal.calico_readiness_unit }}': '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpk" }}'
       cluster-vip: '{{ and (tuple . "cluster-vip" | include "unit-enabled") .Values._internal.state.is_upgrade }}'
       metallb-resources: '{{ .Values._internal.state.is_upgrade }}'  # on upgrade from Sylva 1.3 to 1.4, we need metallb-resources unit
@@ -4349,7 +4350,7 @@ units:
       chart:
         spec:
           chart: rancher-monitoring-crd
-          version: 104.1.2+up57.0.3
+          version: 105.1.4+up61.3.2-rancher.5
 
   grafana-init:
     info:
@@ -4422,7 +4423,7 @@ units:
       chart:
         spec:
           chart: rancher-monitoring
-          version: 104.1.2+up57.0.3
+          version: 105.1.4+up61.3.2-rancher.5
       install:
         createNamespace: false
       values:
@@ -4743,7 +4744,7 @@ units:
       chart:
         spec:
           chart: prometheus-pushgateway
-          version: 3.1.0
+          version: 3.1.3
       install:
         createNamespace: true
       values:
@@ -4817,7 +4818,7 @@ units:
       chart:
         spec:
           chart: kepler
-          version: 0.5.13
+          version: 0.5.14
       install:
         createNamespace: false
       values:
@@ -4964,22 +4965,6 @@ units:
                       $patch: delete
                       app: whereabouts
 
-  multus-bond-cni:
-    info:
-      description: installs bond CNI binary for multus
-      version: 1.0.0
-      maturity: beta
-    # enable this unit if multus is enabled
-    enabled: '{{ tuple . "multus" | include "unit-enabled" }}'
-    unit_templates:
-    - base-deps
-    depends_on:
-      multus: true
-    repo: sylva-core
-    kustomization_spec:
-      path: ./kustomize-units/multus-bond-cni
-      wait: true
-
   multus-ready:
     info:
       description: checks that Multus is ready
@@ -4995,7 +4980,6 @@ units:
       - '{{ tuple . "multus" | include "unit-enabled" }}'
     depends_on:
       multus: true
-      multus-bond-cni: '{{ tuple . "multus-bond-cni" | include "unit-enabled" }}'
     kustomization_spec:
       healthChecks:
         - apiVersion: apps/v1
@@ -5050,11 +5034,20 @@ units:
           chart: sriov-network-operator
           version: 1.5.0
       values:
-        cert_manager: true
         sriov-nfd:  # override of https://github.com/suse-edge/charts/blob/39a276168895d136c10e5a06d16f85d2d2fb7120/charts/sriov-network-operator/1.5.0/charts/sriov-nfd/values.yaml#L2
                     # to workaround the issue described at https://github.com/suse-edge/charts/issues/203
           image:
             repository: registry.suse.com/rancher/hardened-node-feature-discovery
+        operator:
+          admissionControllers:
+            enabled: true
+            certificates:
+              secretNames:
+                operator: "operator-webhook-cert"
+                injector: "network-resources-injector-cert"
+              certManager:
+                enabled: true
+                generateSelfSigned: true
     kustomization_spec:
       _components:
       - ../kyverno-policies/sriov-network-operator
@@ -6571,13 +6564,16 @@ units:
                   - '{{ .Values.external_hostnames.minio_logging_console }}'
                 secretName: minio-logging-tls
     kustomization_spec:
-      # these healthChecks are added so that MinIO backend setup
-      # for tenant.minio.min.io/logging created by this unit is ready
       healthChecks:
-        - apiVersion: apps/v1
-          kind: StatefulSet
-          name: logging-pool-0  # concatenation from .tenant chart values .name & .pools[0].name
-          namespace: minio-logging
+      - apiVersion: minio.min.io/v2
+        kind: Tenant
+        name: logging
+        namespace: minio-logging
+      healthCheckExprs:
+      - apiVersion: minio.min.io/v2
+        kind: Tenant
+        current: status.healthStatus == "green"
+        failed: status.healthStatus != "green"
 
   minio-monitoring-init:
     info:
@@ -6794,13 +6790,16 @@ units:
                   - '{{ .Values.external_hostnames.minio_monitoring_console }}'
                 secretName: minio-monitoring-tls
     kustomization_spec:
-      # these healthChecks are added so that MinIO backend setup
-      # for tenant.minio.min.io/monitoring created by this unit is ready
       healthChecks:
-        - apiVersion: apps/v1
-          kind: StatefulSet
-          name: monitoring-pool-0  # concatenation from .tenant chart values .name & .pools[0].name
-          namespace: minio-monitoring
+      - apiVersion: minio.min.io/v2
+        kind: Tenant
+        name: monitoring
+        namespace: minio-monitoring
+      healthCheckExprs:
+      - apiVersion: minio.min.io/v2
+        kind: Tenant
+        current: status.healthStatus == "green"
+        failed: status.healthStatus != "green"
 
   thanos-init:
     info:
@@ -7197,7 +7196,7 @@ units:
       chart:
         spec:
           chart: rancher-logging-crd
-          version: 105.1.0+up4.10.0
+          version: 105.2.2+up4.10.0-rancher.1
       install:
         createNamespace: false
 
@@ -7217,7 +7216,7 @@ units:
       chart:
         spec:
           chart: rancher-logging
-          version: 105.1.0+up4.10.0
+          version: 105.2.2+up4.10.0-rancher.1
       install:
         createNamespace: false
       values:
@@ -7834,7 +7833,7 @@ cluster:
   images:
     kube_vip:
       repository: ghcr.io/kube-vip/kube-vip
-      tag: "v0.9.0"
+      tag: "v0.9.1"
 
   # Nodes number for control-plane
   control_plane_replicas: 3
@@ -7902,7 +7901,7 @@ cluster:
     calico:
       helm_values: '{{ .Values.calico_helm_values | include "preserve-type" }}'
 
-  metallb_helm_values: '{{ .Values.metallb_helm_values | include "preserve-type" }}'
+  metallb_helm_values: '{{ omit .Values.metallb_helm_values "prometheus" | include "preserve-type" }}'
 
   ntp: '{{ .Values.ntp | include "preserve-type" }}'
   proxies:
@@ -8238,7 +8237,7 @@ k8s_version_short: "1.31"
 
 # Renovate Bot needs additional information to detect sylva diskimage-builder version
 # renovate: depName=sylva-projects/sylva-elements/diskimage-builder
-sylva_diskimagebuilder_version: 0.4.8
+sylva_diskimagebuilder_version: 0.4.9
 
 # 'sylva_diskimagebuilder_images' determines which images will be available for CAPO and CAPM3
 # via 'os_image_selector' or 'image_keys'
@@ -8537,16 +8536,34 @@ metallb: {}
 
   #bgp_lbs: # add your metallb-l3 config if required
     #l3_options:
+    #  bfd_profiles:
+    #    bfd-profile-bgp:
+    #      receiveInterval: 1000
+    #      transmitInterval: 1000
+    #      detectMultiplier: 3
     #  bgp_peers:
-    #    - name: peerName
+    #    bgp-peer1:
     #      local_asn: 64511  # example only, must be updated
     #      peer_asn: 64510  # example only, must be updated
     #      peer_address: 10.122.22.129
+    #      password: bgp-peer-password
+    #      bfd_profile: bfd-profile-bgp
+    #      node_selectors:
+    #        - matchLabels:
+    #            kubernetes.io/hostname: hostB
     #      advertised_pools:
     #        - lbpool  # default IP pool used for kube-api and ingress exposure
     #        - my-custom-pool  # additional IP pools to be advertised to this peer
+    #      receive_routes:  # optional, only for learning routes from BGP peers on secondary interfaces
+    #        mode: all
+    #      # or
+    #        prefixes:
+    #        - prefix: 10.10.10.10/32
+    #        - prefix: 192.168.2.0/24
+    #          ge: 25
+    #          le: 28
     #address_pools:
-    #  - name: my-custom-pool
+    #  my-custom-pool:
     #    addresses:
     #      - 10.122.22.151/32
     #      - 10.10.10.10-10.10.10.120
@@ -8603,6 +8620,18 @@ calico_helm_values:
     wireguardEnabled: '{{ .Values.security.calico_wireguard_enabled | include "preserve-type" }}'
 
 metallb_helm_values:
+  prometheus: >-
+    {{
+    tuple (dict
+               "rbacPrometheus" true
+               "serviceAccount" "rancher-monitoring-prometheus"
+               "namespace"      "cattle-monitoring-system"
+               "serviceMonitor" (dict "enabled" true)
+          )
+          (tuple . "monitoring" | include "unit-enabled")
+      | include "set-only-if"
+    }}
+
   loadBalancerClass: '{{ .Values._internal.loadBalancerClass }}'
   controller:
     nodeSelector:
@@ -8951,7 +8980,9 @@ _internal:
     }}'
 
   metallb_values_check: >-
-    {{- if ne (.Values.cluster.metallb_helm_values | toYaml) (.Values.units.metallb.helmrelease_spec.values | toYaml) }}
+    {{- tuple . "cluster.metallb_helm_values" | include "interpret" -}}
+    {{- tuple . "units.metallb.helmrelease_spec.values" | include "interpret" -}}
+    {{- if ne (omit .Values.cluster.metallb_helm_values "prometheus" | toYaml) (omit .Values.units.metallb.helmrelease_spec.values "prometheus" | toYaml) }}
       {{ printf "The Helm values for Metallb are different between the cluster and the metallb unit. It is recomended to use `.Values.metallb_helm_values` to ensure consistency." | fail }}
     {{- end }}
 
@@ -9045,7 +9076,6 @@ shared_workload_clusters_values:
 
   _internal:
     workload_clusters_cluster_subdomain: wclusters.{{ .Values.cluster_domain }}  # workload clusters cluster_domain will all be under wclusters.<cluster_domain>
-    sylva_system_default_storage_class_unit: '{{ .Values._internal.default_storage_class_unit }}'
     sylva_mgmt_enabled_units: >-
       {{- $units := dict -}}
       {{- range $unit_name, $unit_def := .Values.units -}}

@@ -27,14 +27,14 @@
 | **harbor-postgres** | installs Postgresql for Harbor | stable | [Helm chart](https://github.com/bitnami/charts.git) | postgresql/15.5.36 |
 | **ingress-nginx** | installs Nginx ingress controller | stable | [Helm chart](https://rke2-charts.rancher.io) | 4.12.100 |
 | **k8s-gateway** | installs k8s gateway (coredns + plugin to resolve external service names to ingress IPs)<br/><br/>is here only to allow for DNS resolution of Ingress hosts (FQDNs), used for importing workload clusters into Rancher and for flux-webui to use Keycloak SSO | stable | [Helm chart](https://ori-edge.github.io/k8s_gateway/) | 2.4.0 |
-| **kepler** | installs Kepler (Kubernetes-based Efficient Power Level Exporter) exporter for Prometheus | stable | [Helm chart](https://sustainable-computing-io.github.io/kepler-helm-chart) | 0.5.13 |
+| **kepler** | installs Kepler (Kubernetes-based Efficient Power Level Exporter) exporter for Prometheus | stable | [Helm chart](https://sustainable-computing-io.github.io/kepler-helm-chart) | 0.5.14 |
 | **keycloak** | initializes and configures Keycloak | stable | [Kustomization](https://raw.githubusercontent.com/keycloak/keycloak-k8s-resources/26.1.5/kubernetes/keycloaks.k8s.keycloak.org-v1.yml) | 26.1.5 |
 | **keycloak-legacy-operator** | installs Keycloak "legacy" operator | stable | [Kustomization](https://raw.githubusercontent.com/keycloak/keycloak-realm-operator/1.0.0/deploy/crds/legacy.k8s.keycloak.org_externalkeycloaks_crd.yaml) | 1.0.0 |
 | **local-path-provisioner** | installs local-path CSI | stable | [Helm chart](https://github.com/rancher/local-path-provisioner.git) | v0.0.31 |
 | **longhorn** | installs Longhorn CSI | stable | [Helm chart](https://charts.rancher.io/) | 105.2.0+up1.8.1 |
 | **metal3** | installs SUSE-maintained Metal3 operator | stable | [Helm chart](https://suse-edge.github.io/charts) | 0.9.3 |
 | **metallb** | installs MetalLB operator | stable | [Helm chart](https://metallb.github.io/metallb) | 0.14.9 |
-| **monitoring** | installs monitoring stack | stable | [Helm chart](https://charts.rancher.io/) | 104.1.2+up57.0.3 |
+| **monitoring** | installs monitoring stack | stable | [Helm chart](https://charts.rancher.io/) | 105.1.4+up61.3.2-rancher.5 |
 | **multus** | installs Multus | stable | [Helm chart](https://rke2-charts.rancher.io/) | v4.2.001 |
 | **rancher** | installs Rancher | stable | [Helm chart](https://releases.rancher.com/server-charts/stable) | 2.10.3 |
 | **sriov-network-operator** | installs SR-IOV operator | stable | [Helm chart](https://suse-edge.github.io/charts/) | 1.5.0 |
@@ -50,16 +50,15 @@
 | **kubevirt** | installs kubevirt | beta | [Helm chart](https://suse-edge.github.io/charts) | 0.4.0 |
 | **kubevirt-cdi** | manages Kubevirt CDI - Container Data Importer | beta | [Helm chart](https://suse-edge.github.io/charts) | 0.4.0 |
 | **kunai** | installs Kunai<br/><br/>The integration of [Kunai](https://gitlab.com/sylva-projects/sylva-elements/kunai) at this stage should be considered experimental.<br/>Work is in progress to align its integration with workload-cluster-operator and workload-teams-defs.<br/>See https://gitlab.com/groups/sylva-projects/-/epics/58. | experimental | [Helm chart](https://gitlab.com/api/v4/projects/sylva-projects%2Fsylva-elements%2Fkunai/packages/helm/stable) | 1.3.1 |
-| **logging** | installs Rancher Fluentbit/Fluentd logging stack, for log collecting and shipping | beta | [Helm chart](https://charts.rancher.io/) | 105.1.0+up4.10.0 |
-| **loki** | installs Loki log storage<br/><br/>installs Loki log storage in simple scalable mode | beta | [Helm chart](https://github.com/grafana/loki.git) | v3.4.2 |
+| **logging** | installs Rancher Fluentbit/Fluentd logging stack, for log collecting and shipping | beta | [Helm chart](https://charts.rancher.io/) | 105.2.2+up4.10.0-rancher.1 |
+| **loki** | installs Loki log storage<br/><br/>installs Loki log storage in simple scalable mode | beta | [Helm chart](https://github.com/grafana/loki.git) | v3.5.0 |
 | **minio-logging** | creates a MinIO tenant for the logging stack, used as S3 storage by Loki | beta | [Helm chart](https://github.com/minio/operator.git) | v7.0.1 |
 | **minio-monitoring** | creates a MinIO tenant for the monitoring stack, used as S3 storage by Thanos | beta | [Helm chart](https://github.com/minio/operator.git) | v7.0.1 |
 | **minio-operator** | install MinIO operator<br/><br/>MinIO operator is used to manage multiple S3 tenants | beta | [Helm chart](https://github.com/minio/operator.git) | v7.0.1 |
-| **multus-bond-cni** | installs bond CNI binary for multus | beta | Kustomization | 1.0.0 |
 | **neuvector** | installs Neuvector | beta | [Helm chart](https://neuvector.github.io/neuvector-helm) | 2.8.3 |
 | **nfs-ganesha** | manages NFS Ganesha CSI provisioner | experimental | [Helm chart](https://kubernetes-sigs.github.io/nfs-ganesha-server-and-external-provisioner/) | 1.8.0 |
 | **openshift-assisted-installer** | installs assisted installer operator for OKD | experimental | [Kustomization](https://raw.githubusercontent.com/openshift/assisted-service/v2.33.0/hack/crds/hive.openshift.io_clusterdeployments.yaml) | v2.33.0 |
-| **prometheus-pushgateway** | installs Prometheus Push-gateway exporter | beta | [Helm chart](https://prometheus-community.github.io/helm-charts) | 3.1.0 |
+| **prometheus-pushgateway** | installs Prometheus Push-gateway exporter | beta | [Helm chart](https://prometheus-community.github.io/helm-charts) | 3.1.3 |
 | **sbom-operator** | installs SBOM operator | beta | [Helm chart](https://ckotzbauer.github.io/helm-charts) | 0.36.0 |
 | **snmp-exporter** | installs SNMP exporter | beta | [Helm chart](https://prometheus-community.github.io/helm-charts) | 9.2.1 |
 | **thanos** | installs Thanos | beta | [Helm chart](https://github.com/bitnami/charts.git) | thanos/15.8.0 |
@@ -71,8 +70,8 @@
 <!-- markdownlint-disable MD044 -->
 | name | full description | source | version |
 | :----- | :----- | :----- | :----- |
-| **cluster** | holds the Cluster API definition for the cluster | [Helm chart](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-capi-cluster.git) | 0.8.2 |
-| **cluster-bmh** | definitions for Cluster API BareMetalHosts resources (capm3) | [Helm chart](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-capi-cluster.git) | 0.8.2 |
+| **cluster** | holds the Cluster API definition for the cluster | [Helm chart](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-capi-cluster.git) | 0.8.5 |
+| **cluster-bmh** | definitions for Cluster API BareMetalHosts resources (capm3) | [Helm chart](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-capi-cluster.git) | 0.8.5 |
 | **heat-operator** | installs OpenStack Heat operator | [Kustomization](https://gitlab.com/sylva-projects/sylva-elements/heat-operator.git/config/default?ref=0.1.1) | 0.1.1 |
 | **capo-contrail-bgpaas** | installs CAPO Contrail BGPaaS controller | [Helm chart](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/capo-contrail-bgpaas.git) | 1.0.4 |
 | **libvirt-metal** | installs libvirt for baremetal emulation<br/><br/>this unit is used in bootstrap cluster for baremetal testing | [Helm chart](https://gitlab.com/sylva-projects/sylva-elements/container-images/libvirt-metal.git) | 0.1.22 |
@@ -81,10 +80,10 @@
 | **alertmanager-jiralert-config** | generates the config for Jiralert Alertmanager webhook | [Helm chart](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-alertmanager-resources.git) | 0.0.4 |
 | **alertmanager-snmp-notifier-config** | generates the config for snmp-notifier Alertmanager webhook | [Helm chart](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-alertmanager-resources.git) | 0.0.4 |
 | **snmp-exporter-config** | contains OID files and generates configuration needed by the snmp-exporter | [Helm chart](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-snmp-resources.git) | 0.0.9 |
-| **sylva-dashboards** | adds Sylva-specific Grafana dashboards | [Helm chart](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-dashboards.git) | 0.0.15 |
+| **sylva-dashboards** | adds Sylva-specific Grafana dashboards | [Helm chart](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-dashboards.git) | 0.0.16 |
 | **sylva-logging-flows** | configures logging flows and output to export the platform logs to an external server | [Helm chart](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-logging-flows.git) | 0.0.1 |
 | **sylva-prometheus-rules** | installs prometheus rules using external helm chart & rules git repo | [Helm chart](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-prometheus-rules.git) | 0.0.15 |
-| **sylva-thanos-rules** | installs Thanos rules using external helm chart & rules git repo | [Helm chart](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-thanos-rules.git) | 0.1.2 |
+| **sylva-thanos-rules** | installs Thanos rules using external helm chart & rules git repo | [Helm chart](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-thanos-rules.git) | 0.1.3 |
 | **sylva-units-operator** | installs sylva-units operator | [Kustomization](https://gitlab.com/sylva-projects/sylva-elements/sylva-units-operator.git/config/default?ref=0.2.1) | 0.2.1 |
 | **workload-cluster-operator** | installs Sylva operator for managing workload clusters | [Kustomization](https://gitlab.com/sylva-projects/sylva-elements/workload-cluster-operator.git/config/default?ref=0.2.0) | 0.2.0 |
 | **workload-team-defs** | installs the workload-team-defs chart<br/><br/>installs the workload-team-defs chart to install the workload cluster through CRD | [Helm chart](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/workload-team-defs.git) | 0.1.1 |

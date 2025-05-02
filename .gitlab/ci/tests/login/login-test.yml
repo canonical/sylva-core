@@ -40,7 +40,15 @@
     - export thanos_user=$(kubectl --kubeconfig management-cluster-kubeconfig get secrets sylva-units-values -o yaml | yq .data.values | base64 -d | yq ._internal.thanos_user)
     - export thanos_password=$(kubectl --kubeconfig management-cluster-kubeconfig get secrets sylva-units-values -o yaml | yq .data.values | base64 -d | yq ._internal.thanos_password)
     - echo -e "\e[0Ksection_end:`date +%s`:gitlab_ci_get_thanos_login_and_password\r\e[0K"
-
+  get_grafana_login_and_password:
+    - echo -e "\e[1m\e[0Ksection_start:`date +%s`:gitlab_ci_get_grafana_login_and_password[collapsed=true]\r\e[0KGet grafana user and password\e[0m"
+    - export grafana_user="admin"
+    - export grafana_password=$(kubectl --kubeconfig management-cluster-kubeconfig get secrets sylva-units-values -o yaml | yq .data.values | base64 -d | yq ._internal.grafana_admin_password)
+    - echo -e "\e[0Ksection_end:`date +%s`:gitlab_ci_get_grafana_login_and_password\r\e[0K"
+  get_kepler_unit_enabled:
+    - echo -e "\e[1m\e[0Ksection_start:`date +%s`:get_kepler_unit_enabled[collapsed=true]\r\e[0KGet Kepler unit status\e[0m"
+    - export kepler_unit_enabled=$(kubectl --kubeconfig management-cluster-kubeconfig get secrets sylva-units-values -o yaml | yq .data.values | base64 -d | yq .units.kepler.enabled)
+    - echo -e "\e[0Ksection_end:`date +%s`:get_kepler_unit_enabled\r\e[0K"
 wkld-sso-kubeconfig:
   extends:
     - .test-base-workload-cluster
@@ -90,6 +98,8 @@ mgmt-GUIs-test:
     - !reference [.test_scripts, edit_hosts_file]
     - !reference [.test_scripts, get_ui_ingresses_url]
     - !reference [.test_scripts, get_thanos_login_and_password]
+    - !reference [.test_scripts, get_grafana_login_and_password]
+    - !reference [.test_scripts, get_kepler_unit_enabled]
     - pytest ./tools/login-test/test_ui_playwright.py --browser firefox -v --tb=short
 
 mgmt-sso:
@@ -111,6 +121,7 @@ mgmt-sso:
     - !reference [.test_scripts, edit_hosts_file]
     - !reference [.test_scripts, get_ui_ingresses_url]
     - !reference [.test_scripts, get_sso_login_and_password]
+    - !reference [.test_scripts, get_kepler_unit_enabled]
     - pytest ./tools/login-test/test_sso_playwright.py --browser firefox -v --tb=short
 
 wkld-no-sso-kubeconfig:
