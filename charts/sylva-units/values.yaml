@@ -7955,7 +7955,7 @@ units:
       wait: true
       postBuild:
         substitute:
-          NODE_COUNT: '{{ .Values._internal.longhorn_node_count }}'
+          NODE_COUNT: '{{ .Values._internal.longhorn_node_count | quote }}'
       _patches:
         - target:
             kind: StorageClass
