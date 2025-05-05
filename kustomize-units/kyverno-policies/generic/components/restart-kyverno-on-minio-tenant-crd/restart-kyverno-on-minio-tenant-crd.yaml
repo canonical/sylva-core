@@ -9,7 +9,8 @@ metadata:
     policies.kyverno.io/description: >-
       Trigger a restart of Kyverno pods when MinIO Tenant CRD changes
 spec:
-  failurePolicy: Ignore
+  webhookConfiguration:
+    failurePolicy: Ignore
   background: true
   rules:
   - name: restart-kyverno-on-minio-tenant-crd

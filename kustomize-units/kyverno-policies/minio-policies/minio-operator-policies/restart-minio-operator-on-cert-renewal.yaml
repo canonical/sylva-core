@@ -9,7 +9,6 @@ metadata:
       This policy monitors MinIO-operator certificate secrets and will update annotations
       to trigger pod rollouts when certificates are renewed.
 spec:
-  mutateExistingOnPolicyUpdate: true
   rules:
   - name: minio-operator-restart-on-ca-change
     match:
@@ -25,6 +24,7 @@ spec:
         operator: Equals
         value: true
     mutate:
+      mutateExistingOnPolicyUpdate: true
       targets:
         - apiVersion: apps/v1
           kind: Deployment
@@ -50,6 +50,7 @@ spec:
         operator: Equals
         value: true
     mutate:
+      mutateExistingOnPolicyUpdate: true
       targets:
         - apiVersion: apps/v1
           kind: Deployment
