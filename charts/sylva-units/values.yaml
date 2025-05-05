@@ -3122,6 +3122,14 @@ units:
                           extraArgs:
                             feature-gates: ValidatingAdmissionPolicy=true
                             runtime-config: admissionregistration.k8s.io/v1beta1
+              - target:
+                  kind: Cluster
+                patch: |
+                  kind: _unused_
+                  metadata:
+                    name: _unused_
+                    annotations:
+                      {{ .Values.cluster.capi_providers.infra_provider | eq "capo" | ternary "sylva.org/gzip-user-data" "sylva.org/plain-user-data"}}: "true"
 
     # we pass everything that is under `cluster` to this unit that uses sylva-capi-cluster chart
     # (we do it via a secret because some of the values are credentials in many scenarios)
