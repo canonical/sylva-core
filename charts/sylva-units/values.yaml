@@ -4441,42 +4441,42 @@ units:
           chart: prometheus-operator-crds
           version: 18.0.0
 
-  upstream-prometheus-resources:
-    info:
-      description: Creates required ConfigMaps and Kyverno policies to enable SNMP monitoring by Prometheus
-      internal: true
-    unit_templates:
-    - base-deps
-    depends_on:
-      namespace-defs: true
-      metal3: '{{ tuple . "metal3" | include "unit-enabled" }}'
-    enabled_conditions:
-      - '{{ tuple . "monitoring" | include "unit-enabled" }}'
-    repo: sylva-core
-    kustomization_spec:
-      path: ./kustomize-units/upstream-prometheus-resources
-      force: true
-      wait: true
-      postBuild:
-        substitute:
-          CONFIGMAPS: '
-            {{- $cm := list -}}
-            {{- if (tuple . "snmp-exporter" | include "unit-enabled") -}}
-            {{- $cm = append $cm "prometheus-snmp-sd-files" -}}
-            {{- $cm = append $cm "prometheus-snmp-sd-files-bmh" -}}
-            {{- end -}}
-            {{ $cm | toJson }}'
-          TARGETS: >
-            {{- $sylva_cluster := .Values.cluster.name -}}
-            {{- $result := list -}}
-            {{- range .Values.snmp.devices -}}
-              {{- $target := dict "targets" (list .target) -}}
-              {{- $_ := set $target "labels" (dict "module" .module "auth" .auth "alias" .alias "cluster_name" (.cluster_name | default $sylva_cluster)) -}}
-              {{- $result = append $result $target -}}
-            {{- end -}}
-            {{ $result | toJson }}
-      _components:
-        - '{{ tuple "components/kyverno-snmp-bmh-policy" (tuple . "metal3" | include "unit-enabled") | include "set-only-if" }}'
+  # upstream-prometheus-resources:
+  #   info:
+  #     description: Creates required ConfigMaps and Kyverno policies to enable SNMP monitoring by Prometheus
+  #     internal: true
+  #   unit_templates:
+  #   - base-deps
+  #   depends_on:
+  #     namespace-defs: true
+  #     metal3: '{{ tuple . "metal3" | include "unit-enabled" }}'
+  #   enabled_conditions:
+  #     - '{{ tuple . "monitoring" | include "unit-enabled" }}'
+  #   repo: sylva-core
+  #   kustomization_spec:
+  #     path: ./kustomize-units/upstream-prometheus-resources
+  #     force: true
+  #     wait: true
+  #     postBuild:
+  #       substitute:
+  #         CONFIGMAPS: '
+  #           {{- $cm := list -}}
+  #           {{- if (tuple . "snmp-exporter" | include "unit-enabled") -}}
+  #           {{- $cm = append $cm "prometheus-snmp-sd-files" -}}
+  #           {{- $cm = append $cm "prometheus-snmp-sd-files-bmh" -}}
+  #           {{- end -}}
+  #           {{ $cm | toJson }}'
+  #         TARGETS: >
+  #           {{- $sylva_cluster := .Values.cluster.name -}}
+  #           {{- $result := list -}}
+  #           {{- range .Values.snmp.devices -}}
+  #             {{- $target := dict "targets" (list .target) -}}
+  #             {{- $_ := set $target "labels" (dict "module" .module "auth" .auth "alias" .alias "cluster_name" (.cluster_name | default $sylva_cluster)) -}}
+  #             {{- $result = append $result $target -}}
+  #           {{- end -}}
+  #           {{ $result | toJson }}
+  #     _components:
+  #       - '{{ tuple "components/kyverno-snmp-bmh-policy" (tuple . "metal3" | include "unit-enabled") | include "set-only-if" }}'
 
   upstream-prometheus-nginx:
     info:
@@ -4710,40 +4710,40 @@ units:
                   value: disabled
             - '{{ .Values._internal.pdb_allow_unhealthy_pod_eviction | include "preserve-type" }}'
 
-  upstream-grafana-init:
-    info:
-      description: sets up Grafana certificate for Keycloak OIDC integration
-      internal: true
-    enabled_conditions:
-      - '{{ tuple . "monitoring" | include "unit-enabled" }}'
-      - '{{ tuple . "keycloak" | include "unit-enabled" }}'
-    unit_templates:
-    - base-deps
-    depends_on:
-      namespace-defs: true
-      sylva-ca: true
-    repo: sylva-core
-    kustomization_spec:
-      path: ./kustomize-units/dummy/base
-      postBuild:
-        substitute:
-          SERVICE: grafana
-          SERVICE_DNS: '{{ .Values.external_hostnames.grafana }}'
-          CERTIFICATE_NAMESPACE: cattle-monitoring-system
-          CERT: '{{ .Values.external_certificates.grafana.cert | default "" | b64enc }}'
-          CACERT: '{{ .Values.external_certificates.cacert | default "" | b64enc }}'
-      _components:
-        - '{{ ternary "../../tls-components/tls-secret" "../../tls-components/tls-certificate" (hasKey .Values.external_certificates.grafana "cert") }}'
-        - "../../tls-components/sylva-ca"
-      healthChecks:
-        - apiVersion: v1
-          kind: Secret
-          name: sylva-ca.crt
-          namespace: cattle-monitoring-system
-        - apiVersion: v1
-          kind: Secret
-          name: grafana-tls
-          namespace: cattle-monitoring-system
+  # upstream-grafana-init:
+  #   info:
+  #     description: sets up Grafana certificate for Keycloak OIDC integration
+  #     internal: true
+  #   enabled_conditions:
+  #     - '{{ tuple . "monitoring" | include "unit-enabled" }}'
+  #     - '{{ tuple . "keycloak" | include "unit-enabled" }}'
+  #   unit_templates:
+  #   - base-deps
+  #   depends_on:
+  #     namespace-defs: true
+  #     sylva-ca: true
+  #   repo: sylva-core
+  #   kustomization_spec:
+  #     path: ./kustomize-units/dummy/base
+  #     postBuild:
+  #       substitute:
+  #         SERVICE: grafana
+  #         SERVICE_DNS: '{{ .Values.external_hostnames.grafana }}'
+  #         CERTIFICATE_NAMESPACE: cattle-monitoring-system
+  #         CERT: '{{ .Values.external_certificates.grafana.cert | default "" | b64enc }}'
+  #         CACERT: '{{ .Values.external_certificates.cacert | default "" | b64enc }}'
+  #     _components:
+  #       - '{{ ternary "../../tls-components/tls-secret" "../../tls-components/tls-certificate" (hasKey .Values.external_certificates.grafana "cert") }}'
+  #       - "../../tls-components/sylva-ca"
+  #     healthChecks:
+  #       - apiVersion: v1
+  #         kind: Secret
+  #         name: sylva-ca.crt
+  #         namespace: cattle-monitoring-system
+  #       - apiVersion: v1
+  #         kind: Secret
+  #         name: grafana-tls
+  #         namespace: cattle-monitoring-system
 
   upstream-prometheus-adaptor:
     info:
