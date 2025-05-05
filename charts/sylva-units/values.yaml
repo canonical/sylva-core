@@ -5126,7 +5126,8 @@ units:
     unit_templates:
     - base-deps
     depends_on:
-      '{{ tuple . (tuple . "monitoring" | include "unit-enabled") "monitoring" "upstrmonitoring" | include "interpret-ternary" }}': true
+      #'{{ tuple . (tuple . "monitoring" | include "unit-enabled") "monitoring" "upstrmonitoring" | include "interpret-ternary" }}': true
+      monitoring: true
     helm_repo_url: https://prometheus-community.github.io/helm-charts
     helmrelease_spec:
       releaseName: prometheus-pushgateway
@@ -5234,9 +5235,9 @@ units:
     unit_templates:
     - base-deps
     depends_on:
-      #monitoring: true
       snmp-exporter-config: true
-      '{{ tuple . (tuple . "monitoring" | include "unit-enabled") "monitoring" "upstrmonitoring" | include "interpret-ternary" }}': true
+      #'{{ tuple . (tuple . "monitoring" | include "unit-enabled") "monitoring" "upstrmonitoring" | include "interpret-ternary" }}': true
+      monitoring: true
     helm_repo_url: https://prometheus-community.github.io/helm-charts
     helmrelease_spec:
       releaseName: snmp-exporter
@@ -5301,7 +5302,8 @@ units:
     unit_templates:
     - base-deps
     depends_on:
-      '{{ tuple . (tuple . "monitoring" | include "unit-enabled") "monitoring" "upstrmonitoring" | include "interpret-ternary" }}': true
+      #'{{ tuple . (tuple . "monitoring" | include "unit-enabled") "monitoring" "upstrmonitoring" | include "interpret-ternary" }}': true
+      monitoring: true
     repo: sylva-dashboards
     helm_chart_artifact_name: sylva-dashboards
     helmrelease_spec:
@@ -8043,7 +8045,8 @@ units:
     unit_templates:
     - base-deps
     depends_on:
-      '{{ tuple . (tuple . "monitoring" | include "unit-enabled") "monitoring" "upstrmonitoring" | include "interpret-ternary" }}': true
+      #'{{ tuple . (tuple . "monitoring" | include "unit-enabled") "monitoring" "upstrmonitoring" | include "interpret-ternary" }}': true
+      monitoring: true
     enabled_conditions:
       #- '{{ or (tuple . "monitoring" | include "unit-enabled") (tuple . "upstrmonitoring" | include "unit-enabled") }}'
       - '{{ tuple . "monitoring" | include "unit-enabled" }}'
