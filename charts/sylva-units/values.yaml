@@ -2865,13 +2865,13 @@ units:
         helperImage: 
           repository: >-
             {{- if eq .Values.cluster.capi_providers.bootstrap_provider "cabpoa" }} 
-            registry.access.redhat.com/ubi8
+            registry.access.redhat.com/ubi9/ubi
             {{- else }}
             docker.io/library/busybox
             {{- end }}  
           tag: >-
             {{- if eq .Values.cluster.capi_providers.bootstrap_provider "cabpoa" }}
-            latest
+            9.5
             {{- else }}
             1.37.0
             {{- end }}
@@ -2900,7 +2900,7 @@ units:
                             effect: NoSchedule
                         containers:
                           - name: helper-pod
-                            image: registry.access.redhat.com/ubi8:latest
+                            image: registry.access.redhat.com/ubi9/ubi:9.5
                             imagePullPolicy: IfNotPresent
                             resources:
                               {}
