@@ -13,6 +13,7 @@ _internal:
   immutable_values:
     cluster:
       _immutable: false # Disable immutability checks for the bootstrap cluster as it runs in non-HA mode
+  flux_encryption_key: '{{ include "internalPersistentRandomPasswd" (tuple . "flux_encryption_key") }}'
   default_storage_class_unit: "bootstrap-local-path"
   libvirt_metal_networks: '[{"name": "provisioning", "namespace": "sylva-system",  "ips": ["192.168.10.123"]}, { "name": "management", "namespace": "sylva-system"}]'
   bootstrap_node_ip: |-
@@ -283,11 +284,14 @@ units:
     unit_templates:
     - flux-common
     kustomization_spec:
+      _components:
+      - '{{ tuple "../components/volume_encryption_secret" .Values.cluster.enable_volume_encryption | include "set-only-if" }}'
       kubeConfig:
         secretRef:
           name: '{{ .Values.cluster.name }}-kubeconfig'
       postBuild:
         substitute:
+          VOLUME_ENCRYPTION_KEY: '{{ .Values._internal.flux_encryption_key }}'
           # the no_proxy computed for bootstrap cluster includes pods/services subnets for the kind cluster (see no_proxy_additional in this file)
           # but we don't need nor want that in the mgmt cluster
           no_proxy: '{{ .Values._internal.mgmt_no_proxy }}'

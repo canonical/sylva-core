@@ -303,7 +303,6 @@ unit_templates:
       prune: false
       _components:
       - '{{ tuple "../components/extra-ca" .Values.oci_registry_extra_ca_certs | include "set-only-if" }}'
-      - '{{ tuple "../components/volume_encryption_secret" .Values.cluster.enable_volume_encryption | include "set-only-if" }}'
       postBuild:
         substitute:
           var_substitution_enabled: "true" # To force substitution when configmap does not exist
@@ -6939,7 +6938,7 @@ units:
               name: pool-0
               volumesPerserver: 4
               size: 10Gi
-              storageClassName: '{{ tuple . (tuple . "two-replicas-storageclass" | include "unit-enabled") "two-replicas-storageclass" .Values._internal.default_storage_class | include "interpret-ternary" }}'
+              storageClassName: '{{ .Values._internal.default_storage_class }}'
               containerSecurityContext:
                 runAsUser: 1000
                 runAsGroup: 1000
@@ -7886,6 +7885,7 @@ units:
     info:
       description: Defines a Longhorn storage class with a single replica
       internal: true
+    enabled: '{{ eq .Values._internal.longhorn_node_count "1" }}'
     repo: sylva-core
     unit_templates:
     - base-deps
@@ -7916,6 +7916,7 @@ units:
       description: Defines a Longhorn storage class with two replicas
       internal: true
     repo: sylva-core
+    enabled: '{{ eq .Values._internal.longhorn_node_count "2" }}'
     unit_templates:
     - base-deps
     depends_on:
@@ -9368,22 +9369,21 @@ _internal:
   kubevirt_admin_user: 'admin'
   kubevirt_admin_password: '{{ include "internalPersistentRandomPasswd" (tuple . "kubevirt_admin_password") }}'
 
-  flux_encryption_key: '{{ include "internalPersistentRandomPasswd" (tuple . "flux_encryption_key") }}' 
   default_password: '{{ include "internalPersistentRandomPasswd" (tuple . "default_password") }}'
 
   default_longhorn_storage_class: >-
-    {{- if .Values.cluster.enable_volume_encryption }}
+    {{- if .Values.cluster.enable_volume_encryption -}}
       longhorn-encryption-per-volume
     {{- else }}
       {{- $nodeCount := int (tuple . .Values._internal.longhorn_node_count | include "interpret-as-string") -}}
-      {{- if eq $nodeCount 1 }}
+      {{- if eq $nodeCount 1 -}}
         single-replica-storageclass
-      {{- else if eq $nodeCount 2 }}
+      {{- else if eq $nodeCount 2 -}}
         two-replicas-storageclass
-      {{- else }}
+      {{- else -}}
         longhorn
-      {{- end }}
-    {{- end }}
+      {{- end -}}
+    {{- end -}}
 
   default_storage_class: >-
     {{- if .Values.default_storage_class -}}

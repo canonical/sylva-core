@@ -25,7 +25,7 @@ spec:
         kind: Secret
         name: "{{ request.object.metadata.name }}"     # Secret name = PVC name
         namespace: "{{ request.namespace }}"            # Same namespace as PVC
-        synchronize: true
+        synchronize: false
         generateExisting: true
         data:
           stringData:
