@@ -368,6 +368,11 @@ function cluster_info_dump() {
 
   kubectl cluster-info dump -A -o yaml --show-managed-fields --output-directory=$dump_dir
 
+  if [[ -n "${CI:-}" ]]; then
+    log_info "$cluster" ">> dumping cluster/cluster-bmh helm values..."
+    KUBECONFIG=$MGMT_KUBECONFIG helm get values -n $capi_cluster_namespace cluster | yq eval '(.capo.clouds_yaml.clouds.capo_cloud.auth.password) = "xxx"' - > $dump_dir/sylva-capi-cluster-helm-release-values.yaml
+    KUBECONFIG=$MGMT_KUBECONFIG helm get values -n $capi_cluster_namespace cluster-bmh > $dump_dir/sylva-capi-cluster-bmh-helm-release-values.yaml
+  fi
 
   log_info "$cluster" ">> dumping sylva-units helm manifests..."
   KUBECONFIG=$MGMT_KUBECONFIG helm get manifest -n $capi_cluster_namespace sylva-units | yq 'select(.kind!="Secret")' > $dump_dir/sylva-units-helm-release-manifest.yaml
