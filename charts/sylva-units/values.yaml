@@ -4352,7 +4352,8 @@ units:
     - base-deps
     repo: sylva-core
     enabled_conditions:
-    - '{{ or (tuple . "monitoring" | include "unit-enabled") (tuple . "upstrmonitoring" | include "unit-enabled") }}'
+    #- '{{ or (tuple . "monitoring" | include "unit-enabled") (tuple . "upstrmonitoring" | include "unit-enabled") }}'
+    - '{{ tuple . "monitoring" | include "unit-enabled" }}'
     kustomization_spec:
       path: ./kustomize-units/prometheus-custom-metrics
       wait: false
@@ -4965,7 +4966,8 @@ units:
       details: Jiralert is an Alertmanager wehbook that creates Jira issues
       maturity: beta
     enabled_conditions:
-    - '{{ or (tuple . "monitoring" | include "unit-enabled") (tuple . "upstrmonitoring" | include "unit-enabled") }}'
+    #- '{{ or (tuple . "monitoring" | include "unit-enabled") (tuple . "upstrmonitoring" | include "unit-enabled") }}'
+    - '{{ tuple . "monitoring" | include "unit-enabled" }}'
     - '{{ .Values.monitoring.alertmanager.webhooks.jiralert.config | empty | not }}'
     unit_templates:
     - base-deps
@@ -5097,7 +5099,8 @@ units:
       description: generates the config for Alertmanager
       maturity: beta
     enabled_conditions:
-    - '{{ or (tuple . "monitoring" | include "unit-enabled") (tuple . "upstrmonitoring" | include "unit-enabled") }}'
+    #- '{{ or (tuple . "monitoring" | include "unit-enabled") (tuple . "upstrmonitoring" | include "unit-enabled") }}'
+    - '{{ tuple . "monitoring" | include "unit-enabled" }}'
     - '{{ .Values.units.monitoring.helmrelease_spec.values.alertmanager.alertmanagerSpec.useExistingSecret }}'
     unit_templates:
     - base-deps
@@ -5118,7 +5121,8 @@ units:
       description: installs Prometheus Push-gateway exporter
       maturity: beta
     enabled_conditions:
-    - '{{ or (tuple . "monitoring" | include "unit-enabled") (tuple . "upstrmonitoring" | include "unit-enabled") }}'
+    #- '{{ or (tuple . "monitoring" | include "unit-enabled") (tuple . "upstrmonitoring" | include "unit-enabled") }}'
+    - '{{ tuple . "monitoring" | include "unit-enabled" }}'
     unit_templates:
     - base-deps
     depends_on:
@@ -5224,7 +5228,8 @@ units:
       description: installs SNMP exporter
       maturity: beta
     enabled_conditions:
-    - '{{ or (tuple . "monitoring" | include "unit-enabled") (tuple . "upstrmonitoring" | include "unit-enabled") }}'
+    #- '{{ or (tuple . "monitoring" | include "unit-enabled") (tuple . "upstrmonitoring" | include "unit-enabled") }}'
+    - '{{ tuple . "monitoring" | include "unit-enabled" }}'
     - '{{ .Values.snmp.auth | empty | not }}'
     unit_templates:
     - base-deps
@@ -5291,7 +5296,8 @@ units:
       description: adds Sylva-specific Grafana dashboards
       maturity: beta
     enabled_conditions:
-    - '{{ or (tuple . "monitoring" | include "unit-enabled") (tuple . "upstrmonitoring" | include "unit-enabled") }}'
+    #- '{{ or (tuple . "monitoring" | include "unit-enabled") (tuple . "upstrmonitoring" | include "unit-enabled") }}'
+    - '{{ tuple . "monitoring" | include "unit-enabled" }}'
     unit_templates:
     - base-deps
     depends_on:
@@ -7256,7 +7262,8 @@ units:
       description: installs Thanos
       maturity: beta
     enabled_conditions:
-      - '{{ or (tuple . "monitoring" | include "unit-enabled") (tuple . "upstrmonitoring" | include "unit-enabled") }}'
+      #- '{{ or (tuple . "monitoring" | include "unit-enabled") (tuple . "upstrmonitoring" | include "unit-enabled") }}'
+      - '{{ tuple . "monitoring" | include "unit-enabled" }}'
     unit_templates:
     - base-deps
     depends_on:
@@ -7341,16 +7348,16 @@ units:
                  - alertmanager-rancher-monitoring-alertmanager-{{ $index_am }}.alertmanager-operated.cattle-monitoring-system:9093
                  {{- end -}}
                 {{- end -}}
-                {{- if tuple . "upstrmonitoring" | include "unit-enabled" -}}
-                 {{- $count_am := .Values.units.upstrmonitoring.helmrelease_spec.values.alertmanager.alertmanagerSpec.replicas -}}
-                 {{- if kindIs "string" $count_am -}}
-                  {{- $count_am = tuple . $count_am | include "interpret-as-string" -}}
-                 {{- end -}}
-                 {{- $count_am = int $count_am -}}
-                 {{- range $index_am := until $count_am }}
-                 - alertmanager-rancher-monitoring-alertmanager-{{ $index_am }}.alertmanager-operated.cattle-monitoring-system:9093
-                 {{- end -}}
-                {{- end -}}
+                # {{- if tuple . "upstrmonitoring" | include "unit-enabled" -}}
+                #  {{- $count_am := .Values.units.upstrmonitoring.helmrelease_spec.values.alertmanager.alertmanagerSpec.replicas -}}
+                #  {{- if kindIs "string" $count_am -}}
+                #   {{- $count_am = tuple . $count_am | include "interpret-as-string" -}}
+                #  {{- end -}}
+                #  {{- $count_am = int $count_am -}}
+                #  {{- range $index_am := until $count_am }}
+                #  - alertmanager-rancher-monitoring-alertmanager-{{ $index_am }}.alertmanager-operated.cattle-monitoring-system:9093
+                #  {{- end -}}
+                # {{- end -}}
           existingConfigmap: "sylva-thanos-rules-configmap"  # this ConfigMap is a byproduct of the sylva-thanos-rules unit
           sidecars:
           # reload thanos-ruler when changes to rule files or alertmanager
@@ -8038,7 +8045,8 @@ units:
     depends_on:
       '{{ tuple . (tuple . "monitoring" | include "unit-enabled") "monitoring" "upstrmonitoring" | include "interpret-ternary" }}': true
     enabled_conditions:
-      - '{{ or (tuple . "monitoring" | include "unit-enabled") (tuple . "upstrmonitoring" | include "unit-enabled") }}'
+      #- '{{ or (tuple . "monitoring" | include "unit-enabled") (tuple . "upstrmonitoring" | include "unit-enabled") }}'
+      - '{{ tuple . "monitoring" | include "unit-enabled" }}'
     repo: sylva-prometheus-rules
     helm_chart_artifact_name: sylva-prometheus-rules
     helmrelease_spec:
