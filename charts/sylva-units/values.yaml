@@ -4521,7 +4521,8 @@ units:
     depends_on:
       namespace-defs: true
       upstream-monitoring-crd: true
-      upstream-prometheus-resources: '{{ tuple . "upstream-prometheus-resources" | include "unit-enabled" }}'
+      #upstream-prometheus-resources: '{{ tuple . "upstream-prometheus-resources" | include "unit-enabled" }}'
+      prometheus-resources: '{{ tuple . "prometheus-resources" | include "unit-enabled" }}'
     helm_repo_url: https://prometheus-community.github.io/helm-charts
     helm_secret_values:
       grafana:
@@ -4697,7 +4698,7 @@ units:
           optional: '{{ not (tuple . "prometheus-custom-metrics" | include "unit-enabled") | include "as-bool" }}'
         - kind: ConfigMap
           name: prometheus-config-values # this configmap is a byproduct of the prometheus-resources unit
-          optional: '{{ not (tuple . "upstream-prometheus-resources" | include "unit-enabled") | include "as-bool" }}'
+          optional: '{{ not (tuple . "prometheus-resources" | include "unit-enabled") | include "as-bool" }}'
       _postRenderers:
         - kustomize:
             patches:

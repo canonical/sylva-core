@@ -179,7 +179,8 @@ units:
     depends_on:
       keycloak-oidc-external-secrets: true
       keycloak-add-realm-role: true
-      upstream-grafana-init: true
+      #upstream-grafana-init: true
+      grafana-init: true
       upstream-grafana-nginx: true
       upstream-prometheus-nginx: true
     annotations:
