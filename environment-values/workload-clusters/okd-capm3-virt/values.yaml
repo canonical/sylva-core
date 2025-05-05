@@ -93,7 +93,6 @@ cluster:
         nic1:
           mac_address: '52:54:00:44:44:04'
         nic2:
-          inspection_name: '{{ tuple "" false | include "set-only-if" }}'
           mac_address: '52:54:00:55:55:04'
         # ens4:
         #   mac_address: '52:54:00:44:44:04'
