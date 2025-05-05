@@ -1870,7 +1870,6 @@ units:
         - '{{ tuple "components/harbor" (tuple . "harbor" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/grafana" (tuple . "monitoring" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/kunai" (tuple . "monitoring" | include "unit-enabled") | include "set-only-if" }}'
-       #- '{{ tuple "components/grafana" (tuple . "upstrmonitoring" | include "unit-enabled") | include "set-only-if" }}'
       postBuild:
         substitute:
           GRAFANA_DNS: '{{ .Values.external_hostnames.grafana }}'
@@ -1898,7 +1897,6 @@ units:
         - '{{ tuple (dict "apiVersion" "v1" "kind" "Secret" "name" "keycloak-client-secret-harbor-client" "namespace" "keycloak") (tuple . "harbor" | include "unit-enabled") | include "set-only-if" }}'  # # this secret is a byproduct of the harbor client KeycloakClient resource
         - '{{ tuple (dict "apiVersion" "v1" "kind" "Secret" "name" "keycloak-client-secret-grafana-client" "namespace" "keycloak") (tuple . "monitoring" | include "unit-enabled") | include "set-only-if" }}'  # # this secret is a byproduct of the grafana client KeycloakClient resource
         - '{{ tuple (dict "apiVersion" "v1" "kind" "Secret" "name" "keycloak-client-secret-kunai-client" "namespace" "keycloak") (tuple . "kunai" | include "unit-enabled") | include "set-only-if" }}'  # # this secret is a byproduct of the grafana client KeycloakClient resource
-       #- '{{ tuple (dict "apiVersion" "v1" "kind" "Secret" "name" "keycloak-client-secret-grafana-client" "namespace" "keycloak") (tuple . "upstrmonitoring" | include "unit-enabled") | include "set-only-if" }}'  # # this secret is a byproduct of the grafana client KeycloakClient resource
 
   keycloak-add-client-scope:
     info:
@@ -4352,7 +4350,6 @@ units:
     - base-deps
     repo: sylva-core
     enabled_conditions:
-    #- '{{ or (tuple . "monitoring" | include "unit-enabled") (tuple . "upstrmonitoring" | include "unit-enabled") }}'
     - '{{ tuple . "monitoring" | include "unit-enabled" }}'
     kustomization_spec:
       path: ./kustomize-units/prometheus-custom-metrics
@@ -4433,7 +4430,6 @@ units:
       kyverno-policies: false
       namespace-defs: true
     enabled_conditions:
-   #- '{{ tuple . "upstrmonitoring" | include "unit-enabled" }}'
     - '{{ tuple . "monitoring" | include "unit-enabled" }}'
     helm_repo_url: https://prometheus-community.github.io/helm-charts
     helmrelease_spec:
@@ -4455,7 +4451,6 @@ units:
       namespace-defs: true
       metal3: '{{ tuple . "metal3" | include "unit-enabled" }}'
     enabled_conditions:
-     #- '{{ tuple . "upstrmonitoring" | include "unit-enabled" }}'
       - '{{ tuple . "monitoring" | include "unit-enabled" }}'
     repo: sylva-core
     kustomization_spec:
@@ -4488,7 +4483,6 @@ units:
       description: sets up Grafana nginx configmap
       internal: true
     enabled_conditions:
-     #- '{{ tuple . "upstrmonitoring" | include "unit-enabled" }}'
       - '{{ tuple . "monitoring" | include "unit-enabled" }}'
     unit_templates:
     - base-deps
@@ -4506,7 +4500,6 @@ units:
       description: sets up Grafana nginx configmap
       internal: true
     enabled_conditions:
-     #- '{{ tuple . "upstrmonitoring" | include "unit-enabled" }}'
       - '{{ tuple . "monitoring" | include "unit-enabled" }}'
     depends_on:
       namespace-defs: true
@@ -4722,7 +4715,6 @@ units:
       description: sets up Grafana certificate for Keycloak OIDC integration
       internal: true
     enabled_conditions:
-     #- '{{ tuple . "upstrmonitoring" | include "unit-enabled" }}'
       - '{{ tuple . "monitoring" | include "unit-enabled" }}'
       - '{{ tuple . "keycloak" | include "unit-enabled" }}'
     unit_templates:
@@ -4762,7 +4754,6 @@ units:
     depends_on:
       namespace-defs: true
     enabled_conditions:
-     #- '{{ tuple . "upstrmonitoring" | include "unit-enabled" }}'
       - '{{ tuple . "monitoring" | include "unit-enabled" }}'
     helm_repo_url: https://prometheus-community.github.io/helm-charts
     helmrelease_spec:
@@ -4966,7 +4957,6 @@ units:
       details: Jiralert is an Alertmanager wehbook that creates Jira issues
       maturity: beta
     enabled_conditions:
-    #- '{{ or (tuple . "monitoring" | include "unit-enabled") (tuple . "upstrmonitoring" | include "unit-enabled") }}'
     - '{{ tuple . "monitoring" | include "unit-enabled" }}'
     - '{{ .Values.monitoring.alertmanager.webhooks.jiralert.config | empty | not }}'
     unit_templates:
@@ -5099,7 +5089,6 @@ units:
       description: generates the config for Alertmanager
       maturity: beta
     enabled_conditions:
-    #- '{{ or (tuple . "monitoring" | include "unit-enabled") (tuple . "upstrmonitoring" | include "unit-enabled") }}'
     - '{{ tuple . "monitoring" | include "unit-enabled" }}'
     - '{{ .Values.units.monitoring.helmrelease_spec.values.alertmanager.alertmanagerSpec.useExistingSecret }}'
     unit_templates:
@@ -5121,12 +5110,10 @@ units:
       description: installs Prometheus Push-gateway exporter
       maturity: beta
     enabled_conditions:
-    #- '{{ or (tuple . "monitoring" | include "unit-enabled") (tuple . "upstrmonitoring" | include "unit-enabled") }}'
     - '{{ tuple . "monitoring" | include "unit-enabled" }}'
     unit_templates:
     - base-deps
     depends_on:
-      #'{{ tuple . (tuple . "monitoring" | include "unit-enabled") "monitoring" "upstrmonitoring" | include "interpret-ternary" }}': true
       monitoring: true
     helm_repo_url: https://prometheus-community.github.io/helm-charts
     helmrelease_spec:
@@ -5229,14 +5216,12 @@ units:
       description: installs SNMP exporter
       maturity: beta
     enabled_conditions:
-    #- '{{ or (tuple . "monitoring" | include "unit-enabled") (tuple . "upstrmonitoring" | include "unit-enabled") }}'
     - '{{ tuple . "monitoring" | include "unit-enabled" }}'
     - '{{ .Values.snmp.auth | empty | not }}'
     unit_templates:
     - base-deps
     depends_on:
       snmp-exporter-config: true
-      #'{{ tuple . (tuple . "monitoring" | include "unit-enabled") "monitoring" "upstrmonitoring" | include "interpret-ternary" }}': true
       monitoring: true
     helm_repo_url: https://prometheus-community.github.io/helm-charts
     helmrelease_spec:
@@ -5297,12 +5282,10 @@ units:
       description: adds Sylva-specific Grafana dashboards
       maturity: beta
     enabled_conditions:
-    #- '{{ or (tuple . "monitoring" | include "unit-enabled") (tuple . "upstrmonitoring" | include "unit-enabled") }}'
     - '{{ tuple . "monitoring" | include "unit-enabled" }}'
     unit_templates:
     - base-deps
     depends_on:
-      #'{{ tuple . (tuple . "monitoring" | include "unit-enabled") "monitoring" "upstrmonitoring" | include "interpret-ternary" }}': true
       monitoring: true
     repo: sylva-dashboards
     helm_chart_artifact_name: sylva-dashboards
@@ -7264,7 +7247,6 @@ units:
       description: installs Thanos
       maturity: beta
     enabled_conditions:
-      #- '{{ or (tuple . "monitoring" | include "unit-enabled") (tuple . "upstrmonitoring" | include "unit-enabled") }}'
       - '{{ tuple . "monitoring" | include "unit-enabled" }}'
     unit_templates:
     - base-deps
@@ -7350,16 +7332,6 @@ units:
                  - alertmanager-rancher-monitoring-alertmanager-{{ $index_am }}.alertmanager-operated.cattle-monitoring-system:9093
                  {{- end -}}
                 {{- end -}}
-                # {{- if tuple . "upstrmonitoring" | include "unit-enabled" -}}
-                #  {{- $count_am := .Values.units.upstrmonitoring.helmrelease_spec.values.alertmanager.alertmanagerSpec.replicas -}}
-                #  {{- if kindIs "string" $count_am -}}
-                #   {{- $count_am = tuple . $count_am | include "interpret-as-string" -}}
-                #  {{- end -}}
-                #  {{- $count_am = int $count_am -}}
-                #  {{- range $index_am := until $count_am }}
-                #  - alertmanager-rancher-monitoring-alertmanager-{{ $index_am }}.alertmanager-operated.cattle-monitoring-system:9093
-                #  {{- end -}}
-                # {{- end -}}
           existingConfigmap: "sylva-thanos-rules-configmap"  # this ConfigMap is a byproduct of the sylva-thanos-rules unit
           sidecars:
           # reload thanos-ruler when changes to rule files or alertmanager
@@ -8045,10 +8017,8 @@ units:
     unit_templates:
     - base-deps
     depends_on:
-      #'{{ tuple . (tuple . "monitoring" | include "unit-enabled") "monitoring" "upstrmonitoring" | include "interpret-ternary" }}': true
       monitoring: true
     enabled_conditions:
-      #- '{{ or (tuple . "monitoring" | include "unit-enabled") (tuple . "upstrmonitoring" | include "unit-enabled") }}'
       - '{{ tuple . "monitoring" | include "unit-enabled" }}'
     repo: sylva-prometheus-rules
     helm_chart_artifact_name: sylva-prometheus-rules
