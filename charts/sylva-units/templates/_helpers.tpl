@@ -79,7 +79,7 @@ patches:
           labels: {{ $labels | toYaml | nindent 12 }}
       - op: replace
         path: /spec
-        value: {{ mergeOverwrite (dict "valuesFrom" list) $helmrelease_spec | toYaml | nindent 10 }}
+        value: {{ mergeOverwrite (dict "valuesFrom" list) $helmrelease_spec | toYaml | nindent 10 | include "unshield-raw" }}
   {{ if $has_secret }}
   - target:
       kind: Secret

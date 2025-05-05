@@ -216,7 +216,7 @@ spec: {{ $helm_repo_spec | toYaml | nindent 2 }}
         {{/* if the unit has "helm_secret_values" defined, then
              we push a secret in the HelmRelease via kustomization_substitute_secrets"
         */}}
-        {{- $_ := set $unit_def "kustomization_substitute_secrets" (dict "VALUES_B64" ($unit_def.helm_secret_values | toYaml | b64enc)) -}}
+        {{- $_ := set $unit_def "kustomization_substitute_secrets" (dict "VALUES_B64" ($unit_def.helm_secret_values | toYaml | include "unshield-raw" | b64enc)) -}}
       {{- end -}}
 
       {{- $annotations := $unit_def.annotations | default dict }}
@@ -239,7 +239,7 @@ metadata:
   name: {{ $secretName }}
   labels: {{ $labels | toYaml | nindent 4 }}
 stringData:
-{{- $unit_def.kustomization_substitute_secrets | toYaml | nindent 2 }}
+{{- $unit_def.kustomization_substitute_secrets | toYaml | nindent 2 | include "unshield-raw" }}
 
       {{- $substituteFrom := (($unit_def.kustomization_spec | default dict).postBuild | default dict).substituteFrom | default list -}}
       {{- $secretsValues := dict "kind" "Secret" "name" $secretName -}}
@@ -353,6 +353,6 @@ metadata:
   name: {{ include "kustomization-name" (tuple $envAll $unit_name $unit_def) }}
   labels: {{ $labels | toYaml | nindent 4 }}
   annotations: {{ $unit_def.annotations | default dict | toYaml | nindent 4 }}
-spec: {{ $kustomization_spec | toYaml | nindent 2 }}
+spec: {{ $kustomization_spec | toYaml | nindent 2 | include "unshield-raw" }}
   {{- end -}}
 {{ end }}
