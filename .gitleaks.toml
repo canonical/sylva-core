@@ -25,6 +25,7 @@ paths = [
 commits = [
             "7ecb860f49b791615ef9fb86db524c28a9fca75e",
             "ce53d2b6c53115fce3c55ff3e2484fa9b26834f3",
+            "19eff2a0e790ab19c368565ca6fc9efe0aa91935",
           ]
 
 # Skip known fake secrets
