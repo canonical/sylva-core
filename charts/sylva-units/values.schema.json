@@ -3118,6 +3118,35 @@
         }
       ]
     },
+    "machine-pool": {
+      "anyOf": [
+        {
+          "type": "object",
+          "additionalProperties": true,
+          "properties": {
+            "replicas": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "$ref": "#/$defs/string-with-gotpl"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "$ref": "#/$defs/string-with-gotpl"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
     "node_class": {
       "anyOf": [
         {
@@ -5995,6 +6024,56 @@
                       "allOf": [
                         {
                           "$ref": "#/$defs/machine-deployment"
+                        },
+                        {
+                          "required": [
+                            "replicas"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "$ref": "#/$defs/string-with-gotpl"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "$ref": "#/$defs/string-with-gotpl"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "machine_pool_default": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/machine-pool"
+            },
+            {
+              "$ref": "#/$defs/string-with-gotpl"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "machine_pools": {
+          "anyOf": [
+            {
+              "type": "object",
+              "patternProperties": {
+                "^[a-z0-9][a-z0-9-]*[a-z0-9]$": {
+                  "anyOf": [
+                    {
+                      "allOf": [
+                        {
+                          "$ref": "#/$defs/machine-pool"
                         },
                         {
                           "required": [
