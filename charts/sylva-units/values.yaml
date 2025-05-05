@@ -2797,7 +2797,7 @@ units:
       postBuild:
         substitute:
           CERTIFICATE_NAMESPACE: metal3-system
-          CACERT_SECRET_NAME: tls-ca-additional
+          CACERT_SECRET_NAME: tls-ca-additional   # this Secret is used by metal3 chart when additionalTrustedCAs is true
           CERT_FILE_NAME: sylva-ca.crt
 
   metal3:
@@ -2825,7 +2825,7 @@ units:
       targetNamespace: metal3-system
       values:
         global:
-          additionalTrustedCAs: true
+          additionalTrustedCAs: true  # results in having the chart use the metal3-system/tls-ca-additional Secret which is produced by metal3-sylva-ca-init unit
           ironicIP: '{{ .Values.display_external_ip }}'
           provisioningInterface: eth0
         metal3-ironic:
@@ -4130,7 +4130,7 @@ units:
 
   ingress-nginx-init:
     info:
-      description: prepares default certificate for nginx ingress controler
+      description: creates the default certificate for the ingress-nginx controller
       internal: true
     enabled_conditions:
       - '{{ tuple . "ingress-nginx" | include "unit-enabled" }}'
@@ -8017,6 +8017,7 @@ cluster:
       primary:
         interface: ""
     image_provisioning_host: '{{ .Values.display_external_ip }}'
+    image_provisioning_scheme: "https"
     default_network_settings:
       mtu: 1500 # set the default network interfaces MTU size
 
@@ -9163,6 +9164,7 @@ shared_workload_clusters_values:
     mgmt_cluster_ip: '{{ .Values.display_external_ip }}'
     capm3:
       image_provisioning_host: '{{ .Values.display_external_ip }}'
+      image_provisioning_scheme: '{{ .Values.cluster.capm3.image_provisioning_scheme  }}'
     default_node_class: '{{ .Values.cluster.default_node_class }}'
     node_classes: '{{ .Values.cluster.node_classes | include "preserve-type" }}'
 
