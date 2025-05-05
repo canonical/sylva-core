@@ -544,7 +544,7 @@ if [[ -f $MGMT_KUBECONFIG ]]; then
     if [ -n "$WORKLOAD_CLUSTER_NAME" ]; then
       # TODO: handle case where there is cluster with same name in different namespace (currently first one is picked)
       workload_cluster_name="$WORKLOAD_CLUSTER_NAME"
-      workload_cluster_namespace=$(echo "$workload_clusters" | yq '.[] | select(.name == env(WORKLOAD_CLUSTER_NAME))' | yq .[0].ns )
+      workload_cluster_namespace=$(echo "$workload_clusters" | yq '[.[] | select(.name == env(WORKLOAD_CLUSTER_NAME))]'  | yq '.[0].ns' )
     else
       if [[ "$workload_clusters_count" -gt "1" ]]; then
         # TODO: handle dump of several workload clusters - currently only works with one
