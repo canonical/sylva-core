@@ -2851,6 +2851,9 @@
                 }
               ]
             },
+            "additional_ca" : {
+                "type": "string"
+            },
             "additional_files": {
               "anyOf": [
                 {
@@ -6050,6 +6053,9 @@
                       "type": "null"
                     }
                   ]
+                },
+                "additional_ca" : {
+                    "type": "string"
                 },
                 "additional_files": {
                   "anyOf": [

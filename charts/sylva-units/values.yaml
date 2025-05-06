@@ -3155,6 +3155,23 @@ units:
             .Values._internal.capo_calico_autodetection_method_use_canReach_vip
           | include "set-only-if"
           -}}
+
+        # ca-key-pair Secret cloned via kyverno from management to inject in workload cluster
+        # to propagate ca from management cluster to workload cluster which later on
+        # stored in trusted path of OS of workload cluster nodes
+        - |
+          {{-
+          tuple
+            (dict "kind" "Secret"
+                  "name" "ca-key-pair"
+                  "targetPath" "additional_ca"
+                  "valuesKey" "ca.crt"
+                  "optional"  true)
+            (and (.Values.cluster.additional_ca | empty)
+                (.Values._internal.mgmt_cluster | not)
+            )
+          | include "set-only-if"
+          -}}
       _postRenderers:
         - kustomize:
             patches:
