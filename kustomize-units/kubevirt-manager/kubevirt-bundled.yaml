@@ -444,9 +444,9 @@ spec:
             - --login-url=https://${KEYCLOAK_DNS}/realms/sylva/protocol/openid-connect/auth
             - --redeem-url=https://${KEYCLOAK_DNS}/realms/sylva/protocol/openid-connect/token
             - --profile-url=https://${KEYCLOAK_DNS}/realms/sylva/protocol/openid-connect/userinfo
-            # - --set-xauthrequest=true
-            # - --pass-authorization-header=true
-            # - --pass-access-token=true
+            - --set-xauthrequest=true
+            - --pass-authorization-header=true
+            - --pass-access-token=true
             - --scope=openid profile email
             - --cookie-domain=kubevirt-manager.sylva
             - --cookie-path=/
