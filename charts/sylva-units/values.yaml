@@ -2036,26 +2036,26 @@ units:
           FLUX_WEBUI_DNS: '{{ .Values.external_hostnames.flux }}'
       wait: false
       healthChecks:
-        # - >-
-        #   {{ tuple (dict
-        #         "apiVersion" "v1"
-        #         "kind" "Secret"
-        #         "name" "grafana-oidc"
-        #         "namespace" "cattle-monitoring-system"
-        #       )
-        #       (tuple . "monitoring" | include "unit-enabled")
-        #       | include "set-only-if"
-        #   }}
         - >-
           {{ tuple (dict
                 "apiVersion" "v1"
                 "kind" "Secret"
-                "name" "upstream-grafana-oidc"
+                "name" "grafana-oidc"
                 "namespace" "cattle-monitoring-system"
               )
               (tuple . "monitoring" | include "unit-enabled")
               | include "set-only-if"
           }}
+        # - >-
+        #   {{ tuple (dict
+        #         "apiVersion" "v1"
+        #         "kind" "Secret"
+        #         "name" "upstream-grafana-oidc"
+        #         "namespace" "cattle-monitoring-system"
+        #       )
+        #       (tuple . "monitoring" | include "unit-enabled")
+        #       | include "set-only-if"
+        #   }}
         # this secret is a byproduct of the eso-grafana-oidc ExternalSecret resource
         - >-
           {{ tuple (dict
@@ -2079,8 +2079,8 @@ units:
               | include "set-only-if" }}
         # this secret is a byproduct of the eso-rancher-oidc ExternalSecret resource
       _components:
-       #- '{{ tuple "components/grafana-oidc" (tuple . "monitoring" | include "unit-enabled") | include "set-only-if" }}'
-        - '{{ tuple "components/upstream-grafana-oidc" (tuple . "monitoring" | include "unit-enabled") | include "set-only-if" }}'
+        - '{{ tuple "components/grafana-oidc" (tuple . "monitoring" | include "unit-enabled") | include "set-only-if" }}'
+       #- '{{ tuple "components/upstream-grafana-oidc" (tuple . "monitoring" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/flux-webui-oidc" (tuple . "flux-webui" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/rancher-oidc" (tuple . "rancher" | include "unit-enabled") | include "set-only-if" }}'
 
@@ -4478,7 +4478,7 @@ units:
   #     _components:
   #       - '{{ tuple "components/kyverno-snmp-bmh-policy" (tuple . "metal3" | include "unit-enabled") | include "set-only-if" }}'
 
-  upstream-prometheus-nginx:
+  prometheus-nginx:
     info:
       description: sets up Grafana nginx configmap
       internal: true
@@ -4495,7 +4495,7 @@ units:
       wait: true
       targetNamespace: cattle-monitoring-system
 
-  upstream-grafana-nginx:
+  grafana-nginx:
     info:
       description: sets up Grafana nginx configmap
       internal: true
@@ -4746,7 +4746,7 @@ units:
   #         name: grafana-tls
   #         namespace: cattle-monitoring-system
 
-  upstream-prometheus-adaptor:
+  prometheus-adaptor:
     info:
       description: installs upstream prometheus adaptor
       maturity: beta

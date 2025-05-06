@@ -164,7 +164,7 @@ units:
           # regardless of the management cluster name
           management-cluster: true
 
-  upstream-grafana-nginx:
+  grafana-nginx:
     kustomization_spec:
       postBuild:
         substitute:
@@ -181,8 +181,8 @@ units:
       keycloak-add-realm-role: true
       #upstream-grafana-init: true
       grafana-init: true
-      upstream-grafana-nginx: true
-      upstream-prometheus-nginx: true
+      grafana-nginx: true
+      prometheus-nginx: true
     annotations:
       sylvactl/readyMessage: "Grafana UI can be reached at https://{{ .Values.external_hostnames.grafana }} ({{ .Values.external_hostnames.grafana }} must resolve to {{ .Values.display_external_ip }})"
     helmrelease_spec:
@@ -206,7 +206,7 @@ units:
             network: false
             nodeExporterAlerting: false
         grafana:
-          envFromSecret: upstream-grafana-oidc
+          envFromSecret: grafana-oidc
           sidecar:
             datasources:
               isDefaultDatasource: false
