@@ -290,15 +290,37 @@ function define_source() {
   if (command -v git && pushd $BASE_DIR && git rev-parse --is-inside-work-tree;) &> /dev/null; then
     pushd $BASE_DIR &> /dev/null
     export SYLVA_CORE_COMMIT=${SYLVA_CORE_COMMIT:-$(git rev-parse HEAD)}
+    export SYLVA_CORE_TAG=${SYLVA_CORE_TAG:-$(git tag --contains $SYLVA_CORE_COMMIT 2>/dev/null | head -1)}
+    export SYLVA_CORE_REV_NAME=${SYLVA_CORE_REV_NAME:-refs/head/$(git name-rev --name-only $SYLVA_CORE_COMMIT --refs "refs/heads/*" --no-undefined 2>/dev/null)}
     export SYLVA_CORE_REPO=${SYLVA_CORE_REPO:-$(git remote get-url origin | sed 's|^git@\([^:]\+\):|https://\1/|' | sed 's|gitlab-ci-token.*@||')}
     popd &> /dev/null
   else
-    [ -z "${SYLVA_CORE_COMMIT:-}" ] && (echo >&2 "[INFO] Unable to determine current commit. Make sure to use OCI artifacts for deployment";)
     export SYLVA_CORE_REPO=${SYLVA_CORE_REPO:-"https://gitlab.com/sylva-projects/sylva-core"}
   fi
-  [ -n "${SYLVA_CORE_COMMIT:-}" ] && echo >&2 "[INFO] Using ${SYLVA_CORE_COMMIT:-}";
 
-  sed "s/CURRENT_COMMIT/${SYLVA_CORE_COMMIT:-"xxxxxx"}/" "$@" | \
+  if [[ -z ${SYLVA_CORE_COMMIT:-} ]]; then
+    SYLVA_CORE_REF=""
+    if [[ -z "${SYLVA_CORE_USE_OCI:-}" ]]; then
+      echo >&2 "[ERROR] Unable to determine current commit. Exit. (if you use OCI, set SYLVA_CORE_USE_OCI=1 in sylva.env, to avoid this)"
+      exit 1
+    fi
+  else
+    if [[ -z $(cd $BASE_DIR && git branch --remotes --contains ${SYLVA_CORE_COMMIT} 2>&1) ]]; then
+      echo >&2 "[ERROR] Current commit does not exit on remote Git."
+      exit 1
+    fi
+
+    if [[ -n $SYLVA_CORE_TAG ]]; then
+      SYLVA_CORE_REF="{name: refs/tags/${SYLVA_CORE_TAG}}"
+    elif [[ -n $SYLVA_CORE_REV_NAME ]]; then
+      SYLVA_CORE_REF="{name: ${SYLVA_CORE_REV_NAME}, commit: ${SYLVA_CORE_COMMIT}}"
+    else
+      SYLVA_CORE_REF="{commit: ${SYLVA_CORE_COMMIT}, name: null}"  # 'name: null' to override sylva-units/values.yaml default
+    fi
+    echo >&2 "[INFO] using ${SYLVA_CORE_REF:-} for sylva-units GitRepository";
+  fi
+
+  sed "s!SYLVA_CORE_REF!${SYLVA_CORE_REF}!" "$@" | \
   sed "s,SYLVA_CORE_REPO,${SYLVA_CORE_REPO},g" "$@" | \
   sed "s,SYLVA_BASE_OCI_REGISTRY,${SYLVA_BASE_OCI_REGISTRY},g" "$@"
 }
