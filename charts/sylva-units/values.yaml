@@ -3386,6 +3386,19 @@ units:
                       metadata:
                         annotations:
                           clouds-yaml-hash: '{{ .Values._internal.clouds_yaml_hash }}'
+              - target:
+                  kind: DaemonSet
+                  name: openstack-cinder-csi-nodeplugin
+                patch: |
+                  kind: DaemonSet
+                  metadata:
+                    name: openstack-cinder-csi-nodeplugin
+                  spec:
+                    template:
+                      metadata:
+                        annotations:
+                          clouds-yaml-hash: '{{ .Values._internal.clouds_yaml_hash }}'
+
     helm_secret_values:
       secret:
         enabled: "true"
