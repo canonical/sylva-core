@@ -49,7 +49,7 @@ cluster:
     machine_image_checksum_type: sha256
     machine_image_format: live-iso
     machine_image_url: https://abcdef
-    dns_servers: '{{ list .Values.cluster.mgmt_cluster_ip }}'
+    dns_servers: ['{{ list .Values.cluster.mgmt_cluster_ip }}']
     # networks:
     #   primary:
     #     subnet: 192.168.100.0/24
