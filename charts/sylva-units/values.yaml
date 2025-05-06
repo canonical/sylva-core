@@ -4938,6 +4938,8 @@ units:
     - base-deps
     depends_on:
       '{{ .Values._internal.calico_readiness_unit }}': '{{ tuple . "calico" | include "unit-enabled" }}'
+    kustomization_spec:
+      prune: false  # This prevents the deletion of Multus resources when the unit is disabled after an initial deployment
     helm_repo_url: https://rke2-charts.rancher.io/
     helmrelease_spec:
       chart:
@@ -9003,11 +9005,6 @@ _internal:
     {{- tuple .Values.cluster $selector | include "finalize-os-image-selector" | fromJson | include "preserve-type" -}}
 
   immutable_values:
-    units:
-      multus:
-        enabled:
-          _immutable: true
-          _immutable_comment: "Enabling or disabling Multus after initial deployment is not supported yet. It can cause pod connectivity issues."
     cluster_domain:
       _immutable: true
       _immutable_comment: "The update of cluster domain is not supported"
