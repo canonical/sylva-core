@@ -6,7 +6,7 @@ metadata:
   labels:
     copy-from-bootstrap-to-management: ""
 spec:
-  interval: 120m
+  interval: 168h
   ref:
     commit: CURRENT_COMMIT # Placeholder that will be replaced by bootstrap.sh and apply.sh commands
   url: SYLVA_CORE_REPO
@@ -30,7 +30,7 @@ spec:
         - charts/sylva-units/management.values.yaml
   driftDetection:
     mode: enabled
-  interval: 10m0s
+  interval: 24h
   valuesFrom:
   - kind: Secret
     name: sylva-units-secrets
