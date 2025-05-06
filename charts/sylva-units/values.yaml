@@ -4938,6 +4938,8 @@ units:
     - base-deps
     depends_on:
       '{{ .Values._internal.calico_readiness_unit }}': '{{ tuple . "calico" | include "unit-enabled" }}'
+    kustomization_spec:
+      prune: false  # This prevents the deletion of Multus resources when the unit is disabled after an initial deployment
     helm_repo_url: https://rke2-charts.rancher.io/
     helmrelease_spec:
       chart:
