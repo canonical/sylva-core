@@ -451,6 +451,7 @@ spec:
             - --cookie-domain=kubevirt-manager.sylva
             - --cookie-path=/
             # - --reverse-proxy=true
+
           ports:
             - containerPort: 4180
               name: oauth2
