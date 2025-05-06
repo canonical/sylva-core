@@ -2893,6 +2893,10 @@ units:
             paths:
             - /spec/online
             - /spec/automatedCleaningMode
+          - target:
+              kind: Secret
+            paths:
+            - /metadata/labels/environment.metal3.io
       targetNamespace: '{{ .Release.Namespace }}'
       chart:
         spec:
