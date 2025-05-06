@@ -4356,30 +4356,30 @@ units:
       wait: false
       force: true
 
-  monitoring-crd:
-    info:
-      description: installs monitoring stack CRDs
-      maturity: stable
-      hidden: true
-    unit_templates:
-    - base-deps
-    depends_on:
-      # this unit provides the monitoring CRDs which Kyverno unit consumes
-      # so it cannot depend on kyverno
-      kyverno: false
-      kyverno-policies: false
-      namespace-defs: true
-    enabled_conditions:
-    - '{{ tuple . "monitoring" | include "unit-enabled" }}'
-    helm_repo_url: https://charts.rancher.io/
-    helmrelease_spec:
-      releaseName: rancher-monitoring-crd
-      targetNamespace: cattle-monitoring-system
-      storageNamespace: cattle-monitoring-system # see https://gitlab.com/sylva-projects/sylva-core/-/issues/443
-      chart:
-        spec:
-          chart: rancher-monitoring-crd
-          version: 105.1.4+up61.3.2-rancher.5
+  # monitoring-crd:
+  #   info:
+  #     description: installs monitoring stack CRDs
+  #     maturity: stable
+  #     hidden: true
+  #   unit_templates:
+  #   - base-deps
+  #   depends_on:
+  #     # this unit provides the monitoring CRDs which Kyverno unit consumes
+  #     # so it cannot depend on kyverno
+  #     kyverno: false
+  #     kyverno-policies: false
+  #     namespace-defs: true
+  #   enabled_conditions:
+  #   - '{{ tuple . "monitoring" | include "unit-enabled" }}'
+  #   helm_repo_url: https://charts.rancher.io/
+  #   helmrelease_spec:
+  #     releaseName: rancher-monitoring-crd
+  #     targetNamespace: cattle-monitoring-system
+  #     storageNamespace: cattle-monitoring-system # see https://gitlab.com/sylva-projects/sylva-core/-/issues/443
+  #     chart:
+  #       spec:
+  #         chart: rancher-monitoring-crd
+  #         version: 105.1.4+up61.3.2-rancher.5
 
   grafana-init:
     info:
@@ -4416,7 +4416,7 @@ units:
           name: grafana-tls
           namespace: cattle-monitoring-system
 
-  upstream-monitoring-crd:
+  monitoring-crd:
     info:
       description: installs prometheus operator CRDs
       maturity: stable
@@ -4488,7 +4488,7 @@ units:
     - base-deps
     depends_on:
       namespace-defs: true
-      upstream-monitoring-crd: true
+      monitoring-crd: true
     repo: sylva-core
     kustomization_spec:
       path: ./kustomize-units/upstream-monitoring-nginx
@@ -4503,7 +4503,7 @@ units:
       - '{{ tuple . "monitoring" | include "unit-enabled" }}'
     depends_on:
       namespace-defs: true
-      upstream-monitoring-crd: true
+      monitoring-crd: true
     unit_templates:
     - base-deps
     repo: sylva-core
@@ -4520,8 +4520,7 @@ units:
     - base-deps
     depends_on:
       namespace-defs: true
-      upstream-monitoring-crd: true
-      #upstream-prometheus-resources: '{{ tuple . "upstream-prometheus-resources" | include "unit-enabled" }}'
+      monitoring-crd: true
       prometheus-resources: '{{ tuple . "prometheus-resources" | include "unit-enabled" }}'
     helm_repo_url: https://prometheus-community.github.io/helm-charts
     helm_secret_values:
