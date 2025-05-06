@@ -19,11 +19,14 @@
 import os
 import re
 import base64
-import warnings
 import sys
 import urllib3
 import hvac
 from kubernetes import client, config
+import logging
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("leak report")
 
 urllib3.disable_warnings(category=urllib3.exceptions.InsecureRequestWarning)
 
@@ -142,6 +145,10 @@ whitelist_key = [
     "LOKI_USERNAME",
 ]
 
+kubernetes_secret_type_ignore_list = [
+    "helm.sh/release.v1"
+]
+
 ci_project_dir = os.getenv("CI_PROJECT_DIR", ".")
 
 REPORT_FILE = f"{ci_project_dir}/leak-report.log"
@@ -208,7 +215,7 @@ def validate_secret_regex(value_secret, secret_regex, secret_name, key):
 
 
 # build secret regex
-def build_secret_regex(secrets_dict, secret_list, secret_id_list):
+def build_secret_regex(secrets_dict, secret_list, secret_id_list, source: str):
     """
     build_secret_regex builds a regex that will match all secrets from secrets_dict.
     the result is produced by enriching secret_list and secret_id_list
@@ -226,11 +233,12 @@ def build_secret_regex(secrets_dict, secret_list, secret_id_list):
             for key in secrets_dict[secret_name]:
                 if is_whitelist_secret(secret_name, key):
                     continue  # secret in white list skip
-                value_secret = secrets_dict[secret_name][key]
-                if is_valid_secret(value_secret):
+                secret_value = secrets_dict[secret_name][key]
+                logger.info(f"Adding secret {secret_name}/{key}")
+                if is_valid_secret(secret_value):
                     # removes any leading, and trailing whitespaces from the secret value
-                    value_secret = value_secret.strip()
-                    value_secret_re = value_secret
+                    secret_value = secret_value.strip()
+                    value_secret_re = secret_value
                     # escape special characteres
                     # replace any non alphanumeric character by a "."
                     value_secret_re = re.sub(r"['.|*+/()?\[\]$^]", ".", value_secret_re)
@@ -238,10 +246,13 @@ def build_secret_regex(secrets_dict, secret_list, secret_id_list):
                     value_secret_re = re.sub(r"\\x", ".{1,2}", value_secret_re)
                     # escape remaining "\" charactere by a "."
                     value_secret_re = re.sub(r"\\", ".{1,2}", value_secret_re)
-                    validate_secret_regex(value_secret, value_secret_re, secret_name, key)
+                    validate_secret_regex(secret_value, value_secret_re, secret_name, key)
                     secret_list.append(value_secret_re)
-                    secret_id_list[value_secret] = {"secret": secret_name,
-                                                    "key": key}
+                    secret_id_list[secret_value] = {
+                        "source": source,
+                        "secret": secret_name,
+                        "key": key
+                    }
 
 
 # validate secrets regex by matching every secret on it
@@ -281,7 +292,7 @@ def is_new_leak(leak_checked, leaks_output):
 
 
 # check  secret regex by matching every secret on it
-def check_leaks(log_string, leaks_output, target_pod, secrets_regex, secret_id_list):
+def check_leaks(log_string, leaks_output, target_pod, secrets_regex: re.Pattern[str], secret_id_list, container_name: str):
     """
     check_leaks tries to find matches of secret_regex in the given log_string
 
@@ -296,19 +307,24 @@ def check_leaks(log_string, leaks_output, target_pod, secrets_regex, secret_id_l
                     (keys are the secret values, values are dicts with `secret` (secret name)
                     and `key` (key inside secret)
     """
-    log_string = f"{log_string}"
-    log_string = log_string.rstrip('\r')
-    for leak_found in re.findall(secrets_regex, log_string):
-        leak_found = leak_found.strip()
-        if leak_found in secret_id_list:
+    for found_secret in secrets_regex.finditer(log_string):
+        line = found_secret.group()
+        secret = found_secret.groupdict()["secret"].strip()
+        if secret in secret_id_list:
             leak = {"pod": target_pod.metadata.name,
                     "namespace": target_pod.metadata.namespace,
-                    "leak": secret_id_list[leak_found],
-                    "secret": leak_found}
+                    "container": container_name,
+                    "leak": secret_id_list[secret],
+                    "secret": secret,
+                    "line": line,
+                    }
         else:
             leak = {"pod": target_pod.metadata.name,
                     "namespace": target_pod.metadata.namespace,
-                    "leak_found": leak_found}
+                    "container": container_name,
+                    "leak_found": secret,
+                    "line": line,
+                    }
         if is_new_leak(leak, leaks_output):
             leaks_output.append(leak)
 
@@ -318,16 +334,22 @@ secrets = v1.list_secret_for_all_namespaces(watch=False).items
 kubernetes_secrets = {}
 
 for secret in secrets:
-    kubernetes_secrets[secret.metadata.name] = {}
+    secret_full_name = f"{secret.metadata.namespace}/{secret.metadata.name}"
+    if secret.type in kubernetes_secret_type_ignore_list:
+        logger.info(f"Skipping secret {secret_full_name} as it is of type {secret.type}")
+        continue
+    kubernetes_secrets[secret_full_name] = {}
     if is_valid_secret(secret.data):
         for key in secret.data:
+            if key in whitelist_secret.get(secret.metadata.name, ()):
+                logger.info(f"Skipping key {secret_full_name}/{key}")
+                continue
             decoded_secret = base64.b64decode(secret.data[key])
             # check if secret value is not a gzipped file (byte array beggining by 0x1F8B)
             if not (len(decoded_secret) >= 2 and decoded_secret[0] == 31 and decoded_secret[1] == 139):
-                kubernetes_secrets[secret.metadata.name][key] = decoded_secret.decode("utf-8")
+                kubernetes_secrets[secret_full_name][key] = decoded_secret.decode("utf-8")
             else:
-                warnings.warn(f"""WARNING: secret {secret.metadata.name} key {key}
-                               was skipped, as it has been identified as gzip file content""")
+                logger.warning(f"Skipping {secret_full_name}/{key}, identified as gzip file content")
 
 # vault_client
 vault_client = hvac.Client(url=vault_url, verify=False, token=vault_token)
@@ -344,50 +366,46 @@ for folder in list_folders:
     read_response = vault_client.secrets.kv.v2.read_secret(path=path,)
     vault_secrets[folder] = read_response['data']['data']
 
-# get list of all pods
-pods = v1.list_pod_for_all_namespaces(watch=False).items
-
 leaks = []
 
 secret_lst = []
 secret_id_lst = {}
 # build kubernetes secret regex
-build_secret_regex(kubernetes_secrets, secret_lst, secret_id_lst)
+build_secret_regex(kubernetes_secrets, secret_lst, secret_id_lst, source="kubernetes")
 # build vault secret regex
-build_secret_regex(vault_secrets, secret_lst, secret_id_lst)
+build_secret_regex(vault_secrets, secret_lst, secret_id_lst, source="vault")
 
-secrets_re = ""
 # build secrets regex from list of individual secret regex
-secrets_re = r"("+'|'.join(secret_lst) + r")" # noqa E226
+secrets_re = re.compile(f"^.*(?P<secret>{'|'.join(secret_lst)}).*$", flags=re.MULTILINE | re.IGNORECASE) # noqa E226
 
 # validate the regex on all kubernetes secret
 validate_secret_list_regex(kubernetes_secrets, secrets_re)
 # validate the regex on all vault secret
 validate_secret_list_regex(vault_secrets, secrets_re)
 
+# get list of all pods
+pods = v1.list_pod_for_all_namespaces(watch=False).items
+
 # check for leak on pods logs
 for pod in pods:
+    logger.info(f"looking into pod {pod.metadata.namespace}/{pod.metadata.name}")
     for container in pod.spec.containers:
-        try:
-            # get logs of current container logs
-            log = v1.read_namespaced_pod_log(name=pod.metadata.name,
-                                             namespace=pod.metadata.namespace,
-                                             container=container.name)
-            check_leaks(log, leaks, pod, secrets_re, secret_id_lst)
-            # check logs of previous terminated container logs
-            previous_log = v1.read_namespaced_pod_log(name=pod.metadata.name,
-                                                      namespace=pod.metadata.namespace,
-                                                      container=container.name,
-                                                      previous=True)
-            check_leaks(previous_log, leaks, pod, secrets_re, secret_id_lst)
-        except client.exceptions.ApiException as err:
-            # ignore 400 and 404 error due to previous terminated container
-            # in pod  not found as terminated container logs cannot be read"
-            regex = "(.*previous terminated container.*in pod.*not found)"
-            if err.status == 404 or (err.status == 400 and err.body and re.match(regex, err.body)):
-                pass
-            else:
-                raise
+        for previous in True, False:
+            try:
+                log = v1.read_namespaced_pod_log(name=pod.metadata.name,
+                                                 namespace=pod.metadata.namespace,
+                                                 container=container.name,
+                                                 previous=previous,
+                                                 )
+                check_leaks(log, leaks, pod, secrets_re, secret_id_lst, container_name=container.name)
+            except client.exceptions.ApiException as err:
+                # ignore 400 and 404 error due to previous terminated container
+                # in pod  not found as terminated container logs cannot be read"
+                regex = "(not found|is terminated)"
+                if err.status in (400, 404):
+                    logger.debug(f"Could no read logs from {pod.metadata.namespace}/{pod.metadata.name}/{container.name}: {err.body}")
+                else:
+                    raise
 
 if len(leaks) > 0:
     print("Some leaks were found, please take a look the job artifacts")
