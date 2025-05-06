@@ -9003,6 +9003,11 @@ _internal:
     {{- tuple .Values.cluster $selector | include "finalize-os-image-selector" | fromJson | include "preserve-type" -}}
 
   immutable_values:
+    units:
+      multus:
+        enabled:
+          _immutable: true
+          _immutable_comment: "Enabling or disabling Multus after initial deployment is not supported yet. It can cause pod connectivity issues."
     cluster_domain:
       _immutable: true
       _immutable_comment: "The update of cluster domain is not supported"
