@@ -4,7 +4,7 @@ metadata:
   name: sylva-units
   namespace: sylva-system
 spec:
-  interval: 5m0s
+  interval: 168m
   type: oci
   url: oci://SYLVA_BASE_OCI_REGISTRY/sylva-core
   # SYLVA_BASE_OCI_REGISTRY is subsituted by $SYLVA_BASE_OCI_REGISTRY by tools/shell-lib/common.sh:define_source
