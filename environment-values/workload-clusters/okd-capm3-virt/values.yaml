@@ -36,6 +36,8 @@ cluster_machines_ready:
 
 cluster_domain: okd
 
+cluster_virtual_ip: 192.168.100.74
+
 cluster:
   name: okd-capm3
   agent_config_format: "ignition"
@@ -82,7 +84,7 @@ cluster:
   #       bond0: '{{ tuple "" false | include "set-only-if" }}'
 
   openshift:
-    ingressVIP: 192.168.100.4
+    ingressVIP: 192.168.100.74
     baseDomain: okd
     version: 4.17.0
     releaseImage: quay.io/okd/scos-release:4.17.0-okd-scos.ec.3
