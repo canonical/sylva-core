@@ -26,3 +26,22 @@ spec:
       clone:
         name: mgmt-cluster-state-values
         namespace: sylva-system
+
+  - name: clone-ca-key-pair
+    match:
+      any:
+      - resources:
+          kinds:
+          - Namespace
+          selector:
+            matchLabels:
+              sylva-project.org/workload-cluster: ""
+    generate:
+      apiVersion: v1
+      kind: Secret
+      name: ca-key-pair
+      namespace: "{{request.object.metadata.name}}"
+      synchronize: true   # 🔁 keep it updated on changes
+      clone:
+        namespace: cert-manager
+        name: ca-key-pair
