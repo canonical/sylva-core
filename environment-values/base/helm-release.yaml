@@ -7,8 +7,7 @@ metadata:
     copy-from-bootstrap-to-management: ""
 spec:
   interval: 120m
-  ref:
-    commit: CURRENT_COMMIT # Placeholder that will be replaced by bootstrap.sh and apply.sh commands
+  ref: SYLVA_CORE_REF  # placeholder that will be replaced by bootstrap.sh and apply.sh commands (e.g. "{name: foo}", or "{commit: a1b2c3d4}")
   url: SYLVA_CORE_REPO
 ---
 apiVersion: helm.toolkit.fluxcd.io/v2
@@ -61,5 +60,4 @@ spec:
       sylva-core:
         spec:
           url: SYLVA_CORE_REPO
-          ref:
-            commit: CURRENT_COMMIT
+          ref: SYLVA_CORE_REF  # placeholder that will be replaced by bootstrap.sh and apply.sh commands (e.g. "name: foo", or "commit: a1b2c3d4")
