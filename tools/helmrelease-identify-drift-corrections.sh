@@ -15,6 +15,7 @@ ALLOWED_EXCEPTIONS=(
   "metallb-resources:*" # Allow all actions for metallb-resources
   "ingress-nginx:Service.*removed" # Only allow service removal for ingress-nginx
   "k8s-gateway:Service.*removed" # Only allow service removal for k8s-gateway
+  "sriov-network-operator:.*SriovOperatorConfig.cattle-sriov-system.default changed .[0-3] additions, 0 changes, 0 removals.*" # ignore the first drift correction on this object (normal)
   # Add more exceptions here in the format "resource:action_pattern"
 )
 
