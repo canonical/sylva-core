@@ -563,6 +563,8 @@ units_override_enabled:
   - cinder-csi
   - longhorn
   - longhorn-crd
+  - '{{ tuple "single-replica-storageclass" (dig "single-replica-storageclass" "enabled" false .Values.units) | include "set-only-if" }}'
+  - '{{ tuple "two-replicas-storageclass" (dig "two-replicas-storageclass" "enabled" false .Values.units) | include "set-only-if" }}'
   - local-path-provisioner
   - vsphere-csi-driver
   # use following hack to ensure  "units.ceph-csi-cephfs.enabled has precedence over units_override_enabled

@@ -542,6 +542,86 @@
         }
       ]
     },
+    "ck8s-users": {
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "users": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "name"
+                    ],
+                    "properties": {
+                      "name": {
+                        "type": "string",
+                        "maxLength": 32
+                      },
+                      "gecos": {
+                        "type": "string"
+                      },
+                      "groups": {
+                        "type": "string"
+                      },
+                      "homedir": {
+                        "type": "string"
+                      },
+                      "inactive": {
+                        "type": "boolean"
+                      },
+                      "shell": {
+                        "type": "string"
+                      },
+                      "passwd": {
+                        "type": "string"
+                      },
+                      "primary-group": {
+                        "type": "string"
+                      },
+                      "lock_passwd": {
+                        "type": "boolean"
+                      },
+                      "sudo": {
+                        "type": "string"
+                      },
+                      "ssh-authorized-keys": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      },
+                      "ssh-import-id": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "$ref": "#/$defs/string-with-gotpl"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "$ref": "#/$defs/string-with-gotpl"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
     "update-strategy": {
       "anyOf": [
         {
@@ -2604,6 +2684,19 @@
                 }
               ]
             },
+            "ck8s": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/ck8s-users"
+                },
+                {
+                  "$ref": "#/$defs/string-with-gotpl"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
             "additional_commands": {
               "anyOf": [
                 {
@@ -3683,7 +3776,8 @@
                       "enum": [
                         "cabpk",
                         "cabpr",
-                        "cabpoa"
+                        "cabpoa",
+                        "cabpck"
                       ]
                     },
                     {
@@ -5579,6 +5673,19 @@
             }
           ]
         },
+        "ck8s": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ck8s-users"
+            },
+            {
+              "$ref": "#/$defs/string-with-gotpl"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
         "control_plane": {
           "anyOf": [
             {
@@ -5715,6 +5822,23 @@
                               }
                             }
                           }
+                        }
+                      ]
+                    },
+                    {
+                      "$ref": "#/$defs/string-with-gotpl"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "ck8s": {
+                  "anyOf": [
+                    {
+                      "allOf": [
+                        {
+                          "$ref": "#/$defs/ck8s-users"
                         }
                       ]
                     },
@@ -6417,7 +6541,7 @@
                           "anyOf": [
                             {
                               "type": "string",
-                              "pattern": "[rke2|kubeadm]"
+                              "pattern": "[rke2|kubeadm|ck8s]"
                             },
                             {
                               "$ref": "#/$defs/string-with-gotpl"
