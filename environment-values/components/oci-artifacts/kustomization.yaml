@@ -41,7 +41,7 @@ patches:
 - target:
     kind: HelmRelease
     name: sylva-units
-  # this patch removes the CURRENT_COMMIT setting set fromm environment-values/base
+  # this patch removes the "SYLVA_CORE_REF" placeholder setting set fromm environment-values/base
   # which is not what we need for a deployment based on OCI artifcacts
   patch: |
     - op: remove
