@@ -299,7 +299,7 @@ unit_templates:
   flux-common:
     repo: sylva-core
     kustomization_spec:
-      path: ./kustomize-units/flux-system/base
+      path: ./kustomize-units/flux-system/in-cluster
       targetNamespace: flux-system
       wait: true
       # prevent Flux from uninstalling itself

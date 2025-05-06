@@ -6,23 +6,5 @@ resources:
 
 components:
   - ../components/common
-
-patches:
-  # removing the notification controller is done just to make the bootstrap faster
-  # we don't remove it for the base manifests, to avoid spurious error logs
-  # in other Helm controllers when they try to push notifications
-  - target:
-      labelSelector: app.kubernetes.io/component=notification-controller
-    patch: |-
-      $patch: delete
-      kind: _unused_
-      metadata:
-        name: _unused_
-   # workaround for https://gitlab.com/sylva-projects/sylva-core/-/issues/2160
-  - target:
-      kind: Deployment
-      name: source-controller
-    patch: |-
-      - op: replace
-        path: /spec/template/spec/containers/0/image
-        value: ghcr.io/fluxcd/source-controller:v1.4.1
+  - ../components/bootstrap
+  - ../components/substituted-proxy-env-vars

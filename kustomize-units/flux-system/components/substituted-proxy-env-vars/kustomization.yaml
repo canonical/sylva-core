@@ -1,0 +1,24 @@
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
+
+patches:
+  - target:
+      kind: Deployment
+      labelSelector: app.kubernetes.io/part-of=flux
+    patch: |
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: all
+      spec:
+        template:
+          spec:
+            containers:
+              - name: manager
+                env:
+                  - name: "http_proxy"
+                    value: "${http_proxy}"
+                  - name: "https_proxy"
+                    value: "${https_proxy}"
+                  - name: "no_proxy"
+                    value: "localhost,${no_proxy},${KIND_POD_SUBNET},${KIND_SVC_SUBNET},.cluster.local.,.cluster.local,.svc"

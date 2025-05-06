@@ -1,0 +1,35 @@
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
+
+patches:
+  - target:
+      kind: Deployment
+      name: source-controller
+    patch: |
+      kind: _unused_
+      metadata:
+        name: _unused_
+      spec:
+        template:
+          spec:
+            containers:
+              - name: manager
+                env:
+                  - name: "http_proxy"
+                    valueFrom:
+                      configMapKeyRef:
+                        name: proxy-env-vars
+                        key: http_proxy
+                        optional: true
+                  - name: "https_proxy"
+                    valueFrom:
+                      configMapKeyRef:
+                        name: proxy-env-vars
+                        key: https_proxy
+                        optional: true
+                  - name: "no_proxy"
+                    valueFrom:
+                      configMapKeyRef:
+                        name: proxy-env-vars
+                        key: no_proxy
+                        optional: true

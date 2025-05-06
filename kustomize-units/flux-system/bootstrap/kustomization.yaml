@@ -1,0 +1,12 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# This kustomisation is intended to be used to generate manifests that will be embedded in sylvactl for bootstrap.
+
+resources:
+  - ../base
+
+components:
+  - ../components/common
+  - ../components/bootstrap
+  - ../components/configmap-proxy-env-vars
