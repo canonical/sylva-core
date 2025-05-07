@@ -1867,7 +1867,7 @@ units:
         - '{{ tuple "components/neuvector" (tuple . "neuvector" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/harbor" (tuple . "harbor" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/grafana" (tuple . "monitoring" | include "unit-enabled") | include "set-only-if" }}'
-        - '{{ tuple "components/kunai" (tuple . "monitoring" | include "unit-enabled") | include "set-only-if" }}'
+        - '{{ tuple "components/kunai" (tuple . "kunai" | include "unit-enabled") | include "set-only-if" }}'
       postBuild:
         substitute:
           GRAFANA_DNS: '{{ .Values.external_hostnames.grafana }}'
