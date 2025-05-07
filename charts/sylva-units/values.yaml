@@ -8597,7 +8597,8 @@ calico_helm_values:
   installation:
     calicoNetwork:
       bgp: Disabled
-      mtu: '{{ .Values._internal.calico_mtu }}'
+      mtu: |
+        {{ .Values._internal.calico_mtu | include "preserve-type" }}
       nodeAddressAutodetectionV4:
         '{{
         tuple
