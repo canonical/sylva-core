@@ -52,7 +52,7 @@ data:
             # }
 
             # OAuth2 Proxy callback endpoint
-            location /oauth2 {
+            location /oauth2/callback {
                 proxy_pass       http://127.0.0.1:4180;
                 proxy_set_header Host              $host;
                 proxy_set_header X-Real-IP         $remote_addr;
