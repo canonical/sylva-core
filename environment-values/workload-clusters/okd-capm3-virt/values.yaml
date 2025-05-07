@@ -49,7 +49,8 @@ cluster:
     machine_image_checksum_type: sha256
     machine_image_format: live-iso
     machine_image_url: https://abcdef
-    dns_servers: [172.18.0.2]
+    dns_servers: >
+      {{ .Values.cluster.mgmt_cluster_ip | list | include "preserve-type" }}
     # networks:
     #   primary:
     #     subnet: 192.168.100.0/24
@@ -88,6 +89,22 @@ cluster:
     baseDomain: okd
     version: 4.17.0
     releaseImage: quay.io/okd/scos-release:4.17.0-okd-scos.ec.3
+
+  control_plane:
+    capm3:
+      hostSelector:
+        matchLabels:
+          cluster-role: control-plane
+
+  control_plane_replicas: 1
+
+  machine_deployments:
+    md0:
+      replicas: 0
+      capm3:
+        hostSelector:
+          matchLabels:
+            cluster-role: worker
 
   baremetal_hosts:  # corresponding credentials need to be set in secrets.yaml
     workload-cp-0:
