@@ -325,6 +325,24 @@ units:
           targetPath: controller.service.externalIPs[0]
           optional: '{{ not (.Values.cluster.capi_providers.infra_provider | eq "capo") | include "as-bool" }}'
 
+  grafana-nginx:
+    enabled: true
+    kustomization_spec:
+      postBuild:
+        substitute:
+          NAMESPACE: 'cattle-monitoring-system'
+          SERVICE: 'rancher-monitoring-grafana'
+          SERVICE_PORT: '80'
+          PREFIX_URL: '/k8s/clusters/'
+          MIDDLE_URL: '/api/v1/namespaces/'
+        substituteFrom:
+        - kind: ConfigMap
+          name: '{{ .Values.cluster.name }}-capi-upstrmonitoring-info'
+          optional: false
+
+  prometheus-nginx:
+    enabled: true
+
   monitoring-crd:
     enabled: true
 
@@ -332,11 +350,44 @@ units:
     enabled: true
     depends_on:
       cluster-import: '{{ tuple . "cluster-import" | include "unit-enabled" }}'
+      grafana-nginx: true
+      prometheus-nginx: true
     helmrelease_spec:
+      values:
+        grafana:
+          grafana.ini:
+            users:
+              auto_assign_org_role: Viewer
+            auth:
+              disable_login_form: false
+            auth.anonymous:
+              enabled: true
+              org_role: Viewer
+            auth.basic:
+              enabled: false
+            dashboards:
+              # Modify this value to change the default dashboard shown on the main Grafana page
+              default_home_dashboard_path: /tmp/dashboards/rancher-default-home.json
+            security:
+              # Required to embed dashboards in Rancher Cluster Overview Dashboard on Cluster Explorer
+              allow_embedding: true
       valuesFrom:
         - kind: ConfigMap
           name: '{{ .Values.cluster.name }}-capi-monitoring-info'  # this configmap is produced by a kyverno policy defined by the "rancher-monitoring-clusterid-inject" mgmt unit
           optional: false
+
+  # monitoring-crd:
+  #   enabled: true
+
+  # monitoring:
+  #   enabled: true
+  #   depends_on:
+  #     cluster-import: '{{ tuple . "cluster-import" | include "unit-enabled" }}'
+  #   helmrelease_spec:
+  #     valuesFrom:
+  #       - kind: ConfigMap
+  #         name: '{{ .Values.cluster.name }}-capi-monitoring-info'  # this configmap is produced by a kyverno policy defined by the "rancher-monitoring-clusterid-inject" mgmt unit
+  #         optional: false
 
   thanos-credentials-secret:
     enabled: true
@@ -510,6 +561,9 @@ units:
       healthChecks: [] # Remove healthChecks targeting sylva-system namespace
 
   sylva-prometheus-rules:
+    enabled: true
+
+  sylva-dashboards:
     enabled: true
 
   cert-manager:
