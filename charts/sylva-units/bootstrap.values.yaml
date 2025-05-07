@@ -219,12 +219,16 @@ units:
     - management-cluster-csi
 
   single-replica-storageclass:
-    unit_templates:
-    - management-cluster-csi
+    kustomization_spec:
+      kubeConfig:
+        secretRef:
+          name: '{{ .Values.cluster.name }}-kubeconfig'
 
   two-replicas-storageclass:
-    unit_templates:
-    - management-cluster-csi
+    kustomization_spec:
+      kubeConfig:
+        secretRef:
+          name: '{{ .Values.cluster.name }}-kubeconfig'
 
   local-path-provisioner:
     unit_templates:
