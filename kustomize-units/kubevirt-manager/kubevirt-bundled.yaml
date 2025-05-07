@@ -450,8 +450,12 @@ spec:
             - --scope=openid profile email
             - --cookie-domain=kubevirt-manager.sylva
             - --cookie-path=/
-            # - --reverse-proxy=true
+            - --provider-ca-file=/etc/sylva-ca/ca.crt
+            # - --ssl-insecure-skip-verify=true
 
+          volumeMounts:
+            - name: sylva-ca-secret
+              mountPath: /etc/sylva-ca/
           ports:
             - containerPort: 4180
               name: oauth2
@@ -502,7 +506,9 @@ spec:
           configMap:
             name: prometheus-config
             optional: true
-
+        - name: sylva-ca-secret
+          secret:
+            secretName: sylva-ca.crt
 ---
 apiVersion: v1
 kind: Service
