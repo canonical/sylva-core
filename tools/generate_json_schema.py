@@ -84,6 +84,12 @@ def allow_additional_format_for_all_schema_properties(schema, format):
     if "allOf" in schema:
         for index, condition in enumerate(schema['allOf']):
             schema['allOf'][index] = allow_additional_format_for_all_schema_properties(condition, format)
+    if "oneOf" in schema:
+        for index, condition in enumerate(schema['oneOf']):
+            schema['oneOf'][index] = allow_additional_format_for_all_schema_properties(condition, format)
+    if "anyOf" in schema:
+        for index, condition in enumerate(schema['anyOf']):
+            schema['anyOf'][index] = allow_additional_format_for_all_schema_properties(condition, format)
     if "then" in schema:
         schema['then'] = allow_additional_format_for_all_schema_properties(schema['then'], format)
     if "$defs" in schema:
