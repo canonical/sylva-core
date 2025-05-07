@@ -2169,6 +2169,9 @@ units:
           rbac:
             clusterRole:
               extraResources:
+              - apiGroups: ["minio.min.io"]
+                resources: ["tenants"]
+                verbs: ["get", "list", "watch"]
               - apiGroups: ["*"]
                 resources: [ "secrets" ]
                 verbs: ["get", "list", "watch"]
