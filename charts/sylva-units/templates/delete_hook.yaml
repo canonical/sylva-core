@@ -85,6 +85,21 @@ spec:
                 _kubectl patch kustomization $KUST --field-manager delete-hook --type=merge --patch='{"spec":{"prune":false}}' >/dev/null
             done
 
+            echo "=== Forcing the pruning of kustomizations producing helmreleases in management cluster ==="
+            for KUST in $(
+                  _kubectl get kustomization -l app.kubernetes.io/instance=$NAME -o json |
+                  jq -r '
+                      .items[] |
+                      select(.spec.kubeConfig.secretRef.name == null) |
+                      select(.spec.path == "./kustomize-units/helmrelease-generic") |
+                      select(.spec.prune == false) |
+                      .metadata.name
+                    '
+                ); do
+                log_event PrepareForDeletion "Forcing pruning" Kustomization/$KUST
+                _kubectl patch kustomization $KUST --field-manager delete-hook --type=merge --patch='{"spec":{"prune":true}}' >/dev/null
+            done
+
             echo "=== Disabling the pruning of helmreleases installed on workload cluster ==="
             for RELEASE in $(
                   _kubectl get  helmreleases -l app.kubernetes.io/instance=$NAME -o json |
