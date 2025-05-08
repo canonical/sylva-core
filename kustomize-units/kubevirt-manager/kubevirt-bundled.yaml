@@ -454,6 +454,7 @@ spec:
             - --provider-ca-file=/etc/sylva-ca/ca.crt
             # - --ssl-insecure-skip-verify=true
             - --insecure-oidc-allow-unverified-email
+            - --logging-max-age=9
 
           volumeMounts:
             - name: sylva-ca-secret
