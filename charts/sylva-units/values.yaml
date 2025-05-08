@@ -835,6 +835,24 @@ units:
           version: 0.23.2
       targetNamespace: cnpg-system
 
+    rke2-metrics-server:
+    info:
+      description: rke2-metrics-server install
+      maturity: stable
+    enabled_conditions:
+      - '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" }}'
+    unit_templates:
+      - base-deps
+    helm_repo_url: https://rke2-charts.rancher.io
+    helmrelease_spec:
+      install:
+        createNamespace: false
+      chart:
+        spec:
+          chart: rke2-metrics-server
+          version: 3.12.200
+      targetNamespace: kube-system
+
   keycloak-postgres:
     info:
       description: Deploy Postgres cluster for Keycloak using Cloud Native PostgreSQL (CNPG)
