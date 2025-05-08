@@ -9,7 +9,6 @@ metadata:
       This policy monitors ${TENANT_NS} tenant certificate secrets and will update annotations
       to trigger pod rollouts when certificates are renewed.
 spec:
-  mutateExistingOnPolicyUpdate: true
   rules:
   - name: ${TENANT_NS}-tenant-restart
     match:
@@ -32,6 +31,7 @@ spec:
         operator: Equals
         value: true
     mutate:
+      mutateExistingOnPolicyUpdate: true
       targets:
         - apiVersion: minio.min.io/v2
           kind: Tenant
