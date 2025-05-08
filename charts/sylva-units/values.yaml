@@ -860,6 +860,30 @@ units:
         global.rke2DataDir: /var/lib/rancher/rke2
         global.serviceCIDR: '{{ first .Values.cluster.cluster_services_cidrs }}'
         global.systemDefaultIngressClass: ingress-nginx
+        replicas: 2
+        nodeSelector:
+          kubernetes.io/os: linux
+          node-role.kubernetes.io/control-plane: "true"
+        updateStrategy:
+          rollingUpdate:
+            maxSurge: 1
+            maxUnavailable: 1
+          type: RollingUpdate
+        podDisruptionBudget:
+          enabled: true
+          minAvailable: 1
+          selector:
+            matchLabels:
+              app: rke2-metrics-server
+        affinity:
+          podAntiAffinity:
+            requiredDuringSchedulingIgnoredDuringExecution:
+              - labelSelector:
+                  matchLabels:
+                    app: rke2-metrics-server
+                namespaces:
+                  - kube-system
+                topologyKey: kubernetes.io/hostname
 
   keycloak-postgres:
     info:
