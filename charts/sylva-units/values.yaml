@@ -295,6 +295,7 @@ unit_templates:
         - '{{ tuple "components/neuvector" (tuple . "neuvector" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/kunai" (tuple . "kunai" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/sbom-operator" (tuple . "sbom-operator" | include "unit-enabled") | include "set-only-if" }}'
+        - '{{ tuple "components/openshift/openshift-sriov-operator" (tuple . "openshift-sriov" | include "unit-enabled") | include "set-only-if" }}'
 
   flux-common:
     repo: sylva-core
@@ -2879,7 +2880,6 @@ units:
         - kustomize:
             patches:
               - patch: |-
-                  {{- if eq .Values.cluster.capi_providers.bootstrap_provider "cabpoa" }}
                   apiVersion: v1
                   kind: ConfigMap
                   metadata:
@@ -2915,7 +2915,6 @@ units:
                       #!/bin/sh
                       set -eu
                       rm -rf "$VOL_DIR"
-                  {{- end }}
 
   cluster-bmh:
     info:
@@ -5188,6 +5187,23 @@ units:
       targetNamespace: cattle-sriov-system
       values:
         node_policies: '{{ .Values.sriov.node_policies | include "preserve-type" }}'
+
+
+  openshift-operators:
+    info:
+      description: Installs openshift operators via RedHat operator lifecycle manager(OLM)
+      internal: true
+    unit_templates:
+    - base-deps
+    depends_on:
+      namespace-defs: true
+    enabled: '{{ eq .Values.cluster.capi_providers.bootstrap_provider "cabpoa" }}'
+    repo: sylva-core
+    kustomization_spec:
+      path: ./kustomize-units/openshift-operators
+      wait: true
+      _components:
+        - '{{ tuple "components/openshift-sriov" (tuple . "openshift-sriov" | include "unit-enabled") | include "set-only-if" }}'
 
   coredns:
     info:
