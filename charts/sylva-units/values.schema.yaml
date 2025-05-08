@@ -1408,6 +1408,16 @@ properties:
                       snmp_v3_extra_args:
                         type: array
 
+  openshift-monitoring:  # -------------------------------
+    type: object
+    additionalProperties: false
+    properties:
+      thanos_receive_url:  # -------------------------------
+        anyOf:
+          - type: string
+            format: uri
+          - $ref: "#/$defs/string-with-gotpl"
+
   logging:  # -------------------------------
     type: object
     additionalProperties: false
