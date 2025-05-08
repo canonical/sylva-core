@@ -23,6 +23,10 @@ data:
     events {}
 
     http {
+
+        include       mime.types;
+        default_type  application/octet-stream;
+
         server {
             listen 8080;
             server_name ${KUBEVIRT_MANAGER_DNS};
