@@ -835,7 +835,7 @@ units:
           version: 0.23.2
       targetNamespace: cnpg-system
 
-    rke2-metrics-server:
+  rke2-metrics-server:
     info:
       description: rke2-metrics-server install
       maturity: stable
