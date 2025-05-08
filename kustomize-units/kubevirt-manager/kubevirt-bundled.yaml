@@ -453,7 +453,7 @@ spec:
             - --cookie-path=/
             - --provider-ca-file=/etc/sylva-ca/ca.crt
             # - --ssl-insecure-skip-verify=true
-            - --oidc-email-verified=false
+            - --insecure-oidc-allow-unverified-email
 
           volumeMounts:
             - name: sylva-ca-secret
