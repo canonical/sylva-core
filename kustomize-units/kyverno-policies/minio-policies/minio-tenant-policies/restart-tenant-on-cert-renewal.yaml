@@ -19,8 +19,15 @@ spec:
           - Secret
           names:
           - ${TENANT_NS}-internal-tls
+    context:
+    - name: minioTenantExists
+      apiCall:
+        urlPath: "/apis/minio.min.io/v2/namespaces/${TENANT_NS}/tenants/${TENANT_NAME}"
     preconditions:
       all:
+      - key: "{{ minioTenantExists.metadata.name }}"
+        operator: Equals
+        value: "${TENANT_NAME}"
       - key: "{{ request.object.data != oldObject.data }}"
         operator: Equals
         value: true
