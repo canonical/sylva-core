@@ -12,6 +12,9 @@
 
 {{- $baseTimeout := mul (max $controlPlaneReplicas $maxMachineReplicas) (ternary 30 15 (eq $infra "capm3")) -}}
 
+{{- /* When we use capm3, we're doing in-place rolling upgrades,
+       consequently the upgrade of each node takes more time than its installation */ -}}
+
 {{- $unitTimeout := ternary (mul $baseTimeout 3) $baseTimeout (and $isUpgrade (eq $infra "capm3")) -}}
 
 {{- $unitTimeout -}}
