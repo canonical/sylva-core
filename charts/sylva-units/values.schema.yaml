@@ -1199,6 +1199,8 @@ properties:
     type: object
     additionalProperties: false
     properties:
+      enable_longhorn_volume_encryption:
+        type: boolean
       external_x509_issuer: # -------------------------------
         type: object
         additionalProperties: false

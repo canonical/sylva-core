@@ -285,7 +285,7 @@ units:
     - flux-common
     kustomization_spec:
       _components:
-      - '{{ tuple "../components/volume_encryption_secret" .Values.cluster.enable_volume_encryption | include "set-only-if" }}'
+      - '{{ tuple "../components/volume_encryption_secret" .Values.security.enable_longhorn_volume_encryption | include "set-only-if" }}'
       kubeConfig:
         secretRef:
           name: '{{ .Values.cluster.name }}-kubeconfig'
@@ -617,8 +617,6 @@ units_override_enabled:
   - calico
   - calico-ready
   - management-cluster-flux
-  - single-replica-storageclass
-  - two-replicas-storageclass
   - longhorn-encrypted-storageclass
   - management-cluster-configs
   - management-sylva-units

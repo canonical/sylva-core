@@ -318,7 +318,6 @@ unit_templates:
           SOURCE_FEATURES_GATES: '{{ tuple .Values.flux.source.features_gates | include "dict_to_key_values_separated_string"  }}'
           SOURCE_STORAGE_CLASS: >-
             {{ tuple . (tuple . "longhorn" | include "unit-enabled") "single-replica-storageclass" .Values._internal.default_storage_class | include "interpret-ternary" }}
-          VOLUME_ENCRYPTION_KEY: '{{ .Values._internal.flux_encryption_key | default "" }}'
           SOURCE_STORAGE_SIZE: 1Gi
         substituteFrom:
         - kind: ConfigMap
@@ -1014,6 +1013,7 @@ units:
           CERTIFICATE_NAMESPACE: harbor
           CERT: '{{ .Values.external_certificates.harbor.cert | default "" | b64enc }}'
           CACERT: '{{ .Values.external_certificates.cacert | default "" | b64enc }}'
+          STORAGE_CLASS: '{{ .Values._internal.default_storage_class }}'
       _components:
         - '{{ ternary "../tls-components/tls-secret" "../tls-components/tls-certificate" (hasKey .Values.external_certificates.harbor "cert") }}'
         - "../tls-components/sylva-ca"
@@ -1107,11 +1107,13 @@ units:
               storageClass: '{{ .Values._internal.default_storage_class }}'
               #size: 32Gi
               accessMode: '{{ .Values._internal.harbor_storage_access_mode }}'
+              existingClaim: "harbor-registry-pvc"                                 # creating pvc with diff name from that of secret which is needed for longhorn volume encryption
             jobservice:
               jobLog:
                 storageClass: '{{ .Values._internal.default_storage_class }}'
                 #size: 8Gi
                 accessMode: '{{ .Values._internal.harbor_storage_access_mode }}'
+                existingClaim: "harbor-jobservice-pvc"                             # creating pvc with diff name from that of secret which is needed for longhorn volume encryption
             redis:
               storageClass: '{{ .Values._internal.default_storage_class }}'
               #size: 8Gi
@@ -6938,7 +6940,7 @@ units:
               name: pool-0
               volumesPerserver: 4
               size: 10Gi
-              storageClassName: '{{ .Values._internal.default_storage_class }}'
+              storageClassName: '{{ tuple . (tuple . "two-replicas-storageclass" | include "unit-enabled") "two-replicas-storageclass" .Values._internal.default_storage_class | include "interpret-ternary" }}'
               containerSecurityContext:
                 runAsUser: 1000
                 runAsGroup: 1000
@@ -7885,7 +7887,6 @@ units:
     info:
       description: Defines a Longhorn storage class with a single replica
       internal: true
-    enabled: '{{ eq .Values._internal.longhorn_node_count "1" }}'
     repo: sylva-core
     unit_templates:
     - base-deps
@@ -7916,7 +7917,6 @@ units:
       description: Defines a Longhorn storage class with two replicas
       internal: true
     repo: sylva-core
-    enabled: '{{ eq .Values._internal.longhorn_node_count "2" }}'
     unit_templates:
     - base-deps
     depends_on:
@@ -7951,7 +7951,7 @@ units:
     depends_on:
       longhorn: true
     enabled_conditions:
-      - '{{ .Values.cluster.enable_volume_encryption }}'
+      - '{{ .Values.security.enable_longhorn_volume_encryption }}'
       - '{{ tuple . "longhorn" | include "unit-enabled" }}'
     kustomization_spec:
       path: ./kustomize-units/longhorn-encrypted-storageclass
@@ -7977,7 +7977,7 @@ units:
       - base-deps
     enabled_conditions:
       - '{{ tuple . "kyverno" | include "unit-enabled" }}'
-      - '{{ .Values.cluster.enable_volume_encryption }}'
+      - '{{ .Values.security.enable_longhorn_volume_encryption }}'
       - '{{ tuple . "longhorn" | include "unit-enabled" }}'
     depends_on:
       kyverno: true
@@ -8504,7 +8504,6 @@ cluster:
       mtu: 1500 # set the default network interfaces MTU size
 
   enable_longhorn: '{{ tuple . "longhorn" | include "unit-enabled" | include "as-bool" }}'
-  enable_volume_encryption: false
 
   openshift:
     baseDomain: '{{ .Values.cluster_domain }}'
@@ -8860,6 +8859,9 @@ os_images_default_download_storage_space: 30Gi
 get_openstack_images_per_image_timeout_minutes: 30
 
 security:
+  # enable the longhorn volume encryption
+  enable_longhorn_volume_encryption: true                 # set back to false after testing in CI
+
   external_x509_issuer: {}
    # issuer_type:  acme or vault
    # vault_token:  authent token for vault,
@@ -9372,9 +9374,12 @@ _internal:
   default_password: '{{ include "internalPersistentRandomPasswd" (tuple . "default_password") }}'
 
   default_longhorn_storage_class: >-
-    {{- if .Values.cluster.enable_volume_encryption -}}
+    {{- if .Values._internal.state.is_upgrade -}}
+      {{- $current_sc := lookup "v1" "Secret" .Release.Namespace "sylva-units-values" | dig "data" "values" "" | b64dec | fromYaml | dig "_internal" "default_longhorn_storage_class" "" -}}
+      {{- $current_sc -}}
+    {{- else if and (not .Values._internal.state.is_upgrade) .Values.security.enable_longhorn_volume_encryption -}}
       longhorn-encryption-per-volume
-    {{- else }}
+    {{- else -}}
       {{- $nodeCount := int (tuple . .Values._internal.longhorn_node_count | include "interpret-as-string") -}}
       {{- if eq $nodeCount 1 -}}
         single-replica-storageclass

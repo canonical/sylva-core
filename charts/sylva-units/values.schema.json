@@ -5418,19 +5418,6 @@
             }
           ]
         },
-        "enable_volume_encryption": {
-          "anyOf": [
-            {
-              "type": "boolean"
-            },
-            {
-              "$ref": "#/$defs/string-with-gotpl"
-            },
-            {
-              "type": "null"
-            }
-          ]
-        },
         "mgmt_cluster_ip": {
           "anyOf": [
             {
@@ -10207,6 +10194,9 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
+        "enable_longhorn_volume_encryption": {
+          "type": "boolean"
+        },
         "external_x509_issuer": {
           "type": "object",
           "additionalProperties": false,
