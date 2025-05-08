@@ -423,7 +423,8 @@ spec:
           # - name: auth-config
           #   mountPath: /etc/nginx/auth.d/
           - name: nginx-config
-            mountPath: /etc/nginx/
+            mountPath: /etc/nginx/nginx.conf
+            subPath: nginx.conf
           - name: auth-secret
             mountPath: /etc/nginx/secret.d/
           - name: prometheus-config
