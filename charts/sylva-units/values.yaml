@@ -844,6 +844,7 @@ units:
       - '{{ .Values._internal.ha_cluster.is_ha }}'
     unit_templates:
       - base-deps
+    repo: sylva-core
     kustomization_spec:
       path: ./kustomize-units/rke2-metrics-server-ha
       wait: true
