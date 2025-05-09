@@ -9067,6 +9067,8 @@ _internal:
         {{- $current_encapsulation := .encapsulation | lower -}}
         {{- if hasKey $encapsulation_header $current_encapsulation -}}
           {{- $max_overhead = max $max_overhead (index $encapsulation_header $current_encapsulation) -}}
+        {{- else -}}
+          {{- fail (printf "Unknown encapsulation type '%s' in calico_helm_values.installation.calicoNetwork.ipPools. Supported types are: %s" $current_encapsulation ((omit $encapsulation_header "wireguard") | keys | join ", ")) -}}
         {{- end -}}
       {{- end -}}
     {{- end -}}
