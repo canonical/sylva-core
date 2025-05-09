@@ -841,7 +841,7 @@ units:
       maturity: stable
     enabled_conditions:
       - '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" }}'
-      - '{{ is_ha }}'
+      - '{{ .Values._internal.ha_cluster.is_ha }}'
     unit_templates:
       - base-deps
     kustomization_spec:
