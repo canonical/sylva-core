@@ -347,10 +347,13 @@ function cluster_info_dump() {
           local vm_name=${openstack_machine#*/}
           mkdir -p $vm_console_logs_dir/$osm_ns
 
-          kubectl_opts="--kubeconfig $MGMT_KUBECONFIG -n $capi_cluster_namespace"
+          if [[ -n $MGMT_KUBECONFIG ]]; then
+            kubectl_opts="--kubeconfig $MGMT_KUBECONFIG "
+          fi
+          kubectl_opts="${kubectl_opts:-} -n $capi_cluster_namespace"
 
           log_info "$cluster" ">>>> dumping 'openstack server show' for $osm_ns/$vm_name ..."
-          _openstack $vm_console_logs_dir/$osm_ns/$vm_name.show.txt "$kubectl_opts" "server show $vm_name -f yaml | yq '.\"OS-EXT-SRV-ATTR:user_data\" = \"... omitted ...\"'"
+          _openstack $vm_console_logs_dir/$osm_ns/$vm_name.show.txt "$kubectl_opts" "server show $vm_name -f yaml | yq 'with(select(.\"OS-EXT-SRV-ATTR:user_data\" != null); .\"OS-EXT-SRV-ATTR:user_data\" = \"... omitted ...\")'"
 
           log_info "$cluster" ">>>> dumping 'openstack console logs' for $osm_ns/$vm_name ..."
           _openstack $vm_console_logs_dir/$osm_ns/$vm_name.console-log.txt "$kubectl_opts" "console log show $vm_name"
