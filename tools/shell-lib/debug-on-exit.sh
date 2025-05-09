@@ -2,6 +2,13 @@
 
 # Grab some info in case of failure, essentially useful to troubleshoot CI, fell free to add your own commands while troubleshooting
 
+# Check if any cluster name contains "bootstrap", otherwise default to "sylva"
+if [[ $(kind get clusters -q) =~ bootstrap ]]; then
+  KIND_CLUSTER_NAME=$(kind get clusters -q | grep bootstrap)
+else
+  KIND_CLUSTER_NAME="sylva"
+fi
+
 # list of kinds to dump
 #
 # for some resources, we add the apiGroup because there are resources
