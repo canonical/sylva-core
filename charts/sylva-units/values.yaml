@@ -880,8 +880,7 @@ units:
       valuesFrom:
          '{{ tuple
             (list (dict "kind" "ConfigMap"
-                  "name" "rke2-metrics-server-ha-values"
-                  "valuesKey" "values.yaml")
+                  "name" "rke2-metrics-server-ha-values")
             )
             .Values._internal.ha_cluster.is_ha
           | include "set-only-if" }}'
