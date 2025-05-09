@@ -111,9 +111,9 @@ cluster:
     workload-cp-0:
       interface_mappings:
         nic1:
-          mac_address: '52:54:00:44:44:01'
+          mac_address: '52:54:00:44:44:04'
         nic2:
-          mac_address: '52:54:00:55:55:01'
+          mac_address: '52:54:00:55:55:04'
         # ens4:
         #   mac_address: '52:54:00:44:44:04'
         # ens5:
@@ -124,6 +124,6 @@ cluster:
       bmh_spec:
         bmc:
           address: redfish-virtualmedia://{{ .Values._internal.bootstrap_node_ip }}:8010/redfish/v1/Systems/c0014001-b10b-f001-c0de-feeb1e54ee15
-        bootMACAddress: '52:54:00:44:44:01'
+        bootMACAddress: '52:54:00:44:44:04'
       ip_preallocations:
         primary: 192.168.100.70
