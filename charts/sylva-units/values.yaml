@@ -9083,9 +9083,7 @@ _internal:
     {{- end -}}
 
     {{- /* Calculate final MTU */ -}}
-    {{- if gt $max_overhead 0 -}}
-      {{- $base_mtu = sub $base_mtu $max_overhead -}}
-    {{- end -}}
+    {{- $base_mtu = sub $base_mtu $max_overhead -}}
     {{- $base_mtu | include "preserve-type" -}}
 
 shared_workload_clusters_values:
