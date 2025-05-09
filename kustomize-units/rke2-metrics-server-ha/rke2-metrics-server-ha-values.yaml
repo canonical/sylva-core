@@ -2,7 +2,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: rke2-metrics-server-ha-values
-  namespace: kube-system
+  namespace: sylva-system
 data:
   values.yaml: |
     nodeSelector:
