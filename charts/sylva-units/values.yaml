@@ -835,12 +835,27 @@ units:
           version: 0.23.2
       targetNamespace: cnpg-system
 
+  rke2-metrics-server-ha:
+    info:
+      description: rke2-metrics-server ha values
+      maturity: stable
+    enabled_conditions:
+      - '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" }}'
+      - '{{ is_ha }}'
+    unit_templates:
+      - base-deps
+    kustomization_spec:
+      path: ./kustomize-units/rke2-metrics-server-ha
+      wait: true
+
   rke2-metrics-server:
     info:
       description: rke2-metrics-server install
       maturity: stable
     enabled_conditions:
       - '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" }}'
+    depends_on:
+      rke2-metrics-server-ha: '{{ .Values._internal.ha_cluster.is_ha }}'
     unit_templates:
       - base-deps
     helm_repo_url: https://rke2-charts.rancher.io
@@ -860,30 +875,15 @@ units:
         global.rke2DataDir: /var/lib/rancher/rke2
         global.serviceCIDR: '{{ first .Values.cluster.cluster_services_cidrs }}'
         global.systemDefaultIngressClass: ingress-nginx
-        replicas: 2
-        nodeSelector:
-          kubernetes.io/os: linux
-          node-role.kubernetes.io/control-plane: "true"
-        updateStrategy:
-          rollingUpdate:
-            maxSurge: 1
-            maxUnavailable: 1
-          type: RollingUpdate
-        podDisruptionBudget:
-          enabled: true
-          minAvailable: 1
-          selector:
-            matchLabels:
-              app: rke2-metrics-server
-        affinity:
-          podAntiAffinity:
-            requiredDuringSchedulingIgnoredDuringExecution:
-              - labelSelector:
-                  matchLabels:
-                    app: rke2-metrics-server
-                namespaces:
-                  - kube-system
-                topologyKey: kubernetes.io/hostname
+        replicas: '{{ .Values._internal.ha_cluster.is_ha | ternary 2 1 }}'
+      valuesFrom:
+         '{{ tuple
+            (list (dict "kind" "ConfigMap"
+                  "name" "rke2-metrics-server-ha-values"
+                  "valuesKey" "values.yaml")
+            )
+            .Values._internal.ha_cluster.is_ha
+          | include "set-only-if" }}'
 
   keycloak-postgres:
     info:
