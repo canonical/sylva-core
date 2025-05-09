@@ -216,10 +216,26 @@ include:
     function extract_from_job_name() {
       [ -z "${1:-}" ] && (echo >&2 "Extract function needs a key parameter" ; exit 1;)
       [ -z "${2:-}" ] && (echo >&2 "Extract function needs input string (workflow name basically)" ; exit 1;)
-      echo "$2" | sed -n -e 's/.*'$1'\s\?\([[:alnum:]\.\,\-]\+\).*/\1/p'
+      echo "$2" | sed -n -e 's/.*'$1'\s\?\([[:alnum:]\.\,\-|]\+\).*/\1/p'
     }
+
+    if echo "$DEPLOYMENT_INFRA_PROV" | grep -q '|'; then
+      if [[ ${CLUSTER_TYPE} == "management" ]]; then
+        DEPLOYMENT_INFRA_PROV=$(echo "$DEPLOYMENT_INFRA_PROV" | awk -F '|' '{print $1}')
+      else
+        DEPLOYMENT_INFRA_PROV=$(echo "$DEPLOYMENT_INFRA_PROV" | awk -F '|' '{print $2}')
+      fi
+    fi
     DEPLOYMENT_INFRA_PROV=${DEPLOYMENT_INFRA_PROV:-$(extract_from_job_name ☁ "$WORKFLOW_NAME")}
     if [[ "$DEPLOYMENT_INFRA_PROV" == "capm3" ]]; then export DEPLOYMENT_INFRA_PROV="capm3-virt"; fi   # Currently capm3 is capm3-virt
+
+    if echo "$DEPLOYMENT_BOOTSTRAP_PROV" | grep -q '|'; then
+      if [[ ${CLUSTER_TYPE} == "management" ]]; then
+        DEPLOYMENT_BOOTSTRAP_PROV=$(echo "$DEPLOYMENT_BOOTSTRAP_PROV" | awk -F '|' '{print $1}')
+      else
+        DEPLOYMENT_BOOTSTRAP_PROV=$(echo "$DEPLOYMENT_BOOTSTRAP_PROV" | awk -F '|' '{print $2}')
+      fi
+    fi
     DEPLOYMENT_BOOTSTRAP_PROV=${DEPLOYMENT_BOOTSTRAP_PROV:-$(extract_from_job_name 🚀 "$WORKFLOW_NAME")}
     if [[ "$DEPLOYMENT_BOOTSTRAP_PROV" == "kadm" ]]; then export DEPLOYMENT_BOOTSTRAP_PROV="kubeadm"; fi   # kadm is shortcut for kubeadm
     DEPLOYMENT_OS=${DEPLOYMENT_OS:-$(extract_from_job_name 🐧 "$WORKFLOW_NAME")}
