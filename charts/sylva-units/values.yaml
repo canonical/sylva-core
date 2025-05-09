@@ -9058,6 +9058,7 @@ _internal:
         "vxlan" 50
         "vxlancrosssubnet" 50
         "wireguard" 60
+        "none" 0
     -}}
     {{- $max_overhead := 0 -}}
 
