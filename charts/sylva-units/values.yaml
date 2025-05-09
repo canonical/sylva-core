@@ -3023,7 +3023,7 @@ units:
           - cluster-resource
           - base
         unset_cluster_paused: '{{ .Values._internal.state.is_upgrade | include "preserve-type" }}'
-        mgmt_service_names: '{{ ternary (.Values.external_hostnames | values | join " ") (.Values._internal.mgmt_cluster_service_names) ((eq .Values.mgmt_cluster "true" ) | include "as-bool")  }}'
+        mgmt_service_names: '{{ ternary (.Values.external_hostnames | values | join " ") (.Values._internal.mgmt_cluster_service_names) ( eq .Values.mgmt_cluster "true" ) }}'
       valuesFrom:
         - kind: ConfigMap
           name: capo-cluster-resources
