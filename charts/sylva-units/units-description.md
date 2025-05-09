@@ -44,7 +44,7 @@
 | **vsphere-csi-driver** | installs Vsphere CSI | stable | [Kustomization](https://raw.githubusercontent.com/kubernetes-sigs/vsphere-csi-driver/v3.4.0/manifests/vanilla/vsphere-csi-driver.yaml) | v3.4.0 |
 | **alertmanager-jiralert** | installs Alertmanager webhook Jiralert<br/><br/>Jiralert is an Alertmanager wehbook that creates Jira issues | beta | [Helm chart](https://prometheus-community.github.io/helm-charts) | 1.7.2 |
 | **alertmanager-snmp-notifier** | installs Alertmanager webhook snmp-notifier<br/><br/>snmp-notifier is an Alertmanager wehbook that sends alerts as snmp traps | beta | [Helm chart](https://prometheus-community.github.io/helm-charts) | 0.4.0 |
-| **cabpoa** | installs OKD/OpenShift CAPI bootstrap/controlplane provider | experimental | [Kustomization](https://github.com/openshift-assisted/cluster-api-provider-openshift-assisted/releases/download/v0.3.2/bootstrap-components.yaml) | v0.3.2 |
+| **cabpoa** | installs OKD/OpenShift CAPI bootstrap/controlplane provider | experimental | [Kustomization](https://github.com/openshift-assisted/cluster-api-provider-openshift-assisted/releases/download/v0.3.3/bootstrap-components.yaml) | v0.3.3 |
 | **ceph-csi-cephfs** | Installs Ceph-CSI | beta | [Helm chart](https://ceph.github.io/csi-charts) | 3.12.3 |
 | **harbor** | installs Harbor | beta | [Helm chart](https://helm.goharbor.io) | 1.15.2 |
 | **kubevirt** | installs kubevirt | beta | [Helm chart](https://suse-edge.github.io/charts) | 0.4.0 |
@@ -58,7 +58,7 @@
 | **multus-bond-cni** | installs bond CNI binary for multus | beta | Kustomization | 1.0.0 |
 | **neuvector** | installs Neuvector | beta | [Helm chart](https://neuvector.github.io/neuvector-helm) | 2.8.3 |
 | **nfs-ganesha** | manages NFS Ganesha CSI provisioner | experimental | [Helm chart](https://kubernetes-sigs.github.io/nfs-ganesha-server-and-external-provisioner/) | 1.8.0 |
-| **openshift-assisted-installer** | installs assisted installer operator for OKD | experimental | [Kustomization](https://raw.githubusercontent.com/openshift/assisted-service/9964f0870d5df042a782bb9c6394835d05ad807a/hack/crds/hive.openshift.io_clusterdeployments.yaml) | 9964f0870d5df042a782bb9c6394835d05ad807a |
+| **openshift-assisted-installer** | installs assisted installer operator for OKD | experimental | [Kustomization](https://raw.githubusercontent.com/openshift/assisted-service/refs/tags/v2.40.0/hack/crds/hive/hive.openshift.io_clusterdeployments.yaml) | v2.40.0 |
 | **prometheus-pushgateway** | installs Prometheus Push-gateway exporter | beta | [Helm chart](https://prometheus-community.github.io/helm-charts) | 3.1.0 |
 | **sbom-operator** | installs SBOM operator | beta | [Helm chart](https://ckotzbauer.github.io/helm-charts) | 0.36.0 |
 | **snmp-exporter** | installs SNMP exporter | beta | [Helm chart](https://prometheus-community.github.io/helm-charts) | 9.2.1 |
