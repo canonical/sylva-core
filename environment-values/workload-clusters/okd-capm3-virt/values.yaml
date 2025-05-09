@@ -36,7 +36,7 @@ cluster_machines_ready:
 
 cluster_domain: okd
 
-cluster_virtual_ip: 192.168.100.74
+cluster_virtual_ip: 192.168.100.70
 
 cluster:
   name: okd-capm3
@@ -86,7 +86,7 @@ cluster:
   #       bond0: '{{ tuple "" false | include "set-only-if" }}'
 
   openshift:
-    ingressVIP: 192.168.100.74
+    ingressVIP: 192.168.100.70
     baseDomain: okd
     version: 4.17.0
     releaseImage: quay.io/okd/scos-release:4.17.0-okd-scos.ec.3
@@ -111,9 +111,9 @@ cluster:
     workload-cp-0:
       interface_mappings:
         nic1:
-          mac_address: '52:54:00:44:44:04'
+          mac_address: '52:54:00:44:44:01'
         nic2:
-          mac_address: '52:54:00:55:55:04'
+          mac_address: '52:54:00:55:55:01'
         # ens4:
         #   mac_address: '52:54:00:44:44:04'
         # ens5:
@@ -124,6 +124,6 @@ cluster:
       bmh_spec:
         bmc:
           address: redfish-virtualmedia://{{ .Values._internal.bootstrap_node_ip }}:8010/redfish/v1/Systems/c0014001-b10b-f001-c0de-feeb1e54ee15
-        bootMACAddress: '52:54:00:44:44:04'
+        bootMACAddress: '52:54:00:44:44:01'
       ip_preallocations:
-        primary: 192.168.100.74
+        primary: 192.168.100.70
