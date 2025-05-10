@@ -3024,7 +3024,7 @@ units:
           - base
         unset_cluster_paused: '{{ .Values._internal.state.is_upgrade | include "preserve-type" }}'
         mgmt_service_names: >-
-            {{- range $_, $svc :=  (list "loki" "rancher" "thanos_receive" "harbor") }}{{ $svc }}.{{ $.Values.cluster_domain }}{{print " "}}{{ end }}
+            {{- range $_, $svc :=  (list "loki" "rancher" "thanos_receive" "harbor") }}{{ $svc }}.{{ .Values.cluster_domain }}{{print " "}}{{ end }}
       valuesFrom:
         - kind: ConfigMap
           name: capo-cluster-resources
@@ -9076,6 +9076,7 @@ shared_workload_clusters_values:
       image_provisioning_host: '{{ .Values.display_external_ip }}'
     default_node_class: '{{ .Values.cluster.default_node_class }}'
     node_classes: '{{ .Values.cluster.node_classes | include "preserve-type" }}'
+    mgmt_service_names: '{{ .Values._internal.mgmt_cluster_service_names }}'
 
   openstack:
     storageClass: '{{ .Values.openstack.storageClass | include "set-if-defined" }}'
