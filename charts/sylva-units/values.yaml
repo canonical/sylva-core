@@ -3024,7 +3024,7 @@ units:
           - base
         unset_cluster_paused: '{{ .Values._internal.state.is_upgrade | include "preserve-type" }}'
         mgmt_service_names: >-
-            {{- range $_, $svc :=  (list "loki" "rancher" "thanos_receive" "harbor") }}.{{ $.Values.cluster_domain }}{{print " "}}{{ end }}
+            {{- range (list "loki" "rancher" "thanos_receive" "harbor") }}.{{ $.Values.cluster_domain }}{{print " "}}{{ end }}
       valuesFrom:
         - kind: ConfigMap
           name: capo-cluster-resources
