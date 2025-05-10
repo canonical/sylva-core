@@ -3024,7 +3024,7 @@ units:
           - base
         unset_cluster_paused: '{{ .Values._internal.state.is_upgrade | include "preserve-type" }}'
         mgmt_service_names: >-
-            {{- if eq .Values._internal.mgmt_cluster true -}}
+            {{- if .Values._internal.mgmt_cluster -}}
             {{- range (list "loki" "rancher" "thanos_receive" "harbor") }}{{.}}.{{ $.Values.cluster_domain }}{{print " "}}{{ end }}
             {{- else }}
             {{ .Values._internal.mgmt_cluster_service_names }}
