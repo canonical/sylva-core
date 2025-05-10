@@ -5,6 +5,7 @@ metadata:
   namespace: sylva-system
 data:
   values.yaml: |
+    replicas: 2
     nodeSelector:
       kubernetes.io/os: linux
       node-role.kubernetes.io/control-plane: "true"

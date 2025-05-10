@@ -876,7 +876,6 @@ units:
         global.rke2DataDir: /var/lib/rancher/rke2
         global.serviceCIDR: '{{ first .Values.cluster.cluster_services_cidrs }}'
         global.systemDefaultIngressClass: ingress-nginx
-        replicas: '{{ .Values._internal.ha_cluster.is_ha | ternary 2 1 }}'
       valuesFrom:
          '{{ tuple
             (list (dict "kind" "ConfigMap"
