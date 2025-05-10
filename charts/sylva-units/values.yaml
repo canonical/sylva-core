@@ -868,14 +868,6 @@ units:
           chart: rke2-metrics-server
           version: 3.12.200
       targetNamespace: kube-system
-      values:
-        global.clusterCIDR: '{{ first .Values.cluster.cluster_pods_cidrs }}'
-        global.clusterCIDRv4: '{{ first .Values.cluster.cluster_pods_cidrs }}'
-        global.clusterDNS: '{{ regexReplaceAll "[.]0/.*" (first .Values.cluster.cluster_services_cidrs) ".10" }}'
-        global.clusterDomain: cluster.local
-        global.rke2DataDir: /var/lib/rancher/rke2
-        global.serviceCIDR: '{{ first .Values.cluster.cluster_services_cidrs }}'
-        global.systemDefaultIngressClass: ingress-nginx
       valuesFrom:
          '{{ tuple
             (list (dict "kind" "ConfigMap"
