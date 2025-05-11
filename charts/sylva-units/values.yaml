@@ -3023,12 +3023,7 @@ units:
           - cluster-resource
           - base
         unset_cluster_paused: '{{ .Values._internal.state.is_upgrade | include "preserve-type" }}'
-        mgmt_service_names: >-
-            {{- if .Values._internal.mgmt_cluster -}}
-            {{- range (list "loki" "rancher" "thanos_receive" "harbor") }}{{.}}.{{ $.Values.cluster_domain }}{{print " "}}{{ end }}
-            {{- else }}
-            {{ .Values._internal.mgmt_cluster_service_names }}
-            {{- end }}
+        mgmt_service_names: '{{ ternary  (index .Values.external_hostnames "harbor") (.Values._internal.mgmt_cluster_service_names) (.Values._internal.mgmt_cluster | include "as-bool") }}'
       valuesFrom:
         - kind: ConfigMap
           name: capo-cluster-resources
