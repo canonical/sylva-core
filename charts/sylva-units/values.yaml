@@ -7843,7 +7843,7 @@ cluster:
   # kubernetes version to be used
   k8s_version: '{{ .Values._internal.k8s_version_map | dig .Values.k8s_version_short "" | required (printf "no k8s version defined for %s" .Values.k8s_version_short) }}'
   mgmt_service_names: >-
-    {{- range (list "loki" "rancher" "thanos_receive" "harbor") }}{{ . }}.{{ .Values.cluster_domain }}{{print " "}}{{ end }}
+    {{- range (list "loki" "rancher" "thanos_receive" "harbor") }}{{ . }}.{{ $.Values.cluster_domain }}{{print " "}}{{ end }}
 
   # kube_vip version to be used for kubeadm deployments
   images:
