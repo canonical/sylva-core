@@ -9038,31 +9038,30 @@ _internal:
     clusterDomain: cluster.local
     serviceCIDR: '{{ first .Values.cluster.cluster_services_cidrs }}'
 
-  base_mtu_default: 1450
-  base_mtu_per_infra:
+  base_cni_mtu_default: 1450
+  base_cni_mtu_per_infra:
     capm3: |-
       {{- tuple . "cluster.capm3.default_network_settings" | include "interpret" -}}
-      {{- $base_mtu := .Values.cluster.capm3.default_network_settings.mtu -}}
+      {{- $base_cni_mtu := .Values.cluster.capm3.default_network_settings.mtu -}}
 
       {{- $control_plane_primary_interface := .Values.cluster | dig "control_plane" "capm3" "networks" "primary" "interface" .Values.cluster.capm3.networks.primary.interface -}}
       {{- if not (eq $control_plane_primary_interface "") -}}
-          {{- $base_mtu = tuple (dict "Values" (dict "capm3" .Values.cluster.capm3))
+          {{- $base_cni_mtu = tuple (dict "Values" (dict "capm3" .Values.cluster.capm3))
                   $control_plane_primary_interface
                   (.Values.cluster.control_plane.network_interfaces | dig $control_plane_primary_interface dict)
                   .Values.cluster.capm3.networks
                   .Values.cluster.control_plane.network_interfaces | include "calculate-mtu" | int -}}
       {{- end -}}
-      {{- $base_mtu | include "preserve-type" -}}
-  base_mtu: >-
+      {{- $base_cni_mtu | include "preserve-type" -}}
+  base_cni_mtu: >-
     {{
-    .Values._internal.base_mtu_per_infra
-      | dig .Values.cluster.capi_providers.infra_provider .Values._internal.base_mtu_default
+    .Values._internal.base_cni_mtu_per_infra
+      | dig .Values.cluster.capi_providers.infra_provider .Values._internal.base_cni_mtu_default
       | include "preserve-type"
     }}
 
   calico_mtu: |-
-    {{- tuple . "_internal.base_mtu" | include "interpret" -}}
-    {{- $base_mtu := .Values._internal.base_mtu -}}
+    {{- tuple . "_internal.base_cni_mtu" | include "interpret" -}}
 
     {{- $encapsulation_header := dict
         "ipip" 20
@@ -9092,8 +9091,8 @@ _internal:
     {{- end -}}
 
     {{- /* Calculate final MTU */ -}}
-    {{- $base_mtu = sub $base_mtu $max_overhead -}}
-    {{- $base_mtu | include "preserve-type" -}}
+    {{- $mtu = sub .Values._internal.base_cni_mtu $max_overhead -}}
+    {{- $mtu | include "preserve-type" -}}
 
 shared_workload_clusters_values:
   ntp: '{{ .Values.ntp | include "set-if-defined" }}'
