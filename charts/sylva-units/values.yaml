@@ -3023,8 +3023,6 @@ units:
           - cluster-resource
           - base
         unset_cluster_paused: '{{ .Values._internal.state.is_upgrade | include "preserve-type" }}'
-        mgmt_service_names: >-
-            {{- range $_, $svc :=  (list "loki" "rancher" "thanos_receive" "harbor") }}{{ $svc }}.{{ .Values.cluster_domain }}{{print " "}}{{ end }}
       valuesFrom:
         - kind: ConfigMap
           name: capo-cluster-resources
@@ -7844,6 +7842,8 @@ cluster:
 
   # kubernetes version to be used
   k8s_version: '{{ .Values._internal.k8s_version_map | dig .Values.k8s_version_short "" | required (printf "no k8s version defined for %s" .Values.k8s_version_short) }}'
+  mgmt_service_names: >-
+    {{- range (list "loki" "rancher" "thanos_receive" "harbor") }}{{ . }}.{{ .Values.cluster_domain }}{{print " "}}{{ end }}
 
   # kube_vip version to be used for kubeadm deployments
   images:
@@ -9076,6 +9076,7 @@ shared_workload_clusters_values:
       image_provisioning_host: '{{ .Values.display_external_ip }}'
     default_node_class: '{{ .Values.cluster.default_node_class }}'
     node_classes: '{{ .Values.cluster.node_classes | include "preserve-type" }}'
+    mgmt_service_names: '{{ .Values._internal.mgmt_cluster_service_names }}'
 
   openstack:
     storageClass: '{{ .Values.openstack.storageClass | include "set-if-defined" }}'
