@@ -17,10 +17,6 @@ units:
     enabled: false
   calico-crd:
     enabled: false
-  # libvirt-metal:
-  #   helmrelease_spec:
-  #     values:
-  #       useBond: false
   ingress-nginx:
     enabled: false
   kyverno:
@@ -34,10 +30,6 @@ units:
 cluster_machines_ready:
   wait_timeout: 900s
 
-cluster_domain: okd
-
-cluster_virtual_ip: 192.168.100.70
-
 cluster:
   name: okd-capm3
   agent_config_format: "ignition"
@@ -49,81 +41,9 @@ cluster:
     machine_image_checksum_type: sha256
     machine_image_format: live-iso
     machine_image_url: https://abcdef
-    dns_servers: [172.18.0.2]
-    # dns_servers: >
-    #   {{ .Values.cluster.mgmt_cluster_ip | list | include "preserve-type" }}
-    # networks:
-    #   primary:
-    #     subnet: 192.168.100.0/24
-    #     gateway: 192.168.100.1
-    #     start: 192.168.100.60
-    #     end: 192.168.100.90
-    #     interface: bond0.100
-    #   provisioning: '{{ tuple "" false | include "set-only-if" }}'
-
-  #   networks:
-  #     provisioning:
-  #       interface: ens4
-  #     primary:
-  #       interface: ens5
-  #   default_network_settings:
-  #     bondXmitHashPolicy: '{{ tuple "" false | include "set-only-if" }}'
-  #     bond_mode: '{{ tuple "" false | include "set-only-if" }}'
-
-  # control_plane:
-  #   network_interfaces:
-  #     bond0: '{{ tuple "" false | include "set-only-if" }}'
-  #     nic1: '{{ tuple "" false | include "set-only-if" }}'
-  #     nic2: '{{ tuple "" false | include "set-only-if" }}'
-  #     ens4:
-  #       type: phy
-  #     ens5:
-  #       type: phy
-
-  # machine_deployments:
-  #   md0:
-  #     network_interfaces:
-  #       bond0: '{{ tuple "" false | include "set-only-if" }}'
+    dns_servers: >
+      {{ .Values.cluster.mgmt_cluster_ip | list | include "preserve-type" }}
 
   openshift:
-    ingressVIP: 192.168.100.70
-    baseDomain: okd
     version: 4.17.0
     releaseImage: quay.io/okd/scos-release:4.17.0-okd-scos.ec.3
-
-  control_plane:
-    capm3:
-      hostSelector:
-        matchLabels:
-          cluster-role: control-plane
-
-  control_plane_replicas: 1
-
-  machine_deployments:
-    md0:
-      replicas: 0
-      capm3:
-        hostSelector:
-          matchLabels:
-            cluster-role: worker
-
-  baremetal_hosts:  # corresponding credentials need to be set in secrets.yaml
-    workload-cp-0:
-      interface_mappings:
-        nic1:
-          mac_address: '52:54:00:44:44:04'
-        nic2:
-          mac_address: '52:54:00:55:55:04'
-        # ens4:
-        #   mac_address: '52:54:00:44:44:04'
-        # ens5:
-        #   mac_address: '52:54:00:55:55:04'
-      bmh_metadata:
-        labels:
-          cluster-role: control-plane
-      bmh_spec:
-        bmc:
-          address: redfish-virtualmedia://{{ .Values._internal.bootstrap_node_ip }}:8010/redfish/v1/Systems/c0014001-b10b-f001-c0de-feeb1e54ee15
-        bootMACAddress: '52:54:00:44:44:04'
-      ip_preallocations:
-        primary: 192.168.100.70
