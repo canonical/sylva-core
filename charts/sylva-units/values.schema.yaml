@@ -103,6 +103,10 @@ $defs:
     # this sub-schema will be completed with the actual sriov-resources chart values schema by the json schema generation tool
     type: object
 
+  metallb-resources-values:
+    # this sub-schema will be completed with actual libvirt-metal values schema with json schema generation
+    type: object
+
   unit_info:
     # this sub-schema describes documentation block for units
     type: object
@@ -1611,7 +1615,7 @@ properties:
                   type: object
 
   metallb:
-    type: object
+    $ref: "#/$defs/metallb-resources-values"
 
   calico_helm_values:
     type: object
@@ -1870,6 +1874,7 @@ allOf:
 
                 vsphere_conf:
                   type: object
+
   - if:
       properties:
         env_type:
