@@ -2930,6 +2930,9 @@ units:
           ironicIP: '{{ .Values.display_external_ip }}'
           provisioningInterface: eth0
         metal3-ironic:
+          images:
+            ironicIPADownloader:
+              repository: registry.opensuse.org/isv/suse/edge/containers/images/ironic-ipa-downloader-x86_64
           fullnameOverride: metal3-ironic
           service:
             type: LoadBalancer
