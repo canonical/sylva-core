@@ -1551,12 +1551,16 @@ units:
             secretName: neuvector-tls
         cve:
           updater:
+            podLabels:
+              tag-validating-policy.sylva.io: excluded
             podAnnotations:
               kube-score/ignore: container-image-tag
             enabled: '{{ .Values.security.neuvector_scanning_enabled | include "preserve-type" }}'
             image:
               repository: neuvector/updater
           scanner:
+            podLabels:
+              tag-validating-policy.sylva.io: excluded
             podAnnotations:
               kube-score/ignore: container-image-tag
             enabled: '{{ .Values.security.neuvector_scanning_enabled | include "preserve-type" }}'
@@ -1598,9 +1602,6 @@ units:
                   path: /metadata/labels/tag-validating-policy.sylva.io
                   value: excluded
                 - op: add
-                  path: /spec/jobTemplate/spec/template/metadata/labels/tag-validating-policy.sylva.io
-                  value: excluded
-                - op: add
                   path: /spec/jobTemplate/spec/template/spec/containers/0/securityContext
                   value:
                     runAsNonRoot: true
@@ -1618,9 +1619,6 @@ units:
               patch: |-
                 - op: add
                   path: /metadata/labels/tag-validating-policy.sylva.io
-                  value: excluded
-                - op: add
-                  path: /spec/template/metadata/labels/tag-validating-policy.sylva.io
                   value: excluded
         ` -}}
         {{- if .Values.security.neuvector_scanning_enabled -}}
