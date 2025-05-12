@@ -7764,18 +7764,6 @@ units:
                   enabled:
                     - RemoveDuplicates
                     - LowNodeUtilization
-      _postRenderers:
-        - kustomize:
-            patches:
-              - target:
-                  kind: ClusterRole
-                patch: |
-                  - op: add
-                    path: /rules/-
-                    value:
-                      verbs: ["get", "watch", "list"]
-                      apiGroups: ["policy"]
-                      resources: ["poddisruptionbudgets"]
 
   workload-team-defs:
     info:
