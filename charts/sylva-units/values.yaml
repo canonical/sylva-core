@@ -5246,8 +5246,17 @@ units:
     kustomization_spec:
       path: ./kustomize-units/openshift-operators
       wait: true
+      targetNamespace: null
       _components:
         - '{{ tuple "components/openshift-sriov" (tuple . "openshift-sriov" | include "unit-enabled") | include "set-only-if" }}'
+
+  openshift-sriov:
+    info:
+      description: Dummy unit to control enablement of openshift sriov network operator
+      internal: false
+    enabled: false
+    unit_templates:
+    - dummy 
 
   coredns:
     info:
