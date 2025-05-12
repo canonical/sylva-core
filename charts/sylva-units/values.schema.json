@@ -5119,6 +5119,19 @@
             }
           ]
         },
+        "mgmt_service_names": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "$ref": "#/$defs/string-with-gotpl"
+              },
+              {
+                "type": "null"
+              }
+            ]
+        },
         "mgmt_cluster_ip": {
           "anyOf": [
             {
