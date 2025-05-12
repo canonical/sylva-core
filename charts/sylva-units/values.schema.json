@@ -11,6 +11,113 @@
       "type": "string",
       "pattern": "^(?:(?:[01]?[0-9]{1,2}|2[0-4][0-9]|25[0-5])\\.){3}(?:[01]?[0-9]{1,2}|2[0-4][0-9]|25[0-5])-(?:(?:[01]?[0-9]{1,2}|2[0-4][0-9]|25[0-5])\\.){3}(?:[01]?[0-9]{1,2}|2[0-4][0-9]|25[0-5])$"
     },
+    "k8s-resource-name": {
+      "anyOf": [
+        {
+          "pattern": "^(?:/([a-zA-Z0-9/.-]+)|(?:[a-z0-9][a-z0-9-]*[a-z0-9]))$"
+        },
+        {
+          "$ref": "#/$defs/string-with-gotpl"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "keys-are-k8s-resource-names": {
+      "anyOf": [
+        {
+          "propertyNames": {
+            "$ref": "#/$defs/k8s-resource-name"
+          }
+        },
+        {
+          "$ref": "#/$defs/string-with-gotpl"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "node-selector": {
+      "anyOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "matchExpressions": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "key": {
+                        "type": "string"
+                      },
+                      "operator": {
+                        "type": "string"
+                      },
+                      "values": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "$ref": "#/$defs/string-with-gotpl"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "matchLabels": {
+              "anyOf": [
+                {
+                  "type": "object",
+                  "propertyNames": {
+                    "pattern": "^(([a-z0-9]([-a-z0-9]*[a-z0-9])?\\.)*([a-z0-9]([-a-z0-9]*[a-z0-9])?)/)?[A-Za-z0-9]([A-Za-z0-9_.-]*[A-Za-z0-9])?$"
+                  },
+                  "patternProperties": {
+                    ".*": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "pattern": "^[A-Za-z0-9]([A-Za-z0-9_.-]*[A-Za-z0-9])?$"
+                        },
+                        {
+                          "$ref": "#/$defs/string-with-gotpl"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  }
+                },
+                {
+                  "$ref": "#/$defs/string-with-gotpl"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "$ref": "#/$defs/string-with-gotpl"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
     "memGB": {
       "anyOf": [
         {
@@ -7502,11 +7609,13 @@
                   "anyOf": [
                     {
                       "type": "object",
+                      "$ref": "#/$defs/keys-are-k8s-resource-names",
                       "patternProperties": {
-                        "^(?:/([a-zA-Z0-9/.-]+)|(?:[a-z0-9][a-z0-9-]*[a-z0-9]))$": {
+                        ".*": {
                           "anyOf": [
                             {
                               "type": "object",
+                              "additionalProperties": false,
                               "properties": {
                                 "addresses": {
                                   "anyOf": [
@@ -7561,11 +7670,13 @@
                           "anyOf": [
                             {
                               "type": "object",
+                              "$ref": "#/$defs/keys-are-k8s-resource-names",
                               "patternProperties": {
-                                "^(?:/([a-zA-Z0-9/.-]+)|(?:[a-z0-9][a-z0-9-]*[a-z0-9]))$": {
+                                ".*": {
                                   "anyOf": [
                                     {
                                       "type": "object",
+                                      "additionalProperties": false,
                                       "properties": {
                                         "interfaces": {
                                           "anyOf": [
@@ -7589,33 +7700,7 @@
                                             {
                                               "type": "array",
                                               "items": {
-                                                "type": "object",
-                                                "additionalProperties": false,
-                                                "properties": {
-                                                  "matchExpressions": {
-                                                    "type": "array",
-                                                    "items": {
-                                                      "type": "object",
-                                                      "properties": {
-                                                        "key": {
-                                                          "type": "string"
-                                                        },
-                                                        "operator": {
-                                                          "type": "string"
-                                                        },
-                                                        "values": {
-                                                          "type": "array",
-                                                          "items": {
-                                                            "type": "string"
-                                                          }
-                                                        }
-                                                      }
-                                                    }
-                                                  },
-                                                  "matchLabels": {
-                                                    "type": "object"
-                                                  }
-                                                }
+                                                "$ref": "#/$defs/node-selector"
                                               }
                                             },
                                             {
@@ -7631,7 +7716,8 @@
                                             {
                                               "type": "array",
                                               "items": {
-                                                "type": "string"
+                                                "type": "string",
+                                                "$ref": "#/$defs/k8s-resource-name"
                                               }
                                             },
                                             {
@@ -7698,11 +7784,13 @@
                           "anyOf": [
                             {
                               "type": "object",
+                              "$ref": "#/$defs/keys-are-k8s-resource-names",
                               "patternProperties": {
-                                "^(?:/([a-zA-Z0-9/.-]+)|(?:[a-z0-9][a-z0-9-]*[a-z0-9]))$": {
+                                ".*": {
                                   "anyOf": [
                                     {
                                       "type": "object",
+                                      "additionalProperties": false,
                                       "properties": {
                                         "local_asn": {
                                           "anyOf": [
@@ -7788,7 +7876,8 @@
                                             {
                                               "type": "array",
                                               "items": {
-                                                "type": "string"
+                                                "type": "string",
+                                                "$ref": "#/$defs/k8s-resource-name"
                                               }
                                             },
                                             {
@@ -7803,6 +7892,18 @@
                                           "anyOf": [
                                             {
                                               "type": "object",
+                                              "oneOf": [
+                                                {
+                                                  "required": [
+                                                    "mode"
+                                                  ]
+                                                },
+                                                {
+                                                  "required": [
+                                                    "prefixes"
+                                                  ]
+                                                }
+                                              ],
                                               "additionalProperties": false,
                                               "properties": {
                                                 "mode": {
@@ -7810,8 +7911,7 @@
                                                     {
                                                       "type": "string",
                                                       "enum": [
-                                                        "all",
-                                                        "filtered"
+                                                        "all"
                                                       ]
                                                     },
                                                     {
@@ -7828,6 +7928,7 @@
                                                       "type": "array",
                                                       "items": {
                                                         "type": "object",
+                                                        "additionalProperties": false,
                                                         "properties": {
                                                           "prefix": {
                                                             "type": "string",
@@ -7850,6 +7951,22 @@
                                                     }
                                                   ]
                                                 }
+                                              }
+                                            },
+                                            {
+                                              "$ref": "#/$defs/string-with-gotpl"
+                                            },
+                                            {
+                                              "type": "null"
+                                            }
+                                          ]
+                                        },
+                                        "node_selectors": {
+                                          "anyOf": [
+                                            {
+                                              "type": "array",
+                                              "items": {
+                                                "$ref": "#/$defs/node-selector"
                                               }
                                             },
                                             {
@@ -7884,11 +8001,13 @@
                           "anyOf": [
                             {
                               "type": "object",
+                              "$ref": "#/$defs/keys-are-k8s-resource-names",
                               "patternProperties": {
-                                "^(?:/([a-zA-Z0-9/.-]+)|(?:[a-z0-9][a-z0-9-]*[a-z0-9]))$": {
+                                ".*": {
                                   "anyOf": [
                                     {
                                       "type": "object",
+                                      "additionalProperties": false,
                                       "properties": {
                                         "receiveInterval": {
                                           "anyOf": [
@@ -7963,11 +8082,13 @@
                   "anyOf": [
                     {
                       "type": "object",
+                      "$ref": "#/$defs/keys-are-k8s-resource-names",
                       "patternProperties": {
-                        "^(?:/([a-zA-Z0-9/.-]+)|(?:[a-z0-9][a-z0-9-]*[a-z0-9]))$": {
+                        ".*": {
                           "anyOf": [
                             {
                               "type": "object",
+                              "additionalProperties": false,
                               "properties": {
                                 "addresses": {
                                   "anyOf": [
