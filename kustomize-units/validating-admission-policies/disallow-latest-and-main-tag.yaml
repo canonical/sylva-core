@@ -65,3 +65,18 @@ spec:
         operator: NotIn
         values:
         - excluded
+      - key: app
+        operator: NotIn
+        values:
+        - neuvector-scanner-pod
+    excludeResourceRules:
+      - apiGroups: ["apps"]
+        apiVersions: ["v1"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["deployments", "replicasets"]
+        resourceNames: ["neuvector-scanner-pod"]
+      - apiGroups: ["batch"]
+        apiVersions: ["v1"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["jobs", "cronjobs"]
+        resourceNames: ["neuvector-updater-pod"]
