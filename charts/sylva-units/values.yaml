@@ -835,12 +835,12 @@ units:
           version: 0.23.2
       targetNamespace: cnpg-system
 
-  rke2-metrics-server-ha:
+  metrics-server-ha:
     info:
       description: rke2-metrics-server ha values
       maturity: stable
     enabled_conditions:
-      - '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" }}'
+      - '{{ or (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpr") (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpk") }}'
       - '{{ .Values._internal.ha_cluster.is_ha }}'
     unit_templates:
       - base-deps
@@ -849,12 +849,12 @@ units:
       path: ./kustomize-units/rke2-metrics-server-ha
       wait: true
 
-  rke2-metrics-server:
+  metrics-server:
     info:
       description: rke2-metrics-server install
       maturity: stable
     enabled_conditions:
-      - '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" }}'
+      - '{{ or (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpr") (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpk") }}'
     depends_on:
       rke2-metrics-server-ha: '{{ .Values._internal.ha_cluster.is_ha }}'
     unit_templates:
