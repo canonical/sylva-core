@@ -100,8 +100,8 @@ cluster:
       interface_mappings:
         nic1:
           mac_address: '52:54:00:44:44:01'
-        # nic2:
-        #   inspection_name: ens5
+        nic2:
+          inspection_name: ens5
       bmh_metadata:
         labels:
           cluster-role: control-plane
