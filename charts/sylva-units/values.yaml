@@ -9091,7 +9091,7 @@ _internal:
     {{- end -}}
 
     {{- /* Calculate final MTU */ -}}
-    {{- $mtu = sub .Values._internal.base_cni_mtu $max_overhead -}}
+    {{- $mtu := sub .Values._internal.base_cni_mtu $max_overhead -}}
     {{- $mtu | include "preserve-type" -}}
 
 shared_workload_clusters_values:
