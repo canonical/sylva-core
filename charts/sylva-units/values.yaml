@@ -2864,57 +2864,59 @@ units:
             paths:
               - /var/lib/kubelet/local-path-provisioner
         helperImage: 
-          repository: >-
-            {{- if eq .Values.cluster.capi_providers.bootstrap_provider "cabpoa" }} 
-            registry.access.redhat.com/ubi9/ubi
-            {{- else }}
-            docker.io/library/busybox
-            {{- end }}  
-          tag: >-
-            {{- if eq .Values.cluster.capi_providers.bootstrap_provider "cabpoa" }}
-            9.5
-            {{- else }}
-            1.37.0
-            {{- end }}
-      _postRenderers:
-        - kustomize:
-            patches:
-              - patch: |-
-                  apiVersion: v1
-                  kind: ConfigMap
-                  metadata:
-                    name: local-path-config
-                    namespace: kube-system
-                  data:
-                    helperPod.yaml: |-
-                      apiVersion: v1
-                      kind: Pod
-                      metadata:
-                        name: helper-pod
-                        namespace: local-path-storage
-                      spec:
-                        priorityClassName: system-node-critical
-                        tolerations:
-                          - key: node.kubernetes.io/disk-pressure
-                            operator: Exists
-                            effect: NoSchedule
-                        containers:
-                          - name: helper-pod
-                            image: registry.access.redhat.com/ubi9/ubi:9.5
-                            imagePullPolicy: IfNotPresent
-                            resources:
-                              {}
-                            securityContext:
-                              privileged: true
-                    setup: |-
-                      #!/bin/sh
-                      set -eu
-                      mkdir -m 0777 -p "$VOL_DIR"
-                      chcon -R -t container_file_t "$VOL_DIR"
-                    teardown: |-
-                      #!/bin/sh
-                      set -eu
-                      rm -rf "$VOL_DIR"
+          repository: docker.io/library/busybox
+          tag: 1.37.0
+      _postRenderers: |
+        {{- $patch := `
+        kustomize:
+          patches:
+            - target:
+                kind: ConfigMap
+                name: local-path-config
+                namespace: kube-system
+              patch: |-
+                apiVersion: v1
+                kind: ConfigMap
+                metadata:
+                  name: local-path-config
+                  namespace: kube-system
+                data:
+                  helperPod.yaml: |-
+                    apiVersion: v1
+                    kind: Pod
+                    metadata:
+                      name: helper-pod
+                      namespace: local-path-storage
+                    spec:
+                      priorityClassName: system-node-critical
+                      tolerations:
+                        - key: node.kubernetes.io/disk-pressure
+                          operator: Exists
+                          effect: NoSchedule
+                      containers: 
+                        - name: helper-pod
+                          image: registry.access.redhat.com/ubi9/ubi:9.5
+                          imagePullPolicy: IfNotPresent
+                          resources:
+                            {}
+                          securityContext:
+                            privileged: true
+                  setup: |-
+                    #!/bin/sh
+                    set -eu
+                    mkdir -m 0777 -p "$VOL_DIR"
+                    chcon -R -t container_file_t "$VOL_DIR"
+                  teardown: |-
+                    #!/bin/sh
+                    set -eu
+                    rm -rf "$VOL_DIR"
+        ` -}}
+        {{- if eq .Values.cluster.capi_providers.bootstrap_provider "cabpoa" -}}
+        {{- list ($patch | fromYaml) | include "preserve-type" -}}
+        {{- else -}}
+        {{- list | include "preserve-type" -}}
+        {{- end -}}
+
 
   cluster-bmh:
     info:
