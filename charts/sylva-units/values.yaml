@@ -7965,13 +7965,7 @@ cluster:
         interface: ""
     image_provisioning_host: '{{ .Values.display_external_ip }}'
     default_network_settings:
-      mtu: >-
-        {{-
-        tuple
-          (.Values.security.calico_wireguard_enabled | ternary 1440 1450)
-          (.Values.cluster.capi_providers.infra_provider | eq "capm3")
-        | include "set-only-if"
-        -}}
+      mtu: 1500 # set the default network interfaces MTU size
 
   enable_longhorn: '{{ tuple . "longhorn" | include "unit-enabled" | include "as-bool" }}'
 
@@ -8598,8 +8592,6 @@ calico_helm_values:
     key: node.kubernetes.io/network-unavailable
     operator: Exists
   global:
-    clusterCIDR: '{{ .Values._internal.calico.clusterCIDR }}'
-    clusterCIDRv4: '{{ .Values._internal.calico.clusterCIDRv4 }}'
     clusterDNS: '{{ .Values._internal.calico.clusterDNS }}'
     clusterDomain: '{{ .Values._internal.calico.clusterDomain }}'
     serviceCIDR: '{{ .Values._internal.calico.serviceCIDR }}'
@@ -8607,22 +8599,7 @@ calico_helm_values:
     calicoNetwork:
       bgp: Disabled
       mtu: |
-        {{/*
-        ensure that .Values.cluster.capm3.default_network_settings is interpreted before we use it
-          (keeping in mind that it is used by sylva-library "calculate-mtu" named template)
-        */}}
-        {{- tuple . "cluster.capm3.default_network_settings" | include "interpret" -}}
-        {{- $control_plane_primary_interface := .Values.cluster | dig "control_plane" "capm3" "networks" "primary" "interface" .Values.cluster.capm3.networks.primary.interface -}}
-        {{- if not (eq $control_plane_primary_interface "") -}}
-          {{ tuple (dict "Values" (dict "capm3" .Values.cluster.capm3))
-                   $control_plane_primary_interface
-                   (.Values.cluster.control_plane.network_interfaces | dig $control_plane_primary_interface dict)
-                   .Values.cluster.capm3.networks
-                   .Values.cluster.control_plane.network_interfaces
-             | include "calculate-mtu" | int |  include "preserve-type" }}
-        {{- else -}}
-          {{ .Values.cluster.capm3.default_network_settings.mtu | default 1450 | include "preserve-type" }}
-        {{- end -}}
+        {{ .Values._internal.calico_mtu | include "preserve-type" }}
       nodeAddressAutodetectionV4:
         '{{
         tuple
@@ -8630,6 +8607,10 @@ calico_helm_values:
           (not .Values._internal.capo_calico_autodetection_method_use_canReach_vip)
         | include "set-only-if"
         }}'
+      ipPools:
+        - cidr: '{{ first .Values.cluster.cluster_pods_cidrs }}'
+          encapsulation: VXLAN
+          natOutgoing: Enabled
     registry: UseDefault
   felixConfiguration:
     wireguardEnabled: '{{ .Values.security.calico_wireguard_enabled | include "preserve-type" }}'
@@ -9050,13 +9031,67 @@ _internal:
         unhealthyPodEvictionPolicy: AlwaysAllow
 
   calico:
-    clusterCIDR: '{{ first .Values.cluster.cluster_pods_cidrs }}'
-    clusterCIDRv4: '{{ first .Values.cluster.cluster_pods_cidrs }}'
     # for clusterDNS, take the .10 of the first subnet of cluster.cluster_services_cidrs
     # FIXME: this will not work for subnets not starting at 0 (e.g. 192.168.1.128/25)
     clusterDNS: '{{ regexReplaceAll "[.]0/.*" (first .Values.cluster.cluster_services_cidrs) ".10" }}'
     clusterDomain: cluster.local
     serviceCIDR: '{{ first .Values.cluster.cluster_services_cidrs }}'
+
+  base_cni_mtu_default: 1450
+  base_cni_mtu_per_infra:
+    capm3: |-
+      {{- tuple . "cluster.capm3.default_network_settings" | include "interpret" -}}
+      {{- $base_cni_mtu := .Values.cluster.capm3.default_network_settings.mtu -}}
+
+      {{- $control_plane_primary_interface := .Values.cluster | dig "control_plane" "capm3" "networks" "primary" "interface" .Values.cluster.capm3.networks.primary.interface -}}
+      {{- if not (eq $control_plane_primary_interface "") -}}
+          {{- $base_cni_mtu = tuple (dict "Values" (dict "capm3" .Values.cluster.capm3))
+                  $control_plane_primary_interface
+                  (.Values.cluster.control_plane.network_interfaces | dig $control_plane_primary_interface dict)
+                  .Values.cluster.capm3.networks
+                  .Values.cluster.control_plane.network_interfaces | include "calculate-mtu" | int -}}
+      {{- end -}}
+      {{- $base_cni_mtu | include "preserve-type" -}}
+  base_cni_mtu: >-
+    {{
+    .Values._internal.base_cni_mtu_per_infra
+      | dig .Values.cluster.capi_providers.infra_provider .Values._internal.base_cni_mtu_default
+      | include "preserve-type"
+    }}
+
+  calico_mtu: |-
+    {{- tuple . "_internal.base_cni_mtu" | include "interpret" -}}
+
+    {{- $encapsulation_header := dict
+        "ipip" 20
+        "ipipcrosssubnet" 20
+        "vxlan" 50
+        "vxlancrosssubnet" 50
+        "wireguard" 60
+        "none" 0
+    -}}
+    {{- $max_overhead := 0 -}}
+
+    {{- /* Iterate through all ipPools to find maximum encapsulation overhead */ -}}
+    {{- range .Values.calico_helm_values.installation.calicoNetwork.ipPools -}}
+      {{- if .encapsulation -}}
+        {{- $current_encapsulation := .encapsulation | lower -}}
+        {{- if hasKey $encapsulation_header $current_encapsulation -}}
+          {{- $max_overhead = max $max_overhead (index $encapsulation_header $current_encapsulation) -}}
+        {{- else -}}
+          {{- fail (printf "Unknown encapsulation type '%s' in calico_helm_values.installation.calicoNetwork.ipPools. Supported types are: %s" $current_encapsulation ((omit $encapsulation_header "wireguard") | keys | join ", ")) -}}
+        {{- end -}}
+      {{- end -}}
+    {{- end -}}
+
+    {{- /* Check for wireguard if enabled */ -}}
+    {{- if .Values.security.calico_wireguard_enabled | default false -}}
+      {{- $max_overhead = max $max_overhead (index $encapsulation_header "wireguard") -}}
+    {{- end -}}
+
+    {{- /* Calculate final MTU */ -}}
+    {{- $mtu := sub .Values._internal.base_cni_mtu $max_overhead -}}
+    {{- $mtu | include "preserve-type" -}}
 
 shared_workload_clusters_values:
   ntp: '{{ .Values.ntp | include "set-if-defined" }}'
