@@ -1,0 +1,28 @@
+---
+# This job tests cronjob behavior
+
+mgmt-webhook-testing:
+  artifacts:
+    expire_in: 48 hour
+    when: always
+    paths:
+      - webhooks_report.txt
+  variables:
+    DESCRIPTION: Checks if the webhook services have more than one endpoint.
+    # Exempted webhooks that do not require multiple endpoints
+    EXEMPT_WEBHOOKS: |-
+      cnpg-mutating-webhook-configuration
+      cnpg-validating-webhook-configuration
+      crossplane
+      crossplane-no-usages
+      externalsecret-validate
+      metallb-webhook-configuration
+      rancher-monitoring-admission
+      secretstore-validate
+      vault-config-operator-mutating-webhook-configuration
+      vault-config-operator-validating-webhook-configuration
+    MIN_REPLICAS: 2
+  extends:
+    - .test-base-management-cluster
+  script:
+    - .gitlab/ci/scripts/webhooks-ha-check.sh

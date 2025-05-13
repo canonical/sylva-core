@@ -96,6 +96,7 @@ By following these guidelines, developers can effectively contribute to the Sylv
 | `mgmt-drift-corrections`|Check for drifts in the helm controller logs in the mgmt cluster|
 | `mgmt-avoid-mgmt-deletion-policies`|Ensure we can't delete key Sylva Flux and CAPI resources for the mgmt cluster.|
 | `mgmt-verify-longhorn-cleanup-events`|Highlight longhorn-instance-manager-cleanup events.|
+| `mgmt-webhook-testing`|Checks if the webhook services have more than one endpoint.|
 
 ### Tests run on workload cluster
 
