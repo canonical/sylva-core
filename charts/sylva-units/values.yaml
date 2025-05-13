@@ -2085,6 +2085,12 @@ units:
                   - "cronjobs"
                   - "jobs"
                 verbs: ["get", "list", "patch", "update", "watch"]
+              - apiGroups: ["minio.min.io"]
+                resources: ["tenants"]
+                verbs: ["get", "list", "watch", "patch", "update"]
+              - apiGroups: ["apiextensions.k8s.io"]
+                resources: ["customresourcedefinitions"]
+                verbs: ["get", "list", "watch"]
               - apiGroups: ["vault.banzaicloud.com"]
                 resources:
                   - "vaults"
@@ -2176,6 +2182,7 @@ units:
         - '{{ tuple "components/check-images" .Values.security.upstream_images_signature.verify | include "set-only-if" }}'
         - '{{ tuple "components/mutate-job-security-context" (tuple . "rancher" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/neuvector-policies" (tuple . "neuvector" | include "unit-enabled") | include "set-only-if" }}'
+        - '{{ tuple "components/restart-kyverno-on-minio-tenant-crd" (tuple . "minio-operator" | include "unit-enabled") | include "set-only-if" }}'
         - ../exclude-kube-system  # needs to be last (needed for components above that use sylva.org/kyverno-exclude-kube-system annotation)
 
   kyverno-policies-ready:
@@ -5734,6 +5741,7 @@ units:
       _components:
         - '{{ ternary "../tls-components/tls-secret" "../tls-components/tls-certificate" (hasKey .Values.external_certificates.minio_operator "cert") }}'
         - "../tls-components/sylva-ca"
+        - "../kyverno-policies/minio-policies/minio-operator-policies"
 
   minio-operator:
     info:
@@ -5865,6 +5873,7 @@ units:
       _components:
         - '{{ ternary "../tls-components/tls-secret" "../tls-components/tls-certificate" (hasKey .Values.external_certificates.minio_logging "cert") }}'
         - "../tls-components/sylva-ca"
+        - "../kyverno-policies/minio-policies/minio-tenant-policies"
 
   minio-logging:
     info:
@@ -6046,6 +6055,7 @@ units:
       _components:
         - '{{ ternary "../tls-components/tls-secret" "../tls-components/tls-certificate" (hasKey .Values.external_certificates.minio_monitoring "cert") }}'
         - "../tls-components/sylva-ca"
+        - "../kyverno-policies/minio-policies/minio-tenant-policies"
 
   minio-monitoring:
     info:
