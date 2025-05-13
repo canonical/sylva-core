@@ -4,7 +4,7 @@ kind: Component
 configMapGenerator:
 - name: coredns
   namespace: kube-system
-  behavior: merge
+  behavior: replace
   options:
     disableNameSuffixHash: true
   files:
