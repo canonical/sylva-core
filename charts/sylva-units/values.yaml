@@ -3143,7 +3143,7 @@ units:
                   metadata:
                     name: _unused_
                     annotations:
-                      {{ .Values.cluster.capi_providers.infra_provider | eq "capo" | ternary "sylva.org/gzip-user-data" "sylva.org/plain-user-data"}}: "true"
+                      {{ .Values.cluster.agent_config_format | eq "ignition" | ternary "sylva.org/plain-user-data" "sylva.org/gzip-user-data"}}: "true"
 
     # we pass everything that is under `cluster` to this unit that uses sylva-capi-cluster chart
     # (we do it via a secret because some of the values are credentials in many scenarios)
