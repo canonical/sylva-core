@@ -9033,15 +9033,7 @@ _internal:
 
   default_password: '{{ include "internalPersistentRandomPasswd" (tuple . "default_password") }}'
 
-  default_longhorn_storage_class: >-
-    {{- $nodeCount := int (tuple . .Values._internal.longhorn_node_count | include "interpret-as-string") -}}
-    {{- if eq $nodeCount 1 -}}
-      single-replica-storageclass
-    {{- else if eq $nodeCount 2 -}}
-      two-replicas-storageclass
-    {{- else -}}
-      longhorn
-    {{- end -}}
+  default_longhorn_storage_class: longhorn
 
   default_storage_class: >-
     {{- if .Values.default_storage_class -}}
@@ -9074,7 +9066,9 @@ _internal:
   # (a storage class does not need to appear in this map if the required unit has the same name)
   storage_class_unit_map:
     local-path: local-path-provisioner
-    '{{ .Values._internal.default_longhorn_storage_class}}': longhorn
+    single-replica-storageclass: longhorn
+    two-replicas-storageclass: longhorn
+    longhorn: longhorn
     vsphere-csi: vsphere-csi-driver
     '{{ .Values.openstack.storageClass.name }}': cinder-csi
     cephfs-csi: ceph-csi-cephfs
@@ -9181,8 +9175,8 @@ _internal:
     {{ $n | include "preserve-type" }}
     '
 
-  # total number of longhorn nodes
-  longhorn_node_count:
+  # upper bound to the number of longhorn nodes
+  longhorn_node_count_upper_bound:
     '
     {{- $count := 0 -}}
       {{- if hasKey .Values.cluster "baremetal_host_default" -}}
