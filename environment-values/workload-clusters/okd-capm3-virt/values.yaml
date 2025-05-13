@@ -47,21 +47,3 @@ cluster:
   openshift:
     version: 4.17.0
     releaseImage: quay.io/okd/scos-release:4.17.0-okd-scos.ec.3
-
-  baremetal_hosts:
-
-    workload-md-0:
-      bmh_metadata:
-        labels:
-          cluster-role: worker
-      bmh_spec:
-        bmc:
-          address: redfish-virtualmedia://{{ .Values._internal.bootstrap_node_ip }}:8013/redfish/v1/Systems/c0014001-b10b-f001-c0de-feeb1e54ee15
-        bootMACAddress: '52:54:00:44:44:07'
-      interface_mappings:
-        ens4:
-          mac_address: '52:54:00:44:44:07'
-        ens5:
-          mac_address: '52:54:00:55:55:07'
-      ip_preallocations:
-        primary: 192.168.100.73

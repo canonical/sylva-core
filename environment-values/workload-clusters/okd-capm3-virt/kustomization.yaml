@@ -5,7 +5,7 @@ resources:
   - ../base-capm3-virt
 
 components:
-  - ../base-capm3-virt/high-availability
+  - ../base-capm3-virt/high-availability-okd
 
 configMapGenerator:
   - name: sylva-units-values
