@@ -714,14 +714,14 @@ units:
       chart:
         spec:
           chart: trivy-operator
-          version: 0.27.0
+          version: 0.28.1
       targetNamespace: trivy-system
       install:
         createNamespace: false
       values:
-        global:
-          image:
-            registry: ghcr.io
+        image:
+          registry: docker.io
+          repository: aquasec/trivy-operator
         securityContext:
           runAsNonRoot: true
           seccompProfile:
@@ -744,17 +744,23 @@ units:
           httpsProxy: '{{ .Values.proxies.https_proxy }}'
           noProxy: '{{ printf "%s,%s" (include "sylva-units.no_proxy" (tuple .)) "trivy-service.trivy-system" }}'
         trivy:
+          image:
+            registry: ghcr.io
+            repository: aquasecurity/trivy
           httpProxy: '{{ .Values.proxies.https_proxy }}'
           httpsProxy: '{{ .Values.proxies.https_proxy }}'
           noProxy: '{{ printf "%s,%s" (include "sylva-units.no_proxy" (tuple .)) "trivy-service.trivy-system" }}'
           severity: UNKNOWN,HIGH,CRITICAL
           dbRegistry: ghcr.io
+          dbRepository: aquasecurity/trivy-db
           javaDbRegistry: ghcr.io
+          javaDbRepository: aquasecurity/trivy-java-db
           insecureRegistries: '{{ .Values.security.trivy_operator.insecure_registries | include "set-if-defined" }}'
           registry:
             mirror: '{{ .Values.security.trivy_operator.mirrors | include "set-if-defined" }}'
         policiesBundle:
           registry: ghcr.io
+          repository: aquasecurity/trivy-checks
         compliance:
           specs:
           - '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" | ternary "rke2-cis-1.24" "k8s-cis-1.23" }}'
@@ -9259,30 +9265,30 @@ _internal:
   node_collector_volumes_default:
   - name: var-lib-etcd
     hostPath:
-    path: /var/lib/etcd
+      path: /var/lib/etcd
   - name: var-lib-kubelet
     hostPath:
-    path: /var/lib/kubelet
+      path: /var/lib/kubelet
   - name: var-lib-kube-scheduler
     hostPath:
-    path: /var/lib/kube-scheduler
+      path: /var/lib/kube-scheduler
   - name: var-lib-kube-controller-manager
     hostPath:
-    path: /var/lib/kube-controller-manager
+      path: /var/lib/kube-controller-manager
   - name: etc-systemd
     hostPath:
-    path: /etc/systemd
+      path: /etc/systemd
   - name: lib-systemd
     hostPath:
-    path: /lib/systemd
+      path: /lib/systemd
   - name: etc-kubernetes
     hostPath:
-    path: /etc/kubernetes
+      path: /etc/kubernetes
   - name: etc-cni-netd
     hostPath:
-    path: /etc/cni/net.d/
+      path: /etc/cni/net.d/
 
-  node_collector_volumes: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" | ternary (append .Values._internal.node_collector_volumes_default (dict "name" "var-lib-rancher-rke2" "hostPath" (dict "path" "/var/lib/rancher/rke2"))) .Values._internal.node_collector_volumes_default }}'
+  node_collector_volumes: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" | ternary (append .Values._internal.node_collector_volumes_default (dict "name" "var-lib-rancher-rke2" "hostPath" (dict "path" "/var/lib/rancher/rke2"))) .Values._internal.node_collector_volumes_default | include "preserve-type" }}'
 
   node_collector_volume_mounts_default:
   - name: var-lib-etcd
@@ -9310,7 +9316,7 @@ _internal:
     mountPath: /etc/cni/net.d/
     readOnly: true
 
-  node_collector_volume_mounts: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" | ternary (append .Values._internal.node_collector_volume_mounts_default (dict "name" "var-lib-rancher-rke2" "mountPath" "/var/lib/rancher/rke2" "readOnly" "true")) .Values._internal.node_collector_volume_mounts_default }}'
+  node_collector_volume_mounts: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" | ternary (append .Values._internal.node_collector_volume_mounts_default (dict "name" "var-lib-rancher-rke2" "mountPath" "/var/lib/rancher/rke2" "readOnly" true)) .Values._internal.node_collector_volume_mounts_default | include "preserve-type" }}'
 
 mgmt_cluster_state_values:
   cluster:
