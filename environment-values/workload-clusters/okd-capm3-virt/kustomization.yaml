@@ -4,6 +4,9 @@ kind: Kustomization
 resources:
   - ../base-capm3-virt
 
+components:
+  - ../base-capm3-virt/high-availability
+
 configMapGenerator:
   - name: sylva-units-values
     behavior: merge
