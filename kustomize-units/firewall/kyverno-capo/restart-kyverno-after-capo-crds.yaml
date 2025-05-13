@@ -13,6 +13,8 @@ metadata:
       Trigger an restart of kyverno pods on CRD changes
       See https://gitlab.com/sylva-projects/sylva-core/-/issues/1899
 spec:
+  webhookConfiguration:
+    failurePolicy: Ignore
   validationFailureAction: Enforce
   background: true
   rules:
