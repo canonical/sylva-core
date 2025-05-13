@@ -7843,7 +7843,7 @@ cluster:
   # kubernetes version to be used
   k8s_version: '{{ .Values._internal.k8s_version_map | dig .Values.k8s_version_short "" | required (printf "no k8s version defined for %s" .Values.k8s_version_short) }}'
   mgmt_service_names: >-
-     {{- if and (haskey .Values "cluster") (haskey .Values.cluster "mgmt_cluster_ip") (not (empty .Values.cluster.mgmt_cluster_ip)) }}
+     {{- if and (hasKey .Values "cluster") (hasKey .Values.cluster "mgmt_cluster_ip") (not (empty .Values.cluster.mgmt_cluster_ip)) }}
      {{ .Values._internal.mgmt_cluster_service_names }}
      {{- else }}
      {{- range (list "loki" "rancher" "thanos_receive" "harbor") }}{{ . }}.{{ $.Values.cluster_domain }}{{print " "}}{{ end }}
