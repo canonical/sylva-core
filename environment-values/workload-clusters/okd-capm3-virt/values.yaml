@@ -57,7 +57,7 @@ cluster:
       bmh_spec:
         bmc:
           address: redfish-virtualmedia://{{ .Values._internal.bootstrap_node_ip }}:8013/redfish/v1/Systems/c0014001-b10b-f001-c0de-feeb1e54ee15
-        bootMACAddress: 52:54:00:44:44:07
+        bootMACAddress: '52:54:00:44:44:07'
       interface_mappings:
         ens4:
           mac_address: '52:54:00:44:44:07'
