@@ -1505,7 +1505,7 @@ units:
       chart:
         spec:
           chart: core
-          version: 2.8.3
+          version: 2.8.6
       targetNamespace: neuvector
       values:
         leastPrivilege: true
