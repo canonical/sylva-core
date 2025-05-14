@@ -4140,6 +4140,7 @@ units:
           # Decrease default terminationGracePeriodSeconds (of 300s) to fasten upgrades, and tune worker-shutdown-timeout accordingly (default is 240s)
           terminationGracePeriodSeconds: 90
           config:
+            worker-processes: 8
             worker-shutdown-timeout: 60s
             use-forwarded-headers: true
             large-client-header-buffers: "4 16k"
