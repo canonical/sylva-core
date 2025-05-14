@@ -296,6 +296,7 @@ unit_templates:
         - '{{ tuple "components/kunai" (tuple . "kunai" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/sbom-operator" (tuple . "sbom-operator" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/openshift/openshift-sriov-operator" (tuple . "openshift-sriov" | include "unit-enabled") | include "set-only-if" }}'
+        - '{{ tuple "components/openshift/openshift-metallb-operator" (tuple . "openshift-metallb" | include "unit-enabled") | include "set-only-if" }}'
 
   flux-common:
     repo: sylva-core
@@ -5251,6 +5252,7 @@ units:
       targetNamespace: null
       _components:
         - '{{ tuple "components/openshift-sriov" (tuple . "openshift-sriov" | include "unit-enabled") | include "set-only-if" }}'
+        - '{{ tuple "components/openshift-metallb" (tuple . "openshift-metallb" | include "unit-enabled") | include "set-only-if" }}'
 
   openshift-sriov:
     info:
@@ -5258,7 +5260,15 @@ units:
       internal: false
     enabled: false
     unit_templates:
-    - dummy 
+    - dummy
+
+  openshift-metallb:
+    info:
+      description: Dummy unit to control enablement of openshift metallb operator
+      internal: false
+    enabled: false
+    unit_templates:
+      - dummy
 
   coredns:
     info:
