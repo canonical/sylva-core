@@ -280,8 +280,10 @@ Note well that there are a few limitations:
     {{- $result := 0 -}}
     {{/* ---- shield raw strings */}}
     {{- if and (eq $kind "map")
-               (hasKey $data "(raw)")
-               ($data | len | eq 1) -}}
+               (hasKey $data "(raw)") -}}
+      {{- if not ($data | len | eq 1) -}}
+        {{- fail (printf "a '(raw): ...' entry has to be the single k/v in the value using it, other keys were present (%s)" ($data|keys|toJson)) -}}
+      {{- end -}}
       {{- $rawValue := get $data "(raw)" }}
       {{- if not (kindOf $rawValue | eq "string") -}}
         {{- fail (printf "a '(raw)' item must be a string ('%v' is a '%s')" $rawValue (kindOf $rawValue)) -}}
