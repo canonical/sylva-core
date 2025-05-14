@@ -51,7 +51,7 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
     spec:
       url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-capi-cluster.git
       ref:
-        tag: 0.9.0
+        tag: 0.9.3
 
   sync-openstack-images:
     kind: GitRepository
@@ -7824,6 +7824,9 @@ units:
 
 cluster:
   name: management-cluster
+
+  # check if the cluster name is starting with a number, set to false to bypass this check
+  check_cluster_name: true
 
   # can be set to true to do an RKE2 deployment disconnected from the Internet:
   air_gapped: false
