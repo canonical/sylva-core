@@ -408,8 +408,6 @@ spec:
           ports:
           - name: http
             containerPort: 8080
-          # - name: app
-          #   containerPort: 8081
           securityContext:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true
@@ -420,8 +418,6 @@ spec:
             mountPath: /var/cache/nginx
           - name: run-volume
             mountPath: /var/run
-          # - name: auth-config
-          #   mountPath: /etc/nginx/auth.d/
           - name: nginx-config
             mountPath: /etc/nginx/nginx.conf
             subPath: nginx.conf
@@ -432,10 +428,9 @@ spec:
         - name: oauth2-proxy
           image: quay.io/oauth2-proxy/oauth2-proxy:v7.6.0
           args:
-            # - --provider=keycloak
             - --provider=oidc
             - --email-domain=*
-            - --upstream=file:///dev/null      #This is local nginx container with 127.0.0.1:<nginx port>
+            - --upstream=file:///dev/null
             - --http-address=0.0.0.0:4180             # 4180 is oidc port which is listening on 0.0.0.0
             - --cookie-secret=$(OAUTH2_PROXY_CLIENT_SECRET)
             - --cookie-secure=true
@@ -443,9 +438,6 @@ spec:
             - --client-secret=$(OAUTH2_PROXY_CLIENT_SECRET)
             - --redirect-url=https://${KUBEVIRT_MANAGER_DNS}/oauth2/callback  # kubevirt-manager exposed as in keycloak client
             - --oidc-issuer-url=https://${KEYCLOAK_DNS}/realms/sylva
-            # - --login-url=https://${KEYCLOAK_DNS}/realms/sylva/protocol/openid-connect/auth
-            # - --redeem-url=https://${KEYCLOAK_DNS}/realms/sylva/protocol/openid-connect/token
-            # - --profile-url=https://${KEYCLOAK_DNS}/realms/sylva/protocol/openid-connect/userinfo
             - --set-xauthrequest=true
             - --pass-authorization-header=true
             - --pass-access-token=true
@@ -453,7 +445,6 @@ spec:
             - --cookie-domain=kubevirt-manager.sylva
             - --cookie-path=/
             - --provider-ca-file=/etc/sylva-ca/ca.crt
-            # - --ssl-insecure-skip-verify=true
             - --insecure-oidc-allow-unverified-email
             - --logging-max-age=9
 
@@ -486,11 +477,6 @@ spec:
                 secretKeyRef:
                   name: auth-secret
                   key: clientSecret
-            # - name: OAUTH2_PROXY_COOKIE_SECRET
-            #   valueFrom:
-            #     secretKeyRef:
-            #       name: auth-secret
-            #       key: cookie-secret
       serviceAccountName: kubevirt-manager
       restartPolicy: Always
       volumes:

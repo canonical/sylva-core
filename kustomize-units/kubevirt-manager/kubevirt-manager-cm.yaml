@@ -1,7 +1,6 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-#   name: auth-config
   name: nginx-config
   namespace: kubevirt-manager
   labels:
@@ -9,10 +8,6 @@ metadata:
     kubevirt-manager.io/version: 1.4.0
     kubevirt-manager.io/managed: "true"
 data:
-  # basicauth.conf: |
-  #   auth_basic "Restricted Content";
-  #   auth_basic_user_file /etc/nginx/secret.d/.htpasswd;
-
   nginx.conf: |
 
     worker_processes  auto;
@@ -54,15 +49,6 @@ data:
                 proxy_set_header X-Forwarded-Proto https;
             }
 
-            # # OAuth2 callback compatibility with frontend
-            # location /openId_auth {
-            #     proxy_pass http://127.0.0.1:4180/oauth2/callback;
-            #     proxy_set_header Host              $host;
-            #     proxy_set_header X-Real-IP         $remote_addr;
-            #     proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
-            #     proxy_set_header X-Forwarded-Proto $scheme;
-            # }
-
             # OAuth2 Proxy callback endpoint
             location /oauth2 {
                 proxy_pass       http://127.0.0.1:4180;
@@ -71,14 +57,6 @@ data:
                 proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
                 proxy_set_header X-Forwarded-Proto https;
             }
-
-            # location /oauth2/callback {
-            #     proxy_pass       http://127.0.0.1:4180;
-            #     proxy_set_header Host              $host;
-            #     proxy_set_header X-Real-IP         $remote_addr;
-            #     proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
-            #     proxy_set_header X-Forwarded-Proto https;
-            # }
 
             # Catch-all route for Angular app - enforce auth
             location / {

@@ -347,7 +347,6 @@ dependents_list and fails if a circular dependency is detected
 
 */}}
 
-
 {{- define "_all-unit-dependencies" -}}
 {{- $envAll := index . 0 -}}
 {{- $unit_name := index . 1 -}}
@@ -443,31 +442,6 @@ NOTE WELL:
 {{- $key := index . 1 -}}
 {{- lookup "v1" "Secret" $envAll.Release.Namespace "sylva-units-values" | dig "data" "values" "" | b64dec | fromYaml | dig "_internal" $key (randAlphaNum 64) -}}
 {{- end -}}
-
-
-{{/*
-Generate a URL-safe, base64-encoded secure token of a specified length.
-
-This function generates a random alphanumeric string of the specified length,
-encodes it in base64, and then makes it URL-safe by replacing '+' with '-' and
-'/' with '_'. The default length of the token is 32 characters if no length
-is specified.
-
-Parameters:
-  .length (optional) - The length of the random string to generate. Default is 32.
-
-Returns:
-  A URL-safe, base64-encoded string representing the random token
-*/}}
-
-{{- define "generateSecureToken" -}}
-{{- $length := .length | default 32 }}  # Default length to 32 if not specified
-{{- $randomString := randAlphaNum $length }}  # Generate random alphanumeric string
-{{- $base64Token := b64enc $randomString }}  # Base64 encode the random string
-{{- $urlSafeToken := $base64Token | replace "+" "-" | replace "/" "_" -}}  # Convert to URL-safe base64
-{{- $urlSafeToken }}
-{{- end -}}
-
 
 {{/*
 

@@ -9,4 +9,3 @@ resources:
 - kubevirt-manager-ingress.yaml
 - kubevirt-manager-cm.yaml
 - kubevirt-manager-secret.yaml
-# - kubevirt-manager-np.yaml

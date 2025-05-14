@@ -895,22 +895,12 @@ units:
     kustomization_substitute_secrets:
       ADMIN_CREDENTIAL: '{{ (htpasswd .Values._internal.kubevirt_admin_user .Values._internal.kubevirt_admin_password) | b64enc | quote }}'
       KEY: '{{ .Values.external_certificates.kubevirt_manager.key | default "" | b64enc }}'
-      COOKIE_SECRET: '{{ .Values._internal.kubevirt_cookie_secret | default "" | b64enc }}'
     annotations:
       sylvactl/readyMessage: "Kubevirt manager UI can be reached at https://{{ .Values.external_hostnames.kubevirt_manager }} ({{ .Values.external_hostnames.kubevirt_manager }} must resolve to {{ .Values.display_external_ip }})"
     kustomization_spec:
       path: ./kustomize-units/kubevirt-manager
       wait: true
       targetNamespace: kubevirt-manager
-      # healthChecks:
-      #   - apiVersion: v1
-      #     kind: Secret
-      #     name: kubevirt-manager-init
-      #     namespace: kubevirt-manager
-      #   - apiVersion: v1
-      #     kind: Secret
-      #     name: kubevirt-manager-oidc-init
-      #     namespace: kubevirt-manager
       postBuild:
         substitute:
           KUBEVIRT_MANAGER_DNS: '{{ .Values.external_hostnames.kubevirt_manager }}'
@@ -8818,7 +8808,6 @@ _internal:
   # kubevirt admin user and password
   kubevirt_admin_user: 'admin'
   kubevirt_admin_password: '{{ include "internalPersistentRandomPasswd" (tuple . "kubevirt_admin_password") }}'
-  kubevirt_cookie_secret: '{{ include "generateSecureToken" . | quote }}'
 
   default_password: '{{ include "internalPersistentRandomPasswd" (tuple . "default_password") }}'
 
