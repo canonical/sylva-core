@@ -6897,6 +6897,8 @@ units:
           service:
             publishNotReadyAddresses: true
         gateway:
+          image: # temporary fix for crictl image pulling error message. To be removed after a permanent fix has been found
+            digest: sha256:e246f8366c8358f53a55442604a5e3835d56203a608d1b2c0bda315771be2718 # digest for nginxinc/nginx-unprivileged:1.27-alpine image
           replicas: '{{ int .Values._internal.node_count | gt 2 | ternary 1 2 }}'
           ingress:
             enabled: true
