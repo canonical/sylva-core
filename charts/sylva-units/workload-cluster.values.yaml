@@ -585,12 +585,6 @@ units:
             value: |
               #!/bin/bash
               set -e
-              if kubectl -n {{ .Release.Namespace }}  get secret cluster-creator-kubeconfig -o name | grep -q .; then
-                 echo "Delete cattle-agent kustomization"
-                 kubectl -n {{ .Release.Namespace }} delete kustomization -l capi-rancher-import
-                 echo "Delete secret related to legacy solution"
-                 kubectl -n {{ .Release.Namespace }} delete secret cluster-creator-kubeconfig
-              fi
               # Resources cluster.provisioning and cluster.management are deleted once we removed cluster-import
               # from kustomization-units but we should keep below if statement as a double check.
               echo "Check if clusters are imported in rancher using legacy solution"
@@ -601,9 +595,19 @@ units:
                  echo "Delete legacy resources"
                  kubectl -n {{ .Release.Namespace }}  delete $cl_provisioned
                  kubectl -n {{ .Release.Namespace }}  delete cluster.management $cl_management
+                 echo "Delete cattle-agent kustomization"
+                 kubectl -n {{ .Release.Namespace }} delete kustomization -l capi-rancher-import
+                 echo "Delete secret related to legacy solution"
+                 kubectl -n {{ .Release.Namespace }} delete secret cluster-creator-kubeconfig
                  echo "Preparing  cluster to be imported into rancher using rancher-turtle"
                  kubectl -n {{ .Release.Namespace }} label cluster/{{ .Values.cluster.name }} cluster-api.cattle.io/rancher-auto-import=true
               else
+                if kubectl -n {{ .Release.Namespace }}  get secret cluster-creator-kubeconfig -o name | grep -q .; then
+                   echo "Delete cattle-agent kustomization"
+                   kubectl -n {{ .Release.Namespace }} delete kustomization -l capi-rancher-import
+                   echo "Delete secret related to legacy solution"
+                   kubectl -n {{ .Release.Namespace }} delete secret cluster-creator-kubeconfig
+                fi
                 echo "No cluster imported using legacy solution"
                 echo "Preparing existing cluster to be imported into rancher by adding cluster-api.cattle.io/rancher-auto-import=true label"
                 kubectl -n {{ .Release.Namespace }} label cluster/{{ .Values.cluster.name }} cluster-api.cattle.io/rancher-auto-import=true

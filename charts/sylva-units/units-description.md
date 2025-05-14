@@ -101,6 +101,7 @@
 | **capo-cloud-config** | creates CAPO cloud-config used to produce Heat stack | Kustomization |
 | **capo-cluster-resources** | installs OpenStack Heat stack for CAPO cluster prerequisites | Kustomization |
 | **cis-operator-scan** | allows for running a CIS scan for management cluster<br/><br/>it generates a report which can be viewed and downloaded in CSV from the Rancher UI, at https://rancher.sylva/dashboard/c/local/cis/cis.cattle.io.clusterscan | Kustomization |
+| **cleanup-import-legacy** | Remove resources used by capi-rancher-import<br/><br/>a job to manually delete secret used in legacy solution | Kustomization |
 | **cluster-garbage-collector** | installs cronjob responsible for unused CAPI resources cleaning | Kustomization |
 | **cluster-import** | unit used to set specific label on workload clusters in order to import them in rancher | Kustomization |
 | **cluster-import-check** | unit used to check if workload cluster is succssfully enrolled in Rancher | Kustomization |

@@ -355,6 +355,37 @@ units:
         - '{{ tuple "components/vault-issuer" (eq .Values.security.external_x509_issuer.issuer_type "vault") | include "set-only-if"}}'
         - '{{ tuple "components/ca-issuer" (not (hasKey .Values.security.external_x509_issuer "issuer_type")) | include "set-only-if" }}'
 
+  cleanup-import-legacy:
+    enabled: '{{ tuple . "rancher-turtle" | include "unit-enabled" }}'
+    info:
+      description: Remove resources used by capi-rancher-import
+      details: >
+        a job to manually delete secret used in legacy solution
+      internal: true
+    one_shot: true
+    depends_on:
+      cluster-ready: '{{ tuple . "cluster" | include "unit-enabled" }}'
+    unit_templates:
+    - kube-job
+    - base-deps
+    kustomization_spec:
+      _patches:
+      - target:
+          kind: ConfigMap
+          labelSelector: kube-job=script
+        patch: |
+          - op: replace
+            path: /data/kube-job.sh
+            value: |
+              #/bin/bash
+              set -e
+              if kubectl -n sylva-system  get secret cluster-creator-kubeconfig -o name | grep -q .; then
+                 echo "Delete secret related to legacy solution"
+                 kubectl -n sylva-system delete secret cluster-creator-kubeconfig
+              else
+                echo "No legacy resources"
+              fi
+
 keycloak:
   keycloak_expire_password_days: 30
 
