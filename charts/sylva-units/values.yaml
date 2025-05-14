@@ -5232,7 +5232,6 @@ units:
     repo: sylva-core
     kustomization_spec:
       path: ./kustomize-units/coredns
-      wait: true
       _patches:
         - target:
             kind: ConfigMap
@@ -5252,7 +5251,19 @@ units:
         substitute:
           CLUSTER_VIRTUAL_IP: '{{ .Values.cluster_virtual_ip }}'
           CLUSTER_DOMAIN: '{{ .Values.cluster_domain }}'
-
+      healthChecks:  # sometimes this kustomization seems correctly applied while coredns pod is not running
+      # so we replace wait:true by checking for the CoreDNS components health
+        - apiVersion: apps/v1
+          kind: Deployment
+          name: >-
+            {{- if eq .Values.cluster.capi_providers.bootstrap_provider "cabpk" -}}
+            coredns
+            {{- else if eq .Values.cluster.capi_providers.bootstrap_provider "cabpck" -}}
+            ck-dns-coredns
+            {{- else -}}
+            rke2-coredns-rke2-coredns
+            {{- end -}}
+          namespace: kube-system
   nfs-ganesha-init:
     info:
       description: Define persistent volume claim for NFS Ganesha
@@ -8008,6 +8019,37 @@ units:
           CLUSTER_DOMAIN: '{{ .Values.cluster_domain }}'
           NEUVECTOR_FEDERATION_MANAGED_HOSTNAME: '{{ .Values.external_hostnames.neuvector_federation_managed }}'
 
+  coredns-custom-hosts-import-ready:
+    info:
+      description: force CoreDNS rollout to ensure that CoreDNS are properly configured after custom hosts addition
+      internal: true
+    unit_templates:
+      - kube-job
+    enabled_conditions:
+      - '{{ tuple . "coredns-custom-hosts-import" | include "unit-enabled" }}'
+    repo: sylva-core
+    kustomization_spec:
+      targetNamespace: kube-system
+      wait: true
+      force: true
+      _patches:
+        - target:
+            kind: Job
+          patch: |
+            - op: add
+              path: /spec/template/spec/containers/0/env
+              value:
+                - name: CORE_DNS_DEPLOYMENT_NAME
+                  value: '{{ (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpk") | ternary "coredns" "rke2-coredns-rke2-coredns" }}'
+        - target:
+            kind: ConfigMap
+            labelSelector: kube-job=script
+          patch: |
+            - op: replace
+              path: /data/kube-job.sh
+              value: |
+                #!/bin/bash
+                kubectl rollout restart deployment $CORE_DNS_DEPLOYMENT_NAME -n kube-system
 
   backup-capi-resources:
     info:

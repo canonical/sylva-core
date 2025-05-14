@@ -430,6 +430,7 @@ units:
       neuvector-tls: true
       neuvector-federation-tls: '{{ tuple . "neuvector-federation-tls" | include "unit-enabled" }}'
       neuvector-federation-generate-workload-config: '{{ tuple . "neuvector-federation-generate-workload-config" | include "unit-enabled" }}'
+      coredns-custom-hosts-import-ready: '{{ tuple . "coredns-custom-hosts-import-ready" | include "unit-enabled" }}'
     helmrelease_spec:
       values:
         controller:
@@ -642,15 +643,25 @@ units:
 
   coredns-custom-hosts-import:
     enabled: true
+    depends_on:
+      coredns: true
     unit_templates:
     - kustomization-deployed-on-mgmt-cluster
     kustomization_spec:
-      targetNamespace: "cert-manager"
+      targetNamespace: kube-system
       postBuild:
         substituteFrom:
           - kind: ConfigMap
             name: capo-cluster-resources
             optional: '{{ not (.Values.cluster.capi_providers.infra_provider | eq "capo") | include "as-bool" }}'
+
+  coredns-custom-hosts-import-ready:
+    enabled: true
+    depends_on:
+      coredns-custom-hosts-import: '{{ tuple . "neuvector" | include "unit-enabled" }}'
+    unit_templates:
+      - kustomization-deployed-on-mgmt-cluster
+      - kube-job
 
   backup-etcd:
     enabled: true
