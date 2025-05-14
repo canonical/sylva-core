@@ -1,0 +1,64 @@
+apiVersion: kyverno.io/v1
+kind: Policy
+metadata:
+  name: restart-minio-operator-on-cert-renewal
+  namespace: minio-operator
+  annotations:
+    kustomize.toolkit.fluxcd.io/force: Enabled
+    policies.kyverno.io/description: >-
+      This policy monitors MinIO-operator certificate secrets and will update annotations
+      to trigger pod rollouts when certificates are renewed.
+spec:
+  rules:
+  - name: minio-operator-restart-on-ca-change
+    match:
+      any:
+      - resources:
+          kinds:
+          - Secret
+          names:
+          - operator-ca-tls
+    preconditions:
+      all:
+      - key: "{{ request.object.data != oldObject.data }}"
+        operator: Equals
+        value: true
+    mutate:
+      mutateExistingOnPolicyUpdate: true
+      targets:
+        - apiVersion: apps/v1
+          kind: Deployment
+          name: minio-operator
+          namespace: minio-operator
+      patchStrategicMerge:
+        spec:
+          template:
+            metadata:
+              annotations:
+                ca-cert/triggerrestart: "{{ request.object.data || '' | to_string(@) | sha256(@) | truncate(@,`12`) }}"
+  - name: minio-operator-restart-on-sts-change
+    match:
+      any:
+      - resources:
+          kinds:
+          - Secret
+          names:
+          - sts-tls
+    preconditions:
+      all:
+      - key: "{{ request.object.data != oldObject.data }}"
+        operator: Equals
+        value: true
+    mutate:
+      mutateExistingOnPolicyUpdate: true
+      targets:
+        - apiVersion: apps/v1
+          kind: Deployment
+          name: minio-operator
+          namespace: minio-operator
+      patchStrategicMerge:
+        spec:
+          template:
+            metadata:
+              annotations:
+                sts-cert/triggerrestart: "{{ request.object.data || '' | to_string(@) | sha256(@) | truncate(@,`12`) }}"
