@@ -83,6 +83,7 @@ units:
       # mentioned above is ready before we update 'cluster' unit
       kyverno-policies-ready: '{{ and (tuple . "kyverno-policies-ready" | include "unit-enabled") .Values._internal.state.is_upgrade }}'
 
+
   calico-ready:
     enabled: '{{ .Values._internal.state.is_upgrade }}'
     # we'll use the kustomization_spec.kubeConfig.secretRef from values.yaml definition
@@ -411,6 +412,7 @@ cluster:
   prevent_deletion: true
   capo:
     flavor_name: m1.xlarge
+  mgmt_service_names: '{{ compact (.Values.external_hostnames | values) | include "preserve-type" }}' # .Values.external_hostnames provides list of management services for OS of mgmt-cluster nodes to resolve
 
 _internal:
   mgmt_cluster: true

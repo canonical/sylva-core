@@ -5401,6 +5401,24 @@
             }
           ]
         },
+        "mgmt_service_names": {
+          "anyOf": [
+            {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "format": "hostname",
+                "pattern": "^[a-zA-Z][a-zA-Z0-9_.-]*$"
+              }
+            },
+            {
+              "$ref": "#/$defs/string-with-gotpl"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
         "mgmt_cluster_ip": {
           "anyOf": [
             {
