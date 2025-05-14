@@ -286,9 +286,9 @@ Note well that there are a few limitations:
       {{- if not (kindOf $rawValue | eq "string") -}}
         {{- fail (printf "a '(raw)' item must be a string ('%v' is a '%s')" $rawValue (kindOf $rawValue)) -}}
       {{- end -}}
-      {{/* replace '{{' by a special Unicode char "❮" used as a shield to avoid triggering interpretation
+      {{/* replace '{{' by a special Unicode char "《" used as a shield to avoid triggering interpretation
            (this replacement is reverted before producing final manifests, with the "unshield-raw" named template) */}}
-      {{- $data = $rawValue | replace "{{" "❮" -}}
+      {{- $data = $rawValue | replace "{{" "《" -}}
       {{- $kind = "string" }}
     {{- end -}}
     {{/* ---- */}}
@@ -353,7 +353,7 @@ Do the reverse substitution that is done for "raw" strings in "interpret-inner-g
 
 */}}
 {{- define "unshield-raw" -}}
-  {{- . | replace "❮" "{{" -}}
+  {{- . | replace "《" "{{" -}}
 {{- end -}}
 
 
