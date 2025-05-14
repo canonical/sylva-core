@@ -4,11 +4,11 @@ kind: Component
 namespace: WORKLOAD_CLUSTER_NAMESPACE
 
 configMapGenerator:
-- name: capm3-virt-ha-values
+- name: capm3-virt-ha-okd-values
   options:
     disableNameSuffixHash: true
   files:
-  - capm3-virt-ha-values=high-availability-okd.yaml
+  - capm3-virt-ha-okd-values=high-availability-okd.yaml
 
 patches:
 - target:
@@ -19,5 +19,5 @@ patches:
       path: /spec/valuesFrom/1
       value:
         kind: ConfigMap
-        name: capm3-virt-ha-values
-        valuesKey: capm3-virt-ha-values
+        name: capm3-virt-ha-okd-values
+        valuesKey: capm3-virt-ha-okd-values
