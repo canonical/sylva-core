@@ -7719,7 +7719,7 @@ units:
       targetNamespace: '{{ .Release.Namespace }}'
       install:
         createNamespace: false
-      timeout: 30m
+      timeout: '{{ .Values.get_openstack_images_per_image_timeout_minutes | mulf 1.2 | int }}m'  # get_openstack_images_per_image_timeout_minutes + 20% margin
       valuesFrom:
         # os_images:
         - kind: ConfigMap
