@@ -8989,6 +8989,10 @@ _internal:
     {{- tuple .Values.cluster $selector | include "finalize-os-image-selector" | fromJson | include "preserve-type" -}}
 
   immutable_values:
+    _internal:
+      default_storage_class:
+        _immutable: true
+        _immutable_comment: "default storage class cannot be updated"
     cluster_domain:
       _immutable: true
       _immutable_comment: "The update of cluster domain is not supported"
