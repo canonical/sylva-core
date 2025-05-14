@@ -91,6 +91,9 @@ spec:
             the updated_time field of the stack reflect the last time the sylva-units HelmRelease
             was updated
           default: "unspecified"
+        calico_network_overhead:
+          type: number
+          description: "Calico encapsulation overhead"
 
       conditions:
         vip_requested:
@@ -144,6 +147,10 @@ spec:
           properties:
             floatingip_id: { get_resource: adopted-floating-ip }
             port_id: {if: [vip_requested, { get_resource: port }, {get_resource: adopted-port }] }
+        primary-network:
+          type: OS::Neutron::Net
+          properties:
+            name: { get_param: network }
         srvgroup-ctrl-plane:
           type: OS::Nova::ServerGroup
           properties:
@@ -211,6 +218,21 @@ spec:
                   remote_ip_prefix: <%remote_ip_prefix%>
                   direction: <%direction%>
                 permutations: false
+        calico_mtu_calc:
+          type: OS::Heat::Value
+          properties:
+            type: number
+            value:
+              yaql:
+                expression: $.data.mtu.toInteger() - $.data.overhead.toInteger()
+                data:
+                  mtu:
+                    get_attr:
+                      - primary-network
+                      - mtu
+                  overhead:
+                    get_param: calico_network_overhead
+
       outputs:
         allocated_ip:
           value:
@@ -235,6 +257,9 @@ spec:
         worker_servergroup_id:
           value: { get_resource: srvgroup-worker }
           description: Control plane server group ID
+        calico_mtu:
+          value: { get_attr: [calico_mtu_calc, value] }
+          description: "Primary network MTU minus Calico overhead"
 
     environment:
       parameters:
@@ -249,6 +274,7 @@ spec:
         create_ironic_security_group: ${CAPO_CREATE_IRONIC_SECURITY_GROUP}
         common_security_group_name: "${COMMON_SECURITY_GROUP_NAME}"
         dummy_update_trigger: "${DUMMY_UPDATE_TRIGGER}"
+        calico_network_overhead: "${CALICO_NETWORK_OVERHEAD}"
   outputConfigMap:
     name: capo-cluster-resources
     labels:
