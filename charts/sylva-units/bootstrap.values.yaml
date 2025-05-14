@@ -218,6 +218,18 @@ units:
     unit_templates:
     - management-cluster-csi
 
+  single-replica-storageclass:
+    kustomization_spec:
+      kubeConfig:
+        secretRef:
+          name: '{{ .Values.cluster.name }}-kubeconfig'
+
+  two-replicas-storageclass:
+    kustomization_spec:
+      kubeConfig:
+        secretRef:
+          name: '{{ .Values.cluster.name }}-kubeconfig'
+
   local-path-provisioner:
     unit_templates:
     - management-cluster-csi
@@ -551,6 +563,8 @@ units_override_enabled:
   - cinder-csi
   - longhorn
   - longhorn-crd
+  - single-replica-storageclass
+  - two-replicas-storageclass
   - local-path-provisioner
   - vsphere-csi-driver
   # use following hack to ensure  "units.ceph-csi-cephfs.enabled has precedence over units_override_enabled
