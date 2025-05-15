@@ -8891,7 +8891,6 @@ _internal:
     '{{ .Values.openstack.storageClass.name }}': cinder-csi
     cephfs-csi: ceph-csi-cephfs
     nfs-ganesha: nfs-ganesha
-    longhorn: longhorn
 
   default_storage_class_unit: '{{ tuple . .Values._internal.default_storage_class_unit_ref | include "interpret-as-string" }}'
   default_storage_class_unit_ref: >-
