@@ -380,12 +380,25 @@ units:
             value: |
               #/bin/bash
               set -e
-              if kubectl -n sylva-system  get secret cluster-creator-kubeconfig -o name | grep -q .; then
+              if kubectl -n sylva-system  get secret cluster-creator-kubeconfig -o name > /dev/null 2>&1; then
+                 echo "Get rancher user used for cluster import"
+                 user=$(kubectl -n sylva-system  get secrets cluster-creator-kubeconfig  -o jsonpath='{.data.USER_NAME}' | base64 -d)
+                 echo "Delete user"
+                 kubectl delete users.management.cattle.io $user
                  echo "Delete secret related to legacy solution"
                  kubectl -n sylva-system delete secret cluster-creator-kubeconfig
               else
                 echo "No legacy resources"
               fi
+      - target:
+          kind: ClusterRole
+        patch: |
+          - op: replace
+            path: /rules
+            value:
+              - apiGroups: [management.cattle.io]
+                resources: [users]
+                verbs: [list, delete]
 
 keycloak:
   keycloak_expire_password_days: 30
