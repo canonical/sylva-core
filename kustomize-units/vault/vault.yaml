@@ -165,7 +165,12 @@ spec:
     policies:
       - name: secret-reader
         rules: |
-         path "secret/*" {
+         path "${SECRET_PATH}/*" {
+          capabilities = [ "read", "list" ]
+         }
+      - name: secret-test
+        rules: |
+         path "${SECRET_PATH}/*" {
           capabilities = [ "read", "list" ]
          }
       - name: secret-rw
@@ -230,7 +235,7 @@ spec:
             ttl: 1h
 
     secrets:
-      - path: secret
+      - path: ${SECRET_PATH}
         type: kv
         description: Management Cluster Secrets
         options:
@@ -238,7 +243,7 @@ spec:
 
     startupSecrets:
       - type: kv
-        path: secret/data/sso-account
+        path: ${SECRET_PATH}/data/sso-account
         data:
           data:
             login: sylva-admin

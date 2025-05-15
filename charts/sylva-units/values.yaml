@@ -1261,6 +1261,9 @@ units:
           SERVICE_DNS: '{{ .Values.external_hostnames.vault }}'
           CERT: '{{ .Values.external_certificates.vault.cert | default "" | b64enc }}'
           CACERT: '{{ .Values.external_certificates.cacert | default "" | b64enc }}'
+          OIDC_AUTH_PATH: '{{ .Values.security.vault.paths.oidc }}'
+          K8S_AUTH_PATH: '{{ .Values.security.vault.paths.k8s }}'
+          SECRET_PATH: '{{ .Values.security.vault.paths.secret }}'
       _components:
         # generate certificate for external communitation
         - '{{ ternary "../tls-components/tls-secret" "../tls-components/tls-certificate" (hasKey .Values.external_certificates.vault "cert") }}'
@@ -8321,6 +8324,11 @@ os_images_default_download_storage_space: 30Gi
 get_openstack_images_per_image_timeout_minutes: 30
 
 security:
+  vault:
+    paths:
+      secret: sylva-secret
+      k8s: kubernetes
+      oidc: oidc 
   external_x509_issuer: {}
    # issuer_type:  acme or vault
    # vault_token:  authent token for vault,
