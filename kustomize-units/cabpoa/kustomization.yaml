@@ -1,7 +1,43 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
-  - ./bootstrap
-  - ./controlplane
-patchesStrategicMerge:
-  - patch-namespace.yaml
+  - https://github.com/openshift-assisted/cluster-api-provider-openshift-assisted/releases/download/v0.3.4/bootstrap-components.yaml
+  - https://github.com/openshift-assisted/cluster-api-provider-openshift-assisted/releases/download/v0.3.4/controlplane-components.yaml
+
+patches:
+  - target:
+      kind: Deployment
+      name: capoa-bootstrap-controller-manager
+      version: v1
+    patch: |-
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: ASSISTED_CA_BUNDLE_NAME
+          value: assisted-installer-ca
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: ASSISTED_CA_BUNDLE_NAMESPACE
+          value: assisted-installer
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: ASSISTED_CA_BUNDLE_RESOURCE
+          value: secret
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: ASSISTED_CA_BUNDLE_KEY
+          value: ca.crt
+  - target:
+      version: v1
+      kind: Namespace
+    patch: |-
+      - op: replace
+        path: /metadata/labels/pod-security.kubernetes.io~1enforce
+        value: baseline
+
+labels:
+  - pairs:
+      clusterctl.cluster.x-k8s.io: ""
