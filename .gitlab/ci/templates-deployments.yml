@@ -12,6 +12,12 @@ include:
   - |
     function change_git_revision() {
       echo "GIT_REVISION: $GIT_REVISION"
+      if [[ "$GIT_REVISION" == latest-tag-from:* ]]; then
+        echo "Provided GIT_REVISION: $GIT_REVISION use a special pattern, trying to retrieve latest tag from ${GIT_REVISION#*:} branch"
+        GIT_REVISION=$(git describe --tags --abbrev=0 --exclude "0.0.0*" ${GIT_REVISION#*:})
+        echo "Tag found: $GIT_REVISION, will use it"
+      fi
+
         if git ls-remote --exit-code --tags https://gitlab.com/sylva-projects/sylva-core.git "${GIT_REVISION}" > /dev/null; then
           echo "Provided GIT_REVISION: $GIT_REVISION is a known upstream tag. Using it as it"
           git fetch origin tag ${GIT_REVISION}
@@ -44,7 +50,7 @@ include:
         fi
       fi
       git fetch origin $GIT_REVISION
-      echo -e "Changing git revision to use \\e[1;94m$1\\e[0m"
+      echo -e "Changing git revision to use \\e[1;94m$GIT_REVISION\\e[0m"
       git checkout $GIT_REVISION
       git status
       # This is required as old version of Sylva rely on $CI_COMMIT_SHA to determine the ref to use for flux
