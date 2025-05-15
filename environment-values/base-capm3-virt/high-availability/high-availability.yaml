@@ -8,11 +8,14 @@ cluster:
 
   baremetal_hosts:
     management-cp-0:
+      ip_preallocations:
+        primary: 192.168.100.20
+        provisioning: 192.168.10.20
       interface_mappings:
         nic1:
           mac_address: 52:54:00:44:44:00
         nic2:
-          inspection_name: ens5
+          mac_address: 52:54:00:55:55:00
       bmh_metadata:
         labels:
           cluster-role: control-plane
@@ -22,9 +25,12 @@ cluster:
           address: redfish-virtualmedia://{{ .Values._internal.bootstrap_node_ip }}:8000/redfish/v1/Systems/c0014001-b10b-f001-c0de-feeb1e54ee15
         bootMACAddress: 52:54:00:44:44:00
     management-cp-1:
+      ip_preallocations:
+        primary: 192.168.100.21
+        provisioning: 192.168.10.21
       interface_mappings:
         nic1:
-          inspection_name: ens4
+          mac_address: 52:54:00:44:44:01
         nic2:
           mac_address: 52:54:00:55:55:01
       bmh_metadata:
@@ -35,6 +41,9 @@ cluster:
           address: redfish-virtualmedia://{{ .Values._internal.bootstrap_node_ip }}:8001/redfish/v1/Systems/c0014001-b10b-f001-c0de-feeb1e54ee15
         bootMACAddress: 52:54:00:44:44:01
     management-cp-2:
+      ip_preallocations:
+        primary: 192.168.100.22
+        provisioning: 192.168.10.22
       interface_mappings:
         nic1:
           mac_address: 52:54:00:44:44:02
