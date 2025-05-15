@@ -145,15 +145,6 @@ units:
   os-image-server:
     enabled: '{{ tuple . "metal3" | include "unit-enabled" }}'
 
-  litmus-operator:
-    enabled: true
-
-  litmus-testcase-k8s-api-response:
-    enabled: true
-
-  litmus-testcase-pod-delete:
-    enabled: true
-
   kubevirt:
     enabled: false
 

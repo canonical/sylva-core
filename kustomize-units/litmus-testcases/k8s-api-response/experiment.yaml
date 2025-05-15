@@ -9,7 +9,7 @@ metadata:
     name: '${UNIT_NAME}'
     app.kubernetes.io/part-of: litmus
     app.kubernetes.io/component: chaosexperiment
-    app.kubernetes.io/version: 3.10.0
+    app.kubernetes.io/version: 3.17.0
 spec:
   definition:
     scope: Namespaced
@@ -46,7 +46,8 @@ spec:
           - "update"
           - "delete"
           - "deletecollection"
-    image: 'enilegu/k8s-api-response:v1.0.1'
+    #image: 'enilegu/k8s-api-response:v1.0.1'
+    image: 'registry.gitlab.com/sylva-projects/sylva-elements/container-images/litmus-tests/snapshot:0.0.0-git-ed943f96'
     imagePullPolicy: 'IfNotPresent'
     args:
     - -c
@@ -70,4 +71,4 @@ spec:
       name: k8s-api-response
       app.kubernetes.io/part-of: litmus
       app.kubernetes.io/component: experiment-job
-      app.kubernetes.io/version: 3.10.0
+      app.kubernetes.io/version: 3.17.0

@@ -869,35 +869,6 @@ units:
           NAMESPACE: litmus
           PROBE_DATA: '{{ .Values._internal.litmus.probe | toJson }}'
 
-  litmus-testcase-pod-delete:
-    info:
-      description: Runs Pod delete testcase
-      internal: true
-      test: true
-      maturity: beta
-    unit_templates:
-    - base-deps
-    depends_on:
-      litmus-operator: true
-      vault: true
-    repo: sylva-core
-    kustomization_spec:
-      targetNamespace: vault
-      path: ./kustomize-units/litmus-testcases/pod-delete
-      postBuild:
-        substitute:
-          QUOTE: '"'
-          UNIT_NAME: pod-delete
-          TOTAL_CHAOS_DURATION: "60"
-          CHAOS_INTERVAL: "60"
-          TARGET_PODS: vault-0
-          PODS_AFFECTED_PERC: "100"
-          SEQUENCE: serial
-          APP_LABEL: app.kubernetes.io/name=vault
-          APP_KIND: statefulset
-          NAMESPACE: vault
-          PROBE_DATA: '{{ .Values._internal.litmus.probe | toJson }}'
-
   kubevirt:
     info:
       description: installs kubevirt
