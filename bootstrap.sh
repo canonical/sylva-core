@@ -7,8 +7,8 @@ apply_scripts_init
 # called like ./bootstrap.sh --bootstrap-proxies-from-env environment-values/foo ensures the proxies environment variables
 # (http_proxy, https_proxy, no_proxy) from bootstrap env are used. Otherwise, ones from local values.yaml or Kustomize build are used
 for arg in "$@"; do
-    if [[ $arg == "--bootstrap-proxies-from-env" ]]; then
-        BOOTSTRAP_PROXIES_FROM_ENV=true
+    if [[ $arg == "--bootstrap-proxies-from-values" ]]; then
+        BOOTSTRAP_PROXIES_FROM_VALUES=true
     else
         remaining_args+=("$arg")
     fi
@@ -18,7 +18,8 @@ set -- "${remaining_args[@]}"
 
 check_args "$@"
 
-if ! [[ "${BOOTSTRAP_PROXIES_FROM_ENV:-false}" = "true" ]]; then
+if ! [[ "${BOOTSTRAP_PROXIES_FROM_VALUES:-false}" = "true" ]]; then
+    echo "Will use HTTP proxy settings based on environment values"
     # Try to retrieve proxies config in values passed (in local values.yaml or through Kustomize) and export them for bootstrap cluster
     EXTRACTED_VALUES=$(_kustomize ${ENV_PATH} | python3 ${BASE_DIR}/tools/extractHelmReleaseValues.py --values-path .spec.valuesFrom)
     PROXIES_EXPORT_COMMANDS=$(echo "$EXTRACTED_VALUES" | yq 'with_entries(select(.key == "proxies"))' |\
