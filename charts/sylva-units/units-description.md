@@ -32,7 +32,7 @@
 | **keycloak-legacy-operator** | installs Keycloak "legacy" operator | stable | [Kustomization](https://raw.githubusercontent.com/keycloak/keycloak-realm-operator/1.0.0/deploy/crds/legacy.k8s.keycloak.org_externalkeycloaks_crd.yaml) | 1.0.0 |
 | **local-path-provisioner** | installs local-path CSI | stable | [Helm chart](https://github.com/rancher/local-path-provisioner.git) | v0.0.31 |
 | **longhorn** | installs Longhorn CSI | stable | [Helm chart](https://charts.rancher.io/) | 105.2.0+up1.8.1 |
-| **metal3** | installs SUSE-maintained Metal3 operator | stable | [Helm chart](https://suse-edge.github.io/charts) | 0.11.1 |
+| **metal3** | installs SUSE-maintained Metal3 operator | stable | [Helm chart](https://suse-edge.github.io/charts) | 0.11.2 |
 | **metallb** | installs MetalLB operator | stable | [Helm chart](https://metallb.github.io/metallb) | 0.14.9 |
 | **monitoring** | installs monitoring stack | stable | [Helm chart](https://charts.rancher.io/) | 105.1.4+up61.3.2-rancher.5 |
 | **multus** | installs Multus | stable | [Helm chart](https://rke2-charts.rancher.io/) | v4.2.001 |
