@@ -1260,7 +1260,7 @@ units:
               path: /spec/externalConfig/auth/0/roles/-
               value:
                 name: secret-reader-{{ $name }}
-                bound_service_account_names: ["default"]
+                bound_service_account_names: [secretstore-access-{{ $name }}]
                 bound_service_account_namespaces: ["{{ $name }}"]
                 policies: [ "secret-reader-{{ $name }}"]
                 ttl: 1h
