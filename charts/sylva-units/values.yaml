@@ -281,8 +281,8 @@ unit_templates:
         - '{{ tuple "components/vault" (tuple . "vault" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/rancher" (tuple . "rancher" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/sriov" (tuple . "sriov-network-operator" | include "unit-enabled") | include "set-only-if" }}'
-       #- '{{ tuple "components/cattle-monitoring" (tuple . "monitoring" | include "unit-enabled") | include "set-only-if" }}'
-        - '{{ tuple "components/upstream-monitoring" (tuple . "monitoring" | include "unit-enabled") | include "set-only-if" }}'
+        - '{{ tuple "components/cattle-monitoring" (tuple . "monitoring" | include "unit-enabled") | include "set-only-if" }}'
+       #- '{{ tuple "components/upstream-monitoring" (tuple . "monitoring" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/cattle-fleet" (.Values._internal | dig "sylva_mgmt_enabled_units" "rancher" false) | include "set-only-if" }}'  # effective only in workload clusters
         - '{{ tuple "components/ceph-csi-cephfs" (tuple . "ceph-csi-cephfs" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/cattle-logging" (tuple . "logging" | include "unit-enabled") | include "set-only-if" }}'
