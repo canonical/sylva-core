@@ -201,6 +201,13 @@
       ]
     },
     {
+      "description": "Regroup oci-tool updates",
+      "groupName": "oci-tools",
+      "matchPackageNames": [
+        "/.*oci-tools.*/"
+      ]
+    },
+    {
       "description": "Regroup workload-cluster-operator updates",
       "groupName": "workload-cluster-operator",
       "matchPackageNames": [
