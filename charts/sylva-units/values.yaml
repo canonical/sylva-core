@@ -8284,7 +8284,7 @@ k8s_version_short: "1.31"
 sylva_diskimagebuilder_version: 0.4.12
 
 # renovate: depName=sylva-projects/sylva-elements/kiwi-imagebuilder
-sylva_kiwi_imagebuilder_version: 0.1.0
+sylva_kiwi_imagebuilder_version: 0.1.1
 # 'sylva_diskimagebuilder_images' determines which images will be available for CAPO and CAPM3
 # via 'os_image_selector' or 'image_keys'
 #
