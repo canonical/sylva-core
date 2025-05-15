@@ -2046,17 +2046,6 @@ units:
               (tuple . "monitoring" | include "unit-enabled")
               | include "set-only-if"
           }}
-        # - >-
-        #   {{ tuple (dict
-        #         "apiVersion" "v1"
-        #         "kind" "Secret"
-        #         "name" "upstream-grafana-oidc"
-        #         "namespace" "cattle-monitoring-system"
-        #       )
-        #       (tuple . "monitoring" | include "unit-enabled")
-        #       | include "set-only-if"
-        #   }}
-        # this secret is a byproduct of the eso-grafana-oidc ExternalSecret resource
         - >-
           {{ tuple (dict
                 "apiVersion" "v1"
@@ -2080,7 +2069,6 @@ units:
         # this secret is a byproduct of the eso-rancher-oidc ExternalSecret resource
       _components:
         - '{{ tuple "components/grafana-oidc" (tuple . "monitoring" | include "unit-enabled") | include "set-only-if" }}'
-       #- '{{ tuple "components/upstream-grafana-oidc" (tuple . "monitoring" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/flux-webui-oidc" (tuple . "flux-webui" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/rancher-oidc" (tuple . "rancher" | include "unit-enabled") | include "set-only-if" }}'
 
@@ -4453,43 +4441,6 @@ units:
           chart: prometheus-operator-crds
           version: 18.0.0
 
-  # upstream-prometheus-resources:
-  #   info:
-  #     description: Creates required ConfigMaps and Kyverno policies to enable SNMP monitoring by Prometheus
-  #     internal: true
-  #   unit_templates:
-  #   - base-deps
-  #   depends_on:
-  #     namespace-defs: true
-  #     metal3: '{{ tuple . "metal3" | include "unit-enabled" }}'
-  #   enabled_conditions:
-  #     - '{{ tuple . "monitoring" | include "unit-enabled" }}'
-  #   repo: sylva-core
-  #   kustomization_spec:
-  #     path: ./kustomize-units/upstream-prometheus-resources
-  #     force: true
-  #     wait: true
-  #     postBuild:
-  #       substitute:
-  #         CONFIGMAPS: '
-  #           {{- $cm := list -}}
-  #           {{- if (tuple . "snmp-exporter" | include "unit-enabled") -}}
-  #           {{- $cm = append $cm "prometheus-snmp-sd-files" -}}
-  #           {{- $cm = append $cm "prometheus-snmp-sd-files-bmh" -}}
-  #           {{- end -}}
-  #           {{ $cm | toJson }}'
-  #         TARGETS: >
-  #           {{- $sylva_cluster := .Values.cluster.name -}}
-  #           {{- $result := list -}}
-  #           {{- range .Values.snmp.devices -}}
-  #             {{- $target := dict "targets" (list .target) -}}
-  #             {{- $_ := set $target "labels" (dict "module" .module "auth" .auth "alias" .alias "cluster_name" (.cluster_name | default $sylva_cluster)) -}}
-  #             {{- $result = append $result $target -}}
-  #           {{- end -}}
-  #           {{ $result | toJson }}
-  #     _components:
-  #       - '{{ tuple "components/kyverno-snmp-bmh-policy" (tuple . "metal3" | include "unit-enabled") | include "set-only-if" }}'
-
   prometheus-nginx:
     info:
       description: sets up Grafana nginx configmap
@@ -4503,7 +4454,7 @@ units:
       monitoring-crd: true
     repo: sylva-core
     kustomization_spec:
-      path: ./kustomize-units/upstream-monitoring-nginx
+      path: ./kustomize-units/monitoring-nginx
       wait: true
       targetNamespace: cattle-monitoring-system
 
@@ -4520,7 +4471,7 @@ units:
     - base-deps
     repo: sylva-core
     kustomization_spec:
-      path: ./kustomize-units/upstream-monitoring-nginx/grafana-nginx
+      path: ./kustomize-units/monitoring-nginx/grafana-nginx
       wait: true
       targetNamespace: cattle-monitoring-system
 
@@ -4722,41 +4673,6 @@ units:
                   value: disabled
             - '{{ .Values._internal.pdb_allow_unhealthy_pod_eviction | include "preserve-type" }}'
 
-  # upstream-grafana-init:
-  #   info:
-  #     description: sets up Grafana certificate for Keycloak OIDC integration
-  #     internal: true
-  #   enabled_conditions:
-  #     - '{{ tuple . "monitoring" | include "unit-enabled" }}'
-  #     - '{{ tuple . "keycloak" | include "unit-enabled" }}'
-  #   unit_templates:
-  #   - base-deps
-  #   depends_on:
-  #     namespace-defs: true
-  #     sylva-ca: true
-  #   repo: sylva-core
-  #   kustomization_spec:
-  #     path: ./kustomize-units/dummy/base
-  #     postBuild:
-  #       substitute:
-  #         SERVICE: grafana
-  #         SERVICE_DNS: '{{ .Values.external_hostnames.grafana }}'
-  #         CERTIFICATE_NAMESPACE: cattle-monitoring-system
-  #         CERT: '{{ .Values.external_certificates.grafana.cert | default "" | b64enc }}'
-  #         CACERT: '{{ .Values.external_certificates.cacert | default "" | b64enc }}'
-  #     _components:
-  #       - '{{ ternary "../../tls-components/tls-secret" "../../tls-components/tls-certificate" (hasKey .Values.external_certificates.grafana "cert") }}'
-  #       - "../../tls-components/sylva-ca"
-  #     healthChecks:
-  #       - apiVersion: v1
-  #         kind: Secret
-  #         name: sylva-ca.crt
-  #         namespace: cattle-monitoring-system
-  #       - apiVersion: v1
-  #         kind: Secret
-  #         name: grafana-tls
-  #         namespace: cattle-monitoring-system
-
   prometheus-adaptor:
     info:
       description: installs upstream prometheus adaptor
@@ -4777,154 +4693,6 @@ units:
           version: 4.11.0
       install:
         createNamespace: false
-
-  # monitoring:
-  #   info:
-  #     description: installs monitoring stack
-  #     maturity: stable
-  #   unit_templates:
-  #   - base-deps
-  #   depends_on:
-  #     namespace-defs: true
-  #     monitoring-crd: true
-  #     prometheus-resources: '{{ tuple . "prometheus-resources" | include "unit-enabled" }}'
-  #   helm_repo_url: https://charts.rancher.io/
-  #   helmrelease_spec:
-  #     driftDetection:
-  #       ignore:
-  #         - target:
-  #           # The Prometheus Operator annotates 'PrometheusRule' resources with 'prometheus-operator-validated: true'
-  #           # after validation checks. This occurs only at apply time, so drift detection should ignore it.
-  #             kind: PrometheusRule
-  #           paths:
-  #           - /metadata/annotations/prometheus-operator-validated
-  #         - target:
-  #           # The certgen webhook injects the caBundle at runtime, so drift detection should ignore it.
-  #             kind: ValidatingWebhookConfiguration
-  #           paths:
-  #           - /webhooks[0]/clientConfig/caBundle
-  #         - target:
-  #           # The certgen webhook injects the caBundle at runtime, so drift detection should ignore it.
-  #             kind: MutatingWebhookConfiguration
-  #           paths:
-  #           - /webhooks[0]/clientConfig/caBundle
-  #     releaseName: rancher-monitoring
-  #     targetNamespace: cattle-monitoring-system
-  #     storageNamespace: cattle-monitoring-system # see https://gitlab.com/sylva-projects/sylva-core/-/issues/443
-  #     chart:
-  #       spec:
-  #         chart: rancher-monitoring
-  #         version: 105.1.4+up61.3.2-rancher.5
-  #     install:
-  #       createNamespace: false
-  #     values:
-  #       kube-state-metrics:
-  #         extraArgs:
-  #         - --metric-labels-allowlist=namespaces=[field.cattle.io/projectId]
-  #       grafana:
-  #         sidecar:
-  #           dashboards:
-  #             enabled: true
-  #             searchNamespace: ALL
-  #             multicluster:
-  #               global:
-  #                 enabled: true
-  #               etcd:
-  #                 enabled: true
-  #       prometheus-adapter:
-  #         resources:
-  #           requests:
-  #             cpu: 1
-  #             memory: 1.5Gi
-  #           limits:
-  #             cpu: 1.5
-  #             memory: 2.5Gi
-  #       prometheus:
-  #         prometheusSpec:
-  #           scrapeInterval: "60s"
-  #           scrapeTimeout: "30s"
-  #           evaluationInterval: "30s"
-  #           resources:
-  #             limits:
-  #               memory: 6Gi
-  #             requests:
-  #               memory: 3Gi
-  #           storageSpec:
-  #             volumeClaimTemplate:
-  #               spec:
-  #                 storageClassName: '{{ tuple . (tuple . "two-replicas-storageclass" | include "unit-enabled") "two-replicas-storageclass" .Values._internal.default_storage_class | include "interpret-ternary" }}'
-  #                 accessModes: ["ReadWriteOnce"]
-  #                 resources:
-  #                   requests:
-  #                     # default storage is 50Gi, except for CI and dev environments, 8Gi
-  #                     storage: '{{  has .Values.env_type (list "dev" "ci") | ternary "8Gi" "50Gi" }}'
-  #           externalLabels:
-  #             cluster: '{{ .Values.cluster.name }}'  # required for multi-cluster dashboards
-  #             platform_tag: '{{ .Values.monitoring.platform_tag }}'
-  #           remoteWriteDashboards: true
-  #           remoteWrite:
-  #             - url: '{{ .Values.monitoring.thanos.receive_url }}'
-  #               name: '{{ .Values.cluster.name }}'
-  #               basicAuth:
-  #                 username:
-  #                   name: thanos-basic-auth
-  #                   key: username
-  #                 password:
-  #                   name: thanos-basic-auth
-  #                   key: password
-  #               tlsConfig:
-  #                 insecureSkipVerify: true
-  #               queueConfig:
-  #                 batchSendDeadline: 5s
-  #                 minBackoff: 1s
-  #                 maxBackoff: 30s
-  #       alertmanager:
-  #         alertmanagerSpec:
-  #           useExistingSecret: true
-  #           configSecret: sylva-alertmanager-config # this Secret is a byproduct of the alertmanager-config unit
-  #           replicas: '{{ .Values._internal.ha_cluster.is_ha | ternary 2 1 }}'
-  #           storage:
-  #             volumeClaimTemplate:
-  #               spec:
-  #                 storageClassName: '{{ tuple . (tuple . "two-replicas-storageclass" | include "unit-enabled") "two-replicas-storageclass" .Values._internal.default_storage_class | include "interpret-ternary" }}'
-  #                 accessModes: ["ReadWriteOnce"]
-  #                 resources:
-  #                   requests:
-  #                     # default storage is 2Gi, except for CI and dev environments, 1Gi
-  #                     storage: '{{  has .Values.env_type (list "dev" "ci") | ternary "1Gi" "2Gi" }}'
-  #           affinity:
-  #             podAntiAffinity:
-  #               requiredDuringSchedulingIgnoredDuringExecution:
-  #                 - labelSelector:
-  #                     matchExpressions:
-  #                       - key: app.kubernetes.io/name
-  #                         operator: In
-  #                         values:
-  #                           - alertmanager
-  #                   topologyKey: "kubernetes.io/hostname"
-  #         podDisruptionBudget:
-  #           enabled: true
-  #           minAvailable: '{{ .Values._internal.ha_cluster.is_ha | ternary 1 0 }}'
-  #     valuesFrom:
-  #       - kind: ConfigMap
-  #         name: custom-resource-state-config # this configmap is a byproduct of the prometheus-custom-metrics unit
-  #         optional: '{{ not (tuple . "prometheus-custom-metrics" | include "unit-enabled") | include "as-bool" }}'
-  #       - kind: ConfigMap
-  #         name: prometheus-config-values # this configmap is a byproduct of the prometheus-resources unit
-  #         optional: '{{ not (tuple . "prometheus-resources" | include "unit-enabled") | include "as-bool" }}'
-  #     _postRenderers:
-  #       - kustomize:
-  #           patches:
-  #           - '{{ .Values._internal.pdb_allow_unhealthy_pod_eviction | include "preserve-type" }}'
-  #   helm_secret_values:
-  #     grafana:
-  #       adminPassword: '{{ .Values._internal.grafana_admin_password }}'
-  #     prometheus:
-  #       extraSecret:
-  #         name: thanos-basic-auth
-  #         data:
-  #           username: '{{ .Values._internal.thanos_user }}'
-  #           password: '{{ .Values._internal.thanos_password }}'
 
   prometheus-resources:
     info:
