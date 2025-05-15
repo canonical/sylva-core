@@ -2775,6 +2775,31 @@ units:
       _components:
         - '{{ tuple "components/ceph-csi-cephfs" (tuple . "ceph-csi-cephfs" | include "unit-enabled") | include "set-only-if" }}'
 
+  metal3-sylva-ca-init:
+    info:
+      description: injects sylva-ca certificate in metal3
+      details: this certificate is needed to download baremetal os images via https
+      internal: true
+    repo: sylva-core
+    unit_templates:
+    - base-deps
+    enabled_conditions:
+    - '{{ tuple . "metal3" | include "unit-enabled" }}'
+    - '{{ tuple . "os-image-server" | include "unit-enabled" }}'
+    depends_on:
+      namespace-defs: true
+      ingress-nginx-init: true
+      external-secrets-operator: true
+    kustomization_spec:
+      path: ./kustomize-units/sylva-ca-external-secret
+      wait: true
+      targetNamespace: metal3-system
+      postBuild:
+        substitute:
+          CERTIFICATE_NAMESPACE: metal3-system
+          CACERT_SECRET_NAME: tls-ca-additional   # this Secret is used by metal3 chart when additionalTrustedCAs is true
+          CERT_FILE_NAME: sylva-ca.crt
+
   metal3:
     info:
       description: installs SUSE-maintained Metal3 operator
@@ -2783,6 +2808,7 @@ units:
     unit_templates:
     - base-deps
     depends_on:
+      metal3-sylva-ca-init: '{{ tuple . "metal3-sylva-ca-init" | include "unit-enabled" }}'
       namespace-defs: true
       cert-manager: true
       '{{ .Values._internal.default_storage_class_unit }}': '{{ not .Values._internal.state.is_upgrade }}'
@@ -2799,6 +2825,7 @@ units:
       targetNamespace: metal3-system
       values:
         global:
+          additionalTrustedCAs: true  # results in having the chart use the metal3-system/tls-ca-additional Secret which is produced by metal3-sylva-ca-init unit
           ironicIP: '{{ .Values.display_external_ip }}'
           provisioningInterface: eth0
         metal3-ironic:
@@ -4101,6 +4128,29 @@ units:
               #!/bin/bash
               kubectl -n kube-system delete service rke2-ingress-nginx-controller --ignore-not-found=true
 
+  ingress-nginx-init:
+    info:
+      description: creates the default certificate for the ingress-nginx controller
+      internal: true
+    enabled_conditions:
+      - '{{ tuple . "ingress-nginx" | include "unit-enabled" }}'
+    unit_templates:
+    - base-deps
+    depends_on:
+      namespace-defs: true
+      sylva-ca: true
+    repo: sylva-core
+    kustomization_spec:
+      path: ./kustomize-units/ingress-nginx-init
+      postBuild:
+        substitute:
+          CLUSTER_IP: "{{ .Values.display_external_ip }}"
+      healthChecks:
+        - apiVersion: v1
+          kind: Secret
+          name: default-nginx-tls
+          namespace: kube-system
+
   ingress-nginx:
     info:
       description: installs Nginx ingress controller
@@ -4108,6 +4158,7 @@ units:
     unit_templates:
     - base-deps
     depends_on:
+      ingress-nginx-init: '{{ tuple . "ingress-nginx-init" | include "unit-enabled" }}'
       metallb-resources: '{{ tuple . "metallb" | include "unit-enabled" }}'
       '{{ .Values._internal.calico_readiness_unit }}': '{{ tuple . "calico" | include "unit-enabled" }}'
       ingress-nginx-cleanup: '{{ tuple . "ingress-nginx-cleanup" | include "unit-enabled" }}'
@@ -4164,6 +4215,9 @@ units:
               memory: "300Mi"
             limits:
               memory: "1Gi"
+          extraArgs:
+            default-ssl-certificate: "kube-system/default-nginx-tls"
+
     kustomization_spec:
       healthChecks:
         - apiVersion: apps/v1
@@ -7963,6 +8017,7 @@ cluster:
       primary:
         interface: ""
     image_provisioning_host: '{{ .Values.display_external_ip }}'
+    image_provisioning_scheme: "https"
     default_network_settings:
       mtu: 1500 # set the default network interfaces MTU size
 
@@ -9109,6 +9164,7 @@ shared_workload_clusters_values:
     mgmt_cluster_ip: '{{ .Values.display_external_ip }}'
     capm3:
       image_provisioning_host: '{{ .Values.display_external_ip }}'
+      image_provisioning_scheme: '{{ .Values.cluster.capm3.image_provisioning_scheme  }}'
     default_node_class: '{{ .Values.cluster.default_node_class }}'
     node_classes: '{{ .Values.cluster.node_classes | include "preserve-type" }}'
 
