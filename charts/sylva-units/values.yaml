@@ -9159,6 +9159,8 @@ _internal:
         enabled: '{{ tuple . "snmp-exporter" | include "unit-enabled" }}'
       crossplane:
         enabled: '{{ tuple . "crossplane" | include "unit-enabled" }}'
+      rancher:
+        enabled: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" }}'
 
   thanos:
     store_config_internal:
