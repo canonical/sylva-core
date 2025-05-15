@@ -5401,6 +5401,19 @@
             }
           ]
         },
+        "default_storage_class": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "$ref": "#/$defs/string-with-gotpl"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
         "mgmt_cluster_ip": {
           "anyOf": [
             {
@@ -7004,6 +7017,23 @@
               "capo"
             ],
             "properties": {
+              "default_storage_class": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "cinder-ceph-ssd",
+                      "cinder-csi",
+                      "nfs-ganesha"
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/string-with-gotpl"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
               "control_plane": {
                 "anyOf": [
                   {
@@ -7150,6 +7180,21 @@
           },
           "then": {
             "properties": {
+              "default_storage_class": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "vsphere-csi"
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/string-with-gotpl"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
               "control_plane": {
                 "anyOf": [
                   {
@@ -7405,6 +7450,67 @@
                     "type": "null"
                   }
                 ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "capi_providers": {
+                "properties": {
+                  "infra_provider": {
+                    "const": "capm3"
+                  },
+                  "bootstrap_provider": {
+                    "const": "cabpoa"
+                  }
+                }
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "default_storage_class": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "cephfs-csi",
+                      "ceph-csi-cephfs",
+                      "ceph-rbd-csi"
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/string-with-gotpl"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            }
+          },
+          "else": {
+            "if": {
+              "properties": {
+                "capi_providers": {
+                  "properties": {
+                    "infra_provider": {
+                      "const": "capm3"
+                    }
+                  }
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "default_storage_class": {
+                  "enum": [
+                    "single-replica-storageclass",
+                    "two-replicas-storageclass",
+                    "longhorn"
+                  ]
+                }
               }
             }
           }
