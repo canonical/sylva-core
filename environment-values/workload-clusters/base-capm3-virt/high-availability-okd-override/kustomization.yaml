@@ -16,7 +16,7 @@ patches:
     name: sylva-units
   patch: |
     - op: add
-      path: /spec/valuesFrom/1
+      path: /spec/valuesFrom/2
       value:
         kind: ConfigMap
         name: capm3-virt-ha-okd-values
