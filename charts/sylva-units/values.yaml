@@ -979,6 +979,8 @@ units:
           CERTIFICATE_NAMESPACE: harbor
           CERT: '{{ .Values.external_certificates.harbor.cert | default "" | b64enc }}'
           CACERT: '{{ .Values.external_certificates.cacert | default "" | b64enc }}'
+          K8S_AUTH_PATH: '{{ .Values.security.vault.paths.k8s }}'
+          SECRET_PATH: '{{ .Values.security.vault.paths.secret }}'
       _components:
         - '{{ ternary "../tls-components/tls-secret" "../tls-components/tls-certificate" (hasKey .Values.external_certificates.harbor "cert") }}'
         - "../tls-components/sylva-ca"
@@ -1226,7 +1228,7 @@ units:
               value:
                 name: secret-reader-{{ $name }}
                 rules: |
-                  path "secret/data/{{ $name }}/*" {
+                  path "{{ .Values.security.vault.paths.secret }}/data/{{ $name }}/*" {
                     capabilities = [ "read", "list" ]
                   }
             - op: add
@@ -1234,7 +1236,7 @@ units:
               value:
                 name: secret-writer-{{ $name }}
                 rules: |
-                  path "secret/data/{{ $name }}/*" {
+                  path "{{ .Values.security.vault.paths.secret }}/data/{{ $name }}/*" {
                     capabilities = [ "create", "update", "delete" ]
                   }
             - op: add
@@ -1261,6 +1263,9 @@ units:
           SERVICE_DNS: '{{ .Values.external_hostnames.vault }}'
           CERT: '{{ .Values.external_certificates.vault.cert | default "" | b64enc }}'
           CACERT: '{{ .Values.external_certificates.cacert | default "" | b64enc }}'
+          OIDC_AUTH_PATH: '{{ .Values.security.vault.paths.oidc }}'
+          K8S_AUTH_PATH: '{{ .Values.security.vault.paths.k8s }}'
+          SECRET_PATH: '{{ .Values.security.vault.paths.secret }}'
       _components:
         # generate certificate for external communitation
         - '{{ ternary "../tls-components/tls-secret" "../tls-components/tls-certificate" (hasKey .Values.external_certificates.vault "cert") }}'
@@ -1326,6 +1331,10 @@ units:
     kustomization_spec:
       path: ./kustomize-units/vault-secrets
       wait: true
+      postBuild:
+        substitute:
+          K8S_AUTH_PATH: '{{ .Values.security.vault.paths.k8s }}'
+          SECRET_PATH: '{{ .Values.security.vault.paths.secret }}'
       _components:
         - '{{ tuple "components/keycloak" (tuple . "keycloak" | include "unit-enabled") | include "set-only-if" }}'
 
@@ -1349,6 +1358,8 @@ units:
         substitute:
           VAULT_DNS: '{{ .Values.external_hostnames.vault }}'
           KEYCLOAK_DNS: '{{ .Values.external_hostnames.keycloak }}'
+          OIDC_AUTH_PATH: '{{ .Values.security.vault.paths.oidc }}'
+          K8S_AUTH_PATH: '{{ .Values.security.vault.paths.k8s }}'
 
   external-secrets-operator:
     info:
@@ -1380,6 +1391,10 @@ units:
     repo: sylva-core
     kustomization_spec:
       path: ./kustomize-units/eso-secret-stores
+      postBuild:
+        substitute:
+          K8S_AUTH_PATH: '{{ .Values.security.vault.paths.k8s }}'
+          SECRET_PATH: '{{ .Values.security.vault.paths.secret }}'
       wait: true
       _components:
         - '{{ tuple "components/keycloak" (tuple . "keycloak" | include "unit-enabled") | include "set-only-if" }}'
@@ -1482,6 +1497,8 @@ units:
           CERTIFICATE_NAMESPACE: neuvector
           CERT: '{{ .Values.external_certificates.neuvector.cert | default "" | b64enc }}'
           CACERT: '{{ .Values.external_certificates.cacert | default "" | b64enc }}'
+          K8S_AUTH_PATH: '{{ .Values.security.vault.paths.k8s }}'
+          SECRET_PATH: '{{ .Values.security.vault.paths.secret }}'
       _components:
         - '{{ ternary "../tls-components/tls-secret" "../tls-components/tls-certificate" (hasKey .Values.external_certificates.neuvector "cert") }}'
         - "../tls-components/sylva-ca"
@@ -1819,6 +1836,9 @@ units:
     kustomization_spec:
       path: ./kustomize-units/keycloak-legacy-operator
       targetNamespace: keycloak
+      postBuild:
+        substitute:
+          SECRET_PATH: '{{ .Values.security.vault.paths.secret }}'
       wait: true
       _patches:
         - patch: |
@@ -1874,6 +1894,7 @@ units:
           HARBOR_DNS: '{{ .Values.external_hostnames.harbor }}'
           NEUVECTOR_DNS: '{{ tuple .Values.external_hostnames.neuvector (tuple . "neuvector" | include "unit-enabled") | include "set-only-if" }}'
           VAULT_DNS: '{{ .Values.external_hostnames.vault }}'
+          OIDC_AUTH_PATH: '{{ .Values.security.vault.paths.oidc }}'
           EXPIRE_PASSWORD_DAYS: '{{ int .Values.keycloak.keycloak_expire_password_days }}'
           KUNAI_DNS: '{{ tuple .Values.external_hostnames.kunai (tuple . "kunai" | include "unit-enabled") | include "set-only-if" }}'
       healthChecks:  #  cannot use __wait: true__ here, see https://gitlab.com/sylva-projects/sylva-core/-/issues/144
@@ -3679,6 +3700,7 @@ units:
       postBuild:
         substitute:
           FLUX_ADMIN_USERNAME: '{{ .Values.flux_webui.admin_user }}'
+          SECRET_PATH: '{{ .Values.security.vault.paths.secret }}'
       healthChecks:
         - apiVersion: v1
           kind: Secret
@@ -5849,6 +5871,10 @@ units:
     repo: sylva-core
     kustomization_spec:
       path: ./kustomize-units/gitea/secrets
+      postBuild:
+        substitute:
+          K8S_AUTH_PATH: '{{ .Values.security.vault.paths.k8s }}'
+          SECRET_PATH: '{{ .Values.security.vault.paths.secret }}'
       wait: true
 
   gitea-eso:
@@ -5898,6 +5924,7 @@ units:
           SERVICE_DNS: '{{ .Values.external_hostnames.gitea }}'
           CERT: '{{ .Values.external_certificates.gitea.cert | default "" | b64enc }}'
           CACERT: '{{ .Values.external_certificates.cacert | default "" | b64enc }}'
+          SECRET_PATH: '{{ .Values.security.vault.paths.secret }}'
       _components:
         - '{{ ternary "../../tls-components/tls-secret" "../../tls-components/tls-certificate" (hasKey .Values.external_certificates.gitea "cert") }}'
         - "../../tls-components/sylva-ca"
@@ -6162,6 +6189,10 @@ units:
     kustomization_spec:
       path: ./kustomize-units/kunai/secrets
       wait: true
+      postBuild:
+        substitute:
+          K8S_AUTH_PATH: '{{ .Values.security.vault.paths.k8s }}'
+          SECRET_PATH: '{{ .Values.security.vault.paths.secret }}'
 
   kunai-eso:
     info:
@@ -6203,6 +6234,7 @@ units:
           CERT: '{{ .Values.external_certificates.kunai.cert | default "" | b64enc }}'
           CACERT: '{{ .Values.external_certificates.cacert | default "" | b64enc }}'
           KEYCLOAK_DNS: '{{ .Values.external_hostnames.keycloak }}'
+          SECRET_PATH: '{{ .Values.security.vault.paths.secret }}'
       _components:
         - '{{ ternary "../../tls-components/tls-secret" "../../tls-components/tls-certificate" (hasKey .Values.external_certificates.kunai "cert") }}'
         - "../../tls-components/sylva-ca"
@@ -6453,6 +6485,8 @@ units:
           CERTIFICATE_NAMESPACE: minio-logging
           CERT: '{{ .Values.external_certificates.minio_logging.cert | default "" | b64enc }}'
           CACERT: '{{ .Values.external_certificates.cacert | default "" | b64enc }}'
+          K8S_AUTH_PATH: '{{ .Values.security.vault.paths.k8s }}'
+          SECRET_PATH: '{{ .Values.security.vault.paths.secret }}'
       _components:
         - '{{ ternary "../tls-components/tls-secret" "../tls-components/tls-certificate" (hasKey .Values.external_certificates.minio_logging "cert") }}'
         - "../tls-components/sylva-ca"
@@ -6684,6 +6718,8 @@ units:
           CERTIFICATE_NAMESPACE: minio-monitoring
           CERT: '{{ .Values.external_certificates.minio_monitoring.cert | default "" | b64enc }}'
           CACERT: '{{ .Values.external_certificates.cacert | default "" | b64enc }}'
+          K8S_AUTH_PATH: '{{ .Values.security.vault.paths.k8s }}'
+          SECRET_PATH: '{{ .Values.security.vault.paths.secret }}'
       _components:
         - '{{ ternary "../tls-components/tls-secret" "../tls-components/tls-certificate" (hasKey .Values.external_certificates.minio_monitoring "cert") }}'
         - "../tls-components/sylva-ca"
@@ -6909,6 +6945,7 @@ units:
           THANOS_QUERY_DNS: '{{ .Values.external_hostnames.thanos_query }}'
           CERT: '{{ .Values.external_certificates.thanos.cert | default "" | b64enc }}'
           CACERT: '{{ .Values.external_certificates.cacert | default "" | b64enc }}'
+          SECRET_PATH: '{{ .Values.security.vault.paths.secret }}'
       _components:
         - '{{ ternary "../tls-components/tls-secret" "../tls-components/tls-certificate" (hasKey .Values.external_certificates.thanos "cert") }}'
         - "../tls-components/sylva-ca"
@@ -7417,6 +7454,7 @@ units:
           CERTIFICATE_NAMESPACE: loki
           CERT: '{{ .Values.external_certificates.loki.cert | default "" | b64enc }}'
           CACERT: '{{ .Values.external_certificates.cacert | default "" | b64enc }}'
+          SECRET_PATH: '{{ .Values.security.vault.paths.secret }}'
       _components:
         - '{{ ternary "../tls-components/tls-secret" "../tls-components/tls-certificate" (hasKey .Values.external_certificates.loki "cert") }}'
         - "../tls-components/sylva-ca"
@@ -8376,6 +8414,11 @@ os_images_default_download_storage_space: 30Gi
 get_openstack_images_per_image_timeout_minutes: 30
 
 security:
+  vault:
+    paths:
+      secret: secret
+      k8s: kubernetes
+      oidc: oidc
   external_x509_issuer: {}
    # issuer_type:  acme or vault
    # vault_token:  authent token for vault,

@@ -1184,6 +1184,21 @@ properties:
     type: object
     additionalProperties: false
     properties:
+      vault: # -------------------------------
+        type: object
+        additionalProperties: false
+        properties:
+          paths:
+            type: object
+            additionalProperties: false
+            properties:
+              secret:
+                type: string
+              k8s:
+                type: string
+              oidc:
+                type: string
+
       external_x509_issuer: # -------------------------------
         type: object
         additionalProperties: false

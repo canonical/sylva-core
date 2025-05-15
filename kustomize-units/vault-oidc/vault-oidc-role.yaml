@@ -10,13 +10,13 @@ spec:
       skipVerify: true # see https://gitlab.com/sylva-projects/sylva-core/-/issues/261
     address: https://vault.vault.svc.cluster.local:8200
   authentication:
-    path: kubernetes
+    path: ${K8S_AUTH_PATH}
     role: admin
-  path: oidc
+  path: ${OIDC_AUTH_PATH}
   userClaim: sub
   allowedRedirectURIs:
-    - "https://${VAULT_DNS}/v1/auth/oidc/oidc/callback"
-    - "https://${VAULT_DNS}/ui/vault/auth/oidc/oidc/callback"
+    - "https://${VAULT_DNS}/v1/auth/${OIDC_AUTH_PATH}/oidc/callback"
+    - "https://${VAULT_DNS}/ui/vault/auth/${OIDC_AUTH_PATH}/oidc/callback"
   groupsClaim: group
   tokenPolicies: # SSO user can read the secret path and gains admin privileges
     - secret-reader

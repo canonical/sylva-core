@@ -32,6 +32,6 @@ spec:
   data:
   - secretKey: password
     remoteRef:
-      key: secret/data/keycloak
+      key: ${SECRET_PATH}/data/keycloak
       property: password
  #     version: "1" # setting the version here should not be necessary if ExternalSecret.spec.refreshInterval: 0
