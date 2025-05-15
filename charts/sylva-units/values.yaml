@@ -3113,9 +3113,9 @@ units:
         | include "preserve-type"
         }}
     helmrelease_spec:
-      # Setting drift detection mode to disabled for cluster HR till https://gitlab.com/sylva-projects/sylva-core/-/issues/1812 is solved.
-      driftDetection:
-        mode: disabled
+    #   Setting drift detection mode to disabled for cluster HR till https://gitlab.com/sylva-projects/sylva-core/-/issues/1812 is solved.
+    #   driftDetection:
+    #    mode: disabled
 
       uninstall:
         timeout: '{{ mul .Values.cluster.timeouts.cluster_delete_hook_job_timeout 1.2 }}s'
