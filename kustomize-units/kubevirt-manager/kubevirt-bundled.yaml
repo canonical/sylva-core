@@ -446,7 +446,7 @@ spec:
             - --cookie-path=/
             - --provider-ca-file=/etc/sylva-ca/ca.crt
             - --insecure-oidc-allow-unverified-email
-            - --logging-max-age=9
+            # - --logging-max-age=9
 
           volumeMounts:
             - name: sylva-ca-secret
