@@ -297,6 +297,7 @@ unit_templates:
         - '{{ tuple "components/sbom-operator" (tuple . "sbom-operator" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/openshift/openshift-sriov-operator" (tuple . "openshift-sriov" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/openshift/openshift-metallb-operator" (tuple . "openshift-metallb" | include "unit-enabled") | include "set-only-if" }}'
+        - '{{ tuple "components/openshift/openshift-nginx-operator" (tuple . "openshift-nginx" | include "unit-enabled") | include "set-only-if" }}'
 
   flux-common:
     repo: sylva-core
@@ -5253,6 +5254,7 @@ units:
       _components:
         - '{{ tuple "components/openshift-sriov" (tuple . "openshift-sriov" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/openshift-metallb" (tuple . "openshift-metallb" | include "unit-enabled") | include "set-only-if" }}'
+        - '{{ tuple "components/openshift-nginx" (tuple . "openshift-nginx" | include "unit-enabled") | include "set-only-if" }}'
 
   openshift-sriov:
     info:
@@ -5265,6 +5267,14 @@ units:
   openshift-metallb:
     info:
       description: Dummy unit to control enablement of openshift metallb operator
+      internal: false
+    enabled: false
+    unit_templates:
+      - dummy
+
+  openshift-nginx:
+    info:
+      description: Dummy unit to control enablement of openshift nginx operator
       internal: false
     enabled: false
     unit_templates:
