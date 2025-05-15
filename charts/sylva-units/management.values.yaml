@@ -355,14 +355,15 @@ units:
         - '{{ tuple "components/vault-issuer" (eq .Values.security.external_x509_issuer.issuer_type "vault") | include "set-only-if"}}'
         - '{{ tuple "components/ca-issuer" (not (hasKey .Values.security.external_x509_issuer "issuer_type")) | include "set-only-if" }}'
 
-  cleanup-import-legacy:
-    enabled: '{{ tuple . "rancher-turtle" | include "unit-enabled" }}'
+  cluster-import-legacy-cleanup:
     info:
       description: Remove resources used by capi-rancher-import
       details: >
         a job to manually delete secret used in legacy solution
       internal: true
     one_shot: true
+    enabled_conditions:
+    - '{{ .Values._internal.state.is_upgrade }}'
     depends_on:
       cluster-ready: '{{ tuple . "cluster" | include "unit-enabled" }}'
     unit_templates:

@@ -288,7 +288,7 @@ unit_templates:
         - '{{ tuple "components/neuvector" (tuple . "neuvector" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/kunai" (tuple . "kunai" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/sbom-operator" (tuple . "sbom-operator" | include "unit-enabled") | include "set-only-if" }}'
-        - '{{ tuple "components/rancher-turtle" (tuple . "rancher-turtle" | include "unit-enabled") | include "set-only-if" }}'
+        - '{{ tuple "components/rancher-turtles" (tuple . "rancher-turtles" | include "unit-enabled") | include "set-only-if" }}'
 
   flux-common:
     repo: sylva-core
@@ -4068,9 +4068,9 @@ units:
           name: capo-cluster-resources
           optional: '{{ not (.Values.cluster.capi_providers.infra_provider | eq "capo") | include "as-bool" }}'
 
-  rancher-turtle:
+  rancher-turtles:
     info:
-      description: installs the rancher-turtle operator, which let's us import Cluster API workload clusters in management cluster's Rancher
+      description: installs the rancher-turtles operator, which let's us import Cluster API workload clusters in management cluster's Rancher
     unit_templates:
     - base-deps
     enabled_conditions:
@@ -4086,7 +4086,7 @@ units:
         spec:
           chart: rancher-turtles
           version: 0.18.0
-      targetNamespace: rancher-turtle-system
+      targetNamespace: rancher-turtles-system
       values:
         rancherTurtles:
           features:

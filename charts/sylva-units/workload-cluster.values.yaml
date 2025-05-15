@@ -599,7 +599,7 @@ units:
                  kubectl -n {{ .Release.Namespace }} delete kustomization -l capi-rancher-import
                  echo "Delete secret related to legacy solution"
                  kubectl -n {{ .Release.Namespace }} delete secret cluster-creator-kubeconfig
-                 echo "Preparing  cluster to be imported into rancher using rancher-turtle"
+                 echo "Preparing  cluster to be imported into rancher using rancher-turtles"
                  kubectl -n {{ .Release.Namespace }} label cluster/{{ .Values.cluster.name }} cluster-api.cattle.io/rancher-auto-import=true
               else
                 if kubectl -n {{ .Release.Namespace }}  get secret cluster-creator-kubeconfig -o name | grep -q .; then
