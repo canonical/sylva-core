@@ -2820,7 +2820,7 @@ units:
       chart:
         spec:
           chart: metal3
-          version: 0.11.1
+          version: 0.11.2
       timeout: 30m
       targetNamespace: metal3-system
       values:
