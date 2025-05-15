@@ -12,18 +12,18 @@
     "renovate"
   ],
   "gitlabci": {
-    "fileMatch": [
-      "\\.gitlab/ci/.*.yml"
+    "managerFilePatterns": [
+      "/\\.gitlab/ci/.*.yml/"
     ]
   },
   "gitlabci-include": {
-    "fileMatch": [
-      "\\.gitlab/ci/.*.yml"
+    "managerFilePatterns": [
+      "/\\.gitlab/ci/.*.yml/"
     ]
   },
   "kubernetes": {
-    "fileMatch": [
-      "kustomize-units/.+\\.yaml"
+    "managerFilePatterns": [
+      "/kustomize-units/.+\\.yaml/"
     ],
     "ignorePaths": [
       "kustomize-units/**/kustomization.yaml"
@@ -266,7 +266,9 @@
     {
       "description": "Generic regex to match variable ending in _VERSION in kubescore yaml file",
       "customType": "regex",
-      "fileMatch": ".gitlab/ci/tests/security/kubescore.yml",
+      "managerFilePatterns": [
+        "/.gitlab/ci/tests/security/kubescore.yml/"
+      ],
       "matchStrings": [
         "# renovate: datasource=(?<datasource>.*?) depName=(?<depName>.*?)( VersionTemplate=(?<VersionTemplate>.*?))?\\s+.*?_VERSION.\\s\"?(?<currentValue>[^\"\\n]+)\"?\\n"
       ],
@@ -275,8 +277,8 @@
     {
       "description": "Update Pylama in GitLab CI pipeline",
       "customType": "regex",
-      "fileMatch": [
-        ".gitlab/ci/.*.yml"
+      "managerFilePatterns": [
+        "/.gitlab/ci/.*.yml/"
       ],
       "matchStrings": [
         ".*pip install\\s+(?<depName>.*)==(?<currentValue>.*)"
@@ -286,8 +288,8 @@
     {
       "description": "Match docker image define in _IMAGE variables for gitlab-ci",
       "customType": "regex",
-      "fileMatch": [
-        ".gitlab/ci/.*.yml"
+      "managerFilePatterns": [
+        "/.gitlab/ci/.*.yml/"
       ],
       "matchStrings": [
         "\\s+# renovate: datasource=(?<datasource>.*?)\\s+.*?_IMAGE: (?<registryUrl>.*?)/(?<depName>.*?):(?<currentValue>.*)"
@@ -297,7 +299,9 @@
     {
       "description": "Match github releases defined via a direct link in kustomizations",
       "customType": "regex",
-      "fileMatch": "kustomization.y[a]?ml",
+      "managerFilePatterns": [
+        "/kustomization.y[a]?ml/"
+      ],
       "matchStrings": [
         "https://github[.]com/(?<depName>.*/.*?)/releases/download/(?<currentValue>.*?)/"
       ],
@@ -306,7 +310,9 @@
     {
       "description": "Match github tags defined via a direct link in kustomizations",
       "customType": "regex",
-      "fileMatch": "kustomization.y[a]?ml",
+      "managerFilePatterns": [
+        "/kustomization.y[a]?ml/"
+      ],
       "matchStrings": [
         "https://raw.githubusercontent.com/(?<depName>[^/]*/[^/]*)/(?<currentValue>.*?)/"
       ],
@@ -315,7 +321,9 @@
     {
       "description": "Match Helm charts in helm repository defined under units",
       "customType": "regex",
-      "fileMatch": "charts/sylva-units/values.yaml",
+      "managerFilePatterns": [
+        "/charts/sylva-units/values.yaml/"
+      ],
       "matchStringsStrategy": "recursive",
       "matchStrings": [
         "units:[\\w\\W]*[ ]+",
@@ -326,7 +334,9 @@
     {
       "description": "Match Sylva diskimagebuilder",
       "customType": "regex",
-      "fileMatch": "charts/sylva-units/values.yaml",
+      "managerFilePatterns": [
+        "/charts/sylva-units/values.yaml/"
+      ],
       "matchStrings": [
         "#\\s?renovate: depName=(?<depName>.*?)\\n*?sylva_diskimagebuilder_version: (?<currentValue>.*)"
       ],
@@ -335,7 +345,9 @@
     {
       "description": "Match images used by operators",
       "customType": "regex",
-      "fileMatch": "kustomize-units/*/kustomization.yaml",
+      "managerFilePatterns": [
+        "/kustomize-units/*/kustomization.yaml/"
+      ],
       "matchStrings": [
         "\\n\\s+newName:\\s+(?<registryUrl>.*?)/(?<depName>.*)\\n[\\w\\W]*?newTag:\\s+\"?(?<currentValue>[^\"\\n]+)\"?"
       ],
@@ -345,7 +357,9 @@
     {
       "description": "Match Helm charts in git repository defined under units",
       "customType": "regex",
-      "fileMatch": "charts/sylva-units/values.yaml",
+      "managerFilePatterns": [
+        "/charts/sylva-units/values.yaml/"
+      ],
       "matchStringsStrategy": "recursive",
       "matchStrings": [
         "source_templates:[\\w\\W]*[ ]+",
@@ -356,7 +370,9 @@
     {
       "description": "Generic match for docker images in values.yaml, looking for repository: / tag: pattern",
       "customType": "regex",
-      "fileMatch": "charts/sylva-units/values.yaml",
+      "managerFilePatterns": [
+        "/charts/sylva-units/values.yaml/"
+      ],
       "matchStrings": [
         "\\s+repository:\\s+(?<registryUrl>.*)/(?<depName>.*)\\n\\s+tag:\\s\"?(?<currentValue>[^\"\\n]+)\"?\\n"
       ],
@@ -367,8 +383,8 @@
       "description": "Detect keycloak-realm-operator version",
       "customType": "regex",
       "datasourceTemplate": "docker",
-      "fileMatch": [
-        "kustomize-units/keycloak-legacy-operator/kustomization.yaml"
+      "managerFilePatterns": [
+        "/kustomize-units/keycloak-legacy-operator/kustomization.yaml/"
       ],
       "matchStrings": [
         "#\\s?renovate: registryUrl=(?<registryUrl>.*?) image=(?<depName>.*?)\\n[\\w\\W]*?newTag: (?<currentValue>[\\w+.-]*)"
@@ -378,8 +394,8 @@
       "description": "Detect vault docker image",
       "customType": "regex",
       "datasourceTemplate": "docker",
-      "fileMatch": [
-        "vault.yaml"
+      "managerFilePatterns": [
+        "/vault.yaml/"
       ],
       "matchStrings": [
         "spec:\\n[\\w\\W]*?.*image: (?<depName>.*)\\:(?<currentValue>.*)"
@@ -388,7 +404,9 @@
     {
       "description": "Detect Sylva-toolbox image in common.sh",
       "customType": "regex",
-      "fileMatch": "tools/shell-lib/common.sh",
+      "managerFilePatterns": [
+        "/tools/shell-lib/common.sh/"
+      ],
       "matchStringsStrategy": "combination",
       "matchStrings": [
         "SYLVA_TOOLBOX_VERSION:-\"(?<currentValue>.*)\".",
@@ -402,9 +420,9 @@
     {
       "description": "Match generic comment in values file, used to detect version change in kustomize patch",
       "customType": "regex",
-      "fileMatch": [
-        "charts/sylva-units/values.yaml",
-        "charts/sylva-units/templates/delete_hook.yaml"
+      "managerFilePatterns": [
+        "/charts/sylva-units/values.yaml/",
+        "/charts/sylva-units/templates/delete_hook.yaml/"
       ],
       "matchStrings": [
         "#\\s?renovate: datasource=(?<datasource>.*?)\\n\\s+.*?:\\s*(?<registryUrl>.*)/(?<depName>.*):(?<currentValue>.*)"
