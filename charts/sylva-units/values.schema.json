@@ -9903,6 +9903,38 @@
           "adminKey",
           "monitors_ips"
         ]
+      },
+      "rbd_csi": {
+        "type": "object",
+        "additionalProperties": false,
+        "patternProperties": {
+          "clusterID": {
+            "type": "string"
+          },
+          "userID": {
+            "type": "string"
+          },
+          "userKey": {
+            "type": "string"
+          },
+          "pool": {
+            "type": "string"
+          },
+          "monitors_ips": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "ipv4"
+            }
+          }
+        },
+        "required": [
+          "clusterID",
+          "monitors_ips",
+          "userID",
+          "userKey",
+          "pool"
+        ]
       }
     },
     "no_proxy_additional": {

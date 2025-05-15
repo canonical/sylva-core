@@ -46,6 +46,7 @@
 | **alertmanager-snmp-notifier** | installs Alertmanager webhook snmp-notifier<br/><br/>snmp-notifier is an Alertmanager wehbook that sends alerts as snmp traps | beta | [Helm chart](https://prometheus-community.github.io/helm-charts) | 0.5.0 |
 | **cabpoa** | installs OKD/OpenShift CAPI bootstrap/controlplane provider | experimental | [Kustomization](https://github.com/openshift-assisted/cluster-api-agent/releases/download/v0.2.0/bootstrap-components.yaml) | v0.2.0 |
 | **ceph-csi-cephfs** | Installs Ceph-CSI | beta | [Helm chart](https://ceph.github.io/csi-charts) | 3.12.3 |
+| **ceph-csi-rbd** | Installs ceph-csi-rbd | experimental | [Helm chart](https://ceph.github.io/csi-charts) | 3.13.0 |
 | **harbor** | installs Harbor | beta | [Helm chart](https://helm.goharbor.io) | 1.15.2 |
 | **kubevirt** | installs kubevirt | beta | [Helm chart](https://suse-edge.github.io/charts) | 0.4.0 |
 | **kubevirt-cdi** | manages Kubevirt CDI - Container Data Importer | beta | [Helm chart](https://suse-edge.github.io/charts) | 0.4.0 |

@@ -2774,6 +2774,7 @@ units:
       wait: true
       _components:
         - '{{ tuple "components/ceph-csi-cephfs" (tuple . "ceph-csi-cephfs" | include "unit-enabled") | include "set-only-if" }}'
+        - '{{ tuple "components/ceph-csi-rbd" (tuple . "ceph-csi-rbd" | include "unit-enabled") | include "set-only-if" }}'
 
   metal3-sylva-ca-init:
     info:
@@ -5290,6 +5291,47 @@ units:
         create: true
         adminID: '{{ .Values.ceph.cephfs_csi.adminID }}'
         adminKey: '{{ .Values.ceph.cephfs_csi.adminKey }}'
+
+  ceph-csi-rbd:
+    info:
+      description: Installs ceph-csi-rbd
+      maturity: experimental
+    enabled: false
+    unit_templates:
+    - base-deps
+    depends_on:
+      namespace-defs: true
+      openshift-security-context-constraints: '{{ eq .Values.cluster.capi_providers.bootstrap_provider "cabpoa" }}'
+    helm_repo_url: https://ceph.github.io/csi-charts
+    helmrelease_spec:
+      targetNamespace: ceph-csi-rbd
+      chart:
+        spec:
+          chart: ceph-csi-rbd
+          version: 3.13.0
+      values:
+        provisioner:
+          replicaCount: '{{ .Values.cluster.control_plane_replicas }}'
+        storageClass:
+          create: true
+          name: ceph-rbd-csi
+          clusterID: '{{ .Values.ceph.rbd_csi.clusterID }}'
+          pool: '{{ .Values.ceph.rbd_csi.pool }}'
+          annotations:
+            storageclass.kubernetes.io/is-default-class: '{{ .Values._internal.default_storage_class | eq "ceph-rbd-csi" }}'
+        csiConfig:
+          - clusterID: '{{ .Values.ceph.rbd_csi.clusterID }}'
+            monitors: '{{ .Values.ceph.rbd_csi.monitors_ips | include "preserve-type" }}'
+        nodeplugin:
+          httpMetrics:
+            containerPort: 8181
+            service:
+              servicePort: 8181
+    helm_secret_values:
+      secret:
+        create: true
+        userID: '{{ .Values.ceph.rbd_csi.userID }}'
+        userKey: '{{ .Values.ceph.rbd_csi.userKey }}'
 
   longhorn-crd:
     info:
@@ -8203,6 +8245,12 @@ ceph:
     adminID: ""
     adminKey: ""
     monitors_ips: []
+  rbd_csi:
+    clusterID: ""
+    userID: ""
+    userKey: ""
+    pool: ""
+    monitors_ips: []
 
 # add your proxy settings if required
 proxies:
@@ -8888,6 +8936,7 @@ _internal:
     vsphere-csi: vsphere-csi-driver
     '{{ .Values.openstack.storageClass.name }}': cinder-csi
     cephfs-csi: ceph-csi-cephfs
+    ceph-rbd-csi: ceph-csi-rbd
 
   default_storage_class_unit: '{{ tuple . .Values._internal.default_storage_class_unit_ref | include "interpret-as-string" }}'
   default_storage_class_unit_ref: >-
