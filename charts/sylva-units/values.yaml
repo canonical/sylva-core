@@ -7080,13 +7080,7 @@ units:
           extraFlags:
             - --index-cache-size=1.5GB
             - --enable-auto-gomemlimit
-            - --store.grpc.series-sample-limit=0
-            - --store.grpc.series-max-concurrency=20
             - --sync-block-duration=3m
-            - --block-sync-concurrency=20
-            - --block-meta-fetch-concurrency=32
-            - --min-time=-15d
-            - --max-time=0
           persistence:
             enabled: false
           ingress:
