@@ -51,7 +51,7 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
     spec:
       url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-capi-cluster.git
       ref:
-        branch: test-values
+        tag: 0.9.3
 
   sync-openstack-images:
     kind: GitRepository
@@ -8868,8 +8868,8 @@ _internal:
     {{- end -}}
 
   default_storage_class: >-
-    {{- if .Values.cluster.default_storage_class -}}
-      {{ .Values.cluster.default_storage_class }}
+    {{- if .Values.default_storage_class -}}
+      {{ .Values.default_storage_class }}
     {{- else if (tuple . "ceph-csi-cephfs" | include "unit-enabled") -}}
       cephfs-csi
     {{- else if (tuple . "cinder-csi" | include "unit-enabled") -}}
