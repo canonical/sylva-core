@@ -13,6 +13,8 @@ cluster:
         type: phy
       ens5:
         type: phy
+      nic1: '{{ tuple "" false | include "set-only-if" }}'
+      nic2: '{{ tuple "" false | include "set-only-if" }}'
 
 
   baremetal_hosts:
