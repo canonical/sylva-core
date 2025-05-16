@@ -1125,6 +1125,10 @@ units:
           httpProxy: '{{ get .Values.proxies "http_proxy" }}'
           httpsProxy: '{{ get .Values.proxies "https_proxy" }}'
           noProxy: '{{ include "sylva-units.no_proxy" (tuple .) }}'
+        metrics:
+          enabled: true
+          serviceMonitor:
+            enabled: '{{ .Values._internal.monitoring.enabled | include "preserve-type" }}'
       _postRenderers:
         - kustomize:
             patches:
