@@ -14,18 +14,18 @@ labels:
 
 images:
 # These 2 images are built from the same code base, hosted for reference in
-# https://github.com/zioc/cluster-api-provider-rke2/commits/v0.13.0-sylva/
+# https://github.com/zioc/cluster-api-provider-rke2/commits/v0.15.1-sylva/
 # that contains 2 patches addressing different issues:
 
 # Skip etcd membership renewal during rolling upgrades
 # See https://gitlab.com/sylva-projects/sylva-core/-/issues/1595
 - name: ghcr.io/rancher/cluster-api-provider-rke2-controlplane
   newName: registry.gitlab.com/sylva-projects/sylva-elements/container-images/sandbox-registry/cluster-api-provider-rke2-controlplane-amd64
-  newTag: 0.13.0-skip-etcd-membership-removal
+  newTag: 0.15.1-skip-etcd-membership-removal
 
-# Gzip cloud-init data to avoid reaching the 64kb cloud-init size on openstack:
+# Gzip cloud-init and ignition data to avoid reaching the 64kb user-data size on openstack:
 # See https://gitlab.com/sylva-projects/sylva-core/-/issues/2343
 - name: ghcr.io/rancher/cluster-api-provider-rke2-bootstrap
   newName: registry.gitlab.com/sylva-projects/sylva-elements/container-images/sandbox-registry/cluster-api-provider-rke2-bootstrap-amd64
-  newTag: 0.13.0-gzipped-cloud-init
+  newTag: 0.15.1-gzipped-cloud-init-and-ignition
 
