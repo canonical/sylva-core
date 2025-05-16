@@ -54,7 +54,7 @@
 | **minio-operator** | install MinIO operator<br/><br/>MinIO operator is used to manage multiple S3 tenants | beta | [Helm chart](https://github.com/minio/operator.git) | v5.0.16 |
 | **neuvector** | installs Neuvector | beta | [Helm chart](https://neuvector.github.io/neuvector-helm) | 2.8.3 |
 | **nfs-ganesha** | manages NFS Ganesha CSI provisioner | experimental | [Helm chart](https://kubernetes-sigs.github.io/nfs-ganesha-server-and-external-provisioner/) | 1.8.0 |
-| **openshift-assisted-installer** | installs assisted installer operator for OKD | experimental | [Kustomization](https://raw.githubusercontent.com/openshift/assisted-service/v2.33.0/hack/crds/hive.openshift.io_clusterdeployments.yaml) | v2.33.0 |
+| **openshift-assisted-installer** | installs assisted installer operator for OKD | experimental | [Kustomization](https://raw.githubusercontent.com/openshift/assisted-service/v2.33.1/hack/crds/hive.openshift.io_clusterdeployments.yaml) | v2.33.1 |
 | **prometheus-pushgateway** | installs Prometheus Push-gateway exporter | beta | [Helm chart](https://prometheus-community.github.io/helm-charts) | 2.15.0 |
 | **snmp-exporter** | installs SNMP exporter | beta | [Helm chart](https://prometheus-community.github.io/helm-charts) | 5.6.0 |
 | **thanos** | installs Thanos | beta | [Helm chart](https://github.com/bitnami/charts.git) | thanos/15.8.0 |
