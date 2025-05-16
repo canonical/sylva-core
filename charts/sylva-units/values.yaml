@@ -3166,7 +3166,8 @@ units:
                   "name" "ca-key-pair"
                   "targetPath" "additional_ca"
                   "valuesKey" "ca.crt"
-                  "optional"  true)
+                  "optional"  true
+                  "namespace" "cert-manager")
             (and (.Values.cluster.additional_ca | empty)
                 (.Values._internal.mgmt_cluster | not)
             )
