@@ -889,8 +889,8 @@ units:
     depends_on:
       ingress-nginx: '{{ tuple . "ingress-nginx" | include "unit-enabled" }}'
       sylva-ca: true
-      keycloak-add-client-scope: true
-      keycloak-oidc-external-secrets: true
+      # keycloak-add-client-scope: true
+      # keycloak-oidc-external-secrets: true
     repo: sylva-core
     kustomization_substitute_secrets:
       ADMIN_CREDENTIAL: '{{ (htpasswd .Values._internal.kubevirt_admin_user .Values._internal.kubevirt_admin_password) | b64enc | quote }}'
