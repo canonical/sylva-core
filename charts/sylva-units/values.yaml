@@ -9073,6 +9073,10 @@ _internal:
     {{- tuple .Values.cluster $selector | include "finalize-os-image-selector" | fromJson | include "preserve-type" -}}
 
   immutable_values:
+    _internal:
+      default_storage_class:
+        _immutable: true
+        _immutable_comment: "default storage cannot be updated (this error may result from enabling a new CSI unit resulting in having the automatic computation of the default storage class give a different result; if you are in this case you can simply set 'default_storage_class: <current default storage class>' in your environment values)"
     cluster_domain:
       _immutable: true
       _immutable_comment: "The update of cluster domain is not supported"

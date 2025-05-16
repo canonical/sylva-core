@@ -6,3 +6,4 @@ _internal:
     cluster:
       name: old-management-cluster
       cluster_virtual_ip: 192.18.0.100
+    default_storage_class: cinder-csi
