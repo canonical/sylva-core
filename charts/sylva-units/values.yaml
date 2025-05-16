@@ -9054,10 +9054,9 @@ _internal:
   # total number of nodes in this cluster
   node_count:
     '
-    {{- $n := 0 -}}
-    {{- tuple . "_internal.computed_node_count" | include "interpret" -}}
-    {{- range $_, $node_group := fromJson .Values._internal.computed_node_count -}}
-      {{- $n = add $n (int $node_group.requested_nodes) -}}
+    {{- $n := .Values.cluster.control_plane_replicas -}}
+    {{- range $_, $md := .Values.cluster.machine_deployments -}}
+      {{- $n = add $n $md.replicas -}}
     {{- end -}}
     {{ $n | include "preserve-type" }}
     '
