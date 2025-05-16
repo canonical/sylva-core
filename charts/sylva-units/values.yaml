@@ -3074,7 +3074,7 @@ units:
       #  ready (for the controlplane nodes, the kubeadm controlplane provider ignores that)
       healthChecks: >-
         {{
-        (include "cluster-healthchecks" (dict "ns" .Release.Namespace "cluster" .Values.cluster "includeMDs" false "onlyCheckKubeConfig" (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpck" | ternary true false)) | fromYaml).result
+        (include "cluster-healthchecks" (dict "ns" .Release.Namespace "cluster" .Values.cluster "includeMDs" false "onlyCheckKubeConfig" (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpck")) | fromYaml).result
         | include "preserve-type"
         }}
     helmrelease_spec:
