@@ -51,6 +51,29 @@ ALLOWED_SCENARIOS = os.getenv(
     ])
 ).split(",")
 
+MARKERS = {
+    "infra": {
+        "emoji": "☁",
+        "md": ":cloud:"
+    },
+    "bootstrap": {
+        "emoji": "🚀",
+        "md": ":rocket:"
+    },
+    "os": {
+        "emoji": "🐧",
+        "md": ":penguin:"
+    },
+    "scenario": {
+        "emoji": "🎬",
+        "md": ":clapper:"
+    },
+    "options": {
+        "emoji": "🛠",
+        "md": ":tools:"
+    }
+}
+
 # Max number of pipelines to be allowed for a MR
 DEPLOY_CHILD_PIPELINE_COUNT_LIMIT = int(os.getenv("DEPLOY_CHILD_PIPELINE_COUNT_LIMIT", "9"))
 
@@ -204,24 +227,24 @@ def get_ci_config_from_mr_description(description=""):
             MR_DESCRIPTION = mr["description"]
 
     config_pattern = re.compile(
-        r"-- DEPLOYMENT FLAVOR DEFINITION START --((?:.|\n|\r\n)*)-- DEPLOYMENT FLAVOR DEFINITION END --",
+        r"--\s*DEPLOYMENT FLAVOR DEFINITION START\s*--((?:.|\n|\r\n)*)--\s*DEPLOYMENT FLAVOR DEFINITION END\s*--",
         re.MULTILINE,
     )
     config = config_pattern.findall(MR_DESCRIPTION)
 
     # Global options parsing
-    autorun_option_pattern = re.compile(r"\* \[(.)\] .*-- AUTORUN  OPTION --")
+    autorun_option_pattern = re.compile(r"\[(.?)\].*\s*<!--\s*AUTORUN\s+OPTION\s*-->")
     autorun_option = autorun_option_pattern.findall(MR_DESCRIPTION)
     if autorun_option:
-        global_options["autorun"] = autorun_option[0] == "x"
-    allowfailure_option_pattern = re.compile(r"\* \[(.)\] .*-- ALLOW FAILURE OPTION --")
+        global_options["autorun"] = autorun_option[0][0] == "x"
+    allowfailure_option_pattern = re.compile(r"\[(.?)\].*\s*<!--\s*ALLOW\s+FAILURE\s+OPTION\s*-->")
     allowfailure_option = allowfailure_option_pattern.findall(MR_DESCRIPTION)
     if allowfailure_option:
-        global_options["allow-failure"] = allowfailure_option[0] == "x"
-    sylvactl_record_option_pattern = re.compile(r"\* \[(.)\] .*-- SYLVACTL RECORD OPTION --")
+        global_options["allow-failure"] = allowfailure_option[0][0] == "x"
+    sylvactl_record_option_pattern = re.compile(r"\[(.?)\].*\s*<!--\s*SYLVACTL\s+RECORD\s+OPTION\s*-->")
     sylvactl_record_option = sylvactl_record_option_pattern.findall(MR_DESCRIPTION)
     if sylvactl_record_option:
-        global_options["record-sylvactl-events"] = sylvactl_record_option[0] == "x"
+        global_options["record-sylvactl-events"] = sylvactl_record_option[0][0] == "x"
 
     if config:
         selected_deployments = re.compile(r"\n\* \[x\] (.*)").findall(config[0])
@@ -251,11 +274,13 @@ def get_default_ci_config():
     )
 
 
-def get_deploy_parameter(deploy_name, emoji_key, as_list=False, can_be_empty=False):
+def get_deploy_parameter(deploy_name, marker, as_list=False, can_be_empty=False):
     """
     Extract value for a key (emoji) for a deployment variant
     """
-    match = re.compile(emoji_key + r"\s?([\w\d,\.-]+)").findall(deploy_name)
+    emoji_key = MARKERS[marker]["emoji"]
+    md_key = MARKERS[marker]["md"]
+    match = re.compile(rf"({emoji_key}|{md_key})" + r"\s?([\w\d,\.-]+)").findall(deploy_name)
     if len(match) != 1:
         if len(match) == 0 and can_be_empty is False:
             logging.error(f"unable to get {emoji_key} value from {deploy_name}")
@@ -265,9 +290,9 @@ def get_deploy_parameter(deploy_name, emoji_key, as_list=False, can_be_empty=Fal
             sys.exit(1)
     if match:
         if as_list is False:
-            return match[0]
+            return match[0][1]  # return only the second capture group (first one will contain either the emoji or it litteral definition)
         else:
-            return match[0].split(",")
+            return match[0][1].split(",")
     if as_list is True:
         return []
     return ""
@@ -287,14 +312,14 @@ def check_deployments(deployments):
 
     for index, deploy_name in enumerate(deployments):
 
-        infra = get_deploy_parameter(deploy_name, "☁")
-        bootstrap = get_deploy_parameter(deploy_name, "🚀")
-        node_os = get_deploy_parameter(deploy_name, "🐧")
-        scenario = get_deploy_parameter(deploy_name, "🎬", can_be_empty=True)
-        options = get_deploy_parameter(deploy_name, "🛠", as_list=True, can_be_empty=True)
+        infra = get_deploy_parameter(deploy_name, "infra")
+        bootstrap = get_deploy_parameter(deploy_name, "bootstrap")
+        node_os = get_deploy_parameter(deploy_name, "os")
+        scenario = get_deploy_parameter(deploy_name, "scenario", can_be_empty=True)
+        options = get_deploy_parameter(deploy_name, "options", as_list=True, can_be_empty=True)
 
         if infra not in ALLOWED_INFRA:
-            logging.error(f"deployment {deploy_name}: infra not allowed")
+            logging.error(f"deployment {deploy_name}: infra {infra} not allowed")
             sys.exit(1)
 
         if bootstrap not in ALLOWED_BOOTSTRAP:
@@ -340,11 +365,11 @@ def generate_ci_job_struct(job_names, global_options):
 
     for job in job_names:
         ci_jobs[job] = {}
-        infra = get_deploy_parameter(job, "☁")
-        bootstrap = get_deploy_parameter(job, "🚀")
-        node_os = get_deploy_parameter(job, "🐧")
-        scenario = get_deploy_parameter(job, "🎬", can_be_empty=True)
-        options = get_deploy_parameter(job, "🛠", as_list=True, can_be_empty=True)
+        infra = get_deploy_parameter(job, "infra")
+        bootstrap = get_deploy_parameter(job, "bootstrap")
+        node_os = get_deploy_parameter(job, "os")
+        scenario = get_deploy_parameter(job, "scenario", can_be_empty=True)
+        options = get_deploy_parameter(job, "options", as_list=True, can_be_empty=True)
 
         # inject deployment parameters as pipeline variables
         ci_jobs[job]["variables"] = {
