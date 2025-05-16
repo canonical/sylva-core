@@ -3,3 +3,4 @@ cluster_virtual_ip: 172.18.0.100
 _internal:
   state: # simulate an upgrade scenario
     is_upgrade: true
+  default_storage_class: local-path
