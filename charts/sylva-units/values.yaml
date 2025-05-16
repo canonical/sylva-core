@@ -7877,6 +7877,38 @@ units:
             path: /spec/schedule
             value:  "0 5 * * * "
 
+  backup-etcd:
+    info:
+      description: Backup Etcd
+      details: Backup periodically Etcd using etcdctl
+    unit_templates:
+    - base-deps
+    - '{{ tuple "backup-s3" (hasKey ((.Values.backup | default dict) | dig "store" dict) "s3") | include "set-only-if" }}'
+    - kube-cronjob
+    enabled_conditions:
+      - '{{ .Values.backup | ne nil }}'
+    kustomization_spec:
+      path: ./kustomize-units/backup
+      targetNamespace: kube-system
+      postBuild:
+        substitute:
+          CLUSTER_NAME: '{{ .Values.cluster.name }}'
+          RUNASUSER: "915"
+          RUNASGROUP: "915"
+      _components:
+      - "./components/backup-etcd"
+      - '{{ tuple "./components/backup-etcd/cabpk-volumes" (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpk") | include "set-only-if" }}'
+      - '{{ tuple "./components/backup-etcd/cabpr-volumes" (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpr") | include "set-only-if" }}'
+      - '{{ tuple "./components/pushgateway" (tuple . "prometheus-pushgateway" | include "unit-enabled") | include "set-only-if" }}'
+      - '{{ tuple "./components/timestamp" ((.Values.backup | default dict) | dig "timestamped" false) | include "set-only-if" }}'
+      _patches:
+      - target:
+          kind: CronJob
+        patch: |
+          - op: replace
+            path: /spec/schedule
+            value:  "0 5 * * * "
+
 ##### stuff related to the 'cluster' unit #####
 #
 # all these values under 'cluster' are passed as values to sylva-capi-cluster chart
@@ -7952,6 +7984,16 @@ cluster:
       security_group_names:
       - capo-{{ .Values.cluster.name }}-security-group-ctrl-plane-{{ .Values.cluster.capo.resources_tag }}
       - capo-{{ .Values.cluster.name }}-security-group-common-{{ .Values.cluster.capo.resources_tag }}
+    additional_commands: >-
+      {{- tuple (dict
+              "pre_bootstrap_commands" (list
+                    "groupadd -r -g 915 etcd"
+                    "useradd -r -s /sbin/nologin -M -u 915 -g 915 etcd"
+              )
+          )
+          (tuple . "backup-etcd" | include "unit-enabled")
+          | include "set-only-if"
+      }}
 
   machine_deployment_default:
     machine_deployment_spec:
