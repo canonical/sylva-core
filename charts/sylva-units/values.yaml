@@ -7133,8 +7133,9 @@ units:
           enabled: true
           logLevel: info
           extraFlags:
-            - --index-cache-size=1GB
+            - --index-cache-size=1.5GB
             - --enable-auto-gomemlimit
+            - --sync-block-duration=3m
           persistence:
             enabled: false
           ingress:
@@ -7167,9 +7168,9 @@ units:
             limits:
               cpu: 1
               memory: 1024Mi
-          retentionResolutionRaw: 15d
+          retentionResolutionRaw: 2d
           retentionResolution5m: 15d
-          retentionResolution1h: 15d
+          retentionResolution1h: 0d # disable 1h resolution retention
         receive:
           enabled: true
           logLevel: info
@@ -7187,6 +7188,8 @@ units:
           - --enable-auto-gomemlimit
           - --tsdb.max-retention-bytes=12GB
           - --tsdb.wal-compression
+          - --tsdb.min-block-duration=1h # flush to object storage faster
+          - --tsdb.max-block-duration=1h # flush to object storage faster
           ingress:
             enabled: true
             ingressClassName: "nginx"
