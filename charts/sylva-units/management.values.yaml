@@ -381,7 +381,7 @@ units:
               #/bin/bash
               set -e
               kubeconfig_secret_user_b64=$(kubectl -n sylva-system get secret cluster-creator-kubeconfig -o jsonpath='{.data.USER_NAME}' 2>/dev/null || true)
-              if [[ -n $kubeconfig_secret_user_b64 ]]; then
+              if [[ $kubeconfig_secret_user_b64 != "" ]]; then
                  echo "cluster-creator-kubeconfig Secret found"
                  user=$(echo $kubeconfig_secret_user_b64 | base64 -d)
                  echo "Delete cluster-creator-kubeconfig Rancher user $user"
