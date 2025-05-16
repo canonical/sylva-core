@@ -1,14 +1,4 @@
 ---
-units:
-  namespace-defs:
-    depends_on:
-      cluster-machines-ready: false
-  calico:
-    depends_on:
-      cluster-machines-ready: false
-  calico-crd:
-    depends_on:
-      cluster-machines-ready: false
 cluster:
   control_plane:
     rolloutStrategy:

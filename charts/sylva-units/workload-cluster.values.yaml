@@ -218,7 +218,7 @@ units:
     - dummy
 
   cluster-machines-ready:
-    enabled: true
+    enabled: '{{ not (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpck") }}'
     unit_templates:
     - kustomization-deployed-on-mgmt-cluster
     - kube-job
