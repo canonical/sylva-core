@@ -1,11 +1,14 @@
 ---
 
 # Retrieve alerts from Thanos
-
 mgmt-thanos-alert:
+  stage: deployment-test
+  dependencies: []
   extends:
-    - .test-base-management-cluster
+    - .test-tags
   script:
+    - !reference [.import_functions]
+    - download_artifact deploy-management-cluster management-cluster-kubeconfig
     - pip install jtbl --break-system-packages
     - !reference [.test_scripts, edit_hosts_file]
     - |
@@ -43,4 +46,5 @@ mgmt-thanos-alert:
     when: always
     paths:
       - thanos-alert.html
-
+  rules:
+    - when: always
