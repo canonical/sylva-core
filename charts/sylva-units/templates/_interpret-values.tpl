@@ -276,8 +276,18 @@ Note well that there are a few limitations:
 {{- define "interpret-inner-gotpl" -}}
     {{- $envAll := index . 0 -}}
     {{- $data := index . 1 -}}
+    {{- $result := dict -}}
+    {{- tuple $envAll $data $result | include "_interpret-inner-gotpl" -}}
+    {{- $result | toJson -}}
+{{- end -}}
+
+{{- define "_interpret-inner-gotpl" -}}
+    {{- $envAll := index . 0 -}}
+    {{- $data := index . 1 -}}
+    {{- $output := index . 2 -}}
     {{- $kind := kindOf $data -}}
     {{- $result := 0 -}}
+    {{- $tmp_res := dict -}}
     {{- if (eq $kind "string") -}}
         {{- if regexMatch "(.|\n)*{{(.|\n)+}}(.|\n)*" $data -}}
             {{/* This is where we actually trigger GoTPL interpretation */}}
@@ -288,7 +298,8 @@ Note well that there are a few limitations:
                 {{- $result = $tpl_res -}}
             {{- end -}}
             {{/* recurse to also interpret any nested GoTPL */}}
-            {{- $result = index (tuple $envAll $result | include "interpret-inner-gotpl" | fromJson) "result" -}}
+            {{- $_ := tuple $envAll $result $tmp_res | include "_interpret-inner-gotpl" -}}
+            {{- $result = index $tmp_res "result" -}}
         {{- else -}}
             {{- $result = $data -}}
         {{- end -}}
@@ -296,7 +307,8 @@ Note well that there are a few limitations:
         {{/* this is a list, recurse on each item */}}
         {{- $result = list -}}
         {{- range $data -}}
-            {{- $tpl_item := index (tuple $envAll . | include "interpret-inner-gotpl" | fromJson) "result" -}}
+            {{- $_ := tuple $envAll . $tmp_res | include "_interpret-inner-gotpl" -}}
+            {{- $tpl_item := index $tmp_res "result" -}}
             {{- if (eq (kindOf $tpl_item) "string") -}}
                 {{- if (regexMatch "^( |\n)*{\"encapsulated-result\":" $tpl_item) -}}
                     {{- $result = append $result (index (fromJson $tpl_item) "encapsulated-result") -}}
@@ -311,8 +323,10 @@ Note well that there are a few limitations:
         {{/* this is a dictionary, recurse on each key-value pair */}}
         {{- $result = dict -}}
         {{- range $key,$value := $data -}}
-            {{- $tpl_key := index (tuple $envAll $key | include "interpret-inner-gotpl" | fromJson) "result" -}}
-            {{- $tpl_value := index (tuple $envAll $value | include "interpret-inner-gotpl" | fromJson) "result" -}}
+            {{- $_ := tuple $envAll $key $tmp_res | include "_interpret-inner-gotpl" -}}
+            {{- $tpl_key := index $tmp_res "result" -}}
+            {{- $_ := tuple $envAll $value $tmp_res | include "_interpret-inner-gotpl" -}}
+            {{- $tpl_value := index $tmp_res "result" -}}
             {{- if (eq (kindOf $tpl_value) "string") -}}
                 {{- if (regexMatch "^( |\n)*{\"encapsulated-result\":" $tpl_value) -}}
                     {{- $_ := set $result $tpl_key (index (fromJson $tpl_value) "encapsulated-result") -}}
@@ -327,8 +341,9 @@ Note well that there are a few limitations:
         {{- $result = $data -}}
     {{- end -}}
 
-{{- dict "result" $result | toJson -}}
+{{- $_ := set $output "result" $result -}}
 {{- end -}}
+
 
 {{/*
 
