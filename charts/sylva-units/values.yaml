@@ -9028,16 +9028,11 @@ _internal:
   #compute and validate the number of nodes
   computed_node_count:
     '
-    {{- $node_groups := dict "control-plane" (dict "requested_nodes" .Values.cluster.control_plane_replicas
-                                                   "available_bmh" 0
-                                                   "longhorn_nodes" 0) -}}
+    {{- $node_groups := dict "control-plane" (dict "requested_nodes" .Values.cluster.control_plane_replicas "available_bmh" 0) -}}
     {{- range $md_name, $md_def := .Values.cluster.machine_deployments -}}
-      {{- $_ := set $node_groups $md_name (dict "requested_nodes" $md_def.replicas
-                                                "available_bmh" 0
-                                                "longhorn_nodes" 0) -}}
+      {{- $_ := set $node_groups $md_name (dict "requested_nodes" $md_def.replicas "available_bmh" 0) -}}
     {{- end -}}
     {{- $available_bmh := 0 -}}
-    {{- $longhorn_nodes := 0 -}}
     {{- range $bmh_name, $bmh_def := .Values.cluster.baremetal_hosts -}}
       {{- $bmh_def := mergeOverwrite (deepCopy $.Values.cluster.baremetal_host_default) $bmh_def -}}
       {{- $machine_group := tuple (dict "Values" (deepCopy $.Values.cluster)) $bmh_name $bmh_def | include "getMatchingMachineForBmh" | fromJson -}}
@@ -9045,10 +9040,6 @@ _internal:
         {{- $machine_group_name := $machine_group.machineGroupName -}}
         {{- $available_bmh = $node_groups | dig $machine_group_name "available_bmh" 0 | add 1 -}}
         {{- $node_groups = mergeOverwrite $node_groups (dict $machine_group_name (dict "available_bmh" $available_bmh)) -}}
-        {{- if $bmh_def.longhorn_disk_config -}}
-          {{- $longhorn_nodes = $node_groups | dig $machine_group_name "longhorn_nodes" 0 | add 1 -}}
-          {{- $node_groups = mergeOverwrite $node_groups (dict $machine_group_name (dict "longhorn_nodes" $longhorn_nodes)) -}}
-        {{- end -}}
       {{- end -}}
     {{- end -}}
     {{- if eq .Values.cluster.capi_providers.infra_provider "capm3" -}}
