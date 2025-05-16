@@ -282,7 +282,6 @@ unit_templates:
         - '{{ tuple "components/rancher" (tuple . "rancher" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/sriov" (tuple . "sriov-network-operator" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/cattle-monitoring" (tuple . "monitoring" | include "unit-enabled") | include "set-only-if" }}'
-       #- '{{ tuple "components/upstream-monitoring" (tuple . "monitoring" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/cattle-fleet" (.Values._internal | dig "sylva_mgmt_enabled_units" "rancher" false) | include "set-only-if" }}'  # effective only in workload clusters
         - '{{ tuple "components/ceph-csi-cephfs" (tuple . "ceph-csi-cephfs" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/cattle-logging" (tuple . "logging" | include "unit-enabled") | include "set-only-if" }}'
@@ -4496,6 +4495,24 @@ units:
             username: '{{ .Values._internal.thanos_user }}'
             password: '{{ .Values._internal.thanos_password }}'
     helmrelease_spec:
+      driftDetection:
+        ignore:
+          - target:
+            # The Prometheus Operator annotates 'PrometheusRule' resources with 'prometheus-operator-validated: true'
+            # after validation checks. This occurs only at apply time, so drift detection should ignore it.
+              kind: PrometheusRule
+            paths:
+            - /metadata/annotations/prometheus-operator-validated
+          - target:
+            # The certgen webhook injects the caBundle at runtime, so drift detection should ignore it.
+              kind: ValidatingWebhookConfiguration
+            paths:
+            - /webhooks[0]/clientConfig/caBundle
+          - target:
+            # The certgen webhook injects the caBundle at runtime, so drift detection should ignore it.
+              kind: MutatingWebhookConfiguration
+            paths:
+            - /webhooks[0]/clientConfig/caBundle
       releaseName: rancher-monitoring
       storageNamespace: cattle-monitoring-system
       targetNamespace: cattle-monitoring-system
