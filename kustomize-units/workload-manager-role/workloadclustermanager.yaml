@@ -1,0 +1,87 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: workload-manager-cr
+rules:
+- apiGroups: [""]
+  resources: ["namespaces"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: workload-manager-crb
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: workload-manager-cr
+subjects:
+- apiGroup: rbac.authorization.k8s.io
+  kind: Group
+  name: keycloakoidc_group://wc-managers
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: workload-cluster-manager
+rules:
+- apiGroups: [""]
+  resources: ["configmaps", "secrets"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+- apiGroups: ["helm.toolkit.fluxcd.io"]
+  resources: ["helmreleases"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+- apiGroups: ["source.toolkit.fluxcd.io"]
+  resources: ["gitrepositories"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+- apiGroups: ["kustomize.toolkit.fluxcd.io"]
+  resources: ["kustomizations"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["management.cattle.io"]
+  resources: ["clusters"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["provisioning.cattle.io"]
+  resources: ["clusters"]
+  verbs: ["get", "list", "watch"]
+---
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: workload-manager-rolebinding
+  annotations:
+    policies.kyverno.io/title: Create role binding for workload managers
+    policies.kyverno.io/category: RBAC
+    policies.kyverno.io/subject: RoleBinding
+    policies.kyverno.io/minversion: 1.0.0
+    policies.kyverno.io/description: >-
+      Creates automatically a role binding in the namespaces created for a workload cluster deployment.
+      It grants the permission to create the K8S resources of the cluster's environment values, and view the
+      flux resources created by the sylva-units helm release.
+    kustomize.toolkit.fluxcd.io/force: Enabled
+spec:
+  rules:
+  - name: add-role-binding
+    match:
+      any:
+      - resources:
+          kinds:
+          - Namespace
+          selector:
+            matchLabels:
+              sylva-project.org/workload-cluster: "true"
+    generate:
+      apiVersion: rbac.authorization.k8s.io/v1
+      kind: RoleBinding
+      name: workload-manager-rb
+      namespace: "{{request.object.metadata.name}}"
+      synchronize: true
+      data:
+        roleRef:
+          apiGroup: rbac.authorization.k8s.io
+          kind: ClusterRole
+          name: workload-cluster-manager
+        subjects:
+        - apiGroup: rbac.authorization.k8s.io
+          kind: Group
+          name: keycloakoidc_group://wc-managers

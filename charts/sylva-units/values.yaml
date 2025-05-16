@@ -2173,6 +2173,9 @@ units:
               - apiGroups: ["*"]
                 resources: [ "secrets" ]
                 verbs: ["get", "list", "watch"]
+              - apiGroups: ["rbac.authorization.k8s.io"]
+                resources: [ "rolebindings" ]
+                verbs: ["get", "list", "watch"]
           container:
             resources:
               limits:
@@ -2252,7 +2255,7 @@ units:
               - apiGroups: ["helm.toolkit.fluxcd.io"]
                 resources:
                   - "helmreleases"
-                verbs: ["get", "list", "watch", "patch", "update"]
+                verbs: ["get", "list", "watch", "patch", "update", "create", "delete"]
               - apiGroups: ["external-secrets.io"]
                 resources:
                   - "externalsecrets"
@@ -2294,6 +2297,21 @@ units:
                       (eq .Values.cluster.capi_providers.bootstrap_provider "cabpr")
                   | include "set-only-if"
                 }}
+              - apiGroups: ["rbac.authorization.k8s.io"]
+                resources: [ "rolebindings" ]
+                verbs: ["get", "list", "watch", "create", "patch", "update", "delete"]
+              - apiGroups: ["kustomize.toolkit.fluxcd.io"]
+                resources: [ "kustomizations" ]
+                verbs: ["get", "list", "watch"]
+              - apiGroups: ["management.cattle.io"]
+                resources: ["clusters"]
+                verbs: ["get", "list", "watch"]
+              - apiGroups: [""]
+                resources: ["configmaps", "secrets"]
+                verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+              - apiGroups: ["source.toolkit.fluxcd.io"]
+                resources: ["gitrepositories"]
+                verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
           serviceMonitor:
             enabled: '{{ .Values._internal.monitoring.enabled | include "preserve-type" }}'
       _postRenderers:
@@ -7850,6 +7868,24 @@ units:
         workload_cluster_teams: '{{ .Values.workload_clusters.teams | include "preserve-type" }}'
         managed_clusters_settings: '{{ tuple . "shared_workload_clusters_values" | include "interpret" }}{{ .Values.shared_workload_clusters_values | include "preserve-type" }}'
         workload_cluster_sylva_source: '{{ .Values.workload_clusters.sylva_source | include "preserve-type" }}'
+
+  workload-manager-role:
+    info:
+      description: Allow the members of the group wc-manager to deploy clusters
+      details: >
+        Creates a clusterrole and clusterrolebinding to allow the creation of namespaces, a cluster role with the permissions required
+        to create and delete a new workload cluster, and a kyverno policy to create a role binding to this cluster role as soon as a
+        workload cluster namespace is created.
+      internal: true
+    unit_templates:
+    - base-deps
+    enabled: false
+    depends_on:
+      kyverno: true
+      keycloak-resources: true  # defines the wc-managers group in keycloak
+    repo: sylva-core
+    kustomization_spec:
+      path: ./kustomize-units/workload-manager-role
 
   coredns-custom-hosts-import:
     enabled: false

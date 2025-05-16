@@ -355,6 +355,9 @@ units:
         - '{{ tuple "components/vault-issuer" (eq .Values.security.external_x509_issuer.issuer_type "vault") | include "set-only-if"}}'
         - '{{ tuple "components/ca-issuer" (not (hasKey .Values.security.external_x509_issuer "issuer_type")) | include "set-only-if" }}'
 
+  workload-manager-role:
+    enabled: true
+
 keycloak:
   keycloak_expire_password_days: 30
 

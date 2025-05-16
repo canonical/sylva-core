@@ -48,6 +48,7 @@ spec:
           - view-users
     - name: infra-standard-users
     - name: infra-base-users
+    - name: wc-managers
 ---
 apiVersion: legacy.k8s.keycloak.org/v1alpha1
 kind: KeycloakRealm
