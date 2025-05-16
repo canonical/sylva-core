@@ -1420,7 +1420,7 @@ units:
       chart:
         spec:
           chart: rancher-cis-benchmark
-          version: 105.0.0+up7.0.0
+          version: 105.0.1+up7.0.1
       targetNamespace: cis-operator-system
 
   cis-operator-scan:
