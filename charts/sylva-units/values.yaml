@@ -5226,7 +5226,7 @@ units:
             - op: replace
               path: /metadata/name
               value: >-
-                {{- if eq .Values.cluster.capi_providers.bootstrap_provider "cabk" }}
+                {{- if eq .Values.cluster.capi_providers.bootstrap_provider "cabpk" }}
                 coredns
                 {{- else if eq .Values.cluster.capi_providers.bootstrap_provider "cabpck" }}
                 ck-dns-coredns
