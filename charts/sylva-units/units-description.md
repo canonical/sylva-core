@@ -194,6 +194,7 @@
 | **test-nfs-ganesha** | Perform testing for RWX enabled PVs created from NFS Ganesha | Kustomization |
 | **thanos-credentials-secret** | create a secret containing tenant's thanos credentials | Kustomization |
 | **thanos-init** | sets up thanos certificate<br/><br/>it generates a multiple CN certificate for all Thanos components | Kustomization |
+| **thanos-statefulsets-cleanup** | Remove Thanos statefulsets from previous deployments | Kustomization |
 | **two-replicas-storageclass** | Defines a Longhorn storage class with two replicas | Kustomization |
 | **validating-admission-policies** | configures validating admission policies | Kustomization |
 | **vault-oidc** | configures Vault to be used with OIDC | Kustomization |
