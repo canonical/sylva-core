@@ -774,6 +774,25 @@ units:
           CA_CHAIN: '{{ .Values.external_certificates.cacert | default "" | b64enc }}'
           ISSUER_SERVER: '{{ .Values.security.external_x509_issuer.server }}'
           VAULT_PATH: '{{ .Values.security.external_x509_issuer.vault_path }}'
+      _patches:
+        - target:
+            kind: ClusterSecretStore
+            name: eso-store-k8s-cert-manager
+          patch: |
+            {{- if .Values.workload_clusters.teams -}}
+            {{- range $name, $_ := .Values.workload_clusters.teams }}
+            - op: add
+              path: /spec/conditions/0/namespaces/-
+              value:
+                {{ $name }}
+            {{- end -}}
+            {{- else -}}
+            - op: test
+              path: /kind
+              value: ClusterSecretStore
+            {{- end -}}
+
+
 
   namespace-defs:
     info:
@@ -1241,8 +1260,8 @@ units:
               path: /spec/externalConfig/auth/0/roles/-
               value:
                 name: secret-reader-{{ $name }}
-                bound_service_account_names: ["default", "vault-secrets-webhook", "vault"]
-                bound_service_account_namespaces: ["vault"]
+                bound_service_account_names: [secretstore-access-{{ $name }}]
+                bound_service_account_namespaces: ["{{ $name }}"]
                 policies: [ "secret-reader-{{ $name }}"]
                 ttl: 1h
             {{- end}}
