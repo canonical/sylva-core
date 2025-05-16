@@ -6,7 +6,7 @@ metadata:
 spec:
   # One primary and two standby servers
   instances: ${HARBOR_POSTGRES_REPLICAS}
-  # Sets Postgres shared buffers to 1GB
+  # Sets Postgres shared buffers to 128MB
   postgresql:
     parameters:
       shared_buffers: "128MB"  # <= 25% of 512Mi
