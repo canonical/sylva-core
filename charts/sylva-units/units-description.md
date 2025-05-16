@@ -14,7 +14,7 @@
 | **flux-system** | contains Flux definitions *to manage the Flux system itself via gitops*<br/><br/>Note that Flux is always installed on the current cluster as a pre-requisite to installing the chart | core-component | Kustomization |  |
 | **kyverno** | installs Kyverno | core-component | [Helm chart](https://kyverno.github.io/kyverno) | 3.3.4 |
 | **calico** | install Calico CNI | stable | [Helm chart](https://rke2-charts.rancher.io) | v3.28.200, v3.29.200 |
-| **cinder-csi** | installs OpenStack Cinder CSI | stable | [Helm chart](https://kubernetes.github.io/cloud-provider-openstack) | 2.31.2 |
+| **cinder-csi** | installs OpenStack Cinder CSI | stable | [Helm chart](https://kubernetes.github.io/cloud-provider-openstack) | 2.31.7 |
 | **cis-operator** | install CIS operator | stable | [Helm chart](https://charts.rancher.io) | 105.0.0+up7.0.0 |
 | **cnpg-operator** | Cloud Native PostgreSQL (CNPG) Operator | stable | [Helm chart](https://cloudnative-pg.github.io/charts) | 0.22.1 |
 | **external-secrets-operator** | installs the External Secrets operator | stable | [Helm chart](https://charts.external-secrets.io) | 0.10.4 |
