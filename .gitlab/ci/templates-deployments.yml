@@ -53,7 +53,7 @@ include:
     }
 
 .sylva_ci_versioned_ci_values_folder:
-  # this block computes SYLVA_CI_VERSIONNED_CI_VALUES_FOLDER
+  # this block computes SYLVA_CI_VERSIONED_CI_VALUES_FOLDER
   # which computes the sub-directory of ci-deployment-values from which we take values
   # it is used from update_values_file()
   #
@@ -61,48 +61,48 @@ include:
   # - "current"
   # - "1.x" (e.g. 1.3 for Sylva 1.3.x)
   #
-  # * if GIT_REVISION is set, SYLVA_CI_VERSIONNED_CI_VALUES_FOLDER depends on it
+  # * if GIT_REVISION is set, SYLVA_CI_VERSIONED_CI_VALUES_FOLDER depends on it
   # * for MRs, the folder is computed based on the MR title
   #     (to have automatic selection, for instance of directory "1.3.x" for MR having "[backport-1.3]" in their title)
   # * current is used as a fallback value
   - |
-    if [[ -z ${SYLVA_CI_VERSIONNED_CI_VALUES_FOLDER} ]]; then
+    if [[ -z ${SYLVA_CI_VERSIONED_CI_VALUES_FOLDER} ]]; then
       if [[ -n ${GIT_REVISION} ]]; then
         case ${GIT_REVISION} in
 
           release-*.*)  # "release-1.x" -> "1.x" directory
-            SYLVA_CI_VERSIONNED_CI_VALUES_FOLDER=${GIT_REVISION#release-}
+            SYLVA_CI_VERSIONED_CI_VALUES_FOLDER=${GIT_REVISION#release-}
             ;;
 
           ?.*.*)   # "1.x.y" -> "1.x" directory
-            SYLVA_CI_VERSIONNED_CI_VALUES_FOLDER=${GIT_REVISION%.*}
+            SYLVA_CI_VERSIONED_CI_VALUES_FOLDER=${GIT_REVISION%.*}
             ;;
 
           main)   # "main" -> "current" directory
-            SYLVA_CI_VERSIONNED_CI_VALUES_FOLDER=current
+            SYLVA_CI_VERSIONED_CI_VALUES_FOLDER=current
             ;;
 
         esac
       fi
 
       # if no value was found yet ...
-      if [[ -z ${SYLVA_CI_VERSIONNED_CI_VALUES_FOLDER} ]]; then
+      if [[ -z ${SYLVA_CI_VERSIONED_CI_VALUES_FOLDER} ]]; then
         # try based on CI_MERGE_REQUEST_TARGET_BRANCH_NAME (applies to MRs only)
         if [[ -n ${CI_MERGE_REQUEST_TARGET_BRANCH_NAME} ]]; then
           case ${CI_MERGE_REQUEST_TARGET_BRANCH_NAME} in
 
             release-*.*)  # "release-1.x" -> "1.x" directory
-              SYLVA_CI_VERSIONNED_CI_VALUES_FOLDER=${CI_MERGE_REQUEST_TARGET_BRANCH_NAME#release-}
+              SYLVA_CI_VERSIONED_CI_VALUES_FOLDER=${CI_MERGE_REQUEST_TARGET_BRANCH_NAME#release-}
               ;;
 
             main)   # "main" -> "current" directory
-              SYLVA_CI_VERSIONNED_CI_VALUES_FOLDER=current
+              SYLVA_CI_VERSIONED_CI_VALUES_FOLDER=current
               ;;
 
           esac
         # else fallback to use "current" directory
         else
-          SYLVA_CI_VERSIONNED_CI_VALUES_FOLDER=current
+          SYLVA_CI_VERSIONED_CI_VALUES_FOLDER=current
         fi
       fi
     fi
@@ -126,16 +126,16 @@ include:
             yq -i eval-all '. as $item ireduce ({}; . * $item )' $values_file $common_ci_values_path/$target_file
           fi
 
-          # SYLVA_CI_VERSIONNED_CI_VALUES_FOLDER is defined via ".sylva_ci_versioned_ci_values_folder"
-          versionned_ci_values_path=${SYLVA_CI_VALUES_FOLDER}/${SYLVA_CI_VERSIONNED_CI_VALUES_FOLDER}
-          if [ -d "$SYLVA_CI_VERSIONNED_CI_VALUES_FOLDER" ] || [ -h "$SYLVA_CI_VERSIONNED_CI_VALUES_FOLDER" ] ; then
-            echo >&2 "[WARNING] 🛑 Defined SYLVA_CI_VERSIONNED_CI_VALUES_FOLDER $SYLVA_CI_VERSIONNED_CI_VALUES_FOLDER doesn't exist"
+          # SYLVA_CI_VERSIONED_CI_VALUES_FOLDER is defined via ".sylva_ci_versioned_ci_values_folder"
+          versioned_ci_values_path=${SYLVA_CI_VALUES_FOLDER}/${SYLVA_CI_VERSIONED_CI_VALUES_FOLDER}
+          if [ -d "$SYLVA_CI_VERSIONED_CI_VALUES_FOLDER" ] || [ -h "$SYLVA_CI_VERSIONED_CI_VALUES_FOLDER" ] ; then
+            echo >&2 "[WARNING] 🛑 Defined SYLVA_CI_VERSIONED_CI_VALUES_FOLDER $SYLVA_CI_VERSIONED_CI_VALUES_FOLDER doesn't exist"
           fi
 
-          if [ -f "$versionned_ci_values_path/$target_file" ]; then
+          if [ -f "$versioned_ci_values_path/$target_file" ]; then
             file_found="true"
-            echo -e "Applying values from \\e[1;94m$versionned_ci_values_path/$target_file\\e[0m to \\e[1;92m$values_file\\e[0m"
-            yq -i eval-all '. as $item ireduce ({}; . * $item )' $values_file $versionned_ci_values_path/$target_file
+            echo -e "Applying values from \\e[1;94m$versioned_ci_values_path/$target_file\\e[0m to \\e[1;92m$values_file\\e[0m"
+            yq -i eval-all '. as $item ireduce ({}; . * $item )' $values_file $versioned_ci_values_path/$target_file
           fi
         fi
         if [ "$file_found" = "false" ]; then
@@ -237,7 +237,7 @@ include:
       echo "  DEPLOYMENT_SCENARIO = ${DEPLOYMENT_SCENARIO}"
       echo "  DEPLOYMENT_OPTIONS = ${DEPLOYMENT_OPTIONS}"
       echo "  GIT_REVISION = ${GIT_REVISION:-'N/A'}"
-      echo "  SYLVA_CI_VERSIONNED_CI_VALUES_FOLDER = ${SYLVA_CI_VERSIONNED_CI_VALUES_FOLDER:-'N/A'}"
+      echo "  SYLVA_CI_VERSIONED_CI_VALUES_FOLDER = ${SYLVA_CI_VERSIONED_CI_VALUES_FOLDER:-'N/A'}"
       if [[ -n ${EXTRA_DESCRIPTION} ]]; then echo -e "  ${EXTRA_DESCRIPTION}"; fi
       echo "  Fetch CI values from ${SYLVA_CI_VALUES_REPO} using ${SYLVA_CI_VALUES_REVISION} revision"
       echo "  CAPO_TAG = ${CAPO_TAG:-'N/A'}"
