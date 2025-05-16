@@ -5026,7 +5026,7 @@ units:
       chart:
         spec:
           chart: sriov-crd
-          version: 1.5.0
+          version: 1.5.2+up1.5.0
 
   sriov-network-operator:
     info:
@@ -5046,7 +5046,7 @@ units:
       chart:
         spec:
           chart: sriov-network-operator
-          version: 1.5.0
+          version: 1.5.2+up1.5.0
       values:
         sriov-nfd:  # override of https://github.com/suse-edge/charts/blob/39a276168895d136c10e5a06d16f85d2d2fb7120/charts/sriov-network-operator/1.5.0/charts/sriov-nfd/values.yaml#L2
                     # to workaround the issue described at https://github.com/suse-edge/charts/issues/203
