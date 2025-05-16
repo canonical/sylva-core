@@ -380,15 +380,16 @@ units:
             value: |
               #/bin/bash
               set -e
-              if kubectl -n sylva-system  get secret cluster-creator-kubeconfig -o name > /dev/null 2>&1; then
-                 echo "Get rancher user used for cluster import"
-                 user=$(kubectl -n sylva-system  get secrets cluster-creator-kubeconfig  -o jsonpath='{.data.USER_NAME}' | base64 -d)
-                 echo "Delete user"
-                 kubectl delete users.management.cattle.io $user
+              kubeconfig_secret_user_b64=$(kubectl -n sylva-system get secret cluster-creator-kubeconfig -o jsonpath='{.data.USER_NAME}' 2>/dev/null || true)
+              if [[ -n $kubeconfig_secret_user_b64 ]]; then
+                 echo "cluster-creator-kubeconfig Secret found"
+                 user=$(echo $kubeconfig_secret_user_b64 | base64 -d)
+                 echo "Delete cluster-creator-kubeconfig Rancher user $user"
+                 kubectl delete users.management.cattle.io $user --ignore-not-found=false
                  echo "Delete secret related to legacy solution"
                  kubectl -n sylva-system delete secret cluster-creator-kubeconfig
               else
-                echo "No legacy resources"
+                 echo "No legacy resources (no cluster-creator-kubeconfig Secret)"
               fi
       - target:
           kind: ClusterRole
