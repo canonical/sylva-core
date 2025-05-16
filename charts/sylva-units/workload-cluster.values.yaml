@@ -229,6 +229,7 @@ units:
       # some dependencies of base-deps are inherited, but don't apply here:
       namespace-defs: false
       calico-ready: false
+      cluster-machines-ready: '{{ not (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpck") }}'
     kustomization_spec:
       targetNamespace: null  # if we don't do this, there are errors because namespaces are a non-namespaced resource
 
@@ -239,6 +240,7 @@ units:
     # some dependencies of base-deps are inherited, but don't apply here:
     depends_on:
       calico-ready: false
+      cluster-machines-ready: '{{ not (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpck") }}'
 
   calico:
     enabled: true
@@ -248,6 +250,7 @@ units:
     depends_on:
       namespace-defs: false
       calico-ready: false
+      cluster-machines-ready: '{{ not (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpck") }}'
 
   calico-ready:
     enabled: true
