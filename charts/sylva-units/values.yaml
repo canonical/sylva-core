@@ -6041,7 +6041,7 @@ units:
       chart:
         spec:
           chart: gitea
-          version: 11.0.1
+          version: 12.0.0
       targetNamespace: gitea
       releaseName: gitea
       values:
