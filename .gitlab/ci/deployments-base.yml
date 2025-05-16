@@ -62,7 +62,7 @@ variables:
 
   # Use CI values for specific version
   # If not specified $GIT_REVISION if set is used or "current" otherwise
-  SYLVA_CI_VERSIONNED_CI_VALUES_FOLDER: ""
+  SYLVA_CI_VERSIONED_CI_VALUES_FOLDER: ""
 
   DEPLOYMENT_JOBS_PIPELINE_ID: $CI_PIPELINE_ID
 
