@@ -6604,6 +6604,19 @@
             }
           ]
         },
+        "additional_ca": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "$ref": "#/$defs/string-with-gotpl"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
         "additional_files": {
           "anyOf": [
             {
