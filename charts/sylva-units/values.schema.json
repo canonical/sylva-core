@@ -8528,6 +8528,10 @@
     "registry_mirrors"
   ],
   "properties": {
+    "default_storage_class": {
+      "type": "string",
+      "format": "hostname"
+    },
     "sylva-library": {
       "type": "object"
     },
