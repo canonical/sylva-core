@@ -122,6 +122,22 @@ spec:
 
                 if jq -e <<< $REMAINING_KS '. | length == 0' >/dev/null; then
                     log_event Done "All kustomizations have been deleted"
+                    # Find and delete the leftover namespace created by Rancher
+                    echo "=== Finding and deleting namespace created by Rancher ==="
+                    NS_TO_DELETE=$(kubectl get ns -l fleet.cattle.io/managed=true -o yaml | \
+                    yq '.items[] | select(.metadata.annotations."fleet.cattle.io/cluster-namespace" == env(NS)) | .metadata.name')
+                    # Wait for cluster.provisioning.cattle.io to be deleted
+                    while kubectl get cluster.provisioning.cattle.io -n "$NS_TO_DELETE" --no-headers 2>/dev/null | grep -q .; do
+                        echo "Waiting for cluster.provisioning.cattle.io to be deleted in namespace $NS_TO_DELETE..."
+                        sleep 5  # Adjust the sleep interval as needed
+                    done
+                    if [[ -n "$NS_TO_DELETE" ]]; then
+                        echo "Rancher Namespace to delete: $NS_TO_DELETE"
+                        kubectl delete ns "$NS_TO_DELETE" || true
+                        log_event Deletion "Deleted namespace: $NS_TO_DELETE"
+                    else
+                        echo "No  Rancher namespace found for deletion."
+                    fi
                     exit 0
                 fi
 
