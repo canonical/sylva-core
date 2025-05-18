@@ -495,6 +495,13 @@ echo -e "  ################################ \n"
 # Unset KUBECONFIG to make sure that we are targetting kind cluster
 unset KUBECONFIG
 
+# Check if any cluster name contains "bootstrap", otherwise default to "sylva"
+if [[ $(kind get clusters -q) =~ bootstrap ]]; then
+  KIND_CLUSTER_NAME=$(kind get clusters -q | grep bootstrap)
+else
+  KIND_CLUSTER_NAME="sylva"
+fi
+
 if [[ $(kind get clusters) =~ $KIND_CLUSTER_NAME ]]; then
   crust_gather_collect bootstrap &
   cluster_info_dump bootstrap sylva-system ${MANAGEMENT_CLUSTER_NAME:-management-cluster}
