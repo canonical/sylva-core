@@ -371,23 +371,10 @@ units:
             security:
               # Required to embed dashboards in Rancher Cluster Overview Dashboard on Cluster Explorer
               allow_embedding: true
-      valuesFrom:
-        - kind: ConfigMap
-          name: '{{ .Values.cluster.name }}-capi-monitoring-info'  # this configmap is produced by a kyverno policy defined by the "rancher-monitoring-clusterid-inject" mgmt unit
-          optional: false
-
-  # monitoring-crd:
-  #   enabled: true
-
-  # monitoring:
-  #   enabled: true
-  #   depends_on:
-  #     cluster-import: '{{ tuple . "cluster-import" | include "unit-enabled" }}'
-  #   helmrelease_spec:
-  #     valuesFrom:
-  #       - kind: ConfigMap
-  #         name: '{{ .Values.cluster.name }}-capi-monitoring-info'  # this configmap is produced by a kyverno policy defined by the "rancher-monitoring-clusterid-inject" mgmt unit
-  #         optional: false
+      # valuesFrom:
+      #   - kind: ConfigMap
+      #     name: '{{ .Values.cluster.name }}-capi-monitoring-info'  # this configmap is produced by a kyverno policy defined by the "rancher-monitoring-clusterid-inject" mgmt unit
+      #     optional: false
 
   thanos-credentials-secret:
     enabled: true
