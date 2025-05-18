@@ -30,6 +30,17 @@ spec:
         - charts/sylva-units/management.values.yaml
   driftDetection:
     mode: enabled
+    ignore:
+      - target:  # until https://gitlab.com/sylva-projects/sylva-core/-/issues/2375 is fully solved
+          kind: Kustomization
+          name: minio-logging
+        paths:
+          - /spec/healthCheckExprs
+      - target:  # until https://gitlab.com/sylva-projects/sylva-core/-/issues/2375 is fully solved
+          kind: Kustomization
+          name: minio-monitoring
+        paths:
+          - /spec/healthCheckExprs
   interval: 24h
   valuesFrom:
   - kind: Secret

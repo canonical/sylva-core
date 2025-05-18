@@ -6663,6 +6663,10 @@ units:
                 secretName: minio-logging-tls
     kustomization_spec:
       healthChecks:
+      - apiVersion: apps/v1
+        kind: StatefulSet
+        name: logging-pool-0  # concatenation from .tenant chart values .name & .pools[0].name
+        namespace: minio-logging
       - apiVersion: minio.min.io/v2
         kind: Tenant
         name: logging
@@ -6890,6 +6894,10 @@ units:
                 secretName: minio-monitoring-tls
     kustomization_spec:
       healthChecks:
+      - apiVersion: apps/v1
+        kind: StatefulSet
+        name: monitoring-pool-0  # concatenation from .tenant chart values .name & .pools[0].name
+        namespace: minio-monitoring
       - apiVersion: minio.min.io/v2
         kind: Tenant
         name: monitoring
