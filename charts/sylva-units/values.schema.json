@@ -5388,6 +5388,58 @@
             }
           ]
         },
+        "set_lb_class": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "$ref": "#/$defs/string-with-gotpl"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "loadBalancerClass": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "$ref": "#/$defs/string-with-gotpl"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "set_lb_class": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "$ref": "#/$defs/string-with-gotpl"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "loadBalancerClass": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "$ref": "#/$defs/string-with-gotpl"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
         "enable_longhorn": {
           "anyOf": [
             {
@@ -6944,6 +6996,7 @@
           "anyOf": [
             {
               "type": "object",
+              "additionalProperties": false,
               "patternProperties": {
                 "^[a-z0-9][a-z0-9-_]*[a-z0-9]$": {
                   "anyOf": [
