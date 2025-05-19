@@ -4430,7 +4430,7 @@ units:
       chart:
         spec:
           chart: kepler
-          version: 0.5.12
+          version: 0.5.19
       install:
         createNamespace: false
       values:
