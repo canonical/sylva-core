@@ -207,6 +207,13 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
       ref:
         tag: redis-cluster/11.0.8
 
+  spegel:
+    kind: GitRepository
+    spec:
+      url: https://github.com/spegel-org/spegel.git
+      ref:
+        tag: v0.2.0
+
 helm_repo_spec_default:
   interval: 168h
 
@@ -295,6 +302,7 @@ unit_templates:
         - '{{ tuple "components/neuvector" (tuple . "neuvector" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/kunai" (tuple . "kunai" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/sbom-operator" (tuple . "sbom-operator" | include "unit-enabled") | include "set-only-if" }}'
+        - '{{ tuple "components/spegel" (tuple . "spegel" | include "unit-enabled") | include "set-only-if" }}'
 
   flux-common:
     repo: sylva-core
@@ -1656,6 +1664,36 @@ units:
           kind: Deployment
           name: neuvector-controller-pod
           namespace: neuvector
+
+  spegel:
+    info:
+      description: installs spegel
+      maturity: beta
+    repo: spegel
+    unit_templates:
+    - base-deps
+    depends_on:
+      namespace-defs: true
+    helmrelease_spec:
+      chart:
+        spec:
+          chart: charts/spegel
+      targetNamespace: spegel
+      values:
+        image:
+          tag: "v0.2.0"
+        spegel:
+          logLevel: "DEBUG"
+          containerdSock: '{{ tuple "/run/k3s/containerd/containerd.sock" (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpr") | include "set-only-if" }}'
+          containerdContentPath: '{{ tuple "/var/lib/rancher/rke2/agent/containerd/io.containerd.content.v1.content" (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpr") | include "set-only-if" }}'
+          containerdRegistryConfigPath: "/etc/containerd/registry.d"
+          prependExisting: true
+          mirroredRegistries: |
+            {{- $result := list -}}
+            {{- range $key := keys .Values.registry_mirrors.hosts_config | sortAlpha -}}
+            {{- $result = append $result (printf "http://%s" $key) }}
+            {{- end -}}
+            {{ $result | include "preserve-type" }}
 
   crossplane-init:
     info:
@@ -8293,7 +8331,7 @@ registry_mirrors:
     capabilities: ["pull", "resolve"]
 #   skip_verify: true
 #   override_path: true
-# hosts_config:
+  hosts_config: {}
 #   docker.io:
 #   - mirror_url: http://your.mirror/docker
 #     registry_settings:                     # <<< Host settings can be used to override default_settings
