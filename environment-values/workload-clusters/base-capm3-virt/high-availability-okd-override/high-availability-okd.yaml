@@ -85,5 +85,7 @@ cluster:
           mac_address: '52:54:00:44:44:07'
         ens5:
           mac_address: '52:54:00:55:55:07'
+        nic1: '{{ tuple "" false | include "set-only-if" }}'
+        nic2: '{{ tuple "" false | include "set-only-if" }}'
       ip_preallocations:
         primary: 192.168.100.73
