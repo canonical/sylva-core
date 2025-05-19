@@ -17,7 +17,7 @@ patches:
     metadata:
       name: _unused_
       labels:
-        sylva-project.org/shared-workload-cluster-settings: ""
+        sylva-project.org/workload-cluster: ""
 
 buildMetadata:
 - originAnnotations

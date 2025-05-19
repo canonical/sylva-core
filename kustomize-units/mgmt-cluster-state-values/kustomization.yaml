@@ -4,5 +4,4 @@ kind: Kustomization
 
 resources:
 - configmap.yaml
-- kyverno-generate-workload-cluster-settings.yaml
-- secret.yaml
+- policy.yaml

@@ -10861,10 +10861,7 @@
     "third_party": {
       "type": "object"
     },
-    "shared_workload_clusters_values": {
-      "type": "object"
-    },
-    "shared_workload_clusters_secret_values": {
+    "mgmt_cluster_state_values": {
       "type": "object"
     },
     "workload_clusters": {
