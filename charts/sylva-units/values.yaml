@@ -4972,7 +4972,7 @@ units:
       chart:
         spec:
           chart: prometheus-snmp-exporter
-          version: 9.2.1
+          version: 9.3.0
       values:
         fullnameOverride: 'snmp-exporter'
         replicas: 1
