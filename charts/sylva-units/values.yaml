@@ -9035,7 +9035,7 @@ _internal:
     {{- $available_bmh := 0 -}}
     {{- range $bmh_name, $bmh_def := .Values.cluster.baremetal_hosts -}}
       {{- $bmh_def := mergeOverwrite (deepCopy $.Values.cluster.baremetal_host_default) $bmh_def -}}
-      {{- $machine_group := tuple (dict "Values" (deepCopy $.Values.cluster)) $bmh_name $bmh_def | include "getMatchingMachineForBmh" | fromJson -}}
+      {{- $machine_group := tuple (dict "Values" (deepCopy $.Values.cluster)) $bmh_name $bmh_def | include "getMatchingValuesDefinitionForBmh" | fromJson -}}
       {{- if $machine_group.machineGroupName -}}
         {{- $machine_group_name := $machine_group.machineGroupName -}}
         {{- $available_bmh = $node_groups | dig $machine_group_name "available_bmh" 0 | add 1 -}}
