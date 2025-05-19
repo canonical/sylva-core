@@ -2,6 +2,7 @@
 
 # Sylva-core
 
+[Draft]
 This repository provides the tools and configurations to set up a Sylva management cluster in a declarative way.
 
 ## Start using Sylva
