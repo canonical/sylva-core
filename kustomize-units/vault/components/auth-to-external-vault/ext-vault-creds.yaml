@@ -1,0 +1,11 @@
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: ext-vault
+  namespace: vault
+type: Opaque
+stringData:
+  token: ${EXT_VAULT_TOKEN}
+  addr: ${EXT_VAULT_URL}
+  path: ${K8S_AUTH_PATH}
