@@ -41,6 +41,7 @@ To customize the default pipeline list, edit the merge request description by ad
 * [ ] ☁capm3 🚀rke2 🎬sylva-upgrade 🛠misc,ha 🐧suse
 * [x] ☁capm3 🚀rke2 🎬mgmt-rolling-update 🛠ha,misc 🐧ubuntu
 * [ ] ☁capm3 🚀kadm 🎬rolling-update 🛠ha 🐧suse
+* [ ] ☁capm3 🚀ck8s 🛠k8s-1.31 🐧ubuntu
 
 <!-- DEPLOYMENT FLAVOR DEFINITION END -->
 ```

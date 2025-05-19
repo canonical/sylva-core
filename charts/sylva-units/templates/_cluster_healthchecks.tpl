@@ -101,6 +101,8 @@ on the CAPI bootstrap provider being used.
 {{- else if $cluster.capi_providers.bootstrap_provider | eq "cabpoa" -}}
   {{/* "OpenshiftAssistedControlPlane" for OKD CAPI provider */}}
   {{- $cp_kind = "OpenshiftAssistedControlPlane" -}}
+{{- else if $cluster.capi_providers.bootstrap_provider | eq "cabpck" -}}
+  {{- $cp_kind = "CK8sControlPlane" -}}
 {{- else -}}
   {{- fail (printf "sylva-units cluster-healthchecks named template would need to be extended to support CAPI bootstrap provider %s" $cluster.capi_providers.bootstrap_provider) -}}
 {{- end }}
@@ -147,6 +149,22 @@ it concludes, because CAPI resources aren't fully kstatus compliant, that the re
 Waiting for the cluster kubeconfig Secret is a workaround
 
 */}}
+
+{{/*
+
+In the case of Canonical Bootstrap Provider (cabpck), we wait only for the kubeconfig,
+as the CK8sControlPlane becomes ready only and only after the calico unit gets installed.
+
+In the case of RKE2, Calico is installed by the cloud-init userdata.
+In the case of Kubeadm, the KuebadmControlPlane becomes ready in an optimistic fashion. See: https://github.com/kubernetes-sigs/cluster-api/issues/11766
+
+*/}}
+
+{{- $onlyCheckKubeConfig := . | dig "onlyCheckKubeConfig" false -}}
+{{- if $onlyCheckKubeConfig -}}
+  {{- $result = list -}}
+{{- end }}
+
 {{- $result = append $result (dict
     "apiVersion" "v1"
     "kind" "Secret"

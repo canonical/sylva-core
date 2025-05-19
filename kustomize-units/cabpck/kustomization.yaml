@@ -1,0 +1,59 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - https://github.com/ader1990/cluster-api-k8s/releases/download/v0.4.1/bootstrap-components.yaml
+  - https://github.com/ader1990/cluster-api-k8s/releases/download/v0.4.1/control-plane-components.yaml
+
+components:
+  - ../common-kustomize-components/crd-remove-caBundle
+
+patches:
+  - target:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: cabpck-bootstrap-controller-manager
+      namespace: cabpck-system
+    patch: |-
+      - op: add
+        path: /spec/template/spec/containers/0/securityContext
+        value:
+          runAsNonRoot: true
+          seccompProfile:
+            type: RuntimeDefault
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
+      - op: add
+        path: /spec/template/spec/containers/1/securityContext
+        value:
+          runAsNonRoot: true
+          seccompProfile:
+            type: RuntimeDefault
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
+  - target:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: cacpck-controller-manager
+      namespace: cacpck-system
+    patch: |-
+      - op: add
+        path: /spec/template/spec/containers/0/securityContext
+        value:
+          runAsNonRoot: true
+          seccompProfile:
+            type: RuntimeDefault
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
+
+# Add labels to enable clusterctl move to retrieve resources correponding to cabpck CRDs
+labels:
+  - pairs:
+      clusterctl.cluster.x-k8s.io: ""
