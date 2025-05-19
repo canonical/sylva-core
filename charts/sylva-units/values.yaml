@@ -319,7 +319,8 @@ unit_templates:
           SOURCE_CONCURRENT: '{{ .Values.flux.source.concurrent }}'
           SOURCE_LOG_LEVEL: '{{ .Values.flux.source.log_level }}'
           SOURCE_FEATURES_GATES: '{{ tuple .Values.flux.source.features_gates | include "dict_to_key_values_separated_string"  }}'
-          SOURCE_STORAGE_CLASS: '{{ .Values._internal.default_storage_class }}'
+          SOURCE_STORAGE_CLASS: >-
+            {{ tuple . (tuple . "longhorn" | include "unit-enabled") "single-replica-storageclass" .Values._internal.default_storage_class | include "interpret-ternary" }}
           SOURCE_STORAGE_SIZE: 1Gi
         substituteFrom:
         - kind: ConfigMap
