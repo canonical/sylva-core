@@ -8806,6 +8806,8 @@ _internal:
         enabled: '{{ tuple . "snmp-exporter" | include "unit-enabled" }}'
       crossplane:
         enabled: '{{ tuple . "crossplane" | include "unit-enabled" }}'
+      harbor:
+        enabled: '{{ tuple . "harbor" | include "unit-enabled" }}'
 
   thanos:
     store_config_internal:
