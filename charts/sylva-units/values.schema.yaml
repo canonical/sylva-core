@@ -828,6 +828,12 @@ properties:
             format: hostname
           - const: ''
           - $ref: "#/$defs/string-with-gotpl"
+      headlamp:  # -------------------------------
+        anyOf:
+          - type: string
+            format: hostname
+          - const: ''
+          - $ref: "#/$defs/string-with-gotpl"
       minio_operator_console:  # -------------------------------
         anyOf:
           - type: string

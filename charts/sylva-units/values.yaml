@@ -179,6 +179,13 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
       ref:
         tag: 0.1.2
 
+  headlamp:
+    kind: GitRepository
+    spec:
+      url: https://github.com/kubernetes-sigs/headlamp.git
+      ref:
+        tag: v0.30.0
+
   bitnami-postgresql:
     kind: GitRepository
     spec:
@@ -294,6 +301,7 @@ unit_templates:
         - '{{ tuple "components/kube-system" (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpr") | include "set-only-if" }}'
         - '{{ tuple "components/neuvector" (tuple . "neuvector" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/kunai" (tuple . "kunai" | include "unit-enabled") | include "set-only-if" }}'
+        - '{{ tuple "components/headlamp" (tuple . "headlamp" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/sbom-operator" (tuple . "sbom-operator" | include "unit-enabled") | include "set-only-if" }}'
 
   flux-common:
@@ -1882,6 +1890,7 @@ units:
       targetNamespace: keycloak
       _components:
         - '{{ tuple "components/neuvector" (tuple . "neuvector" | include "unit-enabled") | include "set-only-if" }}'
+        - '{{ tuple "components/headlamp" (tuple . "headlamp" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/harbor" (tuple . "harbor" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/grafana" (tuple . "monitoring" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/kunai" (tuple . "kunai" | include "unit-enabled") | include "set-only-if" }}'
@@ -1894,6 +1903,7 @@ units:
           NEUVECTOR_DNS: '{{ tuple .Values.external_hostnames.neuvector (tuple . "neuvector" | include "unit-enabled") | include "set-only-if" }}'
           VAULT_DNS: '{{ .Values.external_hostnames.vault }}'
           EXPIRE_PASSWORD_DAYS: '{{ int .Values.keycloak.keycloak_expire_password_days }}'
+          HEADLAMP_DNS: '{{ tuple .Values.external_hostnames.headlamp (tuple . "headlamp" | include "unit-enabled") | include "set-only-if" }}'
           KUNAI_DNS: '{{ tuple .Values.external_hostnames.kunai (tuple . "kunai" | include "unit-enabled") | include "set-only-if" }}'
       healthChecks:  #  cannot use __wait: true__ here, see https://gitlab.com/sylva-projects/sylva-core/-/issues/144
         - apiVersion: legacy.k8s.keycloak.org/v1alpha1
@@ -1909,6 +1919,7 @@ units:
           name: keycloak-client-secret-flux-webui-client  # this secret is a byproduct of the flux-webui-client KeycloakClient resource
           namespace: keycloak
         - '{{ tuple (dict "apiVersion" "v1" "kind" "Secret" "name" "keycloak-client-secret-neuvector-client" "namespace" "keycloak") (tuple . "neuvector" | include "unit-enabled") | include "set-only-if" }}'  # # this secret is a byproduct of the neuvector client KeycloakClient resource
+        - '{{ tuple (dict "apiVersion" "v1" "kind" "Secret" "name" "keycloak-client-secret-headlamp-client" "namespace" "keycloak") (tuple . "headlamp" | include "unit-enabled") | include "set-only-if" }}'  # # this secret is a byproduct of the headlamp client KeycloakClient resource
         - '{{ tuple (dict "apiVersion" "v1" "kind" "Secret" "name" "keycloak-client-secret-harbor-client" "namespace" "keycloak") (tuple . "harbor" | include "unit-enabled") | include "set-only-if" }}'  # # this secret is a byproduct of the harbor client KeycloakClient resource
         - '{{ tuple (dict "apiVersion" "v1" "kind" "Secret" "name" "keycloak-client-secret-grafana-client" "namespace" "keycloak") (tuple . "monitoring" | include "unit-enabled") | include "set-only-if" }}'  # # this secret is a byproduct of the grafana client KeycloakClient resource
         - '{{ tuple (dict "apiVersion" "v1" "kind" "Secret" "name" "keycloak-client-secret-kunai-client" "namespace" "keycloak") (tuple . "kunai" | include "unit-enabled") | include "set-only-if" }}'  # # this secret is a byproduct of the grafana client KeycloakClient resource
@@ -2890,6 +2901,22 @@ units:
     kustomization_spec:
       path: ./kustomize-units/metal3-pdb
       wait: true
+
+  headlamp:
+    info:
+      description: installs headlamp
+      maturity: experimental
+    repo: headlamp
+    unit_templates:
+    - base-deps
+    helmrelease_spec:
+      chart:
+        spec:
+          chart: charts/headlamp
+      targetNamespace: kube-system
+      values:
+        podAnnotations:
+          hello/world: headlamptest
 
   local-path-provisioner:
     info:
@@ -8160,6 +8187,7 @@ external_hostnames:
   os_image_server: ''
   gitea: 'gitea.{{ .Values.cluster_domain }}'
   kunai: 'kunai.{{ .Values.cluster_domain }}'
+  headlamp: 'headlamp.{{ .Values.cluster_domain }}'
   minio_operator_console: 'minio-operator-console.{{ .Values.cluster_domain }}'
   minio_monitoring: 'minio-monitoring.{{ .Values.cluster_domain }}'
   minio_monitoring_console: 'minio-monitoring-console.{{ .Values.cluster_domain }}'
