@@ -5,7 +5,6 @@ metadata:
   annotations:
     kustomize.toolkit.fluxcd.io/force: Enabled
 spec:
-  generateExisting: true
   rules:
   - name: sync-management-cluster-addresses
     match:
@@ -21,6 +20,7 @@ spec:
           namespaces:
           - sylva-system
     generate:
+      generateExisting: true
       kind: ConfigMap
       apiVersion: v1
       name: management-cluster-addresses
