@@ -907,9 +907,13 @@ units:
     - base-deps
     depends_on:
       ingress-nginx: '{{ tuple . "ingress-nginx" | include "unit-enabled" }}'
+      sylva-ca: true
+      # keycloak-add-client-scope: true
+      # keycloak-oidc-external-secrets: true
     repo: sylva-core
     kustomization_substitute_secrets:
       ADMIN_CREDENTIAL: '{{ (htpasswd .Values._internal.kubevirt_admin_user .Values._internal.kubevirt_admin_password) | b64enc | quote }}'
+      KEY: '{{ .Values.external_certificates.kubevirt_manager.key | default "" | b64enc }}'
     annotations:
       sylvactl/readyMessage: "Kubevirt manager UI can be reached at https://{{ .Values.external_hostnames.kubevirt_manager }} ({{ .Values.external_hostnames.kubevirt_manager }} must resolve to {{ .Values.display_external_ip }})"
     kustomization_spec:
@@ -918,8 +922,10 @@ units:
       targetNamespace: kubevirt-manager
       postBuild:
         substitute:
-          SERVICE: kubevirt-manager
+          KUBEVIRT_MANAGER_DNS: '{{ .Values.external_hostnames.kubevirt_manager }}'
           SERVICE_DNS: '{{ .Values.external_hostnames.kubevirt_manager }}'
+          KEYCLOAK_DNS: '{{ .Values.external_hostnames.keycloak }}'
+          SERVICE: kubevirt-manager
           CERTIFICATE_NAMESPACE: kubevirt-manager
           CERT: '{{ .Values.external_certificates.kubevirt_manager.cert | default "" | b64enc }}'
           CACERT: '{{ .Values.external_certificates.cacert | default "" | b64enc }}'
@@ -1885,6 +1891,7 @@ units:
         - '{{ tuple "components/harbor" (tuple . "harbor" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/grafana" (tuple . "monitoring" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/kunai" (tuple . "kunai" | include "unit-enabled") | include "set-only-if" }}'
+        - '{{ tuple "components/kubevirt-manager" (tuple . "kubevirt-manager" | include "unit-enabled") | include "set-only-if" }}'
       postBuild:
         substitute:
           GRAFANA_DNS: '{{ .Values.external_hostnames.grafana }}'
@@ -1895,6 +1902,7 @@ units:
           VAULT_DNS: '{{ .Values.external_hostnames.vault }}'
           EXPIRE_PASSWORD_DAYS: '{{ int .Values.keycloak.keycloak_expire_password_days }}'
           KUNAI_DNS: '{{ tuple .Values.external_hostnames.kunai (tuple . "kunai" | include "unit-enabled") | include "set-only-if" }}'
+          KUBEVIRT_MANAGER_DNS: '{{ tuple .Values.external_hostnames.kubevirt_manager (tuple . "kubevirt-manager" | include "unit-enabled") | include "set-only-if" }}'
       healthChecks:  #  cannot use __wait: true__ here, see https://gitlab.com/sylva-projects/sylva-core/-/issues/144
         - apiVersion: legacy.k8s.keycloak.org/v1alpha1
           kind: KeycloakRealm
@@ -1912,6 +1920,7 @@ units:
         - '{{ tuple (dict "apiVersion" "v1" "kind" "Secret" "name" "keycloak-client-secret-harbor-client" "namespace" "keycloak") (tuple . "harbor" | include "unit-enabled") | include "set-only-if" }}'  # # this secret is a byproduct of the harbor client KeycloakClient resource
         - '{{ tuple (dict "apiVersion" "v1" "kind" "Secret" "name" "keycloak-client-secret-grafana-client" "namespace" "keycloak") (tuple . "monitoring" | include "unit-enabled") | include "set-only-if" }}'  # # this secret is a byproduct of the grafana client KeycloakClient resource
         - '{{ tuple (dict "apiVersion" "v1" "kind" "Secret" "name" "keycloak-client-secret-kunai-client" "namespace" "keycloak") (tuple . "kunai" | include "unit-enabled") | include "set-only-if" }}'  # # this secret is a byproduct of the grafana client KeycloakClient resource
+        - '{{ tuple (dict "apiVersion" "v1" "kind" "Secret" "name" "keycloak-client-secret-kubevirt-manager-client" "namespace" "keycloak") (tuple . "kubevirt-manager" | include "unit-enabled") | include "set-only-if" }}'  # # this secret is a byproduct of the kubevirt-manager client KeycloakClient resource
 
 
   keycloak-add-client-scope:

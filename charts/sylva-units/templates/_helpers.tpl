@@ -443,8 +443,6 @@ NOTE WELL:
 {{- lookup "v1" "Secret" $envAll.Release.Namespace "sylva-units-values" | dig "data" "values" "" | b64dec | fromYaml | dig "_internal" $key (randAlphaNum 64) -}}
 {{- end -}}
 
-
-
 {{/*
 
 kustomization-name

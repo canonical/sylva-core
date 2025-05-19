@@ -1,0 +1,55 @@
+apiVersion: legacy.k8s.keycloak.org/v1alpha1
+kind: KeycloakClient
+metadata:
+  name: kubevirt-manager-client
+  namespace: keycloak
+  labels:
+    realm1: sylva
+spec:
+  realmSelector:
+    matchLabels:
+      realm1: sylva
+  client:
+    clientId: kubevirt-manager
+    name: kubevirt-manager
+    enabled: true
+    protocol: openid-connect
+    publicClient: false
+    clientAuthenticatorType: client-secret
+    redirectUris:
+      - "https://${KUBEVIRT_MANAGER_DNS}/oauth2/callback"
+    webOrigins:
+      - "https://${KUBEVIRT_MANAGER_DNS}"
+    standardFlowEnabled: true
+    directAccessGrantsEnabled: true
+    defaultClientScopes:
+      - "profile"
+      - "email"
+    optionalClientScopes:
+      - "phone"
+      - "address"
+    protocolMappers:
+      - name: Groups Mapper
+        protocol: openid-connect
+        protocolMapper: oidc-group-membership-mapper
+        config:
+          full.path: "false"
+          id.token.claim: "false"
+          access.token.claim: "false"
+          userinfo.token.claim: "true"
+          claim.name: groups
+      - name: Client Audience
+        protocol: openid-connect
+        protocolMapper: oidc-audience-mapper
+        config:
+          included.client.audience: kubevirt-manager
+          access.token.claim: "true"
+      - name: Group Path
+        protocol: openid-connect
+        protocolMapper: oidc-group-membership-mapper
+        config:
+          full.path: "true"
+          id.token.claim: "false"
+          access.token.claim: "false"
+          userinfo.token.claim: "true"
+          claim.name: full_group_path

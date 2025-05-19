@@ -70,6 +70,24 @@ def test_neuvector_sso(page: Page, neuvector_url):
     expect(page.locator("a[href=\"http://www.neuvector.com\"]")).to_have_text("NeuVector")
 
 
+# @pytest.mark.skipif(not os.getenv("kubevirt_url"), reason="Kubevirt URL not provided", all=True)
+# def test_kubevirt_sso(page: Page, kubevirt_url):
+#     response = page.goto(kubevirt_url)
+#     assert response.status == 200, f"Expected status 200, but got {response.status}"
+
+#     oidc_login = page.get_by_text("Login with OpenID")
+
+#     if oidc_login.is_disabled():
+#         page.locator(".checkbox-wrapper") \
+#             .filter(has=page.get_by_text("I have read and agree")) \
+#             .locator("mat-checkbox").click()
+
+#     oidc_login.click()
+#     login_to_sso(page)
+
+#     expect(page).to_have_title("Kubevirt")
+
+
 @pytest.mark.skipif(not os.getenv("harbor_url"), reason="Harbor URL not provided", all=True)
 def test_harbor_sso(page: Page, harbor_url):
     response = page.goto(harbor_url)

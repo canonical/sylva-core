@@ -13,7 +13,7 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-  - host: ${SERVICE_DNS}
+  - host: ${KUBEVIRT_MANAGER_DNS}
     http:
       paths:
       - backend:
@@ -25,5 +25,5 @@ spec:
         pathType: ImplementationSpecific
   tls:
   - hosts:
-    - ${SERVICE_DNS}
+    - ${KUBEVIRT_MANAGER_DNS}
     secretName: kubevirt-manager-tls

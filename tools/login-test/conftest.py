@@ -68,6 +68,11 @@ def neuvector_url():
 
 
 @pytest.fixture
+def kubevirt_url():
+    return add_scheme(os.getenv("kubevirt_url", "https://kubevirt-manager.sylva"))
+
+
+@pytest.fixture
 def grafana_url():
     return add_scheme(os.getenv("grafana_url", "https://grafana.sylva"))
 

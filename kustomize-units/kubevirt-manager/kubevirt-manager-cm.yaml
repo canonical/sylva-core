@@ -1,13 +1,111 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: auth-config
+  name: nginx-config
   namespace: kubevirt-manager
   labels:
     app: kubevirt-manager
     kubevirt-manager.io/version: 1.4.0
     kubevirt-manager.io/managed: "true"
 data:
-  basicauth.conf: |
-    auth_basic "Restricted Content";
-    auth_basic_user_file /etc/nginx/secret.d/.htpasswd;
+  nginx.conf: |
+
+    worker_processes  auto;
+
+    error_log  /var/log/nginx/error.log notice;
+    pid        /var/run/nginx.pid;
+
+    events {}
+
+    http {
+
+        include       /etc/nginx/mime.types;
+        default_type  application/octet-stream;
+        sendfile        on;
+
+        map $http_upgrade $connection_upgrade {
+            default upgrade;
+            '' close;
+        }
+
+        server {
+            listen 8080;
+            server_name ${KUBEVIRT_MANAGER_DNS};
+            root /usr/share/nginx/html;
+            index index.html index.htm;
+
+            # Allow health checks without auth (optional)
+            location /healthz {
+                return 200 'OK';
+                add_header Content-Type text/plain;
+            }
+
+            # OAuth2 Proxy auth endpoint
+            location /oauth2/auth {
+                proxy_pass       http://127.0.0.1:4180;
+                proxy_set_header Host              $host;
+                proxy_set_header X-Real-IP         $remote_addr;
+                proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+                proxy_set_header X-Forwarded-Proto https;
+            }
+
+            # OAuth2 Proxy callback endpoint
+            location /oauth2 {
+                proxy_pass       http://127.0.0.1:4180;
+                proxy_set_header Host              $host;
+                proxy_set_header X-Real-IP         $remote_addr;
+                proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+                proxy_set_header X-Forwarded-Proto https;
+            }
+
+            # Catch-all route for Angular app - enforce auth
+            location / {
+                auth_request /oauth2/auth;
+                error_page 401 = /oauth2/start;
+
+                # Pass user info as headers
+                auth_request_set $user  $upstream_http_x_auth_request_user;
+                auth_request_set $email $upstream_http_x_auth_request_email;
+                auth_request_set $groups $upstream_http_x_auth_request_groups;
+
+                proxy_set_header X-User   $user;
+                proxy_set_header X-Email  $email;
+                proxy_set_header X-Groups $groups;
+
+                root /usr/share/nginx/html;
+                index index.html index.htm;
+                try_files $uri $uri/ /index.html;
+            }
+
+            location /k8s {
+                auth_request /oauth2/auth;
+                error_page 401 = /oauth2/start;
+
+                # Pass user info as headers
+                auth_request_set $user  $upstream_http_x_auth_request_user;
+                auth_request_set $email $upstream_http_x_auth_request_email;
+                auth_request_set $groups $upstream_http_x_auth_request_groups;
+
+                proxy_set_header X-User   $user;
+                proxy_set_header X-Email  $email;
+                proxy_set_header X-Groups $groups;
+
+                proxy_set_header X-Real-IP $remote_addr;
+                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                proxy_set_header X-Forwarded-Proto https;
+                proxy_set_header Authorization "";
+                proxy_set_header Host $host;
+                proxy_pass_request_body on;
+                proxy_pass_request_headers on;
+                client_max_body_size 5g;
+                proxy_set_header Upgrade $http_upgrade;
+                proxy_set_header Connection $connection_upgrade;
+                proxy_pass http://127.0.0.1:8001/k8s;
+            }
+        }
+
+        # Optional internal server block placeholder
+        server {
+            listen 127.0.0.1:8081;
+        }
+    }

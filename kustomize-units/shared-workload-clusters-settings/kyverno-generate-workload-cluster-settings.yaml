@@ -45,3 +45,22 @@ spec:
       clone:
         name: shared-workload-clusters-settings
         namespace: sylva-system
+
+  - name: kubevirt-auth-secret-clone
+    match:
+      any:
+      - resources:
+          kinds:
+          - Namespace
+          selector:
+            matchLabels:
+              kubevirt-manager.io/version: 1.4.0
+    generate:
+      apiVersion: v1
+      kind: Secret
+      name: auth-secret
+      namespace: "{{request.object.metadata.name}}"
+      synchronize: true   # 🔁 keep it updated on changes
+      clone:
+        namespace: kubevirt-manager
+        name: auth-secret
