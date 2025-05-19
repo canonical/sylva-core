@@ -2837,6 +2837,8 @@ units:
       description: installs SUSE-maintained Metal3 operator
       maturity: stable
     enabled: false
+    settings:
+      ironicKernelParams: 'net.ifnames=1 console=ttyS0 suse.autologin=ttyS0 rootpwd="$$1$$DAhhpomu$$YqNcZc3ce5H7uswK4skCZ."'
     unit_templates:
     - base-deps
     depends_on:
@@ -2858,6 +2860,7 @@ units:
       values:
         global:
           additionalTrustedCAs: true  # results in having the chart use the metal3-system/tls-ca-additional Secret which is produced by metal3-sylva-ca-init unit
+          ironicKernelParams: '{{ .settings.ironicKernelParams }}'
           ironicIP: '{{ .Values.display_external_ip }}'
           provisioningInterface: eth0
         metal3-ironic:

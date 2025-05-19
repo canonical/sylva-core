@@ -400,6 +400,11 @@ properties:
           info:
             $ref: "#/$defs/unit_info"
 
+          settings:
+            type: object
+            description: "Expose high level configuration to user easily"
+            additionalProperties: true # You can add any settings and enforce specific rules in the final allOf
+
           unit_templates:
             type: array
             items:
@@ -1770,6 +1775,27 @@ allOf:
                     values:
                       not:
                         required: [helmrelease_spec]
+
+    # --------------- Units specifics settings -----------------------
+
+  - if:
+      properties:
+        units:
+          properties:
+            metal3:
+              type: object
+    then:
+      properties:
+        units:
+          properties:
+            metal3:
+              properties:
+                settings:
+                  properties:
+                    ironicKernelParams:
+                      type: string
+                      description: "Kernel params for Ironic"
+                  additionalProperties: false
 
   # additional constraints for .openstack
   - if:

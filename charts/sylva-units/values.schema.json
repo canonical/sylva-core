@@ -8871,6 +8871,11 @@
             "info": {
               "$ref": "#/$defs/unit_info"
             },
+            "settings": {
+              "type": "object",
+              "description": "Expose high level configuration to user easily",
+              "additionalProperties": true
+            },
             "unit_templates": {
               "type": "array",
               "items": {
@@ -11032,6 +11037,40 @@
                         }
                       }
                     }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "units": {
+            "properties": {
+              "metal3": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "units": {
+            "properties": {
+              "metal3": {
+                "properties": {
+                  "settings": {
+                    "properties": {
+                      "ironicKernelParams": {
+                        "type": "string",
+                        "description": "Kernel params for Ironic"
+                      }
+                    },
+                    "additionalProperties": false
                   }
                 }
               }
