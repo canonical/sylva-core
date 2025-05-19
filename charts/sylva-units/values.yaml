@@ -4070,7 +4070,7 @@ units:
 
   rancher-turtles:
     info:
-      description: installs the rancher-turtles operator, which let's us import Cluster API workload clusters in management cluster's Rancher
+      description: installs the Rancher Turtles operator, which enables the import of Cluster API workload clusters into the management cluster's Rancher
     unit_templates:
     - base-deps
     enabled_conditions:

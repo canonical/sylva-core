@@ -625,7 +625,7 @@ units:
   cluster-import-check:
     enabled: false
     info:
-      description: unit used to check if workload cluster is succssfully enrolled in Rancher
+      description: unit used to check if the workload cluster is successfully enrolled in Rancher
       internal: true
     depends_on:
       calico-ready: true
