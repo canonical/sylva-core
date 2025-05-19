@@ -1335,7 +1335,6 @@ units:
         substitute:
           K8S_AUTH_PATH: '{{ .Values.security.vault.paths.k8s }}'
           SECRET_PATH: '{{ .Values.security.vault.paths.secret }}'
-          VAULT_API: '{{ .Values.security.vault.external_vault_url | default "https://vault.vault.svc.cluster.local:8200" }}'
       _components:
         - '{{ tuple "components/keycloak" (tuple . "keycloak" | include "unit-enabled") | include "set-only-if" }}'
 
@@ -7887,7 +7886,7 @@ units:
           chart: .
       values:
         workload_cluster_teams: '{{ .Values.workload_clusters.teams | include "preserve-type" }}'
-        managed_clusters_settings: '{{ tuple . "" | include "interpret" }}{{ .Values.shared_workload_clusters_values | include "preserve-type" }}'
+        managed_clusters_settings: '{{ tuple . "shared_workload_clusters_values" | include "interpret" }}{{ .Values.shared_workload_clusters_values | include "preserve-type" }}'
         workload_cluster_sylva_source: '{{ .Values.workload_clusters.sylva_source | include "preserve-type" }}'
 
   coredns-custom-hosts-import:
@@ -8420,8 +8419,6 @@ security:
       secret: secret
       k8s: kubernetes
       oidc: oidc
-    external_vault_url: {} # leave blank
-    external_vault_ca_cert: {} # leave blank
   external_x509_issuer: {}
    # issuer_type:  acme or vault
    # vault_token:  authent token for vault,

@@ -10155,13 +10155,6 @@
                   "type": "string"
                 }
               }
-            },
-            "external_vault_url": {
-              "type": "string",
-              "pattern": "^(https?://.*|)$"
-            },
-            "external_vault_ca_cert": {
-              "$ref": "#/$defs/certificate"
             }
           }
         },

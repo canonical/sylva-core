@@ -1198,11 +1198,7 @@ properties:
                 type: string
               oidc:
                 type: string
-          external_vault_url:
-            type: string
-            pattern: "^(https?://.*|)$"
-          external_vault_ca_cert:
-            $ref: "#/$defs/certificate"
+
       external_x509_issuer: # -------------------------------
         type: object
         additionalProperties: false
