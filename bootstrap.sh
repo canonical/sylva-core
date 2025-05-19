@@ -19,12 +19,14 @@ set -- "${remaining_args[@]}"
 check_args "$@"
 
 if ! [[ "${BOOTSTRAP_PROXIES_FROM_VALUES:-false}" = "true" ]]; then
-    echo "Will use HTTP proxy settings from provided values instead of shell environment"
+    echo "Will use HTTP proxy settings from provided values instead of shell environment"    
     # Try to retrieve proxies config in values passed (in local values.yaml or through Kustomize) and export them for bootstrap cluster
     EXTRACTED_VALUES=$(_kustomize ${ENV_PATH} | python3 ${BASE_DIR}/tools/extractHelmReleaseValues.py --values-path .spec.valuesFrom)
-    PROXIES_EXPORT_COMMANDS=$(echo "$EXTRACTED_VALUES" | yq 'with_entries(select(.key == "proxies"))' |\
-        helm template bootstrap-cluster-proxies charts/sylva-units --show-only templates/extras/bootstrap-cluster-proxies.yaml --values - | yq .script)
-    eval "$PROXIES_EXPORT_COMMANDS"
+    EVALUATED_PROXIES=$(echo "$EXTRACTED_VALUES" | yq 'with_entries(select(.key == "proxies"))' |\
+            helm template bootstrap-cluster-proxies charts/sylva-units --show-only templates/extras/bootstrap-cluster-proxies.yaml --values - | yq .evaluated_proxies)
+    export http_proxy="$(yq .http_proxy <<< $EVALUATED_PROXIES)"
+    export https_proxy="$(yq .https_proxy <<< $EVALUATED_PROXIES)"
+    export no_proxy="$(yq .no_proxy <<< $EVALUATED_PROXIES)"
 fi
 
 if [[ ${KUBECONFIG:-} =~ management-cluster-kubeconfig ]]; then
