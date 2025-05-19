@@ -1,5 +1,15 @@
 ---
 cluster:
+  control_plane_replicas: 3
+
+  machine_deployments:
+    md0:
+      replicas: 1
+      capm3:
+        hostSelector:
+          matchLabels:
+            cluster-role: worker
+
   control_plane:
     network_interfaces:
       bond0:
