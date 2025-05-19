@@ -64,7 +64,7 @@
 | **thanos** | installs Thanos | beta | [Helm chart](https://github.com/bitnami/charts.git) | thanos/15.8.0 |
 | **trivy-operator** | installs Trivy operator | beta | [Helm chart](https://aquasecurity.github.io/helm-charts/) | 0.26.0 |
 | **descheduler** | install descheduler |  | [Helm chart](https://kubernetes-sigs.github.io/descheduler/) | 0.33.0 |
-| **rancher-turtles** | installs the rancher-turtles operator, which let's us import Cluster API workload clusters in management cluster's Rancher |  | [Helm chart](https://rancher.github.io/turtles) | 0.18.0 |
+| **rancher-turtles** | installs the Rancher Turtles operator, which enables the import of Cluster API workload clusters into the management cluster's Rancher |  | [Helm chart](https://rancher.github.io/turtles) | 0.18.0 |
 
 ## Units for operators, tools or Helm charts maintained in Sylva project
 
@@ -103,7 +103,7 @@
 | **cis-operator-scan** | allows for running a CIS scan for management cluster<br/><br/>it generates a report which can be viewed and downloaded in CSV from the Rancher UI, at https://rancher.sylva/dashboard/c/local/cis/cis.cattle.io.clusterscan | Kustomization |
 | **cluster-garbage-collector** | installs cronjob responsible for unused CAPI resources cleaning | Kustomization |
 | **cluster-import** | unit used to set specific label on workload clusters in order to import them in rancher | Kustomization |
-| **cluster-import-check** | unit used to check if workload cluster is succssfully enrolled in Rancher | Kustomization |
+| **cluster-import-check** | unit used to check if the workload cluster is successfully enrolled in Rancher | Kustomization |
 | **cluster-import-init** | Remove cattle agents deployed by legacy solution<br/><br/>a job to manually delete cattle agent deployed using capi-rancher-import-operator | Kustomization |
 | **cluster-import-legacy-cleanup** | Remove resources used by capi-rancher-import<br/><br/>a job to manually delete secret used in legacy solution | Kustomization |
 | **cluster-machines-ready** | unit used to wait for all CAPI resources to be ready<br/><br/>This unit is here so that activity on all units is held off until all the CAPI resources are ready.<br/>This is a distinct unit from 'cluster-ready' because the readiness criteria is different: here<br/>we not only want the cluster to be ready to host some workload (which only requires some CAPI resources<br/>to be ready) we want all CAPI resources to be ready. | Kustomization |

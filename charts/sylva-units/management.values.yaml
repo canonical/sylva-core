@@ -359,7 +359,7 @@ units:
     info:
       description: Remove resources used by capi-rancher-import
       details: >
-        a job to manually delete secret used in legacy solution
+        a job to manually delete the secret used in the legacy solution
       internal: true
     one_shot: true
     enabled_conditions:
