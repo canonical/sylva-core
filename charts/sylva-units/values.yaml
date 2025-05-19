@@ -981,6 +981,7 @@ units:
           CACERT: '{{ .Values.external_certificates.cacert | default "" | b64enc }}'
           K8S_AUTH_PATH: '{{ .Values.security.vault.paths.k8s }}'
           SECRET_PATH: '{{ .Values.security.vault.paths.secret }}'
+          VAULT_API: '{{ .Values.security.vault.external_vault_url | default "https://vault.vault.svc.cluster.local:8200" }}'
       _components:
         - '{{ ternary "../tls-components/tls-secret" "../tls-components/tls-certificate" (hasKey .Values.external_certificates.harbor "cert") }}'
         - "../tls-components/sylva-ca"
@@ -1193,23 +1194,29 @@ units:
 
   vault:
     info:
-      description: installs Vault
+      description: installs Vault or applies resources to leverage an external vault
       details: |
-        Vault assumes that the certificate vault-tls has been issued
+        Deploying internal Vault assumes that the certificate vault-tls has been issued
       maturity: stable
     unit_templates:
     - base-deps
     depends_on:
       namespace-defs: true
-      ingress-nginx: '{{ tuple . "ingress-nginx" | include "unit-enabled" }}'
-      '{{ .Values._internal.default_storage_class_unit }}': true
+      ingress-nginx: '{{ tuple . "ingress-nginx" | include "unit-enabled" }}' # this dependence can be skipped when relying on external vault
+      '{{ .Values._internal.default_storage_class_unit }}': true # this dependence can be skipped when relying on external vault
       vault-operator: true
     annotations:
-      sylvactl/readyMessage: "Vault UI can be reached at https://{{ .Values.external_hostnames.vault }} ({{ .Values.external_hostnames.vault }} must resolve to {{ .Values.display_external_ip }})"
+      sylvactl/readyMessage: |
+        {{- if .Values.security.vault.external_vault_url -}}
+        External Vault ({{ .Values.security.vault.external_vault_url }}) configured
+        {{- else -}}
+        Vault UI can be reached at https://{{ .Values.external_hostnames.vault }} ({{ .Values.external_hostnames.vault }} must resolve to {{ .Values.display_external_ip }})
+        {{- end }}
     repo: sylva-core
     kustomization_substitute_secrets:
       ADMIN_PASSWORD: '{{ .Values.admin_password }}'
       KEY: '{{ .Values.external_certificates.vault.key | default "" | b64enc }}'
+      EXT_VAULT_TOKEN: '{{ tuple (.Values.security.vault.external_vault_token) (hasKey .Values.security.vault "external_vault_token") | include "set-only-if" }}'
     kustomization_spec:
       path: ./kustomize-units/vault
       _patches:
@@ -1262,40 +1269,33 @@ units:
           SERVICE: vault
           SERVICE_DNS: '{{ .Values.external_hostnames.vault }}'
           CERT: '{{ .Values.external_certificates.vault.cert | default "" | b64enc }}'
-          CACERT: '{{ .Values.external_certificates.cacert | default "" | b64enc }}'
+          CACERT: '{{ .Values.external_certificates.cacert | default "" | b64enc }}'  # CA of the certificate injected to the local Vault
           OIDC_AUTH_PATH: '{{ .Values.security.vault.paths.oidc }}'
           K8S_AUTH_PATH: '{{ .Values.security.vault.paths.k8s }}'
           SECRET_PATH: '{{ .Values.security.vault.paths.secret }}'
+          EXT_VAULT_CA: '{{ tuple (.Values.security.vault.external_vault_ca | default "" | b64enc) (hasKey .Values.security.vault "external_vault_ca") | include "set-only-if" }}'  # CA of the external Vault if any
+          EXT_VAULT_URL: '{{ tuple (.Values.security.vault.external_vault_url) (hasKey .Values.security.vault "external_vault_url") | include "set-only-if" }}'
+          JOB_NAME: vault-ext-config
       _components:
         # generate certificate for external communitation
         - '{{ ternary "../tls-components/tls-secret" "../tls-components/tls-certificate" (hasKey .Values.external_certificates.vault "cert") }}'
         - "../tls-components/sylva-ca"
-      healthChecks:  # sometimes this kustomization seems correctly applied while vault pod is not running, see https://gitlab.com/sylva-projects/sylva-core/-/issues/250
-      # so we replace wait:true by checking for the Vault components health
-        - apiVersion: apps/v1
-          kind: StatefulSet
-          name: vault
-          namespace: vault
-        - apiVersion: apps/v1
-          kind: Deployment
-          name: vault-operator
-          namespace: vault
-        - apiVersion: v1
-          kind: Service
-          name: vault-operator
-          namespace: vault
-        - apiVersion: v1
-          kind: Service
-          name: vault
-          namespace: vault
-        - apiVersion: v1
-          kind: Service
-          name: vault-configurer
-          namespace: vault
-        - apiVersion: apps/v1
-          kind: Deployment
-          name: vault-configurer
-          namespace: vault
+        # Export Vault CA in secret vault/vault-ca (used by clustersecretstore vault): either Sylva CA for local Vault or .Values.security.vault.external_vault_ca for external Vault
+        - '{{ tuple "components/sylva-ca" (not (hasKey .Values.security.vault "external_vault_url")) | include "set-only-if" }}'
+        - '{{ tuple "components/external-ca" (hasKey .Values.security.vault "external_vault_ca") | include "set-only-if" }}'
+        # deploy internal vault if external_vault_url is not defined, configure external vault otherwise
+        - '{{ tuple "components/internal-vault" (not (hasKey .Values.security.vault "external_vault_url")) | include "set-only-if" }}'
+        - '{{ tuple "components/auth-to-external-vault" (hasKey .Values.security.vault "external_vault_url") | include "set-only-if" }}'
+      healthChecks:
+          # healthChecks for internal vault: sometimes this kustomization seems correctly applied while vault pod is not running, see https://gitlab.com/sylva-projects/sylva-core/-/issues/250
+        - '{{ tuple (dict "apiVersion" "apps/v1" "kind" "StatefulSet" "name" "vault" "namespace" "vault") (not (hasKey .Values.security.vault "external_vault_url")) | include "set-only-if" }}'
+        - '{{ tuple (dict "apiVersion" "apps/v1" "kind" "Deployment" "name" "vault-operator" "namespace" "vault") (not (hasKey .Values.security.vault "external_vault_url")) | include "set-only-if" }}'
+        - '{{ tuple (dict "apiVersion" "apps/v1" "kind" "Deployment" "name" "vault-configurer" "namespace" "vault") (not (hasKey .Values.security.vault "external_vault_url")) | include "set-only-if" }}'
+        - '{{ tuple (dict "apiVersion" "v1" "kind" "Service" "name" "vault-operator" "namespace" "vault") (not (hasKey .Values.security.vault "external_vault_url")) | include "set-only-if" }}'
+        - '{{ tuple (dict "apiVersion" "v1" "kind" "Service" "name" "vault" "namespace" "vault") (not (hasKey .Values.security.vault "external_vault_url")) | include "set-only-if" }}'
+        - '{{ tuple (dict "apiVersion" "v1" "kind" "Service" "name" "vault-configurer" "namespace" "vault") (not (hasKey .Values.security.vault "external_vault_url")) | include "set-only-if" }}'
+          # healthChecks for external vault
+        - '{{ tuple (dict "apiVersion" "batch/v1" "kind" "Job" "name" "vault-ext-config" "namespace" "vault") (hasKey .Values.security.vault "external_vault_url") | include "set-only-if" }}'
 
   vault-config-operator:
     info:
@@ -1335,15 +1335,17 @@ units:
         substitute:
           K8S_AUTH_PATH: '{{ .Values.security.vault.paths.k8s }}'
           SECRET_PATH: '{{ .Values.security.vault.paths.secret }}'
+          VAULT_API: '{{ .Values.security.vault.external_vault_url | default "https://vault.vault.svc.cluster.local:8200" }}'
       _components:
         - '{{ tuple "components/keycloak" (tuple . "keycloak" | include "unit-enabled") | include "set-only-if" }}'
 
   vault-oidc:
     info:
-      description: configures Vault to be used with OIDC
+      description: configures internal Vault to be used with OIDC. It does not apply to the external Vault
       internal: true
     enabled_conditions:
     - '{{ tuple . "keycloak" | include "unit-enabled" }}'
+    - '{{ not (hasKey .Values.security.vault "external_vault_url") }}'
     unit_templates:
     - base-deps
     depends_on:
@@ -1360,6 +1362,7 @@ units:
           KEYCLOAK_DNS: '{{ .Values.external_hostnames.keycloak }}'
           OIDC_AUTH_PATH: '{{ .Values.security.vault.paths.oidc }}'
           K8S_AUTH_PATH: '{{ .Values.security.vault.paths.k8s }}'
+          VAULT_API: '{{ .Values.security.vault.external_vault_url | default "https://vault.vault.svc.cluster.local:8200" }}'
 
   external-secrets-operator:
     info:
@@ -1395,9 +1398,33 @@ units:
         substitute:
           K8S_AUTH_PATH: '{{ .Values.security.vault.paths.k8s }}'
           SECRET_PATH: '{{ .Values.security.vault.paths.secret }}'
+          VAULT_API: '{{ .Values.security.vault.external_vault_url | default "https://vault.vault.svc.cluster.local:8200" }}'
       wait: true
       _components:
         - '{{ tuple "components/keycloak" (tuple . "keycloak" | include "unit-enabled") | include "set-only-if" }}'
+      _patches:
+        # remove caProvider when relying on external vault without TLS
+        - target:
+            group: external-secrets.io
+            version: v1beta1
+            kind: ClusterSecretStore
+            name: vault
+          # Empty patch is not allowed, hence the if then dummy patch
+          patch: |-
+            {{- if .Values.security.vault.external_vault_url -}}
+              {{- if not .Values.security.vault.external_vault_ca -}}
+            - op: remove
+              path: /spec/provider/vault/caProvider
+            {{- else -}}
+            - op: test
+              path: /spec/provider/vault/version
+              value: v2
+            {{- end -}}
+            {{- else -}}
+            - op: test
+              path: /spec/provider/vault/version
+              value: v2
+            {{- end -}}
 
   cis-operator-crd:
     info:
@@ -1499,6 +1526,7 @@ units:
           CACERT: '{{ .Values.external_certificates.cacert | default "" | b64enc }}'
           K8S_AUTH_PATH: '{{ .Values.security.vault.paths.k8s }}'
           SECRET_PATH: '{{ .Values.security.vault.paths.secret }}'
+          VAULT_API: '{{ .Values.security.vault.external_vault_url | default "https://vault.vault.svc.cluster.local:8200" }}'
       _components:
         - '{{ ternary "../tls-components/tls-secret" "../tls-components/tls-certificate" (hasKey .Values.external_certificates.neuvector "cert") }}'
         - "../tls-components/sylva-ca"
@@ -2651,6 +2679,7 @@ units:
           kind: ConfigMap
           labelSelector: kube-job=script
         patch: |
+
           - op: replace
             path: /data/kube-job.sh
             value: |
@@ -5875,6 +5904,7 @@ units:
         substitute:
           K8S_AUTH_PATH: '{{ .Values.security.vault.paths.k8s }}'
           SECRET_PATH: '{{ .Values.security.vault.paths.secret }}'
+          VAULT_API: '{{ .Values.security.vault.external_vault_url | default "https://vault.vault.svc.cluster.local:8200" }}'
       wait: true
 
   gitea-eso:
@@ -6193,6 +6223,7 @@ units:
         substitute:
           K8S_AUTH_PATH: '{{ .Values.security.vault.paths.k8s }}'
           SECRET_PATH: '{{ .Values.security.vault.paths.secret }}'
+          VAULT_API: '{{ .Values.security.vault.external_vault_url | default "https://vault.vault.svc.cluster.local:8200" }}'
 
   kunai-eso:
     info:
@@ -6487,6 +6518,7 @@ units:
           CACERT: '{{ .Values.external_certificates.cacert | default "" | b64enc }}'
           K8S_AUTH_PATH: '{{ .Values.security.vault.paths.k8s }}'
           SECRET_PATH: '{{ .Values.security.vault.paths.secret }}'
+          VAULT_API: '{{ .Values.security.vault.external_vault_url | default "https://vault.vault.svc.cluster.local:8200" }}'
       _components:
         - '{{ ternary "../tls-components/tls-secret" "../tls-components/tls-certificate" (hasKey .Values.external_certificates.minio_logging "cert") }}'
         - "../tls-components/sylva-ca"
@@ -6720,6 +6752,7 @@ units:
           CACERT: '{{ .Values.external_certificates.cacert | default "" | b64enc }}'
           K8S_AUTH_PATH: '{{ .Values.security.vault.paths.k8s }}'
           SECRET_PATH: '{{ .Values.security.vault.paths.secret }}'
+          VAULT_API: '{{ .Values.security.vault.external_vault_url | default "https://vault.vault.svc.cluster.local:8200" }}'
       _components:
         - '{{ ternary "../tls-components/tls-secret" "../tls-components/tls-certificate" (hasKey .Values.external_certificates.minio_monitoring "cert") }}'
         - "../tls-components/sylva-ca"
@@ -8419,6 +8452,12 @@ security:
       secret: secret
       k8s: kubernetes
       oidc: oidc
+  # External Vault values (do not use for the moment)
+  #  external_vault_url: https://myvault.mydomain:8200
+  #  external_vault_token: string
+  #  external_vault_ca: |
+  #        -----BEGIN CERTIFICATE-----
+  #        MIIC6jCCAdKgAwIBAgIBADANBgkqh....
   external_x509_issuer: {}
    # issuer_type:  acme or vault
    # vault_token:  authent token for vault,

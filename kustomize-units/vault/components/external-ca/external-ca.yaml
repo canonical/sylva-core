@@ -1,0 +1,10 @@
+---
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: vault-ca
+  namespace: vault
+type: Opaque
+stringData:
+  ca: ${EXT_VAULT_CA}

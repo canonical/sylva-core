@@ -1,0 +1,26 @@
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
+
+resources:
+- ext-vault-creds.yaml
+- ../../../kube-job
+
+configMapGenerator:
+
+- name: kube-job-cm
+  behavior: merge
+  options:
+    disableNameSuffixHash: true
+  files:
+  - kube-job.sh=configure-vault-auth-k8s.sh
+
+patches:
+  - target:
+      kind: ClusterRole
+    patch: |
+      - op: replace
+        path: /rules
+        value:
+          - apiGroups: [cluster.x-k8s.io]
+            resources: [clusters]
+            verbs: [list, get, patch, update]

@@ -7,7 +7,7 @@ spec:
   connection:
     tLSConfig:
       skipVerify: true # see https://gitlab.com/sylva-projects/sylva-core/-/issues/261
-    address: https://vault.vault.svc.cluster.local:8200
+    address: ${VAULT_API}
   authentication:
     path: ${K8S_AUTH_PATH}
     role: admin
