@@ -9024,7 +9024,7 @@ _internal:
         {{- $version = "v1.31.6" -}}
       {{- end -}}
       {{- $version -}}
-  
+
   #compute and validate the number of nodes
   computed_node_count:
     '
