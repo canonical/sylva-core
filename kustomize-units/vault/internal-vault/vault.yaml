@@ -164,16 +164,16 @@ spec:
   externalConfig:
     policies:
       - name: secret-reader
-        rules: path "secret/*" {
+        rules: path "${SECRET_PATH}/*" {
           capabilities = [ "read", "list" ]
           }
       - name: secret-writer
         rules: |
-         path "secret/data/*" {
+         path "${SECRET_PATH}/data/*" {
             capabilities = [ "create", "update", "delete" ]
          }
 
-         path "secret/metadata/*" {
+         path "${SECRET_PATH}/metadata/*" {
             capabilities = [ "delete" ]
          }
 
@@ -216,6 +216,7 @@ spec:
 
     auth:
       - type: kubernetes
+        path: ${K8S_AUTH_PATH}
         roles:
           # default role allows every pod in the vault namespace to read the secret kv store
           - name: secret-reader
@@ -235,7 +236,7 @@ spec:
             ttl: 1h
 
     secrets:
-      - path: secret
+      - path: ${SECRET_PATH}
         type: kv
         description: Management Cluster Secrets
         options:
@@ -243,7 +244,7 @@ spec:
 
     startupSecrets:
       - type: kv
-        path: secret/data/sso-account
+        path: ${SECRET_PATH}/data/sso-account
         data:
           data:
             login: sylva-admin

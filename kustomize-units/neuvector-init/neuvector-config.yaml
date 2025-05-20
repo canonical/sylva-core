@@ -43,5 +43,5 @@ spec:
    data:
    - secretKey: password
      remoteRef:
-        key: secret/data/neuvector
+        key: ${SECRET_PATH}/data/neuvector
         property: password

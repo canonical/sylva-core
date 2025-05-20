@@ -17,5 +17,5 @@ spec:
    data:
    - secretKey: password
      remoteRef:
-        key: secret/data/kunai-nextauth-secret
+        key: ${SECRET_PATH}/data/kunai-nextauth-secret
         property: password
