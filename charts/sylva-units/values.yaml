@@ -295,6 +295,7 @@ unit_templates:
         - '{{ tuple "components/neuvector" (tuple . "neuvector" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/kunai" (tuple . "kunai" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/sbom-operator" (tuple . "sbom-operator" | include "unit-enabled") | include "set-only-if" }}'
+        - '{{ tuple "components/trivy-operator" (tuple . "trivy-operator" | include "unit-enabled") | include "set-only-if" }}'
 
   flux-common:
     repo: sylva-core
@@ -713,11 +714,14 @@ units:
       chart:
         spec:
           chart: trivy-operator
-          version: 0.26.0
+          version: 0.28.1
       targetNamespace: trivy-system
       install:
-        createNamespace: true
+        createNamespace: false
       values:
+        image:
+          registry: docker.io
+          repository: aquasec/trivy-operator
         securityContext:
           runAsNonRoot: true
           seccompProfile:
@@ -734,11 +738,35 @@ units:
           annotations: {}
           create: true
           name: trivy-operator
-        trivy:
+        operator:
+          builtInTrivyServer: true
           httpProxy: '{{ .Values.proxies.https_proxy }}'
           httpsProxy: '{{ .Values.proxies.https_proxy }}'
-          noProxy: '{{ include "sylva-units.no_proxy" (tuple .) }}'
+          noProxy: '{{ printf "%s,%s" (include "sylva-units.no_proxy" (tuple .)) "trivy-service.trivy-system" }}'
+        trivy:
+          image:
+            registry: ghcr.io
+            repository: aquasecurity/trivy
+          httpProxy: '{{ .Values.proxies.https_proxy }}'
+          httpsProxy: '{{ .Values.proxies.https_proxy }}'
+          noProxy: '{{ printf "%s,%s" (include "sylva-units.no_proxy" (tuple .)) "trivy-service.trivy-system" }}'
           severity: UNKNOWN,HIGH,CRITICAL
+          dbRegistry: ghcr.io
+          dbRepository: aquasecurity/trivy-db
+          javaDbRegistry: ghcr.io
+          javaDbRepository: aquasecurity/trivy-java-db
+          insecureRegistries: '{{ .Values.security.trivy_operator.insecure_registries | include "set-if-defined" }}'
+          registry:
+            mirror: '{{ .Values.security.trivy_operator.mirrors | include "set-if-defined" }}'
+        policiesBundle:
+          registry: ghcr.io
+          repository: aquasecurity/trivy-checks
+        compliance:
+          specs:
+          - '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" | ternary "rke2-cis-1.24" "k8s-cis-1.23" }}'
+        nodeCollector:
+          volumes: '{{ .Values._internal.node_collector_volumes | include "preserve-type" }}'
+          volumeMounts: '{{ .Values._internal.node_collector_volume_mounts | include "preserve-type" }}'
         trivyOperator:
           scanJobPodTemplatePodSecurityContext:
             runAsGroup: 10000
@@ -8476,6 +8504,9 @@ security:
   sbom_operator:
     targets:
       - configmap # list of targets (i.e. places where the SBOM is uploaded). Supported targets are configmap, oci and dtrack
+  trivy_operator:
+    insecure_registries: {}
+    mirrors: {}
 
 monitoring:
   platform_tag: Sylva
@@ -9230,6 +9261,62 @@ _internal:
     {{- /* Calculate final MTU */ -}}
     {{- $mtu := sub .Values._internal.base_cni_mtu $max_overhead -}}
     {{- $mtu | include "preserve-type" -}}
+
+  node_collector_volumes_default:
+  - name: var-lib-etcd
+    hostPath:
+      path: /var/lib/etcd
+  - name: var-lib-kubelet
+    hostPath:
+      path: /var/lib/kubelet
+  - name: var-lib-kube-scheduler
+    hostPath:
+      path: /var/lib/kube-scheduler
+  - name: var-lib-kube-controller-manager
+    hostPath:
+      path: /var/lib/kube-controller-manager
+  - name: etc-systemd
+    hostPath:
+      path: /etc/systemd
+  - name: lib-systemd
+    hostPath:
+      path: /lib/systemd
+  - name: etc-kubernetes
+    hostPath:
+      path: /etc/kubernetes
+  - name: etc-cni-netd
+    hostPath:
+      path: /etc/cni/net.d/
+
+  node_collector_volumes: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" | ternary (append .Values._internal.node_collector_volumes_default (dict "name" "var-lib-rancher-rke2" "hostPath" (dict "path" "/var/lib/rancher/rke2"))) .Values._internal.node_collector_volumes_default | include "preserve-type" }}'
+
+  node_collector_volume_mounts_default:
+  - name: var-lib-etcd
+    mountPath: /var/lib/etcd
+    readOnly: true
+  - name: var-lib-kubelet
+    mountPath: /var/lib/kubelet
+    readOnly: true
+  - name: var-lib-kube-scheduler
+    mountPath: /var/lib/kube-scheduler
+    readOnly: true
+  - name: var-lib-kube-controller-manager
+    mountPath: /var/lib/kube-controller-manager
+    readOnly: true
+  - name: etc-systemd
+    mountPath: /etc/systemd
+    readOnly: true
+  - name: lib-systemd
+    mountPath: /lib/systemd/
+    readOnly: true
+  - name: etc-kubernetes
+    mountPath: /etc/kubernetes
+    readOnly: true
+  - name: etc-cni-netd
+    mountPath: /etc/cni/net.d/
+    readOnly: true
+
+  node_collector_volume_mounts: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" | ternary (append .Values._internal.node_collector_volume_mounts_default (dict "name" "var-lib-rancher-rke2" "mountPath" "/var/lib/rancher/rke2" "readOnly" true)) .Values._internal.node_collector_volume_mounts_default | include "preserve-type" }}'
 
 mgmt_cluster_state_values:
   cluster:

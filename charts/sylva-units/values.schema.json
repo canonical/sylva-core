@@ -10340,6 +10340,27 @@
               }
             }
           ]
+        },
+        "trivy_operator": {
+          "type": "object",
+          "properties": {
+            "mirrors": {
+              "type": "object",
+              "patternProperties": {
+                "^[a-z0-9][a-z0-9.-]*[a-z0-9]$": {
+                  "type": "string"
+                }
+              }
+            },
+            "insecure_registries": {
+              "type": "object",
+              "patternProperties": {
+                "^[a-z0-9][a-z0-9.-]*[a-z0-9]$": {
+                  "type": "string"
+                }
+              }
+            }
+          }
         }
       }
     },
