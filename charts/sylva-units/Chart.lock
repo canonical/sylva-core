@@ -1,6 +1,6 @@
 dependencies:
 - name: sylva-library
   repository: https://gitlab.com/api/v4/projects/56163211/packages/helm/base
-  version: 0.0.0-okd-qcow2-may19
-digest: sha256:b3363e9baef08b17518c2b52d1faaa0d98477ae6c6c9ac20fd469c8b8e364789
-generated: "2025-05-19T20:02:20.422977674Z"
+  version: 0.0.0-okd-qcow2-003
+digest: sha256:20a02c6db9514b29581195095e12a7db857c85e616633c3098367a26765b4edc
+generated: "2025-05-20T17:09:37.679908973Z"
