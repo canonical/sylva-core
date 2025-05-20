@@ -9049,7 +9049,7 @@ _internal:
         {{- end -}}
       {{- end -}}
     {{- end -}}
-    {{ $node_groups | toJson }}
+    {{ $node_groups | include "preserve-type" }}
     '
   # total number of nodes in this cluster
   node_count:
