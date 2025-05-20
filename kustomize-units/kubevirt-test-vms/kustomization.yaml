@@ -8,3 +8,4 @@ resources:
 - multus-nw.yaml
 - multus-vm.yaml
 - cirros-vm.yaml
+- vm-restarts-after-upgrade.yml

@@ -1,0 +1,29 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: restart-vms-after-upgrade
+  namespace: kubevirt-manager
+  labels:
+    app: kubevirt-upgrade
+spec:
+  backoffLimit: 1
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: restart
+          image: bitnami/kubectl:1.29.4
+          command:
+            - /bin/sh
+            - -c
+            - |
+              for vm in $(kubectl get vm -n kubevirt-manager -o jsonpath='{.items[*].metadata.name}'); do
+                if kubectl get vm $vm -n kubevirt-manager -o json | grep -q '"type": "RestartRequired"'; then
+                  echo "Restarting VM $vm..."
+                  kubectl patch vm $vm -n kubevirt-manager --type merge -p '{"spec":{"running":false}}'
+                  sleep 15
+                  kubectl patch vm $vm -n kubevirt-manager --type merge -p '{"spec":{"running":true}}'
+                else
+                  echo "VM $vm does not require restart"
+                fi
+              done
