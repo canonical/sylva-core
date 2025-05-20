@@ -7051,7 +7051,7 @@ units:
                       }
                     ]
                   }
-                }' 
+                }'
               # Check the result
               if [ $? -eq 0 ]; then
                 echo "Successfully patched minio-monitoring Kustomization"
