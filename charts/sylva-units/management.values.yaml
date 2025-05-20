@@ -129,11 +129,11 @@ units:
   os-image-server:
     enabled: '{{ tuple . "metal3" | include "unit-enabled" }}'
 
-  litmus-operator:
-    enabled: true
+  #litmus-operator:
+  #  enabled: true
 
-  litmus-testcase-node-memory-hog:
-    enabled: true
+  #litmus-testcase-node-memory-hog:
+  #  enabled: true
 
   kubevirt:
     enabled: false
