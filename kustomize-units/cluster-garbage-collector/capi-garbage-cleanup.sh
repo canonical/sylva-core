@@ -128,11 +128,6 @@ for TEMPLATE_CR in ${TEMPLATE_TYPES_CR[@]}; do
 
                 if [[ "$could_be_removed" == "true" ]]; then
                     echo -e "\n\t Preparing deletion of $TEMPLATE_RESOURCE_SHORT/$TEMPLATE_RESOURCE_INSTANCE"
-                    owner_ref_count=$(kubectl -n "$TARGET_NAMESPACE" get "$TEMPLATE_RESOURCE/$TEMPLATE_RESOURCE_INSTANCE" -o json | jq '.metadata.ownerReferences | length')
-                    if [[ $owner_ref_count != "0" ]]; then
-                        echo -e "\n\t **NOT** deleting $TEMPLATE_RESOURCE_SHORT/$TEMPLATE_RESOURCE_INSTANCE, because it still has ownerReferences (anomaly in this tool ?)"
-                        kubectl -n "$TARGET_NAMESPACE" get "$TEMPLATE_RESOURCE/$TEMPLATE_RESOURCE_INSTANCE" -o json | jq '.metadata.ownerReferences'
-                    else
                         TEMPLATE_RESOURCE_API_VERSION=$(kubectl -n "$TARGET_NAMESPACE" get "$TEMPLATE_RESOURCE/$TEMPLATE_RESOURCE_INSTANCE" -o json | jq .apiVersion)
 
                         echo -e "\n\t Deleting $TEMPLATE_RESOURCE_SHORT/$TEMPLATE_RESOURCE_INSTANCE"
@@ -160,7 +155,6 @@ source:
   component: capi-garbage-cleanup
   host: $HOSTNAME
 EOF
-                    fi
                 fi
             done
         done
