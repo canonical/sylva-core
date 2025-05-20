@@ -51,12 +51,7 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
     spec:
       url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-capi-cluster.git
       ref:
-<<<<<<< HEAD
         tag: 0.9.7
-=======
-        #tag: 0.9.0
-        branch: rebased-rke2-issue-1857
->>>>>>> ee201c656 (removed typo in branch)
 
   sync-openstack-images:
     kind: GitRepository
