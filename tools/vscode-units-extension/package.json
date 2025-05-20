@@ -1,0 +1,39 @@
+{
+  "name": "vscode-units-extension",
+  "displayName": "Units Settings Helper",
+  "description": "Hover and go-to-definition support for upstream_path in units-settings.yaml",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "activationEvents": [
+    "onLanguage:yaml"
+  ],
+  "main": "./extension.js",
+  "contributes": {
+    "languages": [
+      {
+        "id": "yaml",
+        "aliases": [
+          "YAML"
+        ],
+        "extensions": [
+          ".yaml",
+          ".yml"
+        ]
+      }
+    ]
+  },
+  "scripts": {
+    "compile": "tsc"
+  },
+  "devDependencies": {
+    "@types/node": "^18.19.101",
+    "@types/vscode": "^1.100.0",
+    "typescript": "^5.8.3",
+    "yaml": "^2.8.0"
+  },
+  "dependencies": {
+    "yaml-ast-parser": "^0.0.43"
+  }
+}
