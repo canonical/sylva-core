@@ -447,6 +447,8 @@ units:
 
   cluster-import:
     enabled: false  # overriden depending on whether Rancher is enabled or not (via mgmt-cluster-state-values)
+    annotations:
+      sylvactl/unitTimeout: '{{ printf "%dm" ( include "cluster-unit-timeout" . | int) }}'
     info:
       description: imports workload cluster into Rancher
       internal: true
