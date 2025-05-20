@@ -18,7 +18,7 @@ set -- "${remaining_args[@]}"
 
 check_args "$@"
 
-if ! [[ "${BOOTSTRAP_PROXIES_FROM_VALUES:-false}" = "true" ]]; then
+if [[ "${BOOTSTRAP_PROXIES_FROM_VALUES:-false}" = "true" ]]; then
     echo "Will use HTTP proxy settings from provided values instead of shell environment"    
     # Try to retrieve proxies config in values passed (in local values.yaml or through Kustomize) and export them for bootstrap cluster
     EXTRACTED_VALUES=$(_kustomize ${ENV_PATH} | python3 ${BASE_DIR}/tools/extractHelmReleaseValues.py --values-path .spec.valuesFrom)
