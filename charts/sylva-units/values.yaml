@@ -8963,6 +8963,8 @@ _internal:
         {{- index $enableSCs 0 -}}
       {{- else if and (eq (len $enabledUnits) 1) (eq (index $enabledUnits 0) "longhorn") -}}
         {{ .Values._internal.default_longhorn_storage_class }}
+      {{- else if eq (len $enableSCs) 0 -}}
+        local-path
       {{- else -}}
         {{- fail (printf "following SCs %s are available as per units %s enabled, make one as the default_storage_class" $enableSCs $enabledUnits) -}}
       {{- end -}}
