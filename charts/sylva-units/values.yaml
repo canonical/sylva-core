@@ -6711,6 +6711,67 @@ units:
         current: status.healthStatus == "green"
         failed: status.healthStatus != "green"
 
+  minio-logging-patch-healthCheckExprs:
+    info:
+      description: Patches minio-logging Kustomization to use healthCheckExprs field
+      details: |-
+        This unit was introduced as a workaround for the transition between Flux 2.4 and 2.5.
+        It patches the minio-logging Kustomization to use the new healthCheckExprs field
+        that is available in Flux 2.5.x, while removing the older healthChecks field.
+      internal: true
+    one_shot: true
+    unit_templates:
+    - base-deps
+    - kube-job
+    enabled_conditions:
+    - '{{ tuple . "minio-logging" | include "unit-enabled" }}'
+    - '{{ .Values._internal.state.is_upgrade }}'
+    depends_on:
+      minio-logging: '{{ tuple . "minio-logging" | include "unit-enabled" }}'  
+    kustomization_spec:
+      _patches:
+      - target:
+          kind: ConfigMap
+          labelSelector: kube-job=script
+        patch: |
+          - op: replace
+            path: /data/kube-job.sh
+            value: |
+              #!/bin/bash
+            
+              # Patch the minio-logging Kustomization to use healthCheckExprs instead of healthChecks
+              kubectl patch kustomization.kustomize.toolkit.fluxcd.io -n sylva-system minio-logging \
+                --field-manager sylva-minio-healthcheck-patch-unit \
+                --type=merge \
+                --patch '{
+                  "spec": {
+                  "healthChecks": [
+                    {
+                      "apiVersion": "minio.min.io/v2",
+                      "kind": "Tenant",
+                      "name": "logging",
+                      "namespace": "minio-logging"
+                    }
+                   ],
+                    "healthCheckExprs": [
+                      {
+                        "apiVersion": "minio.min.io/v2",
+                        "kind": "Tenant",
+                        "current": "status.healthStatus == \"green\"",
+                        "failed": "status.healthStatus != \"green\""
+                      }
+                    ]
+                  }
+                }'
+            
+              # Check the result
+              if [ $? -eq 0 ]; then
+                echo "Successfully patched minio-logging Kustomization"
+              else
+                echo "Failed to patch minio-logging Kustomization"
+                exit 1
+              fi
+
   minio-monitoring-init:
     info:
       description: sets up secrets and certificates for minio-monitoring
@@ -6941,6 +7002,67 @@ units:
         kind: Tenant
         current: status.healthStatus == "green"
         failed: status.healthStatus != "green"
+
+  minio-monitoring-patch-healthCheckExprs:
+    info:
+      description: Patches minio-monitoring Kustomization to use healthCheckExprs field
+      details: |-
+        This unit was introduced as a workaround for the transition between Flux 2.4 and 2.5.
+        It patches the minio-monitoring Kustomization to use the new healthCheckExprs field
+        that is available in Flux 2.5.x, while removing the older healthChecks field.
+      internal: true
+    one_shot: true
+    unit_templates:
+    - base-deps
+    - kube-job
+    enabled_conditions:
+    - '{{ tuple . "minio-monitoring" | include "unit-enabled" }}'
+    - '{{ .Values._internal.state.is_upgrade }}'
+    depends_on:
+      minio-logging: '{{ tuple . "minio-monitoring" | include "unit-enabled" }}'  
+    kustomization_spec:
+      _patches:
+      - target:
+          kind: ConfigMap
+          labelSelector: kube-job=script
+        patch: |
+          - op: replace
+            path: /data/kube-job.sh
+            value: |
+              #!/bin/bash
+            
+              # Patch the minio-monitoring Kustomization to use healthCheckExprs instead of healthChecks
+              kubectl patch kustomization.kustomize.toolkit.fluxcd.io -n sylva-system minio-monitoring \
+                --field-manager sylva-minio-healthcheck-patch-unit \
+                --type=merge \
+                --patch '{
+                  "spec": {
+                  "healthChecks": [
+                    {
+                      "apiVersion": "minio.min.io/v2",
+                      "kind": "Tenant",
+                      "name": "monitoring",
+                      "namespace": "minio-monitoring"
+                    }
+                   ],
+                    "healthCheckExprs": [
+                      {
+                        "apiVersion": "minio.min.io/v2",
+                        "kind": "Tenant",
+                        "current": "status.healthStatus == \"green\"",
+                        "failed": "status.healthStatus != \"green\""
+                      }
+                    ]
+                  }
+                }'
+            
+              # Check the result
+              if [ $? -eq 0 ]; then
+                echo "Successfully patched minio-monitoring Kustomization"
+              else
+                echo "Failed to patch minio-monitoring Kustomization"
+                exit 1
+              fi
 
   thanos-init:
     info:
