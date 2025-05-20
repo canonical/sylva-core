@@ -6554,7 +6554,7 @@ units:
               echo "StatefulSet deleted successfully. MinIO operator will recreate it with the correct image."
               exit 0
 
-  minio-logging-patch-healthCheckExprs:
+  minio-logging-patch-healthcheckexprs:
     info:
       description: Patches minio-logging Kustomization to use healthCheckExprs field
       details: |-
@@ -6616,7 +6616,7 @@ units:
       namespace-defs: true
       minio-operator: true
       minio-logging-init: true
-      minio-logging-patch-healthCheckExprs: true
+      minio-logging-patch-healthcheckexprs: true
       ingress-nginx: '{{ tuple . "ingress-nginx" | include "unit-enabled" }}'
       two-replicas-storageclass: '{{ tuple . "two-replicas-storageclass" | include "unit-enabled" }}'
       '{{ .Values._internal.default_storage_class_unit }}': '{{ not (tuple . "two-replicas-storageclass" | include "unit-enabled") }}'
@@ -6836,7 +6836,7 @@ units:
               echo "StatefulSet deleted successfully. MinIO operator will recreate it with the correct image."
               exit 0
 
-  minio-monitoring-patch-healthCheckExprs:
+  minio-monitoring-patch-healthcheckexprs:
     info:
       description: Patches minio-monitoring Kustomization to use healthCheckExprs field
       details: |-
@@ -6901,7 +6901,7 @@ units:
       namespace-defs: true
       minio-operator: true
       minio-monitoring-init: true
-      minio-monitoring-patch-healthCheckExprs: true
+      minio-monitoring-patch-healthcheckexprs: true
       ingress-nginx: '{{ tuple . "ingress-nginx" | include "unit-enabled" }}'
       two-replicas-storageclass: '{{ tuple . "two-replicas-storageclass" | include "unit-enabled" }}'
       '{{ .Values._internal.default_storage_class_unit }}': '{{ not (tuple . "two-replicas-storageclass" | include "unit-enabled") }}'
