@@ -518,7 +518,7 @@ units:
     enabled: false
 
   cluster-import-init:
-    enabled: false
+    enabled: false  # overriden depending on whether Rancher is enabled or not (via mgmt-cluster-state-values)
     info:
       description: Remove cattle agents deployed by legacy solution
       details: >
@@ -563,7 +563,7 @@ units:
                 verbs: [list, get, patch, delete]
 
   cluster-import:
-    enabled: false
+    enabled: false # overriden depending on whether Rancher is enabled or not (via mgmt-cluster-state-values)
     info:
       description: unit used to set specific label on workload clusters in order to import them in rancher
       internal: true
@@ -623,7 +623,7 @@ units:
                 verbs: [list, get, delete]
 
   cluster-import-check:
-    enabled: false
+    enabled: false # overriden depending on whether Rancher is enabled or not (via mgmt-cluster-state-values)
     info:
       description: unit used to check if the workload cluster is successfully enrolled in Rancher
       internal: true
