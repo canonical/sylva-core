@@ -32,13 +32,6 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
         # (you can grep the code for "CURRENT_COMMIT" to find out how)
         commit: not-a-real-commit
 
-  capi-rancher-import:
-    kind: GitRepository
-    spec:
-      url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/capi-rancher-import.git
-      ref:
-        tag: 0.2.0
-
   weave-gitops:
     kind: GitRepository
     spec:
@@ -295,6 +288,7 @@ unit_templates:
         - '{{ tuple "components/neuvector" (tuple . "neuvector" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/kunai" (tuple . "kunai" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/sbom-operator" (tuple . "sbom-operator" | include "unit-enabled") | include "set-only-if" }}'
+        - '{{ tuple "components/rancher-turtles" (tuple . "rancher-turtles" | include "unit-enabled") | include "set-only-if" }}'
 
   flux-common:
     repo: sylva-core
@@ -2245,7 +2239,7 @@ units:
                 resources:
                   - "secrets"
                 verbs: ["get", "list", "patch", "update", "watch", "create", "delete"]
-              - apiGroups: ["provisioning.cattle.io"]  # for set-monitoring-chart-cluster-id ClusterPolicy
+              - apiGroups: ["management.cattle.io"]  # for set-monitoring-chart-cluster-id ClusterPolicy
                 resources:
                   - "clusters"
                 verbs: ["get", "list", "watch"]
@@ -4105,48 +4099,37 @@ units:
           name: capo-cluster-resources
           optional: '{{ not (.Values.cluster.capi_providers.infra_provider | eq "capo") | include "as-bool" }}'
 
-  capi-rancher-import:
+  rancher-turtles:
     info:
-      description: installs the capi-rancher-import operator, which let's us import Cluster AIP workload clusters in management cluster's Rancher
-      internal: true
+      description: installs the Rancher Turtles operator, which enables the import of Cluster API workload clusters into the management cluster's Rancher
     unit_templates:
     - base-deps
     enabled_conditions:
     - '{{ tuple . "rancher" | include "unit-enabled" }}'
-    repo: capi-rancher-import
     depends_on:
       rancher: true
       k8s-gateway: true
+    helm_repo_url: https://rancher.github.io/turtles
     helmrelease_spec:
+      driftDetection:
+        mode: warn
       chart:
         spec:
-          chart: charts/capi-rancher-import
-      targetNamespace: capi-rancher-import
-      install:
-        createNamespace: true
+          chart: rancher-turtles
+          version: 0.18.0
+      targetNamespace: rancher-turtles-system
       values:
-        securityContext:
-          allowPrivilegeEscalation: false
-          capabilities:
-            drop:
-              - ALL
-          privileged: false
-          runAsNonRoot: true
-          runAsGroup: 10000
-          runAsUser: 10000
-          seccompProfile:
-            type: RuntimeDefault
-        conf:
-          env:
-            - name: URL_REMAP
-              value: "https://{{ .Values.external_hostnames.rancher }}/ https://rancher.cattle-system.svc.cluster.local/"
-            - name: REQUESTS_SSL_VERIFY
-              value: "no"
-          cattle_agent_kustomize_source_ref:
-            kind: GitRepository
-            name: capi-rancher-import
-            namespace: '{{ .Release.Namespace }}'
-          cattle_agent_kustomize_path: ./cattle-kustomize
+        rancherTurtles:
+          features:
+            agent-tls-mode:
+              enabled: true
+            addon-provider-fleet:
+              enabled: false
+        cluster-api-operator:
+          enabled: false
+          cleanup: false
+          cluster-api:
+            enabled: false
 
   ingress-nginx-cleanup:
     info:
@@ -5540,68 +5523,6 @@ units:
               done
 
               echo "=== All done ==="
-
-  cluster-creator-login:
-    info:
-      description: configures Rancher account used for workload cluster imports
-      internal: true
-    unit_templates:
-    - base-deps
-    - kube-job
-    - kube-cronjob
-    enabled_conditions:
-    - '{{ tuple . "rancher" | include "unit-enabled" }}'
-    depends_on:
-      rancher: true
-      first-login-rancher: true
-    kustomization_spec:
-      path: ./kustomize-units/cluster-creator-login  # inherits from kustomize-units/kube-job and kustomize-units/kube-cronjob
-      postBuild:
-        substitute:
-          CRONJOB_NAME: cluster-creator-renewal
-      _patches:
-        # this patch adjusts the cron schedule
-        - target:
-            kind: CronJob
-          patch: |
-            - op: replace
-              path: /spec/schedule
-              value: "24 4 */10 * *" # this cron needs to be adjusted if kubeconfig-default-token-ttl-minutes Rancher setting changes from the default (43200 minutes)
-      wait: false
-      healthChecks:
-        - apiVersion: v1
-          kind: Secret
-          name: cluster-creator-kubeconfig
-          namespace: '{{ .Release.Namespace }}'
-        - apiVersion: batch/v1
-          kind: Job
-          name: cluster-creator-login
-          namespace: '{{ .Release.Namespace }}'
-        - apiVersion: batch/v1
-          kind: CronJob
-          name: cluster-creator-renewal
-          namespace: '{{ .Release.Namespace }}'
-
-  cluster-creator-policy:
-    info:
-      description: Kyverno policy for cluster creator
-      details: |
-        This units defines a Kyverno policy to distribute the Kubeconfig of cluster creator
-        in all workload cluster namespaces, to allow the import of workload clusters in
-        Rancher.
-      internal: true
-    enabled_conditions:
-    - '{{ tuple . "rancher" | include "unit-enabled" }}'
-    unit_templates:
-    - base-deps
-    depends_on:
-      cluster-creator-login: true
-      kyverno: true
-    repo: sylva-core
-    kustomization_spec:
-      path: ./kustomize-units/cluster-creator-policy
-      wait: true
-      force: true
 
   rancher-default-roles:
     info:
@@ -9239,7 +9160,11 @@ mgmt_cluster_state_values:
       image_provisioning_scheme: '{{ .Values.cluster.capm3.image_provisioning_scheme  }}'
 
   units:
+    cluster-import-init:
+      enabled: '{{ tuple . "rancher" | include "unit-enabled" }}'
     cluster-import:
+      enabled: '{{ tuple . "rancher" | include "unit-enabled" }}'
+    cluster-import-check:
       enabled: '{{ tuple . "rancher" | include "unit-enabled" }}'
 
   monitoring:
