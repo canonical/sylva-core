@@ -17,25 +17,20 @@ spec:
       any:
       - resources:
           kinds:
-          - provisioning.cattle.io/v1/Cluster
+          - management.cattle.io/v3/Cluster
           selector:
             matchLabels:
-              capi-rancher-import.cluster-name: "*"
-    preconditions:
-      all:
-      - key: "{{ request.object.status.clusterName }}"
-        operator: NotEquals
-        value: ""
+              cluster-api.cattle.io/capi-cluster-owner: '*'
     generate:
       kind: ConfigMap
       apiVersion: v1
-      name: "{{request.object.metadata.name}}-monitoring-info"
-      namespace: "{{ request.object.metadata.namespace }}"
+      name: '{{request.object.spec.displayName}}-monitoring-info'
+      namespace: '{{ request.object.metadata.labels."cluster-api.cattle.io/capi-cluster-owner-ns" }}'
       data:
         data:
           values.yaml: |
             global:
               cattle:
-                clusterId: {{ request.object.status.clusterName }}
-                clusterName: {{ request.object.metadata.name }}
+                clusterId: {{ request.object.metadata.name }}
+                clusterName: {{ request.object.spec.displayName}}
 

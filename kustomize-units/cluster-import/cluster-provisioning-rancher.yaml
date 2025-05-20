@@ -1,9 +1,0 @@
-apiVersion: provisioning.cattle.io/v1
-kind: Cluster
-metadata:
-  name: ${CLUSTER_NAME}-capi
-  annotations:
-    field.cattle.io/description: "${CLUSTER_FLAVOR} workload cluster"
-    field.cattle.io/creatorId: ${USER_NAME}
-  labels:
-    capi-rancher-import.cluster-name: ${CLUSTER_NAME}
