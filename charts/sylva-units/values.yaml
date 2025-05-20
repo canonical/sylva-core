@@ -7017,7 +7017,7 @@ units:
     - '{{ tuple . "minio-monitoring" | include "unit-enabled" }}'
     - '{{ .Values._internal.state.is_upgrade }}'
     depends_on:
-      minio-logging: '{{ tuple . "minio-monitoring" | include "unit-enabled" }}'  
+      minio-monitoring: '{{ tuple . "minio-monitoring" | include "unit-enabled" }}'  
     kustomization_spec:
       _patches:
       - target:
