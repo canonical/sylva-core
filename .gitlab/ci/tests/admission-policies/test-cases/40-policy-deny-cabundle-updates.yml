@@ -1,0 +1,342 @@
+# Test Case: Deny caBundle Updates
+#
+# Purpose:
+#   Ensures that only authorized service accounts (e.g., cert-manager) can add or modify the `caBundle` field
+#   in the webhook client configuration of a CustomResourceDefinition (CRD) when a specific annotation is present.
+#   Unauthorized users (such as test-updater) should be denied when attempting to add or change the caBundle.
+#
+# How it works:
+#   - Sets up a CRD with the required annotation and webhook conversion, but no caBundle.
+#   - Attempts to add or modify the caBundle as both an unauthorized and authorized user.
+#   - Verifies that only cert-manager can perform these updates, while others are rejected.
+#   - Also checks that after removing the annotation, further caBundle mutations are denied.
+#
+# Usage:
+#   This file is included in the CI pipeline and executed as part of the Validating Admission Policy test suite.
+#   All resources and test steps for this policy are grouped here.
+
+.vap_policies:
+
+  setup-crd-policy:
+    - |
+      cat <<EOF>> setup-crd-policy.yaml
+      ---
+      # A service account to test denied updates
+      apiVersion: v1
+      kind: ServiceAccount
+      metadata:
+        name: test-updater
+        namespace: validating-admission-policy-test
+      ---
+      apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRole
+      metadata:
+        name: crd-updater-role
+      rules:
+      - apiGroups: ["apiextensions.k8s.io"]
+        resources: ["customresourcedefinitions"]
+        verbs: ["get", "list", "watch", "update", "patch"]
+      ---
+      apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      metadata:
+        name: test-user-crd-updater-binding
+      subjects:
+      - kind: ServiceAccount
+        name: test-updater
+        namespace: validating-admission-policy-test
+      roleRef:
+        kind: ClusterRole
+        name: crd-updater-role
+        apiGroup: rbac.authorization.k8s.io
+      ---
+      # A sample CRD to test against. Start with annotation and webhook, but empty caBundle.
+      apiVersion: apiextensions.k8s.io/v1
+      kind: CustomResourceDefinition
+      metadata:
+        name: tests.example.com
+        # Annotation required to trigger the specific policy check
+        annotations:
+          cert-manager.io/inject-ca-from: "some-namespace/some-secret"
+      spec:
+        group: example.com
+        names:
+          kind: Test
+          listKind: TestList
+          plural: tests
+          singular: test
+        scope: Namespaced
+        versions:
+          - name: v1
+            served: true
+            storage: true
+            schema:
+              openAPIV3Schema:
+                type: object
+                properties:
+                  spec:
+                    type: object
+                    properties:
+                      field:
+                        type: string
+        # Webhook conversion configuration required to trigger the policy check
+        conversion:
+          strategy: Webhook
+          webhook:
+            clientConfig:
+              # caBundle is initially unset or empty - we will try to add/modify it
+              service:
+                name: test-webhook-service
+                namespace: validating-admission-policy-test
+                path: /convert
+                port: 443
+            conversionReviewVersions: ["v1", "v1beta1"]
+      EOF
+    - cat setup-crd-policy.yaml
+
+  add-cabundle:
+    - |
+      cat <<EOF>> test-add-cabundle.yaml
+      ---
+      # Add caBundle for the first time
+      apiVersion: apiextensions.k8s.io/v1
+      kind: CustomResourceDefinition
+      metadata:
+        name: tests.example.com # Assume this was created (no caBundle initially)
+        annotations:
+          cert-manager.io/inject-ca-from: "some-namespace/some-secret"
+      spec:
+        group: example.com
+        names:
+          kind: Test
+          listKind: TestList
+          plural: tests
+          singular: test
+        scope: Namespaced
+        versions:
+          - name: v1
+            served: true
+            storage: true
+            schema:
+              openAPIV3Schema:
+                type: object
+                properties:
+                  spec:
+                    type: object
+                    properties:
+                      field:
+                        type: string
+        conversion:
+          strategy: Webhook
+          webhook:
+            clientConfig:
+              # Adding caBundle for the first time
+              caBundle: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUgwekNDQmJ1Z0F3SUJBZ0lJWHNPM3BrTi9wT0F3RFFZSktvWklodmNOQVFFRkJRQXdRakVTTUJBR0ExVUUKQXd3SlFVTkRWbEpCU1ZveE1SQXdEZ1lEVlFRTERBZFFTMGxCUTBOV01RMHdDd1lEVlFRS0RBUkJRME5XTVFzdwpDUVlEVlFRR0V3SkZVekFlRncweE1UQTFNRFV3T1RNM016ZGFGdzB6TURFeU16RXdPVE0zTXpkYU1FSXhFakFRCkJnTlZCQU1NQ1VGRFExWlNRVWxhTVRFUU1BNEdBMVVFQ3d3SFVFdEpRVU5EVmpFTk1Bc0dBMVVFQ2d3RVFVTkQKVmpFTE1Ba0dBMVVFQmhNQ1JWTXdnZ0lpTUEwR0NTcUdTSWIzRFFFQkFRVUFBNElDRHdBd2dnSUtBb0lDQVFDYgpxYXUvWVVxWHJ5K1hacHAwWDlEWmx2M1A0dVJtN3g4ZlJ6UENSS1BmbXQ0ZnRWVGRGWHhwTlJGdnU4Z01qbW9ZCkh0aVAyUmE4RUVnMlhQQmpzNUJhWENRMzE2UFd5d2x4dWZFQmNvU3dmZHROZ00zODAyL0orTnEyRG9MU1JZV28KRzJpb1BlajBSR3k5b2NMTEE3Nk1QaE1BaE45S1NNRGpJZ3JvNlRlbkdFeXhDUTBqVm44RVRka1hoQmlseU5wQQpsSFByemc1WFBBT0JPcDBLb1ZkRGFheFhiWG1RZU9XMXREdll2RXlOS0tHbm82ZTZBazRsMFNxdTdhNERJcmhyCklBOHdLRlNWZitEdXpncG1uZEZBTFc0aXI1MGF3UVVaMG0vQThwLzRlN01DUXZ0UXFSMHRrdzhqcThiQkQ1TC8KMEtJVjlWTUpjUnovUlJPRTVpWmUrT0NJSEFyOEZyYW9jd2E0OEdPRUFxREdXdXpuZE45d3JxT0RKZXJXeDVlSAprNmZHaW9vemwyQTNFRDZYUG00cEZkYWhEOUdJTEJLZmI2cWt4a0xyUWFMamxVUFRBWVZ0anJzNzh5TTJ4LzQ3CjRLRWxCMGlyeVlsMC93aVBnTC9BbG1Yejd1eExhTDJkaU1NeHMwRHg2TS8yT0x1YzVORi8xT1ZZbTN6NjFQTU8KbTNXUjVMcFNMaGwrMGZYTldobjh1Z2IyKzFLb1M1a0UzZmo1dEl0UW8wNWlpZkNISlBxRFFzR0grdFV0S1NwYQpjWHBrYXRjbllHTU4yODVKOVkwZmtJa3lGL2h6UTdqU1dwT0dZZGJoZFFycWVXWjJpRTl4NndRbDFncGFlcFBsCnVVc1hRQSt4dHJuMTNrL2M0TE9zT3hGd1lJUktRMjZaSU1BcGNRckFaUUlEQVFBQm80SUN5ekNDQXNjd2ZRWUkKS3dZQkJRVUhBUUVFY1RCdk1Fd0dDQ3NHQVFVRkJ6QUNoa0JvZEhSd09pOHZkM2QzTG1GalkzWXVaWE12Wm1scwpaV0ZrYldsdUwwRnlZMmhwZG05ekwyTmxjblJwWm1sallXUnZjeTl5WVdsNllXTmpkakV1WTNKME1COEdDQ3NHCkFRVUZCekFCaGhOb2RIUndPaTh2YjJOemNDNWhZMk4yTG1Wek1CMEdBMVVkRGdRV0JCVFNoN1RqM3pjbmsxWDIKVnVxQjVUYk1qQjQvdlRBUEJnTlZIUk1CQWY4RUJUQURBUUgvTUI4R0ExVWRJd1FZTUJhQUZOS0h0T1BmTnllVApWZlpXNm9IbE5zeU1Iais5TUlJQmN3WURWUjBnQklJQmFqQ0NBV1l3Z2dGaUJnUlZIU0FBTUlJQldEQ0NBU0lHCkNDc0dBUVVGQndJQ01JSUJGQjZDQVJBQVFRQjFBSFFBYndCeUFHa0FaQUJoQUdRQUlBQmtBR1VBSUFCREFHVUEKY2dCMEFHa0FaZ0JwQUdNQVlRQmpBR2tBOHdCdUFDQUFVZ0JoQU8wQWVnQWdBR1FBWlFBZ0FHd0FZUUFnQUVFQQpRd0JEQUZZQUlBQW9BRUVBWndCbEFHNEFZd0JwQUdFQUlBQmtBR1VBSUFCVUFHVUFZd0J1QUc4QWJBQnZBR2NBCjdRQmhBQ0FBZVFBZ0FFTUFaUUJ5QUhRQWFRQm1BR2tBWXdCaEFHTUFhUUR6QUc0QUlBQkZBR3dBWlFCakFIUUEKY2dEekFHNEFhUUJqQUdFQUxBQWdBRU1BU1FCR0FDQUFVUUEwQURZQU1BQXhBREVBTlFBMkFFVUFLUUF1QUNBQQpRd0JRQUZNQUlBQmxBRzRBSUFCb0FIUUFkQUJ3QURvQUx3QXZBSGNBZHdCM0FDNEFZUUJqQUdNQWRnQXVBR1VBCmN6QXdCZ2dyQmdFRkJRY0NBUllrYUhSMGNEb3ZMM2QzZHk1aFkyTjJMbVZ6TDJ4bFoybHpiR0ZqYVc5dVgyTXUKYUhSdE1GVUdBMVVkSHdST01Fd3dTcUJJb0VhR1JHaDBkSEE2THk5M2QzY3VZV05qZGk1bGN5OW1hV3hsWVdSdAphVzR2UVhKamFHbDJiM012WTJWeWRHbG1hV05oWkc5ekwzSmhhWHBoWTJOMk1WOWtaWEl1WTNKc01BNEdBMVVkCkR3RUIvd1FFQXdJQkJqQVhCZ05WSFJFRUVEQU9nUXhoWTJOMlFHRmpZM1l1WlhNd0RRWUpLb1pJaHZjTkFRRUYKQlFBRGdnSUJBSmN4QXAvbi9VTm5TRVFVNUNtSDdVd29adENQTmRwTlliZEtsMDIxMjVEZ0JTNE94bm5ROHBkcApENzBFUjltKzI3VXAycHZacnFtWjFkTThNSlAxamFHby9BYU5SUFRLRnBWOE05eGlpNmczK0NmWUNTMGI3OGdVCkp5Q3BaRVQvTHRaMXFteE5ZRUFaU1VOVVk5cml6THBtNVU5RWVsdlphb0VyUU5WLytRRW5XQ3pJN1VpUmZEK20KQU0vRUtYTVJOdDZHR1Q2ZDdobUtHOVd3N1k0OW5DckFEZGc5WnVNOERiM1ZsRnppNHFjMUd3UUE5ajlhamVwRAp2VitKSGFuQnNNeVo0azBBQ3RySkoxdm5FNUJjNVBVem9sVnQzT0FKVFMreEpsc25kUUFKeEdKM0tRaGZubG1zCnRuNnRuMVF3SWdQQkhuRmsvdms0Q3BZWTNRSVVyQ1BMQmh3ZXBIMk5EZDRuUWVpdDJoVzNzQ1BkSzZqVDJpV0gKN2VoVlJFMkk5RForaEpwNHJQY09Wa2tPMWpNbDFvUlFRbXdnRWgwcTFiNjg4bkNCcEhCZ3ZnVzFtNTRFUkw1aApJNnpwcFNTTUVZQ1VXcUtpdVVuU3dkelJwKzB4RVN5ZUdhYnU0Vlhod09yUERZVGtGN2VpZktYZVZTVUc3c3pBCmgxeEEyc3lWUDFYZ05jZTRoTDYwWGMxNmd3Rnk3b2ZtWHgydXRZWEdKdC9td1pycEhnSkhueXFvYmFsYnoreEYKZDMrWUo1b3lYU3JqaE83Rm1HWXZsaUFkM2RqREo5ZXcrZjdaZmMzUW40OExGRmhSbnkrTHd6Z3QzdWlQMW8ySApwUFZXUXhhWkxQU2tWclEwdUdFM3ljSllnQnVnbDZIOFdZM3BFZmJSRDB0Vk5FWXFpNFk3Ci0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0= # Dummy Base64 Cert
+              service:
+                name: test-webhook-service
+                namespace: validating-admission-policy-test
+                path: /convert
+                port: 443
+            conversionReviewVersions: ["v1", "v1beta1"]     
+      EOF
+    - cat test-add-cabundle.yaml
+
+  modify-cabundle:
+    - |
+      cat <<EOF>> test-modify-cabundle.yaml
+      ---
+      # Update that modifies the caBundle
+      apiVersion: apiextensions.k8s.io/v1
+      kind: CustomResourceDefinition
+      metadata:
+        name: tests.example.com
+        annotations:
+          cert-manager.io/inject-ca-from: "some-namespace/some-secret-CHANGED" # Changed annotation
+          another-annotation: "added" # Added annotation
+      spec:
+        group: example.com
+        names:
+          kind: Test
+          listKind: TestList
+          plural: tests
+          singular: test
+        scope: Namespaced
+        versions:
+          - name: v1
+            served: true
+            storage: true
+            schema:
+              openAPIV3Schema:
+                type: object
+                properties:
+                  spec:
+                    type: object
+                    properties:
+                      field:
+                        type: string
+                      # Add a field to schema to show other changes are allowed
+                      anotherField:
+                          type: integer
+        # Webhook conversion configuration required to trigger the policy check
+        conversion:
+          strategy: Webhook
+          webhook:
+            clientConfig:
+              # we will try to modify caBundle
+              caBundle: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURUekNDQWplZ0F3SUJBZ0lVY1BjYnBFbEQ3cW1TM0FMaHJRUmN5RVdUb1Brd0RRWUpLb1pJaHZjTkFRRUwKQlFBd056RVpNQmNHQTFVRUF3d1FhR0Z5WW05eUxteHZZMkZzTG14aFlqRUxNQWtHQTFVRUJoTUNVazh4RFRBTApCZ05WQkFjTUJFTkpVMU13SGhjTk1qUXdOREF4TVRJMU1qQTRXaGNOTWpVd016SXpNVEkxTWpBNFdqQTNNUmt3CkZ3WURWUVFEREJCb1lYSmliM0l1Ykc5allXd3ViR0ZpTVFzd0NRWURWUVFHRXdKU1R6RU5NQXNHQTFVRUJ3d0UKUTBsVFV6Q0NBU0l3RFFZSktvWklodmNOQVFFQkJRQURnZ0VQQURDQ0FRb0NnZ0VCQUtLM3kzSGtrdGVqUlc2ZAptdjVOdzV1U0hCQlFJSE8zdjgvWk1qV0t3WVlhMkoxaXJ3OFVEQlcyUW5RRzU0QWZLdFVMeGpMZzhVMVVIb2R5CnpCVklXcGtsNXc0bHhlR0hjZGtpMDJBL3Yydk9NT3A5L1RwWTA2MjV5bWFJRk5SOUY1WFBmUDVRWXRlQi91NzMKcjFLTDl6SmJVc3E5ZVdaRUdreXJINjhvUzNBSkFWdkZpTlpCcFE0b0JqTmFGY0xwOFM3cGd5NG4ydk9FL3N5cQpBanZXZkZGWWJqbnFKN05TUUwwaStUbEx0Snp4STlCZSszcStJMVZGYlJvWk9XRHRYaHI2YVNkMDNhd1A2OStwCktBNExLa3l3Ujl3TXdHYUhpUmFMVE15SGxRSmRvRzhhZ2w4UlVDUFZtbGE0STJvNTM5Z3c2QkUrOFV0aUgrVXcKZjlLQTZFY0NBd0VBQWFOVE1GRXdIUVlEVlIwT0JCWUVGR0l3bUtLYkQrUUpQRmYwMmluR3Nxc1JVQUlnTUI4RwpBMVVkSXdRWU1CYUFGR0l3bUtLYkQrUUpQRmYwMmluR3Nxc1JVQUlnTUE4R0ExVWRFd0VCL3dRRk1BTUJBZjh3CkRRWUpLb1pJaHZjTkFRRUxCUUFEZ2dFQkFCN0YvaHNFUWxNR3lUbFgyRGs1MUt0UUkwcDdUcUEyU2U4ZjhmcXUKaWNlMjFtUmFBb1hYeVJKZlU3dStVZlhlY0R3V3ZydVpYQklHR2xpRjdGczNBZmo5cUd2Y2RJTkpnekg2bENENwpiY0UySWdCb3FEMHJwWEJpNjVUSjhqL1hOUmx6UWdMd2ZsN1dENDAyNUo1Yy95cFlQMms3V252NDZWUVo2by9OCndkUWFCeWhSa2FEczErQTBxNnpYdmtkU3hGaWFIL1loREFCU245TVdLWFhxaitGUmpzT1Z5YVJYZ0lLYTRDV2sKbkV2UDFyakM5M1paQkdxK096NEtMRFB4M201WDJEdGpJZ090RGpqQXN5UGhHS0NDRm9zTFlRdjh1K3NEdGs3QwpFK1ZmamFOMU5xbmhCMlU4eFBZS1hUZWRPRWgwckw4QllKZnp0Q09HU2FjZ3NHbz0KLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo= # Same Cert as previous ALLOWED update
+              service:
+                name: test-webhook-service
+                namespace: validating-admission-policy-test
+                path: /convert
+                port: 443
+            conversionReviewVersions: ["v1", "v1beta1"]    
+      EOF
+    - cat test-modify-cabundle.yaml
+
+  update-crd:
+    - |
+      cat <<EOF>> test-update-crd.yaml
+      ---
+      # State for testing NO caBundle change (but other field changes)
+      apiVersion: apiextensions.k8s.io/v1
+      kind: CustomResourceDefinition
+      metadata:
+        name: tests.example.com
+        annotations:
+          cert-manager.io/inject-ca-from: "some-namespace/some-secret-CHANGED" # Changed annotation
+          another-annotation: "added" # Added annotation
+      spec:
+        group: example.com
+        names:
+          kind: Test
+          listKind: TestList
+          plural: tests
+          singular: test
+        scope: Namespaced
+        versions:
+          - name: v1
+            served: true
+            storage: true
+            schema:
+              openAPIV3Schema:
+                type: object
+                properties:
+                  spec:
+                    type: object
+                    properties:
+                      field:
+                        type: string
+                      # Add a field to schema to show other changes are allowed
+                      anotherField:
+                          type: integer
+        conversion:
+          strategy: Webhook
+          webhook:
+            clientConfig:
+              # caBundle is UNCHANGED
+              caBundle: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURUekNDQWplZ0F3SUJBZ0lVY1BjYnBFbEQ3cW1TM0FMaHJRUmN5RVdUb1Brd0RRWUpLb1pJaHZjTkFRRUwKQlFBd056RVpNQmNHQTFVRUF3d1FhR0Z5WW05eUxteHZZMkZzTG14aFlqRUxNQWtHQTFVRUJoTUNVazh4RFRBTApCZ05WQkFjTUJFTkpVMU13SGhjTk1qUXdOREF4TVRJMU1qQTRXaGNOTWpVd016SXpNVEkxTWpBNFdqQTNNUmt3CkZ3WURWUVFEREJCb1lYSmliM0l1Ykc5allXd3ViR0ZpTVFzd0NRWURWUVFHRXdKU1R6RU5NQXNHQTFVRUJ3d0UKUTBsVFV6Q0NBU0l3RFFZSktvWklodmNOQVFFQkJRQURnZ0VQQURDQ0FRb0NnZ0VCQUtLM3kzSGtrdGVqUlc2ZAptdjVOdzV1U0hCQlFJSE8zdjgvWk1qV0t3WVlhMkoxaXJ3OFVEQlcyUW5RRzU0QWZLdFVMeGpMZzhVMVVIb2R5CnpCVklXcGtsNXc0bHhlR0hjZGtpMDJBL3Yydk9NT3A5L1RwWTA2MjV5bWFJRk5SOUY1WFBmUDVRWXRlQi91NzMKcjFLTDl6SmJVc3E5ZVdaRUdreXJINjhvUzNBSkFWdkZpTlpCcFE0b0JqTmFGY0xwOFM3cGd5NG4ydk9FL3N5cQpBanZXZkZGWWJqbnFKN05TUUwwaStUbEx0Snp4STlCZSszcStJMVZGYlJvWk9XRHRYaHI2YVNkMDNhd1A2OStwCktBNExLa3l3Ujl3TXdHYUhpUmFMVE15SGxRSmRvRzhhZ2w4UlVDUFZtbGE0STJvNTM5Z3c2QkUrOFV0aUgrVXcKZjlLQTZFY0NBd0VBQWFOVE1GRXdIUVlEVlIwT0JCWUVGR0l3bUtLYkQrUUpQRmYwMmluR3Nxc1JVQUlnTUI4RwpBMVVkSXdRWU1CYUFGR0l3bUtLYkQrUUpQRmYwMmluR3Nxc1JVQUlnTUE4R0ExVWRFd0VCL3dRRk1BTUJBZjh3CkRRWUpLb1pJaHZjTkFRRUxCUUFEZ2dFQkFCN0YvaHNFUWxNR3lUbFgyRGs1MUt0UUkwcDdUcUEyU2U4ZjhmcXUKaWNlMjFtUmFBb1hYeVJKZlU3dStVZlhlY0R3V3ZydVpYQklHR2xpRjdGczNBZmo5cUd2Y2RJTkpnekg2bENENwpiY0UySWdCb3FEMHJwWEJpNjVUSjhqL1hOUmx6UWdMd2ZsN1dENDAyNUo1Yy95cFlQMms3V252NDZWUVo2by9OCndkUWFCeWhSa2FEczErQTBxNnpYdmtkU3hGaWFIL1loREFCU245TVdLWFhxaitGUmpzT1Z5YVJYZ0lLYTRDV2sKbkV2UDFyakM5M1paQkdxK096NEtMRFB4M201WDJEdGpJZ090RGpqQXN5UGhHS0NDRm9zTFlRdjh1K3NEdGs3QwpFK1ZmamFOMU5xbmhCMlU4eFBZS1hUZWRPRWgwckw4QllKZnp0Q09HU2FjZ3NHbz0KLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo= # Same Cert as previous ALLOWED update
+              service:
+                name: test-webhook-service
+                namespace: validating-admission-policy-test
+                path: /convert
+                port: 443
+            conversionReviewVersions: ["v1", "v1beta1"]
+      EOF
+    - cat test-update-crd.yaml
+
+  remove-annotation:
+    - |
+      cat <<EOF>> test-remove-annotation.yaml
+      ---
+      # Update that removes "cert-manager.io/inject-ca-from" annotation
+      apiVersion: apiextensions.k8s.io/v1
+      kind: CustomResourceDefinition
+      metadata:
+        name: tests.example.com
+        annotations:
+          # Annotation cert-manager.io/inject-ca-from: is REMOVED
+          another-annotation: "added" # Added annotation
+      spec:
+        group: example.com
+        names:
+          kind: Test
+          listKind: TestList
+          plural: tests
+          singular: test
+        scope: Namespaced
+        versions:
+          - name: v1
+            served: true
+            storage: true
+            schema:
+              openAPIV3Schema:
+                type: object
+                properties:
+                  spec:
+                    type: object
+                    properties:
+                      field:
+                        type: string
+        # Webhook conversion configuration required to trigger the policy check
+        conversion:
+          strategy: Webhook
+          webhook:
+            clientConfig:
+              # caBundle is UNCHANGED
+              caBundle: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUgwekNDQmJ1Z0F3SUJBZ0lJWHNPM3BrTi9wT0F3RFFZSktvWklodmNOQVFFRkJRQXdRakVTTUJBR0ExVUUKQXd3SlFVTkRWbEpCU1ZveE1SQXdEZ1lEVlFRTERBZFFTMGxCUTBOV01RMHdDd1lEVlFRS0RBUkJRME5XTVFzdwpDUVlEVlFRR0V3SkZVekFlRncweE1UQTFNRFV3T1RNM016ZGFGdzB6TURFeU16RXdPVE0zTXpkYU1FSXhFakFRCkJnTlZCQU1NQ1VGRFExWlNRVWxhTVRFUU1BNEdBMVVFQ3d3SFVFdEpRVU5EVmpFTk1Bc0dBMVVFQ2d3RVFVTkQKVmpFTE1Ba0dBMVVFQmhNQ1JWTXdnZ0lpTUEwR0NTcUdTSWIzRFFFQkFRVUFBNElDRHdBd2dnSUtBb0lDQVFDYgpxYXUvWVVxWHJ5K1hacHAwWDlEWmx2M1A0dVJtN3g4ZlJ6UENSS1BmbXQ0ZnRWVGRGWHhwTlJGdnU4Z01qbW9ZCkh0aVAyUmE4RUVnMlhQQmpzNUJhWENRMzE2UFd5d2x4dWZFQmNvU3dmZHROZ00zODAyL0orTnEyRG9MU1JZV28KRzJpb1BlajBSR3k5b2NMTEE3Nk1QaE1BaE45S1NNRGpJZ3JvNlRlbkdFeXhDUTBqVm44RVRka1hoQmlseU5wQQpsSFByemc1WFBBT0JPcDBLb1ZkRGFheFhiWG1RZU9XMXREdll2RXlOS0tHbm82ZTZBazRsMFNxdTdhNERJcmhyCklBOHdLRlNWZitEdXpncG1uZEZBTFc0aXI1MGF3UVVaMG0vQThwLzRlN01DUXZ0UXFSMHRrdzhqcThiQkQ1TC8KMEtJVjlWTUpjUnovUlJPRTVpWmUrT0NJSEFyOEZyYW9jd2E0OEdPRUFxREdXdXpuZE45d3JxT0RKZXJXeDVlSAprNmZHaW9vemwyQTNFRDZYUG00cEZkYWhEOUdJTEJLZmI2cWt4a0xyUWFMamxVUFRBWVZ0anJzNzh5TTJ4LzQ3CjRLRWxCMGlyeVlsMC93aVBnTC9BbG1Yejd1eExhTDJkaU1NeHMwRHg2TS8yT0x1YzVORi8xT1ZZbTN6NjFQTU8KbTNXUjVMcFNMaGwrMGZYTldobjh1Z2IyKzFLb1M1a0UzZmo1dEl0UW8wNWlpZkNISlBxRFFzR0grdFV0S1NwYQpjWHBrYXRjbllHTU4yODVKOVkwZmtJa3lGL2h6UTdqU1dwT0dZZGJoZFFycWVXWjJpRTl4NndRbDFncGFlcFBsCnVVc1hRQSt4dHJuMTNrL2M0TE9zT3hGd1lJUktRMjZaSU1BcGNRckFaUUlEQVFBQm80SUN5ekNDQXNjd2ZRWUkKS3dZQkJRVUhBUUVFY1RCdk1Fd0dDQ3NHQVFVRkJ6QUNoa0JvZEhSd09pOHZkM2QzTG1GalkzWXVaWE12Wm1scwpaV0ZrYldsdUwwRnlZMmhwZG05ekwyTmxjblJwWm1sallXUnZjeTl5WVdsNllXTmpkakV1WTNKME1COEdDQ3NHCkFRVUZCekFCaGhOb2RIUndPaTh2YjJOemNDNWhZMk4yTG1Wek1CMEdBMVVkRGdRV0JCVFNoN1RqM3pjbmsxWDIKVnVxQjVUYk1qQjQvdlRBUEJnTlZIUk1CQWY4RUJUQURBUUgvTUI4R0ExVWRJd1FZTUJhQUZOS0h0T1BmTnllVApWZlpXNm9IbE5zeU1Iais5TUlJQmN3WURWUjBnQklJQmFqQ0NBV1l3Z2dGaUJnUlZIU0FBTUlJQldEQ0NBU0lHCkNDc0dBUVVGQndJQ01JSUJGQjZDQVJBQVFRQjFBSFFBYndCeUFHa0FaQUJoQUdRQUlBQmtBR1VBSUFCREFHVUEKY2dCMEFHa0FaZ0JwQUdNQVlRQmpBR2tBOHdCdUFDQUFVZ0JoQU8wQWVnQWdBR1FBWlFBZ0FHd0FZUUFnQUVFQQpRd0JEQUZZQUlBQW9BRUVBWndCbEFHNEFZd0JwQUdFQUlBQmtBR1VBSUFCVUFHVUFZd0J1QUc4QWJBQnZBR2NBCjdRQmhBQ0FBZVFBZ0FFTUFaUUJ5QUhRQWFRQm1BR2tBWXdCaEFHTUFhUUR6QUc0QUlBQkZBR3dBWlFCakFIUUEKY2dEekFHNEFhUUJqQUdFQUxBQWdBRU1BU1FCR0FDQUFVUUEwQURZQU1BQXhBREVBTlFBMkFFVUFLUUF1QUNBQQpRd0JRQUZNQUlBQmxBRzRBSUFCb0FIUUFkQUJ3QURvQUx3QXZBSGNBZHdCM0FDNEFZUUJqQUdNQWRnQXVBR1VBCmN6QXdCZ2dyQmdFRkJRY0NBUllrYUhSMGNEb3ZMM2QzZHk1aFkyTjJMbVZ6TDJ4bFoybHpiR0ZqYVc5dVgyTXUKYUhSdE1GVUdBMVVkSHdST01Fd3dTcUJJb0VhR1JHaDBkSEE2THk5M2QzY3VZV05qZGk1bGN5OW1hV3hsWVdSdAphVzR2UVhKamFHbDJiM012WTJWeWRHbG1hV05oWkc5ekwzSmhhWHBoWTJOMk1WOWtaWEl1WTNKc01BNEdBMVVkCkR3RUIvd1FFQXdJQkJqQVhCZ05WSFJFRUVEQU9nUXhoWTJOMlFHRmpZM1l1WlhNd0RRWUpLb1pJaHZjTkFRRUYKQlFBRGdnSUJBSmN4QXAvbi9VTm5TRVFVNUNtSDdVd29adENQTmRwTlliZEtsMDIxMjVEZ0JTNE94bm5ROHBkcApENzBFUjltKzI3VXAycHZacnFtWjFkTThNSlAxamFHby9BYU5SUFRLRnBWOE05eGlpNmczK0NmWUNTMGI3OGdVCkp5Q3BaRVQvTHRaMXFteE5ZRUFaU1VOVVk5cml6THBtNVU5RWVsdlphb0VyUU5WLytRRW5XQ3pJN1VpUmZEK20KQU0vRUtYTVJOdDZHR1Q2ZDdobUtHOVd3N1k0OW5DckFEZGc5WnVNOERiM1ZsRnppNHFjMUd3UUE5ajlhamVwRAp2VitKSGFuQnNNeVo0azBBQ3RySkoxdm5FNUJjNVBVem9sVnQzT0FKVFMreEpsc25kUUFKeEdKM0tRaGZubG1zCnRuNnRuMVF3SWdQQkhuRmsvdms0Q3BZWTNRSVVyQ1BMQmh3ZXBIMk5EZDRuUWVpdDJoVzNzQ1BkSzZqVDJpV0gKN2VoVlJFMkk5RForaEpwNHJQY09Wa2tPMWpNbDFvUlFRbXdnRWgwcTFiNjg4bkNCcEhCZ3ZnVzFtNTRFUkw1aApJNnpwcFNTTUVZQ1VXcUtpdVVuU3dkelJwKzB4RVN5ZUdhYnU0Vlhod09yUERZVGtGN2VpZktYZVZTVUc3c3pBCmgxeEEyc3lWUDFYZ05jZTRoTDYwWGMxNmd3Rnk3b2ZtWHgydXRZWEdKdC9td1pycEhnSkhueXFvYmFsYnoreEYKZDMrWUo1b3lYU3JqaE83Rm1HWXZsaUFkM2RqREo5ZXcrZjdaZmMzUW40OExGRmhSbnkrTHd6Z3QzdWlQMW8ySApwUFZXUXhhWkxQU2tWclEwdUdFM3ljSllnQnVnbDZIOFdZM3BFZmJSRDB0Vk5FWXFpNFk3Ci0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0= # Dummy Base64 Cert
+              service:
+                name: test-webhook-service
+                namespace: validating-admission-policy-test
+                path: /convert
+                port: 443
+            conversionReviewVersions: ["v1", "v1beta1"]
+      EOF
+    - cat test-remove-annotation.yaml
+
+  modify-post-annotation-removal:
+    - |
+      cat <<EOF>> test-modify-post-annotation-removal.yaml
+      ---
+      # Update that modifies the caBundle after annotation removal
+      apiVersion: apiextensions.k8s.io/v1
+      kind: CustomResourceDefinition
+      metadata:
+        name: tests.example.com
+        annotations:
+          # Annotation cert-manager.io/inject-ca-from: is still MISSING
+          cert-manager.io/inject-ca-from: "some-namespace/some-secret"
+      spec:
+        group: example.com
+        names:
+          kind: Test
+          listKind: TestList
+          plural: tests
+          singular: test
+        scope: Namespaced
+        versions:
+          - name: v1
+            served: true
+            storage: true
+            schema:
+              openAPIV3Schema:
+                type: object
+                properties:
+                  spec:
+                    type: object
+                    properties:
+                      field:
+                        type: string
+        conversion:
+          strategy: Webhook
+          webhook:
+            clientConfig:
+              # modify caBundle again
+              caBundle: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUgwekNDQmJ1Z0F3SUJBZ0lJWHNPM3BrTi9wT0F3RFFZSktvWklodmNOQVFFRkJRQXdRakVTTUJBR0ExVUUKQXd3SlFVTkRWbEpCU1ZveE1SQXdEZ1lEVlFRTERBZFFTMGxCUTBOV01RMHdDd1lEVlFRS0RBUkJRME5XTVFzdwpDUVlEVlFRR0V3SkZVekFlRncweE1UQTFNRFV3T1RNM016ZGFGdzB6TURFeU16RXdPVE0zTXpkYU1FSXhFakFRCkJnTlZCQU1NQ1VGRFExWlNRVWxhTVRFUU1BNEdBMVVFQ3d3SFVFdEpRVU5EVmpFTk1Bc0dBMVVFQ2d3RVFVTkQKVmpFTE1Ba0dBMVVFQmhNQ1JWTXdnZ0lpTUEwR0NTcUdTSWIzRFFFQkFRVUFBNElDRHdBd2dnSUtBb0lDQVFDYgpxYXUvWVVxWHJ5K1hacHAwWDlEWmx2M1A0dVJtN3g4ZlJ6UENSS1BmbXQ0ZnRWVGRGWHhwTlJGdnU4Z01qbW9ZCkh0aVAyUmE4RUVnMlhQQmpzNUJhWENRMzE2UFd5d2x4dWZFQmNvU3dmZHROZ00zODAyL0orTnEyRG9MU1JZV28KRzJpb1BlajBSR3k5b2NMTEE3Nk1QaE1BaE45S1NNRGpJZ3JvNlRlbkdFeXhDUTBqVm44RVRka1hoQmlseU5wQQpsSFByemc1WFBBT0JPcDBLb1ZkRGFheFhiWG1RZU9XMXREdll2RXlOS0tHbm82ZTZBazRsMFNxdTdhNERJcmhyCklBOHdLRlNWZitEdXpncG1uZEZBTFc0aXI1MGF3UVVaMG0vQThwLzRlN01DUXZ0UXFSMHRrdzhqcThiQkQ1TC8KMEtJVjlWTUpjUnovUlJPRTVpWmUrT0NJSEFyOEZyYW9jd2E0OEdPRUFxREdXdXpuZE45d3JxT0RKZXJXeDVlSAprNmZHaW9vemwyQTNFRDZYUG00cEZkYWhEOUdJTEJLZmI2cWt4a0xyUWFMamxVUFRBWVZ0anJzNzh5TTJ4LzQ3CjRLRWxCMGlyeVlsMC93aVBnTC9BbG1Yejd1eExhTDJkaU1NeHMwRHg2TS8yT0x1YzVORi8xT1ZZbTN6NjFQTU8KbTNXUjVMcFNMaGwrMGZYTldobjh1Z2IyKzFLb1M1a0UzZmo1dEl0UW8wNWlpZkNISlBxRFFzR0grdFV0S1NwYQpjWHBrYXRjbllHTU4yODVKOVkwZmtJa3lGL2h6UTdqU1dwT0dZZGJoZFFycWVXWjJpRTl4NndRbDFncGFlcFBsCnVVc1hRQSt4dHJuMTNrL2M0TE9zT3hGd1lJUktRMjZaSU1BcGNRckFaUUlEQVFBQm80SUN5ekNDQXNjd2ZRWUkKS3dZQkJRVUhBUUVFY1RCdk1Fd0dDQ3NHQVFVRkJ6QUNoa0JvZEhSd09pOHZkM2QzTG1GalkzWXVaWE12Wm1scwpaV0ZrYldsdUwwRnlZMmhwZG05ekwyTmxjblJwWm1sallXUnZjeTl5WVdsNllXTmpkakV1WTNKME1COEdDQ3NHCkFRVUZCekFCaGhOb2RIUndPaTh2YjJOemNDNWhZMk4yTG1Wek1CMEdBMVVkRGdRV0JCVFNoN1RqM3pjbmsxWDIKVnVxQjVUYk1qQjQvdlRBUEJnTlZIUk1CQWY4RUJUQURBUUgvTUI4R0ExVWRJd1FZTUJhQUZOS0h0T1BmTnllVApWZlpXNm9IbE5zeU1Iais5TUlJQmN3WURWUjBnQklJQmFqQ0NBV1l3Z2dGaUJnUlZIU0FBTUlJQldEQ0NBU0lHCkNDc0dBUVVGQndJQ01JSUJGQjZDQVJBQVFRQjFBSFFBYndCeUFHa0FaQUJoQUdRQUlBQmtBR1VBSUFCREFHVUEKY2dCMEFHa0FaZ0JwQUdNQVlRQmpBR2tBOHdCdUFDQUFVZ0JoQU8wQWVnQWdBR1FBWlFBZ0FHd0FZUUFnQUVFQQpRd0JEQUZZQUlBQW9BRUVBWndCbEFHNEFZd0JwQUdFQUlBQmtBR1VBSUFCVUFHVUFZd0J1QUc4QWJBQnZBR2NBCjdRQmhBQ0FBZVFBZ0FFTUFaUUJ5QUhRQWFRQm1BR2tBWXdCaEFHTUFhUUR6QUc0QUlBQkZBR3dBWlFCakFIUUEKY2dEekFHNEFhUUJqQUdFQUxBQWdBRU1BU1FCR0FDQUFVUUEwQURZQU1BQXhBREVBTlFBMkFFVUFLUUF1QUNBQQpRd0JRQUZNQUlBQmxBRzRBSUFCb0FIUUFkQUJ3QURvQUx3QXZBSGNBZHdCM0FDNEFZUUJqQUdNQWRnQXVBR1VBCmN6QXdCZ2dyQmdFRkJRY0NBUllrYUhSMGNEb3ZMM2QzZHk1aFkyTjJMbVZ6TDJ4bFoybHpiR0ZqYVc5dVgyTXUKYUhSdE1GVUdBMVVkSHdST01Fd3dTcUJJb0VhR1JHaDBkSEE2THk5M2QzY3VZV05qZGk1bGN5OW1hV3hsWVdSdAphVzR2UVhKamFHbDJiM012WTJWeWRHbG1hV05oWkc5ekwzSmhhWHBoWTJOMk1WOWtaWEl1WTNKc01BNEdBMVVkCkR3RUIvd1FFQXdJQkJqQVhCZ05WSFJFRUVEQU9nUXhoWTJOMlFHRmpZM1l1WlhNd0RRWUpLb1pJaHZjTkFRRUYKQlFBRGdnSUJBSmN4QXAvbi9VTm5TRVFVNUNtSDdVd29adENQTmRwTlliZEtsMDIxMjVEZ0JTNE94bm5ROHBkcApENzBFUjltKzI3VXAycHZacnFtWjFkTThNSlAxamFHby9BYU5SUFRLRnBWOE05eGlpNmczK0NmWUNTMGI3OGdVCkp5Q3BaRVQvTHRaMXFteE5ZRUFaU1VOVVk5cml6THBtNVU5RWVsdlphb0VyUU5WLytRRW5XQ3pJN1VpUmZEK20KQU0vRUtYTVJOdDZHR1Q2ZDdobUtHOVd3N1k0OW5DckFEZGc5WnVNOERiM1ZsRnppNHFjMUd3UUE5ajlhamVwRAp2VitKSGFuQnNNeVo0azBBQ3RySkoxdm5FNUJjNVBVem9sVnQzT0FKVFMreEpsc25kUUFKeEdKM0tRaGZubG1zCnRuNnRuMVF3SWdQQkhuRmsvdms0Q3BZWTNRSVVyQ1BMQmh3ZXBIMk5EZDRuUWVpdDJoVzNzQ1BkSzZqVDJpV0gKN2VoVlJFMkk5RForaEpwNHJQY09Wa2tPMWpNbDFvUlFRbXdnRWgwcTFiNjg4bkNCcEhCZ3ZnVzFtNTRFUkw1aApJNnpwcFNTTUVZQ1VXcUtpdVVuU3dkelJwKzB4RVN5ZUdhYnU0Vlhod09yUERZVGtGN2VpZktYZVZTVUc3c3pBCmgxeEEyc3lWUDFYZ05jZTRoTDYwWGMxNmd3Rnk3b2ZtWHgydXRZWEdKdC9td1pycEhnSkhueXFvYmFsYnoreEYKZDMrWUo1b3lYU3JqaE83Rm1HWXZsaUFkM2RqREo5ZXcrZjdaZmMzUW40OExGRmhSbnkrTHd6Z3QzdWlQMW8ySApwUFZXUXhhWkxQU2tWclEwdUdFM3ljSllnQnVnbDZIOFdZM3BFZmJSRDB0Vk5FWXFpNFk3Ci0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0= # Dummy Base64 Cert
+              service:
+                name: test-webhook-service
+                namespace: validating-admission-policy-test
+                path: /convert
+                port: 443
+            conversionReviewVersions: ["v1", "v1beta1"]     
+      EOF
+    - cat test-modify-post-annotation-removal.yaml

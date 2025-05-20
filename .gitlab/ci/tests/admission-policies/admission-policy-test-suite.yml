@@ -1,0 +1,46 @@
+---
+# AdmissionPolicy Test Suite
+#
+# How to update and use:
+# 1. To add a new policy test:
+#    - Add a new YAML test case in .gitlab/ci/tests/admission-policies/test-cases/
+#    - Update admission-policies-job-definitions.yml to include your new test case and step.
+# 2. This job runs in CI and uses the test definitions from admission-policies-job-definitions.yml.
+# 3. The 'script' section runs all defined policy tests; 'after_script' cleans up resources.
+#
+# See comments in admission-policies-job-definitions.yml for more details.
+
+include:
+  - local: .gitlab/ci/tests/admission-policies/admission-policies-job-definitions.yml
+
+.policy-test-report:
+  artifacts:
+    expire_in: 48 hour
+    when: always
+    paths:
+      - policy-test-report.log
+
+mgmt-admission-policy-tests:
+  extends:
+    - .test-base-management-cluster
+    - .policy-test-report
+  script:
+    - !reference [.tests, admission_policy_test_suite]
+  after_script:
+    - !reference [.tests, admission_policy_test_cleanup]
+  variables:
+    DESCRIPTION: Test Admission Policies unit.
+    TEST_LOG: policy-test-report.log
+
+wkld-admission-policy-tests:
+  extends:
+    - .test-base-workload-cluster
+  script:
+    - unset https_proxy http_proxy
+    - !reference [.test_scripts, edit_hosts_file]
+    - !reference [.tests, admission_policy_test_suite]
+  after_script:
+    - !reference [.tests, admission_policy_test_cleanup]
+  variables:
+    DESCRIPTION: Test Admission Policies unit.
+    TEST_LOG: policy-test-report.log

@@ -1,0 +1,25 @@
+# Test Case: Setup Test Namespace
+#
+# Purpose:
+#   Creates the dedicated namespace 'validating-admission-policy-test' for running admission policy tests.
+#   Ensures all test resources are isolated from other namespaces.
+#
+# How it works:
+#   - Applies a Namespace manifest before running other test cases.
+#
+# Usage:
+#   This file is included in the CI pipeline and executed as part of the Validating Admission Policy test suite.
+#   All resources and test steps for this policy are grouped here.
+
+.vap_policies:
+
+  setup_namespace:
+    - |
+      cat <<EOF>> setup-namespace.yaml
+      ---
+      apiVersion: v1
+      kind: Namespace
+      metadata:
+        name: validating-admission-policy-test
+      EOF
+    - cat setup-namespace.yaml

@@ -214,7 +214,7 @@ variables:
     DEPLOY_MGMT_CLUSTER: "true"
     UPDATE_MGMT_CLUSTER: "false"
     DEPLOY_WORKLOAD_CLUSTER: "false"
-    SKIP_TESTS: "true"
+    SKIP_TESTS: "false"
     BOOTSTRAP_WATCH_TIMEOUT_MIN: 10
     MGMT_WATCH_TIMEOUT_MIN: 20
 
@@ -226,7 +226,11 @@ variables:
   trigger:
     include: .gitlab/ci/pipeline-deploy-capo.yml
     strategy: depend
-
+  variables:
+    DEPLOY_MGMT_CLUSTER: "true"
+    UPDATE_MGMT_CLUSTER: "false"
+    DEPLOY_WORKLOAD_CLUSTER: "false"
+    SKIP_TESTS: "false"
 
 # CAPM3 --------------------------------------------------------
 
@@ -239,6 +243,11 @@ variables:
     MGMT_WATCH_TIMEOUT_MIN: 35
     APPLY_WATCH_TIMEOUT_MIN: 95
     APPLY_WC_WATCH_TIMEOUT_MIN: 95
+  variables:
+    DEPLOY_MGMT_CLUSTER: "true"
+    UPDATE_MGMT_CLUSTER: "false"
+    DEPLOY_WORKLOAD_CLUSTER: "false"
+    SKIP_TESTS: "false"
 
 initialize-summary:
   extends: .summary

@@ -1,0 +1,53 @@
+# Test Case: Ensure Force Cluster Policy
+#
+# Purpose:
+#   Ensures that ClusterPolicy resources managed by Flux have the required 'kustomize.toolkit.fluxcd.io/force: Enabled' annotation.
+#   This enforces that only explicitly forced policies are allowed, preventing accidental or unauthorized changes.
+#
+# How it works:
+#   - Attempts to create a ClusterPolicy with the relevant Flux labels but missing the required annotation.
+#   - The admission policy should reject this creation.
+#
+# Usage:
+#   This file is included in the CI pipeline and executed as part of the Validating Admission Policy test suite.
+#   All resources and test steps for this policy are grouped here.
+
+.vap_policies:
+
+  ensure-force-cluster-policy:
+    - |
+      cat <<EOF>> test-ensure-force-cluster-policy.yaml
+      ---
+      apiVersion: kyverno.io/v1
+      kind: ClusterPolicy
+      metadata:
+        name: test-flux-policy-fail
+        labels:
+          # These labels trigger the policy/VAP selectors
+          kustomize.toolkit.fluxcd.io/name: "some-flux-kustomization"
+          kustomize.toolkit.fluxcd.io/namespace: "flux-system"
+          kustomize.toolkit.fluxcd.io/force: Enabled
+        # --- VIOLATION ---
+        # Missing the required 'kustomize.toolkit.fluxcd.io/force: Enabled' annotation
+        annotations:
+          # other-annotation: "some-value" # Could have other annotations or none at all
+          {} # Or omit the annotations block entirely
+      spec:
+        # A minimal valid spec for the ClusterPolicy resource itself
+        validationFailureAction: Audit
+        background: true
+        rules:
+        - name: dummy-rule
+          match:
+            any:
+            - resources:
+                kinds:
+                - Pod
+          validate:
+            message: "Dummy rule validation."
+            pattern:
+              metadata:
+                labels:
+                  app: "must-have-this"
+      EOF
+    - cat test-ensure-force-cluster-policy.yaml

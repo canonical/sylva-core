@@ -1,0 +1,87 @@
+# Test Case: Disallow Default Namespace
+#
+# Purpose:
+#   Ensures that workloads (Pods, Deployments, Jobs, CronJobs) are not created in the default namespace.
+#   This enforces best practices by requiring explicit namespaces for all resources.
+#
+# How it works:
+#   - Attempts to create various workload resources in the default namespace.
+#   - The admission policy should reject these creations.
+#
+# Usage:
+#   This file is included in the CI pipeline and executed as part of the Validating Admission Policy test suite.
+#   All resources and test steps for this policy are grouped here.
+
+.vap_policies:
+
+  disallow-default-namespace:
+    - |
+      cat <<EOF>> test-disallow-default-namespace.yaml
+      ---
+      apiVersion: v1
+      kind: Pod
+      metadata:
+        name: test-pod
+      spec:
+        containers:
+          - name: main-container
+            image: scratch
+        initContainers:
+          - name: init-container
+            image: scratch
+      ---
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: test-deployment
+      spec:
+        replicas: 1
+        selector:
+          matchLabels:
+            app: test
+        template:
+          metadata:
+            labels:
+              app: test
+          spec:
+            containers:
+              - name: main-container
+                image: scratch
+            initContainers:
+              - name: init-container
+                image: scratch
+      ---
+      apiVersion: batch/v1
+      kind: Job
+      metadata:
+        name: test-job
+      spec:
+        template:
+          spec:
+            restartPolicy: OnFailure
+            containers:
+              - name: job-container
+                image: scratch
+            initContainers:
+              - name: job-init-container
+                image: scratch
+      ---
+      apiVersion: batch/v1
+      kind: CronJob
+      metadata:
+        name: test-cronjob
+      spec:
+        schedule: "*/5 * * * *"
+        jobTemplate:
+          spec:
+            template:
+              spec:
+                restartPolicy: OnFailure
+                containers:
+                  - name: cronjob-container
+                    image: scratch
+                initContainers:
+                  - name: cronjob-init-container
+                    image: scratch
+      EOF
+    - cat test-disallow-default-namespace.yaml

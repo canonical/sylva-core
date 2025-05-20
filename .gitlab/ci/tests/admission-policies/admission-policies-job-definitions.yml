@@ -1,0 +1,96 @@
+# Admission Policy Test Job Definitions
+#
+# This file defines the test suite for Admission Policies in GitLab CI.
+# 
+# Usage:
+# - Each test case is included from the test-cases directory and executed in sequence. Each policy should have its own test case file for clarity and maintainability.
+# - The suite applies Kubernetes manifests and checks if admission policies behave as expected (success/reject).
+# - Test steps are defined in the 'admission_policy_test_suite' section and run automatically in CI.
+# - To add or update tests, edit or add YAML files in test-cases/ and reference them here.
+#
+# How it works:
+# - Each test step applies a manifest and checks the result using the validate-test-result.sh script.
+# - Results are summarized at the end; failures are reported in the CI job output.
+# - Cleanup is handled by the 'admission_policy_test_cleanup' section.
+
+include:
+  - local: .gitlab/ci/tests/admission-policies/test-cases/00-namespace-setup.yml
+  - local: .gitlab/ci/tests/admission-policies/test-cases/10-policy-disallow-default-namespace.yml
+  - local: .gitlab/ci/tests/admission-policies/test-cases/20-policy-disallow-latest-tag.yml
+  - local: .gitlab/ci/tests/admission-policies/test-cases/30-policy-ensure-force-cluster-policy.yml
+  - local: .gitlab/ci/tests/admission-policies/test-cases/40-policy-deny-cabundle-updates.yml
+
+.tests:
+
+  admission_policy_test_suite:
+    - |
+      # Allow tests to continue on failure (we'll summarize at the end)
+      set +e
+
+    - echo "Test suite for Validating Admission Policies (VAP). " | tee -a ${TEST_LOG}
+
+    # --- Initialization ---
+    - DESCRIPTION="Initialize VAP test namespace"; EXPECTED="success" 
+    - !reference [.vap_policies, setup_namespace]
+    - .gitlab/ci/scripts/validate-test-result.sh "$DESCRIPTION" "$EXPECTED" kubectl apply -f setup-namespace.yaml | tee -a ${TEST_LOG}
+    
+    # --- VAP Test Cases ---
+    - DESCRIPTION="Enforce default namespace restriction"; EXPECTED="reject"
+    - !reference [.vap_policies, disallow-default-namespace]
+    - .gitlab/ci/scripts/validate-test-result.sh "$DESCRIPTION" "$EXPECTED" kubectl apply -f test-disallow-default-namespace.yaml | tee -a ${TEST_LOG}
+    
+    - DESCRIPTION="Enforce disallowed image tags (latest/main)"; EXPECTED="reject"
+    - !reference [.vap_policies, disallow-latest-and-main-tag]
+    - .gitlab/ci/scripts/validate-test-result.sh "$DESCRIPTION" "$EXPECTED" kubectl apply -f test-disallow-latest-and-main-tag.yaml | tee -a ${TEST_LOG}
+    
+    - DESCRIPTION="Enforce cluster-wide force policy"; EXPECTED="reject"
+    - !reference [.vap_policies, ensure-force-cluster-policy]
+    - .gitlab/ci/scripts/validate-test-result.sh "$DESCRIPTION" "$EXPECTED" kubectl apply -f test-ensure-force-cluster-policy.yaml | tee -a ${TEST_LOG}
+    
+    - DESCRIPTION="Setup CRD mutation prevention policy"; EXPECTED="success"
+    - !reference [.vap_policies, setup-crd-policy]
+    - .gitlab/ci/scripts/validate-test-result.sh "$DESCRIPTION" "$EXPECTED" kubectl apply -f setup-crd-policy.yaml | tee -a ${TEST_LOG}
+
+    - DESCRIPTION="Reject updater attempting to add caBundle"; EXPECTED="reject"
+    - !reference [.vap_policies, add-cabundle]
+    - .gitlab/ci/scripts/validate-test-result.sh "$DESCRIPTION" "$EXPECTED" kubectl apply -f test-add-cabundle.yaml --as=system:serviceaccount:validating-admission-policy-test:test-updater | tee -a ${TEST_LOG}
+    
+    - DESCRIPTION="Allow cert-manager to add caBundle"; EXPECTED="success"
+    - .gitlab/ci/scripts/validate-test-result.sh "$DESCRIPTION" "$EXPECTED" kubectl apply -f test-add-cabundle.yaml --as=system:serviceaccount:cert-manager:cert-manager-cainjector | tee -a ${TEST_LOG}
+
+    - DESCRIPTION="Prevent updater modifying caBundle"; EXPECTED="reject"
+    - !reference [.vap_policies, modify-cabundle]
+    - .gitlab/ci/scripts/validate-test-result.sh "$DESCRIPTION" "$EXPECTED" kubectl apply -f test-modify-cabundle.yaml --as=system:serviceaccount:validating-admission-policy-test:test-updater | tee -a ${TEST_LOG}
+    
+    - DESCRIPTION="Allow cert-manager to modify caBundle"; EXPECTED="success"
+    - .gitlab/ci/scripts/validate-test-result.sh "$DESCRIPTION" "$EXPECTED" kubectl apply -f test-modify-cabundle.yaml --as=system:serviceaccount:cert-manager:cert-manager-cainjector | tee -a ${TEST_LOG}
+
+    - DESCRIPTION="Allow updater to modify CRD (not caBundle field)"; EXPECTED="success"
+    - !reference [.vap_policies, update-crd]
+    - .gitlab/ci/scripts/validate-test-result.sh "$DESCRIPTION" "$EXPECTED" kubectl apply -f test-update-crd.yaml --as=system:serviceaccount:validating-admission-policy-test:test-updater | tee -a ${TEST_LOG}
+    
+    - DESCRIPTION="Allow updater to remove enforcement annotation"; EXPECTED="success"
+    - !reference [.vap_policies, remove-annotation]
+    - .gitlab/ci/scripts/validate-test-result.sh "$DESCRIPTION" "$EXPECTED" kubectl apply -f test-remove-annotation.yaml --as=system:serviceaccount:validating-admission-policy-test:test-updater | tee -a ${TEST_LOG}
+    
+    - DESCRIPTION="Allow caBundle mutation after annotation removal"; EXPECTED="success"
+    - !reference [.vap_policies, modify-post-annotation-removal]
+    - .gitlab/ci/scripts/validate-test-result.sh "$DESCRIPTION" "$EXPECTED" kubectl apply -f test-modify-post-annotation-removal.yaml --as=system:serviceaccount:validating-admission-policy-test:test-updater | tee -a ${TEST_LOG}
+    
+    # --- Summary Report ---
+    - echo "Final VAP Test Suite Summary:"
+    - |
+      if [ -f /tmp/test-failures.log ]; then
+        echo -e "\n❌ One or more tests failed:\n" | tee -a ${TEST_LOG}
+        cat /tmp/test-failures.log | tee -a ${TEST_LOG}
+        exit 1
+      else
+        echo -e "\n✅ All Admission Policy tests passed successfully!" | tee -a ${TEST_LOG}
+      fi
+
+  admission_policy_test_cleanup:
+    # Cleanup any leftover resources
+    - echo "Cleaning up AP test resources..." | tee -a ${TEST_LOG}
+    - kubectl delete -f setup-crd-policy.yaml --ignore-not-found=true | tee -a ${TEST_LOG}
+    - kubectl delete -f setup-namespace.yaml --ignore-not-found=true | tee -a ${TEST_LOG}
+    - echo "✅ Cleanup completed." | tee -a ${TEST_LOG}

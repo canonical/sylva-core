@@ -79,6 +79,7 @@ By following these guidelines, developers can effectively contribute to the Sylv
 
 | Name | Description |
 |------|-------------|
+| `mgmt-validatingadmissionpolicy`|Test ValidatingAdmissionPolicies unit.|
 | `mgmt-image-ref-report`|Generate a list of all images used during the deployment and upload it as an artifact.|
 | `mgmt-GUIs-test`|Test basic authentication login against the GUI.|
 | `mgmt-sso`|Test Single Sign-On login against the GUI.|
@@ -101,6 +102,7 @@ By following these guidelines, developers can effectively contribute to the Sylv
 
 | Name | Description |
 |------|-------------|
+| `wkld-validatingadmissionpolicy` | Test ValidatingAdmissionPolicies unit. |
 | `wkld-image-ref-report` | Generate a list of all images used during the deployment and upload it as an artifact. |
 | `wkld-sso-kubeconfig` | Obtain the workload-cluster-kubeconfig through the Rancher UI and use it to create a pod. |
 | `wkld-no-sso-kubeconfig` | Obtain the workload-cluster-kubeconfig through the Rancher API and use it to create a pod. |
