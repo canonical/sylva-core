@@ -74,7 +74,7 @@
 | **os-image-server** | Deploys a web server on management cluster which serves OS images for baremetal clusters. | [Helm chart](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/os-image-server.git) | 2.1.4 |
 | **alertmanager-config** | generates the config for Alertmanager | [Helm chart](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-alertmanager-resources.git) | 0.0.3 |
 | **alertmanager-jiralert-config** | generates the config for Jiralert Alertmanager webhook | [Helm chart](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-alertmanager-resources.git) | 0.0.3 |
-| **sylva-dashboards** | adds Sylva-specific Grafana dashboards | [Helm chart](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-dashboards.git) | 0.0.14 |
+| **sylva-dashboards** | adds Sylva-specific Grafana dashboards | [Helm chart](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-dashboards.git) | 0.0.18 |
 | **sylva-logging-flows** | configures logging flows and output to export the platform logs to an external server | [Helm chart](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-logging-flows.git) | 0.0.1 |
 | **sylva-prometheus-rules** | installs prometheus rules using external helm chart & rules git repo | [Helm chart](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-prometheus-rules.git) | 0.0.15 |
 | **sylva-thanos-rules** | installs Thanos rules using external helm chart & rules git repo | [Helm chart](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-thanos-rules.git) | 0.0.3 |
