@@ -6,5 +6,5 @@ version: 0.0.0-git  # never used: this is ignored in git-based workflow, and ove
 appVersion: "0.0.0"
 dependencies:
   - name: sylva-library
-    version: 0.0.0-node-count-new-name
+    version: 0.3.5
     repository: https://gitlab.com/api/v4/projects/56163211/packages/helm/base
