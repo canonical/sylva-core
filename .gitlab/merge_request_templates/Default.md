@@ -38,16 +38,22 @@ Below you can choose test deployment variants to run in this MR's CI.
 * [x] ☁ capo 🚀 kadm 🐧 ubuntu
 * [ ] ☁ capo 🚀 rke2 🎬 rolling-update 🛠 ha 🐧 ubuntu
 * [ ] ☁ capo 🚀 kadm 🎬 wkld-k8s-upgrade 🐧 ubuntu
-* [ ] ☁ capo 🚀 rke2 🎬 rolling-update-no-wkld 🛠 ha,misc 🐧 suse
+* [ ] ☁ capo 🚀 rke2 🎬 rolling-update-no-wkld 🛠 ha 🐧 suse
+* [ ] ☁ capo 🚀 rke2 🎬 sylva-upgrade-from-1.3.x 🛠 ha 🐧 ubuntu
 * [ ] ☁ capo 🚀 rke2 🎬 sylva-upgrade-from-1.3.x 🛠 ha,misc 🐧 ubuntu
+* [ ] ☁ capo 🚀 rke2 🛠 ha,misc 🐧 ubuntu
 
 * [x] ☁ capm3 🚀 rke2 🐧 suse
 * [x] ☁ capm3 🚀 kadm 🐧 ubuntu
 * [ ] ☁ capm3 🚀 kadm 🎬 rolling-update-no-wkld 🛠 ha,misc 🐧 ubuntu
 * [ ] ☁ capm3 🚀 rke2 🎬 wkld-k8s-upgrade 🛠 ha 🐧 suse
 * [ ] ☁ capm3 🚀 kadm 🎬 rolling-update 🛠 ha 🐧 ubuntu
-* [ ] ☁ capm3 🚀 rke2 🎬 sylva-upgrade-from-1.3.x 🛠 misc,ha 🐧 suse
+* [ ] ☁ capm3 🚀 rke2 🎬 sylva-upgrade-from-1.3.x 🛠 ha 🐧 suse
+* [ ] ☁ capm3 🚀 rke2 🛠 misc,ha 🐧 suse
+* [ ] ☁ capm3 🚀 rke2 🎬 sylva-upgrade-from-1.3.x 🛠 ha,misc 🐧 suse
 * [ ] ☁ capm3 🚀 kadm 🎬 rolling-update 🛠 ha 🐧 suse
+
+* [x] ☁ capm3 🚀 ck8s 🎬 no-wkld 🛠 light-deploy,k8s-1.31 🐧 ubuntu
 
 <!-- DEPLOYMENT FLAVOR DEFINITION END -->
 

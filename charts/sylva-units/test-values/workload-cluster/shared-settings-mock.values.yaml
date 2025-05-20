@@ -1,9 +1,10 @@
 _internal:
   # this mimics what gets injected into a workload-cluster release of sylva-units
-  # thanks to shared_workload_clusters_values._internal.sylva_mgmt_enabled_units
+  # thanks to mgmt_cluster_state_values._internal.sylva_mgmt_enabled_units
   sylva_mgmt_enabled_units:
     capi: true
     cabpk: true
     capd: true
     cabpr: true
+    cabpck: true
 

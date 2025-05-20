@@ -3,6 +3,7 @@
 <!-- markdownlint-disable MD044 -->
 | name | full description | maturity | source | version |
 | :----- | :----- | :----- | :----- | :----- |
+| **cabpck** | installs Canonical CAPI bootstrap provider | core-component | [Kustomization](https://github.com/ader1990/cluster-api-k8s/releases/download/v0.4.1/bootstrap-components.yaml) | v0.4.1 |
 | **cabpk** | installs Kubeadm CAPI bootstrap provider | core-component | [Kustomization](https://github.com/kubernetes-sigs/cluster-api/releases/download/v1.9.7/bootstrap-components.yaml) | v1.9.7 |
 | **cabpr** | installs RKE2 CAPI bootstrap provider | core-component | [Kustomization](https://github.com/rancher/cluster-api-provider-rke2/releases/download/v0.13.0/bootstrap-components.yaml) | v0.13.0 |
 | **capd** | installs Docker CAPI infra provider | core-component | [Kustomization](https://github.com/kubernetes-sigs/cluster-api//test/infrastructure/docker/config/default/?ref=v1.9.7) | v1.9.7 |
@@ -14,7 +15,7 @@
 | **cert-manager** | installs cert-manager, an X.509 certificate controller | core-component | [Helm chart](https://charts.jetstack.io) | v1.17.2 |
 | **flux-system** | contains Flux definitions *to manage the Flux system itself via gitops*<br/><br/>Note that Flux is always installed on the current cluster as a pre-requisite to installing the chart | core-component | Kustomization |  |
 | **kyverno** | installs Kyverno | core-component | [Helm chart](https://kyverno.github.io/kyverno) | 3.3.9 |
-| **calico** | install Calico CNI | stable | [Helm chart](https://rke2-charts.rancher.io) | v3.29.200 |
+| **calico** | install Calico CNI | stable | [Helm chart](https://rke2-charts.rancher.io) | v3.29.300 |
 | **cinder-csi** | installs OpenStack Cinder CSI | stable | [Helm chart](https://kubernetes.github.io/cloud-provider-openstack) | 2.32.0 |
 | **cis-operator** | install CIS operator | stable | [Helm chart](https://charts.rancher.io) | 105.4.0+up7.4.0 |
 | **cnpg-operator** | Cloud Native PostgreSQL (CNPG) Operator | stable | [Helm chart](https://cloudnative-pg.github.io/charts) | 0.23.2 |
@@ -25,7 +26,7 @@
 | **gitea-postgresql-ha** | installs PostgreSQL HA cluster for Gitea | stable | [Helm chart](https://github.com/bitnami/charts.git) | postgresql-ha/14.2.30 |
 | **gitea-redis** | installs Redis cluster for Gitea | stable | [Helm chart](https://github.com/bitnami/charts.git) | redis-cluster/11.0.8 |
 | **harbor-postgres** | installs Postgresql for Harbor | stable | [Helm chart](https://github.com/bitnami/charts.git) | postgresql/15.5.36 |
-| **ingress-nginx** | installs Nginx ingress controller | stable | [Helm chart](https://rke2-charts.rancher.io) | 4.12.100 |
+| **ingress-nginx** | installs Nginx ingress controller | stable | [Helm chart](https://rke2-charts.rancher.io) | 4.12.101 |
 | **k8s-gateway** | installs k8s gateway (coredns + plugin to resolve external service names to ingress IPs)<br/><br/>is here only to allow for DNS resolution of Ingress hosts (FQDNs), used for importing workload clusters into Rancher and for flux-webui to use Keycloak SSO | stable | [Helm chart](https://ori-edge.github.io/k8s_gateway/) | 2.4.0 |
 | **kepler** | installs Kepler (Kubernetes-based Efficient Power Level Exporter) exporter for Prometheus | stable | [Helm chart](https://sustainable-computing-io.github.io/kepler-helm-chart) | 0.5.14 |
 | **keycloak** | initializes and configures Keycloak | stable | [Kustomization](https://raw.githubusercontent.com/keycloak/keycloak-k8s-resources/26.1.5/kubernetes/keycloaks.k8s.keycloak.org-v1.yml) | 26.1.5 |
@@ -35,9 +36,9 @@
 | **metal3** | installs SUSE-maintained Metal3 operator | stable | [Helm chart](https://suse-edge.github.io/charts) | 0.11.1 |
 | **metallb** | installs MetalLB operator | stable | [Helm chart](https://metallb.github.io/metallb) | 0.14.9 |
 | **monitoring** | installs monitoring stack | stable | [Helm chart](https://charts.rancher.io/) | 105.1.4+up61.3.2-rancher.5 |
-| **multus** | installs Multus | stable | [Helm chart](https://rke2-charts.rancher.io/) | v4.2.001 |
+| **multus** | installs Multus | stable | [Helm chart](https://rke2-charts.rancher.io/) | v4.2.002 |
 | **rancher** | installs Rancher | stable | [Helm chart](https://releases.rancher.com/server-charts/stable) | 2.10.3 |
-| **sriov-network-operator** | installs SR-IOV operator | stable | [Helm chart](https://suse-edge.github.io/charts/) | 1.5.0 |
+| **sriov-network-operator** | installs SR-IOV operator | stable | [Helm chart](https://suse-edge.github.io/charts/) | 1.5.2+up1.5.0 |
 | **vault** | installs Vault<br/><br/>Vault assumes that the certificate vault-tls has been issued | stable | [Kustomization](https://raw.githubusercontent.com/banzaicloud/bank-vaults/1.19.0/operator/deploy/rbac.yaml) | 1.19.0 |
 | **vault-config-operator** | installs Vault config operator | stable | [Helm chart](https://redhat-cop.github.io/vault-config-operator) | v0.8.32 |
 | **vault-operator** | installs Vault operator | stable | [Helm chart](https://github.com/bank-vaults/vault-operator.git) | v1.22.5 |
@@ -70,10 +71,10 @@
 <!-- markdownlint-disable MD044 -->
 | name | full description | source | version |
 | :----- | :----- | :----- | :----- |
-| **cluster** | holds the Cluster API definition for the cluster | [Helm chart](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-capi-cluster.git) | 0.9.3 |
-| **cluster-bmh** | definitions for Cluster API BareMetalHosts resources (capm3) | [Helm chart](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-capi-cluster.git) | 0.9.3 |
+| **cluster** | holds the Cluster API definition for the cluster | [Helm chart](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-capi-cluster.git) | 0.9.7 |
+| **cluster-bmh** | definitions for Cluster API BareMetalHosts resources (capm3) | [Helm chart](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-capi-cluster.git) | 0.9.7 |
 | **heat-operator** | installs OpenStack Heat operator | [Kustomization](https://gitlab.com/sylva-projects/sylva-elements/heat-operator.git/config/default?ref=0.1.1) | 0.1.1 |
-| **capo-contrail-bgpaas** | installs CAPO Contrail BGPaaS controller | [Helm chart](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/capo-contrail-bgpaas.git) | 1.0.4 |
+| **capo-contrail-bgpaas** | installs CAPO Contrail BGPaaS controller | [Helm chart](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/capo-contrail-bgpaas.git) | 1.1.0 |
 | **libvirt-metal** | installs libvirt for baremetal emulation<br/><br/>this unit is used in bootstrap cluster for baremetal testing | [Helm chart](https://gitlab.com/sylva-projects/sylva-elements/container-images/libvirt-metal.git) | 0.1.22 |
 | **os-image-server** | Deploys a web server on management cluster which serves OS images for baremetal clusters. | [Helm chart](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/os-image-server.git) | 2.3.0 |
 | **alertmanager-config** | generates the config for Alertmanager | [Helm chart](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-alertmanager-resources.git) | 0.0.4 |
@@ -85,8 +86,8 @@
 | **sylva-prometheus-rules** | installs prometheus rules using external helm chart & rules git repo | [Helm chart](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-prometheus-rules.git) | 0.0.16 |
 | **sylva-thanos-rules** | installs Thanos rules using external helm chart & rules git repo | [Helm chart](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-thanos-rules.git) | 0.1.4 |
 | **sylva-units-operator** | installs sylva-units operator | [Kustomization](https://gitlab.com/sylva-projects/sylva-elements/sylva-units-operator.git/config/default?ref=0.2.1) | 0.2.1 |
-| **workload-cluster-operator** | installs Sylva operator for managing workload clusters | [Kustomization](https://gitlab.com/sylva-projects/sylva-elements/workload-cluster-operator.git/config/default?ref=v0.3.0) | v0.3.0 |
-| **workload-team-defs** | installs the workload-team-defs chart<br/><br/>installs the workload-team-defs chart to install the workload cluster through CRD | [Helm chart](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/workload-team-defs.git) | 0.1.1 |
+| **workload-cluster-operator** | installs Sylva operator for managing workload clusters | [Kustomization](https://gitlab.com/sylva-projects/sylva-elements/workload-cluster-operator.git/config/default?ref=0.3.1) | 0.3.1 |
+| **workload-team-defs** | installs the workload-team-defs chart<br/><br/>installs the workload-team-defs chart to install the workload cluster through CRD | [Helm chart](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/workload-team-defs.git) | 0.1.2 |
 | **sync-openstack-images** | Automatically push openstack images to Glance<br/><br/>Pushes OS images to Glance, if needed, and retrieves their UUIDs for use in cluster unit | [Helm chart](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sync-openstack-images.git) | 0.4.4 |
 
 ## Units internal to Sylva
@@ -160,6 +161,7 @@
 | **metal3-sylva-ca-init** | injects sylva-ca certificate in metal3<br/><br/>this certificate is needed to download baremetal os images via https | Kustomization |
 | **metallb-resources** | configures metallb resources | Helm chart |
 | **mgmt-cluster-ready** | (workload cluster) this unit reflects the readiness of the mgmt cluster<br/><br/>this unit acts as simple dependency lock to prevent deploying a workload cluster before the mgmt cluster is ready | Kustomization |
+| **mgmt-cluster-state-values** | manages workload cluster parameters which reflect management cluster state | Kustomization |
 | **minio-logging-cleanup** | Recreates MinIO-logging StatefulSet to avoid upgrade failure (This unit will be removed after Sylva 1.4) | Kustomization |
 | **minio-logging-init** | sets up secrets and certificates for minio-logging | Kustomization |
 | **minio-monitoring-cleanup** | Recreates MinIO-monitoring StatefulSet to avoid upgrade failure (This unit will be removed after Sylva 1.4) | Kustomization |
@@ -183,7 +185,6 @@
 | **rke2-helmchart-prevent-uninstall** | Kyverno policy to prevent key Helm charts from being uninstalled by RKE2 HelmChart controller | Kustomization |
 | **root-dependency** | special unit ensuring ordered updates of all Kustomizations<br/><br/>All Kustomizations will depend on this Kustomization, whose name is `root-dependency-<n>` and changes at each update of the sylva-units Helm release. This Kustomization does not become ready before all other Kustomizations have been updated.<br/>This unit also manages the `root-dependency-<n>` HelmRelease that acts as a lock to prevent HelmReleases from reconciling before units they depend on are ready.<br/>All this ensures in a race-free way that during an update, units will be reconciled in an order matching dependency declarations. | Helm chart |
 | **sandbox-privileged-namespace** | creates the sandbox namespace used to perform privileged operations like debugging a node. It cannot be enabled when env_type=prod | Kustomization |
-| **shared-workload-clusters-settings** | manages parameters which would be shared between management and workload clusters | Kustomization |
 | **single-replica-storageclass** | Defines a Longhorn storage class with a single replica | Kustomization |
 | **sriov** | obsolete - replaced by sriov-network-operator<br/><br/>dummy unit which only enables sriov-network-operator for backwark compatibility | Kustomization |
 | **sriov-resources** | configures SRIOV resources | Helm chart |
