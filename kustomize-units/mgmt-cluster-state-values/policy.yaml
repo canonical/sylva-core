@@ -1,0 +1,28 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: workload-clusters-propagate-mgmt-state-settings
+  annotations:
+    kustomize.toolkit.fluxcd.io/force: Enabled
+spec:
+  generateExisting: true
+  rules:
+  - name: generate-cm
+    skipBackgroundRequests: false
+    match:
+      any:
+      - resources:
+          kinds:
+          - Namespace
+          selector:
+            matchLabels:
+              sylva-project.org/workload-cluster: ""
+    generate:
+      kind: ConfigMap
+      apiVersion: v1
+      name: mgmt-cluster-state-values
+      namespace: "{{request.object.metadata.name}}"
+      synchronize: true
+      clone:
+        name: mgmt-cluster-state-values
+        namespace: sylva-system

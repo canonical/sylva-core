@@ -25,3 +25,21 @@ patches:
             - ALL
         seccompProfile:
           type: RuntimeDefault
+- target:
+    kind: Deployment
+    name: orc-controller-manager
+  patch: |-
+    kind: _unused_
+    metadata:
+      name: _unused_
+    spec:
+      template:
+        spec:
+          containers:
+            - name: manager
+              resources:
+                requests:
+                  memory: 256Mi
+                limits:
+                  memory: 1Gi
+

@@ -17,7 +17,7 @@ def test_rancher_download_workload_kubeconfig(page: Page, rancher_url, workload_
     page.get_by_text("Log in with OIDC").click()
     login_to_sso(page)
 
-    page.locator("a", has=page.get_by_text(f"{workload_name}-capi")).click()
+    page.locator("a", has=page.get_by_text(f"{workload_name}")).click()
 
     with page.expect_download() as download_info:
         page.get_by_test_id("btn-download-kubeconfig").click()

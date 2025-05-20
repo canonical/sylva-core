@@ -16,7 +16,7 @@ spec:
           - Namespace
           selector:
             matchLabels:
-              sylva-project.org/shared-workload-cluster-settings: ""
+              sylva-project.org/workload-cluster: ""
     generate:
       kind: ConfigMap
       apiVersion: v1

@@ -32,13 +32,6 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
         # (you can grep the code for "CURRENT_COMMIT" to find out how)
         commit: not-a-real-commit
 
-  capi-rancher-import:
-    kind: GitRepository
-    spec:
-      url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/capi-rancher-import.git
-      ref:
-        tag: 0.2.0
-
   weave-gitops:
     kind: GitRepository
     spec:
@@ -100,7 +93,7 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
     spec:
       url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/capo-contrail-bgpaas.git
       ref:
-        tag: 1.0.4
+        tag: 1.1.0
 
   libvirt-metal:
     kind: GitRepository
@@ -291,10 +284,11 @@ unit_templates:
         - '{{ tuple "components/thanos" (tuple . "thanos" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/loki" (tuple . "loki" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/kepler" (tuple . "kepler" | include "unit-enabled") | include "set-only-if" }}'
-        - '{{ tuple "components/kube-system" (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpr") | include "set-only-if" }}'
+        - '{{ tuple "components/kube-system" (list "cabpr" "cabpck" | has .Values.cluster.capi_providers.bootstrap_provider) | include "set-only-if" }}'
         - '{{ tuple "components/neuvector" (tuple . "neuvector" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/kunai" (tuple . "kunai" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/sbom-operator" (tuple . "sbom-operator" | include "unit-enabled") | include "set-only-if" }}'
+        - '{{ tuple "components/rancher-turtles" (tuple . "rancher-turtles" | include "unit-enabled") | include "set-only-if" }}'
 
   flux-common:
     repo: sylva-core
@@ -319,7 +313,8 @@ unit_templates:
           SOURCE_CONCURRENT: '{{ .Values.flux.source.concurrent }}'
           SOURCE_LOG_LEVEL: '{{ .Values.flux.source.log_level }}'
           SOURCE_FEATURES_GATES: '{{ tuple .Values.flux.source.features_gates | include "dict_to_key_values_separated_string"  }}'
-          SOURCE_STORAGE_CLASS: '{{ .Values._internal.default_storage_class }}'
+          SOURCE_STORAGE_CLASS: >-
+            {{ tuple . (tuple . "longhorn" | include "unit-enabled") "single-replica-storageclass" .Values._internal.default_storage_class | include "interpret-ternary" }}
           SOURCE_STORAGE_SIZE: 1Gi
         substituteFrom:
         - kind: ConfigMap
@@ -2244,7 +2239,7 @@ units:
                 resources:
                   - "secrets"
                 verbs: ["get", "list", "patch", "update", "watch", "create", "delete"]
-              - apiGroups: ["provisioning.cattle.io"]  # for set-monitoring-chart-cluster-id ClusterPolicy
+              - apiGroups: ["management.cattle.io"]  # for set-monitoring-chart-cluster-id ClusterPolicy
                 resources:
                   - "clusters"
                 verbs: ["get", "list", "watch"]
@@ -2450,9 +2445,9 @@ units:
       path: ./kustomize-units/rancher-monitoring-clusterid-inject
       wait: true
 
-  shared-workload-clusters-settings:
+  mgmt-cluster-state-values:
     info:
-      description: manages parameters which would be shared between management and workload clusters
+      description: manages workload cluster parameters which reflect management cluster state
       internal: true
     unit_templates:
     - base-deps
@@ -2461,7 +2456,7 @@ units:
       sylva-units-operator: '{{ tuple . "sylva-units-operator" | include "unit-enabled" }}'
     repo: sylva-core
     kustomization_spec:
-      path: ./kustomize-units/shared-workload-clusters-settings
+      path: ./kustomize-units/mgmt-cluster-state-values
       wait: true
       force: true
       targetNamespace: sylva-system
@@ -2472,14 +2467,10 @@ units:
             - op: replace
               path: /data/values
               value: |
-            {{- tuple . "shared_workload_clusters_values" | include "interpret" }}
-            {{ .Values.shared_workload_clusters_values | toYaml | indent 4 }}
+            {{- tuple . "mgmt_cluster_state_values" | include "interpret" }}
+            {{ .Values.mgmt_cluster_state_values | toYaml | indent 4 }}
       _components:
         - '{{ tuple "components/capm3" (tuple . "capm3" | include "unit-enabled") | include "set-only-if" }}'
-    kustomization_substitute_secrets:
-      SECRET_VALUES: >-
-        {{- tuple . "shared_workload_clusters_secret_values" | include "interpret" -}}
-        {{- .Values.shared_workload_clusters_secret_values | toYaml | b64enc -}}
 
   capi:
     info:
@@ -2671,6 +2662,22 @@ units:
               - apiGroups: [cluster.x-k8s.io]
                 resources: [clusters]
                 verbs: [list, get, patch, update]
+
+  cabpck:
+    info:
+      description: installs Canonical CAPI bootstrap provider
+      maturity: core-component
+    repo: sylva-core
+    unit_templates:
+    - base-deps
+    depends_on:
+      cert-manager: true
+    kustomization_spec:
+      path: ./kustomize-units/cabpck
+      postBuild:
+        substitute:
+          force_var_substitution_enabled: "true"  # dummy value to ensure substitution of defaults
+      wait: true
 
   cabpr:
     info:
@@ -3058,7 +3065,7 @@ units:
       #  ready (for the controlplane nodes, the kubeadm controlplane provider ignores that)
       healthChecks: >-
         {{
-        (include "cluster-healthchecks" (dict "ns" .Release.Namespace "cluster" .Values.cluster "includeMDs" false) | fromYaml).result
+        (include "cluster-healthchecks" (dict "ns" .Release.Namespace "cluster" .Values.cluster "includeMDs" false "onlyCheckKubeConfig" (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpck")) | fromYaml).result
         | include "preserve-type"
         }}
     helmrelease_spec:
@@ -3189,6 +3196,18 @@ units:
                     name: _unused_
                     annotations:
                       {{ .Values.cluster.capi_providers.infra_provider | eq "capo" | ternary "sylva.org/gzip-user-data" "sylva.org/plain-user-data"}}: "true"
+              - target:
+                  kind: CK8sControlPlane
+                patch: |
+                  kind: _unused_
+                  metadata:
+                    name: _unused_
+                  spec:
+                    spec:
+                      controlPlane:
+                        extraKubeAPIServerArgs:
+                          --feature-gates: ValidatingAdmissionPolicy=true
+                          --runtime-config: admissionregistration.k8s.io/v1beta1
 
     # we pass everything that is under `cluster` to this unit that uses sylva-capi-cluster chart
     # (we do it via a secret because some of the values are credentials in many scenarios)
@@ -3295,6 +3314,8 @@ units:
                   RKE2ControlPlane
                   {{- else if (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpoa") }}
                   OpenshiftAssistedControlPlane
+                  {{- else if (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpck") }}
+                  CK8sControlPlane
                   {{- end }}
       - target:
           kind: ConfigMap
@@ -3491,8 +3512,8 @@ units:
       # Setting drift detection mode to warn for calico till https://gitlab.com/sylva-projects/sylva-core/-/issues/1814 is solved.
       driftDetection:
         mode: warn
-      releaseName: '{{ eq .Values.cluster.capi_providers.bootstrap_provider "cabpk" | ternary "calico" "rke2-calico" }}'
-      targetNamespace: '{{ eq .Values.cluster.capi_providers.bootstrap_provider "cabpk" | ternary "sylva-system" "kube-system" }}'
+      releaseName: '{{ list "cabpk" "cabpck" | has .Values.cluster.capi_providers.bootstrap_provider | ternary "calico" "rke2-calico" }}'
+      targetNamespace: '{{ list "cabpk" "cabpck" | has .Values.cluster.capi_providers.bootstrap_provider | ternary "sylva-system" "kube-system" }}'
       chart:
         spec:
           chart: rke2-calico
@@ -4079,48 +4100,37 @@ units:
           name: capo-cluster-resources
           optional: '{{ not (.Values.cluster.capi_providers.infra_provider | eq "capo") | include "as-bool" }}'
 
-  capi-rancher-import:
+  rancher-turtles:
     info:
-      description: installs the capi-rancher-import operator, which let's us import Cluster AIP workload clusters in management cluster's Rancher
-      internal: true
+      description: installs the Rancher Turtles operator, which enables the import of Cluster API workload clusters into the management cluster's Rancher
     unit_templates:
     - base-deps
     enabled_conditions:
     - '{{ tuple . "rancher" | include "unit-enabled" }}'
-    repo: capi-rancher-import
     depends_on:
       rancher: true
       k8s-gateway: true
+    helm_repo_url: https://rancher.github.io/turtles
     helmrelease_spec:
+      driftDetection:
+        mode: warn
       chart:
         spec:
-          chart: charts/capi-rancher-import
-      targetNamespace: capi-rancher-import
-      install:
-        createNamespace: true
+          chart: rancher-turtles
+          version: 0.18.0
+      targetNamespace: rancher-turtles-system
       values:
-        securityContext:
-          allowPrivilegeEscalation: false
-          capabilities:
-            drop:
-              - ALL
-          privileged: false
-          runAsNonRoot: true
-          runAsGroup: 10000
-          runAsUser: 10000
-          seccompProfile:
-            type: RuntimeDefault
-        conf:
-          env:
-            - name: URL_REMAP
-              value: "https://{{ .Values.external_hostnames.rancher }}/ https://rancher.cattle-system.svc.cluster.local/"
-            - name: REQUESTS_SSL_VERIFY
-              value: "no"
-          cattle_agent_kustomize_source_ref:
-            kind: GitRepository
-            name: capi-rancher-import
-            namespace: '{{ .Release.Namespace }}'
-          cattle_agent_kustomize_path: ./cattle-kustomize
+        rancherTurtles:
+          features:
+            agent-tls-mode:
+              enabled: true
+            addon-provider-fleet:
+              enabled: false
+        cluster-api-operator:
+          enabled: false
+          cleanup: false
+          cluster-api:
+            enabled: false
 
   ingress-nginx-cleanup:
     info:
@@ -5196,7 +5206,14 @@ units:
           patch: |
             - op: replace
               path: /metadata/name
-              value: '{{ (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpk") | ternary "coredns" "rke2-coredns-rke2-coredns" }}'
+              value: >-
+                {{- if eq .Values.cluster.capi_providers.bootstrap_provider "cabpk" }}
+                coredns
+                {{- else if eq .Values.cluster.capi_providers.bootstrap_provider "cabpck" }}
+                ck-dns-coredns
+                {{- else }}
+                rke2-coredns-rke2-coredns
+                {{- end }}
       postBuild:
         substitute:
           CLUSTER_VIRTUAL_IP: '{{ .Values.cluster_virtual_ip }}'
@@ -5507,68 +5524,6 @@ units:
               done
 
               echo "=== All done ==="
-
-  cluster-creator-login:
-    info:
-      description: configures Rancher account used for workload cluster imports
-      internal: true
-    unit_templates:
-    - base-deps
-    - kube-job
-    - kube-cronjob
-    enabled_conditions:
-    - '{{ tuple . "rancher" | include "unit-enabled" }}'
-    depends_on:
-      rancher: true
-      first-login-rancher: true
-    kustomization_spec:
-      path: ./kustomize-units/cluster-creator-login  # inherits from kustomize-units/kube-job and kustomize-units/kube-cronjob
-      postBuild:
-        substitute:
-          CRONJOB_NAME: cluster-creator-renewal
-      _patches:
-        # this patch adjusts the cron schedule
-        - target:
-            kind: CronJob
-          patch: |
-            - op: replace
-              path: /spec/schedule
-              value: "24 4 */10 * *" # this cron needs to be adjusted if kubeconfig-default-token-ttl-minutes Rancher setting changes from the default (43200 minutes)
-      wait: false
-      healthChecks:
-        - apiVersion: v1
-          kind: Secret
-          name: cluster-creator-kubeconfig
-          namespace: '{{ .Release.Namespace }}'
-        - apiVersion: batch/v1
-          kind: Job
-          name: cluster-creator-login
-          namespace: '{{ .Release.Namespace }}'
-        - apiVersion: batch/v1
-          kind: CronJob
-          name: cluster-creator-renewal
-          namespace: '{{ .Release.Namespace }}'
-
-  cluster-creator-policy:
-    info:
-      description: Kyverno policy for cluster creator
-      details: |
-        This units defines a Kyverno policy to distribute the Kubeconfig of cluster creator
-        in all workload cluster namespaces, to allow the import of workload clusters in
-        Rancher.
-      internal: true
-    enabled_conditions:
-    - '{{ tuple . "rancher" | include "unit-enabled" }}'
-    unit_templates:
-    - base-deps
-    depends_on:
-      cluster-creator-login: true
-      kyverno: true
-    repo: sylva-core
-    kustomization_spec:
-      path: ./kustomize-units/cluster-creator-policy
-      wait: true
-      force: true
 
   rancher-default-roles:
     info:
@@ -7879,7 +7834,7 @@ units:
           chart: .
       values:
         workload_cluster_teams: '{{ .Values.workload_clusters.teams | include "preserve-type" }}'
-        managed_clusters_settings: '{{ tuple . "shared_workload_clusters_values" | include "interpret" }}{{ .Values.shared_workload_clusters_values | include "preserve-type" }}'
+        managed_clusters_settings: '{{ tuple . "mgmt_cluster_state_values" | include "interpret" }}{{ .Values.mgmt_cluster_state_values | include "preserve-type" }}'
         workload_cluster_sylva_source: '{{ .Values.workload_clusters.sylva_source | include "preserve-type" }}'
 
   coredns-custom-hosts-import:
@@ -8332,7 +8287,7 @@ k8s_version_short: "1.31"
 
 # Renovate Bot needs additional information to detect sylva diskimage-builder version
 # renovate: depName=sylva-projects/sylva-elements/diskimage-builder
-sylva_diskimagebuilder_version: 0.4.11
+sylva_diskimagebuilder_version: 0.4.12
 
 # 'sylva_diskimagebuilder_images' determines which images will be available for CAPO and CAPM3
 # via 'os_image_selector' or 'image_keys'
@@ -8376,6 +8331,8 @@ sylva_diskimagebuilder_images:
   opensuse-15-6-plain-kubeadm-1-30-12:
     os_images_oci_registry: sylva
   opensuse-15-6-plain-kubeadm-1-29-15:
+    os_images_oci_registry: sylva
+  ubuntu-noble-plain-ck8s-1-31-6:
     os_images_oci_registry: sylva
 
 # this dictionary can be extended to let os-image-server serve additional OS images
@@ -8448,7 +8405,7 @@ monitoring:
   thanos:
     # receive_url:
     # - for mgmt cluster, the local thanos k8s service is used (the URL below)
-    # - for workload clusters, this is overridden via shared_workload_clusters_values.monitoring.thanos.receive_url
+    # - for workload clusters, this is overridden via mgmt_cluster_state_values.monitoring.thanos.receive_url
     #   to point to the mgmt cluster Thanos receive ingress
     receive_url: http://thanos-receive.thanos.svc.cluster.local:19291/api/v1/receive
 
@@ -8604,7 +8561,7 @@ monitoring:
 logging:
   # loki_url:
   # - for mgmt cluster, the local Loki k8s service is used
-  # - for workload clusters, this is overridden via shared_workload_clusters_values.logging.loki_url
+  # - for workload clusters, this is overridden via mgmt_cluster_state_values.logging.loki_url
   #   to point to the mgmt cluster Loki
   loki_url: http://loki-gateway.loki.svc.cluster.local
   # the following values are mapped into sylva-logging-flows Helm unit values
@@ -8980,7 +8937,15 @@ _internal:
   k8s_version_map:
     1.29: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" | ternary "v1.29.15+rke2r1" "v1.29.15" }}'
     "1.30": '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" | ternary "v1.30.12+rke2r1" "v1.30.12" }}'
-    1.31: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" | ternary "v1.31.8+rke2r1" "v1.31.8" }}'
+    1.31: >-
+      {{- $version := "v1.31.8" -}}
+      {{- if .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" -}}
+        {{- $version = "v1.31.8+rke2r1" -}}
+      {{- end -}}
+      {{- if .Values.cluster.capi_providers.bootstrap_provider | eq "cabpck" -}}
+        {{- $version = "v1.31.6" -}}
+      {{- end -}}
+      {{- $version -}}
 
   # total number of nodes in this cluster
   node_count:
@@ -9188,30 +9153,19 @@ _internal:
     {{- $mtu := sub .Values._internal.base_cni_mtu $max_overhead -}}
     {{- $mtu | include "preserve-type" -}}
 
-shared_workload_clusters_values:
-  ntp: '{{ .Values.ntp | include "set-if-defined" }}'
-  proxies: '{{ .Values.proxies | include "set-if-defined" }}'
-  registry_mirrors: '{{ .Values.registry_mirrors | include "set-if-defined" }}'
-
-  sylva_base_oci_registry: '{{ .Values.sylva_base_oci_registry }}'
-  oci_registry_extra_ca_certs: '{{ .Values.oci_registry_extra_ca_certs | include "set-if-defined" }}'
-  oci_registry_insecure: '{{ .Values.oci_registry_insecure | include "set-if-defined" }}'
-
+mgmt_cluster_state_values:
   cluster:
-    air_gapped: '{{ .Values.cluster.air_gapped | include "set-if-defined" }}'
-    capi_providers: '{{ .Values.cluster.capi_providers | include "preserve-type" }}'
     mgmt_cluster_ip: '{{ .Values.display_external_ip }}'
     capm3:
       image_provisioning_host: '{{ .Values.display_external_ip }}'
       image_provisioning_scheme: '{{ .Values.cluster.capm3.image_provisioning_scheme  }}'
-    default_node_class: '{{ .Values.cluster.default_node_class }}'
-    node_classes: '{{ .Values.cluster.node_classes | include "preserve-type" }}'
-
-  openstack:
-    storageClass: '{{ .Values.openstack.storageClass | include "set-if-defined" }}'
 
   units:
+    cluster-import-init:
+      enabled: '{{ tuple . "rancher" | include "unit-enabled" }}'
     cluster-import:
+      enabled: '{{ tuple . "rancher" | include "unit-enabled" }}'
+    cluster-import-check:
       enabled: '{{ tuple . "rancher" | include "unit-enabled" }}'
 
   monitoring:
@@ -9232,8 +9186,6 @@ shared_workload_clusters_values:
       {{- $units | include "preserve-type" -}}
     mgmt_cluster_service_names: >-
       {{- range $name, $hostname := .Values.external_hostnames }}{{ if has $name (list "loki" "rancher" "thanos_receive" "harbor") }}{{ $hostname }}{{print " "}}{{ end }}{{ end }}
-
-shared_workload_clusters_secret_values: {}
 
 workload_clusters:
   teams: {}

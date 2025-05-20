@@ -12,7 +12,7 @@ source $(dirname $(realpath $0))/tools/shell-lib/common.sh
 
 apply_scripts_init
 
-check_args
+check_args "$@"
 
 validate_input_values
 
