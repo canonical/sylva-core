@@ -6569,8 +6569,6 @@ units:
     enabled_conditions:
     - '{{ tuple . "minio-logging" | include "unit-enabled" }}'
     - '{{ .Values._internal.state.is_upgrade }}'
-    depends_on:
-      minio-logging: '{{ tuple . "minio-logging" | include "unit-enabled" }}'
     kustomization_spec:
       _patches:
       - target:
@@ -6851,8 +6849,6 @@ units:
     enabled_conditions:
     - '{{ tuple . "minio-monitoring" | include "unit-enabled" }}'
     - '{{ .Values._internal.state.is_upgrade }}'
-    depends_on:
-      minio-monitoring: '{{ tuple . "minio-monitoring" | include "unit-enabled" }}'
     kustomization_spec:
       _patches:
       - target:
