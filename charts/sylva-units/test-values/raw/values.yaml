@@ -1,0 +1,24 @@
+
+_internal:
+
+  test_my_raw_string_0:
+    (raw): '{{ fail "this will not be interpreted and hence will not fail {{ this will not be either }}" }}'
+
+  test_ref_to_raw_string_no_interpret: >-
+    foo {{ .Values._internal.test_my_raw_string_1 }}
+
+  test_my_raw_string_1:
+    (raw): '{{ will remain raw }}'
+
+  test_ref_to_raw_string_interpret: >-
+    {{- tuple . "_internal.test_my_raw_string_1" | include "interpret" -}}
+    foo {{ .Values._internal.test_my_raw_string_1 }}
+
+  test_my_raw_string_3:
+    (raw): '{{ blablabla "foo }} {{ bar baz" }}'
+
+  test_my_raw_string_4:
+    (raw): '{{ blablabla {{ {{ }}}}'
+
+  test_my_raw_string_5:
+    (raw): '{{ blablabla this is json {42:{42:42}} }}'

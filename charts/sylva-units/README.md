@@ -532,3 +532,57 @@ units:
       internal: true
   ...
 ```
+
+### How to escape interpretation ?  ("raw strings")
+
+Sometimes you really want a value to contain `{{ .. }}`, but you don't want this to be interpreted by sylva-units.
+Sometimes because this is golang template but intended to be interpreted by a component that sylva-units will deploy directly or indirectly.
+Sometimes because this is not even golang templating (e.g. Jinja2).
+
+This is possible by using a dict with the `(raw)` key set to your value.
+
+Instead of:
+
+```yaml
+my_value: my stuff containing {{ .. }}`
+```
+
+Write:
+
+```yaml
+my_value:
+  (raw): my stuff containing {{ .. }}`
+```
+
+Such "raw strings" are available in:
+
+* Kustomizations
+  * `units.xxx.kustomization_spec` relevant in particular for `postBuild.substitute` and `postBuild.patches`
+  * `units.xxx.kustomization_substitute_secrets`
+* HelmReleases values
+  * `units.xxx.helmrelease_spec`, relevant in particular for `values` and `postRenderers`
+  * `units.xxx.helm_secret_values`
+
+Let's take the example where unit `foo` deploys a Helm chart for software Foo, and in the values of this Helm chart you need to set `conf.custom_greetings` a value to some text containing some golang templating that software Foo will use:
+
+```yaml
+units:
+  foo:
+    helmrelease_spec:
+      values:
+        conf:
+          # can't work, sylva-units would try to interpret this and fail:
+          #
+          #greetings: Hello {{ firstname }} {{ lastname }}
+
+          # This will work:
+          custom_greetings:
+            (raw): Hello {{ firstname }} {{ lastname }}
+```
+
+With this, the values received by chart `foo` will be:
+
+```yaml
+conf:
+  custom_greetings: "Hello {{ firstname }} {{ lastname }}"
+```
