@@ -8933,30 +8933,40 @@ _internal:
       longhorn
     {{- end -}}
 
-  default_storage_class: >-
-    {{- if .Values.default_storage_class -}}
-      {{ .Values.default_storage_class }}
-    {{- else if (tuple . "ceph-csi-cephfs" | include "unit-enabled") -}}
-      cephfs-csi
-    {{- else if (tuple . "cinder-csi" | include "unit-enabled") -}}
-      {{ .Values.openstack.storageClass.name }}
-    {{- else if (tuple . "vsphere-csi-driver" | include "unit-enabled") -}}
-      vsphere-csi
-    {{- else if (tuple . "longhorn" | include "unit-enabled") -}}
-      {{ .Values._internal.default_longhorn_storage_class }}
-    {{- else -}}
-      local-path
-    {{- end -}}
-
   # maps storage class names to the name of the unit that implements it
   # (a storage class does not need to appear in this map if the required unit has the same name)
   storage_class_unit_map:
     local-path: local-path-provisioner
-    '{{ .Values._internal.default_longhorn_storage_class}}': longhorn
     vsphere-csi: vsphere-csi-driver
-    '{{ .Values.openstack.storageClass.name }}': cinder-csi
+    cinder-ceph-ssd: cinder-csi
     cephfs-csi: ceph-csi-cephfs
     nfs-ganesha: nfs-ganesha
+    longhorn: longhorn
+    single-replica-storageclass: longhorn
+    two-replicas-storageclass: longhorn
+
+  default_storage_class: >-
+    {{- if .Values.default_storage_class -}}
+      {{ .Values.default_storage_class }}
+    {{- else -}}
+      {{- $scUnitMap := .Values._internal.storage_class_unit_map -}}
+      {{- $envAll := . -}}
+      {{- $enableSCs := list -}}
+      {{- $enabledUnits := list -}}
+      {{- range $sc, $unit := $scUnitMap -}}
+        {{- if and (ne $sc "local-path") (tuple $envAll $unit | include "unit-enabled") -}}
+          {{- $enableSCs = append $enableSCs $sc -}}
+          {{- $enabledUnits = (not (has $unit $enabledUnits) | ternary (append $enabledUnits $unit) $enabledUnits) -}}
+        {{- end -}}
+      {{- end -}}
+      {{- if eq (len $enableSCs) 1 -}}
+        {{- index $enableSCs 0 -}}
+      {{- else if and (eq (len $enabledUnits) 1) (eq (index $enabledUnits 0) "longhorn") -}}
+        {{ .Values._internal.default_longhorn_storage_class }}
+      {{- else -}}
+        {{- fail (printf "following SCs %s are available as per units %s enabled, make one as the default_storage_class" $enableSCs $enabledUnits) -}}
+      {{- end -}}
+    {{- end -}}
 
   default_storage_class_unit: '{{ tuple . .Values._internal.default_storage_class_unit_ref | include "interpret-as-string" }}'
   default_storage_class_unit_ref: >-
