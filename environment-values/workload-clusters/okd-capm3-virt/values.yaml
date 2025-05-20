@@ -28,7 +28,7 @@ units:
       calico-ready: '{{ and (tuple . "calico-ready" | include "unit-enabled") .Values._internal.state.is_upgrade }}'
 
 cluster_machines_ready:
-  wait_timeout: 900s
+  wait_timeout: 1800s
 
 cluster:
   name: okd-capm3
