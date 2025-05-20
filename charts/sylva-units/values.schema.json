@@ -6604,6 +6604,19 @@
             }
           ]
         },
+        "additional_ca": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "$ref": "#/$defs/string-with-gotpl"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
         "additional_files": {
           "anyOf": [
             {
@@ -6960,6 +6973,19 @@
           ]
         },
         "unset_cluster_paused": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "$ref": "#/$defs/string-with-gotpl"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "freeze_first_node_files": {
           "anyOf": [
             {
               "type": "boolean"
