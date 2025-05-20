@@ -3051,6 +3051,7 @@ units:
       # see management.values.yaml and workload-cluster.values.yaml to see how
       # we handle the fact that this unit depends on the CAPI-related components being ready
       capo-cluster-resources: '{{ .Values.cluster.capi_providers.infra_provider | eq "capo" }}'
+      capo-network-settings: '{{ .Values.cluster.capi_providers.infra_provider | eq "capo" }}'
       sync-openstack-images: '{{ .Values.cluster.capi_providers.infra_provider | eq "capo" }}'
       cluster-bmh: '{{ .Values.cluster.capi_providers.infra_provider | eq "capm3" }}'
       cluster-node-deletion-timeout-fix: '{{ tuple . "cluster-node-deletion-timeout-fix" | include "unit-enabled" }}'
@@ -3153,10 +3154,10 @@ units:
           | include "set-only-if"
           -}}
 
-        # capo-cluster-resources ConfigMap to inject allocated_ip and mtu in Calico configuration
+        # ConfigMaps to inject allocated_ip and mtu in Calico configuration
         #
         # only used for capo
-        # byproduct of the capo-cluster-resources unit
+        # byproduct of the capo-cluster-resources and capo-network-settings units
         - |
           {{-
           tuple
