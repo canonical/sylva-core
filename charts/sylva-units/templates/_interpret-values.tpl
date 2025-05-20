@@ -278,6 +278,22 @@ Note well that there are a few limitations:
     {{- $data := index . 1 -}}
     {{- $kind := kindOf $data -}}
     {{- $result := 0 -}}
+    {{/* ---- shield raw strings */}}
+    {{- if and (eq $kind "map")
+               (hasKey $data "(raw)") -}}
+      {{- if not ($data | len | eq 1) -}}
+        {{- fail (printf "a '(raw): ...' entry has to be the single k/v in the value using it, other keys were present (%s)" ($data|keys|toJson)) -}}
+      {{- end -}}
+      {{- $rawValue := get $data "(raw)" }}
+      {{- if not (kindOf $rawValue | eq "string") -}}
+        {{- fail (printf "a '(raw)' item must be a string ('%v' is a '%s')" $rawValue (kindOf $rawValue)) -}}
+      {{- end -}}
+      {{/* replace '{{' by a special Unicode char "《" used as a shield to avoid triggering interpretation
+           (this replacement is reverted before producing final manifests, with the "unshield-raw" named template) */}}
+      {{- $data = $rawValue | replace "{{" "《" -}}
+      {{- $kind = "string" }}
+    {{- end -}}
+    {{/* ---- */}}
     {{- if (eq $kind "string") -}}
         {{- if regexMatch "(.|\n)*{{(.|\n)+}}(.|\n)*" $data -}}
             {{/* This is where we actually trigger GoTPL interpretation */}}
@@ -329,6 +345,19 @@ Note well that there are a few limitations:
 
 {{- dict "result" $result | toJson -}}
 {{- end -}}
+
+
+{{/*
+
+unshield-raw
+
+Do the reverse substitution that is done for "raw" strings in "interpret-inner-gotpl"
+
+*/}}
+{{- define "unshield-raw" -}}
+  {{- . | replace "《" "{{" -}}
+{{- end -}}
+
 
 {{/*
 
