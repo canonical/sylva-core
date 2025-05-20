@@ -1,0 +1,113 @@
+---
+cluster:
+  k8s_version: v1.31.4
+
+  capi_providers:
+    infra_provider: capone
+    bootstrap_provider: cabpk
+
+  capone:
+    public_network: # replace me
+
+    master_template: capone-mgmt-master # replace me
+    worker_template: capone-mgmt-worker # replace me
+
+    images:
+      - imageName: capone-mgmt-node # replace me
+        imageContent: |
+          PATH = "https://community-marketplace.opennebula.io//appliance/d197d8d4-dab6-4f7e-a1fd-90e87e4365d5/download/0"
+          DEV_PREFIX = "vd"
+
+    templates:
+      - templateName: capone-mgmt-master # replace me
+        templateContent: |
+          CONTEXT = [
+            NETWORK = "YES",
+            SET_HOSTNAME = "$NAME",
+            SSH_PUBLIC_KEY = "$USER[SSH_PUBLIC_KEY]",
+            TOKEN = "YES" ]
+          CPU = "1"
+          CPU_MODEL = [
+            MODEL = "host-passthrough" ]
+          DISK = [
+            IMAGE = "capone-mgmt-node", # replace me
+            SIZE = "65536"
+           ]
+          GRAPHICS = [
+            LISTEN = "0.0.0.0",
+            TYPE = "vnc" ]
+          HYPERVISOR = "kvm"
+          LXD_SECURITY_PRIVILEGED = "true"
+          MEMORY = "12288"
+          OS = [
+            ARCH = "x86_64",
+            FIRMWARE_SECURE = "YES" ]
+          SCHED_REQUIREMENTS = "HYPERVISOR=kvm"
+          VCPU = "8"
+      - templateName: capone-mgmt-worker # replace me
+        templateContent: |
+          CONTEXT = [
+            NETWORK = "YES",
+            SET_HOSTNAME = "$NAME",
+            SSH_PUBLIC_KEY = "$USER[SSH_PUBLIC_KEY]",
+            TOKEN = "YES" ]
+          CPU = "1"
+          CPU_MODEL = [
+            MODEL = "host-passthrough" ]
+          DISK = [
+            IMAGE = "capone-mgmt-node", # replace me
+            SIZE = "65536"
+           ]
+          GRAPHICS = [
+            LISTEN = "0.0.0.0",
+            TYPE = "vnc" ]
+          HYPERVISOR = "kvm"
+          LXD_SECURITY_PRIVILEGED = "true"
+          MEMORY = "6144"
+          OS = [
+            ARCH = "x86_64",
+            FIRMWARE_SECURE = "YES" ]
+          SCHED_REQUIREMENTS = "HYPERVISOR=kvm"
+          VCPU = "4"
+
+  control_plane_replicas: 1
+
+  machine_deployments:
+    md0:
+      replicas: 3
+
+cluster_virtual_ip: # replace me
+
+# We can define users if needed (.cluster.kubeadm.users[])
+  #kubeadm:
+  #  users:
+  #    - name: sylva-user
+  #      passwd: "put your password hash here"  # (copy pasted from /etc/shadow or created with "mkpasswd --method=SHA-512 --stdin")
+  #      groups: users
+  #      sudo: ALL=(ALL) NOPASSWD:ALL
+  #      shell: /bin/bash
+  #      lockPassword: false
+  #      sshAuthorizedKeys:
+  #        - ssh-rsa AAAA...... YOUR KEY HERE ....UqnQ==
+
+sylva_diskimagebuilder_images: {}
+
+proxies:
+  # put your own proxy settings here if you need
+  http_proxy: ""
+  https_proxy: ""
+  no_proxy: ""
+
+# configure containerd registry mirrors following https://github.com/containerd/containerd/blob/main/docs/hosts.md
+# see charts/syla-units/values.yaml for a more detailled example
+# registry_mirrors:
+#   hosts_config:
+#     docker.io:
+#     - mirror_url: http://your.mirror/docker
+
+# add ntp servers if you need
+ntp:
+  enabled: false
+  servers:
+  # - 1.2.3.4
+  # - 1.2.3.5

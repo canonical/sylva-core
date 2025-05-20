@@ -66,6 +66,8 @@ Wait for infra provider Cluster
   {{- $cluster_kind = "OpenStackCluster" -}}
 {{- else if $cluster.capi_providers.infra_provider | eq "capv" -}}
   {{- $cluster_kind = "VSphereCluster" -}}
+{{- else if $cluster.capi_providers.infra_provider | eq "capone" -}}
+  {{- $cluster_kind = "ONECluster" -}}
 {{- else if $cluster.capi_providers.infra_provider | eq "capm3" -}}
   {{- $cluster_kind = "Metal3Cluster" -}}
 {{- else if $cluster.capi_providers.infra_provider | eq "capd" -}}
