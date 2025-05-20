@@ -1,0 +1,97 @@
+---
+cluster:
+  capi_providers:
+    infra_provider: capone
+    bootstrap_provider: cabpr
+
+  capone:
+    public_network: # replace me
+
+    master_template: capone-wkld-master # replace me
+    worker_template: capone-wkld-worker # replace me
+
+    images:
+      - imageName: capone-wkld-node # replace me
+        imageContent: |
+          PATH = "https://marketplace.opennebula.io/appliance/4562be1a-4c11-4e9e-b60a-85a045f1de05/download/0"
+          DEV_PREFIX = "vd"
+
+    templates:
+      - templateName: capone-wkld-master # replace me
+        templateContent: |
+          CONTEXT = [
+            NETWORK = "YES",
+            SET_HOSTNAME = "$NAME",
+            SSH_PUBLIC_KEY = "$USER[SSH_PUBLIC_KEY]",
+            TOKEN = "YES" ]
+          CPU = "1"
+          CPU_MODEL = [
+            MODEL = "host-passthrough" ]
+          DISK = [
+            IMAGE = "capone-wkld-node", # replace me
+            SIZE = "65536" ]
+          GRAPHICS = [
+            LISTEN = "0.0.0.0",
+            TYPE = "vnc" ]
+          HYPERVISOR = "kvm"
+          LXD_SECURITY_PRIVILEGED = "true"
+          MEMORY = "12288"
+          OS = [
+            ARCH = "x86_64",
+            FIRMWARE_SECURE = "YES" ]
+          SCHED_REQUIREMENTS = "HYPERVISOR=kvm"
+          VCPU = "8"
+      - templateName: capone-wkld-worker # replace me
+        templateContent: |
+          CONTEXT = [
+            NETWORK = "YES",
+            SET_HOSTNAME = "$NAME",
+            SSH_PUBLIC_KEY = "$USER[SSH_PUBLIC_KEY]",
+            TOKEN = "YES" ]
+          CPU = "1"
+          CPU_MODEL = [
+            MODEL = "host-passthrough" ]
+          DISK = [
+            IMAGE = "capone-wkld-node", # replace me
+            SIZE = "65536" ]
+          GRAPHICS = [
+            LISTEN = "0.0.0.0",
+            TYPE = "vnc" ]
+          HYPERVISOR = "kvm"
+          LXD_SECURITY_PRIVILEGED = "true"
+          MEMORY = "6144"
+          OS = [
+            ARCH = "x86_64",
+            FIRMWARE_SECURE = "YES" ]
+          SCHED_REQUIREMENTS = "HYPERVISOR=kvm"
+          VCPU = "4"
+
+  control_plane_replicas: 1
+
+  machine_deployments:
+    md0:
+      replicas: 2
+
+cluster_virtual_ip: # replace me
+
+sylva_diskimagebuilder_images: {}
+
+proxies:
+  # put your own proxy settings here if you need
+  http_proxy: ""
+  https_proxy: ""
+  no_proxy: ""
+
+# configure containerd registry mirrors following https://github.com/containerd/containerd/blob/main/docs/hosts.md
+# see charts/syla-units/values.yaml for a more detailled example
+# registry_mirrors:
+#   hosts_config:
+#     docker.io:
+#     - mirror_url: http://your.mirror/docker
+
+# add ntp servers if you need
+ntp:
+  enabled: false
+  servers:
+  # - 1.2.3.4
+  # - 1.2.3.5
