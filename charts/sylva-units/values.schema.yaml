@@ -1778,25 +1778,6 @@ allOf:
 
     # --------------- Units specifics settings -----------------------
 
-  - if:
-      properties:
-        units:
-          properties:
-            metal3:
-              type: object
-    then:
-      properties:
-        units:
-          properties:
-            metal3:
-              properties:
-                settings:
-                  properties:
-                    ironicKernelParams:
-                      type: string
-                      description: "Kernel params for Ironic"
-                  additionalProperties: false
-
   # additional constraints for .openstack
   - if:
       properties:

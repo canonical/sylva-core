@@ -11048,40 +11048,6 @@
     {
       "if": {
         "properties": {
-          "units": {
-            "properties": {
-              "metal3": {
-                "type": "object"
-              }
-            }
-          }
-        }
-      },
-      "then": {
-        "properties": {
-          "units": {
-            "properties": {
-              "metal3": {
-                "properties": {
-                  "settings": {
-                    "properties": {
-                      "ironicKernelParams": {
-                        "type": "string",
-                        "description": "Kernel params for Ironic"
-                      }
-                    },
-                    "additionalProperties": false
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
           "cluster": {
             "properties": {
               "capi_providers": {
@@ -11242,6 +11208,119 @@
         "properties": {
           "admin_password": {
             "const": "{{ .Values._internal.default_password }}"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "units": {
+            "properties": {
+              "metal3": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "units": {
+            "properties": {
+              "metal3": {
+                "properties": {
+                  "settings": {
+                    "type": "object",
+                    "properties": {
+                      "ironicKernelParams": {
+                        "type": "string",
+                        "description": "Raw override (if provided, takes precedence)",
+                        "upstream_path": ".units.metal3.helmrelease_spec.values.global.ironicKernelParams",
+                        "example": "console=ttyS0 suse.autologin=ttyS0 rootpwd=\"...\"",
+                        "doc_only": false
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "units": {
+            "properties": {
+              "loki": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "units": {
+            "properties": {
+              "loki": {
+                "properties": {
+                  "settings": {
+                    "type": "object",
+                    "properties": {
+                      "testing": {
+                        "type": "string"
+                      }
+                    },
+                    "additionalProperties": true
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "units": {
+            "properties": {
+              "another-unit": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "units": {
+            "properties": {
+              "another-unit": {
+                "properties": {
+                  "settings": {
+                    "type": "object",
+                    "properties": {
+                      "someparams": {
+                        "properties": {
+                          "param1": {
+                            "description": ""
+                          },
+                          "param2": {
+                            "description": ""
+                          }
+                        }
+                      }
+                    },
+                    "additionalProperties": true
+                  }
+                }
+              }
+            }
           }
         }
       }
