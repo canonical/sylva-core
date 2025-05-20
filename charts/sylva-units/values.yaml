@@ -6482,6 +6482,54 @@ units:
               echo "StatefulSet deleted successfully. MinIO operator will recreate it with the correct image."
               exit 0
 
+  minio-logging-patch-healthcheckexprs:
+    info:
+      description: Patch minio-logging Kustomization to use healthCheckExprs field
+      details: |-
+        This unit was introduced as a workaround for the transition between Flux 2.4 and 2.5.
+        It patches the minio-logging Kustomization to use the new healthCheckExprs field
+        that is available in Flux 2.5.x.
+      internal: true
+    one_shot: true
+    unit_templates:
+    - base-deps
+    - kube-job
+    enabled_conditions:
+    - '{{ tuple . "minio-logging" | include "unit-enabled" }}'
+    - '{{ .Values._internal.state.is_upgrade }}'
+    kustomization_spec:
+      _patches:
+      - target:
+          kind: ConfigMap
+          labelSelector: kube-job=script
+        patch: |
+          - op: replace
+            path: /data/kube-job.sh
+            value: |
+              #!/bin/bash
+              # Patch the minio-logging Kustomization to use healthCheckExprs.
+              kubectl patch kustomization.kustomize.toolkit.fluxcd.io -n sylva-system minio-logging \
+                --field-manager sylva-minio-healthcheck-patch-unit \
+                --type=merge \
+                --patch '{
+                    "healthCheckExprs": [
+                      {
+                        "apiVersion": "minio.min.io/v2",
+                        "kind": "Tenant",
+                        "current": "status.healthStatus == \"green\"",
+                        "failed": "status.healthStatus != \"green\""
+                      }
+                    ]
+                  }
+                }'
+              # Check the result
+              if [ $? -eq 0 ]; then
+                echo "Successfully patched minio-logging Kustomization"
+              else
+                echo "Failed to patch minio-logging Kustomization"
+                exit 1
+              fi
+
   minio-logging:
     info:
       description: creates a MinIO tenant for the logging stack, used as S3 storage by Loki
@@ -6494,6 +6542,7 @@ units:
       namespace-defs: true
       minio-operator: true
       minio-logging-init: true
+      minio-logging-patch-healthcheckexprs: '{{ tuple . "minio-logging-patch-healthcheckexprs" | include "unit-enabled" }}'
       ingress-nginx: '{{ tuple . "ingress-nginx" | include "unit-enabled" }}'
       two-replicas-storageclass: '{{ tuple . "two-replicas-storageclass" | include "unit-enabled" }}'
       '{{ .Values._internal.default_storage_class_unit }}': '{{ not (tuple . "two-replicas-storageclass" | include "unit-enabled") }}'
@@ -6625,19 +6674,29 @@ units:
                 secretName: minio-logging-tls
     kustomization_spec:
       healthChecks:
-      - apiVersion: apps/v1
-        kind: StatefulSet
-        name: logging-pool-0  # concatenation from .tenant chart values .name & .pools[0].name
-        namespace: minio-logging
       - apiVersion: minio.min.io/v2
         kind: Tenant
         name: logging
         namespace: minio-logging
-      healthCheckExprs:
-      - apiVersion: minio.min.io/v2
-        kind: Tenant
-        current: status.healthStatus == "green"
-        failed: status.healthStatus != "green"
+      healthCheckExprs: >-
+        {{
+        tuple (list (dict
+                         "apiVersion" "minio.min.io/v2"
+                         "kind" "Tenant"
+                         "current" "status.healthStatus == \"green\""
+                         "failed" "status.healthStatus != \"green\""
+                     )
+              )
+              (lookup
+                     "apiextensions.k8s.io/v1"
+                     "CustomResourceDefinition"
+                     ""
+                     "kustomizations.kustomize.toolkit.fluxcd.io"
+               | toYaml
+               | contains "HealthCheckExprs"
+              )
+        | include "set-only-if"
+        }}
 
   minio-monitoring-init:
     info:
@@ -6717,6 +6776,55 @@ units:
               echo "StatefulSet deleted successfully. MinIO operator will recreate it with the correct image."
               exit 0
 
+  minio-monitoring-patch-healthcheckexprs:
+    info:
+      description: Patch minio-monitoring Kustomization to use healthCheckExprs field
+      details: |-
+        This unit was introduced as a workaround for the transition between Flux 2.4 and 2.5.
+        It patches the minio-monitoring Kustomization to use the new healthCheckExprs field
+        that is available in Flux 2.5.x.
+      internal: true
+    one_shot: true
+    unit_templates:
+    - base-deps
+    - kube-job
+    enabled_conditions:
+    - '{{ tuple . "minio-monitoring" | include "unit-enabled" }}'
+    - '{{ .Values._internal.state.is_upgrade }}'
+    kustomization_spec:
+      _patches:
+      - target:
+          kind: ConfigMap
+          labelSelector: kube-job=script
+        patch: |
+          - op: replace
+            path: /data/kube-job.sh
+            value: |
+              #!/bin/bash
+              # Patch the minio-monitoring Kustomization to use healthCheckExprs
+              kubectl patch kustomization.kustomize.toolkit.fluxcd.io -n sylva-system minio-monitoring \
+                --field-manager sylva-minio-healthcheck-patch-unit \
+                --type=merge \
+                --patch '{
+                  "spec": {
+                    "healthCheckExprs": [
+                      {
+                        "apiVersion": "minio.min.io/v2",
+                        "kind": "Tenant",
+                        "current": "status.healthStatus == \"green\"",
+                        "failed": "status.healthStatus != \"green\""
+                      }
+                    ]
+                  }
+                }'
+              # Check the result
+              if [ $? -eq 0 ]; then
+                echo "Successfully patched minio-monitoring Kustomization"
+              else
+                echo "Failed to patch minio-monitoring Kustomization"
+                exit 1
+              fi
+
   minio-monitoring:
     info:
       description: creates a MinIO tenant for the monitoring stack, used as S3 storage by Thanos
@@ -6731,6 +6839,7 @@ units:
       namespace-defs: true
       minio-operator: true
       minio-monitoring-init: true
+      minio-monitoring-patch-healthcheckexprs: '{{ tuple . "minio-monitoring-patch-healthcheckexprs" | include "unit-enabled" }}'
       ingress-nginx: '{{ tuple . "ingress-nginx" | include "unit-enabled" }}'
       two-replicas-storageclass: '{{ tuple . "two-replicas-storageclass" | include "unit-enabled" }}'
       '{{ .Values._internal.default_storage_class_unit }}': '{{ not (tuple . "two-replicas-storageclass" | include "unit-enabled") }}'
@@ -6856,19 +6965,29 @@ units:
                 secretName: minio-monitoring-tls
     kustomization_spec:
       healthChecks:
-      - apiVersion: apps/v1
-        kind: StatefulSet
-        name: monitoring-pool-0  # concatenation from .tenant chart values .name & .pools[0].name
-        namespace: minio-monitoring
       - apiVersion: minio.min.io/v2
         kind: Tenant
         name: monitoring
         namespace: minio-monitoring
-      healthCheckExprs:
-      - apiVersion: minio.min.io/v2
-        kind: Tenant
-        current: status.healthStatus == "green"
-        failed: status.healthStatus != "green"
+      healthCheckExprs: >-
+        {{
+        tuple (list (dict
+                         "apiVersion" "minio.min.io/v2"
+                         "kind" "Tenant"
+                         "current" "status.healthStatus == \"green\""
+                         "failed" "status.healthStatus != \"green\""
+                     )
+              )
+              (lookup
+                     "apiextensions.k8s.io/v1"
+                     "CustomResourceDefinition"
+                     ""
+                     "kustomizations.kustomize.toolkit.fluxcd.io"
+               | toYaml
+               | contains "HealthCheckExprs"
+              )
+        | include "set-only-if"
+        }}
 
   thanos-init:
     info:
