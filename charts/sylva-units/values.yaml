@@ -1065,6 +1065,7 @@ units:
       harbor-init: '{{ tuple . "harbor-init" | include "unit-enabled" }}'
       '{{ .Values._internal.default_storage_class_unit }}': true
       harbor-postgres: true
+      monitoring-crd: true
     annotations:
       sylvactl/readyMessage: "Harbor UI can be reached at https://{{ .Values.external_hostnames.harbor }} ({{ .Values.external_hostnames.harbor }} must resolve to {{ .Values.display_external_ip }})"
     helm_repo_url: https://helm.goharbor.io
