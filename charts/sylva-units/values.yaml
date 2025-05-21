@@ -835,6 +835,7 @@ units:
     info:
       description: rke2-metrics-server ha values
       maturity: stable
+      internal: true
     enabled_conditions:
       - '{{ or (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpr") (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpk") }}'
       - '{{ .Values._internal.ha_cluster.is_ha }}'
