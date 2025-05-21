@@ -3498,6 +3498,7 @@ units:
     - '{{ .Values.cluster.capi_providers.infra_provider | eq "capo" }}'
     depends_on:
       capo-orc: true
+      capo-cluster-resources: true
     kustomization_spec:
       _patches:
       - target:
@@ -3519,7 +3520,7 @@ units:
               spec:
                 cloudCredentialsRef:
                   cloudName: capo_cloud
-                  secretName: management-cluster-capo-cloud-config
+                  secretName: cluster-cloud-config
                 import:
                   id: '{{ .Values.cluster.capo.network_id }}'
                 managementPolicy: unmanaged
