@@ -6556,7 +6556,7 @@ units:
 
   minio-logging-patch-healthcheckexprs:
     info:
-      description: Patches minio-logging Kustomization to use healthCheckExprs field
+      description: Patch minio-logging Kustomization to use healthCheckExprs field
       details: |-
         This unit was introduced as a workaround for the transition between Flux 2.4 and 2.5.
         It patches the minio-logging Kustomization to use the new healthCheckExprs field
@@ -6837,7 +6837,7 @@ units:
 
   minio-monitoring-patch-healthcheckexprs:
     info:
-      description: Patches minio-monitoring Kustomization to use healthCheckExprs field
+      description: Patch minio-monitoring Kustomization to use healthCheckExprs field
       details: |-
         This unit was introduced as a workaround for the transition between Flux 2.4 and 2.5.
         It patches the minio-monitoring Kustomization to use the new healthCheckExprs field
