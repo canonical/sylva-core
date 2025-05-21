@@ -6490,8 +6490,6 @@ units:
     enabled_conditions:
     - '{{ tuple . "minio-logging" | include "unit-enabled" }}'
     - '{{ .Values._internal.state.is_upgrade }}'
-    depends_on:
-      minio-logging: '{{ tuple . "minio-logging" | include "unit-enabled" }}'
     kustomization_spec:
       _patches:
       - target:
@@ -6537,6 +6535,7 @@ units:
       namespace-defs: true
       minio-operator: true
       minio-logging-init: true
+      minio-logging-patch-healthcheckexprs: '{{ tuple . "minio-logging-patch-healthcheckexprs" | include "unit-enabled" }}'
       ingress-nginx: '{{ tuple . "ingress-nginx" | include "unit-enabled" }}'
       two-replicas-storageclass: '{{ tuple . "two-replicas-storageclass" | include "unit-enabled" }}'
       '{{ .Values._internal.default_storage_class_unit }}': '{{ not (tuple . "two-replicas-storageclass" | include "unit-enabled") }}'
@@ -6771,8 +6770,6 @@ units:
     enabled_conditions:
     - '{{ tuple . "minio-monitoring" | include "unit-enabled" }}'
     - '{{ .Values._internal.state.is_upgrade }}'
-    depends_on:
-      minio-monitoring: '{{ tuple . "minio-monitoring" | include "unit-enabled" }}'
     kustomization_spec:
       _patches:
       - target:
@@ -6821,6 +6818,7 @@ units:
       namespace-defs: true
       minio-operator: true
       minio-monitoring-init: true
+      minio-monitoring-patch-healthcheckexprs: '{{ tuple . "minio-monitoring-patch-healthcheckexprs" | include "unit-enabled" }}'
       ingress-nginx: '{{ tuple . "ingress-nginx" | include "unit-enabled" }}'
       two-replicas-storageclass: '{{ tuple . "two-replicas-storageclass" | include "unit-enabled" }}'
       '{{ .Values._internal.default_storage_class_unit }}': '{{ not (tuple . "two-replicas-storageclass" | include "unit-enabled") }}'
