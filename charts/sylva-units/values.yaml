@@ -7313,18 +7313,6 @@ units:
             drop: ["ALL"]
           seccompProfile:
             type: RuntimeDefault
-      _postRenderers:
-        - kustomize:
-            patches:
-              - target:
-                  kind: Logging
-                  name: logging-root
-                  namespace: cattle-logging-system
-                patch: |
-                  - op: add
-                    path: /spec/fluentd/security/podSecurityContext
-                    value:
-                      runAsUser: 100
 
   logging-config:
     info:
