@@ -9027,28 +9027,28 @@ _internal:
 
   #compute and validate the number of nodes
   check_node_count_vs_bmh: >-
-    {{- $node_groups := dict "control-plane" (dict "requested_nodes" .Values.cluster.control_plane_replicas "available_bmh" 0) -}}
-    {{- range $md_name, $md_def := .Values.cluster.machine_deployments -}}
-      {{- $_ := set $node_groups $md_name (dict "requested_nodes" $md_def.replicas "available_bmh" 0) -}}
-    {{- end -}}
-    {{- $available_bmh := 0 -}}
-    {{- range $bmh_name, $bmh_def := .Values.cluster.baremetal_hosts -}}
-      {{- $bmh_def := mergeOverwrite (deepCopy $.Values.cluster.baremetal_host_default) $bmh_def -}}
-      {{- $machine_group := tuple (dict "Values" (deepCopy $.Values.cluster)) $bmh_name $bmh_def | include "getMatchingValuesDefinitionForBmh" | fromJson -}}
-      {{- if $machine_group.machineGroupName -}}
-        {{- $machine_group_name := $machine_group.machineGroupName -}}
-        {{- $available_bmh = $node_groups | dig $machine_group_name "available_bmh" 0 | add 1 -}}
-        {{- $node_groups = mergeOverwrite $node_groups (dict $machine_group_name (dict "available_bmh" $available_bmh)) -}}
-      {{- end -}}
-    {{- end -}}
     {{- if eq .Values.cluster.capi_providers.infra_provider "capm3" -}}
+      {{- $node_groups := dict "control-plane" (dict "requested_nodes" .Values.cluster.control_plane_replicas "available_bmh" 0) -}}
+      {{- range $md_name, $md_def := .Values.cluster.machine_deployments -}}
+        {{- $_ := set $node_groups $md_name (dict "requested_nodes" $md_def.replicas "available_bmh" 0) -}}
+      {{- end -}}
+      {{- $available_bmh := 0 -}}
+      {{- range $bmh_name, $bmh_def := .Values.cluster.baremetal_hosts -}}
+        {{- $bmh_def := mergeOverwrite (deepCopy $.Values.cluster.baremetal_host_default) $bmh_def -}}
+        {{- $machine_group := tuple (dict "Values" (deepCopy $.Values.cluster)) $bmh_name $bmh_def | include "getMatchingValuesDefinitionForBmh" | fromJson -}}
+        {{- if $machine_group.machineGroupName -}}
+          {{- $machine_group_name := $machine_group.machineGroupName -}}
+          {{- $available_bmh = $node_groups | dig $machine_group_name "available_bmh" 0 | add 1 -}}
+          {{- $node_groups = mergeOverwrite $node_groups (dict $machine_group_name (dict "available_bmh" $available_bmh)) -}}
+        {{- end -}}
+      {{- end -}}
       {{- range $node_group_name, $node_group_def := $node_groups -}}
         {{- if lt (int $node_group_def.available_bmh) (int $node_group_def.requested_nodes) -}}
           {{- printf "Not enough available baremetal hosts for %s: %d requested, %d available" $node_group_name $node_group_def.requested_nodes $node_group_def.available_bmh | fail -}}
         {{- end -}}
       {{- end -}}
-    {{- end -}}
     {{ $node_groups | include "preserve-type" }}
+    {{- end -}}
   # total number of nodes in this cluster
   node_count:
     '
