@@ -35,7 +35,7 @@ export function activate(context: vscode.ExtensionContext) {
 
         const matchedEntry = findEntryByFinalKey(key);
         if (matchedEntry) {
-          const { description, example, upstream_path } : any = matchedEntry;
+          const { description, example, upstream_path }: any = matchedEntry;
           return new vscode.Hover(
             `**${description || 'No description'}**\n\nExample: \`${example || '—'}\`\n\nInjected into: \`${upstream_path}\` (from units-settings.yaml)`
           );
@@ -136,8 +136,8 @@ async function decorateDocumentedKeys(doc: vscode.TextDocument) {
   const ast = yamlAst.load(raw);
   const decorations: vscode.DecorationOptions[] = [];
 
-  for (const [unit, fields] of Object.entries(settingsMap)) {
-    for (const [key, props] of Object.entries(fields)) {
+  for (const [_, fields] of Object.entries(settingsMap)) {
+    for (const [_, props] of Object.entries(fields)) {
       const upstream = (props as any)?.upstream_path;
       if (typeof upstream !== 'string') continue;
 
@@ -156,22 +156,22 @@ async function decorateDocumentedKeys(doc: vscode.TextDocument) {
   }
 
   for (const [unit, fields] of Object.entries(settingsMap)) {
-  for (const [key, props] of Object.entries(fields)) {
-    const upstream = (props as any)?.upstream_path;
-    if (typeof upstream !== 'string') continue;
+    for (const [key, props] of Object.entries(fields)) {
+      const upstream = (props as any)?.upstream_path;
+      if (typeof upstream !== 'string') continue;
 
-    const parts = upstream.replace(/^\./, '').split('.');
-    const finalKey = parts[parts.length - 1];
+      const parts = upstream.replace(/^\./, '').split('.');
+      const finalKey = parts[parts.length - 1];
 
-    const regex = new RegExp(`\\.settings\\.${finalKey}\\b`, 'g');
-    let match: RegExpExecArray | null;
-    while ((match = regex.exec(raw)) !== null) {
-      const start = doc.positionAt(match.index);
-      const end = doc.positionAt(match.index + match[0].length);
-      decorations.push({ range: new vscode.Range(start, end) });
+      const regex = new RegExp(`\\.settings\\.${finalKey}\\b`, 'g');
+      let match: RegExpExecArray | null;
+      while ((match = regex.exec(raw)) !== null) {
+        const start = doc.positionAt(match.index);
+        const end = doc.positionAt(match.index + match[0].length);
+        decorations.push({ range: new vscode.Range(start, end) });
+      }
     }
   }
-}
 
   editor.setDecorations(documentedDecoration, decorations);
   editor.setDecorations(documentedDecoration2, decorations);
@@ -216,11 +216,11 @@ function createDecoration() {
   });
 
   documentedDecoration2 = vscode.window.createTextEditorDecorationType({
-  color: '#5faf5f',
-  fontWeight: 'bold',
-  border: '1px solid #5faf5f',
-  borderRadius: '2px',
-});
+    color: '#5faf5f',
+    fontWeight: 'bold',
+    border: '1px solid #5faf5f',
+    borderRadius: '2px',
+  });
 }
 
 export function deactivate() { }
