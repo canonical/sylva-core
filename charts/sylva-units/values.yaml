@@ -6942,21 +6942,16 @@ units:
       - target:
           kind: Job
         patch: |
+          {{ tuple . "units.thanos.helmrelease_spec.values" | include "interpret" -}}
           - op: add
             path: /spec/template/spec/containers/0/env
             value:
               - name: EXPECTED_HASH_receive
-                value: |-
-                  {{ tuple . "units.thanos.helmrelease_spec.values.receive.persistence" | include "interpret" -}}
-                  {{ .Values.units.thanos.helmrelease_spec.values.receive.persistence | toJson | sha256sum | trunc 8 }}
+                value: {{ .Values.units.thanos.helmrelease_spec.values.receive.persistence | toJson | sha256sum | trunc 8 }}
               - name: EXPECTED_HASH_storegateway
-                value: |-
-                  {{ tuple . "units.thanos.helmrelease_spec.values.storegateway.persistence" | include "interpret" -}}
-                  {{ .Values.units.thanos.helmrelease_spec.values.storegateway.persistence | toJson | sha256sum | trunc 8 }}
+                value: {{ .Values.units.thanos.helmrelease_spec.values.storegateway.persistence | toJson | sha256sum | trunc 8 }}
               - name: EXPECTED_HASH_ruler
-                value: |-
-                  {{ tuple . "units.thanos.helmrelease_spec.values.ruler.persistence" | include "interpret" -}}
-                  {{ .Values.units.thanos.helmrelease_spec.values.ruler.persistence | toJson | sha256sum | trunc 8 }}
+                value: {{ .Values.units.thanos.helmrelease_spec.values.ruler.persistence | toJson | sha256sum | trunc 8 }}
       - target:
           kind: ConfigMap
           labelSelector: kube-job=script
