@@ -908,6 +908,24 @@ units:
       wait: true
       targetNamespace: kubevirt-tests
 
+  kubevirt-vms-restart-after-upgrade:
+    info:
+      description: kube-job to restart VMs after upgrade if restart is required due to change in fields
+      internal: true
+      test: true
+    one_shot: true
+    unit_templates:
+    - base-deps
+    - kube-job
+    enabled_conditions:
+    - '{{ tuple . "kubevirt-test-vms" | include "unit-enabled" }}'
+    - '{{ .Values._internal.state.is_upgrade }}'
+    depends_on:
+      kubevirt-test-vms: true
+    repo: sylva-core
+    kustomization_spec:
+      wait: true
+      targetNamespace: kubevirt-tests
       _patches:
       - target:
           kind: ConfigMap
