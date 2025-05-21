@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: rke2-metrics-server-ha-values
+  name: metrics-server-ha-values
   namespace: sylva-system
 data:
   values.yaml: |

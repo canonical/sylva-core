@@ -833,27 +833,27 @@ units:
 
   metrics-server-ha:
     info:
-      description: rke2-metrics-server ha values
+      description: metrics-server configmap for ha values
       maturity: stable
       internal: true
     enabled_conditions:
-      - '{{ or (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpr") (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpk") }}'
+      - '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" }}'
       - '{{ .Values._internal.ha_cluster.is_ha }}'
     unit_templates:
       - base-deps
     repo: sylva-core
     kustomization_spec:
-      path: ./kustomize-units/rancher-metrics-server-ha
+      path: ./kustomize-units/metrics-server-ha
       wait: true
 
   metrics-server:
     info:
-      description: rke2-metrics-server install
+      description: metrics-server install
       maturity: stable
     enabled_conditions:
       - '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" }}'
     depends_on:
-      rke2-metrics-server-ha: '{{ .Values._internal.ha_cluster.is_ha }}'
+      metrics-server-ha: '{{ .Values._internal.ha_cluster.is_ha }}'
     unit_templates:
       - base-deps
     helm_repo_url: https://rke2-charts.rancher.io
@@ -872,7 +872,7 @@ units:
       valuesFrom:
         '{{ tuple
             (list (dict "kind" "ConfigMap"
-                  "name" "rke2-metrics-server-ha-values")
+                  "name" "metrics-server-ha-values")
             )
             .Values._internal.ha_cluster.is_ha
           | include "set-only-if" }}'
