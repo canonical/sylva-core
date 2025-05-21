@@ -8,4 +8,13 @@ resources:
 - multus-nw.yaml
 - multus-vm.yaml
 - cirros-vm.yaml
-- vm-restarts-after-upgrade.yml
+- ../kube-job
+
+configMapGenerator:
+
+- name: kube-job-cm
+  behavior: merge
+  options:
+    disableNameSuffixHash: true
+  files:
+  - kube-job.sh=job.sh

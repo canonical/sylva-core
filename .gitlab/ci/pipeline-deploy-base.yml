@@ -19,10 +19,10 @@ stages:
 variables:
   PREVIEW_MGMT_CLUSTER: "false"     # Controls whether management cluster preview
   DEPLOY_MGMT_CLUSTER: "true"       # Controls whether management cluster deploys
-  DEPLOY_WORKLOAD_CLUSTER: "true"   # Controls whether workload cluster deploys
+  DEPLOY_WORKLOAD_CLUSTER: "false"   # Controls whether workload cluster deploys
   UPDATE_MGMT_CLUSTER: "true"       # Controls whether management cluster updates
-  UPDATE_WORKLOAD_CLUSTER: "true"   # Controls whether workload cluster updates
-  DELETE_WORKLOAD_CLUSTER: "true"   # Controls whether workload cluster deletion
+  UPDATE_WORKLOAD_CLUSTER: "false"   # Controls whether workload cluster updates
+  DELETE_WORKLOAD_CLUSTER: "false"   # Controls whether workload cluster deletion
 
 default:
   tags:
