@@ -8,13 +8,13 @@ resources:
 - multus-nw.yaml
 - multus-vm.yaml
 - cirros-vm.yaml
-- ../kube-job
+# - ../kube-job
 
-configMapGenerator:
+# configMapGenerator:
 
-- name: kube-job-cm
-  behavior: merge
-  options:
-    disableNameSuffixHash: true
-  files:
-  - kube-job.sh=job.sh
+# - name: kube-job-cm
+#   behavior: merge
+#   options:
+#     disableNameSuffixHash: true
+#   files:
+#   - kube-job.sh=job.sh
