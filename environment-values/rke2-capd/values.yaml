@@ -2,15 +2,11 @@
 
 units:
   # Disabling some units for lightweight deployment testing
-  cluster-creator-policy:
-    enabled: false
   monitoring:
     enabled: false
   keycloak:
     enabled: false
   flux-webui:
-    enabled: false
-  capi-rancher-import:
     enabled: false
   mgmt-cluster-state-values:
     enabled: false
