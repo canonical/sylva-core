@@ -19,7 +19,7 @@ patches:
           - name: harbor-old-db
             connectionParameters:
               host: harbor-postgres-primary
-              user: harbor
+              user: ${HARBOR_USER_NAME}
               dbname: harbor
             password:
               name: ${HARBOR_SECRET_NAME}
