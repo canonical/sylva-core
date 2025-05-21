@@ -3497,8 +3497,7 @@ units:
     enabled_conditions:
     - '{{ .Values.cluster.capi_providers.infra_provider | eq "capo" }}'
     depends_on:
-      capo-orc: true
-      capo-cluster-resources: true
+      capo-cloud-config: true
     kustomization_spec:
       _patches:
       - target:
