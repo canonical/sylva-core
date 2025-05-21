@@ -6,42 +6,39 @@ import * as yaml from 'yaml';
 import * as yamlAst from 'yaml-ast-parser';
 
 let settingsMap: Record<string, any> = {};
+const rootPath = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath ?? "";
+const config = vscode.workspace.getConfiguration('unitsExtension');
+const settingsRelPath = config.get<string>('settingsPath') ?? 'charts/sylva-units/schemas/units-settings.yaml';
+const valuesRelPath = config.get<string>('valuesPath') ?? 'charts/sylva-units/values.yaml';
+const settingsPath = path.join(rootPath, settingsRelPath);
+const valuesPath = path.join(rootPath, valuesRelPath);
 
 let documentedDecoration: vscode.TextEditorDecorationType;
+let documentedDecoration2: vscode.TextEditorDecorationType;
 
 export function activate(context: vscode.ExtensionContext) {
-  const rootPath = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
-  if (!rootPath) return;
 
-  console.log(rootPath)
-
-  const settingsPath = path.join(rootPath, 'schemas', 'units-settings.yaml');
-  const valuesPath = path.join(rootPath, 'values.yaml');
-
-  try {
-    const rawYaml = fs.readFileSync(settingsPath, 'utf-8');
-    settingsMap = yaml.parse(rawYaml);
-  } catch (err) {
-    console.error('Failed to load units-settings.yaml:', err);
-    return;
-  }
-
-  createDecoration()
+  init()
 
   // Hover provider
   context.subscriptions.push(
     vscode.languages.registerHoverProvider('yaml', {
       provideHover(document, position) {
-        const line = document.lineAt(position.line).text;
-        const match = line.match(/upstream_path:\s*(\.[\w.]+)/);
-        if (match) {
-          const pathStr = match[1];
-          const info: any = findInfoByPath(pathStr);
-          if (info) {
-            return new vscode.Hover(
-              `**${info.description || 'No description'}**\n\nExample: \`${info.example || '—'}\`\nInjected into: \`${info.upstream_path}\``
-            );
-          }
+        if (!document.fileName.endsWith('values.yaml')) return;
+
+        const wordRange = document.getWordRangeAtPosition(position, /[\w-]+/);
+        const key = wordRange ? document.getText(wordRange) : '';
+        if (!key) return;
+
+        const linePrefix = document.lineAt(position.line).text.trim();
+        if (!linePrefix.includes(key)) return;
+
+        const matchedEntry = findEntryByFinalKey(key);
+        if (matchedEntry) {
+          const { description, example, upstream_path } : any = matchedEntry;
+          return new vscode.Hover(
+            `**${description || 'No description'}**\n\nExample: \`${example || '—'}\`\n\nInjected into: \`${upstream_path}\` (from units-settings.yaml)`
+          );
         }
         return null;
       },
@@ -63,9 +60,8 @@ export function activate(context: vscode.ExtensionContext) {
         const pathStr = match[1].slice(1); // remove leading dot
         const keys = pathStr.split('.');
 
-        console.log(pathStr)
-
         const targetNode = findNodeByPath(ast, keys);
+        console.log("goto: ", pathStr)
 
         if (!targetNode) return;
 
@@ -75,35 +71,61 @@ export function activate(context: vscode.ExtensionContext) {
     })
   );
 
+  context.subscriptions.push(
+    vscode.workspace.onDidOpenTextDocument((event) => {
+      if (event.fileName.endsWith('yaml')) {
+        console.log("onDidOpenTextDocument: ", event)
+        reloadSettings()
+      }
+    })
+  );
+
+  context.subscriptions.push(
+    vscode.workspace.onDidChangeTextDocument((event) => {
+      if (event.document.fileName.endsWith('yaml')) {
+        console.log("onDidChangeTextDocument: ", event)
+        reloadSettings()
+      }
+    })
+  );
+
+  context.subscriptions.push(
+    vscode.window.onDidChangeActiveTextEditor((event) => {
+      if (event?.document.fileName.includes('values.yaml')) {
+        console.log("onDidChangeActiveTextEditor: ", event)
+        reloadSettings()
+        decorateDocumentedKeys(event?.document);
+      }
+    })
+  );
+
+}
+
+function init() {
+  try {
+    const rawYaml = fs.readFileSync(settingsPath, 'utf-8');
+    settingsMap = yaml.parse(rawYaml);
+  } catch (err) {
+    console.error('Failed to load units-settings.yaml:', err);
+    return;
+  }
+
+  createDecoration()
+
   const activeDoc = vscode.window.activeTextEditor?.document;
   if (activeDoc?.fileName.endsWith('values.yaml')) {
     decorateDocumentedKeys(activeDoc);
   }
+}
 
-  context.subscriptions.push(
-    vscode.workspace.onDidOpenTextDocument((doc) => {
-      if (doc.fileName.endsWith('values.yaml')) {
-        decorateDocumentedKeys(doc);
-      }
-    })
-  );
-
-  context.subscriptions.push(
-    vscode.workspace.onDidChangeTextDocument((e) => {
-      if (e.document.fileName.endsWith('values.yaml')) {
-        decorateDocumentedKeys(e.document);
-      }
-    })
-  );
-
-  context.subscriptions.push(
-    vscode.window.onDidChangeActiveTextEditor((editor) => {
-      if (editor?.document.fileName.includes('values.yaml')) {
-        decorateDocumentedKeys(editor.document);
-      }
-    })
-  );
-
+function reloadSettings() {
+  try {
+    const rawYaml = fs.readFileSync(settingsPath, 'utf-8');
+    settingsMap = yaml.parse(rawYaml);
+    console.log('settingsMap reloaded');
+  } catch (err) {
+    console.error('[UnitsExtension] Failed to reload settings:', err);
+  }
 }
 
 async function decorateDocumentedKeys(doc: vscode.TextDocument) {
@@ -121,6 +143,7 @@ async function decorateDocumentedKeys(doc: vscode.TextDocument) {
 
       const pathSegments = upstream.replace(/^\./, '').split('.');
       const targetNode = findNodeByPath(ast, pathSegments);
+      console.log("latest ast node: ", "decorating: ", targetNode?.value)
       if (!targetNode) {
         console.warn(`Could not find path in values.yaml:`, pathSegments.join('.'));
         continue
@@ -132,7 +155,26 @@ async function decorateDocumentedKeys(doc: vscode.TextDocument) {
     }
   }
 
+  for (const [unit, fields] of Object.entries(settingsMap)) {
+  for (const [key, props] of Object.entries(fields)) {
+    const upstream = (props as any)?.upstream_path;
+    if (typeof upstream !== 'string') continue;
+
+    const parts = upstream.replace(/^\./, '').split('.');
+    const finalKey = parts[parts.length - 1];
+
+    const regex = new RegExp(`\\.settings\\.${finalKey}\\b`, 'g');
+    let match: RegExpExecArray | null;
+    while ((match = regex.exec(raw)) !== null) {
+      const start = doc.positionAt(match.index);
+      const end = doc.positionAt(match.index + match[0].length);
+      decorations.push({ range: new vscode.Range(start, end) });
+    }
+  }
+}
+
   editor.setDecorations(documentedDecoration, decorations);
+  editor.setDecorations(documentedDecoration2, decorations);
 }
 
 
@@ -148,16 +190,15 @@ function findNodeByPath(ast: yamlAst.YAMLNode, pathSegments: string[]): yamlAst.
     if (!mapping) return null;
 
     currentNode = mapping.value;
-    console.log(currentNode)
   }
-
+  // console.log("latest ast node:", currentNode)
   return currentNode;
 }
 
-function findInfoByPath(pathStr: string) {
-  for (const [unit, fields] of Object.entries(settingsMap)) {
-    for (const [key, props] of Object.entries(fields)) {
-      if ((props as any)?.upstream_path === pathStr) {
+function findEntryByFinalKey(finalKey: string) {
+  for (const unit of Object.values(settingsMap)) {
+    for (const [key, props] of Object.entries(unit)) {
+      if (key === finalKey) {
         return props;
       }
     }
@@ -173,6 +214,13 @@ function createDecoration() {
       margin: '0 0 0 1em',
     },
   });
+
+  documentedDecoration2 = vscode.window.createTextEditorDecorationType({
+  color: '#5faf5f',
+  fontWeight: 'bold',
+  border: '1px solid #5faf5f',
+  borderRadius: '2px',
+});
 }
 
 export function deactivate() { }

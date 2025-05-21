@@ -22,18 +22,33 @@
           ".yml"
         ]
       }
-    ]
+    ],
+    "configuration": {
+      "title": "Units Extension",
+      "properties": {
+        "unitsExtension.settingsPath": {
+          "type": "string",
+          "default": "charts/sylva-units/schemas/units-settings.yaml",
+          "description": "Path to the units-settings.yaml file, relative to the workspace root."
+        },
+        "unitsExtension.valuesPath": {
+          "type": "string",
+          "default": "charts/sylva-units/values.yaml",
+          "description": "Path to the values.yaml file to decorate or navigate, relative to the workspace root."
+        }
+      }
+    }
   },
   "scripts": {
     "compile": "tsc"
   },
   "devDependencies": {
     "@types/node": "^18.19.101",
-    "@types/vscode": "^1.100.0",
-    "typescript": "^5.8.3",
-    "yaml": "^2.8.0"
+    "@types/vscode": "^1.80.0",
+    "typescript": "^5.8.3"
   },
   "dependencies": {
+    "yaml": "^2.8.0",
     "yaml-ast-parser": "^0.0.43"
   }
 }
