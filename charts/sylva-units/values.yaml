@@ -9026,8 +9026,7 @@ _internal:
       {{- $version -}}
 
   #compute and validate the number of nodes
-  computed_node_count:
-    '
+  check_node_count_vs_bmh: >-
     {{- $node_groups := dict "control-plane" (dict "requested_nodes" .Values.cluster.control_plane_replicas "available_bmh" 0) -}}
     {{- range $md_name, $md_def := .Values.cluster.machine_deployments -}}
       {{- $_ := set $node_groups $md_name (dict "requested_nodes" $md_def.replicas "available_bmh" 0) -}}
@@ -9050,7 +9049,6 @@ _internal:
       {{- end -}}
     {{- end -}}
     {{ $node_groups | include "preserve-type" }}
-    '
   # total number of nodes in this cluster
   node_count:
     '
