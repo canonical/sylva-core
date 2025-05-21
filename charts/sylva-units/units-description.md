@@ -139,6 +139,7 @@
 | **kube-storage-version-migrator** | installs kube-storage-version-migrator to assist apiVersion migrations | Kustomization |
 | **kubevirt-manager** | deploys kubevirt-manager UI for kubevirt workloads | Kustomization |
 | **kubevirt-test-vms** | deploys kubevirt VMs for testing | Kustomization |
+| **kubevirt-vms-restart-after-upgrade** | kube-job to restart VMs after upgrade if restart is required due to change in fields | Kustomization |
 | **kunai-eso** | write secrets in kunai namespace in kunai expected format | Kustomization |
 | **kunai-postgres-cnpg** | Deploy Postgres cluster for Kunai using Cloud Native PostgreSQL (CNPG) | Kustomization |
 | **kunai-secrets** | create random secret that will be used by kunai application. secrets are sync with vault. | Kustomization |
