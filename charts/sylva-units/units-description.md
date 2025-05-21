@@ -35,7 +35,7 @@
 | **longhorn** | installs Longhorn CSI | stable | [Helm chart](https://charts.rancher.io/) | 105.2.0+up1.8.1 |
 | **metal3** | installs SUSE-maintained Metal3 operator | stable | [Helm chart](https://suse-edge.github.io/charts) | 0.11.1 |
 | **metallb** | installs MetalLB operator | stable | [Helm chart](https://metallb.github.io/metallb) | 0.14.9 |
-| **metrics-server** | rke2-metrics-server install | stable | [Helm chart](https://rke2-charts.rancher.io) | 3.12.200 |
+| **metrics-server** | metrics-server install | stable | [Helm chart](https://rke2-charts.rancher.io) | 3.12.200 |
 | **monitoring** | installs monitoring stack | stable | [Helm chart](https://charts.rancher.io/) | 105.1.4+up61.3.2-rancher.5 |
 | **multus** | installs Multus | stable | [Helm chart](https://rke2-charts.rancher.io/) | v4.2.002 |
 | **rancher** | installs Rancher | stable | [Helm chart](https://releases.rancher.com/server-charts/stable) | 2.10.3 |
@@ -161,7 +161,7 @@
 | **metal3-pdb** | add pdb to baremetal-operator pods | Kustomization |
 | **metal3-sylva-ca-init** | injects sylva-ca certificate in metal3<br/><br/>this certificate is needed to download baremetal os images via https | Kustomization |
 | **metallb-resources** | configures metallb resources | Helm chart |
-| **metrics-server-ha** | rke2-metrics-server ha values | Kustomization |
+| **metrics-server-ha** | metrics-server configmap for ha values | Kustomization |
 | **mgmt-cluster-ready** | (workload cluster) this unit reflects the readiness of the mgmt cluster<br/><br/>this unit acts as simple dependency lock to prevent deploying a workload cluster before the mgmt cluster is ready | Kustomization |
 | **mgmt-cluster-state-values** | manages workload cluster parameters which reflect management cluster state | Kustomization |
 | **minio-logging-cleanup** | Recreates MinIO-logging StatefulSet to avoid upgrade failure (This unit will be removed after Sylva 1.4) | Kustomization |
