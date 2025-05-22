@@ -19,3 +19,7 @@ cluster:
   # capm3:
   #   os_image_selector:
   #     os: ubuntu
+
+metallb:
+  bgp_lbs:
+    l3_options: {}

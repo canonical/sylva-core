@@ -15,6 +15,7 @@ variables:
   EQUINIX_RUNNER_PLAN: "m3.large.x86"
   SKIP_DOCKER_SERVICE: "true"  # equinix runners don't use docker in docker service
 
+
 # Default tag will be used for all deployments/updates jobs
 default:
   tags:
