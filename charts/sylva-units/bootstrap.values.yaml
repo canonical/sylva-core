@@ -135,12 +135,6 @@ units:
       path: ./kustomize-units/bootstrap-local-path
       wait: true
 
-  ingress-nginx-init:
-    kustomization_spec:
-      postBuild:
-        substitute:
-          CLUSTER_IP: "{{ .Values._internal.bootstrap_node_ip }}"
-
   ingress-nginx:
     enabled_conditions:  # this purposefully cancels the condition set in values.yaml
       - '{{ tuple . "os-image-server" | include "unit-enabled" }}'
