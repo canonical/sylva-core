@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Dict
 
 DOCS_DIR = Path("charts/sylva-units/docs")
-SETTINGS_FILE = Path("charts/sylva-units/schemas/units-settings.yaml")
+SETTINGS_FILE = Path("charts/sylva-units/schemas/units/settings.yaml")
 
 
 def load_settings(filepath: Path) -> Dict:
@@ -61,7 +61,7 @@ def generate_markdown_for_unit(unit_name: str, settings: Dict) -> str:
 
     lines = [f"# `{unit_name}` Settings"]
     if deprecated:
-        lines.append(f"> ⚠️ This unit is **deprecated** and may be removed in future versions.\n")
+        lines.append("> This unit is **deprecated** and may be removed in future versions.\n")
 
     lines.append(process_settings(unit_name, settings))
     return "\n".join(lines)
@@ -79,7 +79,7 @@ def write_docs(units: Dict):
 
 if __name__ == "__main__":
     if not SETTINGS_FILE.exists():
-        raise FileNotFoundError(f"units-settings.yaml not found at {SETTINGS_FILE}")
+        raise FileNotFoundError(f"settings.yaml not found at {SETTINGS_FILE}")
 
     settings_data = load_settings(SETTINGS_FILE)
     write_docs(settings_data)
