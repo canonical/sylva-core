@@ -1,0 +1,121 @@
+properties:
+  monitoring: 
+    type: object
+    additionalProperties: false
+    properties:
+      platform_tag:
+        type: string
+      thanos:
+        type: object
+        properties:
+          receive_url:
+            anyOf:
+            - type: string
+              format: uri
+            - $ref: "#/$defs/string-with-gotpl"
+          objstoreConfig:
+            type: object
+            properties:
+              type:
+                type: string
+              config:
+                type: object
+
+      alertmanager:
+        type: object
+        properties:
+          config:
+            type: object
+          webhooks:
+            type: object
+            properties:
+              jiralert:
+                type: object
+                additionalProperties: false
+                properties:
+                  env:
+                    type: object
+                  config:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      defaults:
+                        type: object
+                        additionalProperties: true
+                        properties:
+                          api_url:
+                            type: string
+                            pattern: https?://.*
+                          user:
+                            type: string
+                          password:
+                            type: string
+                          personal_access_token:
+                            type: string
+                        oneOf:
+                          - required:
+                              - api_url
+                              - user
+                              - password
+                          - required:
+                              - api_url
+                              - personal_access_token
+                      receivers:
+                        type: array
+                        additionalProperties: true
+                        minItems: 1
+                        items:
+                          type: object
+                          properties:
+                            name:
+                              type: string
+                            project:
+                              type: string
+                          required:
+                            - name
+                            - project
+                    required: []
+                    dependencies:
+                      receivers:
+                        - defaults
+                      defaults:
+                        - receivers
+              snmp_notifier:
+                type: object
+                additionalProperties: false
+                properties:
+                  config:
+                    type: object
+                    additionalProperties: true
+                    properties:
+                      destinations:
+                        type: array
+                        items:
+                          type: string
+                          pattern: "^(\\[?[a-zA-Z0-9.-]+\\]?:\\d+)$"
+                      version:
+                        type: string
+                        pattern: "^(V2c|V3)$"
+                      auth:
+                        type: object
+                        additionalProperties: false
+                        properties:
+                          community:
+                            type: string
+                          auth_protocol:
+                            type: string
+                            pattern: "^(MD5|SHA)$"
+                          priv_protocol:
+                            type: string
+                            pattern: "^(DES|AES)$"
+                        # auth credentials properties are required only for SNMP v3
+                          username:
+                            type: string
+                          password:
+                            type: string
+                          priv_password:
+                            type: string
+                      default_extra_args:
+                        type: array
+                      snmp_v3_extra_args:
+                        type: array

@@ -1,0 +1,210 @@
+properties:  
+  logging:
+    type: object
+    additionalProperties: false
+    properties:
+      loki_url:
+        anyOf:
+          - type: string
+            format: uri
+          - $ref: "#/$defs/string-with-gotpl"
+      flows:
+        type: object
+        additionalProperties:
+          type: object
+          additionalProperties: false
+          properties:
+            namespace:
+              type: string
+            flowLabel:
+              type: string
+            globalOutputRefs:
+              type: array
+              items:
+                type: string
+            localOutputRefs:
+              type: array
+              items:
+                type: string
+            loggingRef:
+              type: string
+            match:
+              type: array
+              items:
+                type: object
+                additionalProperties: false
+                properties:
+                  select:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      container_names:
+                        type: array
+                        items:
+                          type: string
+                      hosts:
+                        type: array
+                        items:
+                          type: string
+                      labels:
+                        type: object
+                  exclude:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      container_names:
+                        type: array
+                        items:
+                          type: string
+                      hosts:
+                        type: array
+                        items:
+                          type: string
+                      labels:
+                        type: object
+            filters:
+              type: array
+              items:
+                type: object
+      clusterflows:
+        type: object
+        additionalProperties:
+          type: object
+          additionalProperties: false
+          properties:
+            namespace:
+              type: string
+            flowLabel:
+              type: string
+            globalOutputRefs:
+              type: array
+              items:
+                type: string
+            loggingRef:
+              type: string
+            match:
+              type: array
+              items:
+                type: object
+                additionalProperties: false
+                properties:
+                  select:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      container_names:
+                        type: array
+                        items:
+                          type: string
+                      hosts:
+                        type: array
+                        items:
+                          type: string
+                      labels:
+                        type: object
+                  exclude:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      container_names:
+                        type: array
+                        items:
+                          type: string
+                      hosts:
+                        type: array
+                        items:
+                          type: string
+                      labels:
+                        type: object
+            filters:
+              type: array
+              items:
+                type: object
+      outputs:
+        type: object
+        additionalProperties:
+          type: object
+          additionalProperties: false
+          properties:
+            syslog:
+              type: object
+              additionalProperties: false
+              properties:
+                host:
+                  type: string
+                port:
+                  type: integer
+                allow_self_signed_cert:
+                  type: boolean
+                client_cert_path:
+                  type: string
+                enable_system_cert_store:
+                  type: boolean
+                fqdn:
+                  type: string
+                insecure:
+                  type: boolean
+                private_key_passphrase:
+                  type: string
+                private_key_path:
+                  type: string
+                slow_flush_log_threshold:
+                  type: string
+                transport:
+                  type: string
+                trusted_ca_path:
+                  type: string
+                verify_fqdn:
+                  type: boolean
+                version:
+                  type: string
+                format:
+                  type: object
+                buffer:
+                  type: object
+      clusteroutputs:
+        type: object
+        additionalProperties:
+          type: object
+          additionalProperties: false
+          properties:
+            syslog:
+              type: object
+              additionalProperties: false
+              properties:
+                host:
+                  type: string
+                port:
+                  type: integer
+                enabledNamespaces:
+                  type: array
+                  items:
+                    type: string
+                allow_self_signed_cert:
+                  type: boolean
+                client_cert_path:
+                  type: string
+                enable_system_cert_store:
+                  type: boolean
+                fqdn:
+                  type: string
+                insecure:
+                  type: boolean
+                private_key_passphrase:
+                  type: string
+                private_key_path:
+                  type: string
+                slow_flush_log_threshold:
+                  type: string
+                transport:
+                  type: string
+                trusted_ca_path:
+                  type: string
+                verify_fqdn:
+                  type: boolean
+                version:
+                  type: string
+                format:
+                  type: object
+                buffer:
+                  type: object

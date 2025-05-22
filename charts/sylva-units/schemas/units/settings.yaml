@@ -1,0 +1,16 @@
+metal3:
+  _meta:
+    additionalProperties: false
+  ironicKernelParams:
+    type: string
+    description: new desc ?????
+    upstream_path: .units.metal3.helmrelease_spec.values.global.ironicKernelParams
+    example: console=ttyS0 suse.autologin=ttyS0 rootpwd="..."
+
+another-unit:
+  someparams:
+    properties:
+      param1:
+        description: ""
+      param2:
+        description: ""

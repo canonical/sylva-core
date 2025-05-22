@@ -1,0 +1,101 @@
+properties:
+  security:
+    type: object
+    additionalProperties: false
+    properties:
+      external_x509_issuer:
+        type: object
+        additionalProperties: false
+        properties:
+          issuer_type:
+            type: string
+            pattern: "^(acme|vault)$"
+          vault_token:
+            type: string
+          server:
+            type: string
+            pattern: "^(https?://.*|)$"
+          vault_path:
+            type: string
+      default_cosign_public_key:
+        ref: "#/$defs/pub-key"
+      upstream_images_signature:
+        type: object
+        additionalProperties: false
+        properties:
+          verify:
+            type: boolean
+          policy_action:
+            type: string
+            pattern: "^(Audit|Enforce)$"
+          repository:
+            type: string
+          cosign_public_key:
+            anyOf:
+              - ref: "#/$defs/pub-key"
+              - ref: "#/$defs/string-with-gotpl"
+          images_list:
+            type: array
+      calico_wireguard_enabled:
+        type: boolean
+      neuvector_scanning_enabled:
+        type: boolean
+      os_images:
+        type: object
+        additionalProperties: false
+        properties:
+          skip_signing_check:
+            type: boolean
+          cosign_public_key:
+            anyOf:
+              - ref: "#/$defs/pub-key"
+              - ref: "#/$defs/string-with-gotpl"
+      oci_artifacts:
+        type: object
+        additionalProperties: false
+        properties:
+          skip_signing_check:
+            type: boolean
+          cosign_public_key:
+            anyOf:
+              - ref: "#/$defs/pub-key"
+              - ref: "#/$defs/string-with-gotpl"
+      sbom_operator:
+        type: object
+        properties:
+          targets:
+            type: array
+            minItems: 1
+            items:
+              type: string
+              enum: ["configmap", "dtrack", "oci"]
+          dtrack_base_url:
+            type: string
+            format: uri
+            pattern: "^(https?://.*|)$"
+          dtrack_api_key:
+            type: string
+          oci_registry:
+            type: string
+            format: uri
+            pattern: "^oci://.*$"
+          oci_user:
+            type: string
+          oci_token:
+            type: string
+        allOf:
+        - required: [targets]
+        - if:
+            properties:
+              targets:
+                contains:
+                  const: dtrack
+          then:
+            required: [dtrack_base_url, dtrack_api_key]
+        - if:
+            properties:
+              targets:
+                contains:
+                  const: oci
+          then:
+            required: [oci_registry, oci_user, oci_token]
