@@ -921,7 +921,7 @@ units:
     - '{{ tuple . "kubevirt-test-vms" | include "unit-enabled" }}'
     - '{{ .Values._internal.state.is_upgrade }}'
     depends_on:
-      kubevirt-test-vms: true
+      kubevirt: true
     repo: sylva-core
     kustomization_spec:
       wait: true
