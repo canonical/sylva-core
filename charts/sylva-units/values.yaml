@@ -847,6 +847,42 @@ units:
       _components:
         - '{{ tuple "./components/keycloak-upgrade-db" (and .Values._internal.state.is_upgrade (tuple . "keycloak" | include "unit-enabled")) | include "set-only-if" }}'
 
+  litmus-operator:
+    info:
+      description: Deploys litmus core component as an unit
+      internal: true
+      test: true
+      maturity: beta
+    unit_templates:
+    - base-deps
+    repo: sylva-core
+    kustomization_spec:
+      path: ./kustomize-units/litmus-operator
+
+  litmus-testcase-k8s-api-response:
+    info:
+      description: Runs k8s API Response testcase
+      internal: true
+      test: true
+      maturity: beta
+    unit_templates:
+    - base-deps
+    depends_on:
+      litmus-operator: true
+    repo: sylva-core
+    kustomization_spec:
+      targetNamespace: litmus
+      path: ./kustomize-units/litmus-testcases/k8s-api-response
+      postBuild:
+        substitute:
+          QUOTE: '"'
+          UNIT_NAME: k8s-api-response
+          TOTAL_CHAOS_DURATION: "600"
+          CHAOS_INTERVAL: "600"
+          TARGET_PODS: custom-exp-pod
+          NAMESPACE: litmus
+          PROBE_DATA: '{{ .Values._internal.litmus.probe | toJson }}'
+
   kubevirt:
     info:
       description: installs kubevirt
@@ -8681,6 +8717,27 @@ metallb_helm_values:
 
 _internal:
 
+  litmus:
+    probe:
+      - name: "Execute Login Test Script"
+        type: "cmdProbe"
+        cmdProbe/inputs:
+          command: "/scripts/hurl.sh"
+          comparator:
+            type: "string"
+            criteria: "contains"
+            value: "Succeeded files:"
+          source:
+            image: enilegu/login-test:v1.0.3
+        mode: Continuous
+        runProperties:
+          stopOnFailure: false
+          probeTimeout: "30s"
+          interval: "60s"
+          retry: 10
+          initialDelaySeconds: 120
+          probePollingInterval: "30s"
+
   state:
     # is_upgrade reflects whether or not the currently processed release
     #   is an "upgrade", ie. a new release coming after a full installation
@@ -9225,3 +9282,4 @@ openshift:
     # serviceHostname: openshift-assisted-service.example.com
     # variable to specify the openshift assisted image service hostname
     # imageHostname: openshift-assisted-images.example.com
+

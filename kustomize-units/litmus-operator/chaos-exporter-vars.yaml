@@ -1,0 +1,15 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: chaos-operator-ce
+  namespace: litmus
+spec:
+  template:
+    spec:
+      containers:
+      - name: chaos-operator
+        env:
+        - name: OPERATOR_LOG_LEVEL
+          value: "DEBUG"  # Enable debug log level
+        - name: CHAOS_EXPORTER_ENABLE
+          value: "true"  # Enable chaos exporter

@@ -148,6 +148,8 @@
 | **kyverno-policy-rancher-webhook-ha** | Kyverno policy for rancher-webhook HA | Kustomization |
 | **kyverno-update-namespace-and-psa** | grants to Kyverno the permission to update namespaces using the "updatepsa" verb (Rancher-specific)<br/><br/>This unit allows Kyverno to define namespaces with specific PodSecurityAdmission levels. It is useful for situations where namespaces need to be mutated (with PSA labels) in order to accomodate privileged pods (for which PSA level restricted at cluster level is not enough), when namespace creation is not controlled | Kustomization |
 | **kyverno-vault-restart-policy** | restart vault after certs renewal | Kustomization |
+| **litmus-operator** | Deploys litmus core component as an unit | Kustomization |
+| **litmus-testcase-k8s-api-response** | Runs k8s API Response testcase | Kustomization |
 | **logging-config** | Configures rancher-logging to ship logs to Loki | Kustomization |
 | **loki-credentials-secret** | create a secret containing tenant's loki credentials | Kustomization |
 | **loki-init** | sets up Loki certificate<br/><br/>it generate certificate | Kustomization |

@@ -1,0 +1,74 @@
+apiVersion: litmuschaos.io/v1alpha1
+description:
+  message: |
+    Deletes a pod belonging to a deployment/statefulset/daemonset
+kind: ChaosExperiment
+metadata:
+  name: '${UNIT_NAME}'
+  labels:
+    name: '${UNIT_NAME}'
+    app.kubernetes.io/part-of: litmus
+    app.kubernetes.io/component: chaosexperiment
+    app.kubernetes.io/version: 3.17.0
+spec:
+  definition:
+    scope: Namespaced
+    permissions:
+      - apiGroups:
+          - ""
+          - "apps"
+          - "apps.openshift.io"
+          - "argoproj.io"
+          - "batch"
+          - "litmuschaos.io"
+        resources:
+          - "deployments"
+          - "jobs"
+          - "pods"
+          - "pods/log"
+          - "replicationcontrollers"
+          - "deployments"
+          - "statefulsets"
+          - "daemonsets"
+          - "replicasets"
+          - "deploymentconfigs"
+          - "rollouts"
+          - "pods/exec"
+          - "events"
+          - "chaosengines"
+          - "chaosexperiments"
+          - "chaosresults"
+        verbs:
+          - "create"
+          - "list"
+          - "get"
+          - "patch"
+          - "update"
+          - "delete"
+          - "deletecollection"
+    #image: 'enilegu/k8s-api-response:v1.0.1'
+    image: 'registry.gitlab.com/sylva-projects/sylva-elements/container-images/litmus-tests/snapshot:0.0.0-git-ed943f96'
+    imagePullPolicy: 'IfNotPresent'
+    args:
+    - -c
+    - ./experiments -name k8s-api-response
+    command:
+    - /bin/bash
+    env:
+
+    # Period to wait before and after injection of chaos in sec
+    - name: RAMP_TIME
+      value: ''
+
+    - name: TARGET_PODS
+      value: '${TARGET_PODS}'
+
+    # pod failures without '--force' & default terminationGracePeriodSeconds
+    - name: FORCE
+      value: 'false'
+
+    labels:
+      name: k8s-api-response
+      app.kubernetes.io/part-of: litmus
+      app.kubernetes.io/component: experiment-job
+      app.kubernetes.io/version: 3.17.0
