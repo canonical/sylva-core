@@ -19,7 +19,7 @@ if  [[ -z $KUBECONFIG_OUTPUT ]]; then
     exit 1
 fi
 
-RANCHER_WORKLOAD_CLUSTER_NAME=$WORKLOAD_CLUSTER_NAME-capi
+RANCHER_WORKLOAD_CLUSTER_NAME=$WORKLOAD_CLUSTER_NAME
 
 echo "---- Retrieving kubeconfig for cluster $WORKLOAD_CLUSTER_NAME from Rancher API"
 

@@ -358,6 +358,52 @@ units:
         - '{{ tuple "components/vault-issuer" (eq .Values.security.external_x509_issuer.issuer_type "vault") | include "set-only-if"}}'
         - '{{ tuple "components/ca-issuer" (not (hasKey .Values.security.external_x509_issuer "issuer_type")) | include "set-only-if" }}'
 
+  cluster-import-legacy-cleanup:
+    info:
+      description: Remove resources used by capi-rancher-import
+      details: >
+        a job to manually delete the secret used in the legacy solution
+      internal: true
+    one_shot: true
+    enabled_conditions:
+    - '{{ .Values._internal.state.is_upgrade }}'
+    depends_on:
+      cluster-ready: '{{ tuple . "cluster" | include "unit-enabled" }}'
+    unit_templates:
+    - kube-job
+    - base-deps
+    kustomization_spec:
+      _patches:
+      - target:
+          kind: ConfigMap
+          labelSelector: kube-job=script
+        patch: |
+          - op: replace
+            path: /data/kube-job.sh
+            value: |
+              #/bin/bash
+              set -e
+              kubeconfig_secret_user_b64=$(kubectl -n sylva-system get secret cluster-creator-kubeconfig -o jsonpath='{.data.USER_NAME}' 2>/dev/null || true)
+              if [[ $kubeconfig_secret_user_b64 != "" ]]; then
+                 echo "cluster-creator-kubeconfig Secret found"
+                 user=$(echo $kubeconfig_secret_user_b64 | base64 -d)
+                 echo "Delete cluster-creator-kubeconfig Rancher user $user"
+                 kubectl delete users.management.cattle.io $user --ignore-not-found=false
+                 echo "Delete secret related to legacy solution"
+                 kubectl -n sylva-system delete secret cluster-creator-kubeconfig
+              else
+                 echo "No legacy resources (no cluster-creator-kubeconfig Secret)"
+              fi
+      - target:
+          kind: ClusterRole
+        patch: |
+          - op: replace
+            path: /rules
+            value:
+              - apiGroups: [management.cattle.io]
+                resources: [users]
+                verbs: [list, delete]
+
 keycloak:
   keycloak_expire_password_days: 30
 
