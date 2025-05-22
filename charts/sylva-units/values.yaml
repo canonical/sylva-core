@@ -3573,9 +3573,6 @@ units:
       monitoring-crd: '{{ tuple . "monitoring-crd" | include "unit-enabled" }}'
       '{{ .Values._internal.calico_readiness_unit }}': '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpk" }}'
       cluster-vip: '{{ and (tuple . "cluster-vip" | include "unit-enabled") .Values._internal.state.is_upgrade }}'
-      metallb-resources: '{{ .Values._internal.state.is_upgrade }}'  # on upgrade from Sylva 1.3 to 1.4, we need metallb-resources unit
-                                                                     # to be updated before metallb unit
-                                                                     # (see https://gitlab.com/sylva-projects/sylva-core/-/issues/2210)
     helm_repo_url: https://metallb.github.io/metallb
     helmrelease_spec:
       # Setting drift detection mode to warn for metallb till https://gitlab.com/sylva-projects/sylva-core/-/issues/2238 is solved.
@@ -8690,6 +8687,14 @@ metallb_helm_values:
       key: node-role.kubernetes.io/master
     - effect: NoSchedule
       key: node-role.kubernetes.io/control-plane
+  frrk8s:
+    enabled: '{{ tuple . .Values._internal.metallb_frrk8s_required | include "interpret-as-bool" }}'
+  frr-k8s:
+    frrk8s:
+      resources:
+        limits:
+          cpu: 500m
+          memory: 256Mi
 
 _internal:
 
@@ -9027,6 +9032,17 @@ _internal:
     {{- if ne (omit .Values.cluster.metallb_helm_values "prometheus" | toYaml) (omit .Values.units.metallb.helmrelease_spec.values "prometheus" | toYaml) }}
       {{ printf "The Helm values for Metallb are different between the cluster and the metallb unit. It is recomended to use `.Values.metallb_helm_values` to ensure consistency." | fail }}
     {{- end }}
+
+  metallb_frrk8s_required: >-
+    {{- $metallb_frrk8s_required := false }}
+    {{- if (.Values.metallb | dig "bgp_lbs" "l3_options" "bgp_peers" "") }}
+      {{- range $_, $bgppeer := .Values.metallb.bgp_lbs.l3_options.bgp_peers }}
+        {{- if or $bgppeer.bfd_profile $bgppeer.receive_routes }}
+          {{- $metallb_frrk8s_required = true }}
+        {{- end }}
+      {{- end }}
+    {{- end }}
+    {{ tuple . $metallb_frrk8s_required | include "interpret-as-bool" }}
 
   loadBalancerClass: '{{ tuple . (eq .Values.cluster.capi_providers.bootstrap_provider "cabpr") "sylva.org/metallb-class" "kube-vip.io/kube-vip-class" | include "interpret-ternary" }}'
 
