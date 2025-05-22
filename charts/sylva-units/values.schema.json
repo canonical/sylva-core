@@ -10155,183 +10155,161 @@
     "additional_sylva_units_status_info": {
       "type": "object"
     },
-    "security": {
+    "metallb": {
+      "$ref": "#/$defs/metallb-resources-values"
+    },
+    "calico_helm_values": {
+      "type": "object"
+    },
+    "metallb_helm_values": {
+      "type": "object"
+    },
+    "_internal": {
+      "type": "object",
+      "properties": {
+        "immutable_values": {
+          "type": "object",
+          "patternProperties": {
+            ".*": {
+              "anyOf": [
+                {
+                  "type": "object"
+                },
+                {
+                  "$ref": "#/$defs/gotpl"
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "third_party": {
+      "type": "object"
+    },
+    "mgmt_cluster_state_values": {
+      "type": "object"
+    },
+    "workload_clusters": {
+      "type": "object",
+      "properties": {
+        "sylva_source": {
+          "type": "object"
+        },
+        "teams": {
+          "type": "object"
+        }
+      }
+    },
+    "snmp": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "external_x509_issuer": {
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "issuer_type": {
-              "type": "string",
-              "pattern": "^(acme|vault)$"
-            },
-            "vault_token": {
-              "type": "string"
-            },
-            "server": {
-              "type": "string",
-              "pattern": "^(https?://.*|)$"
-            },
-            "vault_path": {
-              "type": "string"
-            }
-          }
-        },
-        "default_cosign_public_key": {
-          "ref": "#/$defs/pub-key"
-        },
-        "upstream_images_signature": {
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "verify": {
-              "type": "boolean"
-            },
-            "policy_action": {
-              "type": "string",
-              "pattern": "^(Audit|Enforce)$"
-            },
-            "repository": {
-              "type": "string"
-            },
-            "cosign_public_key": {
-              "anyOf": [
-                {
-                  "ref": "#/$defs/pub-key"
-                },
-                {
-                  "ref": "#/$defs/string-with-gotpl"
-                }
-              ]
-            },
-            "images_list": {
-              "type": "array"
-            }
-          }
-        },
-        "calico_wireguard_enabled": {
-          "type": "boolean"
-        },
-        "neuvector_scanning_enabled": {
-          "type": "boolean"
-        },
-        "os_images": {
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "skip_signing_check": {
-              "type": "boolean"
-            },
-            "cosign_public_key": {
-              "anyOf": [
-                {
-                  "ref": "#/$defs/pub-key"
-                },
-                {
-                  "ref": "#/$defs/string-with-gotpl"
-                }
-              ]
-            }
-          }
-        },
-        "oci_artifacts": {
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "skip_signing_check": {
-              "type": "boolean"
-            },
-            "cosign_public_key": {
-              "anyOf": [
-                {
-                  "ref": "#/$defs/pub-key"
-                },
-                {
-                  "ref": "#/$defs/string-with-gotpl"
-                }
-              ]
-            }
-          }
-        },
-        "sbom_operator": {
-          "type": "object",
-          "properties": {
-            "targets": {
-              "type": "array",
-              "minItems": 1,
-              "items": {
+        "devices": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "alias": {
                 "type": "string",
-                "enum": [
-                  "configmap",
-                  "dtrack",
-                  "oci"
+                "format": "hostname"
+              },
+              "target": {
+                "type": "string",
+                "anyOf": [
+                  {
+                    "pattern": "^((tcp|udp)://.*|)$"
+                  },
+                  {
+                    "format": "hostname"
+                  }
                 ]
+              },
+              "module": {
+                "type": "string",
+                "pattern": "^(dell_idrac|hp_cpq|lenovo_xcc)$"
+              },
+              "auth": {
+                "type": "string"
+              },
+              "cluster_name": {
+                "type": "string"
               }
-            },
-            "dtrack_base_url": {
-              "type": "string",
-              "format": "uri",
-              "pattern": "^(https?://.*|)$"
-            },
-            "dtrack_api_key": {
-              "type": "string"
-            },
-            "oci_registry": {
-              "type": "string",
-              "format": "uri",
-              "pattern": "^oci://.*$"
-            },
-            "oci_user": {
-              "type": "string"
-            },
-            "oci_token": {
-              "type": "string"
             }
-          },
-          "allOf": [
-            {
-              "required": [
-                "targets"
-              ]
-            },
-            {
+          }
+        },
+        "auth": {
+          "type": "object",
+          "additionalProperties": false,
+          "patternProperties": {
+            ".+": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "version": {
+                  "type": "integer",
+                  "minimum": 2,
+                  "maximum": 3
+                },
+                "community": {
+                  "type": "string"
+                },
+                "security_level": {
+                  "type": "string",
+                  "pattern": "^(noAuthNoPriv|authNoPriv|authPriv)$"
+                },
+                "username": {
+                  "type": "string"
+                },
+                "password": {
+                  "type": "string"
+                },
+                "auth_protocol": {
+                  "type": "string",
+                  "pattern": "^(MD5|SHA|SHA224|SHA256|SHA384|SHA512)$"
+                },
+                "priv_protocol": {
+                  "type": "string",
+                  "pattern": "^(AES|AES192|AES256)$"
+                },
+                "priv_password": {
+                  "type": "string"
+                }
+              },
               "if": {
                 "properties": {
-                  "targets": {
-                    "contains": {
-                      "const": "dtrack"
-                    }
+                  "version": {
+                    "const": 3
                   }
                 }
               },
               "then": {
                 "required": [
-                  "dtrack_base_url",
-                  "dtrack_api_key"
-                ]
-              }
-            },
-            {
-              "if": {
-                "properties": {
-                  "targets": {
-                    "contains": {
-                      "const": "oci"
-                    }
-                  }
-                }
-              },
-              "then": {
-                "required": [
-                  "oci_registry",
-                  "oci_user",
-                  "oci_token"
+                  "security_level",
+                  "username",
+                  "password",
+                  "auth_protocol",
+                  "priv_protocol",
+                  "priv_password"
                 ]
               }
             }
-          ]
+          }
+        }
+      }
+    },
+    "rancher": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "auth_user_info_max_age_seconds": {
+          "type": "string",
+          "pattern": "([1-9]+[0-9]|0)*$"
+        },
+        "auth_user_info_resync_cron": {
+          "type": "string",
+          "pattern": "(\\*|[0-5]?[0-9]|\\*/[0-9]+)\\s+(\\*|1?[0-9]|2[0-3]|\\*/[0-9]+)\\s+(\\*|[1-2]?[0-9]|3[0-1]|\\*/[0-9]+)\\s+(\\*|[0-9]|1[0-2]|\\*/[0-9]+|jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\\s+(\\*/[0-9]+|\\*|[0-7]|sun|mon|tue|wed|thu|fri|sat)\\s*(\\*/[0-9]+|\\*|[0-9]+)?"
         }
       }
     },
@@ -10834,161 +10812,183 @@
         }
       }
     },
-    "metallb": {
-      "$ref": "#/$defs/metallb-resources-values"
-    },
-    "calico_helm_values": {
-      "type": "object"
-    },
-    "metallb_helm_values": {
-      "type": "object"
-    },
-    "_internal": {
+    "security": {
       "type": "object",
+      "additionalProperties": false,
       "properties": {
-        "immutable_values": {
+        "external_x509_issuer": {
           "type": "object",
-          "patternProperties": {
-            ".*": {
+          "additionalProperties": false,
+          "properties": {
+            "issuer_type": {
+              "type": "string",
+              "pattern": "^(acme|vault)$"
+            },
+            "vault_token": {
+              "type": "string"
+            },
+            "server": {
+              "type": "string",
+              "pattern": "^(https?://.*|)$"
+            },
+            "vault_path": {
+              "type": "string"
+            }
+          }
+        },
+        "default_cosign_public_key": {
+          "ref": "#/$defs/pub-key"
+        },
+        "upstream_images_signature": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "verify": {
+              "type": "boolean"
+            },
+            "policy_action": {
+              "type": "string",
+              "pattern": "^(Audit|Enforce)$"
+            },
+            "repository": {
+              "type": "string"
+            },
+            "cosign_public_key": {
               "anyOf": [
                 {
-                  "type": "object"
+                  "ref": "#/$defs/pub-key"
                 },
                 {
-                  "$ref": "#/$defs/gotpl"
+                  "ref": "#/$defs/string-with-gotpl"
+                }
+              ]
+            },
+            "images_list": {
+              "type": "array"
+            }
+          }
+        },
+        "calico_wireguard_enabled": {
+          "type": "boolean"
+        },
+        "neuvector_scanning_enabled": {
+          "type": "boolean"
+        },
+        "os_images": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "skip_signing_check": {
+              "type": "boolean"
+            },
+            "cosign_public_key": {
+              "anyOf": [
+                {
+                  "ref": "#/$defs/pub-key"
+                },
+                {
+                  "ref": "#/$defs/string-with-gotpl"
                 }
               ]
             }
           }
-        }
-      }
-    },
-    "third_party": {
-      "type": "object"
-    },
-    "mgmt_cluster_state_values": {
-      "type": "object"
-    },
-    "workload_clusters": {
-      "type": "object",
-      "properties": {
-        "sylva_source": {
-          "type": "object"
         },
-        "teams": {
-          "type": "object"
-        }
-      }
-    },
-    "snmp": {
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "devices": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "additionalProperties": false,
-            "properties": {
-              "alias": {
-                "type": "string",
-                "format": "hostname"
-              },
-              "target": {
-                "type": "string",
-                "anyOf": [
-                  {
-                    "pattern": "^((tcp|udp)://.*|)$"
-                  },
-                  {
-                    "format": "hostname"
-                  }
-                ]
-              },
-              "module": {
-                "type": "string",
-                "pattern": "^(dell_idrac|hp_cpq|lenovo_xcc)$"
-              },
-              "auth": {
-                "type": "string"
-              },
-              "cluster_name": {
-                "type": "string"
-              }
+        "oci_artifacts": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "skip_signing_check": {
+              "type": "boolean"
+            },
+            "cosign_public_key": {
+              "anyOf": [
+                {
+                  "ref": "#/$defs/pub-key"
+                },
+                {
+                  "ref": "#/$defs/string-with-gotpl"
+                }
+              ]
             }
           }
         },
-        "auth": {
+        "sbom_operator": {
           "type": "object",
-          "additionalProperties": false,
-          "patternProperties": {
-            ".+": {
-              "type": "object",
-              "additionalProperties": false,
-              "properties": {
-                "version": {
-                  "type": "integer",
-                  "minimum": 2,
-                  "maximum": 3
-                },
-                "community": {
-                  "type": "string"
-                },
-                "security_level": {
-                  "type": "string",
-                  "pattern": "^(noAuthNoPriv|authNoPriv|authPriv)$"
-                },
-                "username": {
-                  "type": "string"
-                },
-                "password": {
-                  "type": "string"
-                },
-                "auth_protocol": {
-                  "type": "string",
-                  "pattern": "^(MD5|SHA|SHA224|SHA256|SHA384|SHA512)$"
-                },
-                "priv_protocol": {
-                  "type": "string",
-                  "pattern": "^(AES|AES192|AES256)$"
-                },
-                "priv_password": {
-                  "type": "string"
-                }
-              },
+          "properties": {
+            "targets": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "string",
+                "enum": [
+                  "configmap",
+                  "dtrack",
+                  "oci"
+                ]
+              }
+            },
+            "dtrack_base_url": {
+              "type": "string",
+              "format": "uri",
+              "pattern": "^(https?://.*|)$"
+            },
+            "dtrack_api_key": {
+              "type": "string"
+            },
+            "oci_registry": {
+              "type": "string",
+              "format": "uri",
+              "pattern": "^oci://.*$"
+            },
+            "oci_user": {
+              "type": "string"
+            },
+            "oci_token": {
+              "type": "string"
+            }
+          },
+          "allOf": [
+            {
+              "required": [
+                "targets"
+              ]
+            },
+            {
               "if": {
                 "properties": {
-                  "version": {
-                    "const": 3
+                  "targets": {
+                    "contains": {
+                      "const": "dtrack"
+                    }
                   }
                 }
               },
               "then": {
                 "required": [
-                  "security_level",
-                  "username",
-                  "password",
-                  "auth_protocol",
-                  "priv_protocol",
-                  "priv_password"
+                  "dtrack_base_url",
+                  "dtrack_api_key"
+                ]
+              }
+            },
+            {
+              "if": {
+                "properties": {
+                  "targets": {
+                    "contains": {
+                      "const": "oci"
+                    }
+                  }
+                }
+              },
+              "then": {
+                "required": [
+                  "oci_registry",
+                  "oci_user",
+                  "oci_token"
                 ]
               }
             }
-          }
-        }
-      }
-    },
-    "rancher": {
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "auth_user_info_max_age_seconds": {
-          "type": "string",
-          "pattern": "([1-9]+[0-9]|0)*$"
-        },
-        "auth_user_info_resync_cron": {
-          "type": "string",
-          "pattern": "(\\*|[0-5]?[0-9]|\\*/[0-9]+)\\s+(\\*|1?[0-9]|2[0-3]|\\*/[0-9]+)\\s+(\\*|[1-2]?[0-9]|3[0-1]|\\*/[0-9]+)\\s+(\\*|[0-9]|1[0-2]|\\*/[0-9]+|jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\\s+(\\*/[0-9]+|\\*|[0-7]|sun|mon|tue|wed|thu|fri|sat)\\s*(\\*/[0-9]+|\\*|[0-9]+)?"
+          ]
         }
       }
     }
@@ -11235,47 +11235,12 @@
                     "properties": {
                       "ironicKernelParams": {
                         "type": "string",
-                        "description": "Raw override (if provided, takes precedence)",
+                        "description": "new desc ?????",
                         "upstream_path": ".units.metal3.helmrelease_spec.values.global.ironicKernelParams",
-                        "example": "console=ttyS0 suse.autologin=ttyS0 rootpwd=\"...\"",
-                        "doc_only": false
+                        "example": "console=ttyS0 suse.autologin=ttyS0 rootpwd=\"...\""
                       }
                     },
                     "additionalProperties": false
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "units": {
-            "properties": {
-              "loki": {
-                "type": "object"
-              }
-            }
-          }
-        }
-      },
-      "then": {
-        "properties": {
-          "units": {
-            "properties": {
-              "loki": {
-                "properties": {
-                  "settings": {
-                    "type": "object",
-                    "properties": {
-                      "testing": {
-                        "type": "string"
-                      }
-                    },
-                    "additionalProperties": true
                   }
                 }
               }

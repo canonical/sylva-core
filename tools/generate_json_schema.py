@@ -5,6 +5,7 @@ import argparse
 import copy
 import os
 import json
+from pathlib import Path
 import sys
 import urllib.request
 import yaml
@@ -28,7 +29,8 @@ CHART_DIR = os.path.abspath(f"{SCRIPT_DIR}/../charts/sylva-units")
 SYLVA_UNITS_VALUES_FILE = f"{CHART_DIR}/values.yaml"
 SYLVA_UNITS_YAML_SCHEMA = f"{CHART_DIR}/values.schema.yaml"
 SYLVA_UNITS_JSON_SCHEMA = f"{CHART_DIR}/values.schema.json"
-UNITS_SETTINGS_FILE = f"{CHART_DIR}/schemas/units-settings.yaml"
+UNITS_SETTINGS_FILE = f"{CHART_DIR}/schemas/units/settings.yaml"
+SUBSCHEMAS_DIRECTORY=  f"{CHART_DIR}/schemas"
 
 
 def get_unit_schema(values_file, unit_name):
@@ -182,6 +184,28 @@ def inject_unit_settings(schema, unit_settings_file):
     schema["allOf"].extend(settings_blocks)
     return schema
 
+def inject_external_subschemas(schema: dict, schemas_dir: Path) -> dict:
+    for subfile in schemas_dir.glob("*.schema.yaml"):
+        with subfile.open("r") as f:
+            sub_schema = yaml.safe_load(f)
+
+        if not isinstance(sub_schema, dict):
+            print(f"Skipping {subfile.name}: not a valid YAML dict")
+            continue
+
+        sub_properties = sub_schema.get("properties", {})
+        if not isinstance(sub_properties, dict):
+            print(f"Skipping {subfile.name}: no top-level 'properties'")
+            continue
+
+        for prop_name, prop_def in sub_properties.items():
+            if prop_name in schema.get("properties", {}):
+                print(f"Property '{prop_name}' already exists in root schema. Skipping.")
+                continue
+            schema.setdefault("properties", {})[prop_name] = prop_def
+
+    return schema
+
 def dump_schema(schema, output):
     with open(output, 'w', encoding='utf8') as json_file:
         json.dump(schema, json_file, ensure_ascii=False, indent=2)
@@ -206,4 +230,5 @@ if __name__ == "__main__":
         unit_schema = get_unit_schema(args.values, unit_name)
         sylva_unit_schema = merge_schemas(sylva_unit_schema, unit_schema, unit_name + "-values")
     sylva_unit_schema = inject_unit_settings(sylva_unit_schema, UNITS_SETTINGS_FILE)
+    sylva_unit_schema = inject_external_subschemas(sylva_unit_schema, Path(SUBSCHEMAS_DIRECTORY))
     dump_schema(sylva_unit_schema, args.output)

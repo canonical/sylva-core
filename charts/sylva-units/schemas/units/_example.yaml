@@ -1,0 +1,19 @@
+unit-name-A:
+  _meta:
+    additionalProperties: true/false # Enforce settings (avoiding mis-typo, or additional unused settings)
+  user-facing-setting-A:
+    type: [string, boolean, etc]
+    description: Description
+    upstream_path: .units.unit-name-A.helmrelease_spec.values.etc.etc.etc
+    exemple: value
+  user-facing-setting-B:
+    type: ...
+    description: ...
+    upstream_path: ...
+  
+unit-name-B:
+  _meta:
+    additionalProperties: ...
+  user-facing-setting-A: ...
+
+...
