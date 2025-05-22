@@ -376,6 +376,9 @@ units:
   kubevirt-test-vms:
     enabled: false
 
+  kubevirt-vms-restart-after-upgrade:
+    enabled: true
+
   longhorn-crd:
     enabled: true
 
