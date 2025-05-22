@@ -7252,7 +7252,7 @@ units:
       chart:
         spec:
           chart: rancher-logging-crd
-          version: 105.2.2+up4.10.0-rancher.1
+          version: 105.3.0+up4.10.0-rancher.4
       install:
         createNamespace: false
 
@@ -7272,7 +7272,7 @@ units:
       chart:
         spec:
           chart: rancher-logging
-          version: 105.2.2+up4.10.0-rancher.1
+          version: 105.3.0+up4.10.0-rancher.4
       install:
         createNamespace: false
       values:
@@ -7304,18 +7304,6 @@ units:
             drop: ["ALL"]
           seccompProfile:
             type: RuntimeDefault
-      _postRenderers:
-        - kustomize:
-            patches:
-              - target:
-                  kind: Logging
-                  name: logging-root
-                  namespace: cattle-logging-system
-                patch: |
-                  - op: add
-                    path: /spec/fluentd/security/podSecurityContext
-                    value:
-                      runAsUser: 100
 
   logging-config:
     info:
