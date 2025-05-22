@@ -1,7 +1,7 @@
 apiVersion: legacy.k8s.keycloak.org/v1alpha1
 kind: KeycloakClient
 metadata:
-  name: kubevirt-manager-client
+  name: kubevirt-manager-${CLUSTER_NAME}-client
   namespace: keycloak
   labels:
     realm1: sylva

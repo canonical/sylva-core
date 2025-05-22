@@ -1875,6 +1875,7 @@ units:
         - '{{ tuple "components/grafana" (tuple . "monitoring" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/kunai" (tuple . "kunai" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/kubevirt-manager" (tuple . "kubevirt-manager" | include "unit-enabled") | include "set-only-if" }}'
+
       postBuild:
         substitute:
           GRAFANA_DNS: '{{ .Values.external_hostnames.grafana }}'
@@ -1886,6 +1887,7 @@ units:
           EXPIRE_PASSWORD_DAYS: '{{ int .Values.keycloak.keycloak_expire_password_days }}'
           KUNAI_DNS: '{{ tuple .Values.external_hostnames.kunai (tuple . "kunai" | include "unit-enabled") | include "set-only-if" }}'
           KUBEVIRT_MANAGER_DNS: '{{ tuple .Values.external_hostnames.kubevirt_manager (tuple . "kubevirt-manager" | include "unit-enabled") | include "set-only-if" }}'
+          CLUSTER_NAME: '{{ .Values.cluster.name }}'
       healthChecks:  #  cannot use __wait: true__ here, see https://gitlab.com/sylva-projects/sylva-core/-/issues/144
         - apiVersion: legacy.k8s.keycloak.org/v1alpha1
           kind: KeycloakRealm
@@ -1903,7 +1905,7 @@ units:
         - '{{ tuple (dict "apiVersion" "v1" "kind" "Secret" "name" "keycloak-client-secret-harbor-client" "namespace" "keycloak") (tuple . "harbor" | include "unit-enabled") | include "set-only-if" }}'  # # this secret is a byproduct of the harbor client KeycloakClient resource
         - '{{ tuple (dict "apiVersion" "v1" "kind" "Secret" "name" "keycloak-client-secret-grafana-client" "namespace" "keycloak") (tuple . "monitoring" | include "unit-enabled") | include "set-only-if" }}'  # # this secret is a byproduct of the grafana client KeycloakClient resource
         - '{{ tuple (dict "apiVersion" "v1" "kind" "Secret" "name" "keycloak-client-secret-kunai-client" "namespace" "keycloak") (tuple . "kunai" | include "unit-enabled") | include "set-only-if" }}'  # # this secret is a byproduct of the grafana client KeycloakClient resource
-        - '{{ tuple (dict "apiVersion" "v1" "kind" "Secret" "name" "keycloak-client-secret-kubevirt-manager-client" "namespace" "keycloak") (tuple . "kubevirt-manager" | include "unit-enabled") | include "set-only-if" }}'  # # this secret is a byproduct of the kubevirt-manager client KeycloakClient resource
+        - '{{ tuple (dict "apiVersion" "v1" "kind" "Secret" "name" (printf "keycloak-client-secret-kubevirt-manager-%s-client" .Values.cluster.name) "namespace" "keycloak") (tuple . "kubevirt-manager" | include "unit-enabled") | include "set-only-if" }}'  # # this secret is a byproduct of the kubevirt-manager client KeycloakClient resource
 
 
   keycloak-add-client-scope:
