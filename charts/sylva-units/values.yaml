@@ -908,54 +908,54 @@ units:
       wait: true
       targetNamespace: kubevirt-tests
 
-  kubevirt-vms-restart-after-upgrade:
-    info:
-      description: kube-job to restart VMs after upgrade if restart is required due to change in fields
-      internal: true
-      test: true
-    one_shot: true
-    unit_templates:
-    - base-deps
-    - kube-job
-    enabled_conditions:
-    - '{{ tuple . "kubevirt-test-vms" | include "unit-enabled" }}'
-    - '{{ .Values._internal.state.is_upgrade }}'
-    depends_on:
-      kubevirt: true
-    repo: sylva-core
-    kustomization_spec:
-      wait: true
-      targetNamespace: kubevirt-tests
-      _patches:
-      - target:
-          kind: ConfigMap
-          labelSelector: kube-job=script
-        patch: |
-          - op: replace
-            path: /data/kube-job.sh
-            value: |
-              #!/bin/bash
+  # kubevirt-vms-restart-after-upgrade:
+  #   info:
+  #     description: kube-job to restart VMs after upgrade if restart is required due to change in fields
+  #     internal: true
+  #     test: true
+  #   one_shot: true
+  #   unit_templates:
+  #   - base-deps
+  #   - kube-job
+  #   enabled_conditions:
+  #   - '{{ tuple . "kubevirt-test-vms" | include "unit-enabled" }}'
+  #   - '{{ .Values._internal.state.is_upgrade }}'
+  #   depends_on:
+  #     kubevirt: true
+  #   repo: sylva-core
+  #   kustomization_spec:
+  #     wait: true
+  #     targetNamespace: kubevirt-tests
+  #     _patches:
+  #     - target:
+  #         kind: ConfigMap
+  #         labelSelector: kube-job=script
+  #       patch: |
+  #         - op: replace
+  #           path: /data/kube-job.sh
+  #           value: |
+  #             #!/bin/bash
 
-              for vm in $(kubectl get vm -n kubevirt-tests -o jsonpath='{.items[*].metadata.name}'); do
-                echo "Checking $vm..."
+  #             for vm in $(kubectl get vm -n kubevirt-tests -o jsonpath='{.items[*].metadata.name}'); do
+  #               echo "Checking $vm..."
 
-                if kubectl get vm "$vm" -n kubevirt-tests -o json | grep -q '"type": "RestartRequired"'; then
-                  echo "Stopping VM $vm..."
-                  kubectl patch vm "$vm" -n kubevirt-tests --type merge -p '{"spec":{"running":false}}'
+  #               if kubectl get vm "$vm" -n kubevirt-tests -o json | grep -q '"type": "RestartRequired"'; then
+  #                 echo "Stopping VM $vm..."
+  #                 kubectl patch vm "$vm" -n kubevirt-tests --type merge -p '{"spec":{"running":false}}'
 
-                  echo "Waiting for VM to stop..."
-                  while true; do
-                    phase=$(kubectl get vmi "$vm" -n kubevirt-tests -o jsonpath='{.status.phase}' 2>/dev/null || echo "Stopped")
-                    if [ "$phase" = "Stopped" ]; then
-                      break
-                    fi
-                    sleep 5
-                  done
+  #                 echo "Waiting for VM to stop..."
+  #                 while true; do
+  #                   phase=$(kubectl get vmi "$vm" -n kubevirt-tests -o jsonpath='{.status.phase}' 2>/dev/null || echo "Stopped")
+  #                   if [ "$phase" = "Stopped" ]; then
+  #                     break
+  #                   fi
+  #                   sleep 5
+  #                 done
 
-                  echo "VM is stopped. Restarting..."
-                  kubectl patch vm "$vm" -n kubevirt-manager --type merge -p '{"spec":{"running":true}}'
-                fi
-              done
+  #                 echo "VM is stopped. Restarting..."
+  #                 kubectl patch vm "$vm" -n kubevirt-manager --type merge -p '{"spec":{"running":true}}'
+  #               fi
+  #             done
 
   kubevirt-manager:
     info:
