@@ -340,3 +340,16 @@ gitleaks-custom:
       variables:
         GITLEAKS_ARGS: '--verbose'    # on main, detect leaks on whole repo
     - when: always
+
+###########################
+# Check uncovered commits 
+# (commits in sylva-elements repos main branch, but uncovered in the current tag on sylva-core)
+###########################
+check-uncovered-commits:
+  stage: test
+  image: python:3.11
+  script:
+    - pip install python-gitlab
+    - python3 tools/check_commits.py
+  rules:
+    - if: $CI_COMMIT_TAG && $CI_COMMIT_BRANCH == "yc/commit_tags_check"

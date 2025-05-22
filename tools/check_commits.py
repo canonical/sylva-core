@@ -4,7 +4,6 @@ Script to check that a tagged commit in Sylva-core does include all commits in i
 
 import gitlab
 import os
-import requests
 
 # Your GitLab URL and access token
 GITLAB_URL = 'https://gitlab.com'
@@ -51,47 +50,58 @@ def get_repos_from_groups(groups):
 
 
 def get_uncovered_commits(repo, branch_name):
-    """Get commits on a branch that are more recent than the latest tag."""
+    """
+    Get commits on a branch that are more recent than the latest tag.
+    Fetches commits page by page for efficiency.
+    """
     try:
-        branch_commits = repo.commits.list(ref_name=branch_name, all=True)
+        tags = repo.tags.list(all=True)
+        tag_commit_shas = {tag.commit['id']: tag.name for tag in tags}
+        uncovered_commits = []
+        latest_tag_commit_sha = None
+        latest_tag_name = None
+
+        page = 1
+        per_page = 50  # Adjust as needed (max 100)
+        found_tag = False
+
+        while True:
+            batch = repo.commits.list(ref_name=branch_name, per_page=per_page, page=page)
+            if not batch:
+                break
+
+            for commit in batch:
+                if commit.id in tag_commit_shas:
+                    latest_tag_name = tag_commit_shas[commit.id]
+                    found_tag = True
+                    break
+                uncovered_commits.append(commit)
+
+            if found_tag:
+                break
+            page += 1
+
+        if uncovered_commits:
+            if latest_tag_name:
+                return uncovered_commits, latest_tag_name
+            else:
+                # No tag found on the branch, return all collected commits
+                return uncovered_commits, None
+        else:
+            # All commits are covered by tags
+            return [], None
+
     except gitlab.exceptions.GitlabListError:
         return [], None  # No commits on the branch
 
-    if not branch_commits:
-        return [], None  # No commits on the branch
-
-    latest_commit = branch_commits[0]  # Most recent commit on the branch
-
-    tags = repo.tags.list(all=True)
-    tag_commit_shas = {tag.commit['id']: tag.name for tag in tags}
-
-    if latest_commit.id not in tag_commit_shas:
-        # Find the most recent tag
-        latest_tag_commit_sha = None
-        latest_tag_name = None
-        for commit in branch_commits:
-            if commit.id in tag_commit_shas:
-                latest_tag_commit_sha = commit.id
-                latest_tag_name = tag_commit_shas[commit.id]
-                break
-
-        if latest_tag_commit_sha:
-            # Collect commits between the latest commit and the latest tag
-            uncovered_commits = []
-            for commit in branch_commits:
-                if commit.id == latest_tag_commit_sha:
-                    break
-                uncovered_commits.append(commit)
-            return uncovered_commits, latest_tag_name
-        else:
-            # No tag found on the branch, return all commits
-            return branch_commits, None
-
-    return [], None
-
 
 def check_repos_for_uncovered_commits(groups, repositories, excluded_repositories, branch_pattern):
-    """Check each repository for branches with commits not covered by tags."""
+    """
+    Check each repository for branches with commits not covered by tags.
+    Returns True if all commits are covered by tags in all repos, False otherwise.
+    Prints the list of uncovered commits if any are found.
+    """
+    all_covered = True
     repos = get_repos_from_groups(groups)
     repos.extend([gl.projects.get(repo_name) for repo_name in repositories])
 
@@ -102,9 +112,9 @@ def check_repos_for_uncovered_commits(groups, repositories, excluded_repositorie
 
         for branch_name in branch_pattern:
             try:
-                branch = repo.branches.get(branch_name)
                 uncovered_commits, latest_tag_name = get_uncovered_commits(repo, branch_name)
                 if uncovered_commits:
+                    all_covered = False
                     if latest_tag_name:
                         print(f"## Repository: {repo.path_with_namespace}")
                         print(f"### Branch: {branch_name}")
@@ -124,6 +134,8 @@ def check_repos_for_uncovered_commits(groups, repositories, excluded_repositorie
                 print(f"## Branch {branch_name} not found in repository {repo.path_with_namespace}")
             except gitlab.exceptions.GitlabListError:
                 print(f"## No commits found for branch {branch_name} in repository {repo.path_with_namespace}")
+
+    return all_covered
 
 
 if __name__ == "__main__":
