@@ -2148,7 +2148,7 @@ units:
       chart:
         spec:
           chart: kyverno
-          version: 3.3.9
+          version: 3.3.7
       targetNamespace: kyverno
       install:
         createNamespace: true
@@ -2324,6 +2324,10 @@ units:
                 - metal3machines
                 verbs: ["get", "list", "watch"]
               - apiGroups: ["ipam.metal3.io"]
+                resources:
+                - ippools
+                verbs: ["get", "list", "watch"]
+              - apiGroups: ["crd.projectcalico.org"]
                 resources:
                 - ippools
                 verbs: ["get", "list", "watch"]
