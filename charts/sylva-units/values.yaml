@@ -6496,6 +6496,7 @@ units:
     - kube-job
     enabled_conditions:
     - '{{ tuple . "minio-logging" | include "unit-enabled" }}'
+    - '{{ lookup "kustomize.toolkit.fluxcd.io/v1" "Kustomization" .Release.Namespace "minio-logging" | dig "spec" "healthCheckExprs" [] | len | eq 0 }}'
     - '{{ .Values._internal.state.is_upgrade }}'
     kustomization_spec:
       _patches:
@@ -6792,6 +6793,7 @@ units:
     enabled_conditions:
     - '{{ tuple . "minio-monitoring" | include "unit-enabled" }}'
     - '{{ .Values._internal.state.is_upgrade }}'
+    - '{{ lookup "kustomize.toolkit.fluxcd.io/v1" "Kustomization" .Release.Namespace "minio-monitoring" | dig "spec" "healthCheckExprs" [] | len | eq 0 }}'
     kustomization_spec:
       _patches:
       - target:
