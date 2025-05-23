@@ -1,0 +1,42 @@
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
+
+resources:
+  - secret.yaml
+
+patches:
+  # Add mandatory read/write volumes
+  - target:
+      kind: CronJob
+    patch: |
+      - op: add
+        path: /spec/jobTemplate/spec/template/spec/volumes/-
+        value:
+          name: s3-config
+          emptyDir: {}
+      - op: add
+        path: /spec/jobTemplate/spec/template/spec/containers/0/volumeMounts/-
+        value:
+          mountPath: /s3-config
+          name: s3-config
+  # Add s3 bucket configuration
+  - target:
+      kind: CronJob
+    patch: |
+      - op: add
+        path: /spec/jobTemplate/spec/template/spec/containers/0/envFrom
+        value:
+        - secretRef:
+            name: backup-store-s3
+      - op: add
+        path: /spec/jobTemplate/spec/template/spec/volumes/-
+        value:
+          name: s3-certs
+          secret:
+            secretName: backup-store-s3-cert
+            optional: true
+      - op: add
+        path: /spec/jobTemplate/spec/template/spec/containers/0/volumeMounts/-
+        value:
+          mountPath: /s3-config/certs/CAs
+          name: s3-certs
