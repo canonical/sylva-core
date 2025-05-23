@@ -8941,22 +8941,22 @@ _internal:
       {{- tuple . "_internal.storage_class_unit_map" | include "interpret" -}}
 
       {{- $envAll := . -}}
-      {{- $enableSCs := list -}}
+      {{- $enabledSCs := list -}}
       {{- $enabledUnits := list -}}
       {{- range $sc, $unit := .Values._internal.storage_class_unit_map -}}
         {{- if and (ne $sc "local-path") (tuple $envAll $unit | include "unit-enabled") -}}
-          {{- $enableSCs = append $enableSCs $sc -}}
+          {{- $enabledSCs = append $enabledSCs $sc -}}
           {{- $enabledUnits = (not (has $unit $enabledUnits) | ternary (append $enabledUnits $unit) $enabledUnits) -}}
         {{- end -}}
       {{- end -}}
-      {{- if eq (len $enableSCs) 1 -}}
-        {{- index $enableSCs 0 -}}
+      {{- if eq (len $enabledSCs) 1 -}}
+        {{- index $enabledSCs 0 -}}
       {{- else if and (eq (len $enabledUnits) 1) (eq (index $enabledUnits 0) "longhorn") -}}
         {{ .Values._internal.default_longhorn_storage_class }}
-      {{- else if eq (len $enableSCs) 0 -}}
+      {{- else if eq (len $enabledSCs) 0 -}}
         local-path
       {{- else -}}
-        {{- fail (printf "following SCs %s are available as per units %s enabled, make one as the default_storage_class" $enableSCs $enabledUnits) -}}
+        {{- fail (printf "Multiple storage classes are available based on the enabled units (%s), you need to specify the default one via 'default_storage_class'" ($enabledSCs|join ", ")) -}}
       {{- end -}}
     {{- end -}}
 
