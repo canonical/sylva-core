@@ -1,7 +1,7 @@
 apiVersion: kubevirt.io/v1
 kind: VirtualMachine
 metadata:
-  name: cirros-vm
+  name: cirros-kubevirt-vm
 spec:
   running: true
   template:
