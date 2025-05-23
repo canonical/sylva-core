@@ -105,6 +105,9 @@ Process all units
       {{- if not ($unit_def.helmrelease_spec | dig "chart" "spec" "sourceRef" dict) -}}
         {{- $helmrelease_spec_overrides = dict "chart" (dict "spec" (dict "sourceRef" (dict "kind" "HelmRepository" "name" (printf "unit-%s" $unit_name)))) -}}
       {{- end }}
+      {{- if (and (not ($unit_def.helmrelease_spec | dig "chart" "spec" "verify" dict)) ( not ($unit_name | eq "management-sylva-units"))) -}}
+        {{- $helmrelease_spec_overrides = mergeOverwrite $helmrelease_spec_overrides (dict "chart" (dict "spec" (dict "verify" (dict "provider" "cosign" "secretRef" (dict "name" "cosign-public-keys"))))) -}}
+      {{- end }}
 ---
 apiVersion: source.toolkit.fluxcd.io/v1
 kind: HelmRepository
@@ -163,6 +166,7 @@ spec: {{ $helm_repo_spec | toYaml | nindent 2 }}
       */}}
       {{- if get (urlParse ($unit_def | dig "helm_repo_url" "none://")) "scheme" | eq "oci" -}}
         {{- $chart_spec := $unit_def.helmrelease_spec.chart.spec -}}
+        {{ $oci_helm_chart_version:= ""}}
 
         {{/* for each item of 'valuesFiles', change "<spec.chart.spec.chart>/more-values.yaml" into "more-values.yaml" */}}
         {{- $values_files := list }}
@@ -175,7 +179,27 @@ spec: {{ $helm_repo_spec | toYaml | nindent 2 }}
         {{- $_ := set $chart_spec "chart" (or (get $unit_def "helm_chart_artifact_name")
                                               (regexReplaceAll ".*?([^/]+)$" $chart_spec.chart "${1}")
                                           ) -}}
+        {{ $oci_helm_chart_version = regexReplaceAll "\\+" $chart_spec.version "_" }}
+        {{- $_ := set $chart_spec "version" $oci_helm_chart_version -}}
+      
       {{- end -}}
+
+      {{- if get (urlParse ($unit_def | dig "helm_repo_url" "none://")) "scheme" | eq "oci" -}}
+        {{ $oci_helm_chart_version:= ""}}
+        {{- if hasKey $unit_def "helm_chart_versions" -}}
+           {{- $helm_chart_versions_selection := tuple $envAll $unit_name $unit_def | include "get-helm-version" -}}
+           {{- if not $helm_chart_versions_selection }}
+             {{- fail (printf "unit '%s' has no version set to true inside 'helm_chart_versions':\n%s" $unit_name ($unit_def.helm_chart_versions | toYaml))}}
+           {{- end }}
+           {{- if not $unit_def.helmrelease_spec.chart.spec.version -}}
+              {{-  $oci_helm_chart_version = regexReplaceAll "\\+" $helm_chart_versions_selection "_" }}
+              {{- $_ := set $unit_def.helmrelease_spec.chart.spec "version" $oci_helm_chart_version -}}
+           {{- else -}}
+             {{- $oci_helm_chart_version = regexReplaceAll "\\+" $unit_def.helmrelease_spec.chart.version "_" -}}
+             {{- $_ := set $unit_def.helmrelease_spec.chart.spec "version" $oci_helm_chart_version -}}
+           {{- end }}
+        {{ end }}             
+      {{- end }}
 
       {{/* here, if "helm_chart_versions" is used, we extract the chart version
       that would be used in case no specific 'helmrelease_spec.chart.spec.version' is defined

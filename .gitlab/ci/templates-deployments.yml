@@ -363,7 +363,7 @@ include:
         yq -i '.components = []' $ENV_PATH/kustomization.yaml
       fi
       # Check if OCI_TAG starts with "0.0.0-git" as OCI artifacts are only signed on protected branch and for tagged release
-      if [[ "${OCI_TAG}" == 0.0.0-git* ]]; then
+       if [[ "${OCI_TAG}" == 0.0.0-git* ]]; then
         # Disabled OCI verification for dev branches
         yq -i '.security.oci_artifacts.skip_signing_check = true' "$ENV_PATH/values.yaml"
       fi
