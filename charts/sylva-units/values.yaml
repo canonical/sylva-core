@@ -2263,6 +2263,10 @@ units:
                 resources:
                   - "clusters"
                 verbs: ["get", "list", "watch"]
+              - apiGroups: ["provisioning.cattle.io"]  # for set-monitoring-chart-cluster-id ClusterPolicy
+                resources:
+                  - "clusters"
+                verbs: ["get", "list", "watch"]
               - apiGroups: ["batch"]
                 resources:
                   - "cronjobs"
