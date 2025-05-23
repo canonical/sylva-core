@@ -587,6 +587,9 @@ units:
     unit_templates:
     - kustomization-deployed-on-mgmt-cluster
 
+  backup-etcd:
+    enabled: true
+
   sbom-operator:
     # can be enabled at runtime if desired
     enabled: false
