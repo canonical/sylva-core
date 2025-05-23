@@ -631,8 +631,8 @@ units:
       description: unit used to check if the workload cluster is successfully enrolled in Rancher
       internal: true
     depends_on:
-      calico-ready: true
-      cluster-ready: true
+      calico-ready: '{{ tuple . "calico-ready" | include "unit-enabled" }}'
+      cluster-ready: '{{ tuple . "cluster-ready" | include "unit-enabled" }}'
       cluster-import: '{{ tuple . "cluster-import" | include "unit-enabled" }}'
     unit_templates:
     - kube-job
