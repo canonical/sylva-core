@@ -492,7 +492,8 @@ echo -e ">>> filesystem usage \n$(df -h)" | tee ./system-dump/fs-usage.log
 echo -e "\n 2️⃣ Dump bootstrap cluster info "
 echo -e "  ################################ \n"
 
-# Unset KUBECONFIG to make sure that we are targetting kind cluster
+# Unset KUBECONFIG to make sure that we are targetting kind cluster (but keep reference to it)
+CURRENT_KUBECONFIG=$KUBECONFIG
 unset KUBECONFIG
 
 if [[ $(kind get clusters) =~ $KIND_CLUSTER_NAME ]]; then
@@ -513,13 +514,17 @@ fi
 echo -e "\n 3️⃣ Dump management cluster info "
 echo -e "  ################################# \n"
 
-# Try to guess management-cluster-kubeconfig path:
+# Try to locate management cluster kubeconfig:
 # - Use first argument if provided
-# - Use BASE_DIR environment value if it is set (it is usually done by common.sh in CI)
-# - Use relative path to current script location as BASE_DIR as a last option
+# - Use KUBECONFIG if set at the start of the script
+# - search in BASE_DIR environment value if it is set (it is usually done by common.sh in CI)
+# - search in current working dir
 
 BASE_DIR=${BASE_DIR:-$(realpath $(dirname $0)/../../)}
-MGMT_KUBECONFIG=${1:-${BASE_DIR}/management-cluster-kubeconfig}
+MGMT_KUBECONFIG=${1}
+if [[ ! -f $MGMT_KUBECONFIG ]]; then MGMT_KUBECONFIG=$CURRENT_KUBECONFIG; fi
+if [[ ! -f $MGMT_KUBECONFIG ]]; then MGMT_KUBECONFIG=${BASE_DIR}/management-cluster-kubeconfig; fi
+if [[ ! -f $MGMT_KUBECONFIG ]]; then MGMT_KUBECONFIG="./management-cluster-kubeconfig"; fi
 
 if [[ -f $MGMT_KUBECONFIG ]]; then
   export KUBECONFIG=${MGMT_KUBECONFIG}
