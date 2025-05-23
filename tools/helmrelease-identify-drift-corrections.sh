@@ -21,17 +21,40 @@ ALLOWED_EXCEPTIONS=(
 
 # Extract HelmReleases that had drift corrections with their associated actions
 declare -A DRIFT_ACTIONS
+declare -A DRIFT_MODIFICATIONS
+
 while IFS= read -r line; do
   if [[ "$line" == *"Cluster state of release"*"has drifted"* ]]; then
     # Extract HelmRelease name and the drift action
     hr_name=$(echo "$line" | sed -E 's/.*HelmRelease.*"name":"([^"]+)".*/\1/')
+    timestamp=$(echo "$line" | sed -E 's/.*"ts":"([^"]+)".*/\1/')
     action=$(echo "$line" | sed -E 's/.*has drifted from the desired state:\\n(.*)"/\1/')
-    
+
     # Store the action for this HelmRelease
     if [[ -z "${DRIFT_ACTIONS[$hr_name]}" ]]; then
-      DRIFT_ACTIONS[$hr_name]="$action"
+      DRIFT_ACTIONS[$hr_name]="[$timestamp] $action"
     else
-      DRIFT_ACTIONS[$hr_name]="${DRIFT_ACTIONS[$hr_name]}|$action"
+      DRIFT_ACTIONS[$hr_name]="${DRIFT_ACTIONS[$hr_name]}|[$timestamp] $action"
+    fi
+  elif [[ "$line" == *"resource modified"* || "$line" == *"resource added"* || "$line" == *"resource removed"* ]]; then
+    # Extract modification details with patch
+    hr_name=$(echo "$line" | sed -E 's/.*"name":"([^"]+)".*/\1/')
+    timestamp=$(echo "$line" | sed -E 's/.*"ts":"([^"]+)".*/\1/')
+    resource=$(echo "$line" | sed -E 's/.*"resource":"([^"]+)".*/\1/')
+
+    # Extract patch details if available
+    if [[ "$line" == *"\"patch\":"* ]]; then
+      patch=$(echo "$line" | sed -E 's/.*"patch":(\[.*\]).*/\1/' | sed 's/\\//g')
+      modification="[$timestamp] $resource → $patch"
+    else
+      modification="[$timestamp] $resource → No patch details"
+    fi
+
+    # Store modification details
+    if [[ -z "${DRIFT_MODIFICATIONS[$hr_name]}" ]]; then
+      DRIFT_MODIFICATIONS[$hr_name]="$modification"
+    else
+      DRIFT_MODIFICATIONS[$hr_name]="${DRIFT_MODIFICATIONS[$hr_name]}|$modification"
     fi
   fi
 done < "$LOG_FILE"
@@ -49,15 +72,15 @@ else
 
   for hr in $DRIFTED_HRS; do
     echo "   🔹 $hr"
-    
+
     is_unexpected=true
     actions="${DRIFT_ACTIONS[$hr]}"
-    
+
     # Check if this specific action is allowed for this helm release
     for exception in "${ALLOWED_EXCEPTIONS[@]}"; do
       exception_helmrelease="${exception%%:*}"
       exception_pattern="${exception#*:}"
-      
+
       if [[ "$hr" == "$exception_helmrelease" ]]; then
         if [[ "$exception_pattern" == "*" ]] || [[ -n "$actions" && "$actions" =~ $exception_pattern ]]; then
           is_unexpected=false
@@ -65,7 +88,26 @@ else
         fi
       fi
     done
-    
+
+    # Display actions with timestamps
+    if [[ -n "$actions" ]]; then
+      IFS='|' read -ra ACTION_ARRAY <<< "$actions"
+      for action in "${ACTION_ARRAY[@]}"; do
+        echo "      🔄 $action"
+      done
+    fi
+
+    # Display modifications with patches
+    if [[ -n "${DRIFT_MODIFICATIONS[$hr]}" ]]; then
+      echo "      🔧 Patches applied:"
+      IFS='|' read -ra MOD_ARRAY <<< "${DRIFT_MODIFICATIONS[$hr]}"
+      for mod in "${MOD_ARRAY[@]}"; do
+        echo "        - $mod"
+      done
+    fi
+
+    echo ""
+
     if [[ "$is_unexpected" == true ]]; then
       UNEXPECTED_DRIFTS+=("$hr")
     fi
@@ -78,7 +120,7 @@ else
       echo "   🔹 $component"
       echo "      Action: ${DRIFT_ACTIONS[$component]}"
     done
-    
+
     # Clean up log file
     rm -f "$LOG_FILE"
     exit 1
