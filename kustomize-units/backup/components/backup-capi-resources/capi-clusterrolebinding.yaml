@@ -1,0 +1,13 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: ${CRONJOB_NAME}-capi
+subjects:
+- kind: ServiceAccount
+  name: ${CRONJOB_NAME}-sa
+  namespace: "${NAMESPACE:-sylva-system}"
+roleRef:
+  kind: ClusterRole
+  name: capi-aggregated-manager-role
+  apiGroup: rbac.authorization.k8s.io
