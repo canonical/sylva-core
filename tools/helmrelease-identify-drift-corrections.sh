@@ -104,6 +104,8 @@ else
       for mod in "${MOD_ARRAY[@]}"; do
         echo "        - $mod"
       done
+    else
+      echo "      🔧 No additional patch information found"
     fi
 
     echo ""
