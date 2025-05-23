@@ -422,6 +422,22 @@ unit_templates:
                       configMap:
                         name: kube-cronjob-{{ .Values._kustomization_name_ }}
 
+  backup-s3:
+    repo: sylva-core
+    kustomization_substitute_secrets:
+      S3_HOST: '{{ (.Values.backup | default dict) | dig "store" "s3" "host" "" | b64enc }}'
+      S3_BUCKET: '{{ (.Values.backup | default dict) | dig "store" "s3" "bucket" "" | b64enc }}'
+      S3_ACCESS_KEY: '{{ (.Values.backup | default dict) | dig "store" "s3" "access_key" "" | b64enc }}'
+      S3_SECRET_KEY: '{{ (.Values.backup | default dict) | dig "store" "s3" "secret_key" "" | b64enc }}'
+      S3_CERT: '{{ (.Values.backup | default dict) | dig "store" "s3" "cert" "" }}'
+    kustomization_spec:
+      postBuild:
+        substitute:
+          NAMESPACE: '{{ .Release.Namespace }}'
+      _components:
+      - "./components/backup-to-s3"
+      - '{{ tuple "./components/backup-to-s3/cert" (hasKey ((.Values.backup | default dict) | dig "store" "s3" dict) "cert") | include "set-only-if" }}'
+
 
 # unit_definition_defaults is merged with each "units.x" before
 # it inherits from unit templates
@@ -7834,6 +7850,32 @@ units:
           CLUSTER_VIRTUAL_IP: '{{ .Values.cluster_virtual_ip }}'
           CLUSTER_OKD_BASE_DOMAIN: '{{ .Values.cluster.openshift.baseDomain }}'
 
+  backup-capi-resources:
+    info:
+      description: Backup Cluster API resources
+      details: Backup periodically Cluster API resources using clusterctl move
+    unit_templates:
+    - base-deps
+    - '{{ tuple "backup-s3" (hasKey ((.Values.backup | default dict) | dig "store" dict) "s3") | include "set-only-if" }}'
+    - kube-cronjob
+    enabled_conditions:
+      - '{{ .Values.backup | ne nil }}'
+    kustomization_spec:
+      path: ./kustomize-units/backup
+      postBuild:
+        substitute:
+          ADDITIONAL_RESOURCES: ConfigMap/sylva-units-values Secret/sylva-units-secrets ConfigMap/capo-cluster-resources # space-separated kind/name resources to backup alongside capi resources
+      _components:
+      - "./components/backup-capi-resources"
+      - '{{ tuple "./components/pushgateway" (tuple . "prometheus-pushgateway" | include "unit-enabled") | include "set-only-if" }}'
+      - '{{ tuple "./components/timestamp" ((.Values.backup | default dict) | dig "timestamped" false) | include "set-only-if" }}'
+      _patches:
+      - target:
+          kind: CronJob
+        patch: |
+          - op: replace
+            path: /spec/schedule
+            value:  "0 5 * * * "
 
 ##### stuff related to the 'cluster' unit #####
 #
@@ -9225,3 +9267,13 @@ openshift:
     # serviceHostname: openshift-assisted-service.example.com
     # variable to specify the openshift assisted image service hostname
     # imageHostname: openshift-assisted-images.example.com
+
+# backup:
+#   timestamped: false  # if true, a timestamp YYYYMMDDHHMM is added to the name of the backup files before uploading them to the target bucket. If false, a new backup will overwrite a previous uploaded one.
+#   store:
+#     s3:
+#       host: ""
+#       access_key: ""
+#       secret_key: ""
+#       bucket: ""
+#       cert: ""
