@@ -6686,7 +6686,7 @@ units:
                      ""
                      "kustomizations.kustomize.toolkit.fluxcd.io"
                | toYaml
-               | contains "HealthCheckExprs"
+               | contains "HealtheckExprs"
               )
         | include "set-only-if"
         }}
