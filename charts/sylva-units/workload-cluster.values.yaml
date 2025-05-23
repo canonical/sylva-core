@@ -346,6 +346,77 @@ units:
           name: '{{ .Values.cluster.name }}-monitoring-info'  # this configmap is produced by a kyverno policy defined by the "rancher-monitoring-clusterid-inject" mgmt unit
           optional: false
 
+  neuvector-init:
+    # this unit isn't relevant in workload clusters
+    enabled_conditions: [false]
+
+  neuvector-tls:
+    enabled: true
+    info:
+      description: configures Neuvector TLS
+      details: enable TLS protocol when using Neuvector
+      internal: true
+    unit_templates:
+    - dummy
+    enabled_conditions:
+    - '{{ tuple . "neuvector" | include "unit-enabled" }}'
+    repo: sylva-core
+    kustomization_substitute_secrets:
+      KEY: '{{ .Values.external_certificates.neuvector.key | default "" | b64enc }}'
+    depends_on:
+      sylva-ca: true
+      namespace-defs: true
+    kustomization_spec:
+      path: ./kustomize-units/dummy/base
+      targetNamespace: neuvector
+      postBuild:
+        substitute:
+          SERVICE: neuvector
+          SERVICE_DNS: '{{ .Values.external_hostnames.neuvector }}'
+          CERTIFICATE_NAMESPACE: neuvector
+          CERT: '{{ .Values.external_certificates.neuvector.cert | default "" | b64enc }}'
+          CACERT: '{{ .Values.external_certificates.cacert | default "" | b64enc }}'
+      _components:
+        - '{{ hasKey .Values.external_certificates.neuvector "cert" | ternary "../../tls-components/tls-secret" "../../tls-components/tls-certificate" }}'
+
+  neuvector:
+    # can be enabled at runtime if desired
+    enabled: false
+    depends_on:
+      neuvector-tls: true
+    helmrelease_spec:
+      values:
+        controller:
+          secret:
+            enabled: true
+            data:
+              passwordprofileinitcfg.yaml:
+                always_reload: true
+                active_profile_name: default
+                pwd_profiles:
+                - name: default
+                  comment: default from Secret
+                  min_len: 12
+                  min_uppercase_count: 1
+                  min_lowercase_count: 1
+                  min_digit_count: 1
+                  min_special_count: 0
+                  enable_block_after_failed_login: false
+                  block_after_failed_login_count: 0
+                  block_minutes: 0
+                  enable_password_expiration: true
+                  password_expire_after_days: 30
+                  enable_password_history: false
+                  password_keep_history_count: 0
+                  session_timeout: 600  # Optional. value between 30 -- 3600  default 300
+              userinitcfg.yaml:
+                always_reload: true
+                users:
+                - Fullname: admin
+                  Role: admin
+                  username: admin
+                  Password: '{{ .Values._internal.neuvector_admin_password }}'
+
   thanos-credentials-secret:
     enabled: true
     enabled_conditions:
@@ -679,6 +750,8 @@ _internal:
   harbor_postgres_admin_password: '{{ include "internalPersistentRandomPasswd" (tuple . "harbor_postgres_admin_password") }}'
   harbor_postgres_user_password: '{{ include "internalPersistentRandomPasswd" (tuple . "harbor_postgres_user_password") }}'
   harbor_postgres_replication_password: '{{ include "internalPersistentRandomPasswd" (tuple . "harbor_postgres_replication_password") }}'
+
+  neuvector_admin_password: '{{ include "internalPersistentRandomPasswd" (tuple . "neuvector_admin_password") }}'
 
   checks:
     # checks that the selected infra/bootstrap providers are supported
