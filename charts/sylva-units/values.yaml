@@ -8108,18 +8108,18 @@ admin_password: '{{ .Values._internal.default_password }}'
 
 flux:
   kustomize:
-    concurrent: 4
+    concurrent: 10
     log_level: info
     features_gates: {}
   helm:
-    concurrent: 4
+    concurrent: 10
     features_gates:
       OOMWatch: true
       DetectDrift: true
       CorrectDrift: true
     log_level: debug
   source:
-    concurrent: 2
+    concurrent: 10
     log_level: info
     features_gates: {}
 

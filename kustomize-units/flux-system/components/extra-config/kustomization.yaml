@@ -5,7 +5,7 @@ patches:
   - patch: |
       - op: add
         path: /spec/template/spec/containers/0/args/-
-        value: --concurrent=${HELM_CONCURRENT}
+        value: --concurrent=${HELM_CONCURRENT:-10}
       - op: add
         path: /spec/template/spec/containers/0/args/-
         value: --log-level=${HELM_LOG_LEVEL}
@@ -19,7 +19,7 @@ patches:
   - patch: |
       - op: add
         path: /spec/template/spec/containers/0/args/-
-        value: --concurrent=${KUSTOMIZE_CONCURRENT}
+        value: --concurrent=${KUSTOMIZE_CONCURRENT:-10}
       - op: add
         path: /spec/template/spec/containers/0/args/-
         value: --log-level=${KUSTOMIZE_LOG_LEVEL}
@@ -33,7 +33,7 @@ patches:
   - patch: |
       - op: add
         path: /spec/template/spec/containers/0/args/-
-        value: --concurrent=${SOURCE_CONCURRENT}
+        value: --concurrent=${SOURCE_CONCURRENT:-10}
       - op: add
         path: /spec/template/spec/containers/0/args/-
         value: --log-level=${SOURCE_LOG_LEVEL}
