@@ -3803,7 +3803,7 @@ units:
           # When changing the major or minor version of rancher, make sure that renovate is
           # also updated to accept the corresponding versions of the other rancher charts (monitory, sriov, longhorn)
           # See https://github.com/rancher/charts/blob/dev-v2.9/README.md
-          version: 2.10.3
+          version: 2.11.2
       targetNamespace: cattle-system
       values:
         additionalTrustedCAs: true
