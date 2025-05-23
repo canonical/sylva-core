@@ -154,9 +154,6 @@ units:
   kubevirt-test-vms:
     enabled: false
 
-  # kubevirt-vms-restart-after-upgrade:
-  #   enabled: true
-
   prometheus-custom-metrics:
     depends_on:
       monitoring-crd: true
