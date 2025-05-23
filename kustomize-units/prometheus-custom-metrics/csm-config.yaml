@@ -64,8 +64,8 @@ kube-state-metrics:
                   capi_cluster_namespace: [ metadata, namespace ]
                   status: [ status, phase ]
           - groupVersionKind:
-              group: provisioning.cattle.io
-              version: v1
+              group: management.cattle.io
+              version: v3
               kind: Cluster
             metricNamePrefix: rancher_cluster
             metrics:
@@ -75,10 +75,10 @@ kube-state-metrics:
                   type: Info
                   info:
                     labelsFromPath:
-                      rancher_cluster_name: [ metadata, name ]
+                      rancher_cluster_name: [ spec, displayName ]
                 labelsFromPath:
-                  cluster_namespace: [ metadata, namespace ]
-                  rancher_cluster_id: [ status, clusterName ]
+                  cluster_namespace: [ spec, fleetWorkspaceName ]
+                  rancher_cluster_id: [ metadata, name ]
                   ready: [ status, ready ]
           - groupVersionKind:
               group: kustomize.toolkit.fluxcd.io
