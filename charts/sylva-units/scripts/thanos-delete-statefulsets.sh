@@ -16,8 +16,7 @@ do
   if [ "${CURRENT_HASH}" != "${!EXPECTED_HASH}" ]
   then
     echo "Annotation hash mismatch - deleting StatefulSet and pods..."
-    kubectl -n thanos delete statefulsets thanos-"$component" --cascade=orphan --ignore-not-found=true
-    kubectl -n thanos delete pod -l app.kubernetes.io/component="$component" --ignore-not-found=true
+    kubectl -n thanos delete statefulsets thanos-"$component" --ignore-not-found=true
   else
     echo "Hashes match - no deletion needed"
   fi
