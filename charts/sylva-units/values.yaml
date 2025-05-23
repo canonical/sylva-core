@@ -6512,6 +6512,7 @@ units:
                 --field-manager sylva-minio-healthcheck-patch-unit \
                 --type=merge \
                 --patch '{
+                  "spec": {
                     "healthCheckExprs": [
                       {
                         "apiVersion": "minio.min.io/v2",
