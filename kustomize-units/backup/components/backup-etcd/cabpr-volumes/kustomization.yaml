@@ -1,0 +1,28 @@
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
+
+patches:
+  - target:
+      kind: CronJob
+    patch: |
+      - op: add
+        path: /spec/jobTemplate/spec/template/spec/volumes/-
+        value:
+          name: cacert
+          hostPath:
+            path: /var/lib/rancher/rke2/server/tls/etcd/server-ca.crt
+            type: File
+      - op: add
+        path: /spec/jobTemplate/spec/template/spec/volumes/-
+        value:
+          name: cert
+          hostPath:
+            path: /var/lib/rancher/rke2/server/tls/etcd/server-client.crt
+            type: File
+      - op: add
+        path: /spec/jobTemplate/spec/template/spec/volumes/-
+        value:
+          name: key
+          hostPath:
+            path: /var/lib/rancher/rke2/server/tls/etcd/server-client.key
+            type: File
