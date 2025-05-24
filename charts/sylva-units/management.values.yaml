@@ -411,6 +411,7 @@ cluster:
   prevent_deletion: true
   capo:
     flavor_name: m1.xlarge
+  mgmt_service_names: '{{ compact (.Values.external_hostnames | values) | include "preserve-type" }}' # .Values.external_hostnames provides list of management services for OS of mgmt-cluster nodes to resolve
 
 _internal:
   mgmt_cluster: true
