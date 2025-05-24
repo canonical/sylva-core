@@ -24,6 +24,7 @@ variables:
   UPDATE_WORKLOAD_CLUSTER: "true"   # Controls whether workload cluster updates
   DELETE_WORKLOAD_CLUSTER: "true"   # Controls whether workload cluster deletion
 
+
 default:
   tags:
     - gitlab-org-docker
