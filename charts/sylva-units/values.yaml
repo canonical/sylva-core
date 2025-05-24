@@ -8981,12 +8981,14 @@ _internal:
 
   vault_affinity:
     podAntiAffinity:
-      requiredDuringSchedulingIgnoredDuringExecution:
-        - labelSelector:
-            matchLabels:
-              app.kubernetes.io/name: vault
-              vault_cr: vault
-          topologyKey: kubernetes.io/hostname
+      preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 1
+          podAffinityTerm:
+            labelSelector:
+              matchLabels:
+                app.kubernetes.io/name: vault
+                vault_cr: vault
+            topologyKey: kubernetes.io/hostname
 
   vault_no_affinity: {}
 
