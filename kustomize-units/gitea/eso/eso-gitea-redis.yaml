@@ -19,5 +19,5 @@ spec:
    data:
    - secretKey: password
      remoteRef:
-        key: secret/data/gitea-redis
+        key: ${SECRET_PATH}/data/gitea-redis
         property: password

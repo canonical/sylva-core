@@ -20,5 +20,5 @@ spec:
    data:
    - secretKey: password
      remoteRef:
-        key: secret/data/flux-webui
+        key: ${SECRET_PATH}/data/flux-webui
         property: password

@@ -14,17 +14,17 @@ spec:
    data:
    - secretKey: admin-password
      remoteRef:
-        key: secret/data/gitea-postgres-postgres
+        key: ${SECRET_PATH}/data/gitea-postgres-postgres
         property: password
    - secretKey: password
      remoteRef:
-        key: secret/data/gitea-postgres-gitea
+        key: ${SECRET_PATH}/data/gitea-postgres-gitea
         property: password
    - secretKey: postgres-password
      remoteRef:
-        key: secret/data/gitea-postgres-postgres
+        key: ${SECRET_PATH}/data/gitea-postgres-postgres
         property: password
    - secretKey: repmgr-password
      remoteRef:
-        key: secret/data/gitea-postgres-replication
+        key: ${SECRET_PATH}/data/gitea-postgres-replication
         property: password

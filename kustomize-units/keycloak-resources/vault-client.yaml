@@ -16,8 +16,8 @@ spec:
     publicClient: false
     clientAuthenticatorType: client-secret
     redirectUris:
-      - https://${VAULT_DNS}/v1/auth/oidc/oidc/callback
-      - https://${VAULT_DNS}/ui/vault/auth/oidc/oidc/callback
+      - https://${VAULT_DNS}/v1/auth/${OIDC_AUTH_PATH}/oidc/callback
+      - https://${VAULT_DNS}/ui/vault/auth/${OIDC_AUTH_PATH}/oidc/callback
     webOrigins:
       - https://${VAULT_DNS}
     standardFlowEnabled: true
