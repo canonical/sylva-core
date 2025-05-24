@@ -1,5 +1,7 @@
 #!/bin/bash
 
+kubectl wait --for=create -n vault secret vault-k8s-auth-secret --timeout=10s
+
 REVIEWER_TOKEN=$(kubectl -n vault get secret vault-k8s-auth-secret -o jsonpath='{.data.token}' | base64 -d)
 K8S_CA_CERT=$(kubectl  -n vault get secret vault-k8s-auth-secret -o jsonpath='{.data.ca\.crt}' | base64 -d | sed 's/$/\\n/' |  tr -d '\n')
 

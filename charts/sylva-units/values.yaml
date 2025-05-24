@@ -1192,28 +1192,6 @@ units:
           repository: ghcr.io/bank-vaults/vault-operator
           tag: '{{ .Values.source_templates | dig "vault-operator" "spec" "ref" "tag" "" | required "source_templates.vault-operator.spec.ref.tag is unset" }}'
 
-  vault-external:
-    info:
-      description: Create the authentication token to allow the external Vault to request the Sylva cluster for tokens review
-      internal: true
-      details: |
-        Create a service account with the role system:auth-delegator
-      maturity: stable
-    enabled: '{{ (hasKey .Values.security.vault "external_vault_url") }}'
-    unit_templates:
-    - base-deps
-    depends_on:
-      namespace-defs: true
-    repo: sylva-core
-    kustomization_substitute_secrets:
-      EXT_VAULT_TOKEN: '{{ .Values.security.vault.external_vault_token }}'
-    kustomization_spec:
-      path: ./kustomize-units/vault-external
-      postBuild:
-        substitute:
-          K8S_AUTH_PATH: '{{ .Values.security.vault.paths.k8s }}'
-          VAULT_API: '{{ .Values.security.vault.external_vault_url }}'
-
   vault:
     info:
       description: installs Vault or applies resources to leverage an external vault
