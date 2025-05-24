@@ -8920,16 +8920,28 @@ _internal:
   default_storage_class: >-
     {{- if .Values.default_storage_class -}}
       {{ .Values.default_storage_class }}
-    {{- else if (tuple . "ceph-csi-cephfs" | include "unit-enabled") -}}
-      cephfs-csi
-    {{- else if (tuple . "cinder-csi" | include "unit-enabled") -}}
-      {{ .Values.openstack.storageClass.name }}
-    {{- else if (tuple . "vsphere-csi-driver" | include "unit-enabled") -}}
-      vsphere-csi
-    {{- else if (tuple . "longhorn" | include "unit-enabled") -}}
-      {{ .Values._internal.default_longhorn_storage_class }}
     {{- else -}}
-      local-path
+      {{/* ensure .Values._internal.storage_class_unit_map is interpreted */}}
+      {{- tuple . "_internal.storage_class_unit_map" | include "interpret" -}}
+
+      {{- $envAll := . -}}
+      {{- $enabledSCs := list -}}
+      {{- $enabledUnits := list -}}
+      {{- range $sc, $unit := .Values._internal.storage_class_unit_map -}}
+        {{- if and (ne $sc "local-path") (tuple $envAll $unit | include "unit-enabled") -}}
+          {{- $enabledSCs = append $enabledSCs $sc -}}
+          {{- $enabledUnits = (not (has $unit $enabledUnits) | ternary (append $enabledUnits $unit) $enabledUnits) -}}
+        {{- end -}}
+      {{- end -}}
+      {{- if eq (len $enabledSCs) 1 -}}
+        {{- index $enabledSCs 0 -}}
+      {{- else if and (eq (len $enabledUnits) 1) (eq (index $enabledUnits 0) "longhorn") -}}
+        {{ .Values._internal.default_longhorn_storage_class }}
+      {{- else if eq (len $enabledSCs) 0 -}}
+        local-path
+      {{- else -}}
+        {{- fail (printf "Multiple storage classes are available based on the enabled units (%s), you need to specify the default one via 'default_storage_class'" ($enabledSCs|join ", ")) -}}
+      {{- end -}}
     {{- end -}}
 
   # maps storage class names to the name of the unit that implements it
