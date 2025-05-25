@@ -244,12 +244,20 @@ def main():
         logging.info("Skipping because current pipeline is not the lastest one in the MR.")
         return
 
+    comments = get_mr_comments(GITLAB_PROJECT_ID, GITLAB_MR_ID)
+    user_comments = [comment for comment in comments if comment["author"]["id"] == current_user_id]
+
+    if not DEPLOYMENT_JOBS_PIPELINE_ID:
+        # We are in main pipeline, create a placeholder for deployment summary comment if it does not exist
+        if len(user_comments) == 0:
+            logging.info(f"No comment found for MR {GITLAB_MR_ID}, creating a placeholder")
+            post_mr_comment(GITLAB_PROJECT_ID, GITLAB_MR_ID, "Placeholder for deployments pipelines summary")
+
+        return
+
     bridges = get_pipeline_bridges(GITLAB_PROJECT_ID, DEPLOYMENT_JOBS_PIPELINE_ID)
 
     new_comment_body = format_table(bridges)
-
-    comments = get_mr_comments(GITLAB_PROJECT_ID, GITLAB_MR_ID)
-    user_comments = [comment for comment in comments if comment["author"]["id"] == current_user_id]
 
     if len(user_comments) == 0:
         logging.info(f"No comment found for MR {GITLAB_MR_ID}, posting a new one")

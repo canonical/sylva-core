@@ -17,7 +17,7 @@ stages:
   - deploy
 
 include:
-  - local: .gitlab/ci/templates-deployments.yml
+  - local: .gitlab/ci/common.yml
   - local: .gitlab/ci/pipeline-build-oci-artifacts.yml
 
 variables:
@@ -239,8 +239,3 @@ variables:
     MGMT_WATCH_TIMEOUT_MIN: 35
     APPLY_WATCH_TIMEOUT_MIN: 95
     APPLY_WC_WATCH_TIMEOUT_MIN: 95
-
-initialize-summary:
-  extends: .summary
-  stage: .post
-  needs: []
