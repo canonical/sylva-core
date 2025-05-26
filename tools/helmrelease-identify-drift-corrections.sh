@@ -44,10 +44,10 @@ while IFS= read -r line; do
 
     # Extract patch details if available
     if [[ "$line" == *"\"patch\":"* ]]; then
-      patch=$(echo "$line" | sed -E 's/.*"patch":(\[.*\]).*/\1/' | sed 's/\\//g' | jq .)
-      modification="[$timestamp] $resource →\n$patch"
+      patch=$(echo "$line" | sed -E 's/.*"patch":(\[.*\]).*/\1/' | sed 's/\\//g')
+      modification="[$timestamp] $resource -> $patch"
     else
-      modification="[$timestamp] $resource → No patch details"
+      modification="[$timestamp] $resource -> No patch details"
     fi
 
     # Store modification details
@@ -102,7 +102,15 @@ else
       echo "      🔧 Patches applied:"
       IFS='|' read -ra MOD_ARRAY <<< "${DRIFT_MODIFICATIONS[$hr]}"
       for mod in "${MOD_ARRAY[@]}"; do
-        echo "        - $mod"
+        timestamp_resource=$(echo "$mod" | cut -d'>' -f1)
+        patch_part=$(echo "$mod" | cut -d'>' -f2-)
+
+        echo "        - $timestamp_resource>"
+        if echo "$patch_part" | jq . >/dev/null 2>&1; then
+          echo "$patch_part" | jq . | sed 's/^/          /'
+        else
+          echo "          $patch_part"
+        fi
       done
     else
       echo "      🔧 No additional patch information found"
