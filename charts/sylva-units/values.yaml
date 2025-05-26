@@ -2886,9 +2886,6 @@ units:
               accessMode: ReadWriteOnce
         metal3-baremetal-operator:
           replicaCount: '{{ .Values._internal.ha_cluster.is_ha | ternary 2 1 | include "preserve-type" }}'
-        metal3-mariadb:
-          persistence:
-            storageClass: '{{ .Values._internal.default_storage_class }}'
       _postRenderers:
         - kustomize:
             patches:
