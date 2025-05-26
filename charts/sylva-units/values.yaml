@@ -3084,6 +3084,7 @@ units:
           - cluster-resource
           - base
         unset_cluster_paused: '{{ .Values._internal.state.is_upgrade | include "preserve-type" }}'
+        freeze_first_node_files: '{{ .Values._internal.state.is_upgrade | include "preserve-type" }}'
       valuesFrom:
         - kind: ConfigMap
           name: capo-cluster-resources
