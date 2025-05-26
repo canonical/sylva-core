@@ -9290,8 +9290,10 @@ _internal:
         # Since this default value has changed (today it's "",in the past it was "55.55.55.55"), the immutability check
         # is disabled in the case where the old value is 55.55.55.55 and the new one is "".
         _immutable: >-
+           {{- tuple . "_internal.previous_values" | include "interpret" -}}
            {{ not (and (.Values._internal.previous_values.cluster_virtual_ip | eq "55.55.55.55")
                        (.Values.cluster_virtual_ip | eq ""))
+              | include "preserve-type"
            }}
         _immutable_comment: "cluster_virtual_ip can't be changed once deployed"
       capi_providers:
