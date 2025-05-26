@@ -3887,6 +3887,14 @@ units:
                               initialDelaySeconds: 120
                               periodSeconds: 30
                               failureThreshold: 20
+              #https://github.com/rancher/rancher/blob/release/v2.10/chart/templates/_helpers.tpl#L27
+              #which post rendering looks like 'rancher-2.10.2+82a440046027', failling k8s validation for chart '+'
+              - target:
+                  labelSelector: app=rancher
+                patch: |
+                  - op: replace
+                    path: /metadata/labels/chart
+                    value: rancher
 
     kustomization_spec:
       # these healthChecks are added so that does not become ready before
