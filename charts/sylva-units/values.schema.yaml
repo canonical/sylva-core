@@ -1627,6 +1627,9 @@ properties:
   metallb_helm_values:
     type: object
 
+  cilium_helm_values:
+    type: object
+
   _internal:  # -------------------------------
     type: object
 

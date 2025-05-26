@@ -236,7 +236,7 @@ units:
         - components/cattle-system
 
   calico-crd:
-    enabled: true
+    enabled: '{{ eq .Values.cluster.cni.default_provider "calico" }}'
     unit_templates:
     - base-deps
     # some dependencies of base-deps are inherited, but don't apply here:
@@ -245,7 +245,7 @@ units:
       cluster-machines-ready: '{{ and (not (tuple . "cluster-machines-ready" | include "unit-enabled")) (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpck") }}'
 
   calico:
-    enabled: true
+    enabled: '{{ eq .Values.cluster.cni.default_provider "calico" }}'
     unit_templates:
     - base-deps
     # some dependencies of base-deps are inherited, but don't apply here:
@@ -255,7 +255,7 @@ units:
       cluster-machines-ready: '{{ and (not (tuple . "cluster-machines-ready" | include "unit-enabled")) (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpck") }}'
 
   calico-ready:
-    enabled: true
+    enabled: '{{ eq .Values.cluster.cni.default_provider "calico" }}'
 
   harbor-init:
     # this unit isn't relevant in workload clusters
