@@ -8271,6 +8271,7 @@ no_proxy_additional:
   '{{ printf ".%s" .Values.cluster_domain }}': true
   .cluster.local.: true
   .cluster.local: true
+  '{{ .Values.cluster_virtual_ip }}': true  # never try to reach the mgmt cluster via a proxy
 
 # configure containerd registry mirrors following https://github.com/containerd/containerd/blob/main/docs/hosts.md
 registry_mirrors:
