@@ -260,6 +260,20 @@
         ],
         "executionMode": "update"
       }
+    },
+    {
+      "description": "Run commands required to update sylva_diskimagebuilder_images",
+      "matchPackageNames": "sylva-projects/sylva-elements/diskimage-builder",
+      "postUpgradeTasks": {
+        "commands": [
+          "pip install yq",
+          ".gitlab/ci/scripts/generate-diskimage-builder-images.py {{{newVersion}}}"
+        ],
+        "fileFilters": [
+          "charts/sylva-units/charts/values.yaml"
+        ],
+        "executionMode": "update"
+      }
     }
   ],
   "customManagers": [
