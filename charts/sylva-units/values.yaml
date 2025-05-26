@@ -5970,6 +5970,8 @@ units:
           env:
           - name: MINIO_PROMETHEUS_AUTH_TYPE
             value: public
+          - name: MINIO_TRIGGER_RESTART
+            values: initial-placeholder  # This will be overwritten by Kyverno in order to restart MinIO pods when certificates change
           features:
             bucketDNS: false
             enableSFTP: false
@@ -6152,6 +6154,8 @@ units:
           env:
           - name: MINIO_PROMETHEUS_AUTH_TYPE
             value: public
+          - name: MINIO_TRIGGER_RESTART
+            value: initial-placeholder  # This will be overwritten by Kyverno in order to restart MinIO pods when certificates change
           features:
             bucketDNS: false
             enableSFTP: false
