@@ -10164,13 +10164,6 @@
         }
       }
     },
-    "agent_config_format": {
-      "anyOf": [
-        {
-          "type": "string"
-        }
-      ]
-    },
     "sylva_kiwi_imagebuilder_version": {
       "type": "string"
     },
