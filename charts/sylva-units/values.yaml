@@ -8737,7 +8737,7 @@ os_images_oci_registries:
 
 k8s_version_short: "1.31"
 
-# Renovate Bot needs additional information to detect sylva/kiwi diskimage-builder version
+# Renovate Bot needs additional information to detect sylva diskimage-builder version
 # renovate: depName=sylva-projects/sylva-elements/diskimage-builder
 sylva_diskimagebuilder_version: 0.4.12
 
