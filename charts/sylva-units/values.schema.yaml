@@ -1286,6 +1286,8 @@ properties:
             required: [oci_registry, oci_user, oci_token]
 
 
+      restrict_nodeName_nodeSelector:
+        type: boolean
 
   monitoring:  # -------------------------------
     type: object
