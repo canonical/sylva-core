@@ -8729,7 +8729,7 @@ os_images_oci_registries:
     tag: '{{ .Values.sylva_diskimagebuilder_version }}'
     cosign_publickey: '{{ .Values.security.os_images.cosign_public_key }}'
     enabled: true  # can be set to false to disable all the images under sylva_diskimagebuilder_images that have 'os_images_oci_registry: sylva'
-  kiwi-imagebuilder:
+  sylva-kiwi-imagebuilder:
     url: '{{ .Values.sylva_base_oci_registry }}/sylva-elements/kiwi-imagebuilder'
     tag: '{{ .Values.sylva_kiwi_imagebuilder_version }}'
     cosign_publickey: '{{ .Values.security.kiwi_image_builder_cosign_public_key }}'
@@ -8789,7 +8789,7 @@ sylva_diskimagebuilder_images:
   ubuntu-noble-plain-ck8s-1-31-6:
     os_images_oci_registry: sylva
   leapmicro-6-0-plain-rke2-1-31-8:
-    os_images_oci_registry: kiwi-imagebuilder
+    os_images_oci_registry: sylva-kiwi-imagebuilder
 
 # this dictionary can be extended to let os-image-server serve additional OS images
 # if the mgmt cluster uses capm3, the os-image-server by default will serve the OS images used by the mgmt cluster
