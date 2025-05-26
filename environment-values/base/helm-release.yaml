@@ -10,6 +10,7 @@ spec:
   ref:
     commit: CURRENT_COMMIT # Placeholder that will be replaced by bootstrap.sh and apply.sh commands
   url: SYLVA_CORE_REPO
+  timeout: 5m
 ---
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
