@@ -252,6 +252,5 @@ spec:
   outputConfigMap:
     name: capo-cluster-resources
     labels:
-      copy-from-bootstrap-to-management: ""
   identityRef: cluster-cloud-config
   cloudName: capo_cloud

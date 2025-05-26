@@ -4,7 +4,6 @@ kind: Component
 labels:
 - includeSelectors: true
   pairs:
-    copy-from-bootstrap-to-management: ""
 
 configMapGenerator:
 - name: capm3-virt-ha-values

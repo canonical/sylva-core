@@ -1,0 +1,33 @@
+---
+cluster:
+  capi_providers:
+    infra_provider: capd
+    bootstrap_provider: cabpk
+  # CAPD only supports 1 CP machine
+  control_plane_replicas: 1
+  capd:
+    image_name: kindest/node:v1.29.8
+    # We can define users if needed (.cluster.kubeadm.users[])
+  #kubeadm:
+  #  users:
+  #    - name: sylva-user
+  #      passwd: "put your password hash here"  # (copy pasted from /etc/shadow or created with "mkpasswd --method=SHA-512 --stdin")
+  #      groups: users
+  #      sudo: ALL=(ALL) NOPASSWD:ALL
+  #      shell: /bin/bash
+  #      lockPassword: false
+  #      sshAuthorizedKeys:
+  #        - ssh-rsa AAAA...... YOUR KEY HERE ....UqnQ==
+capd_docker_host: unix:///var/run/docker.sock # dynamically replaced in CI
+cluster_virtual_ip: '172.18.0.100' # use the .100 (or any other that wouldn't be assigned by Docker) IP from the local kind subnet, returned by: docker network inspect -f '{{json .}}' kind | jq -r .IPAM.Config[0].Subnet
+proxies:
+  # put your own proxy settings here if you need
+  http_proxy: ""
+  https_proxy: ""
+  no_proxy: ""
+# configure containerd registry mirrors following https://github.com/containerd/containerd/blob/main/docs/hosts.md
+# see charts/syla-units/values.yaml for a more detailled example
+# registry_mirrors:
+#   hosts_config:
+#     docker.io:
+#     - mirror_url: http://your.mirror/docker
