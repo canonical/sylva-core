@@ -8017,17 +8017,6 @@ units:
         job:
           # compute total timeout based on per-image timeout and number of images
           activeDeadlineSeconds: '{{ mul .Values.get_openstack_images_per_image_timeout_minutes 60 (include "generate-os-images" . | fromYaml | dig "os_images" dict | len) }}'
-          checksum: |-
-            {{
-            tuple . (list
-              .Values._internal.sylva_core_version
-              (mergeOverwrite (deepCopy .Values.os_images) .Values.sylva_diskimagebuilder_images)
-              .Values.sylva_diskimagebuilder_version
-              .Values.sylva_kiwi_imagebuilder_version
-              .Values.sylva_base_oci_registry
-              .Values.proxies
-            ) | include "interpret-and-hash"
-            }}
         os_image_selectors: >-
           {{- tuple . "cluster" | include "interpret" -}}
           {{ tuple .Values.cluster | include "find-cluster-image-selectors" | fromJsonArray | include "preserve-type" }}
