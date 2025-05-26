@@ -2,3 +2,20 @@
 cluster:
   capi_providers:
     bootstrap_provider: cabpr
+
+  rke2:
+    additionalUserData:
+      config:
+        #cloud-config
+        users:
+          - name: sylva-user
+            groups: users,sylva-ops
+            sudo: ALL=(ALL) NOPASSWD:ALL
+            shell: /bin/bash
+            lock_passwd: false
+            passwd: $1$pdWEicWs$9ZWQf5.CWyXccmP8Chuu01 # sylva
+
+## Expected OS image must be configured here
+  # capm3:
+  #   os_image_selector:
+  #     os: ubuntu
