@@ -9429,9 +9429,6 @@
     "display_external_ip": {
       "type": "string"
     },
-    "display_external_ip_msg": {
-      "type": "string"
-    },
     "audit_log": {
       "type": "object",
       "additionalProperties": false,

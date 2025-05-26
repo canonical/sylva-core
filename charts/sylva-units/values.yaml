@@ -922,7 +922,7 @@ units:
     kustomization_substitute_secrets:
       ADMIN_CREDENTIAL: '{{ (htpasswd .Values._internal.kubevirt_admin_user .Values._internal.kubevirt_admin_password) | b64enc | quote }}'
     annotations:
-      sylvactl/readyMessage: "Kubevirt manager UI can be reached at https://{{ .Values.external_hostnames.kubevirt_manager }} ({{ .Values.display_external_ip_msg }})"
+      sylvactl/readyMessage: "Kubevirt manager UI can be reached at https://{{ .Values.external_hostnames.kubevirt_manager }} ({{ .Values._internal.display_external_ip_msg }})"
     kustomization_spec:
       path: ./kustomize-units/kubevirt-manager
       wait: true
@@ -1082,7 +1082,7 @@ units:
       '{{ .Values._internal.default_storage_class_unit }}': true
       harbor-postgres: true
     annotations:
-      sylvactl/readyMessage: "Harbor UI can be reached at https://{{ .Values.external_hostnames.harbor }} ({{ .Values.display_external_ip_msg }})"
+      sylvactl/readyMessage: "Harbor UI can be reached at https://{{ .Values.external_hostnames.harbor }} ({{ .Values._internal.display_external_ip_msg }})"
     helm_repo_url: https://helm.goharbor.io
     helmrelease_spec:
       chart:
@@ -1233,7 +1233,7 @@ units:
       '{{ .Values._internal.default_storage_class_unit }}': true
       vault-operator: true
     annotations:
-      sylvactl/readyMessage: "Vault UI can be reached at https://{{ .Values.external_hostnames.vault }} ({{ .Values.display_external_ip_msg }})"
+      sylvactl/readyMessage: "Vault UI can be reached at https://{{ .Values.external_hostnames.vault }} ({{ .Values._internal.display_external_ip_msg }})"
     repo: sylva-core
     kustomization_substitute_secrets:
       ADMIN_PASSWORD: '{{ .Values.admin_password }}'
@@ -1528,7 +1528,7 @@ units:
       neuvector-init: '{{ tuple . "neuvector-init" | include "unit-enabled" }}'
       ingress-nginx: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpk" }}'
     annotations:
-      sylvactl/readyMessage: "Neuvector UI can be reached at https://{{ .Values.external_hostnames.neuvector }} ({{ .Values.display_external_ip_msg }})"
+      sylvactl/readyMessage: "Neuvector UI can be reached at https://{{ .Values.external_hostnames.neuvector }} ({{ .Values._internal.display_external_ip_msg }})"
     helm_repo_url: https://neuvector.github.io/neuvector-helm
     helm_chart_artifact_name: neuvector-core
     helmrelease_spec:
@@ -1771,7 +1771,7 @@ units:
       keycloak-postgres: true
       synchronize-secrets: true # make sure that the secret keycloak-initial-admin is ready to be consummed
     annotations:
-      sylvactl/readyMessage: "Keycloak admin console can be reached at https://{{ .Values.external_hostnames.keycloak }}/admin/master/console, user 'admin', password in Vault at secret/keycloak ({{ .Values.display_external_ip_msg }})"
+      sylvactl/readyMessage: "Keycloak admin console can be reached at https://{{ .Values.external_hostnames.keycloak }}/admin/master/console, user 'admin', password in Vault at secret/keycloak ({{ .Values._internal.display_external_ip_msg }})"
     repo: sylva-core
     kustomization_substitute_secrets:
       KEY: '{{ .Values.external_certificates.keycloak.key | default "" | b64enc }}'
@@ -3811,7 +3811,7 @@ units:
       ingress-nginx: '{{ tuple . "ingress-nginx" | include "unit-enabled" }}'
       synchronize-secrets: true
     annotations:
-      sylvactl/readyMessage: "Rancher UI can be reached at https://{{ .Values.external_hostnames.rancher }} ({{ .Values.display_external_ip_msg }})"
+      sylvactl/readyMessage: "Rancher UI can be reached at https://{{ .Values.external_hostnames.rancher }} ({{ .Values._internal.display_external_ip_msg }})"
     helm_repo_url: https://releases.rancher.com/server-charts/stable
     helmrelease_spec:
       chart:
@@ -4338,7 +4338,7 @@ units:
       keycloak-oidc-external-secrets: '{{ tuple . "keycloak" | include "unit-enabled" }}'
       flux-webui-init: true
     annotations:
-      sylvactl/readyMessage: "Flux Web UI can be reached at https://{{ .Values.external_hostnames.flux }} ({{ .Values.display_external_ip_msg }})"
+      sylvactl/readyMessage: "Flux Web UI can be reached at https://{{ .Values.external_hostnames.flux }} ({{ .Values._internal.display_external_ip_msg }})"
     repo: weave-gitops
     helm_chart_artifact_name: weave-gitops
     helmrelease_spec:
@@ -5998,7 +5998,7 @@ units:
       namespace-defs: true
       '{{ .Values._internal.default_storage_class_unit }}': true
     annotations:
-      sylvactl/readyMessage: "Gitea can be reached at https://{{ .Values.external_hostnames.gitea }} ({{ .Values.display_external_ip_msg }})"
+      sylvactl/readyMessage: "Gitea can be reached at https://{{ .Values.external_hostnames.gitea }} ({{ .Values._internal.display_external_ip_msg }})"
     helm_repo_url: https://dl.gitea.com/charts/
     helmrelease_spec:
       chart:
@@ -6322,7 +6322,7 @@ units:
       minio-operator-init: true
       ingress-nginx: '{{ tuple . "ingress-nginx" | include "unit-enabled" }}'
     annotations:
-      sylvactl/readyMessage: "minio operator console can be reached at https://{{ .Values.external_hostnames.minio_operator_console }} ({{ .Values.display_external_ip_msg }})"
+      sylvactl/readyMessage: "minio operator console can be reached at https://{{ .Values.external_hostnames.minio_operator_console }} ({{ .Values._internal.display_external_ip_msg }})"
     repo: minio-operator
     helmrelease_spec:
       targetNamespace: minio-operator
@@ -6550,7 +6550,7 @@ units:
       two-replicas-storageclass: '{{ tuple . "two-replicas-storageclass" | include "unit-enabled" }}'
       '{{ .Values._internal.default_storage_class_unit }}': '{{ not (tuple . "two-replicas-storageclass" | include "unit-enabled") }}'
     annotations:
-      sylvactl/readyMessage: "MinIO logging tenant console can be reached at https://{{ .Values.external_hostnames.minio_logging_console }} ({{ .Values.display_external_ip_msg }})"
+      sylvactl/readyMessage: "MinIO logging tenant console can be reached at https://{{ .Values.external_hostnames.minio_logging_console }} ({{ .Values._internal.display_external_ip_msg }})"
     repo: minio-operator
     helmrelease_spec:
       targetNamespace: minio-logging
@@ -6848,7 +6848,7 @@ units:
       two-replicas-storageclass: '{{ tuple . "two-replicas-storageclass" | include "unit-enabled" }}'
       '{{ .Values._internal.default_storage_class_unit }}': '{{ not (tuple . "two-replicas-storageclass" | include "unit-enabled") }}'
     annotations:
-      sylvactl/readyMessage: "MinIO monitoring tenant console can be reached at https://{{ .Values.external_hostnames.minio_monitoring_console }} ({{ .Values.display_external_ip_msg }})"
+      sylvactl/readyMessage: "MinIO monitoring tenant console can be reached at https://{{ .Values.external_hostnames.minio_monitoring_console }} ({{ .Values._internal.display_external_ip_msg }})"
     repo: minio-operator
     helmrelease_spec:
       targetNamespace: minio-monitoring
@@ -7569,7 +7569,7 @@ units:
     enabled_conditions:
       - '{{ tuple . "logging" | include "unit-enabled" }}'
     annotations:
-      sylvactl/readyMessage: "Loki can be reached at https://{{ .Values.external_hostnames.loki }} ({{ .Values.display_external_ip_msg }})"
+      sylvactl/readyMessage: "Loki can be reached at https://{{ .Values.external_hostnames.loki }} ({{ .Values._internal.display_external_ip_msg }})"
     repo: loki
     helmrelease_spec:
       targetNamespace: loki
@@ -8292,7 +8292,6 @@ flux_webui:
   admin_user: admin
 
 display_external_ip: '{{ .Values.openstack.floating_ip | eq "" | ternary .Values.cluster_virtual_ip .Values.openstack.floating_ip }}'
-display_external_ip_msg: '{{ and (.Values.openstack.floating_ip | eq "") (.Values.cluster_virtual_ip | eq "") | ternary "It must resolve to the IP used to reach the cluster" (printf "It must resolve to %s" .Values.display_external_ip ) }}'
 
 cluster_domain: sylva
 
@@ -9131,6 +9130,8 @@ _internal:
 
   # We need to retrieve bootstrap_node_ip in management-cluster while using libvirt-metal emulation, it is stored in a ConfigMap by libvirt-metal unit in that case
   bootstrap_node_ip: '{{ lookup "v1" "ConfigMap" "sylva-system" "cluster-public-endpoint" | dig "data" "address" "not_found" | default "not_found" }}'
+
+  display_external_ip_msg: '{{ and (.Values.openstack.floating_ip | eq "") (.Values.cluster_virtual_ip | eq "") | ternary "It must resolve to the IP used to reach the cluster" (printf "It must resolve to %s" .Values.display_external_ip ) }}'
 
   k8s_version_map:
     1.29: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" | ternary "v1.29.15+rke2r1" "v1.29.15" }}'
