@@ -840,6 +840,52 @@ units:
           version: 0.23.2
       targetNamespace: cnpg-system
 
+  metrics-server-ha:
+    info:
+      description: metrics-server configmap for ha values
+      maturity: stable
+      internal: true
+    enabled_conditions:
+      - '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" }}'
+      - '{{ .Values._internal.ha_cluster.is_ha }}'
+    unit_templates:
+      - base-deps
+    repo: sylva-core
+    kustomization_spec:
+      path: ./kustomize-units/metrics-server-ha
+      wait: true
+
+  metrics-server:
+    info:
+      description: metrics-server install
+      maturity: stable
+    enabled_conditions:
+      - '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" }}'
+    depends_on:
+      metrics-server-ha: '{{ .Values._internal.ha_cluster.is_ha }}'
+    unit_templates:
+      - base-deps
+    helm_repo_url: https://rke2-charts.rancher.io
+    helmrelease_spec:
+      install:
+        createNamespace: false
+      chart:
+        spec:
+          chart: rke2-metrics-server
+          version: 3.12.200
+      targetNamespace: kube-system
+      values:
+        nodeSelector:
+          kubernetes.io/os: linux
+          node-role.kubernetes.io/control-plane: "true"
+      valuesFrom:
+        '{{ tuple
+            (list (dict "kind" "ConfigMap"
+                  "name" "metrics-server-ha-values")
+            )
+            .Values._internal.ha_cluster.is_ha
+          | include "set-only-if" }}'
+
   keycloak-postgres:
     info:
       description: Deploy Postgres cluster for Keycloak using Cloud Native PostgreSQL (CNPG)
