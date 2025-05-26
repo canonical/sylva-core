@@ -8,9 +8,11 @@ fullnameOverride: ""
 
 git_repo_spec_default:
   interval: 168h
+  timeout: 5m
 
 oci_repo_spec_default:
   interval: 168h
+  timeout: 5m
 
 source_templates: # template to generate Flux GitRepository/OCIRepository resources
   # <repo-name>:
@@ -202,6 +204,7 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
 
 helm_repo_spec_default:
   interval: 168h
+  timeout: 5m
 
 # this defines the default .spec for a Kustomization resource
 # generated for each item of 'units'
