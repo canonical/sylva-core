@@ -1,7 +1,7 @@
 apiVersion: kyverno.io/v1
 kind: ClusterPolicy
 metadata:
-  name: create-global-network-set-for-capo-cluster-nodes
+  name: globalnetworkset-for-capo-workload-clusters
   annotations:
     policies.kyverno.io/title: Create a GlobalNetworkSet for a capo workload cluster node
     policies.kyverno.io/category: Firewall
@@ -13,7 +13,7 @@ metadata:
     kustomize.toolkit.fluxcd.io/force: Enabled
 spec:
   rules:
-  - name: globalnetworkset-for-workload-clusters
+  - name: globalnetworkset-for-capo-workload-clusters
     match:
       any:
       - resources:
@@ -48,39 +48,4 @@ spec:
             role: workload-cluster-node
         spec:
           nets: "{{ osmachines }}"
-#
-# The next rule creates a configmap rather than directly creating a GlobalNetworkSet
-# It allows creating a GlobalNetworkSet of the management cluster addresses not only in
-# the management cluster itself, but also in the workload clusters with a kustomization
-# substituting the management_cluster_addresses: from this configmap
-#
-  - name: globalnetworkset-for-management-cluster
-    match:
-      any:
-      - resources:
-          kinds:
-          - infrastructure.cluster.x-k8s.io/*/OpenStackMachine
-          namespaces:
-          - sylva-system
-    # only apply if an IP address is assigned to the VM
-    preconditions:
-      all:
-        - key: "{{ request.object.status.addresses[?type=='InternalIP'] || `[]` | length(@) }}"
-          operator: GreaterThanOrEquals
-          value: 1
-    context:
-      - name: osmachines
-        apiCall:
-          urlPath: "/apis/infrastructure.cluster.x-k8s.io/v1beta1/namespaces/{{ request.namespace }}/openstackmachines/"
-          jmesPath: "items[*].status.addresses[?type=='InternalIP'].address[]"
-    generate:
-      generateExisting: true
-      synchronize: true
-      apiVersion: v1
-      kind: ConfigMap
-      name: management-cluster-addresses
-      namespace: sylva-system
-      data:
-        kind: ConfigMap
-        data:
-          management_cluster_addresses: "[{{ osmachines | join(',', @) }}]"
+

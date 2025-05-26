@@ -3,4 +3,5 @@ kind: Kustomization
 
 resources:
 - restart-kyverno-after-capo-crds.yaml
-- kyverno-global-network-set-policy.yaml
+- globalnetworkset-for-capo-management-cluster.yaml
+- globalnetworkset-for-capo-workload-clusters.yaml
