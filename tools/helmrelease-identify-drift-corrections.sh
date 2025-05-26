@@ -44,8 +44,8 @@ while IFS= read -r line; do
 
     # Extract patch details if available
     if [[ "$line" == *"\"patch\":"* ]]; then
-      patch=$(echo "$line" | sed -E 's/.*"patch":(\[.*\]).*/\1/' | sed 's/\\//g')
-      modification="[$timestamp] $resource → $patch"
+      patch=$(echo "$line" | sed -E 's/.*"patch":(\[.*\]).*/\1/' | sed 's/\\//g' | jq .)
+      modification="[$timestamp] $resource →\n$patch"
     else
       modification="[$timestamp] $resource → No patch details"
     fi
