@@ -11,11 +11,13 @@ In this MR the CI configuration must be done with this comment and not the MR de
 
 * [ ] ☁ capo 🚀 rke2 🐧 suse
 * [ ] ☁ capo 🚀 kadm 🐧 ubuntu
-* [ ] ☁ capo 🚀 rke2 🎬 sylva-upgrade 🛠 ha,misc 🐧 ubuntu
+* [ ] ☁ capo 🚀 rke2 🛠 ha,misc 🐧 ubuntu
+* [ ] ☁ capo 🚀 rke2 🎬 sylva-upgrade 🛠 ha 🐧 ubuntu
 
 * [ ] ☁ capm3 🚀 rke2 🐧 suse
 * [ ] ☁ capm3 🚀 kadm 🐧 ubuntu
-* [ ] ☁ capm3 🚀 kadm 🎬 rolling-update 🛠 ha,misc 🐧 ubuntu
+* [ ] ☁ capm3 🚀 kadm 🛠 misc 🐧 ubuntu
+* [ ] ☁ capm3 🚀 kadm 🎬 rolling-update 🛠 ha 🐧 ubuntu
 * [ ] ☁ capm3 🚀 rke2 🎬 sylva-upgrade 🛠 ha 🐧 suse
 
 <!-- DEPLOYMENT FLAVOR DEFINITION END -->
