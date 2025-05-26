@@ -846,7 +846,7 @@ units:
       maturity: stable
       internal: true
     enabled_conditions:
-      - '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" }}'
+      - '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpk" }}'
       - '{{ .Values._internal.ha_cluster.is_ha }}'
     unit_templates:
       - base-deps
@@ -860,7 +860,7 @@ units:
       description: metrics-server install
       maturity: stable
     enabled_conditions:
-      - '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" }}'
+      - '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpk" }}'
     depends_on:
       metrics-server-ha: '{{ .Values._internal.ha_cluster.is_ha }}'
     unit_templates:
