@@ -202,6 +202,13 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
       ref:
         tag: redis-cluster/11.0.8
 
+  sync-files-on-nodes:
+    kind: GitRepository
+    spec:
+      url: https://gitlab.com/jonathang/sync-files-on-node
+      ref:
+        branch: main
+
 helm_repo_spec_default:
   interval: 168h
   timeout: 5m
