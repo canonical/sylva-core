@@ -9282,7 +9282,17 @@ _internal:
         _immutable: true
         _immutable_comment: "Renaming a cluster is not supported"
       cluster_virtual_ip:
-        _immutable: true
+        # The cluster virtual IP cannot be changed
+        #
+        # In the case where this IP isn't set by user but is determined dynamically (the case on CAPO today, where capo-cluster-resources allocates it)
+        # then cluster_virtual_ip will not always contain the virtual IP, and may instead be set to its default value.
+        #
+        # Since this default value has changed (today it's "",in the past it was "55.55.55.55"), the immutability check
+        # is disabled in the case where the old value is 55.55.55.55 and the new one is "".
+        _immutable: >-
+           {{ not (and (.Values._internal.previous_values.cluster_virtual_ip | eq "55.55.55.55")
+                       (.Values.cluster_virtual_ip | eq ""))
+           }}
         _immutable_comment: "cluster_virtual_ip can't be changed once deployed"
       capi_providers:
         bootstrap_provider:
