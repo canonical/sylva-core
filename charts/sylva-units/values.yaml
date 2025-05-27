@@ -1064,16 +1064,16 @@ units:
     kustomization_spec:
       targetNamespace: {{ .Release.Namespace }}
       _patches:
-      - target:
-          kind: ConfigMap
-          labelSelector: kube-job=script
-        patch: |
-          - op: replace
-            path: /data/kube-job.sh
-            value: |
-              #!/bin/bash
-              echo "--- Deleting old Harbor PostgreSQL Kustomization"
-              kubectl delete kustomization.kustomize.toolkit.fluxcd.io harbor-postgres --ignore-not-found=true
+        - target:
+            kind: ConfigMap
+            labelSelector: kube-job=script
+          patch: |
+            - op: replace
+              path: /data/kube-job.sh
+              value: |
+                #!/bin/bash
+                echo "--- Deleting old Harbor PostgreSQL Kustomization"
+                kubectl delete kustomization.kustomize.toolkit.fluxcd.io harbor-postgres --ignore-not-found=true
 
   harbor:
     info:
