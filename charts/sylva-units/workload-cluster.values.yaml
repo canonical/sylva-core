@@ -362,23 +362,22 @@ units:
                    # is actually enabled if and only if kubevirt is enabled
 
   keycloak-resources:
-    unit_templates:
-    - base-deps
-    - kustomization-deployed-on-mgmt-cluster
+    # unit_templates:
+    #  - kustomization-deployed-on-mgmt-cluster
     enabled: true
     # enabled_conditions:
     # - '{{ tuple . "kubevirt-manager" | include "unit-enabled" }}'
-    kustomization_spec:
-      path: ./kustomize-units/keycloak-resources
-      targetNamespace: keycloak
-      _components:
-        - '{{ tuple "components/kubevirt-manager" (tuple . "kubevirt-manager" | include "unit-enabled") | include "set-only-if" }}'
-      postBuild:
-        substitute:
-          KUBEVIRT_MANAGER_DNS: '{{ tuple .Values.external_hostnames.kubevirt_manager (tuple . "kubevirt-manager" | include "unit-enabled") | include "set-only-if" }}'
-          CLUSTER_NAME: '{{ .Values.cluster.name }}'
-      healthChecks:  #  cannot use __wait: true__ here, see https://gitlab.com/sylva-projects/sylva-core/-/issues/144
-        - '{{ tuple (dict "apiVersion" "v1" "kind" "Secret" "name" (printf "keycloak-client-secret-kubevirt-manager-%s-client" .Values.cluster.name) "namespace" "keycloak") (tuple . "kubevirt-manager" | include "unit-enabled") | include "set-only-if" }}'  # # this secret is a byproduct of the kubevirt-manager client KeycloakClient resource
+    # kustomization_spec:
+    #   path: ./kustomize-units/keycloak-resources
+    #   targetNamespace: keycloak
+    #   _components:
+    #     - '{{ tuple "components/kubevirt-manager" (tuple . "kubevirt-manager" | include "unit-enabled") | include "set-only-if" }}'
+    #   postBuild:
+    #     substitute:
+    #       KUBEVIRT_MANAGER_DNS: '{{ tuple .Values.external_hostnames.kubevirt_manager (tuple . "kubevirt-manager" | include "unit-enabled") | include "set-only-if" }}'
+    #       CLUSTER_NAME: '{{ .Values.cluster.name }}'
+    #   healthChecks:  #  cannot use __wait: true__ here, see https://gitlab.com/sylva-projects/sylva-core/-/issues/144
+    #     - '{{ tuple (dict "apiVersion" "v1" "kind" "Secret" "name" (printf "keycloak-client-secret-kubevirt-manager-%s-client" .Values.cluster.name) "namespace" "keycloak") (tuple . "kubevirt-manager" | include "unit-enabled") | include "set-only-if" }}'  # # this secret is a byproduct of the kubevirt-manager client KeycloakClient resource
 
   kubevirt-cdi:
     enabled: true  # the inherited enabled_condition will ensure that the unit
