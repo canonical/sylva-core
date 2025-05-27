@@ -527,13 +527,13 @@ units:
   logging-crd:
     enabled: true
 
-  logging:
+  kube-logging:
     enabled: false
 
   logging-config:
     enabled: true
     kustomization_spec:
-      targetNamespace: "cattle-logging-system"
+      targetNamespace: kube-logging
 
   loki:
     # this unit isn't designed to work in workload clusters

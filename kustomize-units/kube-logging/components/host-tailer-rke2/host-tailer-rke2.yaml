@@ -1,0 +1,23 @@
+apiVersion: logging-extensions.banzaicloud.io/v1alpha1
+kind: HostTailer
+metadata:
+  name: rke2-logs
+  namespace: kube-logging
+spec:
+  workloadMetaOverrides:
+    labels:
+      cluster: sylva
+  fileTailers:
+  - name: kubelet-logs
+    path: /var/lib/rancher/rke2/agent/logs/kubelet.log
+  systemdTailers:
+  - maxEntries: 100
+    name: rke2-server-journal
+    systemdFilter: rke2-server.service
+    path: ${PATH}
+    disabled: false
+  - maxEntries: 100
+    name: rke2-agent-journal
+    systemdFilter: rke2-agent.service
+    path: ${PATH}
+    disabled: false
