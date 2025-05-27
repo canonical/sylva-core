@@ -1858,11 +1858,11 @@ units:
       internal: true
     unit_templates:
     - base-deps
-    enabled_conditions:
-    - '{{ tuple . "keycloak" | include "unit-enabled" }}'
-    depends_on:
-      keycloak: true
-      keycloak-legacy-operator: true
+    # enabled_conditions:
+    # - '{{ tuple . "keycloak" | include "unit-enabled" }}'
+    # depends_on:
+    #   keycloak: true
+    #   keycloak-legacy-operator: true
     repo: sylva-core
     kustomization_substitute_secrets:
       SSO_PASSWORD: '{{ .Values.admin_password }}'
