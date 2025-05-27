@@ -10,8 +10,8 @@ spec:
     matchLabels:
       realm1: sylva
   client:
-    clientId: kubevirt-manager
-    name: kubevirt-manager
+    clientId: kubevirt-manager-${CLUSTER_NAME}
+    name: kubevirt-manager-${CLUSTER_NAME}
     enabled: true
     protocol: openid-connect
     publicClient: false
