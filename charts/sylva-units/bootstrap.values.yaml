@@ -42,6 +42,20 @@ _internal:
     # the 0.0.0.0/32 values above are just here to let us use "helm template" with this
     # file without errors
 
+  # the no_proxy computed for bootstrap cluster includes pods/services subnets for the kind cluster
+  # (see no_proxy_additional in this file)
+  # but we don't need nor want that in the mgmt cluster
+  #
+  # this setting is used in particular for units for which we don't want to artificially create
+  # a refresh that would be due to including these ranges in the bootstrap computation and then
+  # removing them when re-applying sylva-units in mgmt cluster environment, removing those ranges
+  mgmt_no_proxy: >-
+    {{- tuple . "_internal.kind_kubeadm_networking" | include "interpret" -}}
+    {{- include "sylva-units.no_proxy"
+          (tuple . (dict .Values._internal.kind_kubeadm_networking.podSubnet false
+                         .Values._internal.kind_kubeadm_networking.serviceSubnet false))
+    -}}
+
 unit_templates:
   base-deps:
     depends_on: null  # don't inherit dependencies from values.yaml or management.values.yaml
@@ -270,12 +284,7 @@ units:
         substitute:
           # the no_proxy computed for bootstrap cluster includes pods/services subnets for the kind cluster (see no_proxy_additional in this file)
           # but we don't need nor want that in the mgmt cluster
-          no_proxy:
-            '{{-
-            include "sylva-units.no_proxy"
-              (tuple . (dict .Values._internal.kind_kubeadm_networking.podSubnet false
-                             .Values._internal.kind_kubeadm_networking.servicesSubnet false))
-            -}}'
+          no_proxy: '{{ .Values._internal.mgmt_no_proxy }}'
 
     labels:
       suspend-on-pivot: "yes"  # this unit must be suspended before pivot
@@ -542,6 +551,11 @@ units:
 cluster:
   capm3:
     use_os_image_server_service_urls: '{{ not (.Values.libvirt_metal.nodes | empty) | include "preserve-type" }}'
+
+  proxies:
+    # the no_proxy computed for bootstrap cluster includes pods/services subnets for the kind cluster (see no_proxy_additional in this file)
+    # but we don't need nor want that in the mgmt cluster
+    no_proxy: '{{ .Values._internal.mgmt_no_proxy }}'
 
 display_external_ip: '{{ .Values.metal3 | dig "external_bootstrap_ip" (.Values.metal3 | dig "bootstrap_ip" "127.0.0.1") }}'
 
