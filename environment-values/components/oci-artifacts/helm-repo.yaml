@@ -9,3 +9,4 @@ spec:
   url: oci://SYLVA_BASE_OCI_REGISTRY/sylva-core
   # SYLVA_BASE_OCI_REGISTRY is subsituted by $SYLVA_BASE_OCI_REGISTRY by tools/shell-lib/common.sh:define_source
   # this in practice defaults to "oci://registry.gitlab.com/sylva-projects/sylva-core"
+  timeout: 5m
