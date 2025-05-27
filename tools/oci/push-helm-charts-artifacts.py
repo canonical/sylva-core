@@ -94,8 +94,13 @@ def check_invalid_semver_tag(chart_name, version, rewrite_chart=False):
 
 def process_chart_in_helm_repo(helm_repo, chart_name, chart_version, artifact_name, version_to_check):
     try:
-        run_command(f"helm pull --repo {helm_repo} --version {chart_version} {chart_name}"
-                    f" -d {ARTIFACT_DIR}", cwd=ARTIFACT_DIR)
+        is_oci = helm_repo.startswith('oci://')
+        # Build pull command based on repo type
+        if is_oci:
+            pull_cmd = f"helm pull {helm_repo}/{chart_name} --version {chart_version}"
+        else:
+            pull_cmd = f"helm pull --repo {helm_repo} --version {chart_version} {chart_name}"
+        run_command(f"{pull_cmd} -d {ARTIFACT_DIR}", cwd=ARTIFACT_DIR)
     except subprocess.CalledProcessError:
         logging.error(f"The chart {chart_name}:{chart_version} from {helm_repo} can't be pulled locally.")
 
