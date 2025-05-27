@@ -107,6 +107,8 @@ additional_resources="
   SriovNetworkPoolConfigs
   SriovNetworks
   SriovOperatorConfigs
+  VirtualMachines.*kubevirt.io
+  VirtualMachineInstances.*kubevirt.io
 "
 
 function dump_additional_resources() {
