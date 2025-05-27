@@ -59,7 +59,7 @@ Below you can choose test deployment variants to run in this MR's CI.
 
 ### Global config for deployment pipelines
 
-* [ ] autorun pipelines                    <!-- AUTORUN  OPTION -->
+* [ ] autorun pipelines                    <!-- AUTORUN OPTION -->
 * [x] allow failure on pipelines           <!-- ALLOW FAILURE OPTION -->
 * [ ] record sylvactl events               <!-- SYLVACTL RECORD OPTION -->
 
