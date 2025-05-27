@@ -4568,7 +4568,7 @@ units:
               memory: 1.5Gi
             limits:
               cpu: 1.5
-              memory: 2.5Gi
+              memory: 100Mi
         prometheus:
           prometheusSpec:
             scrapeInterval: "60s"
@@ -4576,9 +4576,9 @@ units:
             evaluationInterval: "30s"
             resources:
               limits:
-                memory: 6Gi
+                memory: 200Mi
               requests:
-                memory: 3Gi
+                memory: 100Mi
             storageSpec:
               volumeClaimTemplate:
                 spec:
