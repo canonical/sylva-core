@@ -39,6 +39,46 @@ spec:
             type: RuntimeDefault
       restartPolicy: Never
       serviceAccountName: {{ .Release.Name }}-pre-upgrade-hook-sa
+{{- end }}
+
+{{- if tuple . "harbor-postgres" | include "unit-enabled" }}
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ .Release.Name }}-annotate-harbor-postgres
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "helm.sh/hook": pre-upgrade
+    "helm.sh/hook-delete-policy": before-hook-creation
+spec:
+  template:
+    spec:
+      containers:
+      - name: annotate-harbor-postgres
+        image: registry.gitlab.com/sylva-projects/sylva-elements/container-images/kube-job:v1.1.0
+        command:
+          - /bin/bash
+          - -c
+          - |
+            set -e
+            echo "--- Annotating harbor-postgres Kustomization with helm.sh/resource-policy=keep"
+            kubectl annotate kustomization harbor-postgres helm.sh/resource-policy=keep --overwrite
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
+          runAsNonRoot: true
+          runAsUser: 1000
+          privileged: false
+          seccompProfile:
+            type: RuntimeDefault
+      restartPolicy: Never
+      serviceAccountName: {{ .Release.Name }}-pre-upgrade-hook-sa
+{{- end }}
+
+{{- if or (tuple . "root-dependency" | include "unit-enabled") (tuple . "harbor-postgres" | include "unit-enabled") }}
 ---
 apiVersion: v1
 kind: ServiceAccount
