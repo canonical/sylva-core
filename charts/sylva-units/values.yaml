@@ -289,6 +289,7 @@ unit_templates:
         - '{{ tuple "components/kunai" (tuple . "kunai" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/sbom-operator" (tuple . "sbom-operator" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/rancher-turtles" (tuple . "rancher-turtles" | include "unit-enabled") | include "set-only-if" }}'
+        - '{{ tuple "components/wkld-ds-copy-file" (tuple . "wkld-ds-copy-file" | include "unit-enabled") | include "set-only-if" }}'
 
   flux-common:
     repo: sylva-core
