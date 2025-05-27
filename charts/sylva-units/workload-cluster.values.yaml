@@ -262,23 +262,6 @@ units:
     # postgress passwords are not handled with Vault/ExternalSecret
     enabled_conditions: [false]
 
-  harbor-postgres:
-    enabled: true
-    helmrelease_spec:
-      values:
-        auth:
-          existingSecret: ""  # cancel the setting coming from values.yaml
-    helm_secret_values:
-      # in a workload cluster, postgress passwords are not handled with Vault/ExternalSecret
-      # but generated with Helm by sylva-units
-      auth:
-        username: harbor
-        password: '{{ .Values._internal.harbor_postgres_user_password }}'
-        database: harbor
-        postgresPassword: '{{ .Values._internal.harbor_postgres_admin_password }}'
-        replicationUsername: repl_user
-        replicationPassword: '{{ .Values._internal.harbor_postgres_replication_password }}'
-
   harbor-cnpg-postgres:
     enabled: true
 
