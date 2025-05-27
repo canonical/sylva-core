@@ -363,9 +363,10 @@
       "matchStringsStrategy": "recursive",
       "matchStrings": [
         "source_templates:[\\w\\W]*[ ]+",
-        "\\n\\s+url:\\s(?<depName>.*)\\n[\\w\\W]*?(branch:|tag:|commit:) (?<currentValue>.*)\\n"
+        "\\n\\s+url:\\s(?<packageName>.*)\\n[\\w\\W]*?(branch:|tag:|commit:) (?<currentValue>.*)\\n"
       ],
-      "datasourceTemplate": "git-tags"
+      "datasourceTemplate": "git-tags",
+      "depNameTemplate": "{{{replace 'https:\/\/.*com\/?(.*sylva.*\/)?' '' packageName }}}"
     },
     {
       "description": "Generic match for docker images in values.yaml, looking for repository: / tag: pattern",
