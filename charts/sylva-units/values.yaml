@@ -31,7 +31,7 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
       ref:
         # the sylva-core framework will always override this ref so that the
         # currently checked out commit of sylva-core is used by sylva-units
-        # (you can grep the code for "CURRENT_COMMIT" to find out how)
+        # (you can grep the code for "SYLVA_CORE_REF" to find out how)
         commit: not-a-real-commit
 
   weave-gitops:
