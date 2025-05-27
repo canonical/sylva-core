@@ -17,7 +17,7 @@ metadata:
   annotations:
     cleanup.cattle.io/grbUpgradeCluster: "true"
     lifecycle.cattle.io/create.mgmt-auth-grb-controller: "true"
-globalRoleName: restricted-admin
+globalRoleName: admin
 groupPrincipalName: keycloakoidc_group://infra-restricted-admins
 ---
 apiVersion: management.cattle.io/v3
