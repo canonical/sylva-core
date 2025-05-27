@@ -27,22 +27,45 @@ spec:
         name: mgmt-cluster-state-values
         namespace: sylva-system
 
+  - name: clone-ca-key-pair
+    match:
+      any:
+      - resources:
+          kinds:
+          - Namespace
+          selector:
+            matchLabels:
+              sylva-project.org/workload-cluster: ""
+    generate:
+      apiVersion: v1
+      kind: Secret
+      name: ca-key-pair
+      namespace: "{{request.object.metadata.name}}"
+      data:
+        metadata:
+          labels:
+              sylva-project.org/copy-ca: ""
+      synchronize: true   # 🔁 keep it updated on changes
+      clone:
+        namespace: cert-manager
+        name: ca-key-pair
+        
   - name: reconcile-on-secret-update
     match:
       any:
       - resources:
           kinds:
           - Secret
-          namespaces:
-          - cert-manager
+          selector:
+            matchLabels:
+              sylva-project.org/copy-ca: ""
           names:
-          - ca-key-pair-test
+          - ca-key-pair
     mutate:
       targets:
       - apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
         kind: Kustomization
-        name: wkld-ds-copy-file
-        namespace: testns
+        namespace : "{{request.object.metadata.namespace}}"
       patchStrategicMerge:
         metadata:
           annotations:
@@ -51,8 +74,8 @@ spec:
         spec:
           postBuild:
             substituteFrom:
-            - kind: ConfigMap
-              name: ca-key-pair-test
+            - kind: Secret
+              name: ca-key-pair
               
               
               
