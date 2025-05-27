@@ -5335,8 +5335,8 @@ units:
     helm_secret_values:
       secret:
         create: true
-        adminID: '{{ .Values.ceph.cephfs_csi.adminID }}'
-        adminKey: '{{ .Values.ceph.cephfs_csi.adminKey }}'
+        userID: '{{ .Values.ceph.cephfs_csi.adminID }}'
+        userKey: '{{ .Values.ceph.cephfs_csi.adminKey }}'
 
   longhorn-crd:
     info:
