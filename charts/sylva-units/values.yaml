@@ -910,6 +910,7 @@ units:
           CERTIFICATE_NAMESPACE: kubevirt-manager
           CERT: '{{ .Values.external_certificates.kubevirt_manager.cert | default "" | b64enc }}'
           CACERT: '{{ .Values.external_certificates.cacert | default "" | b64enc }}'
+          CLUSTER_NAME: '{{ .Values.cluster.name }}'
       _components:
         - '{{ ternary "../tls-components/tls-secret" "../tls-components/tls-certificate" (hasKey .Values.external_certificates.kubevirt_manager "cert") }}'
         - "../tls-components/sylva-ca"
