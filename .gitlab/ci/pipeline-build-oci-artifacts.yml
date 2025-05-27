@@ -5,6 +5,7 @@
 
 .build-base:
   stage: build
+  image: registry.gitlab.com/sylva-projects/sylva-elements/container-images/ci-image/ci-oci-build-image/snapshot:0.0.0-git-21d00532
   dependencies: []
   variables:
     OCI_REGISTRY: oci://${CI_REGISTRY_IMAGE}
