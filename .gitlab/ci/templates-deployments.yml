@@ -62,12 +62,17 @@ include:
   # - "1.x" (e.g. 1.3 for Sylva 1.3.x)
   #
   # * if GIT_REVISION is set, SYLVA_CI_VERSIONED_CI_VALUES_FOLDER depends on it
-  # * for MRs, the folder is computed based on the MR title
-  #     (to have automatic selection, for instance of directory "1.3.x" for MR having "[backport-1.3]" in their title)
+  # * for MRs, the folder is computed based on the MR target branch
+  #     (to have automatic selection, for instance of directory "1.3" for MR having their target branch matching 1.3.x pattern
+  # * for branch pipelines (outside of MRs), without GIT_REVISION set, the folder is computed based on the branch name
+  #     (to have automatic selection, for instance of directory "1.3" for branch matching release-1.3 pattern
   # * current is used as a fallback value
   - |
+    echo -e "\e[1m\e[0Ksection_start:`date +%s`:compute_sylva_ci_versioned_values_folder[collapsed=true]\r\e[0KComputing values folder to use\e[0m"
+
     if [[ -z ${SYLVA_CI_VERSIONED_CI_VALUES_FOLDER} ]]; then
       if [[ -n ${GIT_REVISION} ]]; then
+        echo "GIT_REVISION is defined, trying to match pattern "
         case ${GIT_REVISION} in
 
           release-*.*)  # "release-1.x" -> "1.x" directory
@@ -89,6 +94,7 @@ include:
       if [[ -z ${SYLVA_CI_VERSIONED_CI_VALUES_FOLDER} ]]; then
         # try based on CI_MERGE_REQUEST_TARGET_BRANCH_NAME (applies to MRs only)
         if [[ -n ${CI_MERGE_REQUEST_TARGET_BRANCH_NAME} ]]; then
+          echo "GIT_REVISION is not defined, trying to match against CI_MERGE_REQUEST_TARGET_BRANCH_NAME"
           case ${CI_MERGE_REQUEST_TARGET_BRANCH_NAME} in
 
             release-*.*)  # "release-1.x" -> "1.x" directory
@@ -103,12 +109,35 @@ include:
               SYLVA_CI_VERSIONED_CI_VALUES_FOLDER=current
               ;;
           esac
+        fi
+      fi
+      # if no value was found yet ...
+      if [[ -z ${SYLVA_CI_VERSIONED_CI_VALUES_FOLDER} ]]; then
+        # try based on CI_COMMIT_REF_NAME (applies to banch pipeline only)
+        if [[ -n ${CI_COMMIT_REF_NAME} ]]; then
+          echo "GIT_REVISION is not defined, not in MR trying to match against CI_COMMIT_REF_NAME"
+          case ${CI_COMMIT_REF_NAME} in
+
+            release-*.*)  # "release-1.x" -> "1.x" directory
+              SYLVA_CI_VERSIONED_CI_VALUES_FOLDER=${CI_COMMIT_REF_NAME#release-}
+              ;;
+
+            main)   # "main" -> "current" directory
+              SYLVA_CI_VERSIONED_CI_VALUES_FOLDER=current
+              ;;
+
+            ?.*.*)   # "1.x.y" -> "1.x" directory
+            SYLVA_CI_VERSIONED_CI_VALUES_FOLDER=${CI_COMMIT_REF_NAME%.*}
+            ;;
+          esac
         # else fallback to use "current" directory
         else
           SYLVA_CI_VERSIONED_CI_VALUES_FOLDER=current
         fi
       fi
     fi
+    echo "SYLVA_CI_VERSIONED_CI_VALUES_FOLDER is set to $SYLVA_CI_VERSIONED_CI_VALUES_FOLDER"
+    echo -e "\e[0Ksection_end:`date +%s`:compute_sylva_ci_versioned_values_folder\r\e[0K"
 
 .function_update_values_file:
   # Common function to update the deployment values file with the content of multiple yaml files
