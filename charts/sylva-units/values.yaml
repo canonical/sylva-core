@@ -2117,7 +2117,7 @@ units:
       chart:
         spec:
           chart: sbom-operator
-          version: 0.36.0
+          version: 0.38.0
       targetNamespace: sbom-operator
       values:
         args:
