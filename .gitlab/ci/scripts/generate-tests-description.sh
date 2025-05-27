@@ -17,13 +17,13 @@ TESTS_DESCRIPTION+="### Tests run on management cluster\n"
 TESTS_DESCRIPTION+="\n"
 TESTS_DESCRIPTION+="| Name | Description |\n"
 TESTS_DESCRIPTION+="|------|-------------|\n"
-TESTS_DESCRIPTION+=$(cat $CI_TESTS_FOLDER | yq -r 'to_entries | map(select(.key | test("^mgmt"))) | map("| `" + (.key) + "`|" + (.value.variables.DESCRIPTION // "No description") + "|") | .[]')
+TESTS_DESCRIPTION+=$(cat $CI_TESTS_FOLDER | grep -v '^--- *$' | yq -r 'to_entries | map(select(.key | test("^mgmt"))) | map("| `" + (.key) + "`|" + (.value.variables.DESCRIPTION // "No description") + "|") | .[]')
 TESTS_DESCRIPTION+="\n\n"
 TESTS_DESCRIPTION+="### Tests run on workload cluster"
 TESTS_DESCRIPTION+="\n\n"
 TESTS_DESCRIPTION+="| Name | Description |\n"
 TESTS_DESCRIPTION+="|------|-------------|\n"
-TESTS_DESCRIPTION+=$(cat $CI_TESTS_FOLDER | yq -r 'to_entries | map(select(.key | test("^wkld"))) | map("| `" + (.key) + "` | " + (.value.variables.DESCRIPTION // "No description") + " |") | .[]')
+TESTS_DESCRIPTION+=$(cat $CI_TESTS_FOLDER | grep -v '^--- *$' | yq -r 'to_entries | map(select(.key | test("^wkld"))) | map("| `" + (.key) + "` | " + (.value.variables.DESCRIPTION // "No description") + " |") | .[]')
 TESTS_DESCRIPTION+="\n"
 
 awk -v tests_description_section="$TESTS_DESCRIPTION_SECTION" \
