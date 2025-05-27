@@ -1048,6 +1048,33 @@ units:
         - '{{ tuple "./components/ha" (.Values._internal.ha_cluster.is_ha) | include "set-only-if" }}'
         - '{{ tuple "./components/harbor-upgrade-db" (and .Values._internal.state.is_upgrade (tuple . "harbor" | include "unit-enabled")) | include "set-only-if" }}'
 
+  harbor-postgres-cleanup:
+    info:
+      description: Delete the old Harbor PostgreSQL Kustomization after migration to CNPG.
+      internal: true
+    one_shot: true
+    unit_templates:
+    - base-deps
+    - kube-job
+    enabled_conditions:
+    - '{{ tuple . "harbor-cnpg-postgres" | include "unit-enabled" }}'
+    - '{{ .Values._internal.state.is_upgrade }}'
+    depends_on:
+      harbor-cnpg-postgres: '{{ tuple . "harbor-cnpg-postgres" | include "unit-enabled" }}'
+    kustomization_spec:
+      targetNamespace: {{ .Release.Namespace }}
+      _patches:
+      - target:
+          kind: ConfigMap
+          labelSelector: kube-job=script
+        patch: |
+          - op: replace
+            path: /data/kube-job.sh
+            value: |
+              #!/bin/bash
+              echo "--- Deleting old Harbor PostgreSQL Kustomization"
+              kubectl delete kustomization.kustomize.toolkit.fluxcd.io harbor-postgres --ignore-not-found=true
+
   harbor:
     info:
       description: installs Harbor
