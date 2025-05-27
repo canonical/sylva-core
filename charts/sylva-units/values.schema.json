@@ -6602,6 +6602,19 @@
             }
           ]
         },
+        "freeze_first_node_files": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "$ref": "#/$defs/string-with-gotpl"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
         "generateUnitTestData": {
           "anyOf": [
             {
