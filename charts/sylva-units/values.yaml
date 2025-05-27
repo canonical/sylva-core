@@ -9201,6 +9201,23 @@ _internal:
     {{- $count -}}
     '
 
+  # this check will fail if a Longhorn storage class is selected as default
+  # and the cluster node/BMH settings are such that it can be determined that
+  # there aren't as many Longhorn nodes to support the number of replicas
+  # of the storage class
+  #
+  # this check can be disabled with, for instance:
+  #   _internal.check_longhorn_storage_class_vs_replicas: forcefully-bypassed
+  check_longhorn_storage_class_vs_replicas: >-
+    {{- $min_nodes_for_class := (dict "longhorn" 3
+                                      "two-replicas-storageclass" 2) -}}
+    {{- range $sc,$min_nodes := $min_nodes_for_class -}}
+      {{- if and ($.Values.default_storage_class | eq $sc)
+                 (lt ($.Values._internal.longhorn_node_count_upper_bound|int) $min_nodes) -}}
+        {{- fail (printf "'%s' storage class is selected as default_storage_class, but less than %d Longhorn nodes are available (no more than %s BMH/Node(s) identified)" $sc $min_nodes $.Values._internal.longhorn_node_count_upper_bound) -}}
+      {{- end -}}
+    {{- end -}}
+
   os_image_server_images_configmap: capm3-os-image-server-os-images
 
   default_calico_autodetection_method: >-
