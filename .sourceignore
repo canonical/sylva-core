@@ -1,0 +1,16 @@
+# Flux ignore
+# https://fluxcd.io/flux/components/source/gitrepositories/#excluding-files
+
+# exclude all
+/*
+
+# include charts and kustomize-unit directories
+!/charts
+!/kustomize-units
+
+# Block some file extensions even in those directories
+*.jpg
+*.jpeg
+*.gif
+*.png
+*.md
