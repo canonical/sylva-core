@@ -1,8 +1,8 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
-  - https://github.com/kubernetes-sigs/cluster-api/releases/download/v1.9.7/bootstrap-components.yaml
-  - https://github.com/kubernetes-sigs/cluster-api/releases/download/v1.9.7/control-plane-components.yaml
+  - https://github.com/kubernetes-sigs/cluster-api/releases/download/v1.10.2/bootstrap-components.yaml
+  - https://github.com/kubernetes-sigs/cluster-api/releases/download/v1.10.2/control-plane-components.yaml
 
 components:
   - ../common-kustomize-components/crd-remove-caBundle
