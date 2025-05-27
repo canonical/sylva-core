@@ -518,6 +518,9 @@ units:
     kustomization_spec:
       path: ./kustomize-units/rancher-init/components/webhook-ha
 
+  workload-kyverno-policies:
+    enabled: true # enable Kyverno policies by default on workload clusters
+
   vsphere-cpi:
     enabled: true
 

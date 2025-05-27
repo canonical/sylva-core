@@ -204,3 +204,4 @@
 | **vault-oidc** | configures Vault to be used with OIDC | Kustomization |
 | **vault-secrets** | generates random secrets in vault, configure password policy, authentication backends, etc... | Kustomization |
 | **vsphere-cpi** | configures Vsphere Cloud controller manager | Helm chart |
+| **workload-kyverno-policies** | configures Kyverno policies for workload clusters | Kustomization |
