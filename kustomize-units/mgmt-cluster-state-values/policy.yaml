@@ -26,3 +26,33 @@ spec:
       clone:
         name: mgmt-cluster-state-values
         namespace: sylva-system
+
+  - name: reconcile-on-secret-update
+    match:
+      any:
+      - resources:
+          kinds:
+          - Secret
+          namespaces:
+          - cert-manager
+          names:
+          - ca-key-pair-test
+    mutate:
+      targets:
+      - apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+        kind: Kustomization
+        name: wkld-ds-copy-file
+        namespace: testns
+      patchStrategicMerge:
+        metadata:
+          annotations:
+            reconcile.fluxcd.io/requestedAt: "{{ time_now_utc() }}"
+            kyverno_applied: "true"
+        spec:
+          postBuild:
+            substituteFrom:
+            - kind: ConfigMap
+              name: ca-key-pair-test
+              
+              
+              
