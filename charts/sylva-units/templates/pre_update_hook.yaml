@@ -83,7 +83,7 @@ spec:
       serviceAccountName: {{ .Release.Name }}-pre-upgrade-hook-sa
 {{- end }}
 
-{{- if or (tuple . "root-dependency" | include "unit-enabled") (tuple . "harbor-postgres" | include "unit-enabled") }}
+{{- if or (tuple . "root-dependency" | include "unit-enabled") (tuple . "harbor" | include "unit-enabled") }}
 ---
 apiVersion: v1
 kind: ServiceAccount
