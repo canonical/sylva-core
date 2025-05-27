@@ -1,0 +1,32 @@
+---
+cluster:
+  capi_providers:
+    bootstrap_provider: cabpr
+
+  capm3:
+    os_image_selector:
+      os: leapmicro
+      os-release: "6.0"
+      flavor: plain
+      hardened: false
+
+  rke2:
+    additionalUserData:
+      config:
+        variant: fcos
+        version: 1.4.0
+        passwd:
+          users:
+            - name: root
+              password_hash: $y$j9T$G8c3oUJT8Dekv2eIu/BBa1$mszH1TU0Xd3chgLh..Gb3IaTZxVmrcUmext0YZfeI1C
+
+  baremetal_hosts:
+    workload-cp-0:
+      interface_mappings:
+        nic2:
+          mac_address: 52:54:00:55:55:04
+
+    workload-cp-1:
+      interface_mappings:
+        nic1:
+          mac_address: 52:54:00:44:44:05
