@@ -8734,7 +8734,6 @@ os_images_oci_registries:
     tag: '{{ .Values.sylva_kiwi_imagebuilder_version }}'
     cosign_publickey: '{{ .Values.security.kiwi_image_builder_cosign_public_key }}'
 
-
 k8s_version_short: "1.31"
 
 # Renovate Bot needs additional information to detect sylva diskimage-builder version
