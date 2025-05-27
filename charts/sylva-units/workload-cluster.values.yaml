@@ -701,6 +701,12 @@ units:
 
   wkld-ds-copy-file:
     enabled: true
+    kustomization_spec:
+      postBuild:
+        substitute:
+          NAMESPACE: '{{ .Release.Namespace }}'
+
+
 
   cluster-import-check:
     enabled: false # overriden depending on whether Rancher is enabled or not (via mgmt-cluster-state-values)

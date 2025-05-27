@@ -41,41 +41,11 @@ spec:
       kind: Secret
       name: ca-key-pair
       namespace: "{{request.object.metadata.name}}"
-      data:
-        metadata:
-          labels:
-              sylva-project.org/copy-ca: ""
       synchronize: true   # 🔁 keep it updated on changes
       clone:
         namespace: cert-manager
         name: ca-key-pair
-        
-  - name: reconcile-on-secret-update
-    match:
-      any:
-      - resources:
-          kinds:
-          - Secret
-          selector:
-            matchLabels:
-              sylva-project.org/copy-ca: ""
-          names:
-          - ca-key-pair
-    mutate:
-      targets:
-      - apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
-        kind: Kustomization
-        namespace : "{{request.object.metadata.namespace}}"
-      patchStrategicMerge:
-        metadata:
-          annotations:
-            reconcile.fluxcd.io/requestedAt: "{{ time_now_utc() }}"
-            kyverno_applied: "true"
-        spec:
-          postBuild:
-            substituteFrom:
-            - kind: Secret
-              name: ca-key-pair
+
               
               
               

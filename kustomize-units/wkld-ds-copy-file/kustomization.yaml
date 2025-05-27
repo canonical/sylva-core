@@ -5,3 +5,4 @@ namespace: testns
 
 resources:
 - resource.yaml
+- policy.yaml
