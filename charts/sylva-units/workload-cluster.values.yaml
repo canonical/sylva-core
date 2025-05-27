@@ -167,15 +167,6 @@ units:
     unit_templates:
     - helmrelease-deployed-on-mgmt-cluster
 
-  cluster-node-deletion-timeout-fix:
-    enabled: true
-    unit_templates:
-    - kustomization-deployed-on-mgmt-cluster
-    enabled_conditions: []  # override what is set in values.yaml
-    depends_on:
-      capi: false # Cluster API is deployed in management cluster sylva-units release
-      kyverno: false  # Kyverno is deployed in management cluster sylva-units release
-
   cluster-node-provider-id-blacklist:
     enabled: true
 
