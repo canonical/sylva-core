@@ -18,3 +18,9 @@ cluster:
   # capm3:
   #   os_image_selector:
   #     os: ubuntu
+
+# configure containerd registry mirrors for docker hub
+registry_mirrors:
+  hosts_config:
+    docker.io:
+    - mirror_url: https://mirror.gcr.io
