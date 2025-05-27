@@ -295,6 +295,13 @@ units:
   snmp-exporter:
     enabled: '{{ tuple . "capm3" | include "unit-enabled" }}'
 
+  keycloak-resources:
+    enabled_conditions:
+    - '{{ tuple . "keycloak" | include "unit-enabled" }}'
+    depends_on:
+      keycloak: true
+      keycloak-legacy-operator: true
+
   harbor-init:
     depends_on:
       sylva-ca: true
@@ -364,7 +371,7 @@ cluster:
     flavor_name: m1.xlarge
 
 _internal:
-  mgmt_cluster: true
+  mgmt_  true
 
   calico_readiness_unit: '{{ .Values._internal.state.is_upgrade | ternary "calico-ready" "calico" }}'
 

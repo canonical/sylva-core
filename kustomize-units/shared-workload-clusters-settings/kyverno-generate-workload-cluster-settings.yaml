@@ -54,7 +54,7 @@ spec:
           - Namespace
           selector:
             matchLabels:
-              kubevirt-manager.io/version: 1.4.0
+              sylva-project.org/shared-workload-cluster-settings: ""
     generate:
       apiVersion: v1
       kind: Secret
