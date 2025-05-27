@@ -425,7 +425,7 @@
         "/charts/sylva-units/templates/delete_hook.yaml/"
       ],
       "matchStrings": [
-        "#\\s?renovate: datasource=(?<datasource>.*?)\\n\\s+.*?:\\s*(?<registryUrl>.*)/(?<depName>.*):(?<currentValue>.*)"
+        "#\\s?renovate: datasource=(?<datasource>.*?)\\n\\s+.*?:\\s*(?<depName>(?<registryUrl>[^/]*)/.*):(?<currentValue>.*)"
       ],
       "registryUrlTemplate": "https://{{{ registryUrl }}}"
     }
