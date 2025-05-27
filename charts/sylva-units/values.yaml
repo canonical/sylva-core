@@ -863,7 +863,23 @@ units:
       wait: true
       _components:
         - '{{ tuple "./components/keycloak-upgrade-db" (and .Values._internal.state.is_upgrade (tuple . "keycloak" | include "unit-enabled")) | include "set-only-if" }}'
-
+        
+  wkld-ds-copy-file:
+    enabled: false
+    info:
+      description: Deploys Daemonsets in workload cluster to copy certfiles in host nodes
+      internal: true
+    unit_templates:
+    - base-deps
+    repo: sylva-core
+    kustomization_spec:
+      path: ./kustomize-units/wkld-ds-copy-file
+      wait: true
+      targetNamespace: testns
+      postBuild:
+        substitute:
+          DATA: |
+           Test certificate Data
   kubevirt:
     info:
       description: installs kubevirt
