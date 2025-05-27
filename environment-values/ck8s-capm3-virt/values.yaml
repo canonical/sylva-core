@@ -13,7 +13,7 @@ cluster:
         lock_passwd: false
         passwd: $1$pdWEicWs$9ZWQf5.CWyXccmP8Chuu01 # sylva
 
-  k8s_version: 1.31.6
+  k8s_version: 1.32.2
 
   capi_providers:
     bootstrap_provider: cabpck
@@ -22,3 +22,19 @@ cluster:
     os_image_selector:
       os: ubuntu
       hardened: false
+
+os_images_oci_registries:
+  dib:
+    url: oci://registry.gitlab.com/sylva-projects/sylva-elements/diskimage-builder/snapshots
+    tag: '0.0.0-git-124585da'
+    cosign_publickey: ""
+
+sylva_diskimagebuilder_images:
+  ubuntu-noble-plain-ck8s-1-32-2:
+    os_images_oci_registry: dib
+
+security:
+  os_images:
+    skip_signing_check: true
+  oci_artifacts:
+    skip_signing_check: true
