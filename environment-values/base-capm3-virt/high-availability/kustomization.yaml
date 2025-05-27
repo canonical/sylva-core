@@ -15,12 +15,12 @@ configMapGenerator:
 
 patches:
 - target:
-    kind: HelmRelease
+    kind: SylvaUnitsRelease
     name: sylva-units
   patch: |
     - op: add
       path: /spec/valuesFrom/1
       value:
-        kind: ConfigMap
+        type: ConfigMap
         name: capm3-virt-ha-values
         valuesKey: capm3-virt-ha-values

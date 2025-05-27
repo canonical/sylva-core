@@ -1,57 +1,16 @@
 apiVersion: kustomize.config.k8s.io/v1alpha1
 kind: Component
 
-resources:
-- helm-repo.yaml
-
 patches:
 - target:
-    kind: HelmRelease
+    kind: SylvaUnitsRelease
     name: sylva-units
   patch: |
-    kind: HelmRelease
+    kind: _unused_
     metadata:
       name: _unused_
     spec:
-      chart:
-        spec:
-          sourceRef:
-            kind: HelmRepository
-            name: sylva-units
-          chart: sylva-units
-          reconcileStrategy: ChartVersion
-          version: TBD  # this needs to be overridden at runtime (see README.md)
-
-- target:
-    kind: HelmRelease
-    name: sylva-units
-  # those patches should produce, the equivalent of what the inject_bootstrap_values
-  # does when creating the HelmRelease in bootstrap cluster, without bootstrap.values.yaml
-  patch: |
-    - op: replace
-      path: /spec/chart/spec/valuesFiles/0
-      value: values.yaml
-    - op: replace
-      path: /spec/chart/spec/valuesFiles/1
-      value: management.values.yaml
-    - op: add
-      path: /spec/chart/spec/valuesFiles/-
-      value: use-oci-artifacts.values.yaml
-
-- target:
-    kind: HelmRelease
-    name: sylva-units
-  # this patch removes the CURRENT_COMMIT setting set fromm environment-values/base
-  # which is not what we need for a deployment based on OCI artifcacts
-  patch: |
-    - op: remove
-      path: /spec/values/source_templates/sylva-core/spec
-
-- target:
-    kind: GitRepository
-    name: sylva-units
-  patch: |
-    kind: GitRepository
-    metadata:
-      name: _unused_
-    $patch: delete
+      sylvaUnitsSource:
+        type: oci
+        url: oci://SYLVA_BASE_OCI_REGISTRY/sylva-core
+        tag: TBD  # this needs to be overridden at runtime (see README.md)

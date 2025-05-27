@@ -32,6 +32,8 @@ check_management_kubeconfig
 
 ensure_flux
 
+ensure_sylva_units_operator
+
 echo_b "\U0001F4DC Update sylva-units Helm release and associated resources"
 
 suspend_sylva_units

@@ -7,6 +7,8 @@ from a mix of Helm repos and Git repos).
 
 ## Usage
 
+/!\ FIXME: this README should be revisited /!\
+
 To use this component, you'll need to add a patch in your environment values
 `kustomization.yaml` to have the HelmRelease point to the version of sylva-core
 that you want to deploy.

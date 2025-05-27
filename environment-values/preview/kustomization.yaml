@@ -4,6 +4,9 @@ kind: Component
 namespace: sylva-units-preview
 
 patches:
-- path: helm-release.yaml
-  target:
-    kind: HelmRelease
+- patch: |-
+    kind: SylvaUnitsRelease
+    metadata:
+      name: sylva-units
+    spec:
+      clusterType: preview

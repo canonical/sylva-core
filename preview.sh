@@ -23,6 +23,8 @@ fi
 
 ensure_flux
 
+ensure_sylva_units_operator
+
 echo_b "\U0001F4C1 Create & install sylva-units preview Helm release"
 validate_sylva_units
 

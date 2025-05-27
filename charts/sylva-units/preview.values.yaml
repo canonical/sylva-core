@@ -1,0 +1,17 @@
+# Suspend all flux objects in preview to prevent them from doing anything
+
+git_repo_spec_default:
+  suspend: true
+
+oci_repo_spec_default:
+  suspend: true
+
+helm_repo_spec_default:
+  suspend: true
+
+unit_kustomization_spec_default:
+  suspend: true
+
+unit_helmrelease_spec_default:
+  suspend: true
+

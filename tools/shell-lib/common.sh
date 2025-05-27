@@ -74,7 +74,7 @@ function check_apply_kustomizations() {
       echo "Error: you shouldn't be running apply.sh against a workload cluster directory ($ENV_PATH)."
       exit 1
     fi
-    result=$(_kustomize $ENV_PATH | yq eval-all -e 'select(.kind == "HelmRelease").spec.chart.spec.valuesFiles | any_c(. | test("(^|/)management.values.yaml$")) and select(.kind == "Namespace").metadata.name == "sylva-system"' 2>/dev/null ||:)
+    result=$(_kustomize $ENV_PATH | yq eval-all -e 'select(.kind == "SylvaUnitsRelease").spec.clusterType == "management" and select(.kind == "Namespace").metadata.name == "sylva-system"' 2>/dev/null ||:)
     if [[ $result != *"true"* ]]; then
       echo "The directory passed does not contain a management cluster kustomization."
       exit 1
@@ -87,7 +87,7 @@ function check_apply_kustomizations() {
       echo "Error: Please provide a valid workload cluster directory name, other than \"sylva-system\"."
       exit 1
     fi
-    result=$(_kustomize ${ENV_PATH} | set_wc_namespace | yq eval-all -e 'select(.kind == "HelmRelease").spec.chart.spec.valuesFiles | any_c(. | test("(^|/)workload-cluster.values.yaml$")) and select(.kind == "Namespace").metadata.name != "sylva-system"' 2>/dev/null ||:)
+    result=$(_kustomize ${ENV_PATH} | set_wc_namespace | yq eval-all -e 'select(.kind == "SylvaUnitsRelease").spec.clusterType == "workload" and select(.kind == "Namespace").metadata.name != "sylva-system"' 2>/dev/null ||:)
     if [[ $result != *"true"* ]]; then
       echo "The directory passed does not contains a workload cluster kustomization."
       exit 1
@@ -173,6 +173,16 @@ function ensure_flux {
         fi
         echo_b "\U000023F3 Wait for Flux to be ready..."
         kubectl wait --for condition=Available --timeout 600s -n flux-system --all deployment
+    fi
+}
+
+function ensure_sylva_units_operator {
+    if ! kubectl get namespace sylva-units-operator-system &>/dev/null; then
+        echo_b "\U0001F503 Install sylva-units-operator"
+        #FIXME: Use online manifests until the'll be up to date in sylva-toolbox
+        kustomize build kustomize-units/sylva-units-operator | kubectl apply -f -
+        #kubectl apply -f  ${BASE_DIR}/bin/sylva-units-operator.yaml
+        kubectl wait --for condition=Available --timeout 600s -n sylva-units-operator-system --all deployment
     fi
 }
 
@@ -317,68 +327,17 @@ function suspend_sylva_units {
 
 function inject_bootstrap_values() {
   # this function transforms the output of '_kustomize ${ENV_PATH}'
-  # to add bootstrap.values.yaml into the valuesFiles field of the HelmRelease
-  #
-  # this field is not exactly the same depending on whether we use a GitRepository as sources
-  # or a HelmRepository (which is what we use for a deployment from OCI artifacts)
-
-  # additionally, in the case of an OCI-based deployment, we need to insert "bootstrap.values.yaml"
-  # before the "use-oci-artifacts.values.yaml" which has to be the last element to have
-  # precedence over what is defined in "bootstrap.values.yaml"
-
-  # shellcheck disable=SC2016
-  yq eval-all '
-    (select(.kind == "HelmRepository" and .spec.type == "oci") | length > 0 | to_yaml | trim) as $oci
-    | select(.kind == "HelmRelease").spec.chart.spec.valuesFiles = ([
-      {"true":"","false":"charts/sylva-units/"}[$oci] + "values.yaml",
-      {"true":"","false":"charts/sylva-units/"}[$oci] + "management.values.yaml",
-      {"true":"","false":"charts/sylva-units/"}[$oci] + "bootstrap.values.yaml"
-    ] + {"true":["use-oci-artifacts.values.yaml"],"false":[]}[$oci])
-    | select(.kind == "HelmRelease").spec.chart.spec.valuesFiles = (select(.kind == "HelmRelease").spec.chart.spec.valuesFiles | unique)
-  '
-  # explanations on the code above:
-  # - ... as $oci on the first line produces a boolean (or nearly, see below)
-  # - we use the {true: A, false: B}[x] construct to emulate the behavior of 'if x then A else B' (jq has such an if/else statement, but yq does not)
-  # - the keys of this true/false map are actually strings, because yq does not support booleans as indexes
-  # - this is why $oci is made into a string ('| to_yaml | trim' emulates '|tostring' which is not provided by yq)
+  # to change SylvaUnitsRelease clusterType to bootstrap
+  yq eval-all 'select(.kind == "SylvaUnitsRelease").spec.clusterType = "bootstrap"'
 }
 
 function validate_sylva_units() {
-  # Create & install sylva-units preview Helm release
-  # If a Kustomization with the label:  previewNamespace=sylva-units-preview
-  # exists, we define a targetNamespace to target sylva-units-preview
-  PREVIEW_DIR=${BASE_DIR}/sylva-units-preview
-  mkdir -p ${PREVIEW_DIR}
-  cat <<-EOF > ${PREVIEW_DIR}/kustomization.yaml
-        apiVersion: kustomize.config.k8s.io/v1beta1
-        kind: Kustomization
-        resources:
-        - $(realpath --relative-to=${PREVIEW_DIR} ${ENV_PATH})
-        components:
-        - $(realpath --relative-to=${PREVIEW_DIR} ${BASE_DIR}/environment-values/preview)
-        patches:
-          - target:
-              kind: Kustomization
-              labelSelector: previewNamespace=sylva-units-preview
-            patch: |
-              - op: add
-                path: /spec/targetNamespace
-                value: sylva-units-preview
-EOF
-
-  if [[ ${KUBECONFIG:-} =~ management-cluster-kubeconfig$ ]] || [[ ${1:-} == "force-management" ]]; then
-    bootstrap=no
-  else
-    bootstrap=yes
-  fi
-
-  # for bootstrap cluster, we need to inject bootstrap values
-  # (for mgmt cluster, we do not so we "pipe through" with "cat")
-  _kustomize ${PREVIEW_DIR} \
+  _kustomize ${ENV_PATH} \
     | define_source \
-    | (if [[ $bootstrap == "yes" ]]; then inject_bootstrap_values ; else cat ; fi) \
+    | yq 'select(.kind == "SylvaUnitsRelease").spec.clusterType="preview"' \
+    | yq 'select(.kind != "Namespace").metadata.namespace = "sylva-units-preview"' \
+    | yq 'select(.kind == "Namespace").metadata.name = "sylva-units-preview"' \
     | kubectl apply -f -
-  rm -Rf ${PREVIEW_DIR}
 
   # this is just to force-refresh in a dev environment with  refreshed parameters
   reconcile_sylva_units sylva-units-preview skip-root-dependency-wait,skip-resume-suspended
@@ -386,9 +345,7 @@ EOF
 }
 
 function cleanup_preview() {
-  kubectl get -n sylva-units-preview helmrelease/sylva-units gitrepository/sylva-core helmrepository/sylva-core ocirepository/sylva-core -o name \
-       2> >(grep -v 'not found' >&2) || true \
-    | xargs --no-run-if-empty kubectl delete -n sylva-units-preview
+  kubectl delete -n sylva-units-preview SylvaUnitsRelease sylva-units || true
   kubectl delete namespace sylva-units-preview
 }
 

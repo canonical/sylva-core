@@ -3,8 +3,11 @@ kind: Kustomization
 
 namespace: sylva-system
 
+configurations:
+- configuration.yaml
+
 resources:
-- helm-release.yaml
+- sylva-units-release.yaml
 - namespace.yaml
 
 buildMetadata:
@@ -14,10 +17,6 @@ buildMetadata:
 
 configMapGenerator:
 - name: sylva-units-values
-  options:
-    disableNameSuffixHash: true
 
 secretGenerator:
 - name: sylva-units-secrets
-  options:
-    disableNameSuffixHash: true

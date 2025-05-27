@@ -1,0 +1,23 @@
+apiVersion: unitsoperator.sylva/v1alpha1
+kind: SylvaUnitsRelease
+metadata:
+  name: sylva-units
+  labels:
+    copy-from-bootstrap-to-management: ""
+    # FIXME: adapt kyverno policy? Or avoid deleting HR in operator?
+    sylva-units/protected: ""
+spec:
+  clusterType: management
+  sylvaUnitsSource:
+    type: git
+    url: SYLVA_CORE_REPO
+    commit: CURRENT_COMMIT
+  valuesFrom:
+    - type: ConfigMap
+      name: sylva-units-values
+      valuesKey: values
+    - type: Secret
+      name: sylva-units-secrets
+      valuesKey: secrets
+  values: {} # Remove that once https://gitlab.com/sylva-projects/sylva-elements/sylva-units-operator/-/issues/34 will be fixed
+
