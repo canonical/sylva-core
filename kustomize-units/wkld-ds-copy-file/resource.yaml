@@ -18,7 +18,7 @@ data:
   ca.crt: |
     -----BEGIN CERTIFICATE-----
     MIID...your-certificate-content...IDAQAB
-    ${ca.crt}
+    ${DATA}
     -----END CERTIFICATE-----
 ---
 apiVersion: apps/v1
