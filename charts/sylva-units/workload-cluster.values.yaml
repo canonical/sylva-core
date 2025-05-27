@@ -365,8 +365,9 @@ units:
     unit_templates:
     - base-deps
     - kustomization-deployed-on-mgmt-cluster
-    enabled_conditions:
-    - '{{ tuple . "kubevirt-manager" | include "unit-enabled" }}'
+    enabled: true
+    # enabled_conditions:
+    # - '{{ tuple . "kubevirt-manager" | include "unit-enabled" }}'
     kustomization_spec:
       path: ./kustomize-units/keycloak-resources
       targetNamespace: keycloak
