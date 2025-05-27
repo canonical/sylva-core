@@ -2206,7 +2206,28 @@ units:
               - apiGroups: ["crd.projectcalico.org"]
                 resources:
                 - globalnetworksets
-                verbs: ["get", "list"]
+                verbs: ["create", "update", "patch", "delete", "get", "list", "watch"]
+              - apiGroups: ["ipam.metal3.io"]
+                resources:
+                - ippools
+                verbs: ["get", "list", "watch"]
+              - apiGroups: ["infrastructure.cluster.x-k8s.io"]
+                resources:
+                - openstackmachines
+                - metal3machines
+                verbs: ["get", "list", "watch"]
+              - apiGroups: ["helm.toolkit.fluxcd.io"]
+                resources:
+                - helmreleases
+                verbs: ["get", "list", "watch", "patch", "update"]
+              - apiGroups: [""]
+                resources:
+                  - configmaps
+                verbs: ["get", "list", "patch", "update", "watch", "create", "delete"]
+              - apiGroups: ["apiextensions.k8s.io"]
+                resources:
+                - customresourcedefinitions
+                verbs: ["get", "list", "watch"]
           container:
             resources:
               limits:
