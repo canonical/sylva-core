@@ -9176,19 +9176,11 @@ _internal:
     '
 
   # upper bound to the number of longhorn nodes
-  longhorn_node_count_upper_bound:
-    '
+  longhorn_node_count_upper_bound: >-
     {{- $count := 0 -}}
-      {{- if hasKey .Values.cluster "baremetal_host_default" -}}
-        {{- if hasKey .Values.cluster.baremetal_host_default "longhorn_disk_config" -}}
-          {{- $count = len .Values.cluster.baremetal_hosts -}}
-        {{- else -}}
-          {{- range $key, $value := .Values.cluster.baremetal_hosts -}}
-            {{- if hasKey $value "longhorn_disk_config" -}}
-              {{- $count = add $count 1 -}}
-            {{- end -}}
-          {{- end -}}
-        {{- end -}}
+    {{- if hasKey .Values.cluster "baremetal_host_default" -}}
+      {{- if hasKey .Values.cluster.baremetal_host_default "longhorn_disk_config" -}}
+        {{- $count = len .Values.cluster.baremetal_hosts -}}
       {{- else -}}
         {{- range $key, $value := .Values.cluster.baremetal_hosts -}}
           {{- if hasKey $value "longhorn_disk_config" -}}
@@ -9196,10 +9188,17 @@ _internal:
           {{- end -}}
         {{- end -}}
       {{- end -}}
-      {{- tuple . "_internal.node_count" | include "interpret" -}}
-      {{- $count = min $count .Values._internal.node_count -}}
+    {{- else -}}
+      {{- range $key, $value := .Values.cluster.baremetal_hosts -}}
+        {{- if hasKey $value "longhorn_disk_config" -}}
+          {{- $count = add $count 1 -}}
+        {{- end -}}
+      {{- end -}}
+    {{- end -}}
+    {{- tuple . "_internal.node_count" | include "interpret" -}}
+    {{- $count = min $count .Values._internal.node_count -}}
     {{- $count -}}
-    '
+
 
   # this check will fail if a Longhorn storage class is selected as default
   # and the cluster node/BMH settings are such that it can be determined that
