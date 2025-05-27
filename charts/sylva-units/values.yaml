@@ -2620,6 +2620,24 @@ units:
       _components:
         - '{{ tuple "components/ha" (.Values._internal.ha_cluster.is_ha) | include "set-only-if" }}'
 
+  capone:
+    info:
+      description: installs OpenNebula CAPONE infra provider
+      maturity: core-component
+    repo: sylva-core
+    unit_templates:
+    - base-deps
+    depends_on:
+      cert-manager: true
+    kustomization_spec:
+      path: ./kustomize-units/capone
+      postBuild:
+        substitute:
+          force_var_substitution_enabled: "true"  # dummy value to ensure substitution of defaults
+      wait: true
+      _components:
+        - '{{ tuple "components/ha" (.Values._internal.ha_cluster.is_ha) | include "set-only-if" }}'
+
   cabpk:
     info:
       description: installs Kubeadm CAPI bootstrap provider
@@ -8053,7 +8071,7 @@ cluster:
   # for the 'cluster' unit
   # e.g. you can use ./management-cluster-def/rke2-capd
   capi_providers:
-    infra_provider: capd      # capd, capo, capm3 or capv
+    infra_provider: capd      # capd, capo, capm3, capv or capone
     bootstrap_provider: cabpk # cabpr (RKE2) or cabpk (kubeadm)
 
   # kubernetes version to be used
