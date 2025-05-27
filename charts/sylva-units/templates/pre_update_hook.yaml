@@ -41,7 +41,7 @@ spec:
       serviceAccountName: {{ .Release.Name }}-pre-upgrade-hook-sa
 {{- end }}
 
-{{- if tuple . "harbor-postgres" | include "unit-enabled" }}
+{{- if tuple . "harbor" | include "unit-enabled" }}
 ---
 apiVersion: batch/v1
 kind: Job
@@ -62,8 +62,13 @@ spec:
           - -c
           - |
             set -e
-            echo "--- Annotating harbor-postgres Kustomization with helm.sh/resource-policy=keep"
-            kubectl annotate kustomization harbor-postgres helm.sh/resource-policy=keep --overwrite
+            echo "--- Checking if harbor-postgres Kustomization exists"
+            if kubectl get kustomization harbor-postgres >/dev/null 2>&1; then
+              echo "--- Annotating harbor-postgres Kustomization with helm.sh/resource-policy=keep"
+              kubectl annotate kustomization harbor-postgres helm.sh/resource-policy=keep --overwrite
+            else
+              echo "--- Kustomization harbor-postgres not found, skipping annotation"
+            fi
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:
