@@ -7055,6 +7055,44 @@ units:
         namespace: sylva-system
         name: thanos-secrets
 
+  thanos-statefulsets-cleanup:
+    info:
+      description: Remove Thanos statefulsets from previous deployments
+      internal: true
+    unit_templates:
+    - base-deps
+    - kube-job
+    enabled_conditions:
+    - '{{ tuple . "thanos" | include "unit-enabled" }}'
+    depends_on:
+      namespace-defs: true
+      thanos-init: true
+      thanos-credentials-secret: true
+    kustomization_spec:
+      targetNamespace: thanos
+      _patches:
+      - target:
+          kind: Job
+        patch: |
+          {{ tuple . "units.thanos.helmrelease_spec.values" | include "interpret" -}}
+          - op: add
+            path: /spec/template/spec/containers/0/env
+            value:
+              - name: EXPECTED_HASH_receive
+                value: {{ .Values.units.thanos.helmrelease_spec.values.receive.persistence | toJson | sha256sum | trunc 8 }}
+              - name: EXPECTED_HASH_storegateway
+                value: {{ .Values.units.thanos.helmrelease_spec.values.storegateway.persistence | toJson | sha256sum | trunc 8 }}
+              - name: EXPECTED_HASH_ruler
+                value: {{ .Values.units.thanos.helmrelease_spec.values.ruler.persistence | toJson | sha256sum | trunc 8 }}
+      - target:
+          kind: ConfigMap
+          labelSelector: kube-job=script
+        patch: |
+          - op: replace
+            path: /data/kube-job.sh
+            value: |
+          {{ .Files.Get "scripts/thanos-delete-statefulsets.sh" | indent 4 }}
+
   thanos:
     info:
       description: installs Thanos
@@ -7067,6 +7105,7 @@ units:
       namespace-defs: true
       thanos-init: true
       thanos-credentials-secret: true
+      thanos-statefulsets-cleanup: '{{ tuple . "thanos-statefulsets-cleanup" | include "unit-enabled" }}'
       minio-monitoring: '{{ .Values.monitoring.thanos.objstoreConfig.config | empty }}'
       minio-monitoring-cleanup: '{{ tuple . "minio-monitoring-cleanup" | include "unit-enabled" }}'
       '{{ .Values._internal.default_storage_class_unit }}': true
@@ -7183,7 +7222,7 @@ units:
             enabled: true
             storageClass: '{{ tuple . (tuple . "two-replicas-storageclass" | include "unit-enabled") "two-replicas-storageclass" .Values._internal.default_storage_class | include "interpret-ternary" }}'
             accessModes: ["ReadWriteOnce"]
-            size: '{{  has .Values.env_type (list "dev" "ci") | ternary "2Gi" "4Gi" }}'
+            size: '{{ .Values.monitoring.thanos.ruler.persistence.size }}'
           evalInterval: 1m
           replicaCount: '{{ .Values._internal.ha_cluster.is_ha | ternary 2 1 | include "preserve-type" }}'
           pdb:
@@ -7251,7 +7290,10 @@ units:
             - --enable-auto-gomemlimit
             - --sync-block-duration=3m
           persistence:
-            enabled: false
+            enabled: true
+            storageClass: '{{ tuple . (tuple . "two-replicas-storageclass" | include "unit-enabled") "two-replicas-storageclass" .Values._internal.default_storage_class | include "interpret-ternary" }}'
+            accessModes: ["ReadWriteOnce"]
+            size: '{{ .Values.monitoring.thanos.storegateway.persistence.size }}'
           ingress:
             enabled: true
             hostname: '{{ .Values.external_hostnames.thanos_storegateway }}'
@@ -7269,7 +7311,10 @@ units:
               memory: 2Gi
         compactor:
           persistence:
-            enabled: false
+            enabled: true
+            storageClass: '{{ tuple . (tuple . "two-replicas-storageclass" | include "unit-enabled") "two-replicas-storageclass" .Values._internal.default_storage_class | include "interpret-ternary" }}'
+            accessModes: ["ReadWriteOnce"]
+            size: '{{ .Values.monitoring.thanos.compactor.persistence.size }}'
           enabled: true
           logLevel: info
           extraFlags:
@@ -7296,7 +7341,10 @@ units:
               cpu: 1
               memory: 6Gi
           persistence:
-            enabled: false
+            enabled: true
+            storageClass: '{{ tuple . (tuple . "two-replicas-storageclass" | include "unit-enabled") "two-replicas-storageclass" .Values._internal.default_storage_class | include "interpret-ternary" }}'
+            accessModes: ["ReadWriteOnce"]
+            size: '{{ .Values.monitoring.thanos.receive.persistence.size }}'
           tsdbRetention: 12h
           extraFlags:
           - --enable-auto-gomemlimit
@@ -7346,6 +7394,36 @@ units:
         - kustomize:
             patches:
             - '{{ .Values._internal.pdb_allow_unhealthy_pod_eviction | include "preserve-type" }}'
+        # add the current persistence config as a StatefulSet annotation so we know if we need to delete it
+        - kustomize:
+            patches:
+              - target:
+                  kind: StatefulSet
+                  name: thanos-receive
+                patch: |
+                  - op: add
+                    path: /metadata/annotations/thanos.persistent-config-hash
+                    value: |-
+                      {{ tuple . "units.thanos.helmrelease_spec.values.receive.persistence" | include "interpret" -}}
+                      {{ .Values.units.thanos.helmrelease_spec.values.receive.persistence | toJson | sha256sum | trunc 8 }}
+              - target:
+                  kind: StatefulSet
+                  name: thanos-storegateway
+                patch: |
+                  - op: add
+                    path: /metadata/annotations/thanos.persistent-config-hash
+                    value: |-
+                      {{ tuple . "units.thanos.helmrelease_spec.values.storegateway.persistence" | include "interpret" -}}
+                      {{ .Values.units.thanos.helmrelease_spec.values.storegateway.persistence | toJson | sha256sum | trunc 8 }}
+              - target:
+                  kind: StatefulSet
+                  name: thanos-ruler
+                patch: |
+                  - op: add
+                    path: /metadata/annotations/thanos.persistent-config-hash
+                    value: |-
+                      {{ tuple . "units.thanos.helmrelease_spec.values.ruler.persistence" | include "interpret" -}}
+                      {{ .Values.units.thanos.helmrelease_spec.values.ruler.persistence | toJson | sha256sum | trunc 8 }}
     helm_secret_values:
       extraDeploy:
       - apiVersion: v1
@@ -8596,6 +8674,19 @@ monitoring:
     # - for workload clusters, this is overridden via mgmt_cluster_state_values.monitoring.thanos.receive_url
     #   to point to the mgmt cluster Thanos receive ingress
     receive_url: http://thanos-receive.thanos.svc.cluster.local:19291/api/v1/receive
+
+    receive:
+      persistence:
+        size: '{{ has .Values.env_type (list "dev" "ci") | ternary "10Gi" "20Gi" }}'
+    compactor:
+      persistence:
+        size: '{{ has .Values.env_type (list "dev" "ci") | ternary "20Gi" "50Gi" }}'
+    storegateway:
+      persistence:
+        size: '{{ has .Values.env_type (list "dev" "ci") | ternary "10Gi" "15Gi" }}'
+    ruler:
+      persistence:
+        size: '{{ has .Values.env_type (list "dev" "ci") | ternary "2Gi" "4Gi" }}'
 
     objstoreConfig:
       # only taken into account when monitoring.thanos.objstoreConfig.config is not empty
