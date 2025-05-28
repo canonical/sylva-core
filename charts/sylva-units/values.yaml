@@ -6285,16 +6285,14 @@ units:
       namespace-defs: true
     annotations:
       sylvactl/readyMessage: "Kunai UI can be reached at https://{{ .Values.external_hostnames.kunai }} ({{ .Values.external_hostnames.kunai }} must resolve to {{ .Values.display_external_ip }})"
-    helm_repo_url: "https://gitlab.com/api/v4/projects/sylva-projects%2Fsylva-elements%2Fkunai/packages/helm/stable"  # https://gitlab.com/sylva-projects/sylva-elements/kunai
+    helm_repo_url: "https://gitlab.com/api/v4/projects/sylva-projects%2Fsylva-elements%2Fkunai/packages/helm/stable"
     helmrelease_spec:
       chart:
         spec:
           chart: kunai
-          version: "1.3.1"
+          version: "2.0.4"
       targetNamespace: kunai
       values:
-        containerSecurityContext:
-          readOnlyRootFilesystem: true
         postgresql:
           enabled: false
         externalDatabase:
