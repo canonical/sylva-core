@@ -925,7 +925,7 @@ units:
     kustomization_substitute_secrets:
       ADMIN_CREDENTIAL: '{{ (htpasswd .Values._internal.kubevirt_admin_user .Values._internal.kubevirt_admin_password) | b64enc | quote }}'
     annotations:
-      sylvactl/readyMessage: "Kubevirt manager UI can be reached at https://{{ .Values.external_hostnames.kubevirt_manager }} ({{ .Values.external_hostnames.kubevirt_manager }} must resolve to {{ .Values.display_external_ip }})"
+      sylvactl/readyMessage: "Kubevirt manager UI can be reached at https://{{ .Values.external_hostnames.kubevirt_manager }} ({{ .Values._internal.display_external_ip_msg }})"
     kustomization_spec:
       path: ./kustomize-units/kubevirt-manager
       wait: true
@@ -1086,7 +1086,7 @@ units:
       harbor-postgres: true
       monitoring-crd: true
     annotations:
-      sylvactl/readyMessage: "Harbor UI can be reached at https://{{ .Values.external_hostnames.harbor }} ({{ .Values.external_hostnames.harbor }} must resolve to {{ .Values.display_external_ip }})"
+      sylvactl/readyMessage: "Harbor UI can be reached at https://{{ .Values.external_hostnames.harbor }} ({{ .Values._internal.display_external_ip_msg }})"
     helm_repo_url: https://helm.goharbor.io
     helmrelease_spec:
       chart:
@@ -1241,7 +1241,7 @@ units:
       '{{ .Values._internal.default_storage_class_unit }}': true
       vault-operator: true
     annotations:
-      sylvactl/readyMessage: "Vault UI can be reached at https://{{ .Values.external_hostnames.vault }} ({{ .Values.external_hostnames.vault }} must resolve to {{ .Values.display_external_ip }})"
+      sylvactl/readyMessage: "Vault UI can be reached at https://{{ .Values.external_hostnames.vault }} ({{ .Values._internal.display_external_ip_msg }})"
     repo: sylva-core
     kustomization_substitute_secrets:
       ADMIN_PASSWORD: '{{ .Values.admin_password }}'
@@ -1536,7 +1536,7 @@ units:
       neuvector-init: '{{ tuple . "neuvector-init" | include "unit-enabled" }}'
       ingress-nginx: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpk" }}'
     annotations:
-      sylvactl/readyMessage: "Neuvector UI can be reached at https://{{ .Values.external_hostnames.neuvector }} ({{ .Values.external_hostnames.neuvector }} must resolve to {{ .Values.display_external_ip }})"
+      sylvactl/readyMessage: "Neuvector UI can be reached at https://{{ .Values.external_hostnames.neuvector }} ({{ .Values._internal.display_external_ip_msg }})"
     helm_repo_url: https://neuvector.github.io/neuvector-helm
     helm_chart_artifact_name: neuvector-core
     helmrelease_spec:
@@ -1779,7 +1779,7 @@ units:
       keycloak-postgres: true
       synchronize-secrets: true # make sure that the secret keycloak-initial-admin is ready to be consummed
     annotations:
-      sylvactl/readyMessage: "Keycloak UI admin console can be reached at https://{{ .Values.external_hostnames.keycloak }}/admin/master/console, user 'admin', password in Vault at secret/keycloak ({{ .Values.external_hostnames.keycloak }} must resolve to {{ .Values.display_external_ip }})"
+      sylvactl/readyMessage: "Keycloak admin console can be reached at https://{{ .Values.external_hostnames.keycloak }}/admin/master/console, user 'admin', password in Vault at secret/keycloak ({{ .Values._internal.display_external_ip_msg }})"
     repo: sylva-core
     kustomization_substitute_secrets:
       KEY: '{{ .Values.external_certificates.keycloak.key | default "" | b64enc }}'
@@ -3816,7 +3816,7 @@ units:
       ingress-nginx: '{{ tuple . "ingress-nginx" | include "unit-enabled" }}'
       synchronize-secrets: true
     annotations:
-      sylvactl/readyMessage: "Rancher UI can be reached at https://{{ .Values.external_hostnames.rancher }} ({{ .Values.external_hostnames.rancher }} must resolve to {{ .Values.display_external_ip }})"
+      sylvactl/readyMessage: "Rancher UI can be reached at https://{{ .Values.external_hostnames.rancher }} ({{ .Values._internal.display_external_ip_msg }})"
     helm_repo_url: https://releases.rancher.com/server-charts/stable
     helmrelease_spec:
       chart:
@@ -4343,7 +4343,7 @@ units:
       keycloak-oidc-external-secrets: '{{ tuple . "keycloak" | include "unit-enabled" }}'
       flux-webui-init: true
     annotations:
-      sylvactl/readyMessage: "Flux Web UI can be reached at https://{{ .Values.external_hostnames.flux }} ({{ .Values.external_hostnames.flux }} must resolve to {{ .Values.display_external_ip }})"
+      sylvactl/readyMessage: "Flux Web UI can be reached at https://{{ .Values.external_hostnames.flux }} ({{ .Values._internal.display_external_ip_msg }})"
     repo: weave-gitops
     helm_chart_artifact_name: weave-gitops
     helmrelease_spec:
@@ -5999,7 +5999,7 @@ units:
       namespace-defs: true
       '{{ .Values._internal.default_storage_class_unit }}': true
     annotations:
-      sylvactl/readyMessage: "Gitea UI can be reached at https://{{ .Values.external_hostnames.gitea }} ({{ .Values.external_hostnames.gitea }} must resolve to {{ .Values.display_external_ip }})"
+      sylvactl/readyMessage: "Gitea can be reached at https://{{ .Values.external_hostnames.gitea }} ({{ .Values._internal.display_external_ip_msg }})"
     helm_repo_url: https://dl.gitea.com/charts/
     helmrelease_spec:
       chart:
@@ -6323,7 +6323,7 @@ units:
       minio-operator-init: true
       ingress-nginx: '{{ tuple . "ingress-nginx" | include "unit-enabled" }}'
     annotations:
-      sylvactl/readyMessage: "MinIO operator console can be reached at https://{{ .Values.external_hostnames.minio_operator_console }} ({{ .Values.external_hostnames.minio_operator_console }} must resolve to {{ .Values.display_external_ip }})"
+      sylvactl/readyMessage: "minio operator console can be reached at https://{{ .Values.external_hostnames.minio_operator_console }} ({{ .Values._internal.display_external_ip_msg }})"
     repo: minio-operator
     helmrelease_spec:
       targetNamespace: minio-operator
@@ -6551,7 +6551,7 @@ units:
       two-replicas-storageclass: '{{ tuple . "two-replicas-storageclass" | include "unit-enabled" }}'
       '{{ .Values._internal.default_storage_class_unit }}': '{{ not (tuple . "two-replicas-storageclass" | include "unit-enabled") }}'
     annotations:
-      sylvactl/readyMessage: "MinIO UI logging tenant console can be reached at https://{{ .Values.external_hostnames.minio_logging_console }} ({{ .Values.external_hostnames.minio_logging_console }} must resolve to {{ .Values.display_external_ip }})"
+      sylvactl/readyMessage: "MinIO logging tenant console can be reached at https://{{ .Values.external_hostnames.minio_logging_console }} ({{ .Values._internal.display_external_ip_msg }})"
     repo: minio-operator
     helmrelease_spec:
       targetNamespace: minio-logging
@@ -6849,7 +6849,7 @@ units:
       two-replicas-storageclass: '{{ tuple . "two-replicas-storageclass" | include "unit-enabled" }}'
       '{{ .Values._internal.default_storage_class_unit }}': '{{ not (tuple . "two-replicas-storageclass" | include "unit-enabled") }}'
     annotations:
-      sylvactl/readyMessage: "MinIO monitoring UI tenant console can be reached at https://{{ .Values.external_hostnames.minio_monitoring_console }} ({{ .Values.external_hostnames.minio_monitoring_console }} must resolve to {{ .Values.display_external_ip }})"
+      sylvactl/readyMessage: "MinIO monitoring tenant console can be reached at https://{{ .Values.external_hostnames.minio_monitoring_console }} ({{ .Values._internal.display_external_ip_msg }})"
     repo: minio-operator
     helmrelease_spec:
       targetNamespace: minio-monitoring
@@ -7570,7 +7570,7 @@ units:
     enabled_conditions:
       - '{{ tuple . "logging" | include "unit-enabled" }}'
     annotations:
-      sylvactl/readyMessage: "Loki UI can be reached at https://{{ .Values.external_hostnames.loki }} ({{ .Values.external_hostnames.loki }} must resolve to {{ .Values.display_external_ip }})"
+      sylvactl/readyMessage: "Loki can be reached at https://{{ .Values.external_hostnames.loki }} ({{ .Values._internal.display_external_ip_msg }})"
     repo: loki
     helmrelease_spec:
       targetNamespace: loki
@@ -8266,7 +8266,7 @@ vsphere:
           datacenters:
             - '{{ .Values.cluster.capv.dataCenter }}'
 
-cluster_virtual_ip: 55.55.55.55
+cluster_virtual_ip: ''
 
 # Admin password that will be configured by default on various units  # FIXME, only used for SSO today see https://gitlab.com/sylva-projects/sylva-core/-/issues/503
 # [WARNING] This value cannot be overwritten on production environment (env_type: prod)
@@ -9134,6 +9134,8 @@ _internal:
   # We need to retrieve bootstrap_node_ip in management-cluster while using libvirt-metal emulation, it is stored in a ConfigMap by libvirt-metal unit in that case
   bootstrap_node_ip: '{{ lookup "v1" "ConfigMap" "sylva-system" "cluster-public-endpoint" | dig "data" "address" "not_found" | default "not_found" }}'
 
+  display_external_ip_msg: '{{ and (.Values.openstack.floating_ip | eq "") (.Values.cluster_virtual_ip | eq "") | ternary "It must resolve to the IP used to reach the cluster" (printf "It must resolve to %s" .Values.display_external_ip ) }}'
+
   k8s_version_map:
     1.29: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" | ternary "v1.29.15+rke2r1" "v1.29.15" }}'
     "1.30": '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" | ternary "v1.30.12+rke2r1" "v1.30.12" }}'
@@ -9283,7 +9285,19 @@ _internal:
         _immutable: true
         _immutable_comment: "Renaming a cluster is not supported"
       cluster_virtual_ip:
-        _immutable: true
+        # The cluster virtual IP cannot be changed
+        #
+        # In the case where this IP isn't set by user but is determined dynamically (the case on CAPO today, where capo-cluster-resources allocates it)
+        # then cluster_virtual_ip will not always contain the virtual IP, and may instead be set to its default value.
+        #
+        # Since this default value has changed (today it's "",in the past it was "55.55.55.55"), the immutability check
+        # is disabled in the case where the old value is 55.55.55.55 and the new one is "".
+        _immutable: >-
+           {{- tuple . "_internal.previous_values" | include "interpret" -}}
+           {{ not (and (.Values._internal.previous_values.cluster_virtual_ip | eq "55.55.55.55")
+                       (.Values.cluster_virtual_ip | eq ""))
+              | include "preserve-type"
+           }}
         _immutable_comment: "cluster_virtual_ip can't be changed once deployed"
       capi_providers:
         bootstrap_provider:
