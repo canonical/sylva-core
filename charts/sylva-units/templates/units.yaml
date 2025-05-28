@@ -192,6 +192,8 @@ spec: {{ $helm_repo_spec | toYaml | nindent 2 }}
 
       {{/* produce the HelmRelease specification, merging the different sources we have */}}
       {{- $helmrelease_spec := dict "releaseName" $unit_name -}}
+      {{/* Remove raw escape blocks before merge */}}
+      {{- $_ := set $unit_def "helmrelease_spec" (index (tuple $envAll $unit_def.helmrelease_spec  | include "strip-raw-escape-blocks" | fromJson) "result") }}
       {{- $_ := tuple $helmrelease_spec $envAll.Values.unit_helmrelease_spec_default $unit_def.helmrelease_spec | include "merge-append" -}}
       {{- $helmrelease_spec := mergeOverwrite $helmrelease_spec (deepCopy $helmrelease_spec_overrides) (dict "postRenderers" $post_renderers) -}}
 

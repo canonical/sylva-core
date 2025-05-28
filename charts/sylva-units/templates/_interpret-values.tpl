@@ -120,6 +120,38 @@ value: "prefix-{{ 42 }}"                                    -> will also produce
 {{ $envAll.Values | toJson }}
 {{ end }}
 
+
+{{- define "strip-raw-escape-blocks" -}}
+    {{- $envAll := index . 0 -}}
+    {{- $data := index . 1 -}}
+    {{- $kind := kindOf $data -}}
+    {{- $result := 0 -}}
+
+    {{- if eq $kind "string" -}}
+        {{- $result = regexReplaceAll "__raw__{{(.*?)}}" $data "{{ ${1} }}" -}}
+
+    {{- else if eq $kind "slice" -}}
+        {{- $result = list -}}
+        {{- range $data -}}
+            {{- $processedItem := index (tuple $envAll . | include "strip-raw-escape-blocks" | fromJson) "result" -}}
+            {{- $result = append $result $processedItem -}}
+        {{- end -}}
+
+    {{- else if eq $kind "map" -}}
+        {{- $result = dict -}}
+        {{- range $key, $value := $data -}}
+            {{- $processedValue := index (tuple $envAll $value | include "strip-raw-escape-blocks" | fromJson) "result" -}}
+            {{- $_ := set $result $key $processedValue -}}
+        {{- end -}}
+
+    {{- else -}}
+        {{- $result = $data -}}
+    {{- end -}}
+
+    {{- dict "result" $result | toJson -}}
+{{- end -}}
+
+
 {{/*
 
 preserve-type
@@ -295,9 +327,24 @@ Note well that there are a few limitations:
     {{- end -}}
     {{/* ---- */}}
     {{- if (eq $kind "string") -}}
-        {{- if regexMatch "(.|\n)*{{(.|\n)+}}(.|\n)*" $data -}}
+        {{- $countTpl := len (regexFindAll "{{[^_]([^}]|}[^}])*}}" $data -1) -}}
+        {{- $countRaw := len (regexFindAll "__raw__{{.*?}}" $data -1) -}}
+        {{- if gt $countTpl $countRaw -}}
+            {{- $rawMap := dict -}}
+            {{- $index := 0 -}}
+            {{/* set placeholders for raw blocks __raw__{{ ... }} */}}
+            {{- range $match := regexFindAll "__raw__{{.*?}}" $data -1 -}}
+                {{- $placeholder := printf "RAW_%d" $index -}}
+                {{- $_ := set $rawMap $placeholder $match -}}
+                {{- $data = regexReplaceAllLiteral $match $data $placeholder -}}
+                {{- $index = add1 $index -}}
+            {{- end -}}
             {{/* This is where we actually trigger GoTPL interpretation */}}
             {{- $tpl_res := tpl $data $envAll -}}
+            {{/* replace placeholder by their matching block __raw__{{ ... }} */}}
+            {{- range $key, $value := $rawMap -}}
+                {{- $tpl_res = regexReplaceAllLiteral $key $tpl_res $value -}}
+            {{- end -}}
             {{- if (regexMatch "^( |\n)*{\"encapsulated-result\":" $tpl_res) -}}
                 {{- $result = index (fromJson $tpl_res) "encapsulated-result" -}}
             {{- else -}}

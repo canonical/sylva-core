@@ -1,0 +1,25 @@
+_internal:
+  foobar_oneshot: '__raw__{{ .Values._internal.foobar_oneshot_nest }}'
+  foobar_oneshot_nest: '{{ true }}'
+
+
+units:
+  foobar-unit:
+    info:
+      description: Foobar unit
+      maturity: 'beta'
+    unit_templates:
+    - base-deps
+    helm_repo_url: oci://foobar/
+    helm_repo_spec:
+      barbar: foofoo
+    helmrelease_spec:
+      chart:
+        spec:
+          chart: foobarbarfoo
+          version: 0.1.1
+      values:
+        global:
+          far: boo
+    enabled: true
+    one_shot: '{{ .Values._internal.foobar_oneshot }}'

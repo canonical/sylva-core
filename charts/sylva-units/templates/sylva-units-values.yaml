@@ -11,6 +11,8 @@ kubectl get secrets sylva-units-values -o template="{{ .data.values }}" | base64
 
 */}}
 {{- $envAll := set . "Values" (include "interpret-values-gotpl" . | fromJson) -}}
+{{/* Remove raw protected raw marker from _internal values __raw__{{ }} */}}
+{{- $_ := set $envAll "Values" (index (tuple $envAll $envAll.Values | include "strip-raw-escape-blocks" | fromJson) "result") }}
 
 {{/*
 Checking that all values under ._internal.immutable_values and set with dict "_immutable: true" value will not change during Helm upgrade/rollback.
