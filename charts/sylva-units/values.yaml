@@ -7546,23 +7546,14 @@ units:
         createNamespace: false
       values:
         logging:
-          enabled: true
-          fluentbit:
-            inputTail:
-              Parser: crilog
-            customParsers: |
-              [PARSER]
-                 Name         crilog
-                 Format       regex
-                 Regex        ^(?<time>[^ ]+) (?<stream>stdout|stderr) (?<logtag>[^ ]+) (?<log>.*)$
-                 Time_Key     time
-                 Time_Format  %Y-%m-%dT%H:%M:%S.%L%z
-                 Time_Keep    "On"
-        systemdLogPath: "/var/log/journal/"
+          enabled: false
+        systemdLogPath: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" | ternary "/run/log/journal" "/var/log/syslog" }}'
         additionalLoggingSources:
           rke2:
             enabled: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" | include "as-bool" }}'
           kubeAudit:
+            fluentbit:
+              logTag: kube-audit
             # autdit log is currently only supported for rke2 see issue https://gitlab.com/sylva-projects/sylva-core/-/issues/1226
             auditFilename: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" | ternary "/var/lib/rancher/rke2/server/logs/audit.log" "" }}'
             enabled: '{{ and (gt (int .Values.audit_log.level) 0) (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" ) | include "as-bool" }}'
@@ -7591,6 +7582,8 @@ units:
       LOKI_PASSWORD: '{{ .Values._internal.loki_password }}'
     kustomization_spec:
       path: ./kustomize-units/logging
+      _components:
+        - '{{ tuple "components/ubuntu-host" (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpk") | include "set-only-if" }}'
       postBuild:
         substitute:
           # we must use external name in order to work also for workload clusters
