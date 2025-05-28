@@ -4031,6 +4031,35 @@
             }
           }
         },
+        "etcd_user": {
+          "anyOf": [
+            {
+              "type": "object"
+            },
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/$defs/string-with-gotpl"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "uid": {
+              "type": "integer"
+            },
+            "gid": {
+              "type": "integer"
+            }
+          },
+          "required": [
+            "uid",
+            "gid"
+          ]
+        },
         "control_plane_replicas": {
           "anyOf": [
             {

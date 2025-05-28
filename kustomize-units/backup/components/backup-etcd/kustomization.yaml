@@ -31,7 +31,7 @@ patches:
       - op: replace
         path: /spec/jobTemplate/spec/template/spec/nodeSelector
         value:
-          node-role.kubernetes.io/etcd: "true"
+          node-role.kubernetes.io/control-plane: "true"
       - op: replace
         path: /spec/jobTemplate/spec/template/spec/hostNetwork
         value:

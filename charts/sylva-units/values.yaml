@@ -46,7 +46,7 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
     spec:
       url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-capi-cluster.git
       ref:
-        tag: 0.9.10
+        branch: etcd_user_uid_gid
 
   sync-openstack-images:
     kind: GitRepository
@@ -8369,16 +8369,6 @@ cluster:
       security_group_names:
       - capo-{{ .Values.cluster.name }}-security-group-ctrl-plane-{{ .Values.cluster.capo.resources_tag }}
       - capo-{{ .Values.cluster.name }}-security-group-common-{{ .Values.cluster.capo.resources_tag }}
-    additional_commands: >-
-      {{- tuple (dict
-              "pre_bootstrap_commands" (list
-                    "groupadd -r -g 915 etcd"
-                    "useradd -r -s /sbin/nologin -M -u 915 -g 915 etcd"
-              )
-          )
-          (tuple . "backup-etcd" | include "unit-enabled")
-          | include "set-only-if"
-      }}
 
   machine_deployment_default:
     machine_deployment_spec:
@@ -8487,6 +8477,15 @@ cluster:
     {{- $cluster_metallb_resources := dict }}
     {{- tuple $cluster_metallb_resources .Values.metallb .Values._internal.metallb | include "merge-append" }}
     {{ $cluster_metallb_resources | include "preserve-type" }}
+
+  etcd_user: >-
+    {{ tuple (dict
+            "uid" 915
+            "gid" 915
+        )
+        (tuple . "backup-etcd" | include "unit-enabled")
+        | include "set-only-if"
+    }}
 
 cluster_machines_ready:
   wait_timeout: 600s
