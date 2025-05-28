@@ -5315,7 +5315,7 @@ units:
       chart:
         spec:
           chart: ceph-csi-cephfs
-          version: 3.12.3
+          version: 3.14.0
       values:
         provisioner:
           replicaCount: '{{ .Values.cluster.control_plane_replicas }}'
@@ -5332,8 +5332,8 @@ units:
     helm_secret_values:
       secret:
         create: true
-        adminID: '{{ .Values.ceph.cephfs_csi.adminID }}'
-        adminKey: '{{ .Values.ceph.cephfs_csi.adminKey }}'
+        userID: '{{ .Values.ceph.cephfs_csi.adminID }}'
+        userKey: '{{ .Values.ceph.cephfs_csi.adminKey }}'
 
   longhorn-crd:
     info:
