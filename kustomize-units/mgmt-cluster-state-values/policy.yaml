@@ -6,6 +6,7 @@ metadata:
     kustomize.toolkit.fluxcd.io/force: Enabled
 spec:
   generateExisting: true
+  mutateExistingOnPolicyUpdate: true
   rules:
   - name: generate-cm
     skipBackgroundRequests: false
