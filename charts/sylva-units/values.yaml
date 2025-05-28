@@ -876,7 +876,7 @@ units:
       values:
         nodeSelector:
           kubernetes.io/os: linux
-          node-role.kubernetes.io/control-plane: "true"
+          node-role.kubernetes.io/control-plane: ""
       valuesFrom:
         '{{ tuple
             (list (dict "kind" "ConfigMap"
@@ -884,6 +884,30 @@ units:
             )
             .Values._internal.ha_cluster.is_ha
           | include "set-only-if" }}'
+
+  kubelet-csr-approver:
+    info:
+      description: kubelet-csr-approver install
+      maturity: stable
+    enabled_conditions:
+      - '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpk" }}'
+    unit_templates:
+      - base-deps
+    helm_repo_url: https://postfinance.github.io/
+    helmrelease_spec:
+      install:
+        createNamespace: false
+      chart:
+        spec:
+          chart: kubelet-csr-approver
+          version: 1.2.8
+      targetNamespace: kube-system
+      values:
+        providerIpPrefixes: "172.20.131.0/24"
+        bypassDnsResolution: true
+        nodeSelector:
+          kubernetes.io/os: linux
+          node-role.kubernetes.io/control-plane: ""
 
   keycloak-postgres:
     info:
