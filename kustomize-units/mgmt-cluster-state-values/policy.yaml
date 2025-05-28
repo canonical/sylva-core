@@ -59,10 +59,10 @@ spec:
           - ca-key-pair-cloned 
     mutate:
       targets:
-      - apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+      - apiVersion: kustomize.toolkit.fluxcd.io/v1
         kind: Kustomization
-        name: wkld-copy-file
-        namespace: "{{ request.namespace }}"
+        name: wkld-ds-copy-file
+        namespace: "{{ request.object.metadata.namespace }}"
       patchStrategicMerge:
         metadata:
           annotations:
@@ -72,7 +72,6 @@ spec:
           postBuild:
             substitute:
               DATA: "Substituted by Kyverno"
-
               
               
               
