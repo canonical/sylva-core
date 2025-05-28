@@ -1767,6 +1767,63 @@ units:
         metrics:
           enabled: '{{ tuple . "monitoring" | include "unit-enabled" }}'
 
+  crossplane-external-secrets:
+    info:
+      description: configures external secrets for Crossplane resources
+      internal: true
+    unit_templates:
+    - base-deps
+    enabled_conditions:
+    - '{{ tuple . "keycloak" | include "unit-enabled" }}'
+    depends_on:
+      keycloak: true
+      eso-secret-stores: true
+    repo: sylva-core
+    kustomization_spec:
+      path: ./kustomize-units/crossplane-external-secrets
+      wait: false
+      healthChecks:
+        - apiVersion: v1
+          kind: Secret
+          name: keycloak-internal-tls
+          namespace: crossplane-system
+        - apiVersion: v1
+          kind: Secret
+          name: keycloak-provider-secret
+          namespace: crossplane-system
+        - apiVersion: v1
+          kind: Secret
+          name: keycloak-initial-admin
+          namespace: sylva-system
+
+  get-keycloak-uuids:
+    info:
+      description: Get keycloak resource uuids
+      internal: true
+    unit_templates:
+    - base-deps
+    depends_on:
+      keycloak: true
+      crossplane-external-secrets: true
+    enabled_conditions:
+      - '{{ tuple . "crossplane" | include "unit-enabled" }}'
+    repo: sylva-core
+    kustomization_spec:
+      path: ./kustomize-units/get-keycloak-uuids
+      wait: true
+      force: true
+      postBuild:
+        healthChecks:
+          - apiVersion: v1
+            kind: Configmap
+            name: keycloak-uuid-resources
+            namespace: sylva-system
+        substitute:
+          JOB_NAME: get-keycloak-resource-uuids
+          JOB_TARGET_NAMESPACE: '{{ .Release.Namespace }}'
+          JOB_CHECKSUM: '{{ .Values | toJson | sha256sum }}'
+
+
   keycloak:
     info:
       description: initializes and configures Keycloak
