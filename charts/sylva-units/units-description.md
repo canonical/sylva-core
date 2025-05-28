@@ -121,6 +121,11 @@
 | **coredns-custom-hosts-import** | create a ConfigMap containing workload cluster's DNS A records in [CoreDNS hosts plugin](https://coredns.io/plugins/hosts/) | Kustomization |
 | **crossplane-init** | sets up Crossplane prerequisites<br/><br/>it creates the namespace and generates CA certificate secret to be used by 'crossplane' unit | Kustomization |
 | **eso-secret-stores** | defines External Secrets stores | Kustomization |
+| **firewall-common** | configures global network policies applying on the management cluster and on workload clusters | Kustomization |
+| **firewall-kyverno-capm3** | configures a kyverno policy to create global network sets with the IP address assigned to the nodes of the baremetal workload clusters | Kustomization |
+| **firewall-kyverno-capo** | configures a kyverno policy to create global network sets with the IP address assigned to the nodes of the Openstack workload clusters | Kustomization |
+| **firewall-management-cluster** | configures global network policies applying only on the management cluster | Kustomization |
+| **firewall-workload-cluster** | configures global network policies applying only on the management cluster | Kustomization |
 | **first-login-rancher** | configure Rancher authentication for admin | Kustomization |
 | **flux-webui-init** | initializes and configures flux-webui | Kustomization |
 | **gitea-eso** | write secrets in gitea namespace in gitea expected format | Kustomization |

@@ -1,0 +1,8 @@
+apiVersion: crd.projectcalico.org/v1
+kind: GlobalNetworkSet
+metadata:
+  labels:
+    node.kubernetes.io/instance-type: provisioning
+  name: cluster-provisioning-addresses
+spec:
+  nets: ${cluster_provisioning_addresses:=[]}

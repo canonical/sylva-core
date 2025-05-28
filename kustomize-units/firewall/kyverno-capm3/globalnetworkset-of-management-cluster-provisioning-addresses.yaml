@@ -1,0 +1,42 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: globalnetworkset-of-management-cluster-provisioning-addresses
+  annotations:
+    policies.kyverno.io/title: Add GlobalNetworkSet with the provisioning addresses of a management cluster
+    policies.kyverno.io/category: Firewall
+    policies.kyverno.io/subject: IPPool
+    policies.kyverno.io/minversion: 1.0.0
+    policies.kyverno.io/description: >-
+      The provisioning addresses are used to create a GlobalNetworkSet used by some GlobalNetworkPolicies of the management cluster
+    kustomize.toolkit.fluxcd.io/force: Enabled
+spec:
+  rules:
+  # The provisioning addresses are used to create a GlobalNetworkSet used by some GlobalNetworkPolicies of the management cluster
+  - name: globalnetworkset-of-management-cluster-provisioning-addresses
+    match:
+      any:
+      - resources:
+          kinds:
+          - ipam.metal3.io/*/IPPool
+          namespaces:
+          - sylva-system
+    preconditions:
+      all:
+      - key: "{{request.object.spec.namePrefix}}"
+        operator: Equals
+        value: "*-prov"
+    generate:
+      generateExisting: true
+      synchronize: true
+      apiVersion: crd.projectcalico.org/v1
+      kind: GlobalNetworkSet
+      name: "{{request.namespace}}-cluster-provisioning-addresses"
+      data:
+        kind: GlobalNetworkSet
+        metadata:
+          labels:
+            role: management-cluster-node
+            node.kubernetes.io/instance-type: provisioning
+        spec:
+          nets: "{{request.object.status.indexes | items(@, 'key', 'value') | [*].value }}"

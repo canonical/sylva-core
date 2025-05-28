@@ -1,0 +1,8 @@
+apiVersion: crd.projectcalico.org/v1
+kind: GlobalNetworkSet
+metadata:
+  labels:
+    role: allowed-to-ssh
+  name: allowed-public-subnets-to-ssh
+spec:
+  nets: ${ALLOWED_PUBLIC_SUBNETS_TO_SSH}

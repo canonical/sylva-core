@@ -235,6 +235,14 @@ spec:
         worker_servergroup_id:
           value: { get_resource: srvgroup-worker }
           description: Control plane server group ID
+        # For kustomizations using a substituteFrom of capo-cluster-resources
+        CLUSTER_VIRTUAL_IP:
+          value:
+            if:
+              - vip_requested
+              - get_attr: [port, fixed_ips, 0, ip_address]
+              - get_attr: [adopted-port, fixed_ips, 0, ip_address]
+          description: IP address allocated to the port
 
     environment:
       parameters:

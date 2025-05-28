@@ -1,0 +1,20 @@
+apiVersion: crd.projectcalico.org/v1
+kind: GlobalNetworkPolicy
+metadata:
+  name: coredns-to-vip
+spec:
+  selector: has(node-role.kubernetes.io/control-plane)
+  order: 40
+  preDNAT: true
+  applyOnForward: true
+  ingress:
+  # coredns forwards queries to the DNS port on the cluster IP address
+  - action: Allow
+    protocol: UDP
+    source:
+      selector: ${COREDNS_SELECTOR}
+    destination:
+      nets:
+      - ${CLUSTER_VIRTUAL_IP}
+      ports:
+      - 53

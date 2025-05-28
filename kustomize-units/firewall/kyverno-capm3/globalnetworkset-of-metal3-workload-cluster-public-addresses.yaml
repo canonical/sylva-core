@@ -1,0 +1,45 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: create-global-network-set-for-capm3-cluster-nodes
+  annotations:
+    policies.kyverno.io/title: Add GlobalNetworkSet for a workload cluster
+    policies.kyverno.io/category: Firewall
+    policies.kyverno.io/subject: GlobalNetworkSet
+    policies.kyverno.io/minversion: 1.0.0
+    policies.kyverno.io/description: >-
+      The public addresses of a workload cluster are used to create a GlobalNetworkSet used by some GlobalNetworkPolicies of the management cluster
+    kustomize.toolkit.fluxcd.io/force: Enabled
+spec:
+  rules:
+  # The public addresses of a workload cluster are used to create a GlobalNetworkSet used by some GlobalNetworkPolicies of the management cluster
+  - name: create-global-network-set-for-capm3-cluster-nodes
+    match:
+      any:
+      - resources:
+          kinds:
+          - ipam.metal3.io/*/IPPool
+    exclude:
+      any:
+      - resources:
+          namespaces:
+          - sylva-system
+    preconditions:
+      all:
+      - key: "{{request.object.spec.namePrefix}}"
+        operator: Equals
+        value: "*-bmv4"
+    generate:
+      generateExisting: true
+      synchronize: true
+      apiVersion: crd.projectcalico.org/v1
+      kind: GlobalNetworkSet
+      name: "{{request.namespace}}-cluster-gns"
+      data:
+        kind: GlobalNetworkSet
+        metadata:
+          labels:
+            role: workload-cluster-node
+        spec:
+          nets: "{{request.object.status.indexes | items(@, 'key', 'value') | [*].value }}"
+
