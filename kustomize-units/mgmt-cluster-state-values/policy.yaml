@@ -71,7 +71,7 @@ spec:
           postBuild:
             substituteFrom:
             - kind: Secret
-              name: ca-key-pair
+              name: ca-key-pair-cloned
 
               
               
