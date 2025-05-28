@@ -7944,6 +7944,7 @@ units:
     - base-deps
     depends_on:
       sylva-units-operator: '{{ tuple . "sylva-units-operator" | include "unit-enabled" }}'
+      external-secrets-operator: '{{ tuple . "sylva-units-operator" | include "unit-enabled" }}'
     enabled_conditions:
       - '{{ tuple . "workload-cluster-operator" | include "unit-enabled" }}'
     helm_chart_artifact_name: workload-team-defs
