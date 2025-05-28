@@ -31,7 +31,7 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
       ref:
         # the sylva-core framework will always override this ref so that the
         # currently checked out commit of sylva-core is used by sylva-units
-        # (you can grep the code for "CURRENT_COMMIT" to find out how)
+        # (you can grep the code for "SYLVA_CORE_REF" to find out how)
         commit: not-a-real-commit
 
   weave-gitops:
@@ -201,6 +201,13 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
       url: https://github.com/bitnami/charts.git
       ref:
         tag: redis-cluster/11.0.8
+
+  sync-files-on-nodes:
+    kind: GitRepository
+    spec:
+      url: https://gitlab.com/jonathang/sync-files-on-node
+      ref:
+        branch: main
 
 helm_repo_spec_default:
   interval: 168h
