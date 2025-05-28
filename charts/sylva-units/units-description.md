@@ -119,7 +119,9 @@
 | **cluster-vip-fix-lbclass** | Set loadBalancerClass to cluster-vip service and metallb components<br/><br/>This unit can be removed after next release when the loadBalancerClass is set by default | Kustomization |
 | **coredns** | configures DNS inside cluster | Kustomization |
 | **coredns-custom-hosts-import** | create a ConfigMap containing workload cluster's DNS A records in [CoreDNS hosts plugin](https://coredns.io/plugins/hosts/) | Kustomization |
-| **crossplane-init** | sets up Crossplane prerequisites<br/><br/>it creates the namespace and generates CA certificate secret to be used by 'crossplane' unit | Kustomization |
+| **crossplane-init** | sets up Crossplane prerequisites<br/><br/>it generates CA certificate secret to be used by 'crossplane' unit | Kustomization |
+| **crossplane-provider-keycloak** | Deploys Crossplane Keycloak Provider<br/><br/>Deploys keycloak-provider and installs CRD's | Kustomization |
+| **crossplane-provider-keycloak-config** | Configure Crossplane Keycloak Provider<br/><br/>Configures keycloak-provider auth | Kustomization |
 | **eso-secret-stores** | defines External Secrets stores | Kustomization |
 | **firewall-common** | configures global network policies applying on the management cluster and on workload clusters | Kustomization |
 | **firewall-kyverno-capm3** | configures a kyverno policy to create global network sets with the IP address assigned to the nodes of the baremetal workload clusters | Kustomization |

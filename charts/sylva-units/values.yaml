@@ -1680,7 +1680,7 @@ units:
     info:
       description: sets up Crossplane prerequisites
       details: |
-        it creates the namespace and generates CA certificate secret to be used by 'crossplane' unit
+        it generates CA certificate secret to be used by 'crossplane' unit
       internal: true
     unit_templates:
     - base-deps
@@ -1689,6 +1689,7 @@ units:
     depends_on:
       namespace-defs: true
       sylva-ca: true
+      keycloak: '{{ tuple . "keycloak" | include "unit-enabled" }}'
     repo: sylva-core
     kustomization_spec:
       path: ./kustomize-units/crossplane-init
@@ -1697,12 +1698,52 @@ units:
           CERTIFICATE_NAMESPACE: crossplane-system
       _components:
         - "../tls-components/sylva-ca"
+        - '{{ tuple "./components/providers/keycloak" (tuple . "keycloak" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/crossplane-monitoring" (tuple . "monitoring" | include "unit-enabled") | include "set-only-if" }}'
       healthChecks:
         - apiVersion: v1
           kind: Secret
           name: sylva-ca.crt
           namespace: crossplane-system
+        - '{{ tuple (dict "apiVersion" "v1" "kind" "Secret" "namespace" "crossplane-system" "name" "keycloak-provider-secret") (tuple . "keycloak" | include "unit-enabled") | include "set-only-if" }}'
+        - '{{ tuple (dict "apiVersion" "v1" "kind" "Secret" "namespace" "crossplane-system" "name" "keycloak-internal-tls") (tuple . "keycloak" | include "unit-enabled") | include "set-only-if" }}'
+        - '{{ tuple (dict "apiVersion" "v1" "kind" "Secret" "namespace" "sylva-system" "name" "keycloak-initial-admin") (tuple . "keycloak" | include "unit-enabled") | include "set-only-if" }}'
+
+  crossplane-provider-keycloak:
+    info:
+      description: Deploys Crossplane Keycloak Provider
+      details: |
+        Deploys keycloak-provider and installs CRD's
+      internal: true
+    unit_templates:
+    - base-deps
+    enabled_conditions:
+    - '{{ tuple . "crossplane" | include "unit-enabled" }}'
+    - '{{ tuple . "keycloak" | include "unit-enabled" }}'
+    depends_on:
+      crossplane-init: true
+      keycloak: true
+    repo: sylva-core
+    kustomization_spec:
+      path: ./kustomize-units/crossplane-provider-keycloak
+
+  crossplane-provider-keycloak-config:
+    info:
+      description: Configure Crossplane Keycloak Provider
+      details: |
+        Configures keycloak-provider auth
+      internal: true
+    unit_templates:
+    - base-deps
+    enabled_conditions:
+    - '{{ tuple . "crossplane" | include "unit-enabled" }}'
+    - '{{ tuple . "keycloak" | include "unit-enabled" }}'
+    depends_on:
+      crossplane-provider-keycloak: true
+      keycloak: true
+    repo: sylva-core
+    kustomization_spec:
+      path: ./kustomize-units/crossplane-provider-keycloak-config
 
   crossplane:
     info:
@@ -1725,6 +1766,8 @@ units:
       install:
         createNamespace: false
       values:
+        webhooks:
+          enabled: false
         extraVolumesCrossplane:
           - name: sylva-ca-crt
             secret:
@@ -1734,8 +1777,9 @@ units:
             mountPath: /etc/ssl/certs/ca.crt
             subPath: ca.crt
         extraEnvVarsCrossplane:
-          HTTP_PROXY: '{{ .Values.proxies.http_proxy }}'
-          HTTPS_PROXY: '{{ .Values.proxies.https_proxy }}'
+          WEBHOOK_ENABLED: false
+          HTTP_PROXY: '{{ .Values.proxies.http_proxy | default "" }}'
+          HTTPS_PROXY: '{{ .Values.proxies.https_proxy | default "" }}'
           NO_PROXY: '{{ include "sylva-units.no_proxy" (tuple .) }}'
         rbacManager:
           deploy: true

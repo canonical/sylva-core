@@ -1,0 +1,51 @@
+---
+apiVersion: pkg.crossplane.io/v1
+kind: Provider
+metadata:
+  name: provider-keycloak
+  namespace: crossplane-system
+spec:
+  package: xpkg.upbound.io/crossplane-contrib/provider-keycloak:v1.12.0
+  runtimeConfigRef:
+    name: provider-runtime-config
+---
+apiVersion: pkg.crossplane.io/v1beta1
+kind: DeploymentRuntimeConfig
+metadata:
+  name: provider-runtime-config
+  namespace: crossplane-system
+spec:
+  deploymentTemplate:
+    spec:
+      replicas: 1
+      selector: {}
+      template:
+        metadata:
+          labels:
+            app: crossplane-provider
+        spec:
+          containers:
+          - args:
+            - --enable-external-secret-stores
+            - --debug
+            name: package-runtime
+            volumeMounts:
+            - name: trust-store
+              mountPath: /etc/ssl/certs
+            securityContext:
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop:
+                - ALL
+              seccompProfile:
+                type: RuntimeDefault
+          volumes:
+          - name: trust-store
+            secret:
+              secretName: sylva-ca.crt
+          securityContext:
+            fsGroup: 65532
+            runAsNonRoot: true
+            runAsUser: 65532
+            seccompProfile:
+              type: RuntimeDefault
