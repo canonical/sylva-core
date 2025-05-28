@@ -13,7 +13,7 @@ spec:
       - resources:
           kinds:
           - Secret
-          namespace:
+          namespaces:
           - ${NAMESPACE}
           names:
           - ca-key-pair
