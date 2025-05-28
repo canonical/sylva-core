@@ -220,7 +220,7 @@ include:
     }
     DEPLOYMENT_INFRA_PROV=${DEPLOYMENT_INFRA_PROV:-$(extract_from_job_name ☁ "$WORKFLOW_NAME")}
     if [[ "$DEPLOYMENT_INFRA_PROV" == "capm3" ]]; then export DEPLOYMENT_INFRA_PROV="capm3-virt"; fi   # Currently capm3 is capm3-virt
-    if [[ "$DEPLOYMENT_OS" == "leapmicro" ]]; then export DEPLOYMENT_INFRA_PROV="capm3-virt-ignition"; fi   # Use specific values for Ignition based systems
+    if [[ "$DEPLOYMENT_OS" == "leapmicro" && "$DEPLOYMENT_INFRA_PROV" == "capm3" ]]; then export DEPLOYMENT_INFRA_PROV="capm3-virt-ignition"; fi   # Use specific capm3 values for Ignition based systems
     DEPLOYMENT_BOOTSTRAP_PROV=${DEPLOYMENT_BOOTSTRAP_PROV:-$(extract_from_job_name 🚀 "$WORKFLOW_NAME")}
     if [[ "$DEPLOYMENT_BOOTSTRAP_PROV" == "kadm" ]]; then export DEPLOYMENT_BOOTSTRAP_PROV="kubeadm"; fi   # kadm is shortcut for kubeadm
     DEPLOYMENT_OS=${DEPLOYMENT_OS:-$(extract_from_job_name 🐧 "$WORKFLOW_NAME")}
