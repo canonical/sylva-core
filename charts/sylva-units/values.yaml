@@ -2211,6 +2211,31 @@ units:
               - apiGroups: ["*"]
                 resources: [ "secrets" ]
                 verbs: ["get", "list", "watch"]
+              - apiGroups: ["crd.projectcalico.org"]
+                resources:
+                - globalnetworksets
+                verbs: ["create", "update", "patch", "delete", "get", "list", "watch"]
+              - apiGroups: ["ipam.metal3.io"]
+                resources:
+                - ippools
+                verbs: ["get", "list", "watch"]
+              - apiGroups: ["infrastructure.cluster.x-k8s.io"]
+                resources:
+                - openstackmachines
+                - metal3machines
+                verbs: ["get", "list", "watch"]
+              - apiGroups: ["helm.toolkit.fluxcd.io"]
+                resources:
+                - helmreleases
+                verbs: ["get", "list", "watch", "patch", "update"]
+              - apiGroups: [""]
+                resources:
+                  - configmaps
+                verbs: ["get", "list", "patch", "update", "watch", "create", "delete"]
+              - apiGroups: ["apiextensions.k8s.io"]
+                resources:
+                - customresourcedefinitions
+                verbs: ["get", "list", "watch"]
           container:
             resources:
               limits:
@@ -2255,7 +2280,7 @@ units:
               memory: 1024Mi
             requests:
               memory: 256Mi
-
+          resyncPeriod: 5m
           rbac:
             clusterRole:
               extraResources:
@@ -2264,6 +2289,10 @@ units:
                   - "secrets"
                 verbs: ["get", "list", "patch", "update", "watch", "create", "delete"]
               - apiGroups: ["management.cattle.io"]  # for set-monitoring-chart-cluster-id ClusterPolicy
+                resources:
+                  - "clusters"
+                verbs: ["get", "list", "watch"]
+              - apiGroups: ["provisioning.cattle.io"]  # for set-monitoring-chart-cluster-id ClusterPolicy
                 resources:
                   - "clusters"
                 verbs: ["get", "list", "watch"]
@@ -2318,6 +2347,27 @@ units:
                   - bgppeers
                   - bgpadvertisements
                 verbs: ["get", "list", "watch", "patch", "update"]
+              - apiGroups: ["crd.projectcalico.org"]
+                resources:
+                - globalnetworksets
+                verbs: ["create", "update", "patch", "delete", "get", "list", "watch"]
+              - apiGroups: ["infrastructure.cluster.x-k8s.io"]
+                resources:
+                - openstackmachines
+                - metal3machines
+                verbs: ["get", "list", "watch"]
+              - apiGroups: ["ipam.metal3.io"]
+                resources:
+                - ippools
+                verbs: ["get", "list", "watch"]
+              - apiGroups: ["crd.projectcalico.org"]
+                resources:
+                - ippools
+                verbs: ["get", "list", "watch"]
+              - apiGroups: ["apiextensions.k8s.io"]
+                resources:
+                - customresourcedefinitions
+                verbs: ["get", "list", "watch"]
               - apiGroups: ["metal3.io"]
                 resources:
                   - baremetalhosts
@@ -8033,6 +8083,137 @@ units:
             path: /spec/schedule
             value:  "0 5 * * * "
 
+  firewall-common:
+    info:
+      description: >
+        configures global network policies applying
+        on the management cluster and on workload clusters
+      internal: true
+    unit_templates:
+    - base-deps
+    enabled: false
+    repo: sylva-core
+    kustomization_spec:
+      path: ./kustomize-units/firewall/common
+      wait: true
+      postBuild:
+        substitute:
+          # _internal.cluster_virtual_ip is defined when not using capo
+          # Otherwise, CLUSTER_VIRTUAL_IP is substituted from the capo-cluster-resources configmap when using capo
+          CLUSTER_VIRTUAL_IP: '{{ .Values._internal.cluster_virtual_ip | include "set-if-defined" }}'
+          ALLOWED_PUBLIC_SUBNETS_TO_GUI: '{{ .Values.security.firewall.allowed_public_subnets_for_gui | default .Values.security.firewall.allowed_public_subnets | toJson }}'
+          ALLOWED_PUBLIC_SUBNETS_TO_KUBEAPI: '{{ .Values.security.firewall.allowed_public_subnets_for_kubeapi | default .Values.security.firewall.allowed_public_subnets | toJson }}'
+          ALLOWED_PUBLIC_SUBNETS_TO_SSH: '{{ .Values.security.firewall.allowed_public_subnets_for_ssh | default .Values.security.firewall.allowed_public_subnets | toJson }}'
+          NTP_SERVERS: '{{ .Values.ntp.servers | toJson }}'
+          CLUSTER_PODS_CIDR: '{{ .Values.cluster.cluster_pods_cidrs | toJson }}'
+          COREDNS_SELECTOR: '{{ .Values._internal.coredns_selector }}'
+        substituteFrom:
+        - kind: ConfigMap
+          name: capo-cluster-resources  # byproduct of capo-cluster-resources units
+          optional: '{{ not (.Values.cluster.capi_providers.infra_provider | eq "capo") | include "as-bool" }}'
+        - kind: ConfigMap
+          name: management-cluster-addresses  # generated by 'create-global-network-set-for-(capo|capm3)-cluster-nodes' Kyverno ClusterPolicy
+        - kind: ConfigMap
+          name: cluster-provisioning-addresses  # generated by create-global-network-set-for-capm3-cluster-nodes Kyverno ClusterPolicy
+          optional: '{{ not (and (.Values.cluster.capi_providers.infra_provider | eq "capm3") .Values.cluster.capm3.provisioning_pool_name) | include "as-bool" }}'
+      _components:
+      - '{{ tuple "components/rke2" (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpr") | include "set-only-if" }}'
+
+  firewall-management-cluster:
+    info:
+      description: >
+        configures global network policies applying
+        only on the management cluster
+      internal: true
+    unit_templates:
+    - base-deps
+    enabled: false
+    repo: sylva-core
+    kustomization_spec:
+      path: ./kustomize-units/firewall/management-cluster
+      wait: true
+      postBuild:
+        substitute:
+          # _internal.cluster_virtual_ip is defined when not using capo
+          # Otherwise, CLUSTER_VIRTUAL_IP is substituted from the capo-cluster-resources configmap when using capo
+          CLUSTER_VIRTUAL_IP: '{{ .Values._internal.cluster_virtual_ip | include "set-if-defined" }}'
+          COREDNS_SELECTOR: '{{ .Values._internal.coredns_selector }}'
+          DEFAULT_POLICY: '{{ .Values.security.firewall.default_policy }}'
+        substituteFrom:
+        - kind: ConfigMap
+          name: capo-cluster-resources
+          optional: '{{ not (.Values.cluster.capi_providers.infra_provider | eq "capo") | include "as-bool" }}'
+      _components:
+      - '{{ tuple "components/neuvector" (tuple . "neuvector" | include "unit-enabled") | include "set-only-if" }}'
+      - '{{ tuple "components/monitoring" (tuple . "monitoring" | include "unit-enabled") | include "set-only-if" }}'
+      - '{{ tuple "components/logging" (tuple . "logging" | include "unit-enabled") | include "set-only-if" }}'
+      - '{{ tuple "components/metal3" (tuple . "metal3" | include "unit-enabled") | include "set-only-if" }}'
+      - '{{ tuple "components/rke2" (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpr") | include "set-only-if" }}'
+
+  firewall-workload-cluster:
+    info:
+      description: >
+        configures global network policies applying
+        only on the management cluster
+      internal: true
+    unit_templates:
+    - base-deps
+    enabled: false
+    repo: sylva-core
+    kustomization_spec:
+      path: ./kustomize-units/firewall/workload-cluster
+      wait: true
+      postBuild:
+        substitute:
+          # _internal.cluster_virtual_ip is defined when not using capo
+          # Otherwise, CLUSTER_VIRTUAL_IP is substituted from the capo-cluster-resources configmap when using capo
+          CLUSTER_VIRTUAL_IP: '{{ .Values._internal.cluster_virtual_ip | include "set-if-defined" }}'
+          DEFAULT_POLICY: '{{ .Values.security.firewall.default_policy }}'
+        substituteFrom:
+        - kind: ConfigMap
+          name: capo-cluster-resources
+          optional: '{{ not (.Values.cluster.capi_providers.infra_provider | eq "capo") | include "as-bool" }}'
+
+  # only on the management cluster with capo enabled
+  firewall-kyverno-capo:
+    info:
+      description: >
+        configures a kyverno policy to create global network sets
+        with the IP address assigned to the nodes of the Openstack workload clusters
+      internal: true
+    unit_templates:
+    - base-deps
+    enabled: false
+    repo: sylva-core
+    depends_on:
+      capo: true
+    kustomization_spec:
+      path: ./kustomize-units/firewall/kyverno-capo
+      # if the deployment is not capo, wait for the creation of the kyverno resources
+      # else wait not only for the creation of the kyverno resources but also for
+      # the production of the configmap containing the IP addresses of the management cluster
+      wait: true
+
+  # only on the management cluster with capm3 enabled
+  firewall-kyverno-capm3:
+    info:
+      description: >
+        configures a kyverno policy to create global network sets
+        with the IP address assigned to the nodes of the baremetal workload clusters
+      internal: true
+    unit_templates:
+    - base-deps
+    enabled: false
+    repo: sylva-core
+    depends_on:
+      capm3: true
+    kustomization_spec:
+      path: ./kustomize-units/firewall/kyverno-capm3
+      # if the deployment is not capm3, wait for the creation of the kyverno resources
+      # else wait not only for the creation of the kyverno resources but also for
+      # the production of the configmap containing the IP addresses of the management cluster
+      wait: true
+
 ##### stuff related to the 'cluster' unit #####
 #
 # all these values under 'cluster' are passed as values to sylva-capi-cluster chart
@@ -8584,6 +8765,21 @@ security:
   sbom_operator:
     targets:
       - configmap # list of targets (i.e. places where the SBOM is uploaded). Supported targets are configmap, oci and dtrack
+
+  firewall:
+    enabled: false
+    # By default, allow external ingress traffic from all sources
+    allowed_public_subnets:
+      - 0.0.0.0/0
+
+    # Specify the following values to use different subnets for each type of flow
+    # allowed_public_subnets_for_gui:
+    # allowed_public_subnets_for_kubeapi:
+    # allowed_public_subnets_for_ssh
+
+    # We drop packets by default
+    # This value can be set to Allow for troubleshooting
+    default_policy: Allow
 
 monitoring:
   platform_tag: Sylva
@@ -9376,6 +9572,15 @@ _internal:
     {{- /* Calculate final MTU */ -}}
     {{- $mtu := sub .Values._internal.base_cni_mtu $max_overhead -}}
     {{- $mtu | include "preserve-type" -}}
+
+  # Substitute with the cluster_virtual_ip value if it is defined to another value than the default, mandatory with capm3
+  # Otherwise, the value is substituted from the capo-cluster-resources when using capo
+  cluster_virtual_ip: '{{ tuple .Values.cluster_virtual_ip (ne .Values.cluster.capi_providers.infra_provider "capo") | include "set-only-if" }}'
+
+  # The labels of coredns differ between rke2 and kubeadm
+  rke2_coredns_selector: app.kubernetes.io/instance == 'rke2-coredns'
+  kubeadm_coredns_selector: k8s-app == 'kube-dns'
+  coredns_selector: '{{ (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpr") | ternary .Values._internal.rke2_coredns_selector .Values._internal.kubeadm_coredns_selector }}'
 
 mgmt_cluster_state_values:
   cluster:

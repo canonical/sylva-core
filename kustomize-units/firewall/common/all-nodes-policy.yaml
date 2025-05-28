@@ -1,0 +1,67 @@
+apiVersion: crd.projectcalico.org/v1
+kind: GlobalNetworkPolicy
+metadata:
+  name: all-nodes-policy
+spec:
+  selector: has(kubernetes.io/hostname)
+  order: 60
+  ingress:
+  - action: Allow
+    protocol: TCP
+    source:
+      selector: role == 'allowed-to-ssh'
+    destination:
+      ports:
+      - 22
+  - action: Allow
+    destination:
+      nets:
+      - 127.0.0.0/8
+  - action: Allow
+    protocol: ICMP
+  - action: Allow
+    protocol: TCP
+    source:
+      selector: has(kubernetes.io/hostname)
+    destination:
+      ports:
+      - 10250 # kubelet
+      - 179  # BGP
+      - 5473 # calico CNI with Typha
+      - 9098 # calico typha health checks
+      - 9099 # calico health checks
+      - 9796 # prometheus node exporter
+      - 9808 # liveness probe
+      - 7472 # metallb
+      - 7946 # metallb
+  - action: Allow
+    protocol: UDP
+    source:
+      selector: has(kubernetes.io/hostname)
+    destination:
+      ports:
+      - 4789 # calico VXLAN
+      - 7946 # metallb
+  - action: Allow
+    protocol: UDP
+    source:
+      nets: ${NTP_SERVERS}
+    destination:
+      ports:
+      - 323  # NTP
+  - action: Allow
+    protocol: UDP
+    destination:
+      ports:
+      - 68   # DHCP client
+  - action: Deny
+    protocol: UDP
+    destination:
+      ports:
+      - 67   # There is no DHCP server on the nodes
+  egress:
+  - action: Allow
+    protocol: TCP
+  - action: Allow
+    protocol: UDP
+

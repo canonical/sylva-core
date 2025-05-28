@@ -1,0 +1,43 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: public-addresses-of-management-cluster
+  annotations:
+    policies.kyverno.io/title: Add ConfigMap of management cluster IP addresses
+    policies.kyverno.io/category: Firewall
+    policies.kyverno.io/subject: IPPool
+    policies.kyverno.io/minversion: 1.0.0
+    policies.kyverno.io/description: >-
+      The public addresses are stored in a configmap that is used to create a GlobalNetworkSet in all the workload clusters
+      A similar configmap is also created by the kyverno-capo policy
+    kustomize.toolkit.fluxcd.io/force: Enabled
+spec:
+  rules:
+  # The public addresses are stored in a configmap that is used to create a GlobalNetworkSet in all the workload clusters
+  # A similar configmap is also created by the kyverno-capo policy
+    # TODO: replace the test on the -bmv4 suffix with something more robust and explicit like a label on the IPPool
+  - name: public-addresses-of-management-cluster
+    match:
+      any:
+      - resources:
+          kinds:
+          - ipam.metal3.io/*/IPPool
+          namespaces:
+          - sylva-system
+    preconditions:
+      all:
+      - key: "{{request.object.spec.namePrefix}}"
+        operator: Equals
+        value: "*-bmv4"
+    generate:
+      generateExisting: true
+      synchronize: true
+      apiVersion: v1
+      kind: ConfigMap
+      name: management-cluster-addresses
+      namespace: "{{ request.namespace}}"
+      data:
+        kind: ConfigMap
+        data:
+          management_cluster_addresses: "[{{request.object.status.indexes | items(@, 'key', 'value') | [*].value | join(',', @) }}]"
+

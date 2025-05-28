@@ -1,5 +1,4 @@
-# This file contains a JSONSchema to validate the values given
-# as inputs to the chart.
+# This file contains a JSONSchema to validate the values give as inputs to the chart.
 #
 # **** How to edit this file *****
 #
@@ -90,6 +89,15 @@ $defs:
   ipv4-range:
     type: string
     pattern: ^(?:(?:[01]?[0-9]{1,2}|2[0-4][0-9]|25[0-5])\.){3}(?:[01]?[0-9]{1,2}|2[0-4][0-9]|25[0-5])-(?:(?:[01]?[0-9]{1,2}|2[0-4][0-9]|25[0-5])\.){3}(?:[01]?[0-9]{1,2}|2[0-4][0-9]|25[0-5])$
+
+  list-of-subnets-or-ips:
+    type: array
+    items:
+      anyOf:
+        - const: 0.0.0.0/0
+        - type: string
+          format: ipv4
+        - $ref: "#/$defs/ipv4-cidr-full"
 
   sylva-capi-cluster-values:
     # this sub-schema will be completed with actual sylva-capi-cluster-values with json schema generation
@@ -1285,7 +1293,23 @@ properties:
           then:
             required: [oci_registry, oci_user, oci_token]
 
-
+      firewall:
+        type: object
+        additionalProperties: false
+        properties:
+          enabled:
+            type: boolean
+          allowed_public_subnets:
+            $ref: "#/$defs/list-of-subnets-or-ips"
+          allowed_public_subnets_for_gui:
+            $ref: "#/$defs/list-of-subnets-or-ips"
+          allowed_public_subnets_for_kubeapi:
+            $ref: "#/$defs/list-of-subnets-or-ips"
+          allowed_public_subnets_for_ssh:
+            $ref: "#/$defs/list-of-subnets-or-ips"
+          default_policy:
+            type: string
+            enum: [Deny, Allow]
 
   monitoring:  # -------------------------------
     type: object

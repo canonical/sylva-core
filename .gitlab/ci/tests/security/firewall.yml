@@ -1,0 +1,86 @@
+---
+# This test extracts from the logs of all the nodes the logs corresponding
+# to packets reaching the default rule of the firewall configuration
+
+.firewall-verify:
+  script:
+    - touch $FIREWALL_LOG_FILE
+    - |
+      for i in $CLUSTER_DIRECTORY/node_logs/*.tar.gz; do
+          echo "Extracting the calico logs from $i"
+          mkdir my-node-logs
+          tar -C my-node-logs -z -xf $i || true
+          for j in $(find my-node-logs -type d -name journal); do
+              echo "Found the journal at path $j"
+              journalctl -D $j | grep "calico-packet:" >> $FIREWALL_LOG_FILE || true
+          done
+          rm -rf my-node-logs
+      done
+    - count=$(cat $FIREWALL_LOG_FILE | wc -l)
+    - |
+      if [ $count -eq 0 ]; then
+          echo "No packet reached the default policy, it is OK"
+          exit 0
+      else
+          echo "Some packets reached the default policy:"
+          cat $FIREWALL_LOG_FILE
+      fi
+    - if [ -n "$WHITE_LIST" ]; then count=$(cat $FIREWALL_LOG_FILE | grep -vE "$WHITE_LIST" || exit_code=$? | wc -l ); fi
+    - |
+      # do not count known corner cases
+      if [ $count -eq 0 ]; then
+          echo "Some packets reached the default policy but they all correspond to known corner cases"
+          exit 0
+      else
+          echo "Some packets reached the default policy and require an investigation"
+          exit 1
+      fi
+
+mgmt-firewall-verify:
+  extends:
+    - .test-base-management-cluster
+    - .firewall-verify
+  needs:
+    - job: deploy-management-cluster
+    - job: deploy-workload-cluster
+      optional: true
+    - job: update-management-cluster
+      optional: true
+    - job: update-workload-cluster
+      optional: true
+  variables:
+    FIREWALL_LOG_FILE: management-firewall.log
+    CLUSTER_DIRECTORY: management-cluster-dump
+    WHITE_LIST: "SPT=6443" # variable containing a regexp to detect known corner cases
+                           # 1. case of ACK packets from the kube-apiserver of a workload cluster
+    DESCRIPTION: Check for packets received by the management cluster which didn't match any network policy
+  image: registry.gitlab.com/sylva-projects/sylva-elements/container-images/ci-image/ci-systemd-image:v1.0.58
+  artifacts:
+    expire_in: 48 hour
+    when: always
+    paths:
+      - management-firewall.log
+  allow_failure: true
+
+# This test extracts from the logs of all the nodes the logs corresponding
+# to packets reaching the default rule of the firewall configuration
+
+wkld-firewall-verify:
+  extends:
+    - .test-base-workload-cluster
+    - .firewall-verify
+  needs:
+    - job: deploy-workload-cluster
+    - job: update-workload-cluster
+      optional: true
+  variables:
+    FIREWALL_LOG_FILE: workload-firewall.log
+    CLUSTER_DIRECTORY: workload-cluster-dump
+    DESCRIPTION: Check for packets received by the workload cluster which didn't match any network policy
+  image: registry.gitlab.com/sylva-projects/sylva-elements/container-images/ci-image/ci-systemd-image:v1.0.58
+  artifacts:
+    expire_in: 48 hour
+    when: always
+    paths:
+      - workload-firewall.log
+  allow_failure: true
