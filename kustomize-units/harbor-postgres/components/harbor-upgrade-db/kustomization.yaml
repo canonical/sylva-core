@@ -1,0 +1,30 @@
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
+
+patches:
+  - patch: |
+      - op: add
+        path: /spec/bootstrap
+        value:
+          initdb:
+            import:
+              type: microservice
+              databases:
+                - harbor
+              source:
+                externalCluster: harbor-old-db
+      - op: add
+        path: /spec/externalClusters
+        value:
+          - name: harbor-old-db
+            connectionParameters:
+              host: harbor-postgres-primary
+              user: ${HARBOR_USER_NAME}
+              dbname: harbor
+            password:
+              name: ${HARBOR_SECRET_NAME}
+              key: ${HARBOR_SECRET_KEY_NAME}
+    target:
+      kind: Cluster
+      name: cnpg-harbor
+      namespace: harbor

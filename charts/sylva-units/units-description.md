@@ -127,6 +127,7 @@
 | **gitea-keycloak-resources** | deploys Gitea OIDC client in Sylva's Keycloak realm | Kustomization |
 | **gitea-secrets** | create random secret that will be used by gitea application. secrets are sync with vault. | Kustomization |
 | **grafana-init** | sets up Grafana certificate for Keycloak OIDC integration | Kustomization |
+| **harbor-cnpg-postgres** | Deploy Postgres cluster for Harbor using Cloud Native PostgreSQL (CNPG) | Kustomization |
 | **harbor-init** | sets up Harbor prerequisites<br/><br/>it generates namespace, certificate, admin password, OIDC configuration | Kustomization |
 | **ingress-nginx-cleanup** | Remove rke2-ingress-nginx service from previous deployments (This unit should be removed after Sylva 1.3) | Kustomization |
 | **ingress-nginx-init** | creates the default certificate for the ingress-nginx controller | Kustomization |
