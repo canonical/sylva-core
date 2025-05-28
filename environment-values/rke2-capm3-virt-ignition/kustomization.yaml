@@ -2,10 +2,7 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
 resources:
-  - ../base-capm3-virt
-
-components:
-  - ../base-capm3-virt/high-availability
+  - ../base
 
 labels:
 - includeSelectors: true
@@ -19,3 +16,11 @@ configMapGenerator:
     disableNameSuffixHash: true
   files:
   - values=values.yaml
+
+secretGenerator:
+- name: sylva-units-secrets
+  behavior: merge
+  options:
+    disableNameSuffixHash: true
+  files:
+  - secrets=secrets.yaml
