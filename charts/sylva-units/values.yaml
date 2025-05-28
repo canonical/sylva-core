@@ -114,7 +114,7 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
     spec:
       url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-dashboards.git
       ref:
-        tag: 0.0.17
+        tag: 0.0.18
 
   minio-operator:
     kind: GitRepository
@@ -149,7 +149,7 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
     spec:
       url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-prometheus-rules.git
       ref:
-        tag: 0.0.16
+        tag: 0.0.17
 
   sylva-thanos-rules:
     kind: GitRepository
@@ -1065,6 +1065,7 @@ units:
       harbor-init: '{{ tuple . "harbor-init" | include "unit-enabled" }}'
       '{{ .Values._internal.default_storage_class_unit }}': true
       harbor-postgres: true
+      monitoring-crd: true
     annotations:
       sylvactl/readyMessage: "Harbor UI can be reached at https://{{ .Values.external_hostnames.harbor }} ({{ .Values.external_hostnames.harbor }} must resolve to {{ .Values.display_external_ip }})"
     helm_repo_url: https://helm.goharbor.io
@@ -1125,6 +1126,10 @@ units:
           httpProxy: '{{ get .Values.proxies "http_proxy" }}'
           httpsProxy: '{{ get .Values.proxies "https_proxy" }}'
           noProxy: '{{ include "sylva-units.no_proxy" (tuple .) }}'
+        metrics:
+          enabled: true
+          serviceMonitor:
+            enabled: '{{ .Values._internal.monitoring.enabled | include "preserve-type" }}'
       _postRenderers:
         - kustomize:
             patches:
@@ -8802,6 +8807,8 @@ _internal:
         enabled: '{{ tuple . "snmp-exporter" | include "unit-enabled" }}'
       crossplane:
         enabled: '{{ tuple . "crossplane" | include "unit-enabled" }}'
+      harbor:
+        enabled: '{{ tuple . "harbor" | include "unit-enabled" }}'
 
   thanos:
     store_config_internal:
