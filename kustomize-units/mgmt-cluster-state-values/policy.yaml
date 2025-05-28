@@ -39,7 +39,7 @@ spec:
     generate:
       apiVersion: v1
       kind: Secret
-      name: ca-key-pair
+      name: ca-key-pair-cloned
       namespace: "{{request.object.metadata.name}}"
       synchronize: true   # 🔁 keep it updated on changes
       clone:
@@ -51,16 +51,17 @@ spec:
       any:
       - resources:
           kinds:
-          - Namespace
-          selector:
-            matchLabels:
-              sylva-project.org/workload-cluster: ""
+          - Secret
+          namespaces:
+          - "*"
+          names:
+          - ca-key-pair-cloned 
     mutate:
       targets:
       - apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
         kind: Kustomization
         name: wkld-copy-file
-        namespace: "{{request.object.metadata.name}}"
+        namespace: "{{request.object.metadata.namespace}}"
       patchStrategicMerge:
         metadata:
           annotations:
