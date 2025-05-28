@@ -200,7 +200,8 @@ def get_ci_config_from_mr_description(description=""):
             logging.info("MR description is longer than 2700 characters and truncated in CI variable")
             logging.info("Retrieving MR description from API")
             url = f"{os.getenv('CI_API_V4_URL')}/projects/{os.getenv('CI_PROJECT_ID')}/merge_requests/{os.getenv('CI_MERGE_REQUEST_IID')}"
-            mr = json.loads(urllib.request.urlopen(url).read())
+            req = urllib.request.Request(url, headers={"Private-Token": os.getenv("CI_CONFIGURATION_GUEST_TOKEN")})
+            mr = json.loads(urllib.request.urlopen(req).read())
             MR_DESCRIPTION = mr["description"]
 
     config_pattern = re.compile(
