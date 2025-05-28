@@ -98,6 +98,14 @@ additional_resources="
   ClusterPolicyReports.*wgpolicyk8s.io
   Tenants.*minio.min.io
   HelmCharts.*helm.cattle.io
+  SriovIBNetworks
+  SriovNetworkNodePolicies
+  SriovNetworkNodeStates
+  SriovNetworkPoolConfigs
+  SriovNetworks
+  SriovOperatorConfigs
+  VirtualMachines.*kubevirt.io
+  VirtualMachineInstances.*kubevirt.io
 "
 
 function dump_additional_resources() {
