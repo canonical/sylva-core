@@ -162,27 +162,25 @@ def search_version_in_kustomize_unit_files(kustomize_unit_path):
     for path in possible_paths:
         yaml_focus = yaml_objects
         try:
-            for step in path.split("/"):
-                if "=" in step:
-                    [key, value] = step.split("=")
-                    yaml_focus = [elem for elem in yaml_focus if key in elem and elem[key] == value]
-                    if len(yaml_focus) == 1:
-                        yaml_focus = yaml_focus[0]
-                elif step.isdigit():
-                    yaml_focus = yaml_focus[int(step)]
-                else:
-                    yaml_focus = yaml_focus[step]
-
-            for regexp in possible_regexp:
-                r = re.compile(regexp)
-                try:
-                    version = r.search(str(yaml_focus)).groups()[0]
-                    return {
-                        "source": str(yaml_focus),
-                        "version": version,
-                    }
-                except Exception:
-                    continue
+            steps = path.split("/")
+            [key, value] = steps[0].split("=")
+            yaml_focus_list = [elem for elem in yaml_focus if key in elem and elem[key] == value]
+            for yaml_focus in yaml_focus_list:
+                for step in steps[1:]:
+                    if step.isdigit():
+                        yaml_focus = yaml_focus[int(step)]
+                    else:
+                        yaml_focus = yaml_focus[step]
+                for regexp in possible_regexp:
+                    r = re.compile(regexp)
+                    try:
+                        version = r.search(str(yaml_focus)).groups()[0]
+                        return {
+                            "source": str(yaml_focus),
+                            "version": version,
+                        }
+                    except Exception:
+                        continue
         except Exception:
             continue
 
