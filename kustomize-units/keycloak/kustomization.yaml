@@ -4,9 +4,9 @@ kind: Kustomization
 namespace: keycloak
 
 resources:
-- https://raw.githubusercontent.com/keycloak/keycloak-k8s-resources/26.1.5/kubernetes/keycloaks.k8s.keycloak.org-v1.yml
-- https://raw.githubusercontent.com/keycloak/keycloak-k8s-resources/26.1.5/kubernetes/keycloakrealmimports.k8s.keycloak.org-v1.yml
-- https://raw.githubusercontent.com/keycloak/keycloak-k8s-resources/26.1.5/kubernetes/kubernetes.yml
+- https://raw.githubusercontent.com/keycloak/keycloak-k8s-resources/26.2.5/kubernetes/keycloaks.k8s.keycloak.org-v1.yml
+- https://raw.githubusercontent.com/keycloak/keycloak-k8s-resources/26.2.5/kubernetes/keycloakrealmimports.k8s.keycloak.org-v1.yml
+- https://raw.githubusercontent.com/keycloak/keycloak-k8s-resources/26.2.5/kubernetes/kubernetes.yml
 - keycloak-postgresql-secret.yaml
 - keycloak-server.yaml
 - keycloak-ingress.yaml
