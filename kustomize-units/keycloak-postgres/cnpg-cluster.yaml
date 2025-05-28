@@ -27,7 +27,7 @@ spec:
     storageClass: ${storageClass}
   walStorage:
     size: 10Gi
-    storageClass: ${storageClass}  # use a faster class for WALs if needed
+    storageClass: ${storageClass}
   affinity:
     podAntiAffinityType: ${podAntiAffinityType}
   enablePDB: false
