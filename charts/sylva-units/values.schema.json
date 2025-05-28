@@ -5822,6 +5822,19 @@
             }
           ]
         },
+        "kubeapiserver_extra_args": {
+          "anyOf": [
+            {
+              "type": "object"
+            },
+            {
+              "$ref": "#/$defs/string-with-gotpl"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
         "additional_commands": {
           "anyOf": [
             {
