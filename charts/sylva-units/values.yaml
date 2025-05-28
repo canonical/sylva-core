@@ -864,6 +864,7 @@ units:
       path: ./kustomize-units/keycloak-postgres
       wait: true
       _components:
+        - '{{ tuple "./components/ha" (.Values._internal.ha_cluster.is_ha) | include "set-only-if" }}'
         - '{{ tuple "./components/keycloak-upgrade-db" (and .Values._internal.state.is_upgrade (tuple . "keycloak" | include "unit-enabled")) | include "set-only-if" }}'
 
   kubevirt:
