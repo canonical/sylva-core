@@ -803,6 +803,17 @@ properties:
           - type: string
             format: hostname
           - $ref: "#/$defs/string-with-gotpl"
+      neuvector_federation_master:  # ---------------------
+        anyOf:
+          - type: string
+            format: hostname
+          - $ref: "#/$defs/string-with-gotpl"
+      neuvector_federation_managed:  # --------------------
+
+        anyOf:
+          - type: string
+            format: hostname
+          - $ref: "#/$defs/string-with-gotpl"
       harbor:  # -------------------------------
         anyOf:
           - type: string
@@ -929,6 +940,10 @@ properties:
       keycloak:  # -------------------------------
         $ref: "#/$defs/cert-and-key"
       neuvector:  # -------------------------------
+        $ref: "#/$defs/cert-and-key"
+      neuvector_federation_master:  # -------------
+        $ref: "#/$defs/cert-and-key"
+      neuvector_federation_managed:  # ------------
         $ref: "#/$defs/cert-and-key"
       harbor:  # -------------------------------
         $ref: "#/$defs/cert-and-key"

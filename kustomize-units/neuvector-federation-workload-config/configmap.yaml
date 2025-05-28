@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ${CONFIGMAP_NAME}
+  namespace: neuvector
+data:
+  fedinitcfg: |
+    cluster_name: ${CLUSTER_NAME}
+    primary_rest_info:
+      server: ${MGMT_NEUVECTOR_FEDERATION_MASTER_HOSTNAME}
+      port: 443
+    managed_rest_info:
+      server: ${NEUVECTOR_FEDERATION_MANAGED_HOSTNAME}
+      port: 443
+    join_token: ${NEUVECTOR_JOIN_TOKEN}

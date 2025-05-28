@@ -1526,6 +1526,32 @@ units:
         - '{{ ternary "../tls-components/tls-secret" "../tls-components/tls-certificate" (hasKey .Values.external_certificates.neuvector "cert") }}'
         - "../tls-components/sylva-ca"
 
+
+  neuvector-federation-generate-workload-config:
+    info:
+      description: generate a Neuvector federation workload config with join token
+      details: >
+        a job to define the federation config for workload cluster
+      internal: true
+    unit_templates:
+    - base-deps
+    enabled_conditions:
+    - '{{ tuple . "neuvector" | include "unit-enabled" }}'
+    repo: sylva-core
+    depends_on:
+      neuvector: true
+    kustomization_spec:
+      path: ./kustomize-units/neuvector-federation-workload-config
+      targetNamespace: neuvector
+      postBuild:
+        substitute:
+          CONFIGMAP_NAME: 'neuvector-federation-{{ .Values.cluster.name }}'
+          CLUSTER_NAME: '{{ .Values.cluster.name }}'
+          MGMT_NEUVECTOR_FEDERATION_MASTER_HOSTNAME: '{{ .Values._internal.mgmt_neuvector_federation_master }}'
+          NEUVECTOR_FEDERATION_MANAGED_HOSTNAME: '{{ .Values.external_hostnames.neuvector_federation_managed }}'
+          NEUVECTOR_JOIN_TOKEN: '{{ .Values._internal.neuvector_join_token }}'
+
+
   neuvector:
     info:
       description: installs Neuvector
@@ -2361,8 +2387,8 @@ units:
           DIGEST: '{{ .Values.security.upstream_images_signature.policy_action | eq "Enforce" }}'
           COSIGN_PUBLIC_KEY: '{{ .Values.security.upstream_images_signature.cosign_public_key | quote }}'
           IMAGE_LIST: '{{ .Values.security.upstream_images_signature.images_list | toJson }}'
-          COREDNS_DEPLOYMENT_NAME: '{{ tuple (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpk" | ternary "coredns" "rke2-coredns-rke2-coredns") (tuple . "cabpoa" | include "unit-enabled") | include "set-only-if" }}'
-          COREDNS_CONFIGMAP_NAME: '{{ tuple (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpk" | ternary "coredns" "rke2-coredns-rke2-coredns") (tuple . "cabpoa" | include "unit-enabled") | include "set-only-if" }}'
+          COREDNS_DEPLOYMENT_NAME: '{{ tuple (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpk" | ternary "coredns" "rke2-coredns-rke2-coredns") (or (tuple . "neuvector" | include "unit-enabled") (tuple . "cabpoa" | include "unit-enabled")) | include "set-only-if" }}'
+          COREDNS_CONFIGMAP_NAME: '{{ tuple (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpk" | ternary "coredns" "rke2-coredns-rke2-coredns") (or (tuple . "neuvector" | include "unit-enabled") (tuple . "cabpoa" | include "unit-enabled")) | include "set-only-if" }}'
       _components:
         - '{{ tuple "components/bootstrap-cluster-only" .Values._internal.bstrp_cluster | include "set-only-if" }}'
         - '{{ tuple "components/management-cluster-only" .Values._internal.mgmt_cluster | include "set-only-if" }}'
@@ -2374,7 +2400,7 @@ units:
         - '{{ tuple "components/neuvector-policies" (tuple . "neuvector" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/restart-kyverno-on-minio-tenant-crd" (tuple . "minio-operator" | include "unit-enabled") | include "set-only-if" }}'
         - ../exclude-kube-system  # needs to be last (needed for components above that use sylva.org/kyverno-exclude-kube-system annotation)
-        - '{{ tuple "components/coredns-custom-hosts-import" (tuple . "cabpoa" | include "unit-enabled") | include "set-only-if" }}'
+        - '{{ tuple "components/coredns-custom-hosts-import" (or (tuple . "neuvector" | include "unit-enabled") (tuple . "cabpoa" | include "unit-enabled")) | include "set-only-if" }}'
 
   kyverno-policies-ready:
     info:
@@ -5207,7 +5233,6 @@ units:
     repo: sylva-core
     kustomization_spec:
       path: ./kustomize-units/coredns
-      wait: true
       _patches:
         - target:
             kind: ConfigMap
@@ -5227,7 +5252,19 @@ units:
         substitute:
           CLUSTER_VIRTUAL_IP: '{{ .Values.cluster_virtual_ip }}'
           CLUSTER_DOMAIN: '{{ .Values.cluster_domain }}'
-
+      healthChecks:  # sometimes this kustomization seems correctly applied while coredns pod is not running
+      # so we replace wait:true by checking for the CoreDNS components health
+        - apiVersion: apps/v1
+          kind: Deployment
+          name: >-
+            {{- if eq .Values.cluster.capi_providers.bootstrap_provider "cabpk" -}}
+            coredns
+            {{- else if eq .Values.cluster.capi_providers.bootstrap_provider "cabpck" -}}
+            ck-dns-coredns
+            {{- else -}}
+            rke2-coredns-rke2-coredns
+            {{- end -}}
+          namespace: kube-system
   nfs-ganesha-init:
     info:
       description: Define persistent volume claim for NFS Ganesha
@@ -8043,16 +8080,56 @@ units:
     unit_templates:
     - base-deps
     enabled_conditions:
-      - '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpoa" }}'
+      - '{{
+           or (tuple . "neuvector" | include "unit-enabled")
+              (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpoa")
+           }}'
     repo: sylva-core
     kustomization_spec:
       path: ./kustomize-units/coredns-custom-hosts-import
+      _components:
+        - '{{ tuple "components/okd" (tuple . "cabpoa" | include "unit-enabled") | include "set-only-if" }}'
+        - '{{ tuple "components/neuvector-federation" (tuple . "neuvector" | include "unit-enabled") | include "set-only-if" }}'
       postBuild:
         substitute:
           NAMESPACE: '{{ .Release.Namespace }}'
           CLUSTER_NAME: '{{ .Values.cluster.name }}'
           CLUSTER_VIRTUAL_IP: '{{ .Values.cluster_virtual_ip }}'
           CLUSTER_OKD_BASE_DOMAIN: '{{ .Values.cluster.openshift.baseDomain }}'
+          CLUSTER_DOMAIN: '{{ .Values.cluster_domain }}'
+          NEUVECTOR_FEDERATION_MANAGED_HOSTNAME: '{{ .Values.external_hostnames.neuvector_federation_managed }}'
+
+  coredns-custom-hosts-import-ready:
+    info:
+      description: force CoreDNS rollout to ensure that CoreDNS are properly configured after custom hosts addition
+      internal: true
+    unit_templates:
+      - kube-job
+    enabled_conditions:
+      - '{{ tuple . "coredns-custom-hosts-import" | include "unit-enabled" }}'
+    repo: sylva-core
+    kustomization_spec:
+      targetNamespace: kube-system
+      wait: true
+      force: true
+      _patches:
+        - target:
+            kind: Job
+          patch: |
+            - op: add
+              path: /spec/template/spec/containers/0/env
+              value:
+                - name: CORE_DNS_DEPLOYMENT_NAME
+                  value: '{{ (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpk") | ternary "coredns" "rke2-coredns-rke2-coredns" }}'
+        - target:
+            kind: ConfigMap
+            labelSelector: kube-job=script
+          patch: |
+            - op: replace
+              path: /data/kube-job.sh
+              value: |
+                #!/bin/bash
+                kubectl rollout restart deployment $CORE_DNS_DEPLOYMENT_NAME -n kube-system
 
   backup-capi-resources:
     info:
@@ -8382,6 +8459,7 @@ external_hostnames:
   keycloak: 'keycloak.{{ .Values.cluster_domain }}'
   flux: 'flux.{{ .Values.cluster_domain }}'
   neuvector: 'neuvector.{{ .Values.cluster_domain }}'
+  neuvector_federation_master: 'federation-master.neuvector.{{ .Values.cluster_domain }}'
   harbor: 'harbor.{{ .Values.cluster_domain }}'
   os_image_server: ''
   gitea: 'gitea.{{ .Values.cluster_domain }}'
@@ -8409,6 +8487,8 @@ external_certificates:
   keycloak: {}
   flux: {}
   neuvector: {}
+  neuvector_federation_master: {}
+  neuvector_federation_managed: {}
   harbor: {}
   os_image_server: {}
   gitea: {}
@@ -9124,6 +9204,8 @@ _internal:
   kubevirt_admin_user: 'admin'
   kubevirt_admin_password: '{{ include "internalPersistentRandomPasswd" (tuple . "kubevirt_admin_password") }}'
 
+  neuvector_join_token: '{{ include "internalPersistentRandomPasswd" (tuple . "neuvector_join_token") }}'
+
   default_password: '{{ include "internalPersistentRandomPasswd" (tuple . "default_password") }}'
 
   default_longhorn_storage_class: longhorn
@@ -9532,10 +9614,13 @@ mgmt_cluster_state_values:
                                 "rancher"
                                 "thanos_receive"
                                 "harbor"
+                                "neuvector_federation_master"
                            ) -}}
            {{- $hostname }}{{print " "}}
          {{- end -}}
        {{- end -}}
+    mgmt_neuvector_federation_master: '{{ .Values.external_hostnames.neuvector_federation_master }}'
+    neuvector_join_token: '{{ .Values._internal.neuvector_join_token }}'
 
 workload_clusters:
   teams: {}

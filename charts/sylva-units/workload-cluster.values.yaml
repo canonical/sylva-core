@@ -379,14 +379,73 @@ units:
       _components:
         - '{{ hasKey .Values.external_certificates.neuvector "cert" | ternary "../../tls-components/tls-secret" "../../tls-components/tls-certificate" }}'
 
+  neuvector-federation-tls:
+    enabled: true
+    info:
+      description: configures Neuvector federation TLS
+      details: enable TLS protocol when using Neuvector federation
+      internal: true
+    unit_templates:
+    - dummy
+    enabled_conditions:
+    - '{{ tuple . "neuvector" | include "unit-enabled" }}'
+    - '{{ .Values._internal.sylva_mgmt_enabled_units.neuvector }}'
+    repo: sylva-core
+    kustomization_substitute_secrets:
+      KEY: '{{ .Values.external_certificates.neuvector_federation_managed.key | default "" | b64enc }}'
+    depends_on:
+      sylva-ca: true
+      namespace-defs: true
+    kustomization_spec:
+      path: ./kustomize-units/dummy/base
+      targetNamespace: neuvector
+      postBuild:
+        substitute:
+          SERVICE: neuvector-federation
+          SERVICE_DNS: '{{ .Values.external_hostnames.neuvector_federation_managed }}'
+          CERTIFICATE_NAMESPACE: neuvector
+          CERT: '{{ .Values.external_certificates.neuvector_federation_managed.cert | default "" | b64enc }}'
+          CACERT: '{{ .Values.external_certificates.cacert | default "" | b64enc }}'
+      _components:
+        - '{{ hasKey .Values.external_certificates.neuvector_federation_master "cert" | ternary "../../tls-components/tls-secret" "../../tls-components/tls-certificate" }}'
+
+  neuvector-federation-generate-workload-config:
+    enabled: true
+    enabled_conditions:
+      - '{{ tuple . "neuvector" | include "unit-enabled" }}'
+      - '{{ .Values._internal.sylva_mgmt_enabled_units.neuvector }}'
+    repo: sylva-core
+    depends_on:
+      neuvector: false
+      coredns-custom-hosts-import: true
+    unit_templates:
+    - kustomization-deployed-on-mgmt-cluster
+    kustomization_spec:
+      healthChecks: [] # Remove healthChecks targeting sylva-system namespace
+
   neuvector:
     # can be enabled at runtime if desired
     enabled: false
     depends_on:
       neuvector-tls: true
+      neuvector-federation-tls: '{{ tuple . "neuvector-federation-tls" | include "unit-enabled" }}'
+      neuvector-federation-generate-workload-config: '{{ tuple . "neuvector-federation-generate-workload-config" | include "unit-enabled" }}'
+      coredns-custom-hosts-import-ready: '{{ tuple . "coredns-custom-hosts-import-ready" | include "unit-enabled" }}'
     helmrelease_spec:
       values:
         controller:
+          federation:
+            managedsvc:
+              type: ClusterIP
+              ingress:
+                enabled: true
+                host: '{{ .Values.external_hostnames.neuvector_federation_managed }}'
+                ingressClassName: nginx
+                path: /
+                annotations:
+                  nginx.ingress.kubernetes.io/backend-protocol: https
+                tls: true
+                secretName: neuvector-federation-tls
           secret:
             enabled: true
             data:
@@ -584,8 +643,25 @@ units:
 
   coredns-custom-hosts-import:
     enabled: true
+    depends_on:
+      coredns: true
     unit_templates:
     - kustomization-deployed-on-mgmt-cluster
+    kustomization_spec:
+      targetNamespace: kube-system
+      postBuild:
+        substituteFrom:
+          - kind: ConfigMap
+            name: capo-cluster-resources
+            optional: '{{ not (.Values.cluster.capi_providers.infra_provider | eq "capo") | include "as-bool" }}'
+
+  coredns-custom-hosts-import-ready:
+    enabled: true
+    depends_on:
+      coredns-custom-hosts-import: '{{ tuple . "neuvector" | include "unit-enabled" }}'
+    unit_templates:
+      - kustomization-deployed-on-mgmt-cluster
+      - kube-job
 
   backup-etcd:
     enabled: true
@@ -746,6 +822,9 @@ units:
                 verbs: [list, get, patch]
 
 cluster_domain: '{{ .Values.cluster.name }}.{{ .Values._internal.workload_clusters_cluster_subdomain }}'
+
+external_hostnames:
+  neuvector_federation_managed: 'federation-managed.neuvector.{{ .Values.cluster_domain }}'
 
 _internal:
   os_image_server_images_configmap: kyverno-cloned-os-image-server-images
