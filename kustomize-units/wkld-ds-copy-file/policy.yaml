@@ -2,7 +2,7 @@
 apiVersion: kyverno.io/v1
 kind: ClusterPolicy
 metadata:
-  name: workload-clusters-propagate-mgmt-state-settings
+  name: propagate-ca
   annotations:
     kustomize.toolkit.fluxcd.io/force: Enabled
 spec:
