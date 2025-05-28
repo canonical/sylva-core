@@ -1,0 +1,50 @@
+apiVersion: crd.projectcalico.org/v1
+kind: GlobalNetworkPolicy
+metadata:
+  name: cluster-vip-policy
+spec:
+  selector: has(node-role.kubernetes.io/control-plane)
+  order: 40
+  preDNAT: true
+  applyOnForward: true
+  ingress:
+  - action: Allow
+    protocol: TCP
+    source:
+      selector: role == 'allowed-to-gui'
+    destination:
+      nets:
+      - ${CLUSTER_VIRTUAL_IP}
+      ports:
+      - 80
+      - 443
+  - action: Allow
+    protocol: TCP
+    source:
+      selector: role == 'allowed-to-kubeapi'
+    destination:
+      nets:
+      - ${CLUSTER_VIRTUAL_IP}
+      ports:
+      - 6443
+  # allow all nodes and pods in the host namespace to access to kube-apiserver
+  - action: Allow
+    protocol: TCP
+    source:
+      selector: has(kubernetes.io/hostname)
+    destination:
+      nets:
+      - ${CLUSTER_VIRTUAL_IP}
+      ports:
+      - 6443 # kube-apiserver
+  # allow all pods to access to kube-apiserver
+  - action: Allow
+    protocol: TCP
+    source:
+      selector: all()
+      namespaceSelector: all()
+    destination:
+      nets:
+      - ${CLUSTER_VIRTUAL_IP}
+      ports:
+      - 6443

@@ -1,0 +1,32 @@
+apiVersion: crd.projectcalico.org/v1
+kind: GlobalNetworkPolicy
+metadata:
+  name: cluster-vip-drop
+spec:
+  selector: has(node-role.kubernetes.io/control-plane)
+  order: 100
+  preDNAT: true
+  applyOnForward: true
+  # deny all the ingress traffic to the cluster IP that wasn't allowed by another policy
+  ingress:
+  - action: Log
+    protocol: TCP
+    destination:
+      nets:
+      - ${CLUSTER_VIRTUAL_IP}
+  - action: ${DEFAULT_POLICY}
+    protocol: TCP
+    destination:
+      nets:
+      - ${CLUSTER_VIRTUAL_IP}
+  - action: Log
+    protocol: UDP
+    destination:
+      nets:
+      - ${CLUSTER_VIRTUAL_IP}
+  - action: ${DEFAULT_POLICY}
+    protocol: UDP
+    destination:
+      nets:
+      - ${CLUSTER_VIRTUAL_IP}
+

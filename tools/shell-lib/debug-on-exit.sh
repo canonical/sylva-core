@@ -77,6 +77,10 @@ additional_resources="
   Installations.*operator.tigera.io
   IPPools.*crd.projectcalico.org
   FelixConfigurations.*crd.projectcalico.org
+  NetworkPolicies.*crd.projectcalico.org
+  GlobalNetworkPolicies.*crd.projectcalico.org
+  KubeControllersConfigurations.*crd.projectcalico.org
+  GlobalNetworkSets.*crd.projectcalico.org
   IPAddresses.*ipam.metal3.io
   IPClaims.*ipam.metal3.io
   IPPools.*ipam.metal3.io

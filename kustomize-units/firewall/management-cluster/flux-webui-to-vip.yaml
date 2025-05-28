@@ -1,0 +1,18 @@
+apiVersion: crd.projectcalico.org/v1
+kind: GlobalNetworkPolicy
+metadata:
+  name: flux-webui-to-vip
+spec:
+  order: 40
+  preDNAT: true
+  applyOnForward: true
+  ingress:
+  - action: Allow
+    protocol: TCP
+    source:
+      selector: app.kubernetes.io/instance == 'flux-webui'
+    destination:
+      nets:
+      - ${CLUSTER_VIRTUAL_IP}
+      ports:
+      - 443

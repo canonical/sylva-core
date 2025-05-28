@@ -1,0 +1,10 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+- restart-kyverno-after-capm3-crds.yaml
+- globalnetworkset-of-management-cluster-provisioning-addresses.yaml
+- globalnetworkset-of-metal3-workload-cluster-public-addresses.yaml
+- globalnetworkset-of-metal3machines.yaml
+- provisioning-addresses-of-workload-cluster.yaml
+- public-addresses-of-management-cluster.yaml

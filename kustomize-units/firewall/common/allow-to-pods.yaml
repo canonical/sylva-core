@@ -1,0 +1,16 @@
+apiVersion: crd.projectcalico.org/v1
+kind: GlobalNetworkPolicy
+metadata:
+  name: allow-to-pods
+spec:
+  selector: has(kubernetes.io/hostname)
+  order: 57
+  types:
+  - Ingress
+  applyOnForward: true
+  preDNAT: true
+  ingress:
+   # Allow traffic forwarded to pods
+  - action: Allow
+    destination:
+      nets: ${CLUSTER_PODS_CIDR}

@@ -1,0 +1,50 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: globalnetworkset-for-capo-management-cluster
+  annotations:
+    policies.kyverno.io/title: Create a GlobalNetworkSet for a capo workload cluster node
+    policies.kyverno.io/category: Firewall
+    policies.kyverno.io/subject: GlobalNetworkSet
+    policies.kyverno.io/minversion: 1.0.0
+    policies.kyverno.io/description: >-
+      Creates a GlobalNetworkSet for each workload cluster node so that firewall rules can be
+      written to allow some traffic only from/to the workload clusters.
+    kustomize.toolkit.fluxcd.io/force: Enabled
+spec:
+  rules:
+# This rule creates a configmap rather than directly creating a GlobalNetworkSet
+# It allows creating a GlobalNetworkSet of the management cluster addresses not only in
+# the management cluster itself, but also in the workload clusters with a kustomization
+# substituting the management_cluster_addresses: from this configmap
+#
+  - name: globalnetworkset-for-capo-management-cluster
+    match:
+      any:
+      - resources:
+          kinds:
+          - infrastructure.cluster.x-k8s.io/*/OpenStackMachine
+          namespaces:
+          - sylva-system
+    # only apply if an IP address is assigned to the VM
+    preconditions:
+      all:
+        - key: "{{ request.object.status.addresses[?type=='InternalIP'] || `[]` | length(@) }}"
+          operator: GreaterThanOrEquals
+          value: 1
+    context:
+      - name: osmachines
+        apiCall:
+          urlPath: "/apis/infrastructure.cluster.x-k8s.io/v1beta1/namespaces/{{ request.namespace }}/openstackmachines/"
+          jmesPath: "items[*].status.addresses[?type=='InternalIP'].address[]"
+    generate:
+      generateExisting: true
+      synchronize: true
+      apiVersion: v1
+      kind: ConfigMap
+      name: management-cluster-addresses
+      namespace: sylva-system
+      data:
+        kind: ConfigMap
+        data:
+          management_cluster_addresses: "[{{ osmachines | join(',', @) }}]"
