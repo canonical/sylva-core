@@ -49,18 +49,18 @@ spec:
 
   - name: label-cloned-secret
     match:
-    any:
-    - resources:
-        kinds:
-        - Secret
-        names:
-        - ca-key-pair-cloned
+      any:
+      - resources:
+          kinds:
+          - Secret
+          names:
+          - ca-key-pair-cloned
     mutate:
       patchStrategicMerge:
         metadata:
           labels:
             test/gen: "true"
-            
+
   - name: reconcile-on-secret-update
     match:
       any:
