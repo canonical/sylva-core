@@ -2933,8 +2933,8 @@ units:
           images:
             ironicIPADownloader:
               #repository: registry.opensuse.org/isv/suse/edge/containers/images/ironic-ipa-downloader-x86_64
-              repository: registry.opensuse.org/home/nbelouin/factorynmctest/images/ironic-ipa-downloader-x86_64
-              tag: 3.0.6
+              repository: registry.opensuse.org/isv/suse/edge/containers/images/ironic-ipa-downloader-x86_64
+              tag: 3.0.7
           fullnameOverride: metal3-ironic
           service:
             type: LoadBalancer
