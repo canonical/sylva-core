@@ -46,6 +46,10 @@ units:
     depends_on:
       '{{ .Values._internal.default_storage_class_unit }}': true
 
+  capo-network-settings:
+    depends_on:
+      capo-orc: true
+
   cluster-bmh:
     depends_on:
       metal3: '{{ .Values.cluster.capi_providers.infra_provider | eq "capm3" }}'

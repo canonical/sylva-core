@@ -3117,6 +3117,7 @@ units:
       # see management.values.yaml and workload-cluster.values.yaml to see how
       # we handle the fact that this unit depends on the CAPI-related components being ready
       capo-cluster-resources: '{{ .Values.cluster.capi_providers.infra_provider | eq "capo" }}'
+      capo-network-settings: '{{ .Values.cluster.capi_providers.infra_provider | eq "capo" }}'
       sync-openstack-images: '{{ .Values.cluster.capi_providers.infra_provider | eq "capo" }}'
       cluster-bmh: '{{ .Values.cluster.capi_providers.infra_provider | eq "capm3" }}'
       cluster-node-deletion-timeout-fix: '{{ tuple . "cluster-node-deletion-timeout-fix" | include "unit-enabled" }}'
@@ -3220,10 +3221,10 @@ units:
           | include "set-only-if"
           -}}
 
-        # capo-cluster-resources ConfigMap to inject allocated_ip in Calico configuration
+        # ConfigMaps to inject allocated_ip and mtu in Calico configuration
         #
         # only used for capo
-        # byproduct of the capo-cluster-resources unit
+        # byproduct of the capo-cluster-resources and capo-network-settings units
         - |
           {{-
           tuple
@@ -3233,6 +3234,17 @@ units:
                   "targetPath" "cni.calico.helm_values.installation.calicoNetwork.nodeAddressAutodetectionV4.canReach"
             )
             .Values._internal.capo_calico_autodetection_method_use_canReach_vip
+          | include "set-only-if"
+          -}}
+        - |
+          {{-
+          tuple
+            (dict "kind" "ConfigMap"
+                  "name" "capo-network-settings"
+                  "valuesKey" "calico_mtu"
+                  "targetPath" "cni.calico.helm_values.installation.calicoNetwork.mtu"
+            )
+            (eq .Values.cluster.capi_providers.infra_provider "capo")
           | include "set-only-if"
           -}}
       _postRenderers:
@@ -3541,6 +3553,65 @@ units:
           CLUSTER_VIRTUAL_IP_PORT_UUID: '{{ .Values.openstack.cluster_virtual_ip_port_uuid | default "" }}'
           CLUSTER_FLOATING_IP_UUID: '{{ .Values.openstack.cluster_floating_ip_uuid | default "" }}'
 
+  capo-network-settings:
+    info:
+      description: ConfigMap with network settings for CAPO
+      internal: true
+    labels:
+      sylva-units/protected: ""
+    unit_templates:
+    - kube-job
+    enabled_conditions:
+    - '{{ .Values.cluster.capi_providers.infra_provider | eq "capo" }}'
+    depends_on:
+      capo-cloud-config: true
+    kustomization_spec:
+      _patches:
+      - target:
+          kind: ConfigMap
+          labelSelector: kube-job=script
+        patch: |
+          - op: replace
+            path: /data/kube-job.sh
+            value: |
+              #!/bin/bash
+              set -e
+
+              cat <<EOF | kubectl apply -f -
+              apiVersion: openstack.k-orc.cloud/v1alpha1
+              kind: Network
+              metadata:
+                name: capo-network
+                namespace: {{ .Release.Namespace }}
+              spec:
+                cloudCredentialsRef:
+                  cloudName: capo_cloud
+                  secretName: cluster-cloud-config
+                import:
+                  id: '{{ .Values.cluster.capo.network_id }}'
+                managementPolicy: unmanaged
+              EOF
+
+              kubectl wait network.openstack.k-orc.cloud capo-network --for condition=Available
+
+              network_mtu=$(kubectl get network.openstack.k-orc.cloud capo-network -o jsonpath='{.status.resource.mtu}')
+              echo "network-mtu: $network_mtu"
+              calico_mtu=$(($network_mtu - {{ .Values._internal.calico_encapsulation_overhead}}))
+              echo "calico-mtu: $calico_mtu"
+
+              cat <<EOF | kubectl apply -f -
+              apiVersion: v1
+              kind: ConfigMap
+              metadata:
+                labels:
+                  copy-from-bootstrap-to-management: ""
+                name: capo-network-settings
+                namespace: {{ .Release.Namespace }}
+              data:
+                network_mtu: "$network_mtu"
+                calico_mtu: "$calico_mtu"
+              EOF
+
   calico-crd:
     info:
       description: installs Calico CRDs
@@ -3576,6 +3647,7 @@ units:
       - '{{ tuple "base-deps" (not .Values._internal.state.is_upgrade) | include "set-only-if" }}'
     depends_on:
       calico-crd: true
+      capo-network-settings: '{{ tuple . "capo-network-settings" | include "unit-enabled" }}'
     helm_repo_url: https://rke2-charts.rancher.io
     helm_chart_versions:
       v3.29.300: >-
@@ -3592,19 +3664,31 @@ units:
           version: "" # will be defined by helm_chart_versions
       values: '{{ .Values.calico_helm_values | include "preserve-type" }}'
       valuesFrom:
+        - |
+          {{- tuple
+                (dict "kind" "ConfigMap"
+                      "name" "capo-network-settings"
+                      "valuesKey" "calico_mtu"
+                      "targetPath" "installation.calicoNetwork.mtu"
+                )
+                (eq .Values.cluster.capi_providers.infra_provider "capo")
+              | include "set-only-if"
+          -}}
         # For Calico nodeAddressAutodetection, for RKE2 on CAPO, we need to pass the cluster VIP in calico values
         # as installation.calicoNetwork.nodeAddressAutodetectionV4.canReach
         #
         # this address is read from the ConfigMap produced by capo-cluster-resources unit
         # which allocates the VIP
-        '{{ tuple
-            (list (dict "kind" "ConfigMap"
-                  "name" "capo-cluster-resources"
-                  "valuesKey" "allocated_ip"
-                  "targetPath" "installation.calicoNetwork.nodeAddressAutodetectionV4.canReach")
-            )
-            .Values._internal.capo_calico_autodetection_method_use_canReach_vip
-          | include "set-only-if" }}'
+        - |
+          {{- tuple
+                (dict "kind" "ConfigMap"
+                      "name" "capo-cluster-resources"
+                      "valuesKey" "allocated_ip"
+                      "targetPath" "installation.calicoNetwork.nodeAddressAutodetectionV4.canReach"
+                )
+                .Values._internal.capo_calico_autodetection_method_use_canReach_vip
+              | include "set-only-if"
+          -}}
 
   calico-ready:
     info:
@@ -9656,7 +9740,7 @@ _internal:
       | include "preserve-type"
     }}
 
-  calico_mtu: |-
+  calico_encapsulation_overhead: |-
     {{- tuple . "_internal.base_cni_mtu" | include "interpret" -}}
 
     {{- $encapsulation_header := dict
@@ -9685,9 +9769,11 @@ _internal:
     {{- if .Values.security.calico_wireguard_enabled | default false -}}
       {{- $max_overhead = max $max_overhead (index $encapsulation_header "wireguard") -}}
     {{- end -}}
+    {{- $max_overhead | include "preserve-type" -}}
 
+  calico_mtu: |-
     {{- /* Calculate final MTU */ -}}
-    {{- $mtu := sub .Values._internal.base_cni_mtu $max_overhead -}}
+    {{- $mtu := sub .Values._internal.base_cni_mtu .Values._internal.calico_encapsulation_overhead -}}
     {{- $mtu | include "preserve-type" -}}
 
   # Substitute with the cluster_virtual_ip value if it is defined to another value than the default, mandatory with capm3

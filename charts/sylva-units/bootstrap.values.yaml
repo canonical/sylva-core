@@ -613,6 +613,7 @@ units_override_enabled:
   - heat-operator
   - capo-cloud-config
   - capo-cluster-resources
+  - capo-network-settings
   - multus
   - multus-ready
   - libvirt-metal

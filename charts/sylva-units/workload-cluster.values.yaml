@@ -152,6 +152,12 @@ units:
                   protocol: [tcp, tcp, tcp, udp]
                   remote_ip_prefix: [0.0.0.0/0, 0.0.0.0/0, 0.0.0.0/0, 0.0.0.0/0]
 
+  capo-network-settings:
+    enabled: true
+    unit_templates:
+    - kustomization-deployed-on-mgmt-cluster
+    - kube-job
+
   sandbox-privileged-namespace:
     kustomization_spec:
       targetNamespace: sandbox # because this is set for sylva-system in workload-clusters
