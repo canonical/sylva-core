@@ -1017,61 +1017,63 @@ units:
         - '{{ ternary "../tls-components/tls-secret" "../tls-components/tls-certificate" (hasKey .Values.external_certificates.harbor "cert") }}'
         - "../tls-components/sylva-ca"
 
-  harbor-postgres:
+  harbor-cnpg-postgres:
     info:
-      description: installs Postgresql for Harbor
+      description: Deploy Postgres cluster for Harbor using Cloud Native PostgreSQL (CNPG)
       maturity: stable
+      internal: true
     depends_on:
+      cnpg-operator: true
       namespace-defs: true
       harbor-init: '{{ tuple . "harbor-init" | include "unit-enabled" }}'  # conditional, because in workload clusters harbor-init isn't used
       '{{ .Values._internal.default_storage_class_unit }}': true
     unit_templates:
-    - base-deps
+      - base-deps
     enabled_conditions:
       - '{{ tuple . "harbor" | include "unit-enabled" }}'
-    repo: bitnami-postgresql
-    helmrelease_spec:
-      chart:
-        spec:
-          chart: bitnami/postgresql
+    repo: sylva-core
+    kustomization_spec:
+      postBuild:
+        substitute:
+          HARBOR_POSTGRES_REPLICAS: '{{ .Values._internal.ha_cluster.is_ha | ternary 3 1 }}'
+          storageClass: '{{ .Values._internal.default_storage_class }}'
+          podAntiAffinityType: '{{ .Values._internal.ha_cluster.is_ha | ternary "required" "preferred" }}'
+          HARBOR_USER_NAME: '{{ .Values._internal.mgmt_cluster | ternary "postgres" "harbor" }}'
+          HARBOR_SECRET_NAME: '{{ .Values._internal.mgmt_cluster | ternary "harbor-postgres-secrets" "harbor-postgres" }}'
+          HARBOR_SECRET_KEY_NAME: '{{ .Values._internal.mgmt_cluster | ternary "admin-password" "password" }}'
+      path: ./kustomize-units/harbor-postgres
       targetNamespace: harbor
-      values:
-        auth:
-          username: harbor
-          database: harbor
-          existingSecret: harbor-postgres-secrets
-          secretKeys:
-            adminPasswordKey: admin-password
-            userPasswordKey: password
-            replicationPasswordKey: replication-password
-        architecture: replication
-        nameOverride: postgres
-        serviceAccount:
-          create: true
-          name: postgresql
-        primary:
-          pdb:
-            create: false  # this is non-HA and single replica, so a PDB does not make sense
-          extendedConfiguration: |-
-            huge_pages = off
-          initdb:
-            args: "--set huge_pages=off"
-        readReplicas:
-          extendedConfiguration: |-
-            huge_pages = off
-          replicaCount: '{{ .Values._internal.ha_cluster.is_ha | ternary 3 1 }}'
-          affinity:
-            podAntiAffinity:
-              requiredDuringSchedulingIgnoredDuringExecution:
-                - labelSelector:
-                    matchLabels:
-                      app.kubernetes.io/name: postgres
-                      app.kubernetes.io/component: read
-                  topologyKey: kubernetes.io/hostname
-      _postRenderers:
-        - kustomize:
-            patches:
-            - '{{ .Values._internal.pdb_allow_unhealthy_pod_eviction | include "preserve-type" }}'
+      wait: true
+      _components:
+        - '{{ tuple "./components/ha" (.Values._internal.ha_cluster.is_ha) | include "set-only-if" }}'
+        - '{{ tuple "./components/harbor-upgrade-db" (and .Values._internal.state.is_upgrade (tuple . "harbor" | include "unit-enabled")) | include "set-only-if" }}'
+
+  harbor-postgres-cleanup:
+    info:
+      description: Delete the old Harbor PostgreSQL Kustomization after migration to CNPG.
+      internal: true
+    one_shot: true
+    unit_templates:
+    - base-deps
+    - kube-job
+    enabled_conditions:
+    - '{{ tuple . "harbor-cnpg-postgres" | include "unit-enabled" }}'
+    - '{{ .Values._internal.state.is_upgrade }}'
+    depends_on:
+      harbor-cnpg-postgres: '{{ tuple . "harbor-cnpg-postgres" | include "unit-enabled" }}'
+    kustomization_spec:
+      targetNamespace: harbor
+      _patches:
+      - target:
+          kind: ConfigMap
+          labelSelector: kube-job=script
+        patch: |
+          - op: replace
+            path: /data/kube-job.sh
+            value: |
+              #!/bin/bash
+              echo "--- Deleting old Harbor PostgreSQL Kustomization"
+              kubectl delete kustomization.kustomize.toolkit.fluxcd.io harbor-postgres --ignore-not-found=true
 
   harbor:
     info:
@@ -1084,8 +1086,8 @@ units:
       ingress-nginx: '{{ tuple . "ingress-nginx" | include "unit-enabled" }}'
       harbor-init: '{{ tuple . "harbor-init" | include "unit-enabled" }}'
       '{{ .Values._internal.default_storage_class_unit }}': true
-      harbor-postgres: true
       monitoring-crd: true
+      harbor-cnpg-postgres: true
     annotations:
       sylvactl/readyMessage: "Harbor UI can be reached at https://{{ .Values.external_hostnames.harbor }} ({{ .Values._internal.display_external_ip_msg }})"
     helm_repo_url: https://helm.goharbor.io
@@ -1133,11 +1135,11 @@ units:
         database:
           type: external
           external:
-            host: harbor-postgres-primary.harbor.svc.cluster.local
+            host: cnpg-harbor-rw.harbor.svc.cluster.local
             port: "5432"
-            username: "harbor"
-            coreDatabase: "harbor"
-            existingSecret: "harbor-postgres-secrets"
+            username: "app"
+            coreDatabase: "app"
+            existingSecret: "cnpg-harbor-app"
         notary:
           enabled: false
         trivy:

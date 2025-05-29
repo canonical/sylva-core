@@ -25,7 +25,6 @@
 | **gitea** | installs Gitea | stable | [Helm chart](https://dl.gitea.com/charts/) | 11.0.1 |
 | **gitea-postgresql-ha** | installs PostgreSQL HA cluster for Gitea | stable | [Helm chart](https://github.com/bitnami/charts.git) | postgresql-ha/14.2.30 |
 | **gitea-redis** | installs Redis cluster for Gitea | stable | [Helm chart](https://github.com/bitnami/charts.git) | redis-cluster/11.0.8 |
-| **harbor-postgres** | installs Postgresql for Harbor | stable | [Helm chart](https://github.com/bitnami/charts.git) | postgresql/15.5.36 |
 | **ingress-nginx** | installs Nginx ingress controller | stable | [Helm chart](https://rke2-charts.rancher.io) | 4.12.101 |
 | **k8s-gateway** | installs k8s gateway (coredns + plugin to resolve external service names to ingress IPs)<br/><br/>is here only to allow for DNS resolution of Ingress hosts (FQDNs), used for importing workload clusters into Rancher and for flux-webui to use Keycloak SSO | stable | [Helm chart](https://ori-edge.github.io/k8s_gateway/) | 2.4.0 |
 | **kepler** | installs Kepler (Kubernetes-based Efficient Power Level Exporter) exporter for Prometheus | stable | [Helm chart](https://sustainable-computing-io.github.io/kepler-helm-chart) | 0.5.14 |
@@ -132,7 +131,9 @@
 | **gitea-keycloak-resources** | deploys Gitea OIDC client in Sylva's Keycloak realm | Kustomization |
 | **gitea-secrets** | create random secret that will be used by gitea application. secrets are sync with vault. | Kustomization |
 | **grafana-init** | sets up Grafana certificate for Keycloak OIDC integration | Kustomization |
+| **harbor-cnpg-postgres** | Deploy Postgres cluster for Harbor using Cloud Native PostgreSQL (CNPG) | Kustomization |
 | **harbor-init** | sets up Harbor prerequisites<br/><br/>it generates namespace, certificate, admin password, OIDC configuration | Kustomization |
+| **harbor-postgres-cleanup** | Delete the old Harbor PostgreSQL Kustomization after migration to CNPG. | Kustomization |
 | **ingress-nginx-cleanup** | Remove rke2-ingress-nginx service from previous deployments (This unit should be removed after Sylva 1.3) | Kustomization |
 | **ingress-nginx-init** | creates the default certificate for the ingress-nginx controller | Kustomization |
 | **k8s-gateway-cleanup** | Remove k8s-gateway service from previous deployments (This unit should be removed after Sylva 1.3) | Kustomization |
