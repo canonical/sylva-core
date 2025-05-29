@@ -55,6 +55,8 @@ spec:
           - Secret
           names:
           - ca-key-pair-cloned
+          namespaces:
+          - "*"
     mutate:
       targets:
       - apiVersion: v1
@@ -74,6 +76,8 @@ spec:
           - Secret
           names:
           - ca-key-pair-cloned
+          namespaces:
+          - "*"
           selector:
              matchLabels:
               test/gen: "true"
