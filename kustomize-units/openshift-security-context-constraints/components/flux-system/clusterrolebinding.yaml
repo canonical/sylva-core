@@ -1,0 +1,17 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: openshift-scc-flux
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: system:openshift:scc:nonroot-v2
+subjects:
+- kind: ServiceAccount
+  name: notification-controller  # Flux ServiceAccount
+  namespace: flux-system
+- kind: ServiceAccount
+  name: source-controller  # Flux ServiceAccount
+  namespace: flux-system
+
+
