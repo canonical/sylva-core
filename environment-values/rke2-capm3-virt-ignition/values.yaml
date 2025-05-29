@@ -17,6 +17,8 @@ cluster:
     - '{{ .Values._internal.bootstrap_node_ip }}'
 
   capm3:
+    os_image_selector:
+      k8s-flavor: rke2
     networks:
       primary:
         subnet: 192.168.100.0/24
