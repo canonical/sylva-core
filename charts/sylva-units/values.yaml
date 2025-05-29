@@ -893,7 +893,7 @@ units:
       - '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpk" }}'
     unit_templates:
       - base-deps
-    helm_repo_url: https://postfinance.github.io/
+    helm_repo_url: https://postfinance.github.io/kubelet-csr-approver
     helmrelease_spec:
       install:
         createNamespace: false
