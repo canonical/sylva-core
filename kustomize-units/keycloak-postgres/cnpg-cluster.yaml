@@ -25,6 +25,9 @@ spec:
   storage:
     size: 20Gi
     storageClass: ${storageClass}
+  walStorage:
+    size: 10Gi
+    storageClass: ${storageClass}
   affinity:
     podAntiAffinityType: ${podAntiAffinityType}
   enablePDB: false
