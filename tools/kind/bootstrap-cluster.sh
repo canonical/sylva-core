@@ -99,6 +99,17 @@ elif echo "$EXTRACTED_VALUES" | yq -e '.cluster.capi_providers.infra_provider ==
     KIND_CONFIG=$(echo "$KIND_CONFIG" | yq '.nodes[0].extraMounts += [{"hostPath": "/var/run/docker.sock", "containerPath": "/var/run/docker.sock"}]')
 fi
 
+KIND_CONFIG_LOCAL_REGISTRY=$(cat <<EOF
+containerdConfigPatches:
+- |-
+  [plugins."io.containerd.grpc.v1.cri".registry]
+    config_path = "/etc/containerd/certs.d"
+EOF
+)
+if [[ "${DOCKER_LOCAL_REGISTRY}" != "" ]]; then
+  KIND_CONFIG=$(echo -e "$KIND_CONFIG\n$KIND_CONFIG_LOCAL_REGISTRY" | yq)
+fi
+
 echo -e "Creating kind cluster with following config:\n$KIND_CONFIG"
 
 if echo "$EXTRACTED_VALUES" | yq -e '.registry_mirrors.hosts_config."docker.io".[0].mirror_url' &>/dev/null; then
@@ -120,9 +131,12 @@ else
     KIND_IMAGE="${DOCKER_REGISTRY_MIRROR:+$DOCKER_REGISTRY_MIRROR/}$KINDEST_VERSION"
 fi
 
-echo "$KIND_CONFIG" | kind create cluster --name "$KIND_CLUSTER_NAME" ${KIND_IMAGE:+--image "$KIND_IMAGE"} --config=-
 
+echo "$KIND_CONFIG" | kind create cluster --name "$KIND_CLUSTER_NAME" ${KIND_IMAGE:+--image "$KIND_IMAGE"} --config=-
 
 if [[ -n ${LIBVIRT_METAL_ENABLED:-} ]]; then
     docker exec ${KIND_CLUSTER_NAME}-control-plane systemctl --now enable nomasquerade.service
+    if [[ "${DOCKER_LOCAL_REGISTRY}" != "" ]]; then
+        bash ${BASE_DIR}/tools/kind/add-kind-local-registry.sh "$KIND_CLUSTER_NAME"-control-plane "${DOCKER_LOCAL_REGISTRY}"
+    fi
 fi
