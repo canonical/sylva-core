@@ -28,46 +28,6 @@ spec:
         name: mgmt-cluster-state-values
         namespace: sylva-system
 
-  - name: clone-ca-key-pair
-    match:
-      any:
-      - resources:
-          kinds:
-          - Namespace
-          selector:
-            matchLabels:
-              sylva-project.org/workload-cluster: ""
-    generate:
-      apiVersion: v1
-      kind: Secret
-      name: ca-key-pair-cloned
-      namespace: "{{request.object.metadata.name}}"
-      synchronize: true   # 🔁 keep it updated on changes
-      clone:
-        namespace: cert-manager
-        name: ca-key-pair
-
-  - name: label-cloned-secret
-    match:
-      any:
-      - resources:
-          kinds:
-          - Secret
-          names:
-          - ca-key-pair-cloned
-          namespaces:
-          - "*"
-    mutate:
-      targets:
-      - apiVersion: v1
-        kind: Secret
-        name: ca-key-pair-cloned
-        namespace: "{{request.object.metadata.namespace}}"
-      patchStrategicMerge:
-        metadata:
-          labels:
-            test/gen: "true"
-
   - name: reconcile-on-secret-update
     match:
       any:
@@ -75,18 +35,15 @@ spec:
           kinds:
           - Secret
           names:
-          - ca-key-pair-cloned
+          - ca-key-pair
           namespaces:
-          - "*"
-          selector:
-             matchLabels:
-              test/gen: "true"
+          - cert-manager
     mutate:
       targets:
       - apiVersion: kustomize.toolkit.fluxcd.io/v1
         kind: Kustomization
         name: wkld-ds-copy-file
-        namespace: "{{request.object.metadata.namespace}}"
+        namespace: kubeadm-capo
       patchStrategicMerge:
         metadata:
           annotations:
@@ -95,7 +52,7 @@ spec:
         spec:
           postBuild:
             substitute:
-              DATA: "Substituted by Kyverno"
+              DATA: "Substituted by Kyverno {{ time_now_utc() }}"
               
               
               
