@@ -8,6 +8,7 @@ spec:
     assistedServiceHostname: "${ASSISTED_SERVICE_HOSTNAME}"
     imageServiceHostname: "${ASSISTED_IMAGE_HOSTNAME}"
   databaseStorage:
+    storageClassName: "${STORAGE_CLASS}"
     accessModes:
     - ReadWriteOnce
     resources:

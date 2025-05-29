@@ -1013,7 +1013,6 @@ units:
           CERTIFICATE_NAMESPACE: harbor
           CERT: '{{ .Values.external_certificates.harbor.cert | default "" | b64enc }}'
           CACERT: '{{ .Values.external_certificates.cacert | default "" | b64enc }}'
-          STORAGE_CLASS: '{{ .Values._internal.default_storage_class }}'
       _components:
         - '{{ ternary "../tls-components/tls-secret" "../tls-components/tls-certificate" (hasKey .Values.external_certificates.harbor "cert") }}'
         - "../tls-components/sylva-ca"
@@ -1090,6 +1089,12 @@ units:
     annotations:
       sylvactl/readyMessage: "Harbor UI can be reached at https://{{ .Values.external_hostnames.harbor }} ({{ .Values._internal.display_external_ip_msg }})"
     helm_repo_url: https://helm.goharbor.io
+    kustomization_spec:
+      _components:
+      - ../harbor-init/persistentvolumeclaims
+      postBuild:
+        substitute:
+          STORAGE_CLASS: '{{ .Values._internal.default_storage_class }}'
     helmrelease_spec:
       chart:
         spec:
@@ -2855,6 +2860,7 @@ units:
           HTTP_PROXY: '{{ .Values.proxies.http_proxy }}'
           HTTPS_PROXY: '{{ .Values.proxies.https_proxy }}'
           NO_PROXY: '{{ include "sylva-units.no_proxy" (tuple .) }}'
+          STORAGE_CLASS: '{{ tuple . (tuple . "longhorn" | include "unit-enabled") "longhorn" .Values._internal.default_storage_class | include "interpret-ternary" }}'
       healthChecks:
         - apiVersion: apps/v1
           kind: StatefulSet
@@ -7958,7 +7964,7 @@ units:
       wait: true
       postBuild:
         substitute:
-          NODE_COUNT: '{{ .Values._internal.longhorn_node_count | quote }}'
+          NODE_COUNT: '{{ .Values._internal.longhorn_node_count_upper_bound | quote }}'
       _patches:
         - target:
             kind: StorageClass
@@ -9374,20 +9380,13 @@ _internal:
   default_password: '{{ include "internalPersistentRandomPasswd" (tuple . "default_password") }}'
 
   default_longhorn_storage_class: >-
-    {{- if .Values._internal.state.is_upgrade -}}
-      {{- $current_sc := lookup "v1" "Secret" .Release.Namespace "sylva-units-values" | dig "data" "values" "" | b64dec | fromYaml | dig "_internal" "default_longhorn_storage_class" "" -}}
+    {{- if and .Values._internal.state.is_upgrade (tuple . "longhorn" | include "unit-enabled") -}}
+      {{- $current_sc := lookup "v1" "Secret" .Release.Namespace "sylva-units-values" | dig "data" "values" "" | b64dec | fromYaml | dig "_internal" "default_storage_class" "" -}}
       {{- $current_sc -}}
     {{- else if and (not .Values._internal.state.is_upgrade) .Values.security.enable_longhorn_volume_encryption -}}
       longhorn-encryption-per-volume
     {{- else -}}
-      {{- $nodeCount := int (tuple . .Values._internal.longhorn_node_count | include "interpret-as-string") -}}
-      {{- if eq $nodeCount 1 -}}
-        single-replica-storageclass
-      {{- else if eq $nodeCount 2 -}}
-        two-replicas-storageclass
-      {{- else -}}
-        longhorn
-      {{- end -}}
+      longhorn
     {{- end -}}
 
   default_storage_class: >-
@@ -9424,6 +9423,7 @@ _internal:
     single-replica-storageclass: longhorn
     two-replicas-storageclass: longhorn
     longhorn: longhorn
+    longhorn-encryption-per-volume: longhorn
     vsphere-csi: vsphere-csi-driver
     '{{ .Values.openstack.storageClass.name }}': cinder-csi
     cephfs-csi: ceph-csi-cephfs
