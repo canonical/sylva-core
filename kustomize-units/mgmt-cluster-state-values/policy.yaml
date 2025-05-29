@@ -56,6 +56,11 @@ spec:
           names:
           - ca-key-pair-cloned
     mutate:
+      targets:
+      - apiVersion: v1
+        kind: Secret
+        name: ca-key-pair-cloned
+        namespace: "{{request.object.metadata.namespace}}"
       patchStrategicMerge:
         metadata:
           labels:
@@ -67,8 +72,6 @@ spec:
       - resources:
           kinds:
           - Secret
-          namespaces:
-          - kubeadm-capo
           names:
           - ca-key-pair-cloned
           selector:
