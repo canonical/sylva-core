@@ -31,7 +31,7 @@ DEFAULT_RENOVATE_COMMENT = f"{BASE_DIR}/.gitlab/ci/configuration/default-renovat
 
 
 ALLOWED_INFRA = os.getenv("ALLOWED_DEPLOYMENT_INFRA", "capd,capo,capm3,capo|capm3").split(",")
-ALLOWED_BOOTSTRAP = os.getenv("ALLOWED_DEPLOYMENT_BOOTSTRAP", "kadm,rke2,kadm|rke2,rke2|kadm,rke2|okd").split(",")
+ALLOWED_BOOTSTRAP = os.getenv("ALLOWED_DEPLOYMENT_BOOTSTRAP", "kadm,rke2,ck8s,kadm|rke2,rke2|kadm,rke2|okd").split(",")
 ALLOWED_OS = os.getenv("ALLOWED_DEPLOYMENT_NODE_OS", "ubuntu,suse,ubuntu|na,suse|na").split(",")
 ALLOWED_SCENARIOS = os.getenv(
     "ALLOWED_DEPLOYMENT_SCENARIO",
