@@ -46,7 +46,7 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
     spec:
       url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-capi-cluster.git
       ref:
-        tag: 0.9.10
+        branch: kubeapiserver-extraArgs
 
   sync-openstack-images:
     kind: GitRepository
@@ -3239,28 +3239,6 @@ units:
         - kustomize:
             patches:
               - target:
-                  kind: RKE2ControlPlane
-                patch: |
-                  - op: add
-                    path: /spec/serverConfig/kubeAPIServer/extraArgs/-
-                    value: feature-gates=ValidatingAdmissionPolicy=true
-                  - op: add
-                    path: /spec/serverConfig/kubeAPIServer/extraArgs/-
-                    value: runtime-config=admissionregistration.k8s.io/v1beta1
-              - target:
-                  kind: KubeadmControlPlane
-                patch: |
-                  kind: _unused_
-                  metadata:
-                    name: _unused_
-                  spec:
-                    kubeadmConfigSpec:
-                      clusterConfiguration:
-                        apiServer:
-                          extraArgs:
-                            feature-gates: ValidatingAdmissionPolicy=true
-                            runtime-config: admissionregistration.k8s.io/v1beta1
-              - target:
                   kind: Cluster
                 patch: |
                   kind: _unused_
@@ -3268,18 +3246,6 @@ units:
                     name: _unused_
                     annotations:
                       {{ .Values.cluster.capi_providers.infra_provider | eq "capo" | ternary "sylva.org/gzip-user-data" "sylva.org/plain-user-data"}}: "true"
-              - target:
-                  kind: CK8sControlPlane
-                patch: |
-                  kind: _unused_
-                  metadata:
-                    name: _unused_
-                  spec:
-                    spec:
-                      controlPlane:
-                        extraKubeAPIServerArgs:
-                          --feature-gates: ValidatingAdmissionPolicy=true
-                          --runtime-config: admissionregistration.k8s.io/v1beta1
 
     # we pass everything that is under `cluster` to this unit that uses sylva-capi-cluster chart
     # (we do it via a secret because some of the values are credentials in many scenarios)
@@ -8329,6 +8295,10 @@ cluster:
 
   # Nodes number for control-plane
   control_plane_replicas: 3
+
+  kubeapiserver_extra_args:
+    feature-gates: "ValidatingAdmissionPolicy=true"
+    runtime-config: "admissionregistration.k8s.io/v1beta1"
 
   kubelet_extra_args:
     max-pods: '{{ .Values.cluster.capi_providers.infra_provider | eq "capm3" | ternary "500" "210" }}'
