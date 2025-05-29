@@ -216,12 +216,36 @@ include:
     function extract_from_job_name() {
       [ -z "${1:-}" ] && (echo >&2 "Extract function needs a key parameter" ; exit 1;)
       [ -z "${2:-}" ] && (echo >&2 "Extract function needs input string (workflow name basically)" ; exit 1;)
-      echo "$2" | sed -n -e 's/.*'$1'\s\?\([[:alnum:]\.\,\-]\+\).*/\1/p'
+      echo "$2" | sed -n -e 's/.*'$1'\s\?\([[:alnum:]\.\,\-\|]\+\).*/\1/p'
     }
+
+    if echo "$DEPLOYMENT_INFRA_PROV" | grep -q '|'; then
+      if [[ ${CLUSTER_TYPE} == "management" ]]; then
+        DEPLOYMENT_INFRA_PROV=$(echo "$DEPLOYMENT_INFRA_PROV" | awk -F '|' '{print $1}')
+      else
+        DEPLOYMENT_INFRA_PROV=$(echo "$DEPLOYMENT_INFRA_PROV" | awk -F '|' '{print $2}')
+      fi
+    fi
     DEPLOYMENT_INFRA_PROV=${DEPLOYMENT_INFRA_PROV:-$(extract_from_job_name ☁ "$WORKFLOW_NAME")}
     if [[ "$DEPLOYMENT_INFRA_PROV" == "capm3" ]]; then export DEPLOYMENT_INFRA_PROV="capm3-virt"; fi   # Currently capm3 is capm3-virt
+
+    if echo "$DEPLOYMENT_BOOTSTRAP_PROV" | grep -q '|'; then
+      if [[ ${CLUSTER_TYPE} == "management" ]]; then
+        DEPLOYMENT_BOOTSTRAP_PROV=$(echo "$DEPLOYMENT_BOOTSTRAP_PROV" | awk -F '|' '{print $1}')
+      else
+        DEPLOYMENT_BOOTSTRAP_PROV=$(echo "$DEPLOYMENT_BOOTSTRAP_PROV" | awk -F '|' '{print $2}')
+      fi
+    fi
     DEPLOYMENT_BOOTSTRAP_PROV=${DEPLOYMENT_BOOTSTRAP_PROV:-$(extract_from_job_name 🚀 "$WORKFLOW_NAME")}
     if [[ "$DEPLOYMENT_BOOTSTRAP_PROV" == "kadm" ]]; then export DEPLOYMENT_BOOTSTRAP_PROV="kubeadm"; fi   # kadm is shortcut for kubeadm
+
+    if echo "$DEPLOYMENT_OS" | grep -q '|'; then
+      if [[ ${CLUSTER_TYPE} == "management" ]]; then
+        DEPLOYMENT_OS=$(echo "$DEPLOYMENT_OS" | awk -F '|' '{print $1}')
+      else
+        DEPLOYMENT_OS=$(echo "$DEPLOYMENT_OS" | awk -F '|' '{print $2}')
+      fi
+    fi
     DEPLOYMENT_OS=${DEPLOYMENT_OS:-$(extract_from_job_name 🐧 "$WORKFLOW_NAME")}
     DEPLOYMENT_SCENARIO=${DEPLOYMENT_SCENARIO:-$(extract_from_job_name 🎬 "$WORKFLOW_NAME")}
     DEPLOYMENT_OPTIONS=${DEPLOYMENT_OPTIONS:-$(extract_from_job_name 🛠 "$WORKFLOW_NAME")}
@@ -325,6 +349,12 @@ include:
           update_values_file misc-units-in-capm3.yml
         elif [[ "$DEPLOYMENT_INFRA_PROV" == "capm3-virt" ]] && [[ "${CLUSTER_TYPE}" == "workload" ]]; then
           update_values_file misc-units-in-capm3-wkld.yml
+        fi
+      elif [[ $option == "okd-wkld" ]]; then
+        if [[ "${CLUSTER_TYPE}" == "management" ]]; then
+          update_values_file okd.yml
+        elif [[ "${CLUSTER_TYPE}" == "workload" ]]; then
+          update_values_file okd-wkld.yml
         fi
       else
         update_values_file ${option}.yml

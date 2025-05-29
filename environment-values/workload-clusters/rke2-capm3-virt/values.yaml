@@ -1,5 +1,7 @@
 ---
 cluster:
+  os_image_selector:
+    os: ubuntu
   capi_providers:
     bootstrap_provider: cabpr
 

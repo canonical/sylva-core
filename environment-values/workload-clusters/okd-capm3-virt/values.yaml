@@ -1,15 +1,27 @@
 ---
 units:
+  longhorn-crd:
+    enabled: false
   longhorn:
+    enabled_conditions:
+      - false
+  multus-ready:
+    enabled: false
+  sriov-crd:
     enabled: false
   monitoring:
     enabled: false
+  monitoring-crd:
+    enabled: false
   calico:
     enabled: false
-  tigera-clusterrole:
+  calico-crd:
     enabled: false
   ingress-nginx:
     enabled: false
+  kyverno:
+    depends_on:
+      monitoring-crd: false
   cluster:
     depends_on:
       calico: '{{ and (tuple . "calico" | include "unit-enabled") .Values._internal.state.is_upgrade }}'
@@ -17,8 +29,6 @@ units:
 
 cluster_machines_ready:
   wait_timeout: 900s
-
-cluster_domain: okd
 
 cluster:
   name: okd-capm3
@@ -31,8 +41,9 @@ cluster:
     machine_image_checksum_type: sha256
     machine_image_format: live-iso
     machine_image_url: https://abcdef
-    dns_servers: '{{ list .Values.cluster.mgmt_cluster_ip }}'
+    dns_servers: >
+      {{ .Values.cluster.mgmt_cluster_ip | list | include "preserve-type" }}
 
   openshift:
-    ingressVIP: 192.168.100.4
-    baseDomain: okd
+    version: 4.17.0
+    releaseImage: quay.io/okd/scos-release:4.17.0-okd-scos.ec.3
