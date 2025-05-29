@@ -4,6 +4,10 @@ cluster:
     rolloutStrategy:
       rollingUpdate:
         maxSurge: 0
+  additional_commands:
+    pre_bootstrap_commands:
+      - mkdir -p '/etc/containerd/hosts.d/172.17.0.1:5000'
+      - echo '[host."http://172.17.0.1:5000"]' > '/etc/containerd/hosts.d/172.17.0.1:5000/hosts.toml'
   ck8s:
     users:
       - name: sylva-user
