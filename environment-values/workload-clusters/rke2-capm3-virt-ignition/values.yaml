@@ -1,7 +1,15 @@
----
+cluster_virtual_ip: 192.168.100.3
+
 cluster:
   capi_providers:
-    bootstrap_provider: cabpr
+    infra_provider: capm3
+    # bootstrap_provider: cabpr
+
+  # Add kind container address to cluster kubernetes api certificate SubjectAltNames,
+  # in order to be able to reach it from the outside through kubernetes-external service created by libvirt-metal unit
+  # once pivot to management cluster will happen, this IP will be retrieved in a cluster-public-endpoint configMap created for that purpose
+  cluster_api_cert_extra_SANs:
+    - '{{ .Values._internal.bootstrap_node_ip }}'
 
   capm3:
     os_image_selector:
@@ -9,24 +17,159 @@ cluster:
       os-release: "6.0"
       flavor: plain
       hardened: false
+      k8s-flavor: rke2
+    networks:
+      primary:
+        subnet: 192.168.100.0/24
+        gateway: 192.168.100.1
+        start: 192.168.100.60
+        end: 192.168.100.90
+        interface: bond0.100
+      provisioning:
+        subnet: 192.168.10.0/24
+        start: 192.168.10.60
+        end: 192.168.10.90
+        interface: bond0
+    dns_servers: [1.1.1.1]
 
-  rke2:
-    additionalUserData:
-      config:
-        variant: fcos
-        version: 1.4.0
-        passwd:
-          users:
-            - name: root
-              password_hash: $y$j9T$G8c3oUJT8Dekv2eIu/BBa1$mszH1TU0Xd3chgLh..Gb3IaTZxVmrcUmext0YZfeI1C
+    default_network_settings:
+      bondXmitHashPolicy: "layer2"
+      bond_mode: "active-backup"
+
+  control_plane:  # tweak network configuration as needed
+    capm3:
+      hostSelector:  # criteria for matching labels on BareMetalHost objects defined by baremetal_hosts value
+        matchLabels:
+          cluster-role: control-plane
+
+    network_interfaces:
+      bond0:
+        type: bond
+        interfaces:
+          - nic1
+          - nic2
+        vlans:
+          - id: 100  # VLAN ID is fixed, per libvirt-metal internals
+      nic1:
+        type: phy
+      nic2:
+        type: phy
+
+  control_plane_replicas: 3
+
+  machine_deployments:
+    md0:
+      replicas: 1
+      capm3:
+        hostSelector:
+          matchLabels:
+            cluster-role: worker
+
+      network_interfaces:
+        bond0:
+          type: bond
+          interfaces:
+            - ens4
+            - ens5
+          vlans:
+            - id: 100  # VLAN ID is fixed, per libvirt-metal internals
+        ens4:
+          type: phy
+        ens5:
+          type: phy
+
+  baremetal_host_default:
+    longhorn_disk_config:
+      - path: "/var/longhorn/disks/disk_by-path_pci-0000:00:0a.0"
+        storageReserved: 0
+        allowScheduling: true
+        tags:
+          - vhdd
+          - fast
+      - path: "/var/longhorn/disks/disk_by-path_pci-0000:00:0b.0"
+        storageReserved: 0
+        allowScheduling: true
+        tags:
+          - vhdd
+          - fast
+    bmh_spec:
+      online: true
+      description: workload cluster node
+      bmc:
+        disableCertificateVerification: true
+      bootMode: legacy
+      rootDeviceHints:
+        deviceName: /dev/vda
 
   baremetal_hosts:
     workload-cp-0:
+      bmh_metadata:
+        labels:
+          cluster-role: control-plane
+      bmh_spec:
+        bmc:
+          address: redfish-virtualmedia://{{ .Values._internal.bootstrap_node_ip }}:8010/redfish/v1/Systems/c0014001-b10b-f001-c0de-feeb1e54ee15
+        bootMACAddress: 52:54:00:44:44:04
       interface_mappings:
+        nic1:
+          mac_address: 52:54:00:44:44:04
         nic2:
           mac_address: 52:54:00:55:55:04
+      ip_preallocations:
+        primary: 192.168.100.70
 
     workload-cp-1:
+      bmh_metadata:
+        labels:
+          cluster-role: control-plane
+      bmh_spec:
+        bmc:
+          address: redfish-virtualmedia://{{ .Values._internal.bootstrap_node_ip }}:8011/redfish/v1/Systems/c0014001-b10b-f001-c0de-feeb1e54ee15
+        bootMACAddress: 52:54:00:44:44:05
       interface_mappings:
         nic1:
           mac_address: 52:54:00:44:44:05
+        nic2:
+          mac_address: 52:54:00:55:55:05
+      ip_preallocations:
+        primary: 192.168.100.71
+
+    workload-cp-2:
+      bmh_metadata:
+        labels:
+          cluster-role: control-plane
+      bmh_spec:
+        bmc:
+          address: redfish-virtualmedia://{{ .Values._internal.bootstrap_node_ip }}:8012/redfish/v1/Systems/c0014001-b10b-f001-c0de-feeb1e54ee15
+        bootMACAddress: 52:54:00:44:44:06
+      interface_mappings:
+        nic1:
+          mac_address: 52:54:00:44:44:06
+        nic2:
+          mac_address: 52:54:00:55:55:06
+      ip_preallocations:
+        primary: 192.168.100.72
+
+    workload-md-0:
+      bmh_metadata:
+        labels:
+          cluster-role: worker
+      bmh_spec:
+        bmc:
+          address: redfish-virtualmedia://{{ .Values._internal.bootstrap_node_ip }}:8013/redfish/v1/Systems/c0014001-b10b-f001-c0de-feeb1e54ee15
+        bootMACAddress: 52:54:00:44:44:07
+      interface_mappings:
+        nic1:
+          mac_address: 52:54:00:44:44:07
+        nic2:
+          mac_address: 52:54:00:55:55:07
+      ip_preallocations:
+        primary: 192.168.100.73
+
+units:
+  longhorn:
+    enabled: true
+    helmrelease_spec:
+      values:
+        persistence:
+          defaultClassReplicaCount: 3   # enable data replication
