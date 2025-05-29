@@ -1093,7 +1093,7 @@ units:
       chart:
         spec:
           chart: harbor
-          version: 1.15.2
+          version: 1.17.1
       targetNamespace: harbor
       values:
         updateStrategy:
