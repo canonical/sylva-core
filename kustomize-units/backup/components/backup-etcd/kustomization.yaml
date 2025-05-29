@@ -1,0 +1,51 @@
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
+
+patches:
+  - target:
+      kind: CronJob
+    patch: |
+      - op: add
+        path: /spec/jobTemplate/spec/template/spec/containers/0/volumeMounts/-
+        value:
+          mountPath: /etc/kubernetes/pki/etcd/peer-ca.crt
+          name: cacert
+          readOnly: true
+      - op: add
+        path: /spec/jobTemplate/spec/template/spec/containers/0/volumeMounts/-
+        value:
+          mountPath: /etc/kubernetes/pki/etcd/peer-client.crt
+          name: cert
+          readOnly: true
+      - op: add
+        path: /spec/jobTemplate/spec/template/spec/containers/0/volumeMounts/-
+        value:
+          mountPath: /etc/kubernetes/pki/etcd/peer-client.key
+          name: key
+          readOnly: true
+      - op: replace
+        path: /spec/jobTemplate/spec/template/spec/tolerations
+        value:
+          - effect: NoExecute
+            operator: Exists
+      - op: replace
+        path: /spec/jobTemplate/spec/template/spec/nodeSelector
+        value:
+          node-role.kubernetes.io/etcd: "true"
+      - op: replace
+        path: /spec/jobTemplate/spec/template/spec/hostNetwork
+        value:
+          true
+      - op: add
+        path: /spec/jobTemplate/spec/template/spec/containers/0/env
+        value:
+        - name: CLUSTER_NAME
+          value: ${CLUSTER_NAME}
+
+configMapGenerator:
+- name: kube-cronjob-cm
+  behavior: merge
+  options:
+    disableNameSuffixHash: true
+  files:
+  - kube-cronjob.sh=backup-etcd.sh

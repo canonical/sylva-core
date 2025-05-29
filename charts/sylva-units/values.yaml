@@ -8,9 +8,11 @@ fullnameOverride: ""
 
 git_repo_spec_default:
   interval: 168h
+  timeout: 5m
 
 oci_repo_spec_default:
   interval: 168h
+  timeout: 5m
 
 source_templates: # template to generate Flux GitRepository/OCIRepository resources
   # <repo-name>:
@@ -114,7 +116,7 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
     spec:
       url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-dashboards.git
       ref:
-        tag: 0.0.17
+        tag: 0.0.18
 
   minio-operator:
     kind: GitRepository
@@ -135,7 +137,7 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
     spec:
       url: https://github.com/grafana/loki.git
       ref:
-        tag: v3.5.0
+        tag: v3.5.1
 
   sylva-logging-flows:
     kind: GitRepository
@@ -149,7 +151,7 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
     spec:
       url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-prometheus-rules.git
       ref:
-        tag: 0.0.16
+        tag: 0.0.17
 
   sylva-thanos-rules:
     kind: GitRepository
@@ -202,6 +204,7 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
 
 helm_repo_spec_default:
   interval: 168h
+  timeout: 5m
 
 # this defines the default .spec for a Kustomization resource
 # generated for each item of 'units'
@@ -421,6 +424,22 @@ unit_templates:
                     - name: script-volume
                       configMap:
                         name: kube-cronjob-{{ .Values._kustomization_name_ }}
+
+  backup-s3:
+    repo: sylva-core
+    kustomization_substitute_secrets:
+      S3_HOST: '{{ (.Values.backup | default dict) | dig "store" "s3" "host" "" | b64enc }}'
+      S3_BUCKET: '{{ (.Values.backup | default dict) | dig "store" "s3" "bucket" "" | b64enc }}'
+      S3_ACCESS_KEY: '{{ (.Values.backup | default dict) | dig "store" "s3" "access_key" "" | b64enc }}'
+      S3_SECRET_KEY: '{{ (.Values.backup | default dict) | dig "store" "s3" "secret_key" "" | b64enc }}'
+      S3_CERT: '{{ (.Values.backup | default dict) | dig "store" "s3" "cert" "" }}'
+    kustomization_spec:
+      postBuild:
+        substitute:
+          NAMESPACE: '{{ .Release.Namespace }}'
+      _components:
+      - "./components/backup-to-s3"
+      - '{{ tuple "./components/backup-to-s3/cert" (hasKey ((.Values.backup | default dict) | dig "store" "s3" dict) "cert") | include "set-only-if" }}'
 
 
 # unit_definition_defaults is merged with each "units.x" before
@@ -845,6 +864,7 @@ units:
       path: ./kustomize-units/keycloak-postgres
       wait: true
       _components:
+        - '{{ tuple "./components/ha" (.Values._internal.ha_cluster.is_ha) | include "set-only-if" }}'
         - '{{ tuple "./components/keycloak-upgrade-db" (and .Values._internal.state.is_upgrade (tuple . "keycloak" | include "unit-enabled")) | include "set-only-if" }}'
 
   kubevirt:
@@ -858,7 +878,7 @@ units:
       chart:
         spec:
           chart: kubevirt
-          version: 0.4.0
+          version: 0.5.0
       targetNamespace: kubevirt
       install:
         createNamespace: true
@@ -906,7 +926,7 @@ units:
     kustomization_substitute_secrets:
       ADMIN_CREDENTIAL: '{{ (htpasswd .Values._internal.kubevirt_admin_user .Values._internal.kubevirt_admin_password) | b64enc | quote }}'
     annotations:
-      sylvactl/readyMessage: "Kubevirt manager UI can be reached at https://{{ .Values.external_hostnames.kubevirt_manager }} ({{ .Values.external_hostnames.kubevirt_manager }} must resolve to {{ .Values.display_external_ip }})"
+      sylvactl/readyMessage: "Kubevirt manager UI can be reached at https://{{ .Values.external_hostnames.kubevirt_manager }} ({{ .Values._internal.display_external_ip_msg }})"
     kustomization_spec:
       path: ./kustomize-units/kubevirt-manager
       wait: true
@@ -1065,8 +1085,9 @@ units:
       harbor-init: '{{ tuple . "harbor-init" | include "unit-enabled" }}'
       '{{ .Values._internal.default_storage_class_unit }}': true
       harbor-postgres: true
+      monitoring-crd: true
     annotations:
-      sylvactl/readyMessage: "Harbor UI can be reached at https://{{ .Values.external_hostnames.harbor }} ({{ .Values.external_hostnames.harbor }} must resolve to {{ .Values.display_external_ip }})"
+      sylvactl/readyMessage: "Harbor UI can be reached at https://{{ .Values.external_hostnames.harbor }} ({{ .Values._internal.display_external_ip_msg }})"
     helm_repo_url: https://helm.goharbor.io
     helmrelease_spec:
       chart:
@@ -1125,6 +1146,10 @@ units:
           httpProxy: '{{ get .Values.proxies "http_proxy" }}'
           httpsProxy: '{{ get .Values.proxies "https_proxy" }}'
           noProxy: '{{ include "sylva-units.no_proxy" (tuple .) }}'
+        metrics:
+          enabled: true
+          serviceMonitor:
+            enabled: '{{ .Values._internal.monitoring.enabled | include "preserve-type" }}'
       _postRenderers:
         - kustomize:
             patches:
@@ -1217,7 +1242,7 @@ units:
       '{{ .Values._internal.default_storage_class_unit }}': true
       vault-operator: true
     annotations:
-      sylvactl/readyMessage: "Vault UI can be reached at https://{{ .Values.external_hostnames.vault }} ({{ .Values.external_hostnames.vault }} must resolve to {{ .Values.display_external_ip }})"
+      sylvactl/readyMessage: "Vault UI can be reached at https://{{ .Values.external_hostnames.vault }} ({{ .Values._internal.display_external_ip_msg }})"
     repo: sylva-core
     kustomization_substitute_secrets:
       ADMIN_PASSWORD: '{{ .Values.admin_password }}'
@@ -1459,7 +1484,7 @@ units:
     info:
       description: sets up Neuvector prerequisites
       details: |
-        it generates namespace, certificate, admin password, policy exception for using latest tag images (required for the pod managing the database of vulnerabilities since this DB is updated often)
+        it generates certificate, admin password, policy exception for using latest tag images (required for the pod managing the database of vulnerabilities since this DB is updated often)
       internal: true
     unit_templates:
     - base-deps
@@ -1473,6 +1498,7 @@ units:
       kyverno: true
       keycloak-add-client-scope: true
       keycloak-oidc-external-secrets: true
+      kyverno-policies-ready: true
     repo: sylva-core
     kustomization_substitute_secrets:
       KEY: '{{ .Values.external_certificates.neuvector.key | default "" | b64enc }}'
@@ -1508,11 +1534,10 @@ units:
     unit_templates:
     - base-deps
     depends_on:
-      neuvector-init: true
-      kyverno-policies-ready: true
+      neuvector-init: '{{ tuple . "neuvector-init" | include "unit-enabled" }}'
       ingress-nginx: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpk" }}'
     annotations:
-      sylvactl/readyMessage: "Neuvector UI can be reached at https://{{ .Values.external_hostnames.neuvector }} ({{ .Values.external_hostnames.neuvector }} must resolve to {{ .Values.display_external_ip }})"
+      sylvactl/readyMessage: "Neuvector UI can be reached at https://{{ .Values.external_hostnames.neuvector }} ({{ .Values._internal.display_external_ip_msg }})"
     helm_repo_url: https://neuvector.github.io/neuvector-helm
     helm_chart_artifact_name: neuvector-core
     helmrelease_spec:
@@ -1755,7 +1780,7 @@ units:
       keycloak-postgres: true
       synchronize-secrets: true # make sure that the secret keycloak-initial-admin is ready to be consummed
     annotations:
-      sylvactl/readyMessage: "Keycloak UI admin console can be reached at https://{{ .Values.external_hostnames.keycloak }}/admin/master/console, user 'admin', password in Vault at secret/keycloak ({{ .Values.external_hostnames.keycloak }} must resolve to {{ .Values.display_external_ip }})"
+      sylvactl/readyMessage: "Keycloak admin console can be reached at https://{{ .Values.external_hostnames.keycloak }}/admin/master/console, user 'admin', password in Vault at secret/keycloak ({{ .Values._internal.display_external_ip_msg }})"
     repo: sylva-core
     kustomization_substitute_secrets:
       KEY: '{{ .Values.external_certificates.keycloak.key | default "" | b64enc }}'
@@ -2187,6 +2212,31 @@ units:
               - apiGroups: ["*"]
                 resources: [ "secrets" ]
                 verbs: ["get", "list", "watch"]
+              - apiGroups: ["crd.projectcalico.org"]
+                resources:
+                - globalnetworksets
+                verbs: ["create", "update", "patch", "delete", "get", "list", "watch"]
+              - apiGroups: ["ipam.metal3.io"]
+                resources:
+                - ippools
+                verbs: ["get", "list", "watch"]
+              - apiGroups: ["infrastructure.cluster.x-k8s.io"]
+                resources:
+                - openstackmachines
+                - metal3machines
+                verbs: ["get", "list", "watch"]
+              - apiGroups: ["helm.toolkit.fluxcd.io"]
+                resources:
+                - helmreleases
+                verbs: ["get", "list", "watch", "patch", "update"]
+              - apiGroups: [""]
+                resources:
+                  - configmaps
+                verbs: ["get", "list", "patch", "update", "watch", "create", "delete"]
+              - apiGroups: ["apiextensions.k8s.io"]
+                resources:
+                - customresourcedefinitions
+                verbs: ["get", "list", "watch"]
           container:
             resources:
               limits:
@@ -2231,7 +2281,7 @@ units:
               memory: 1024Mi
             requests:
               memory: 256Mi
-
+          resyncPeriod: 5m
           rbac:
             clusterRole:
               extraResources:
@@ -2240,6 +2290,10 @@ units:
                   - "secrets"
                 verbs: ["get", "list", "patch", "update", "watch", "create", "delete"]
               - apiGroups: ["management.cattle.io"]  # for set-monitoring-chart-cluster-id ClusterPolicy
+                resources:
+                  - "clusters"
+                verbs: ["get", "list", "watch"]
+              - apiGroups: ["provisioning.cattle.io"]  # for set-monitoring-chart-cluster-id ClusterPolicy
                 resources:
                   - "clusters"
                 verbs: ["get", "list", "watch"]
@@ -2294,6 +2348,27 @@ units:
                   - bgppeers
                   - bgpadvertisements
                 verbs: ["get", "list", "watch", "patch", "update"]
+              - apiGroups: ["crd.projectcalico.org"]
+                resources:
+                - globalnetworksets
+                verbs: ["create", "update", "patch", "delete", "get", "list", "watch"]
+              - apiGroups: ["infrastructure.cluster.x-k8s.io"]
+                resources:
+                - openstackmachines
+                - metal3machines
+                verbs: ["get", "list", "watch"]
+              - apiGroups: ["ipam.metal3.io"]
+                resources:
+                - ippools
+                verbs: ["get", "list", "watch"]
+              - apiGroups: ["crd.projectcalico.org"]
+                resources:
+                - ippools
+                verbs: ["get", "list", "watch"]
+              - apiGroups: ["apiextensions.k8s.io"]
+                resources:
+                - customresourcedefinitions
+                verbs: ["get", "list", "watch"]
               - apiGroups: ["metal3.io"]
                 resources:
                   - baremetalhosts
@@ -2870,9 +2945,6 @@ units:
               accessMode: ReadWriteOnce
         metal3-baremetal-operator:
           replicaCount: '{{ .Values._internal.ha_cluster.is_ha | ternary 2 1 | include "preserve-type" }}'
-        metal3-mariadb:
-          persistence:
-            storageClass: '{{ .Values._internal.default_storage_class }}'
       _postRenderers:
         - kustomize:
             patches:
@@ -3084,6 +3156,7 @@ units:
           - cluster-resource
           - base
         unset_cluster_paused: '{{ .Values._internal.state.is_upgrade | include "preserve-type" }}'
+        freeze_first_node_files: '{{ .Values._internal.state.is_upgrade | include "preserve-type" }}'
       valuesFrom:
         - kind: ConfigMap
           name: capo-cluster-resources
@@ -3799,7 +3872,7 @@ units:
       ingress-nginx: '{{ tuple . "ingress-nginx" | include "unit-enabled" }}'
       synchronize-secrets: true
     annotations:
-      sylvactl/readyMessage: "Rancher UI can be reached at https://{{ .Values.external_hostnames.rancher }} ({{ .Values.external_hostnames.rancher }} must resolve to {{ .Values.display_external_ip }})"
+      sylvactl/readyMessage: "Rancher UI can be reached at https://{{ .Values.external_hostnames.rancher }} ({{ .Values._internal.display_external_ip_msg }})"
     helm_repo_url: https://releases.rancher.com/server-charts/stable
     helmrelease_spec:
       chart:
@@ -4326,7 +4399,7 @@ units:
       keycloak-oidc-external-secrets: '{{ tuple . "keycloak" | include "unit-enabled" }}'
       flux-webui-init: true
     annotations:
-      sylvactl/readyMessage: "Flux Web UI can be reached at https://{{ .Values.external_hostnames.flux }} ({{ .Values.external_hostnames.flux }} must resolve to {{ .Values.display_external_ip }})"
+      sylvactl/readyMessage: "Flux Web UI can be reached at https://{{ .Values.external_hostnames.flux }} ({{ .Values._internal.display_external_ip_msg }})"
     repo: weave-gitops
     helm_chart_artifact_name: weave-gitops
     helmrelease_spec:
@@ -4844,7 +4917,7 @@ units:
       chart:
         spec:
           chart: prometheus-pushgateway
-          version: 3.2.0
+          version: 3.3.0
       install:
         createNamespace: true
       values:
@@ -5136,10 +5209,6 @@ units:
           chart: sriov-network-operator
           version: 1.5.2+up1.5.0
       values:
-        sriov-nfd:  # override of https://github.com/suse-edge/charts/blob/39a276168895d136c10e5a06d16f85d2d2fb7120/charts/sriov-network-operator/1.5.0/charts/sriov-nfd/values.yaml#L2
-                    # to workaround the issue described at https://github.com/suse-edge/charts/issues/203
-          image:
-            repository: registry.suse.com/rancher/hardened-node-feature-discovery
         operator:
           admissionControllers:
             enabled: true
@@ -5303,7 +5372,7 @@ units:
       chart:
         spec:
           chart: ceph-csi-cephfs
-          version: 3.12.3
+          version: 3.14.0
       values:
         provisioner:
           replicaCount: '{{ .Values.cluster.control_plane_replicas }}'
@@ -5320,8 +5389,8 @@ units:
     helm_secret_values:
       secret:
         create: true
-        adminID: '{{ .Values.ceph.cephfs_csi.adminID }}'
-        adminKey: '{{ .Values.ceph.cephfs_csi.adminKey }}'
+        userID: '{{ .Values.ceph.cephfs_csi.adminID }}'
+        userKey: '{{ .Values.ceph.cephfs_csi.adminKey }}'
 
   longhorn-crd:
     info:
@@ -5986,7 +6055,7 @@ units:
       namespace-defs: true
       '{{ .Values._internal.default_storage_class_unit }}': true
     annotations:
-      sylvactl/readyMessage: "Gitea UI can be reached at https://{{ .Values.external_hostnames.gitea }} ({{ .Values.external_hostnames.gitea }} must resolve to {{ .Values.display_external_ip }})"
+      sylvactl/readyMessage: "Gitea can be reached at https://{{ .Values.external_hostnames.gitea }} ({{ .Values._internal.display_external_ip_msg }})"
     helm_repo_url: https://dl.gitea.com/charts/
     helmrelease_spec:
       chart:
@@ -6310,7 +6379,7 @@ units:
       minio-operator-init: true
       ingress-nginx: '{{ tuple . "ingress-nginx" | include "unit-enabled" }}'
     annotations:
-      sylvactl/readyMessage: "MinIO operator console can be reached at https://{{ .Values.external_hostnames.minio_operator_console }} ({{ .Values.external_hostnames.minio_operator_console }} must resolve to {{ .Values.display_external_ip }})"
+      sylvactl/readyMessage: "minio operator console can be reached at https://{{ .Values.external_hostnames.minio_operator_console }} ({{ .Values._internal.display_external_ip_msg }})"
     repo: minio-operator
     helmrelease_spec:
       targetNamespace: minio-operator
@@ -6471,6 +6540,56 @@ units:
               echo "StatefulSet deleted successfully. MinIO operator will recreate it with the correct image."
               exit 0
 
+  minio-logging-patch-healthcheckexprs:
+    info:
+      description: Patch minio-logging Kustomization to use healthCheckExprs field
+      details: |-
+        This unit was introduced as a workaround for the transition between Flux 2.4 and 2.5.
+        It patches the minio-logging Kustomization to use the new healthCheckExprs field
+        that is available in Flux 2.5.x.
+      internal: true
+    one_shot: true
+    unit_templates:
+    - base-deps
+    - kube-job
+    enabled_conditions:
+    - '{{ tuple . "minio-logging" | include "unit-enabled" }}'
+    - '{{ lookup "kustomize.toolkit.fluxcd.io/v1" "Kustomization" .Release.Namespace "minio-logging" | dig "spec" "healthCheckExprs" (list) | len | eq 0 }}'
+    - '{{ .Values._internal.state.is_upgrade }}'
+    kustomization_spec:
+      _patches:
+      - target:
+          kind: ConfigMap
+          labelSelector: kube-job=script
+        patch: |
+          - op: replace
+            path: /data/kube-job.sh
+            value: |
+              #!/bin/bash
+              # Patch the minio-logging Kustomization to use healthCheckExprs.
+              kubectl patch kustomization.kustomize.toolkit.fluxcd.io -n sylva-system minio-logging \
+                --field-manager sylva-minio-healthcheck-patch-unit \
+                --type=merge \
+                --patch '{
+                  "spec": {
+                    "healthCheckExprs": [
+                      {
+                        "apiVersion": "minio.min.io/v2",
+                        "kind": "Tenant",
+                        "current": "status.healthStatus == \"green\"",
+                        "failed": "status.healthStatus != \"green\""
+                      }
+                    ]
+                  }
+                }'
+              # Check the result
+              if [ $? -eq 0 ]; then
+                echo "Successfully patched minio-logging Kustomization"
+              else
+                echo "Failed to patch minio-logging Kustomization"
+                exit 1
+              fi
+
   minio-logging:
     info:
       description: creates a MinIO tenant for the logging stack, used as S3 storage by Loki
@@ -6483,11 +6602,12 @@ units:
       namespace-defs: true
       minio-operator: true
       minio-logging-init: true
+      minio-logging-patch-healthcheckexprs: '{{ tuple . "minio-logging-patch-healthcheckexprs" | include "unit-enabled" }}'
       ingress-nginx: '{{ tuple . "ingress-nginx" | include "unit-enabled" }}'
       two-replicas-storageclass: '{{ tuple . "two-replicas-storageclass" | include "unit-enabled" }}'
       '{{ .Values._internal.default_storage_class_unit }}': '{{ not (tuple . "two-replicas-storageclass" | include "unit-enabled") }}'
     annotations:
-      sylvactl/readyMessage: "MinIO UI logging tenant console can be reached at https://{{ .Values.external_hostnames.minio_logging_console }} ({{ .Values.external_hostnames.minio_logging_console }} must resolve to {{ .Values.display_external_ip }})"
+      sylvactl/readyMessage: "MinIO logging tenant console can be reached at https://{{ .Values.external_hostnames.minio_logging_console }} ({{ .Values._internal.display_external_ip_msg }})"
     repo: minio-operator
     helmrelease_spec:
       targetNamespace: minio-logging
@@ -6614,19 +6734,29 @@ units:
                 secretName: minio-logging-tls
     kustomization_spec:
       healthChecks:
-      - apiVersion: apps/v1
-        kind: StatefulSet
-        name: logging-pool-0  # concatenation from .tenant chart values .name & .pools[0].name
-        namespace: minio-logging
       - apiVersion: minio.min.io/v2
         kind: Tenant
         name: logging
         namespace: minio-logging
-      healthCheckExprs:
-      - apiVersion: minio.min.io/v2
-        kind: Tenant
-        current: status.healthStatus == "green"
-        failed: status.healthStatus != "green"
+      healthCheckExprs: >-
+        {{
+        tuple (list (dict
+                         "apiVersion" "minio.min.io/v2"
+                         "kind" "Tenant"
+                         "current" "status.healthStatus == \"green\""
+                         "failed" "status.healthStatus != \"green\""
+                     )
+              )
+              (lookup
+                     "apiextensions.k8s.io/v1"
+                     "CustomResourceDefinition"
+                     ""
+                     "kustomizations.kustomize.toolkit.fluxcd.io"
+               | toYaml
+               | contains "HealthCheckExprs"
+              )
+        | include "set-only-if"
+        }}
 
   minio-monitoring-init:
     info:
@@ -6706,6 +6836,56 @@ units:
               echo "StatefulSet deleted successfully. MinIO operator will recreate it with the correct image."
               exit 0
 
+  minio-monitoring-patch-healthcheckexprs:
+    info:
+      description: Patch minio-monitoring Kustomization to use healthCheckExprs field
+      details: |-
+        This unit was introduced as a workaround for the transition between Flux 2.4 and 2.5.
+        It patches the minio-monitoring Kustomization to use the new healthCheckExprs field
+        that is available in Flux 2.5.x.
+      internal: true
+    one_shot: true
+    unit_templates:
+    - base-deps
+    - kube-job
+    enabled_conditions:
+    - '{{ tuple . "minio-monitoring" | include "unit-enabled" }}'
+    - '{{ .Values._internal.state.is_upgrade }}'
+    - '{{ lookup "kustomize.toolkit.fluxcd.io/v1" "Kustomization" .Release.Namespace "minio-monitoring" | dig "spec" "healthCheckExprs" (list) | len | eq 0 }}'
+    kustomization_spec:
+      _patches:
+      - target:
+          kind: ConfigMap
+          labelSelector: kube-job=script
+        patch: |
+          - op: replace
+            path: /data/kube-job.sh
+            value: |
+              #!/bin/bash
+              # Patch the minio-monitoring Kustomization to use healthCheckExprs
+              kubectl patch kustomization.kustomize.toolkit.fluxcd.io -n sylva-system minio-monitoring \
+                --field-manager sylva-minio-healthcheck-patch-unit \
+                --type=merge \
+                --patch '{
+                  "spec": {
+                    "healthCheckExprs": [
+                      {
+                        "apiVersion": "minio.min.io/v2",
+                        "kind": "Tenant",
+                        "current": "status.healthStatus == \"green\"",
+                        "failed": "status.healthStatus != \"green\""
+                      }
+                    ]
+                  }
+                }'
+              # Check the result
+              if [ $? -eq 0 ]; then
+                echo "Successfully patched minio-monitoring Kustomization"
+              else
+                echo "Failed to patch minio-monitoring Kustomization"
+                exit 1
+              fi
+
   minio-monitoring:
     info:
       description: creates a MinIO tenant for the monitoring stack, used as S3 storage by Thanos
@@ -6720,11 +6900,12 @@ units:
       namespace-defs: true
       minio-operator: true
       minio-monitoring-init: true
+      minio-monitoring-patch-healthcheckexprs: '{{ tuple . "minio-monitoring-patch-healthcheckexprs" | include "unit-enabled" }}'
       ingress-nginx: '{{ tuple . "ingress-nginx" | include "unit-enabled" }}'
       two-replicas-storageclass: '{{ tuple . "two-replicas-storageclass" | include "unit-enabled" }}'
       '{{ .Values._internal.default_storage_class_unit }}': '{{ not (tuple . "two-replicas-storageclass" | include "unit-enabled") }}'
     annotations:
-      sylvactl/readyMessage: "MinIO monitoring UI tenant console can be reached at https://{{ .Values.external_hostnames.minio_monitoring_console }} ({{ .Values.external_hostnames.minio_monitoring_console }} must resolve to {{ .Values.display_external_ip }})"
+      sylvactl/readyMessage: "MinIO monitoring tenant console can be reached at https://{{ .Values.external_hostnames.minio_monitoring_console }} ({{ .Values._internal.display_external_ip_msg }})"
     repo: minio-operator
     helmrelease_spec:
       targetNamespace: minio-monitoring
@@ -6845,19 +7026,29 @@ units:
                 secretName: minio-monitoring-tls
     kustomization_spec:
       healthChecks:
-      - apiVersion: apps/v1
-        kind: StatefulSet
-        name: monitoring-pool-0  # concatenation from .tenant chart values .name & .pools[0].name
-        namespace: minio-monitoring
       - apiVersion: minio.min.io/v2
         kind: Tenant
         name: monitoring
         namespace: minio-monitoring
-      healthCheckExprs:
-      - apiVersion: minio.min.io/v2
-        kind: Tenant
-        current: status.healthStatus == "green"
-        failed: status.healthStatus != "green"
+      healthCheckExprs: >-
+        {{
+        tuple (list (dict
+                         "apiVersion" "minio.min.io/v2"
+                         "kind" "Tenant"
+                         "current" "status.healthStatus == \"green\""
+                         "failed" "status.healthStatus != \"green\""
+                     )
+              )
+              (lookup
+                     "apiextensions.k8s.io/v1"
+                     "CustomResourceDefinition"
+                     ""
+                     "kustomizations.kustomize.toolkit.fluxcd.io"
+               | toYaml
+               | contains "HealthCheckExprs"
+              )
+        | include "set-only-if"
+        }}
 
   thanos-init:
     info:
@@ -6919,6 +7110,44 @@ units:
         namespace: sylva-system
         name: thanos-secrets
 
+  thanos-statefulsets-cleanup:
+    info:
+      description: Remove Thanos statefulsets from previous deployments
+      internal: true
+    unit_templates:
+    - base-deps
+    - kube-job
+    enabled_conditions:
+    - '{{ tuple . "thanos" | include "unit-enabled" }}'
+    depends_on:
+      namespace-defs: true
+      thanos-init: true
+      thanos-credentials-secret: true
+    kustomization_spec:
+      targetNamespace: thanos
+      _patches:
+      - target:
+          kind: Job
+        patch: |
+          {{ tuple . "units.thanos.helmrelease_spec.values" | include "interpret" -}}
+          - op: add
+            path: /spec/template/spec/containers/0/env
+            value:
+              - name: EXPECTED_HASH_receive
+                value: {{ .Values.units.thanos.helmrelease_spec.values.receive.persistence | toJson | sha256sum | trunc 8 }}
+              - name: EXPECTED_HASH_storegateway
+                value: {{ .Values.units.thanos.helmrelease_spec.values.storegateway.persistence | toJson | sha256sum | trunc 8 }}
+              - name: EXPECTED_HASH_ruler
+                value: {{ .Values.units.thanos.helmrelease_spec.values.ruler.persistence | toJson | sha256sum | trunc 8 }}
+      - target:
+          kind: ConfigMap
+          labelSelector: kube-job=script
+        patch: |
+          - op: replace
+            path: /data/kube-job.sh
+            value: |
+          {{ .Files.Get "scripts/thanos-delete-statefulsets.sh" | indent 4 }}
+
   thanos:
     info:
       description: installs Thanos
@@ -6931,6 +7160,7 @@ units:
       namespace-defs: true
       thanos-init: true
       thanos-credentials-secret: true
+      thanos-statefulsets-cleanup: '{{ tuple . "thanos-statefulsets-cleanup" | include "unit-enabled" }}'
       minio-monitoring: '{{ .Values.monitoring.thanos.objstoreConfig.config | empty }}'
       minio-monitoring-cleanup: '{{ tuple . "minio-monitoring-cleanup" | include "unit-enabled" }}'
       '{{ .Values._internal.default_storage_class_unit }}': true
@@ -7047,7 +7277,7 @@ units:
             enabled: true
             storageClass: '{{ tuple . (tuple . "two-replicas-storageclass" | include "unit-enabled") "two-replicas-storageclass" .Values._internal.default_storage_class | include "interpret-ternary" }}'
             accessModes: ["ReadWriteOnce"]
-            size: '{{  has .Values.env_type (list "dev" "ci") | ternary "2Gi" "4Gi" }}'
+            size: '{{ .Values.monitoring.thanos.ruler.persistence.size }}'
           evalInterval: 1m
           replicaCount: '{{ .Values._internal.ha_cluster.is_ha | ternary 2 1 | include "preserve-type" }}'
           pdb:
@@ -7115,7 +7345,10 @@ units:
             - --enable-auto-gomemlimit
             - --sync-block-duration=3m
           persistence:
-            enabled: false
+            enabled: true
+            storageClass: '{{ tuple . (tuple . "two-replicas-storageclass" | include "unit-enabled") "two-replicas-storageclass" .Values._internal.default_storage_class | include "interpret-ternary" }}'
+            accessModes: ["ReadWriteOnce"]
+            size: '{{ .Values.monitoring.thanos.storegateway.persistence.size }}'
           ingress:
             enabled: true
             hostname: '{{ .Values.external_hostnames.thanos_storegateway }}'
@@ -7133,7 +7366,10 @@ units:
               memory: 2Gi
         compactor:
           persistence:
-            enabled: false
+            enabled: true
+            storageClass: '{{ tuple . (tuple . "two-replicas-storageclass" | include "unit-enabled") "two-replicas-storageclass" .Values._internal.default_storage_class | include "interpret-ternary" }}'
+            accessModes: ["ReadWriteOnce"]
+            size: '{{ .Values.monitoring.thanos.compactor.persistence.size }}'
           enabled: true
           logLevel: info
           extraFlags:
@@ -7160,7 +7396,10 @@ units:
               cpu: 1
               memory: 6Gi
           persistence:
-            enabled: false
+            enabled: true
+            storageClass: '{{ tuple . (tuple . "two-replicas-storageclass" | include "unit-enabled") "two-replicas-storageclass" .Values._internal.default_storage_class | include "interpret-ternary" }}'
+            accessModes: ["ReadWriteOnce"]
+            size: '{{ .Values.monitoring.thanos.receive.persistence.size }}'
           tsdbRetention: 12h
           extraFlags:
           - --enable-auto-gomemlimit
@@ -7210,6 +7449,36 @@ units:
         - kustomize:
             patches:
             - '{{ .Values._internal.pdb_allow_unhealthy_pod_eviction | include "preserve-type" }}'
+        # add the current persistence config as a StatefulSet annotation so we know if we need to delete it
+        - kustomize:
+            patches:
+              - target:
+                  kind: StatefulSet
+                  name: thanos-receive
+                patch: |
+                  - op: add
+                    path: /metadata/annotations/thanos.persistent-config-hash
+                    value: |-
+                      {{ tuple . "units.thanos.helmrelease_spec.values.receive.persistence" | include "interpret" -}}
+                      {{ .Values.units.thanos.helmrelease_spec.values.receive.persistence | toJson | sha256sum | trunc 8 }}
+              - target:
+                  kind: StatefulSet
+                  name: thanos-storegateway
+                patch: |
+                  - op: add
+                    path: /metadata/annotations/thanos.persistent-config-hash
+                    value: |-
+                      {{ tuple . "units.thanos.helmrelease_spec.values.storegateway.persistence" | include "interpret" -}}
+                      {{ .Values.units.thanos.helmrelease_spec.values.storegateway.persistence | toJson | sha256sum | trunc 8 }}
+              - target:
+                  kind: StatefulSet
+                  name: thanos-ruler
+                patch: |
+                  - op: add
+                    path: /metadata/annotations/thanos.persistent-config-hash
+                    value: |-
+                      {{ tuple . "units.thanos.helmrelease_spec.values.ruler.persistence" | include "interpret" -}}
+                      {{ .Values.units.thanos.helmrelease_spec.values.ruler.persistence | toJson | sha256sum | trunc 8 }}
     helm_secret_values:
       extraDeploy:
       - apiVersion: v1
@@ -7435,7 +7704,7 @@ units:
     enabled_conditions:
       - '{{ tuple . "logging" | include "unit-enabled" }}'
     annotations:
-      sylvactl/readyMessage: "Loki UI can be reached at https://{{ .Values.external_hostnames.loki }} ({{ .Values.external_hostnames.loki }} must resolve to {{ .Values.display_external_ip }})"
+      sylvactl/readyMessage: "Loki can be reached at https://{{ .Values.external_hostnames.loki }} ({{ .Values._internal.display_external_ip_msg }})"
     repo: loki
     helmrelease_spec:
       targetNamespace: loki
@@ -7808,6 +8077,7 @@ units:
     - base-deps
     depends_on:
       sylva-units-operator: '{{ tuple . "sylva-units-operator" | include "unit-enabled" }}'
+      external-secrets-operator: '{{ tuple . "sylva-units-operator" | include "unit-enabled" }}'
     enabled_conditions:
       - '{{ tuple . "workload-cluster-operator" | include "unit-enabled" }}'
     helm_chart_artifact_name: workload-team-defs
@@ -7839,6 +8109,195 @@ units:
           CLUSTER_VIRTUAL_IP: '{{ .Values.cluster_virtual_ip }}'
           CLUSTER_OKD_BASE_DOMAIN: '{{ .Values.cluster.openshift.baseDomain }}'
 
+  backup-capi-resources:
+    info:
+      description: Backup Cluster API resources
+      details: Backup periodically Cluster API resources using clusterctl move
+    unit_templates:
+    - base-deps
+    - '{{ tuple "backup-s3" (hasKey ((.Values.backup | default dict) | dig "store" dict) "s3") | include "set-only-if" }}'
+    - kube-cronjob
+    enabled_conditions:
+      - '{{ .Values.backup | ne nil }}'
+    kustomization_spec:
+      path: ./kustomize-units/backup
+      postBuild:
+        substitute:
+          ADDITIONAL_RESOURCES: ConfigMap/sylva-units-values Secret/sylva-units-secrets ConfigMap/capo-cluster-resources # space-separated kind/name resources to backup alongside capi resources
+      _components:
+      - "./components/backup-capi-resources"
+      - '{{ tuple "./components/pushgateway" (tuple . "prometheus-pushgateway" | include "unit-enabled") | include "set-only-if" }}'
+      - '{{ tuple "./components/timestamp" ((.Values.backup | default dict) | dig "timestamped" false) | include "set-only-if" }}'
+      _patches:
+      - target:
+          kind: CronJob
+        patch: |
+          - op: replace
+            path: /spec/schedule
+            value:  "0 5 * * * "
+
+  backup-etcd:
+    info:
+      description: Backup Etcd
+      details: Backup periodically Etcd using etcdctl
+    unit_templates:
+    - base-deps
+    - '{{ tuple "backup-s3" (hasKey ((.Values.backup | default dict) | dig "store" dict) "s3") | include "set-only-if" }}'
+    - kube-cronjob
+    enabled_conditions:
+      - '{{ .Values.backup | ne nil }}'
+    kustomization_spec:
+      path: ./kustomize-units/backup
+      targetNamespace: kube-system
+      postBuild:
+        substitute:
+          CLUSTER_NAME: '{{ .Values.cluster.name }}'
+          RUNASUSER: "915"
+          RUNASGROUP: "915"
+      _components:
+      - "./components/backup-etcd"
+      - '{{ tuple "./components/backup-etcd/cabpk-volumes" (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpk") | include "set-only-if" }}'
+      - '{{ tuple "./components/backup-etcd/cabpr-volumes" (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpr") | include "set-only-if" }}'
+      - '{{ tuple "./components/pushgateway" (tuple . "prometheus-pushgateway" | include "unit-enabled") | include "set-only-if" }}'
+      - '{{ tuple "./components/timestamp" ((.Values.backup | default dict) | dig "timestamped" false) | include "set-only-if" }}'
+      _patches:
+      - target:
+          kind: CronJob
+        patch: |
+          - op: replace
+            path: /spec/schedule
+            value:  "0 5 * * * "
+
+  firewall-common:
+    info:
+      description: >
+        configures global network policies applying
+        on the management cluster and on workload clusters
+      internal: true
+    unit_templates:
+    - base-deps
+    enabled: false
+    repo: sylva-core
+    kustomization_spec:
+      path: ./kustomize-units/firewall/common
+      wait: true
+      postBuild:
+        substitute:
+          # _internal.cluster_virtual_ip is defined when not using capo
+          # Otherwise, CLUSTER_VIRTUAL_IP is substituted from the capo-cluster-resources configmap when using capo
+          CLUSTER_VIRTUAL_IP: '{{ .Values._internal.cluster_virtual_ip | include "set-if-defined" }}'
+          ALLOWED_PUBLIC_SUBNETS_TO_GUI: '{{ .Values.security.firewall.allowed_public_subnets_for_gui | default .Values.security.firewall.allowed_public_subnets | toJson }}'
+          ALLOWED_PUBLIC_SUBNETS_TO_KUBEAPI: '{{ .Values.security.firewall.allowed_public_subnets_for_kubeapi | default .Values.security.firewall.allowed_public_subnets | toJson }}'
+          ALLOWED_PUBLIC_SUBNETS_TO_SSH: '{{ .Values.security.firewall.allowed_public_subnets_for_ssh | default .Values.security.firewall.allowed_public_subnets | toJson }}'
+          NTP_SERVERS: '{{ .Values.ntp.servers | toJson }}'
+          CLUSTER_PODS_CIDR: '{{ .Values.cluster.cluster_pods_cidrs | toJson }}'
+          COREDNS_SELECTOR: '{{ .Values._internal.coredns_selector }}'
+        substituteFrom:
+        - kind: ConfigMap
+          name: capo-cluster-resources  # byproduct of capo-cluster-resources units
+          optional: '{{ not (.Values.cluster.capi_providers.infra_provider | eq "capo") | include "as-bool" }}'
+        - kind: ConfigMap
+          name: management-cluster-addresses  # generated by 'create-global-network-set-for-(capo|capm3)-cluster-nodes' Kyverno ClusterPolicy
+        - kind: ConfigMap
+          name: cluster-provisioning-addresses  # generated by create-global-network-set-for-capm3-cluster-nodes Kyverno ClusterPolicy
+          optional: '{{ not (and (.Values.cluster.capi_providers.infra_provider | eq "capm3") .Values.cluster.capm3.provisioning_pool_name) | include "as-bool" }}'
+      _components:
+      - '{{ tuple "components/rke2" (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpr") | include "set-only-if" }}'
+
+  firewall-management-cluster:
+    info:
+      description: >
+        configures global network policies applying
+        only on the management cluster
+      internal: true
+    unit_templates:
+    - base-deps
+    enabled: false
+    repo: sylva-core
+    kustomization_spec:
+      path: ./kustomize-units/firewall/management-cluster
+      wait: true
+      postBuild:
+        substitute:
+          # _internal.cluster_virtual_ip is defined when not using capo
+          # Otherwise, CLUSTER_VIRTUAL_IP is substituted from the capo-cluster-resources configmap when using capo
+          CLUSTER_VIRTUAL_IP: '{{ .Values._internal.cluster_virtual_ip | include "set-if-defined" }}'
+          COREDNS_SELECTOR: '{{ .Values._internal.coredns_selector }}'
+          DEFAULT_POLICY: '{{ .Values.security.firewall.default_policy }}'
+        substituteFrom:
+        - kind: ConfigMap
+          name: capo-cluster-resources
+          optional: '{{ not (.Values.cluster.capi_providers.infra_provider | eq "capo") | include "as-bool" }}'
+      _components:
+      - '{{ tuple "components/neuvector" (tuple . "neuvector" | include "unit-enabled") | include "set-only-if" }}'
+      - '{{ tuple "components/monitoring" (tuple . "monitoring" | include "unit-enabled") | include "set-only-if" }}'
+      - '{{ tuple "components/logging" (tuple . "logging" | include "unit-enabled") | include "set-only-if" }}'
+      - '{{ tuple "components/metal3" (tuple . "metal3" | include "unit-enabled") | include "set-only-if" }}'
+      - '{{ tuple "components/rke2" (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpr") | include "set-only-if" }}'
+
+  firewall-workload-cluster:
+    info:
+      description: >
+        configures global network policies applying
+        only on the management cluster
+      internal: true
+    unit_templates:
+    - base-deps
+    enabled: false
+    repo: sylva-core
+    kustomization_spec:
+      path: ./kustomize-units/firewall/workload-cluster
+      wait: true
+      postBuild:
+        substitute:
+          # _internal.cluster_virtual_ip is defined when not using capo
+          # Otherwise, CLUSTER_VIRTUAL_IP is substituted from the capo-cluster-resources configmap when using capo
+          CLUSTER_VIRTUAL_IP: '{{ .Values._internal.cluster_virtual_ip | include "set-if-defined" }}'
+          DEFAULT_POLICY: '{{ .Values.security.firewall.default_policy }}'
+        substituteFrom:
+        - kind: ConfigMap
+          name: capo-cluster-resources
+          optional: '{{ not (.Values.cluster.capi_providers.infra_provider | eq "capo") | include "as-bool" }}'
+
+  # only on the management cluster with capo enabled
+  firewall-kyverno-capo:
+    info:
+      description: >
+        configures a kyverno policy to create global network sets
+        with the IP address assigned to the nodes of the Openstack workload clusters
+      internal: true
+    unit_templates:
+    - base-deps
+    enabled: false
+    repo: sylva-core
+    depends_on:
+      capo: true
+    kustomization_spec:
+      path: ./kustomize-units/firewall/kyverno-capo
+      # if the deployment is not capo, wait for the creation of the kyverno resources
+      # else wait not only for the creation of the kyverno resources but also for
+      # the production of the configmap containing the IP addresses of the management cluster
+      wait: true
+
+  # only on the management cluster with capm3 enabled
+  firewall-kyverno-capm3:
+    info:
+      description: >
+        configures a kyverno policy to create global network sets
+        with the IP address assigned to the nodes of the baremetal workload clusters
+      internal: true
+    unit_templates:
+    - base-deps
+    enabled: false
+    repo: sylva-core
+    depends_on:
+      capm3: true
+    kustomization_spec:
+      path: ./kustomize-units/firewall/kyverno-capm3
+      # if the deployment is not capm3, wait for the creation of the kyverno resources
+      # else wait not only for the creation of the kyverno resources but also for
+      # the production of the configmap containing the IP addresses of the management cluster
+      wait: true
 
 ##### stuff related to the 'cluster' unit #####
 #
@@ -7915,6 +8374,16 @@ cluster:
       security_group_names:
       - capo-{{ .Values.cluster.name }}-security-group-ctrl-plane-{{ .Values.cluster.capo.resources_tag }}
       - capo-{{ .Values.cluster.name }}-security-group-common-{{ .Values.cluster.capo.resources_tag }}
+    additional_commands: >-
+      {{- tuple (dict
+              "pre_bootstrap_commands" (list
+                    "groupadd -r -g 915 etcd"
+                    "useradd -r -s /sbin/nologin -M -u 915 -g 915 etcd"
+              )
+          )
+          (tuple . "backup-etcd" | include "unit-enabled")
+          | include "set-only-if"
+      }}
 
   machine_deployment_default:
     machine_deployment_spec:
@@ -8070,7 +8539,7 @@ vsphere:
           datacenters:
             - '{{ .Values.cluster.capv.dataCenter }}'
 
-cluster_virtual_ip: 55.55.55.55
+cluster_virtual_ip: ''
 
 # Admin password that will be configured by default on various units  # FIXME, only used for SSO today see https://gitlab.com/sylva-projects/sylva-core/-/issues/503
 # [WARNING] This value cannot be overwritten on production environment (env_type: prod)
@@ -8078,18 +8547,18 @@ admin_password: '{{ .Values._internal.default_password }}'
 
 flux:
   kustomize:
-    concurrent: 4
+    concurrent: 10
     log_level: info
     features_gates: {}
   helm:
-    concurrent: 4
+    concurrent: 10
     features_gates:
       OOMWatch: true
       DetectDrift: true
       CorrectDrift: true
     log_level: debug
   source:
-    concurrent: 2
+    concurrent: 10
     log_level: info
     features_gates: {}
 
@@ -8389,6 +8858,21 @@ security:
     targets:
       - configmap # list of targets (i.e. places where the SBOM is uploaded). Supported targets are configmap, oci and dtrack
 
+  firewall:
+    enabled: false
+    # By default, allow external ingress traffic from all sources
+    allowed_public_subnets:
+      - 0.0.0.0/0
+
+    # Specify the following values to use different subnets for each type of flow
+    # allowed_public_subnets_for_gui:
+    # allowed_public_subnets_for_kubeapi:
+    # allowed_public_subnets_for_ssh
+
+    # We drop packets by default
+    # This value can be set to Allow for troubleshooting
+    default_policy: Allow
+
 monitoring:
   platform_tag: Sylva
 
@@ -8398,6 +8882,19 @@ monitoring:
     # - for workload clusters, this is overridden via mgmt_cluster_state_values.monitoring.thanos.receive_url
     #   to point to the mgmt cluster Thanos receive ingress
     receive_url: http://thanos-receive.thanos.svc.cluster.local:19291/api/v1/receive
+
+    receive:
+      persistence:
+        size: '{{ has .Values.env_type (list "dev" "ci") | ternary "10Gi" "20Gi" }}'
+    compactor:
+      persistence:
+        size: '{{ has .Values.env_type (list "dev" "ci") | ternary "20Gi" "50Gi" }}'
+    storegateway:
+      persistence:
+        size: '{{ has .Values.env_type (list "dev" "ci") | ternary "10Gi" "15Gi" }}'
+    ruler:
+      persistence:
+        size: '{{ has .Values.env_type (list "dev" "ci") | ternary "2Gi" "4Gi" }}'
 
     objstoreConfig:
       # only taken into account when monitoring.thanos.objstoreConfig.config is not empty
@@ -8793,6 +9290,8 @@ _internal:
         enabled: '{{ tuple . "snmp-exporter" | include "unit-enabled" }}'
       crossplane:
         enabled: '{{ tuple . "crossplane" | include "unit-enabled" }}'
+      harbor:
+        enabled: '{{ tuple . "harbor" | include "unit-enabled" }}'
 
   thanos:
     store_config_internal:
@@ -8835,36 +9334,42 @@ _internal:
 
   default_password: '{{ include "internalPersistentRandomPasswd" (tuple . "default_password") }}'
 
-  default_longhorn_storage_class: >-
-    {{- $nodeCount := int (tuple . .Values._internal.longhorn_node_count | include "interpret-as-string") -}}
-    {{- if eq $nodeCount 1 -}}
-      single-replica-storageclass
-    {{- else if eq $nodeCount 2 -}}
-      two-replicas-storageclass
-    {{- else -}}
-      longhorn
-    {{- end -}}
+  default_longhorn_storage_class: longhorn
 
   default_storage_class: >-
     {{- if .Values.default_storage_class -}}
       {{ .Values.default_storage_class }}
-    {{- else if (tuple . "ceph-csi-cephfs" | include "unit-enabled") -}}
-      cephfs-csi
-    {{- else if (tuple . "cinder-csi" | include "unit-enabled") -}}
-      {{ .Values.openstack.storageClass.name }}
-    {{- else if (tuple . "vsphere-csi-driver" | include "unit-enabled") -}}
-      vsphere-csi
-    {{- else if (tuple . "longhorn" | include "unit-enabled") -}}
-      {{ .Values._internal.default_longhorn_storage_class }}
     {{- else -}}
-      local-path
+      {{/* ensure .Values._internal.storage_class_unit_map is interpreted */}}
+      {{- tuple . "_internal.storage_class_unit_map" | include "interpret" -}}
+
+      {{- $envAll := . -}}
+      {{- $enabledSCs := list -}}
+      {{- $enabledUnits := list -}}
+      {{- range $sc, $unit := .Values._internal.storage_class_unit_map -}}
+        {{- if and (ne $sc "local-path") (tuple $envAll $unit | include "unit-enabled") -}}
+          {{- $enabledSCs = append $enabledSCs $sc -}}
+          {{- $enabledUnits = (not (has $unit $enabledUnits) | ternary (append $enabledUnits $unit) $enabledUnits) -}}
+        {{- end -}}
+      {{- end -}}
+      {{- if eq (len $enabledSCs) 1 -}}
+        {{- index $enabledSCs 0 -}}
+      {{- else if and (eq (len $enabledUnits) 1) (eq (index $enabledUnits 0) "longhorn") -}}
+        {{ .Values._internal.default_longhorn_storage_class }}
+      {{- else if eq (len $enabledSCs) 0 -}}
+        local-path
+      {{- else -}}
+        {{- fail (printf "Multiple storage classes are available based on the enabled units (%s), you need to specify the default one via 'default_storage_class'" ($enabledSCs|join ", ")) -}}
+      {{- end -}}
     {{- end -}}
 
   # maps storage class names to the name of the unit that implements it
   # (a storage class does not need to appear in this map if the required unit has the same name)
   storage_class_unit_map:
     local-path: local-path-provisioner
-    '{{ .Values._internal.default_longhorn_storage_class}}': longhorn
+    single-replica-storageclass: longhorn
+    two-replicas-storageclass: longhorn
+    longhorn: longhorn
     vsphere-csi: vsphere-csi-driver
     '{{ .Values.openstack.storageClass.name }}': cinder-csi
     cephfs-csi: ceph-csi-cephfs
@@ -8924,6 +9429,8 @@ _internal:
   # We need to retrieve bootstrap_node_ip in management-cluster while using libvirt-metal emulation, it is stored in a ConfigMap by libvirt-metal unit in that case
   bootstrap_node_ip: '{{ lookup "v1" "ConfigMap" "sylva-system" "cluster-public-endpoint" | dig "data" "address" "not_found" | default "not_found" }}'
 
+  display_external_ip_msg: '{{ and (.Values.openstack.floating_ip | eq "") (.Values.cluster_virtual_ip | eq "") | ternary "It must resolve to the IP used to reach the cluster" (printf "It must resolve to %s" .Values.display_external_ip ) }}'
+
   k8s_version_map:
     1.29: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" | ternary "v1.29.15+rke2r1" "v1.29.15" }}'
     "1.30": '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" | ternary "v1.30.12+rke2r1" "v1.30.12" }}'
@@ -8937,6 +9444,30 @@ _internal:
       {{- end -}}
       {{- $version -}}
 
+  #compute and validate the number of nodes
+  check_node_count_vs_bmh: >-
+    {{- if eq .Values.cluster.capi_providers.infra_provider "capm3" -}}
+      {{- $node_groups := dict "control-plane" (dict "requested_nodes" .Values.cluster.control_plane_replicas "available_bmh" 0) -}}
+      {{- range $md_name, $md_def := .Values.cluster.machine_deployments -}}
+        {{- $_ := set $node_groups $md_name (dict "requested_nodes" $md_def.replicas "available_bmh" 0) -}}
+      {{- end -}}
+      {{- $available_bmh := 0 -}}
+      {{- range $bmh_name, $bmh_def := .Values.cluster.baremetal_hosts -}}
+        {{- $bmh_def := mergeOverwrite (deepCopy $.Values.cluster.baremetal_host_default) $bmh_def -}}
+        {{- $machine_group := tuple (dict "Values" (deepCopy $.Values.cluster)) $bmh_name $bmh_def | include "getMatchingValuesDefinitionForBmh" | fromJson -}}
+        {{- if $machine_group.machineGroupName -}}
+          {{- $machine_group_name := $machine_group.machineGroupName -}}
+          {{- $available_bmh = $node_groups | dig $machine_group_name "available_bmh" 0 | add 1 -}}
+          {{- $node_groups = mergeOverwrite $node_groups (dict $machine_group_name (dict "available_bmh" $available_bmh)) -}}
+        {{- end -}}
+      {{- end -}}
+      {{- range $node_group_name, $node_group_def := $node_groups -}}
+        {{- if lt (int $node_group_def.available_bmh) (int $node_group_def.requested_nodes) -}}
+          {{- printf "Not enough available baremetal hosts for %s: %d requested, %d available" $node_group_name $node_group_def.requested_nodes $node_group_def.available_bmh | fail -}}
+        {{- end -}}
+      {{- end -}}
+    {{ $node_groups | include "preserve-type" }}
+    {{- end -}}
   # total number of nodes in this cluster
   node_count:
     '
@@ -8947,20 +9478,12 @@ _internal:
     {{ $n | include "preserve-type" }}
     '
 
-  # total number of longhorn nodes
-  longhorn_node_count:
-    '
+  # upper bound to the number of longhorn nodes
+  longhorn_node_count_upper_bound: >-
     {{- $count := 0 -}}
-      {{- if hasKey .Values.cluster "baremetal_host_default" -}}
-        {{- if hasKey .Values.cluster.baremetal_host_default "longhorn_disk_config" -}}
-          {{- $count = len .Values.cluster.baremetal_hosts -}}
-        {{- else -}}
-          {{- range $key, $value := .Values.cluster.baremetal_hosts -}}
-            {{- if hasKey $value "longhorn_disk_config" -}}
-              {{- $count = add $count 1 -}}
-            {{- end -}}
-          {{- end -}}
-        {{- end -}}
+    {{- if hasKey .Values.cluster "baremetal_host_default" -}}
+      {{- if hasKey .Values.cluster.baremetal_host_default "longhorn_disk_config" -}}
+        {{- $count = len .Values.cluster.baremetal_hosts -}}
       {{- else -}}
         {{- range $key, $value := .Values.cluster.baremetal_hosts -}}
           {{- if hasKey $value "longhorn_disk_config" -}}
@@ -8968,10 +9491,34 @@ _internal:
           {{- end -}}
         {{- end -}}
       {{- end -}}
-      {{- tuple . "_internal.node_count" | include "interpret" -}}
-      {{- $count = min $count .Values._internal.node_count -}}
+    {{- else -}}
+      {{- range $key, $value := .Values.cluster.baremetal_hosts -}}
+        {{- if hasKey $value "longhorn_disk_config" -}}
+          {{- $count = add $count 1 -}}
+        {{- end -}}
+      {{- end -}}
+    {{- end -}}
+    {{- tuple . "_internal.node_count" | include "interpret" -}}
+    {{- $count = min $count .Values._internal.node_count -}}
     {{- $count -}}
-    '
+
+
+  # this check will fail if a Longhorn storage class is selected as default
+  # and the cluster node/BMH settings are such that it can be determined that
+  # there aren't as many Longhorn nodes to support the number of replicas
+  # of the storage class
+  #
+  # this check can be disabled with, for instance:
+  #   _internal.check_longhorn_storage_class_vs_replicas: forcefully-bypassed
+  check_longhorn_storage_class_vs_replicas: >-
+    {{- $min_nodes_for_class := (dict "longhorn" 3
+                                      "two-replicas-storageclass" 2) -}}
+    {{- range $sc,$min_nodes := $min_nodes_for_class -}}
+      {{- if and ($.Values.default_storage_class | eq $sc)
+                 (lt ($.Values._internal.longhorn_node_count_upper_bound|int) $min_nodes) -}}
+        {{- fail (printf "'%s' storage class is selected as default_storage_class, but less than %d Longhorn nodes are available (no more than %s BMH/Node(s) identified)" $sc $min_nodes $.Values._internal.longhorn_node_count_upper_bound) -}}
+      {{- end -}}
+    {{- end -}}
 
   os_image_server_images_configmap: capm3-os-image-server-os-images
 
@@ -9049,7 +9596,19 @@ _internal:
         _immutable: true
         _immutable_comment: "Renaming a cluster is not supported"
       cluster_virtual_ip:
-        _immutable: true
+        # The cluster virtual IP cannot be changed
+        #
+        # In the case where this IP isn't set by user but is determined dynamically (the case on CAPO today, where capo-cluster-resources allocates it)
+        # then cluster_virtual_ip will not always contain the virtual IP, and may instead be set to its default value.
+        #
+        # Since this default value has changed (today it's "",in the past it was "55.55.55.55"), the immutability check
+        # is disabled in the case where the old value is 55.55.55.55 and the new one is "".
+        _immutable: >-
+           {{- tuple . "_internal.previous_values" | include "interpret" -}}
+           {{ not (and (.Values._internal.previous_values.cluster_virtual_ip | eq "55.55.55.55")
+                       (.Values.cluster_virtual_ip | eq ""))
+              | include "preserve-type"
+           }}
         _immutable_comment: "cluster_virtual_ip can't be changed once deployed"
       capi_providers:
         bootstrap_provider:
@@ -9143,6 +9702,15 @@ _internal:
     {{- $mtu := sub .Values._internal.base_cni_mtu $max_overhead -}}
     {{- $mtu | include "preserve-type" -}}
 
+  # Substitute with the cluster_virtual_ip value if it is defined to another value than the default, mandatory with capm3
+  # Otherwise, the value is substituted from the capo-cluster-resources when using capo
+  cluster_virtual_ip: '{{ tuple .Values.cluster_virtual_ip (ne .Values.cluster.capi_providers.infra_provider "capo") | include "set-only-if" }}'
+
+  # The labels of coredns differ between rke2 and kubeadm
+  rke2_coredns_selector: app.kubernetes.io/instance == 'rke2-coredns'
+  kubeadm_coredns_selector: k8s-app == 'kube-dns'
+  coredns_selector: '{{ (.Values.cluster.capi_providers.bootstrap_provider | eq "cabpr") | ternary .Values._internal.rke2_coredns_selector .Values._internal.kubeadm_coredns_selector }}'
+
 mgmt_cluster_state_values:
   cluster:
     mgmt_cluster_ip: '{{ .Values.display_external_ip }}'
@@ -9175,7 +9743,16 @@ mgmt_cluster_state_values:
       {{- end -}}
       {{- $units | include "preserve-type" -}}
     mgmt_cluster_service_names: >-
-      {{- range $name, $hostname := .Values.external_hostnames }}{{ if has $name (list "loki" "rancher" "thanos_receive" "harbor") }}{{ $hostname }}{{print " "}}{{ end }}{{ end }}
+      {{- range $name, $hostname := .Values.external_hostnames }}
+         {{- if has $name (list
+                                "loki"
+                                "rancher"
+                                "thanos_receive"
+                                "harbor"
+                           ) -}}
+           {{- $hostname }}{{print " "}}
+         {{- end -}}
+       {{- end -}}
 
 workload_clusters:
   teams: {}
@@ -9234,3 +9811,13 @@ openshift:
     # serviceHostname: openshift-assisted-service.example.com
     # variable to specify the openshift assisted image service hostname
     # imageHostname: openshift-assisted-images.example.com
+
+# backup:
+#   timestamped: false  # if true, a timestamp YYYYMMDDHHMM is added to the name of the backup files before uploading them to the target bucket. If false, a new backup will overwrite a previous uploaded one.
+#   store:
+#     s3:
+#       host: ""
+#       access_key: ""
+#       secret_key: ""
+#       bucket: ""
+#       cert: ""

@@ -1,0 +1,47 @@
+apiVersion: crd.projectcalico.org/v1
+kind: GlobalNetworkPolicy
+metadata:
+  name: cluster-vip-policy-management-cluster
+spec:
+  selector: has(node-role.kubernetes.io/control-plane)
+  order: 45
+  preDNAT: true
+  applyOnForward: true
+  ingress:
+  - action: Allow
+    protocol: TCP
+    source:
+      selector: role == 'workload-cluster-node'
+    destination:
+      nets:
+      - ${CLUSTER_VIRTUAL_IP}
+      ports:
+      - 80
+      - 443
+  - action: Allow
+    protocol: TCP
+    destination:
+      nets:
+      - ${CLUSTER_VIRTUAL_IP}
+      ports:
+      - 6185 # ironic
+      - 5050 # ironic
+      - 6385 # ironic
+  - action: Allow
+    protocol: UDP
+    source:
+      selector: role == 'workload-cluster-node'
+    destination:
+      nets:
+      - ${CLUSTER_VIRTUAL_IP}
+      ports:
+      - 53
+  - action: Allow
+    protocol: UDP
+    source:
+      selector: has(kubernetes.io/hostname)
+    destination:
+      nets:
+      - ${CLUSTER_VIRTUAL_IP}
+      ports:
+      - 53

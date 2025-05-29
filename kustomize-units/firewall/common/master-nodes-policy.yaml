@@ -1,0 +1,25 @@
+apiVersion: crd.projectcalico.org/v1
+kind: GlobalNetworkPolicy
+metadata:
+  name: master-nodes-policy
+spec:
+  selector: has(node-role.kubernetes.io/control-plane)
+  order: 50
+  ingress:
+  # rke2 from agent nodes
+  - action: Allow
+    protocol: TCP
+    source:
+      selector: has(kubernetes.io/hostname)
+    destination:
+      ports:
+      - 6443 # kube-apiserver
+  - action: Allow
+    protocol: TCP
+    source:
+      selector: has(node-role.kubernetes.io/control-plane)
+    destination:
+      ports:
+      - 2379 # etcd client port
+      - 2380 # etcd peer port
+      - 2381 # etcd metrics port

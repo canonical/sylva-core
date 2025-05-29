@@ -64,8 +64,12 @@ units:
     - base-deps
     - dummy
     # we copy the dependencies of the 'cluster' unit
-    # (with the exception of "capo-cluster-resources" which we don't need, given how what it produces is consumed)
-    depends_on: '{{ omit .Values.units.cluster.depends_on "capo-cluster-resources" "cluster-bmh" | include "preserve-type" }}'
+    # with exceptions:
+    # - capo-cluster-resources, because the resources that it produces are already fully produced by bootstrap
+    # - cluster-bmh, because the pivot needs to happen before we create CAPI resources
+    # - os-image-server, because since the mgmt cluster is already setup, we don't need the mgmt cluster to actually
+    #   host image to let the pivot happen
+    depends_on: '{{ omit .Values.units.cluster.depends_on "capo-cluster-resources" "cluster-bmh" "os-image-server" | include "preserve-type" }}'
 
   cluster:
     depends_on:
@@ -147,6 +151,23 @@ units:
 
   os-image-server:
     enabled: '{{ tuple . "metal3" | include "unit-enabled" }}'
+
+  firewall-kyverno-capo:
+    enabled: '{{ and (tuple . "capo" | include "unit-enabled") (.Values.security.firewall.enabled) }}'
+
+  firewall-kyverno-capm3:
+    enabled: '{{ and (tuple . "capm3" | include "unit-enabled") (.Values.security.firewall.enabled) }}'
+
+  firewall-management-cluster:
+    enabled: '{{ .Values.security.firewall.enabled }}'
+    depends_on:
+      firewall-common: true
+
+  firewall-common:
+    enabled: '{{ .Values.security.firewall.enabled }}'
+    depends_on:
+      firewall-kyverno-capo: '{{ .Values.cluster.capi_providers.infra_provider | eq "capo" }}'
+      firewall-kyverno-capm3: '{{ .Values.cluster.capi_providers.infra_provider | eq "capm3" }}'
 
   kubevirt:
     enabled: false

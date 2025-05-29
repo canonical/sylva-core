@@ -1,5 +1,4 @@
-# This file contains a JSONSchema to validate the values given
-# as inputs to the chart.
+# This file contains a JSONSchema to validate the values give as inputs to the chart.
 #
 # **** How to edit this file *****
 #
@@ -90,6 +89,15 @@ $defs:
   ipv4-range:
     type: string
     pattern: ^(?:(?:[01]?[0-9]{1,2}|2[0-4][0-9]|25[0-5])\.){3}(?:[01]?[0-9]{1,2}|2[0-4][0-9]|25[0-5])-(?:(?:[01]?[0-9]{1,2}|2[0-4][0-9]|25[0-5])\.){3}(?:[01]?[0-9]{1,2}|2[0-4][0-9]|25[0-5])$
+
+  list-of-subnets-or-ips:
+    type: array
+    items:
+      anyOf:
+        - const: 0.0.0.0/0
+        - type: string
+          format: ipv4
+        - $ref: "#/$defs/ipv4-cidr-full"
 
   sylva-capi-cluster-values:
     # this sub-schema will be completed with actual sylva-capi-cluster-values with json schema generation
@@ -699,8 +707,11 @@ properties:
     pattern: '^[1-9]+[0-9]*[.]([1-9]+[0-9]|0)*$'
 
   cluster_virtual_ip:  # -------------------------------
-    type: string
-    format: ipv4
+    oneOf:
+      - type: "string"
+        format: "ipv4"
+      - type: "string"
+        enum: [""]
 
   admin_password:  # -------------------------------
     type: string
@@ -1285,7 +1296,23 @@ properties:
           then:
             required: [oci_registry, oci_user, oci_token]
 
-
+      firewall:
+        type: object
+        additionalProperties: false
+        properties:
+          enabled:
+            type: boolean
+          allowed_public_subnets:
+            $ref: "#/$defs/list-of-subnets-or-ips"
+          allowed_public_subnets_for_gui:
+            $ref: "#/$defs/list-of-subnets-or-ips"
+          allowed_public_subnets_for_kubeapi:
+            $ref: "#/$defs/list-of-subnets-or-ips"
+          allowed_public_subnets_for_ssh:
+            $ref: "#/$defs/list-of-subnets-or-ips"
+          default_policy:
+            type: string
+            enum: [Deny, Allow]
 
   monitoring:  # -------------------------------
     type: object
@@ -1647,6 +1674,44 @@ properties:
             anyOf:
               - type: object
               - $ref: "#/$defs/gotpl"
+
+  backup:  # -------------------------------
+    type: object
+    additionalProperties: false
+    properties:
+      timestamped:
+        type: boolean
+      store:
+        additionalProperties: false
+        properties:
+          s3:
+            type: object
+            additionalProperties: false
+            properties:
+              host:
+                type: string
+                format: hostname
+              access_key:
+                type: string
+              secret_key:
+                type: string
+              bucket:
+                type: string
+              cert:
+                type: string
+            required:
+              - host
+              - access_key
+              - secret_key
+              - bucket
+        oneOf:
+        - type: object
+          properties:
+            s3: {}
+          required:
+            - s3
+    required:
+      - store
 
   # Placeholder for external units that would need to define their own values
   third_party:  # -------------------------------

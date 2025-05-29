@@ -1,0 +1,46 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: provisioning-addresses-of-workload-cluster
+  annotations:
+    policies.kyverno.io/title: Creates a configmap with the provisioning addresses of a workload cluster
+    policies.kyverno.io/category: Firewall
+    policies.kyverno.io/subject: IPPool
+    policies.kyverno.io/minversion: 1.0.0
+    policies.kyverno.io/description: >-
+      The provisioning addresses of the workload clusters are stored in a configmap that is used to create a GlobalNetworkSet in the target workload cluster
+      It is then used by GlobalNetworkPolicies in the workload cluster
+    kustomize.toolkit.fluxcd.io/force: Enabled
+spec:
+  rules:
+  # The provisioning addresses of the workload clusters are stored in a configmap that is used to create a GlobalNetworkSet in the target workload cluster
+  # It is then used by GlobalNetworkPolicies in the workload cluster
+  # TODO: replace the test on the -prov suffix with something more robust and explicit like a label on the IPPool
+  - name: provisioning-addresses-of-workload-cluster
+    match:
+      any:
+      - resources:
+          kinds:
+          - ipam.metal3.io/*/IPPool
+    preconditions:
+      all:
+      - key: "{{request.object.spec.namePrefix}}"
+        operator: Equals
+        value: "*-prov"
+    exclude:
+      any:
+      - resources:
+          namespaces:
+          - sylva-system
+    generate:
+      generateExisting: true
+      synchronize: true
+      apiVersion: v1
+      kind: ConfigMap
+      name: cluster-provisioning-addresses
+      namespace: "{{request.namespace}}"
+      data:
+        kind: ConfigMap
+        data:
+          cluster_provisioning_addresses: "[{{request.object.status.indexes | items(@, 'key', 'value') | [*].value | join(',', @) }}]"
+

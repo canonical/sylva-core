@@ -77,6 +77,10 @@ additional_resources="
   Installations.*operator.tigera.io
   IPPools.*crd.projectcalico.org
   FelixConfigurations.*crd.projectcalico.org
+  NetworkPolicies.*crd.projectcalico.org
+  GlobalNetworkPolicies.*crd.projectcalico.org
+  KubeControllersConfigurations.*crd.projectcalico.org
+  GlobalNetworkSets.*crd.projectcalico.org
   IPAddresses.*ipam.metal3.io
   IPClaims.*ipam.metal3.io
   IPPools.*ipam.metal3.io
@@ -107,6 +111,8 @@ additional_resources="
   SriovNetworkPoolConfigs
   SriovNetworks
   SriovOperatorConfigs
+  VirtualMachines.*kubevirt.io
+  VirtualMachineInstances.*kubevirt.io
 "
 
 function dump_additional_resources() {
@@ -494,6 +500,13 @@ echo -e "  ################################ \n"
 
 # Unset KUBECONFIG to make sure that we are targetting kind cluster
 unset KUBECONFIG
+
+# Check if any cluster name contains "bootstrap", otherwise default to "sylva"
+if [[ $(kind get clusters -q) =~ bootstrap ]]; then
+  KIND_CLUSTER_NAME=$(kind get clusters -q | grep bootstrap)
+else
+  KIND_CLUSTER_NAME="sylva"
+fi
 
 if [[ $(kind get clusters) =~ $KIND_CLUSTER_NAME ]]; then
   crust_gather_collect bootstrap &

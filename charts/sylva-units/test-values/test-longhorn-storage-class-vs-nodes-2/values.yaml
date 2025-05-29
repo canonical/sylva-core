@@ -1,0 +1,5 @@
+
+default_storage_class: two-replicas-storageclass
+
+_internal:
+  longhorn_node_count_upper_bound: "1"

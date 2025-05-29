@@ -3680,6 +3680,23 @@
       "type": "string",
       "pattern": "(.|\\n)*{{(.|\\n)*}}(.|\\n)*"
     },
+    "list-of-subnets-or-ips": {
+      "type": "array",
+      "items": {
+        "anyOf": [
+          {
+            "const": "0.0.0.0/0"
+          },
+          {
+            "type": "string",
+            "format": "ipv4"
+          },
+          {
+            "$ref": "#/$defs/ipv4-cidr-full"
+          }
+        ]
+      }
+    },
     "sylva-capi-cluster-values": {
       "$schema": "https://json-schema.org/draft-07/schema#",
       "title": "Schema for sylva-capi-cluster chart values",
@@ -9352,8 +9369,18 @@
       "pattern": "^[1-9]+[0-9]*[.]([1-9]+[0-9]|0)*$"
     },
     "cluster_virtual_ip": {
-      "type": "string",
-      "format": "ipv4"
+      "oneOf": [
+        {
+          "type": "string",
+          "format": "ipv4"
+        },
+        {
+          "type": "string",
+          "enum": [
+            ""
+          ]
+        }
+      ]
     },
     "admin_password": {
       "type": "string"
@@ -10345,6 +10372,34 @@
               }
             }
           ]
+        },
+        "firewall": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "allowed_public_subnets": {
+              "$ref": "#/$defs/list-of-subnets-or-ips"
+            },
+            "allowed_public_subnets_for_gui": {
+              "$ref": "#/$defs/list-of-subnets-or-ips"
+            },
+            "allowed_public_subnets_for_kubeapi": {
+              "$ref": "#/$defs/list-of-subnets-or-ips"
+            },
+            "allowed_public_subnets_for_ssh": {
+              "$ref": "#/$defs/list-of-subnets-or-ips"
+            },
+            "default_policy": {
+              "type": "string",
+              "enum": [
+                "Deny",
+                "Allow"
+              ]
+            }
+          }
         }
       }
     },
@@ -10875,6 +10930,62 @@
           }
         }
       }
+    },
+    "backup": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "timestamped": {
+          "type": "boolean"
+        },
+        "store": {
+          "additionalProperties": false,
+          "properties": {
+            "s3": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "host": {
+                  "type": "string",
+                  "format": "hostname"
+                },
+                "access_key": {
+                  "type": "string"
+                },
+                "secret_key": {
+                  "type": "string"
+                },
+                "bucket": {
+                  "type": "string"
+                },
+                "cert": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "host",
+                "access_key",
+                "secret_key",
+                "bucket"
+              ]
+            }
+          },
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "s3": {}
+              },
+              "required": [
+                "s3"
+              ]
+            }
+          ]
+        }
+      },
+      "required": [
+        "store"
+      ]
     },
     "third_party": {
       "type": "object"

@@ -1,0 +1,47 @@
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
+
+resources:
+  - capi-clusterrolebinding.yaml
+
+patches:
+  # Additional resources to backup alongside capi resources
+  - target:
+      kind: CronJob
+    patch: |
+      - op: add
+        path: /spec/jobTemplate/spec/template/spec/containers/0/env/-
+        value:
+          name: ADDITIONAL_RESOURCES
+          value: "${ADDITIONAL_RESOURCES}"
+  # Add writable volume /.config for clusterctl
+  - target:
+      kind: CronJob
+    patch: |
+      - op: add
+        path: /spec/jobTemplate/spec/template/spec/volumes/-
+        value:
+          name: clusterctl-config
+          emptyDir: {}
+      - op: add
+        path: /spec/jobTemplate/spec/template/spec/containers/0/volumeMounts/-
+        value:
+          mountPath: /.config
+          name: clusterctl-config
+  - target:
+      kind: ClusterRole
+    patch: |
+      - op: replace
+        path: /rules
+        value:
+          - apiGroups: [clusterctl.cluster.x-k8s.io]
+            resources: [providers]
+            verbs: ["get", "list"]
+
+configMapGenerator:
+- name: kube-cronjob-cm
+  behavior: merge
+  options:
+    disableNameSuffixHash: true
+  files:
+  - kube-cronjob.sh=backup-capi-resources.sh

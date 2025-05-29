@@ -19,6 +19,22 @@
           echo $access_ip $i >> /etc/hosts
         done
       fi
+      if [[ ${DEPLOY_WORKLOAD_CLUSTER} == 'true' && -f workload-cluster-kubeconfig ]]; then
+        wkld_domain=$(kubectl --kubeconfig management-cluster-kubeconfig -n $ENV_NAME get secret sylva-units-values -oyaml | yq '.data.values | @base64d' | yq '.cluster_domain')
+        echo "-- Workload domain: $wkld_domain"
+        if [[ $wkld_domain = *.sylva ]]; then
+          echo "-- Get workload ingress saved into /etc/hosts"
+          # try catch block to avoid error on management tests when workload cluster is not ready
+          {
+            wkld_access_ip=$(kubectl --kubeconfig workload-cluster-kubeconfig -n neuvector get Ingress/neuvector-webui-ingress -o yaml | yq .status.loadBalancer.ingress[0].ip)
+            for i in $(kubectl --kubeconfig workload-cluster-kubeconfig get ingress -A -o custom-columns=:.spec.tls[].hosts[] | grep -v "<none>"); do
+              echo $wkld_access_ip $i >> /etc/hosts
+            done
+          } || {
+            echo "Unable to retrieve workload access IP. Skipping..."
+          }
+        fi
+      fi
   get_ui_ingresses_url:
     - echo -e "\e[1m\e[0Ksection_start:`date +%s`:gitlab_ci_get_ui_ingresses_url[collapsed=true]\r\e[0KGet ui urls from ingresses\e[0m"
     - export flux_url=$(kubectl --kubeconfig management-cluster-kubeconfig get ingress -n flux-system flux-webui-weave-gitops -o jsonpath='{ .spec.tls[].hosts[] }')
@@ -52,7 +68,7 @@
 wkld-sso-kubeconfig:
   extends:
     - .test-base-workload-cluster
-  image: registry.gitlab.com/sylva-projects/sylva-elements/container-images/ci-image/ci-playwright-image:v1.1.3
+  image: registry.gitlab.com/sylva-projects/sylva-elements/container-images/ci-image/ci-playwright-image:v1.1.6
   variables:
     SCREENSHOTS: ${CI_PROJECT_DIR}/screenshots
     DESCRIPTION: Obtain the workload-cluster-kubeconfig through the Rancher UI and use it to create a pod.
@@ -84,7 +100,7 @@ wkld-sso-kubeconfig:
 mgmt-GUIs-test:
   extends:
     - .test-base-management-cluster
-  image: registry.gitlab.com/sylva-projects/sylva-elements/container-images/ci-image/ci-playwright-image:v1.1.3
+  image: registry.gitlab.com/sylva-projects/sylva-elements/container-images/ci-image/ci-playwright-image:v1.1.6
   variables:
     SCREENSHOTS: ${CI_PROJECT_DIR}/screenshots
     DESCRIPTION: Test basic authentication login against the GUI.
@@ -107,7 +123,7 @@ mgmt-sso:
     max: 2
   extends:
     - .test-base-management-cluster
-  image: registry.gitlab.com/sylva-projects/sylva-elements/container-images/ci-image/ci-playwright-image:v1.1.3
+  image: registry.gitlab.com/sylva-projects/sylva-elements/container-images/ci-image/ci-playwright-image:v1.1.6
   variables:
     SCREENSHOTS: ${CI_PROJECT_DIR}/screenshots
     DESCRIPTION: Test Single Sign-On login against the GUI.
@@ -245,4 +261,12 @@ wkld-login:
     - export HURL_token=$(kubectl --kubeconfig management-cluster-kubeconfig -n vault get secrets/vault-unseal-keys -o jsonpath='{.data.vault-root}' | base64 -d)
     - export HURL_vault_url=$(kubectl --kubeconfig management-cluster-kubeconfig get ingress -n vault vault -o jsonpath='{ .spec.tls[].hosts[] }')
     - export HURL_rancher_url=$(kubectl --kubeconfig management-cluster-kubeconfig get ingress -n cattle-system rancher -o jsonpath='{ .spec.tls[].hosts[] }')
+    - export HURL_neuvector_url=$(kubectl --kubeconfig workload-cluster-kubeconfig get ingress -n neuvector neuvector-webui-ingress -o jsonpath='{ .spec.tls[].hosts[] }')
+    - export HURL_password_neuvector=$(kubectl --kubeconfig workload-cluster-kubeconfig get secret -n neuvector neuvector-init -o yaml | yq '.data.userinitcfg*' | base64 -d | yq '.users[].Password')
+    - |
+      if [ -n "${HURL_neuvector_url}" ]; then
+          sleep 2;
+      else
+          rm -rf  ./tools/login-test/login-workload/neuvector-wkld.hurl
+      fi
     - hurl -k ./tools/login-test/login-workload/*.hurl --test --color --noproxy=".$domain"  --report-junit $HURL_JUNIT_REPORT --report-html ${CI_PROJECT_DIR}

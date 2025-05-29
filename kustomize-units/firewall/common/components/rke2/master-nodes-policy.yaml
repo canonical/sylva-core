@@ -1,0 +1,16 @@
+apiVersion: crd.projectcalico.org/v1
+kind: GlobalNetworkPolicy
+metadata:
+  name: rke2-master-nodes-policy
+spec:
+  selector: has(node-role.kubernetes.io/control-plane)
+  order: 50
+  ingress:
+  # rke2 from agent nodes
+  - action: Allow
+    protocol: TCP
+    source:
+      selector: has(kubernetes.io/hostname)
+    destination:
+      ports:
+      - 9345 # rke2 server

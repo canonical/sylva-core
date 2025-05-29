@@ -1,0 +1,51 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: globalnetworkset-for-capo-workload-clusters
+  annotations:
+    policies.kyverno.io/title: Create a GlobalNetworkSet for a capo workload cluster node
+    policies.kyverno.io/category: Firewall
+    policies.kyverno.io/subject: GlobalNetworkSet
+    policies.kyverno.io/minversion: 1.0.0
+    policies.kyverno.io/description: >-
+      Creates a GlobalNetworkSet for each workload cluster node so that firewall rules can be
+      written to allow some traffic only from/to the workload clusters.
+    kustomize.toolkit.fluxcd.io/force: Enabled
+spec:
+  rules:
+  - name: globalnetworkset-for-capo-workload-clusters
+    match:
+      any:
+      - resources:
+          kinds:
+          - infrastructure.cluster.x-k8s.io/*/OpenStackMachine
+    exclude:
+      any:
+      - resources:
+          namespaces:
+          - sylva-system
+    # only apply if an IP address is assigned to the VM
+    preconditions:
+      all:
+        - key: "{{ request.object.status.addresses[?type=='InternalIP'] || `[]` | length(@) }}"
+          operator: GreaterThanOrEquals
+          value: 1
+    context:
+      - name: osmachines
+        apiCall:
+          urlPath: "/apis/infrastructure.cluster.x-k8s.io/v1beta1/namespaces/{{ request.namespace }}/openstackmachines/"
+          jmesPath: "items[*].status.addresses[?type=='InternalIP'].address[]"
+    generate:
+      generateExisting: true
+      synchronize: true
+      apiVersion: crd.projectcalico.org/v1
+      kind: GlobalNetworkSet
+      name: "{{request.namespace}}-cluster-gns"
+      data:
+        kind: GlobalNetworkSet
+        metadata:
+          labels:
+            role: workload-cluster-node
+        spec:
+          nets: "{{ osmachines }}"
+

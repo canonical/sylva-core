@@ -75,6 +75,9 @@ if [[ $test_filter == '*' ]]; then
   # works fine with all units enabled
   yq eval '{"units": .units | ... comments="" | to_entries | map({"key":.key,"value":{"enabled":true,"enabled_conditions":[]}}) | from_entries}' $chart_dir/values.yaml > /tmp/all-units-enabled.yaml
 
+  # set default_storage_class to pass the CI when all the units are enabled
+  yq eval '.default_storage_class = "cephfs-csi"' -i /tmp/all-units-enabled.yaml
+
   helm template ${HELM_NAME} $chart_dir --values /tmp/all-units-enabled.yaml \
   | yamllint - -d "$(cat < ${BASE_DIR}/.gitlab/ci/configuration/yamllint.yaml) $(cat < ${BASE_DIR}/.gitlab/ci/configuration/yamllint-helm-template-rules)"
 

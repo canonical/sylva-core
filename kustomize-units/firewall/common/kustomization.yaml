@@ -1,0 +1,16 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+- auto-create.yaml
+- all-nodes-policy.yaml
+- master-nodes-policy.yaml
+- cluster-vip-policy.yaml
+- allow-to-pods.yaml
+- allow-from-pods.yaml
+- coredns-to-vip.yaml
+- management-cluster-gns.yaml
+- public-to-gui-gns.yaml
+- public-to-ssh-gns.yaml
+- public-to-kubeapi-gns.yaml
+- cluster-provisioning-addresses.yaml

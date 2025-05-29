@@ -3,7 +3,7 @@
 <!-- markdownlint-disable MD044 -->
 | name | full description | maturity | source | version |
 | :----- | :----- | :----- | :----- | :----- |
-| **cabpck** | installs Canonical CAPI bootstrap provider | core-component | [Kustomization](https://github.com/ader1990/cluster-api-k8s/releases/download/v0.4.1/bootstrap-components.yaml) | v0.4.1 |
+| **cabpck** | installs Canonical CAPI bootstrap provider | core-component | [Kustomization](https://github.com/canonical/cluster-api-k8s/releases/download/v0.4.2/bootstrap-components.yaml) | v0.4.2 |
 | **cabpk** | installs Kubeadm CAPI bootstrap provider | core-component | [Kustomization](https://github.com/kubernetes-sigs/cluster-api/releases/download/v1.9.7/bootstrap-components.yaml) | v1.9.7 |
 | **cabpr** | installs RKE2 CAPI bootstrap provider | core-component | [Kustomization](https://github.com/rancher/cluster-api-provider-rke2/releases/download/v0.15.1/bootstrap-components.yaml) | v0.15.1 |
 | **capd** | installs Docker CAPI infra provider | core-component | [Kustomization](https://github.com/kubernetes-sigs/cluster-api//test/infrastructure/docker/config/default/?ref=v1.9.7) | v1.9.7 |
@@ -48,11 +48,11 @@
 | **cabpoa** | installs OKD/OpenShift CAPI bootstrap/controlplane provider | experimental | [Kustomization](https://github.com/openshift-assisted/cluster-api-provider-openshift-assisted/releases/download/v0.3.4/bootstrap-components.yaml) | v0.3.4 |
 | **ceph-csi-cephfs** | Installs Ceph-CSI | beta | [Helm chart](https://ceph.github.io/csi-charts) | 3.12.3 |
 | **harbor** | installs Harbor | beta | [Helm chart](https://helm.goharbor.io) | 1.15.2 |
-| **kubevirt** | installs kubevirt | beta | [Helm chart](https://suse-edge.github.io/charts) | 0.4.0 |
+| **kubevirt** | installs kubevirt | beta | [Helm chart](https://suse-edge.github.io/charts) | 0.5.0 |
 | **kubevirt-cdi** | manages Kubevirt CDI - Container Data Importer | beta | [Helm chart](https://suse-edge.github.io/charts) | 0.4.0 |
 | **kunai** | installs Kunai<br/><br/>The integration of [Kunai](https://gitlab.com/sylva-projects/sylva-elements/kunai) at this stage should be considered experimental.<br/>Work is in progress to align its integration with workload-cluster-operator and workload-teams-defs.<br/>See https://gitlab.com/groups/sylva-projects/-/epics/58. | experimental | [Helm chart](https://gitlab.com/api/v4/projects/sylva-projects%2Fsylva-elements%2Fkunai/packages/helm/stable) | 1.3.1 |
 | **logging** | installs Rancher Fluentbit/Fluentd logging stack, for log collecting and shipping | beta | [Helm chart](https://charts.rancher.io/) | 105.3.0+up4.10.0-rancher.4 |
-| **loki** | installs Loki log storage<br/><br/>installs Loki log storage in simple scalable mode | beta | [Helm chart](https://github.com/grafana/loki.git) | v3.5.0 |
+| **loki** | installs Loki log storage<br/><br/>installs Loki log storage in simple scalable mode | beta | [Helm chart](https://github.com/grafana/loki.git) | v3.5.1 |
 | **minio-logging** | creates a MinIO tenant for the logging stack, used as S3 storage by Loki | beta | [Helm chart](https://github.com/minio/operator.git) | v7.1.1 |
 | **minio-monitoring** | creates a MinIO tenant for the monitoring stack, used as S3 storage by Thanos | beta | [Helm chart](https://github.com/minio/operator.git) | v7.1.1 |
 | **minio-operator** | install MinIO operator<br/><br/>MinIO operator is used to manage multiple S3 tenants | beta | [Helm chart](https://github.com/minio/operator.git) | v7.1.1 |
@@ -64,6 +64,8 @@
 | **snmp-exporter** | installs SNMP exporter | beta | [Helm chart](https://prometheus-community.github.io/helm-charts) | 9.2.1 |
 | **thanos** | installs Thanos | beta | [Helm chart](https://github.com/bitnami/charts.git) | thanos/15.8.0 |
 | **trivy-operator** | installs Trivy operator | beta | [Helm chart](https://aquasecurity.github.io/helm-charts/) | 0.26.0 |
+| **backup-capi-resources** | Backup Cluster API resources<br/><br/>Backup periodically Cluster API resources using clusterctl move |  | Kustomization |  |
+| **backup-etcd** | Backup Etcd<br/><br/>Backup periodically Etcd using etcdctl |  | Kustomization |  |
 | **descheduler** | install descheduler |  | [Helm chart](https://kubernetes-sigs.github.io/descheduler/) | 0.33.0 |
 | **rancher-turtles** | installs the Rancher Turtles operator, which enables the import of Cluster API workload clusters into the management cluster's Rancher |  | [Helm chart](https://rancher.github.io/turtles) | 0.18.0 |
 
@@ -82,11 +84,11 @@
 | **alertmanager-jiralert-config** | generates the config for Jiralert Alertmanager webhook | [Helm chart](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-alertmanager-resources.git) | 0.0.4 |
 | **alertmanager-snmp-notifier-config** | generates the config for snmp-notifier Alertmanager webhook | [Helm chart](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-alertmanager-resources.git) | 0.0.4 |
 | **snmp-exporter-config** | contains OID files and generates configuration needed by the snmp-exporter | [Helm chart](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-snmp-resources.git) | 0.0.9 |
-| **sylva-dashboards** | adds Sylva-specific Grafana dashboards | [Helm chart](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-dashboards.git) | 0.0.17 |
+| **sylva-dashboards** | adds Sylva-specific Grafana dashboards | [Helm chart](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-dashboards.git) | 0.0.18 |
 | **sylva-logging-flows** | configures logging flows and output to export the platform logs to an external server | [Helm chart](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-logging-flows.git) | 0.0.1 |
-| **sylva-prometheus-rules** | installs prometheus rules using external helm chart & rules git repo | [Helm chart](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-prometheus-rules.git) | 0.0.16 |
+| **sylva-prometheus-rules** | installs prometheus rules using external helm chart & rules git repo | [Helm chart](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-prometheus-rules.git) | 0.0.17 |
 | **sylva-thanos-rules** | installs Thanos rules using external helm chart & rules git repo | [Helm chart](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-thanos-rules.git) | 0.1.4 |
-| **sylva-units-operator** | installs sylva-units operator | [Kustomization](https://gitlab.com/sylva-projects/sylva-elements/sylva-units-operator.git/config/default?ref=0.2.1) | 0.2.1 |
+| **sylva-units-operator** | installs sylva-units operator | [Kustomization](https://gitlab.com/sylva-projects/sylva-elements/sylva-units-operator.git/config/default?ref=v0.2.2) | v0.2.2 |
 | **workload-cluster-operator** | installs Sylva operator for managing workload clusters | [Kustomization](https://gitlab.com/sylva-projects/sylva-elements/workload-cluster-operator.git/config/default?ref=0.3.1) | 0.3.1 |
 | **workload-team-defs** | installs the workload-team-defs chart<br/><br/>installs the workload-team-defs chart to install the workload cluster through CRD | [Helm chart](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/workload-team-defs.git) | 0.1.2 |
 | **sync-openstack-images** | Automatically push openstack images to Glance<br/><br/>Pushes OS images to Glance, if needed, and retrieves their UUIDs for use in cluster unit | [Helm chart](https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sync-openstack-images.git) | 0.4.5 |
@@ -119,6 +121,11 @@
 | **coredns-custom-hosts-import** | create a ConfigMap containing workload cluster's DNS A records in [CoreDNS hosts plugin](https://coredns.io/plugins/hosts/) | Kustomization |
 | **crossplane-init** | sets up Crossplane prerequisites<br/><br/>it creates the namespace and generates CA certificate secret to be used by 'crossplane' unit | Kustomization |
 | **eso-secret-stores** | defines External Secrets stores | Kustomization |
+| **firewall-common** | configures global network policies applying on the management cluster and on workload clusters | Kustomization |
+| **firewall-kyverno-capm3** | configures a kyverno policy to create global network sets with the IP address assigned to the nodes of the baremetal workload clusters | Kustomization |
+| **firewall-kyverno-capo** | configures a kyverno policy to create global network sets with the IP address assigned to the nodes of the Openstack workload clusters | Kustomization |
+| **firewall-management-cluster** | configures global network policies applying only on the management cluster | Kustomization |
+| **firewall-workload-cluster** | configures global network policies applying only on the management cluster | Kustomization |
 | **first-login-rancher** | configure Rancher authentication for admin | Kustomization |
 | **flux-webui-init** | initializes and configures flux-webui | Kustomization |
 | **gitea-eso** | write secrets in gitea namespace in gitea expected format | Kustomization |
@@ -165,12 +172,15 @@
 | **mgmt-cluster-state-values** | manages workload cluster parameters which reflect management cluster state | Kustomization |
 | **minio-logging-cleanup** | Recreates MinIO-logging StatefulSet to avoid upgrade failure (This unit will be removed after Sylva 1.4) | Kustomization |
 | **minio-logging-init** | sets up secrets and certificates for minio-logging | Kustomization |
+| **minio-logging-patch-healthcheckexprs** | Patch minio-logging Kustomization to use healthCheckExprs field<br/><br/>This unit was introduced as a workaround for the transition between Flux 2.4 and 2.5.<br/>It patches the minio-logging Kustomization to use the new healthCheckExprs field<br/>that is available in Flux 2.5.x. | Kustomization |
 | **minio-monitoring-cleanup** | Recreates MinIO-monitoring StatefulSet to avoid upgrade failure (This unit will be removed after Sylva 1.4) | Kustomization |
 | **minio-monitoring-init** | sets up secrets and certificates for minio-monitoring | Kustomization |
+| **minio-monitoring-patch-healthcheckexprs** | Patch minio-monitoring Kustomization to use healthCheckExprs field<br/><br/>This unit was introduced as a workaround for the transition between Flux 2.4 and 2.5.<br/>It patches the minio-monitoring Kustomization to use the new healthCheckExprs field<br/>that is available in Flux 2.5.x. | Kustomization |
 | **minio-operator-init** | sets up MinIO certificate for minio-operator<br/><br/>it generate certificate | Kustomization |
 | **multus-ready** | checks that Multus is ready<br/><br/>This unit only has dependencies, it does not create resources. It performs healthchecks outside of the multus unit, in order to properly target workload cluster when we deploy multus in it. | Kustomization |
 | **namespace-defs** | creates sylva-system namespace and other namespaces to be used by various units | Kustomization |
-| **neuvector-init** | sets up Neuvector prerequisites<br/><br/>it generates namespace, certificate, admin password, policy exception for using latest tag images (required for the pod managing the database of vulnerabilities since this DB is updated often) | Kustomization |
+| **neuvector-init** | sets up Neuvector prerequisites<br/><br/>it generates certificate, admin password, policy exception for using latest tag images (required for the pod managing the database of vulnerabilities since this DB is updated often) | Kustomization |
+| **neuvector-tls** | configures Neuvector TLS<br/><br/>enable TLS protocol when using Neuvector | Kustomization |
 | **nfs-ganesha-init** | Define persistent volume claim for NFS Ganesha | Kustomization |
 | **openshift-security-context-constraints** | sets up openshift security context constraints for operators not installed via RedHat operator lifecycle manager(OLM) | Kustomization |
 | **os-images-info** | Creates a list of os images<br/><br/>This unit creates a configmap containing information on operating system images for use with CAPO and CAPM3. | Kustomization |
@@ -194,6 +204,7 @@
 | **test-nfs-ganesha** | Perform testing for RWX enabled PVs created from NFS Ganesha | Kustomization |
 | **thanos-credentials-secret** | create a secret containing tenant's thanos credentials | Kustomization |
 | **thanos-init** | sets up thanos certificate<br/><br/>it generates a multiple CN certificate for all Thanos components | Kustomization |
+| **thanos-statefulsets-cleanup** | Remove Thanos statefulsets from previous deployments | Kustomization |
 | **two-replicas-storageclass** | Defines a Longhorn storage class with two replicas | Kustomization |
 | **validating-admission-policies** | configures validating admission policies | Kustomization |
 | **vault-oidc** | configures Vault to be used with OIDC | Kustomization |
