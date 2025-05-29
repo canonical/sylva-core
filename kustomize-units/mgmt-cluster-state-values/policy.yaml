@@ -46,6 +46,9 @@ spec:
       clone:
         namespace: cert-manager
         name: ca-key-pair
+      metadata:
+        labels: 
+          test/gen: "true"
 
   - name: reconcile-on-secret-update
     match:
@@ -57,12 +60,15 @@ spec:
           - kubeadm-capo
           names:
           - ca-key-pair-cloned
+          selector:
+             matchLabels:
+              test/gen: "true"
     mutate:
       targets:
       - apiVersion: kustomize.toolkit.fluxcd.io/v1
         kind: Kustomization
         name: wkld-ds-copy-file
-        namespace: kubeadm-capo
+        namespace: "{{request.object.metadata.namespace}}"
       patchStrategicMerge:
         metadata:
           annotations:
