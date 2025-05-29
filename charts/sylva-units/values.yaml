@@ -904,7 +904,7 @@ units:
       targetNamespace: kube-system
       values:
         providerIpPrefixes:
-          - '{{ regexReplaceAll "[0-9]+$" .Values.cluster_virtual_ip ".0/24" }}'
+          - '{{ regexReplaceAll "[0-9]+$" .Values.cluster_virtual_ip "0/24" }}'
         bypassDnsResolution: true
         nodeSelector:
           kubernetes.io/os: linux
