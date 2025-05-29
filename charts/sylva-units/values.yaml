@@ -1086,7 +1086,6 @@ units:
       ingress-nginx: '{{ tuple . "ingress-nginx" | include "unit-enabled" }}'
       harbor-init: '{{ tuple . "harbor-init" | include "unit-enabled" }}'
       '{{ .Values._internal.default_storage_class_unit }}': true
-      harbor-postgres: true
       monitoring-crd: true
       harbor-cnpg-postgres: true
     annotations:
