@@ -54,9 +54,9 @@ spec:
           kinds:
           - Secret
           namespaces:
-          - cert-manager
+          - kubeadm-capo
           names:
-          - ca-key-pair
+          - ca-key-pair-cloned
     mutate:
       targets:
       - apiVersion: kustomize.toolkit.fluxcd.io/v1
