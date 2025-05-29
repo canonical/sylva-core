@@ -46,7 +46,8 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
     spec:
       url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-capi-cluster.git
       ref:
-        tag: 0.9.10
+        #tag: 0.9.10
+        branch: dg/rke2-node-deletion-timeout
 
   sync-openstack-images:
     kind: GitRepository
@@ -3041,32 +3042,6 @@ units:
     # (we do it via a secret because some of the values are credentials in many scenarios)
     helm_secret_values: '{{ .Values.cluster | include "preserve-type" }}'
 
-  cluster-node-deletion-timeout-fix:
-    info:
-      description: Kyverno policy to fix CAPI nodeDeletionTimeout (temporary fix)
-      details: |
-        This policy fixes Machine definitions to force their spec.nodeDeletionTimeout.
-        This is primarily meant to set this timeout to 0 (interpreted as "do infinite retries"
-        by CAPI Machine controller), to avoid corner case issues due to a failed node
-        deletion. See https://gitlab.com/sylva-projects/sylva-core/-/issues/1431.
-      internal: true
-    unit_templates:
-    - base-deps
-    enabled_conditions:
-    - '{{ tuple . "kyverno" | include "unit-enabled" }}'
-    depends_on:
-      kyverno: true
-      capi: '{{ not .Values._internal.state.is_upgrade }}'
-    repo: sylva-core
-    kustomization_spec:
-      path: ./kustomize-units/kyverno-policies/cluster-node-deletion-timeout-fix
-      wait: true
-      targetNamespace: '{{ .Release.Namespace }}'
-      postBuild:
-        substitute:
-          CLUSTER_NAME: '{{ .Values.cluster.name }}'
-          NODE_DELETION_TIMEOUT: 0s
-
   cluster-node-provider-id-blacklist:
     info:
       description: Kyverno policy to prevent nodes from being recreated with a providerID that has already been used
@@ -3119,7 +3094,6 @@ units:
       capo-cluster-resources: '{{ .Values.cluster.capi_providers.infra_provider | eq "capo" }}'
       sync-openstack-images: '{{ .Values.cluster.capi_providers.infra_provider | eq "capo" }}'
       cluster-bmh: '{{ .Values.cluster.capi_providers.infra_provider | eq "capm3" }}'
-      cluster-node-deletion-timeout-fix: '{{ tuple . "cluster-node-deletion-timeout-fix" | include "unit-enabled" }}'
       cluster-node-provider-id-blacklist: '{{ tuple . "cluster-node-provider-id-blacklist" | include "unit-enabled" }}'
       longhorn-instance-manager-cleanup: '{{ tuple . "longhorn-instance-manager-cleanup" | include "unit-enabled" }}'
       rke2-helmchart-prevent-uninstall: '{{ and (tuple . "rke2-helmchart-prevent-uninstall" | include "unit-enabled") .Values._internal.state.is_upgrade }}'
