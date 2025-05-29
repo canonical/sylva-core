@@ -4189,7 +4189,7 @@ units:
       chart:
         spec:
           chart: rancher-turtles
-          version: 0.18.0
+          version: 0.20.0
       targetNamespace: rancher-turtles-system
       values:
         rancherTurtles:
