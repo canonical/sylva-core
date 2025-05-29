@@ -276,6 +276,15 @@ Note well that there are a few limitations:
 {{- define "interpret-inner-gotpl" -}}
     {{- $envAll := index . 0 -}}
     {{- $data := index . 1 -}}
+    {{/* forward unit settings if it has been set */}}
+    {{- $settings := dict -}}
+    {{- if eq (len .) 3 -}}
+        {{- $settings = index . 2 -}}
+        {{- $_ := set $envAll "settings" (deepCopy $settings) -}}
+    {{- else -}}
+        {{/* make sure to remove it from env if no context is provided */}}
+        {{- $_ := set $envAll "settings" dict -}}
+    {{- end -}}
     {{- $kind := kindOf $data -}}
     {{- $result := 0 -}}
     {{/* ---- shield raw strings */}}
@@ -304,7 +313,7 @@ Note well that there are a few limitations:
                 {{- $result = $tpl_res -}}
             {{- end -}}
             {{/* recurse to also interpret any nested GoTPL */}}
-            {{- $result = index (tuple $envAll $result | include "interpret-inner-gotpl" | fromJson) "result" -}}
+            {{- $result = index (tuple $envAll $result $settings | include "interpret-inner-gotpl" | fromJson) "result" -}}
         {{- else -}}
             {{- $result = $data -}}
         {{- end -}}
@@ -312,7 +321,7 @@ Note well that there are a few limitations:
         {{/* this is a list, recurse on each item */}}
         {{- $result = list -}}
         {{- range $data -}}
-            {{- $tpl_item := index (tuple $envAll . | include "interpret-inner-gotpl" | fromJson) "result" -}}
+            {{- $tpl_item := index (tuple $envAll . $settings | include "interpret-inner-gotpl" | fromJson) "result" -}}
             {{- if (eq (kindOf $tpl_item) "string") -}}
                 {{- if (regexMatch "^( |\n)*{\"encapsulated-result\":" $tpl_item) -}}
                     {{- $result = append $result (index (fromJson $tpl_item) "encapsulated-result") -}}
@@ -324,11 +333,16 @@ Note well that there are a few limitations:
             {{- end -}}
         {{- end -}}
     {{- else if (eq $kind "map") -}}
-        {{/* this is a dictionary, recurse on each key-value pair */}}
+        {{/* this is a dictionary, we'll recurse on each key-value pair */}}
+        {{/* but first add unit settings to context if any */}}
+        {{- if and (hasKey $data "settings") (empty $settings) -}}
+            {{- $settings = get $data "settings" -}}
+            {{- $_ := set $envAll "settings" (deepCopy $settings) -}}
+        {{- end -}}
         {{- $result = dict -}}
         {{- range $key,$value := $data -}}
-            {{- $tpl_key := index (tuple $envAll $key | include "interpret-inner-gotpl" | fromJson) "result" -}}
-            {{- $tpl_value := index (tuple $envAll $value | include "interpret-inner-gotpl" | fromJson) "result" -}}
+            {{- $tpl_key := index (tuple $envAll $key $settings | include "interpret-inner-gotpl" | fromJson) "result" -}}
+            {{- $tpl_value := index (tuple $envAll $value $settings | include "interpret-inner-gotpl" | fromJson) "result" -}}
             {{- if (eq (kindOf $tpl_value) "string") -}}
                 {{- if (regexMatch "^( |\n)*{\"encapsulated-result\":" $tpl_value) -}}
                     {{- $_ := set $result $tpl_key (index (fromJson $tpl_value) "encapsulated-result") -}}
