@@ -8,7 +8,7 @@ cluster_virtual_ip: 192.168.100.2
 cluster:
   capi_providers:
     infra_provider: capm3
-    # bootstrap_provider: cabpr
+    bootstrap_provider: cabpr
 
   # Add kind container address to cluster kubernetes api certificate SubjectAltNames,
   # in order to be able to reach it from the outside through kubernetes-external service created by libvirt-metal unit
