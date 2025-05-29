@@ -903,7 +903,7 @@ units:
           version: 1.2.8
       targetNamespace: kube-system
       values:
-        providerIpPrefixes: "172.20.131.0/24"
+        #providerIpPrefixes: '{{ regexReplaceAll "[.]0/.*" (first .Values.cluster.cluster_services_cidrs) ".10" }}''
         bypassDnsResolution: true
         nodeSelector:
           kubernetes.io/os: linux
