@@ -7,7 +7,6 @@ resources:
 labels:
 - includeSelectors: true
   pairs:
-    copy-from-bootstrap-to-management: ""
 
 # Use HA component to activate multi-nodes deployment
 # components:

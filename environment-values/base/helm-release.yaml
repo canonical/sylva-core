@@ -4,7 +4,6 @@ kind: GitRepository
 metadata:
   name: sylva-units
   labels:
-    copy-from-bootstrap-to-management: ""
 spec:
   interval: 168h
   ref:

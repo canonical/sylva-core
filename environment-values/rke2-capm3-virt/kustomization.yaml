@@ -10,7 +10,6 @@ components:
 labels:
 - includeSelectors: true
   pairs:
-    copy-from-bootstrap-to-management: ""
 
 configMapGenerator:
 - name: sylva-units-values

@@ -314,10 +314,8 @@ units:
               kubectl get secret {{ .Values.cluster.name }}-kubeconfig -o jsonpath='{.data.value}' | base64 -d > /tmp/management-cluster-kubeconfig
               echo "-- Copy secrets and configmaps from bootstrap to management cluster"
               kubectl get configmaps,secrets,gitrepository,ocirepository,helmrepository \
-                -l copy-from-bootstrap-to-management= \
                 -o json \
                   | jq '.items[] | del(.metadata.labels."helm.toolkit.fluxcd.io/name")
-                                 | del(.metadata.labels."copy-from-bootstrap-to-management")
                                  | del(.metadata.labels."helm.toolkit.fluxcd.io/namespace")
                                  | del(.metadata.annotations."sylvactl/reconcileStartedAt")
                                  | del(.metadata.annotations."sylvactl/reconcileCompletedAt")
@@ -349,7 +347,6 @@ units:
           {{
             omit (lookup "helm.toolkit.fluxcd.io/v2" "HelmRelease" "sylva-system" "sylva-units"
                      | dig "metadata" "labels" dict)
-                  "copy-from-bootstrap-to-management"
               | include "preserve-type"
           }}
       kubeConfig:
