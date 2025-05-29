@@ -336,6 +336,9 @@ units:
   monitoring-crd:
     enabled: true
 
+  velero:
+    enabled: false
+
   monitoring:
     enabled: true
     depends_on:

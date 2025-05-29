@@ -291,6 +291,7 @@ unit_templates:
         - '{{ tuple "components/neuvector" (tuple . "neuvector" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/kunai" (tuple . "kunai" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/sbom-operator" (tuple . "sbom-operator" | include "unit-enabled") | include "set-only-if" }}'
+        - '{{ tuple "components/velero" (tuple . "velero" | include "unit-enabled") | include "set-only-if" }}'
         - '{{ tuple "components/rancher-turtles" (tuple . "rancher-turtles" | include "unit-enabled") | include "set-only-if" }}'
 
   flux-common:
@@ -6752,6 +6753,49 @@ units:
               )
         | include "set-only-if"
         }}
+
+  velero:
+    info:
+      description: Deploys Velero and its dependencies
+      maturity: beta
+    depends_on:
+      namespace-defs: true
+    enabled: false
+    unit_templates:
+      - base-deps
+    helm_repo_url: https://vmware-tanzu.github.io/helm-charts
+    helmrelease_spec:
+      chart:
+        spec:
+          chart: velero
+          version: 9.1.2
+      targetNamespace: velero
+      install:
+        createNamespace: false
+      values:
+        credentials:
+          useSecret: false # No cloud provider credentials needed for CRD-only install
+        initContainers: [] # No init containers needed for CRD-only install
+        configuration:
+          backupStorageLocation:
+          - name: default
+            provider: aws # Required field (can be used for minio)
+            bucket: velero-backup # Required field
+            config: {} # Empty config for CRD-only install
+          # Volume snapshot locations optional since snapshotsEnabled: false
+          volumeSnapshotLocation: []
+          features: EnableCSI
+        resources:
+          requests:
+            cpu: 500m
+            memory: 128Mi
+          limits:
+            cpu: 1000m
+            memory: 512Mi
+        snapshotsEnabled: false # Disable snapshots
+        backupsEnabled: true # Enable backups
+        deployNodeAgent: false # Disable node-agent
+        installCRDs: true # Install CRDs
 
   minio-monitoring-init:
     info:
