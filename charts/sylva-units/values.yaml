@@ -46,7 +46,7 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
     spec:
       url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-capi-cluster.git
       ref:
-        tag: 0.9.11
+        tag: 0.0.0-okd-qcow2-005
 
   sync-openstack-images:
     kind: GitRepository
@@ -3450,6 +3450,11 @@ units:
 
               echo "--- waiting for all machines to have a nodeRef (reflects the fact that the Node has joined the cluster)..."
               kubectl wait Machine -l cluster.x-k8s.io/cluster-name={{ .Values.cluster.name }} --for=jsonpath='{.status.nodeRef.name}' --timeout $WAIT_TIMEOUT
+
+              if [[ '{{ .Values.cluster.capi_providers.bootstrap_provider }}' == 'cabpoa' ]]; then
+                echo "--- waiting for openshift UpgradeCompleted condition ..."
+                kubectl wait $CONTROL_PLANE -l cluster.x-k8s.io/cluster-name={{ .Values.cluster.name }} --for condition=UpgradeCompleted --timeout $WAIT_TIMEOUT
+              fi
 
   heat-operator:
     info:
@@ -8459,6 +8464,13 @@ cluster:
 
   openshift:
     baseDomain: '{{ .Values.cluster_domain }}'
+    version: 4.19.0-okd-scos.ec.1
+    sshAuthorizedKey: ""
+    pullSecret: ""
+    additionalEnabledCapabilities:
+      - marketplace
+      - NodeTuning
+      - Storage
 
   timeouts:
     cluster_delete_hook_job_timeout: 300
@@ -9786,18 +9798,15 @@ openshift:
     fsSize: 8Gi
     imagestoreSize: 10Gi
     osImages:
-    - openshiftVersion: "4.14.0-0.okd-scos-2024-01-30-032525"
-      cpuArchitecture: "x86_64"
-      url: "https://mirror.openshift.com/pub/openshift-v4/x86_64/dependencies/rhcos/4.14/4.14.0/rhcos-4.14.0-x86_64-live.x86_64.iso"
-      version: "4.14.0-0.okd-scos-2024-01-30-032525"
-    - openshiftVersion: "4.15.0-0.okd-scos-2024-01-18-223523"
-      cpuArchitecture: "x86_64"
-      url: "https://mirror.openshift.com/pub/openshift-v4/x86_64/dependencies/rhcos/4.15/4.15.0/rhcos-4.15.0-x86_64-live.x86_64.iso"
-      version: "4.15.0-0.okd-scos-2024-01-18-223523"
     - openshiftVersion: "4.17.0"
       cpuArchitecture: "x86_64"
       url: "https://mirror.openshift.com/pub/openshift-v4/x86_64/dependencies/rhcos/4.17/4.17.0/rhcos-4.17.0-x86_64-live.x86_64.iso"
       version: "4.17.0"
+    - cpuArchitecture: x86_64
+      openshiftVersion: '4.19'
+      url: https://mirror.openshift.com/pub/openshift-v4/x86_64/dependencies/rhcos/pre-release/dev-4.19/rhcos-live-iso.x86_64.iso
+      version: 4.19.0
+
     # variable to specify the openshift assisted service hostname
     # serviceHostname: openshift-assisted-service.example.com
     # variable to specify the openshift assisted image service hostname

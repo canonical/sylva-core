@@ -30,13 +30,14 @@ DEFAULT_MR_DESCRIPTION = f"{BASE_DIR}/.gitlab/merge_request_templates/Default.md
 DEFAULT_RENOVATE_COMMENT = f"{BASE_DIR}/.gitlab/ci/configuration/default-renovate-comment.md"
 
 
-ALLOWED_INFRA = os.getenv("ALLOWED_DEPLOYMENT_INFRA", "capd,capo,capm3").split(",")
-ALLOWED_BOOTSTRAP = os.getenv("ALLOWED_DEPLOYMENT_BOOTSTRAP", "kadm,rke2,ck8s").split(",")
-ALLOWED_OS = os.getenv("ALLOWED_DEPLOYMENT_NODE_OS", "ubuntu,suse").split(",")
+ALLOWED_INFRA = os.getenv("ALLOWED_DEPLOYMENT_INFRA", "capd,capo,capm3,capo|capm3").split(",")
+ALLOWED_BOOTSTRAP = os.getenv("ALLOWED_DEPLOYMENT_BOOTSTRAP", "kadm,rke2,ck8s,kadm|rke2,rke2|kadm,rke2|okd").split(",")
+ALLOWED_OS = os.getenv("ALLOWED_DEPLOYMENT_NODE_OS", "ubuntu,suse,ubuntu|na,suse|na").split(",")
 ALLOWED_SCENARIOS = os.getenv(
     "ALLOWED_DEPLOYMENT_SCENARIO",
     ",".join([
         "no-wkld",
+        "no-update",
         "simple-update",
         "simple-update-no-wkld",
         "rolling-update",
@@ -255,7 +256,7 @@ def get_deploy_parameter(deploy_name, emoji_key, as_list=False, can_be_empty=Fal
     """
     Extract value for a key (emoji) for a deployment variant
     """
-    match = re.compile(emoji_key + r"\s?([\w\d,\.-]+)").findall(deploy_name)
+    match = re.compile(emoji_key + r"\s?([\w\d,\.\-\|]+)").findall(deploy_name)
     if len(match) != 1:
         if len(match) == 0 and can_be_empty is False:
             logging.error(f"unable to get {emoji_key} value from {deploy_name}")
