@@ -52,11 +52,11 @@ spec:
       any:
       - resources:
           kinds:
-          - Kustomization
+          - Secret
           namespaces:
-          - kubeadm-capo
+          - cert-manager
           names:
-          - wkld-ds-copy-file
+          - ca-key-pair
     mutate:
       targets:
       - apiVersion: kustomize.toolkit.fluxcd.io/v1
