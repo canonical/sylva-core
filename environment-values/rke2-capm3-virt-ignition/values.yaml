@@ -17,8 +17,6 @@ cluster:
     - '{{ .Values._internal.bootstrap_node_ip }}'
 
   capm3:
-    image_provisioning_host: 172.18.0.2
-    use_os_image_server_service_urls: false
     networks:
       primary:
         subnet: 192.168.100.0/24
@@ -185,10 +183,22 @@ units:
           ironicKernelParams: 'console=ttyS0 suse.autologin=ttyS0 rootpwd="$$1$$DAhhpomu$$YqNcZc3ce5H7uswK4skCZ."'  # "secret"
 
 libvirt_metal:
-  #image: registry.gitlab.com/sylva-projects/sylva-elements/container-images/libvirt-metal:0.1.4  # customize if wanted
+  #image: registry.gitlab.com/sylva-projects/sylva-elements/container-images/libvirt-metal:_tag_  # customize if wanted
   nodes:
     management-cp-0:
       redfishPort: 8000
+      memGB: 24
+      numCPUs: 10
+    management-cp-1:
+      redfishPort: 8001
+      memGB: 24
+      numCPUs: 10
+    management-cp-2:
+      redfishPort: 8002
+      memGB: 24
+      numCPUs: 10
+    management-md-0:
+      redfishPort: 8003
       memGB: 24
       numCPUs: 10
 
@@ -196,7 +206,22 @@ libvirt_metal:
       redfishPort: 8010
       memGB: 16 # IPA allocates half of it to tmpfs, if must be large enough to store the image
       numCPUs: 4
-      enableDHCP: false  # DHCP-less deployment
+      enableDHCP: false
+    workload-cp-1:
+      redfishPort: 8011
+      memGB: 16
+      numCPUs: 4
+      enableDHCP: false
+    workload-cp-2:
+      redfishPort: 8012
+      memGB: 16
+      numCPUs: 4
+      enableDHCP: false
+    workload-md-0:
+      redfishPort: 8013
+      memGB: 16
+      numCPUs: 4
+      enableDHCP: false
 
 # dummy configuration to allow deployment of snmp-exporter
 snmp:
