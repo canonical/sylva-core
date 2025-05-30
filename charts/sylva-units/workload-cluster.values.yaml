@@ -282,6 +282,8 @@ units:
   harbor:
     # can be enabled at runtime if desired
     enabled: false
+    kustomization_spec:
+      targetNamespace: harbor
     helmrelease_spec:
       values:
         database:
