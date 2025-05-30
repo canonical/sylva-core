@@ -721,15 +721,13 @@ units:
             path: /data/kube-job.sh
             value: |
               #!/bin/bash
-              set -e
               echo "Checking if cluster has been labeled and prepared to be enrolled into rancher "
-              kubectl -n {{ .Release.Namespace }} wait cluster -l cluster-api.cattle.io/rancher-auto-import=true --for condition=Ready
-              sleep 120;
+              kubectl -n {{ .Release.Namespace }} wait cluster.cluster.x-k8s.io -l cluster-api.cattle.io/rancher-auto-import=true --for condition=Ready
               echo "Check if cluster {{ .Values.cluster.name }} is provisioned"
-              provisioned=$(kubectl get cluster.management -l cluster-api.cattle.io/capi-cluster-owner={{ .Values.cluster.name }} -o yaml | yq '.items[].status.conditions[] | select(.type == "Provisioned") | .status == "True"')
+              kubectl wait cluster.management -l cluster-api.cattle.io/capi-cluster-owner={{ .Values.cluster.name }} --for condition=Provisioned=true --timeout=60s
               echo "Check if cattle agent is deployed into {{ .Values.cluster.name }}"
-              agent_deployed=$(kubectl get cluster.management -l cluster-api.cattle.io/capi-cluster-owner={{ .Values.cluster.name }} -o yaml | yq '.items[].status.conditions[] | select(.type == "AgentDeployed") | .status == "True"')
-              if [[ "$provisioned" == "true" && "$agent_deployed" == "true" ]]; then
+              kubectl wait cluster.management -l cluster-api.cattle.io/capi-cluster-owner={{ .Values.cluster.name }} --for condition=AgentDeployed=true --timeout=60s
+              if [ $? -eq 0 ]; then
                  echo "Cluster {{ .Values.cluster.name }} is present in rancher"
               else
                  echo "Cluster {{ .Values.cluster.name }} no present - check if cattle agent is deployed in {{ .Values.cluster.name }} and specific resources (cluster.management/cluster.provisioning) are ready in mgmt cluster"
@@ -743,7 +741,7 @@ units:
             value:
               - apiGroups: [management.cattle.io]
                 resources: [clusters]
-                verbs: [list, get, patch]
+                verbs: [list, get, watch]
 
   firewall-common:
     enabled: '{{ .Values.security.firewall.enabled }}'
