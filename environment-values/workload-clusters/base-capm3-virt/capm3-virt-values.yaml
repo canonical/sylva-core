@@ -103,7 +103,7 @@ cluster:
         nic1:
           mac_address: 52:54:00:44:44:01
         nic2:
-          inspection_name: ens5
+          mac_address: 52:54:00:55:55:01
       bmh_metadata:
         labels:
           cluster-role: control-plane
