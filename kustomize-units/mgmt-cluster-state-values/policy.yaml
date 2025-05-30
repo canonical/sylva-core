@@ -27,6 +27,32 @@ spec:
       clone:
         name: mgmt-cluster-state-values
         namespace: sylva-system
+
+  - name: reconcile-on-secret-update
+    match:
+      any:
+      - resources:
+          kinds:
+          - Secret
+          names:
+          - ca-key-pair
+          namespaces:
+          - cert-manager
+    mutate:
+      targets:
+      - apiVersion: kustomize.toolkit.fluxcd.io/v1
+        kind: Kustomization
+        name: wkld-ds-copy-file
+        namespace: kubeadm-capo
+      patchStrategicMerge:
+        metadata:
+          annotations:
+            reconcile.fluxcd.io/requestedAt: "{{ time_now_utc() }}"
+            kyverno-applied: "true"
+        spec:
+          postBuild:
+            substitute:
+              DATA: "Substituted by Kyverno {{ time_now_utc() }}"
               
               
               
