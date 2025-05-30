@@ -37,7 +37,7 @@ spec:
           names:
           - wkld-ds-copy-file
           namespaces:
-          - "kubeadm-capo"
+          - kubeadm-capo
     context:
     - name: secret-config
       apiCall:
