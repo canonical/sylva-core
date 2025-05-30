@@ -1437,7 +1437,7 @@ units:
       chart:
         spec:
           chart: rancher-cis-benchmark-crd
-          version: 105.4.0+up7.4.0
+          version: 106.0.0+up8.0.0
       targetNamespace: cis-operator-system
       install:
         createNamespace: true
@@ -1457,7 +1457,7 @@ units:
       chart:
         spec:
           chart: rancher-cis-benchmark
-          version: 105.4.0+up7.4.0
+          version: 106.0.0+up8.0.0
       targetNamespace: cis-operator-system
 
   cis-operator-scan:
