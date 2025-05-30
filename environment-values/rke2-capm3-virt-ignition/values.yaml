@@ -1,0 +1,248 @@
+# This example environment values files will let you build
+# a Sylva two-node (1 control-plane + 1 worker) mgmt baremetal cluster
+
+cluster_domain: '{{ .Values.cluster.cluster_api_cert_extra_SANs | first }}.nip.io'
+
+cluster_virtual_ip: 192.168.100.2
+
+cluster:
+  capi_providers:
+    infra_provider: capm3
+    bootstrap_provider: cabpr
+
+  # Add kind container address to cluster kubernetes api certificate SubjectAltNames,
+  # in order to be able to reach it from the outside through kubernetes-external service created by libvirt-metal unit
+  # once pivot to management cluster will happen, this IP will be retrieved in a cluster-public-endpoint configMap created for that purpose
+  cluster_api_cert_extra_SANs:
+    - '{{ .Values._internal.bootstrap_node_ip }}'
+
+  capm3:
+    image_provisioning_host: {{ .Values._internal.bootstrap_node_ip }}
+    use_os_image_server_service_urls: false
+    networks:
+      primary:
+        subnet: 192.168.100.0/24
+        gateway: 192.168.100.1
+        start: 192.168.100.20
+        end: 192.168.100.50
+        interface: bond0.100
+      provisioning:
+        subnet: 192.168.10.0/24
+        start: 192.168.10.20
+        end: 192.168.10.50
+        interface: bond0
+    dns_servers:
+    - 1.1.1.1
+    - 8.8.8.8
+
+    default_network_settings:
+      bondXmitHashPolicy: "layer2"
+      bond_mode: "active-backup"
+
+  control_plane:
+    capm3:
+      hostSelector:
+        matchLabels:
+          cluster-role: control-plane
+
+    network_interfaces:
+      bond0:
+        type: bond
+        interfaces:
+          - nic1
+          - nic2
+        vlans:
+          - id: 100  # VLAN ID is fixed, per libvirt-metal internals
+      nic1:
+        type: phy
+      nic2:
+        type: phy
+
+  control_plane_replicas: 3
+
+  machine_deployments:
+    md0:
+      replicas: 1
+      capm3:
+        hostSelector:
+          matchLabels:
+            cluster-role: worker
+
+      network_interfaces:
+        bond0:
+          type: bond
+          interfaces:
+            - ens4
+            - ens5
+          vlans:
+            - id: 100  # VLAN ID is fixed, per libvirt-metal internals
+        ens4:
+          type: phy
+        ens5:
+          type: phy
+
+  baremetal_host_default:
+    longhorn_disk_config:
+      - path: "/var/longhorn/disks/disk_by-path_pci-0000:00:0a.0"
+        storageReserved: 0
+        allowScheduling: true
+        tags:
+          - vhdd
+          - fast
+      - path: "/var/longhorn/disks/disk_by-path_pci-0000:00:0b.0"
+        storageReserved: 0
+        allowScheduling: true
+        tags:
+          - vhdd
+          - fast
+    bmh_metadata:
+      annotations:
+        sylvaproject.org/snmp-auth: foo
+        sylvaproject.org/snmp-hw-type: dell_idrac
+        sylvaproject.org/snmp-endpoint: http://192.168.133.1:5432
+    bmh_spec:
+      online: false
+      description: management cluster node
+      bmc:
+        disableCertificateVerification: true
+      bootMode: legacy
+      rootDeviceHints:
+        deviceName: /dev/vda
+
+  baremetal_hosts:
+    management-cp-0:
+      ip_preallocations:
+        primary: 192.168.100.20
+        provisioning: 192.168.10.20
+      interface_mappings:
+        nic1:
+          mac_address: 52:54:00:44:44:00
+        nic2:
+          mac_address: 52:54:00:55:55:00
+      bmh_metadata:
+        labels:
+          cluster-role: control-plane
+          snmp-enabled: "true"
+      bmh_spec:
+        bmc:
+          address: redfish-virtualmedia://{{ .Values._internal.bootstrap_node_ip }}:8000/redfish/v1/Systems/c0014001-b10b-f001-c0de-feeb1e54ee15
+        bootMACAddress: 52:54:00:44:44:00
+    management-cp-1:
+      ip_preallocations:
+        primary: 192.168.100.21
+        provisioning: 192.168.10.21
+      interface_mappings:
+        nic1:
+          mac_address: 52:54:00:44:44:01
+        nic2:
+          mac_address: 52:54:00:55:55:01
+      bmh_metadata:
+        labels:
+          cluster-role: control-plane
+      bmh_spec:
+        bmc:
+          address: redfish-virtualmedia://{{ .Values._internal.bootstrap_node_ip }}:8001/redfish/v1/Systems/c0014001-b10b-f001-c0de-feeb1e54ee15
+        bootMACAddress: 52:54:00:44:44:01
+    management-cp-2:
+      ip_preallocations:
+        primary: 192.168.100.22
+        provisioning: 192.168.10.22
+      interface_mappings:
+        nic1:
+          mac_address: 52:54:00:44:44:02
+        nic2:
+          mac_address: 52:54:00:55:55:02
+      bmh_metadata:
+        labels:
+          cluster-role: control-plane
+      bmh_spec:
+        bmc:
+          address: redfish-virtualmedia://{{ .Values._internal.bootstrap_node_ip }}:8002/redfish/v1/Systems/c0014001-b10b-f001-c0de-feeb1e54ee15
+        bootMACAddress: 52:54:00:44:44:02
+    management-md-0:
+      ip_preallocations:
+        primary: 192.168.100.23
+        provisioning: 192.168.10.23
+      interface_mappings:
+        nic1:
+          mac_address: 52:54:00:44:44:03
+        nic2:
+          mac_address: 52:54:00:55:55:03
+      bmh_metadata:
+        labels:
+          cluster-role: worker
+      bmh_spec:
+        bmc:
+          address: redfish-virtualmedia://{{ .Values._internal.bootstrap_node_ip }}:8003/redfish/v1/Systems/c0014001-b10b-f001-c0de-feeb1e54ee15
+        bootMACAddress: 52:54:00:44:44:03
+
+units:
+  metal3:
+    helmrelease_spec:
+      values:
+        global:
+          # Add console access to IPA - useful for debuging purposes
+          ironicKernelParams: 'console=ttyS0 suse.autologin=ttyS0 rootpwd="$$1$$DAhhpomu$$YqNcZc3ce5H7uswK4skCZ."'  # "secret"
+
+libvirt_metal:
+  #image: registry.gitlab.com/sylva-projects/sylva-elements/container-images/libvirt-metal:_tag_  # customize if wanted
+  nodes:
+    management-cp-0:
+      redfishPort: 8000
+      memGB: 24
+      numCPUs: 10
+    management-cp-1:
+      redfishPort: 8001
+      memGB: 24
+      numCPUs: 10
+    management-cp-2:
+      redfishPort: 8002
+      memGB: 24
+      numCPUs: 10
+    management-md-0:
+      redfishPort: 8003
+      memGB: 24
+      numCPUs: 10
+
+    workload-cp-0:
+      redfishPort: 8010
+      memGB: 16 # IPA allocates half of it to tmpfs, if must be large enough to store the image
+      numCPUs: 4
+      enableDHCP: false
+    workload-cp-1:
+      redfishPort: 8011
+      memGB: 16
+      numCPUs: 4
+      enableDHCP: false
+    workload-cp-2:
+      redfishPort: 8012
+      memGB: 16
+      numCPUs: 4
+      enableDHCP: false
+    workload-md-0:
+      redfishPort: 8013
+      memGB: 16
+      numCPUs: 4
+      enableDHCP: false
+
+# dummy configuration to allow deployment of snmp-exporter
+snmp:
+  devices:
+    - alias: bar
+      target: 192.168.100.2
+      module: hp_cpq
+      auth: bar
+      cluster_name: dummy_cluster
+
+#proxies:
+#  # put your own proxy settings here if you need
+#  http_proxy: ""
+#  https_proxy: ""
+#  no_proxy: ""
+
+# configure containerd registry mirrors following https://github.com/containerd/containerd/blob/main/docs/hosts.md
+# see charts/syla-units/values.yaml for a more detailled example
+# registry_mirrors:
+#   hosts_config:
+#     docker.io:
+#     - mirror_url: http://your.mirror/docker

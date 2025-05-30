@@ -10164,6 +10164,9 @@
         }
       }
     },
+    "sylva_kiwi_imagebuilder_version": {
+      "type": "string"
+    },
     "sylva_diskimagebuilder_version": {
       "type": "string"
     },
@@ -10215,7 +10218,12 @@
           }
         },
         "default_cosign_public_key": {
-          "ref": "#/$defs/pub-key"
+          "type": "string",
+          "pattern": "^-----BEGIN PUBLIC KEY-----"
+        },
+        "kiwi_image_builder_cosign_public_key": {
+          "type": "string",
+          "pattern": "^-----BEGIN PUBLIC KEY-----"
         },
         "upstream_images_signature": {
           "type": "object",
