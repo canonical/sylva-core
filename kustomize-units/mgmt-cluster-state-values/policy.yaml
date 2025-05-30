@@ -44,9 +44,9 @@ spec:
         urlPath: "/api/v1/namespaces/cert-manager/secrets/ca-key-pair"
     preconditions:
       all:
-      - key: "{{ secret-config.kind }}"
-        operator: Equals
-        value: Secret
+      - key: secret-config
+        operator: NotEquals
+        value: null
     mutate:
       targets:
       - apiVersion: kustomize.toolkit.fluxcd.io/v1
