@@ -39,12 +39,12 @@ spec:
           namespaces:
           - kubeadm-capo
     context:
-    - name: secret-config
+    - name: secretconfig
       apiCall:
         urlPath: "/api/v1/namespaces/cert-manager/secrets/ca-key-pair"
     preconditions:
       all:
-      - key: secret-config.metadata.name
+      - key: "{{ secretconfig.metadata.name }}"
         operator: Equals
         value: "ca-key-pair"
     mutate:
