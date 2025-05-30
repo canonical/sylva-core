@@ -368,16 +368,10 @@ include:
         yq -i '.security.oci_artifacts.skip_signing_check = true' "$ENV_PATH/values.yaml"
       fi
       yq -i '.components += strenv(OCI_COMPONENT_PATH)' $ENV_PATH/kustomization.yaml
-    cat <<EOF>> $ENV_PATH/kustomization.yaml
-    patches:
-    - target:
-        kind: HelmRelease
-        name: sylva-units
-      patch: |
-        - op: replace
-          path: /spec/chart/spec/version
-          value: ${OCI_TAG}
-    EOF
+
+      if ! yq -e '.patches[] | select(.patch[]?.path == "/spec/chart/spec/version")' "$ENV_PATH/kustomization.yaml" > /dev/null 2>&1; then
+        yq e -i '.patches += [{"target": {"kind": "HelmRelease", "name": "sylva-units"}, "patch": "- op: replace\n  path: /spec/chart/spec/version\n  value: " + env(OCI_TAG)}]' "$ENV_PATH/kustomization.yaml"
+      fi
     fi
   - echo -e "\e[0Ksection_end:`date +%s`:gitlab_ci_common\r\e[0K"
   - |
