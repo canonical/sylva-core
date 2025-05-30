@@ -17,6 +17,8 @@ cluster:
     - '{{ .Values._internal.bootstrap_node_ip }}'
 
   capm3:
+    image_provisioning_host: {{ .Values._internal.bootstrap_node_ip }}
+    use_os_image_server_service_urls: false
     networks:
       primary:
         subnet: 192.168.100.0/24
