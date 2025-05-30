@@ -2044,6 +2044,7 @@ units:
               (tuple . "monitoring" | include "unit-enabled")
               | include "set-only-if"
           }}
+        # this secret is a byproduct of the eso-grafana-oidc ExternalSecret resource
         - >-
           {{ tuple (dict
                 "apiVersion" "v1"

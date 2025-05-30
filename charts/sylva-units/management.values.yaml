@@ -224,7 +224,7 @@ units:
               auth_url: 'https://{{ .Values.external_hostnames.keycloak }}/realms/sylva/protocol/openid-connect/auth'
               token_url: 'https://{{ .Values.external_hostnames.keycloak }}/realms/sylva/protocol/openid-connect/token'
               api_url: 'https://{{ .Values.external_hostnames.keycloak }}/realms/sylva/protocol/openid-connect/userinfo'
-              role_attribute_path: contains(roles[*], 'grafanaadmin') && 'Admin' || 'Viewer'
+              role_attribute_path: contains(roles[*], 'grafanaadmin') && 'Admin' || contains(roles[*], 'grafanaeditor') && 'Editor' || contains(roles[*], 'grafanaviewer') && 'Viewer' || 'None'
               allow_assign_grafana_admin: true
               groups_attribute_path: groups
               use_refresh_token: true
@@ -287,7 +287,7 @@ units:
               tlsSkipVerify: true
               timeInterval: 60s
               prometheusVersion: "0.35.0"
-              customQueryParameters: "deduplicate=1"
+              customQueryParameters: "deduplicate=1&max_source_resolution=auto"
             secureJsonData:
               basicAuthPassword: '{{ .Values._internal.thanos_password }}'
             isDefault: true
