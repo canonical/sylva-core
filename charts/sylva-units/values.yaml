@@ -973,7 +973,7 @@ units:
       chart:
         spec:
           chart: cdi
-          version: 0.4.0
+          version: 0.5.0
       targetNamespace: kubevirt-cdi
       install:
         createNamespace: true
