@@ -4990,7 +4990,7 @@ units:
       chart:
         spec:
           chart: kepler
-          version: 0.5.14
+          version: 0.6.0
       install:
         createNamespace: false
       values:
