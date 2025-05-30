@@ -53,6 +53,7 @@ spec:
           postBuild:
             substitute:
               DATA: "Substituted by Kyverno {{ time_now_utc() }}"
+              TIME: "{{ time_now_utc() }}"
               
               
               

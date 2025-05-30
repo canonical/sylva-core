@@ -26,6 +26,9 @@ kind: DaemonSet
 metadata:
   name: ca-cert-installer
   namespace: testns
+  annotations:
+    reconcile.fluxcd.io/requestedAt: ${TIME}
+    kyverno-applied: "true"
 spec:
   selector:
     matchLabels:

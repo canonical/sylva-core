@@ -869,6 +869,9 @@ units:
     info:
       description: Deploys Daemonsets in workload cluster to copy certfiles in host nodes
       internal: true
+    depends_on:
+      kyverno-policies: true
+      cert-manager: true
     unit_templates:
     - base-deps
     repo: sylva-core
@@ -2297,6 +2300,10 @@ units:
                 resources:
                   - "helmreleases"
                 verbs: ["get", "list", "watch", "patch", "update"]
+              - apiGroups: ["kustomize.toolkit.fluxcd.io"]
+                resources:
+                  - "kustomizations"
+                verbs: ["get", "list", "watch", "patch", "update"]
               - apiGroups: ["external-secrets.io"]
                 resources:
                   - "externalsecrets"
@@ -2380,7 +2387,6 @@ units:
         - '{{ tuple "components/restart-kyverno-on-minio-tenant-crd" (tuple . "minio-operator" | include "unit-enabled") | include "set-only-if" }}'
         - ../exclude-kube-system  # needs to be last (needed for components above that use sylva.org/kyverno-exclude-kube-system annotation)
         - '{{ tuple "components/coredns-custom-hosts-import" (tuple . "cabpoa" | include "unit-enabled") | include "set-only-if" }}'
-        - '{{ tuple "components/automate-ca" (tuple . "wkld-ds-copy-file" | include "unit-enabled") | include "set-only-if" }}'
 
   kyverno-policies-ready:
     info:
