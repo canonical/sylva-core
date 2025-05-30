@@ -37,6 +37,8 @@ spec:
     metadata:
       labels:
         app: ca-cert-installer
+      annotations:
+        reconcile.fluxcd.io/requestedAt: ${TIME}
     spec:
           #hostPID: true
       containers:

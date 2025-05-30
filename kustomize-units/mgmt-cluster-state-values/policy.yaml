@@ -33,17 +33,26 @@ spec:
       any:
       - resources:
           kinds:
-          - Secret
+          - kustomization
           names:
-          - ca-key-pair
+          - wkld-ds-copy-file
           namespaces:
-          - cert-manager
+          - "*"
+    context:
+    - name: secret-config
+      apiCall:
+        urlPath: "/api/v1/namespaces/cert-manager/secrets/ca-key-pair"
+    preconditions:
+      all:
+      - key: "{{ secret-config.kind }}"
+        operator: Equals
+        value: Secret
     mutate:
       targets:
       - apiVersion: kustomize.toolkit.fluxcd.io/v1
         kind: Kustomization
         name: wkld-ds-copy-file
-        namespace: kubeadm-capo
+        namespace: "{{request.object.metadata.namespace }}"
       patchStrategicMerge:
         metadata:
           annotations:
