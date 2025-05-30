@@ -67,7 +67,7 @@
 | **backup-capi-resources** | Backup Cluster API resources<br/><br/>Backup periodically Cluster API resources using clusterctl move |  | Kustomization |  |
 | **backup-etcd** | Backup Etcd<br/><br/>Backup periodically Etcd using etcdctl |  | Kustomization |  |
 | **descheduler** | install descheduler |  | [Helm chart](https://kubernetes-sigs.github.io/descheduler/) | 0.33.0 |
-| **rancher-turtles** | installs the Rancher Turtles operator, which enables the import of Cluster API workload clusters into the management cluster's Rancher |  | [Helm chart](https://rancher.github.io/turtles) | 0.18.0 |
+| **rancher-turtles** | installs the Rancher Turtles operator, which enables the import of Cluster API workload clusters into the management cluster's Rancher |  | [Helm chart](https://rancher.github.io/turtles) | 0.20.0 |
 
 ## Units for operators, tools or Helm charts maintained in Sylva project
 
