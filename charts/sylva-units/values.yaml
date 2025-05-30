@@ -4340,6 +4340,21 @@ units:
                             seccompProfile:
                               type: RuntimeDefault
 
+  prometheus-custom-metrics:
+    info:
+      description: Prometheus configuration for custom resource metrics
+      details: Adding podmonitors for flux controllers and create custom metrics for various resources by configuring kube-state-metrics
+      internal: true
+    unit_templates:
+    - base-deps
+    repo: sylva-core
+    enabled_conditions:
+    - '{{ tuple . "monitoring" | include "unit-enabled" }}'
+    kustomization_spec:
+      path: ./kustomize-units/prometheus-custom-metrics
+      wait: false
+      force: true
+
   monitoring-crd:
     info:
       description: installs prometheus operator CRDs
@@ -4364,21 +4379,6 @@ units:
         spec:
           chart: prometheus-operator-crds
           version: 18.0.0
-
-  prometheus-custom-metrics:
-    info:
-      description: Prometheus configuration for custom resource metrics
-      details: Adding podmonitors for flux controllers and create custom metrics for various resources by configuring kube-state-metrics
-      internal: true
-    unit_templates:
-    - base-deps
-    repo: sylva-core
-    enabled_conditions:
-    - '{{ tuple . "monitoring" | include "unit-enabled" }}'
-    kustomization_spec:
-      path: ./kustomize-units/prometheus-custom-metrics
-      wait: false
-      force: true
 
   grafana-init:
     info:
