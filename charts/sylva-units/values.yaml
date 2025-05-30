@@ -4736,7 +4736,7 @@ units:
       alertmanager-jiralert-config: true
     helm_repo_url: https://prometheus-community.github.io/helm-charts
     helmrelease_spec:
-      targetNamespace: '{{ tuple . (tuple . "monitoring" | include "unit-enabled") "cattle-monitoring-system" "cattle-monitoring-system" | include "interpret-ternary" }}'
+      targetNamespace: cattle-monitoring-system
       chart:
         spec:
           chart: jiralert
@@ -4778,7 +4778,7 @@ units:
       chart:
         spec:
           chart: webhooks/jiralert
-      targetNamespace: "cattle-monitoring-system"
+      targetNamespace: cattle-monitoring-system
     helm_secret_values:
       config: '{{ .Values.monitoring.alertmanager.webhooks.jiralert.config | include "preserve-type" }}'
 
@@ -4872,7 +4872,7 @@ units:
       chart:
         spec:
           chart: config
-      targetNamespace: "cattle-monitoring-system"
+      targetNamespace: cattle-monitoring-system
     helm_secret_values:
       config: '{{ .Values.monitoring.alertmanager.config | include "preserve-type" }}'
 
