@@ -37,7 +37,7 @@
 | **metallb** | installs MetalLB operator | stable | [Helm chart](https://metallb.github.io/metallb) | 0.14.9 |
 | **monitoring** | installs monitoring stack | stable | [Helm chart](https://charts.rancher.io/) | 105.2.0+up66.7.1-rancher.10 |
 | **multus** | installs Multus | stable | [Helm chart](https://rke2-charts.rancher.io/) | v4.2.002 |
-| **rancher** | installs Rancher | stable | [Helm chart](https://releases.rancher.com/server-charts/stable) | 2.10.3 |
+| **rancher** | installs Rancher | stable | [Helm chart](https://releases.rancher.com/server-charts/stable) | 2.11.2 |
 | **sriov-network-operator** | installs SR-IOV operator | stable | [Helm chart](https://suse-edge.github.io/charts/) | 1.5.2+up1.5.0 |
 | **vault** | installs Vault<br/><br/>Vault assumes that the certificate vault-tls has been issued | stable | [Kustomization](https://raw.githubusercontent.com/banzaicloud/bank-vaults/1.19.0/operator/deploy/rbac.yaml) | 1.19.0 |
 | **vault-config-operator** | installs Vault config operator | stable | [Helm chart](https://redhat-cop.github.io/vault-config-operator) | v0.8.32 |
