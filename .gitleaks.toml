@@ -39,4 +39,5 @@ regexes = [
             '''"minio1234"''',
             '''"harbor-init"''',
             '''MIIJQQIBADANBgkqhkiG9w0BAQEFAASCCSswggknAgEAAoICAQCw6jGQ0rmsmd2s''',
+            '''aes-xts-plain64''',
           ]

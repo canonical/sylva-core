@@ -128,6 +128,7 @@
 | **firewall-workload-cluster** | configures global network policies applying only on the management cluster | Kustomization |
 | **first-login-rancher** | configure Rancher authentication for admin | Kustomization |
 | **flux-webui-init** | initializes and configures flux-webui | Kustomization |
+| **generate-secret-for-longhorn-encrypted-volume** | generate the secret as per pvc name in the same namespace when a pvc using longhorn encrypted sc is used | Kustomization |
 | **gitea-eso** | write secrets in gitea namespace in gitea expected format | Kustomization |
 | **gitea-keycloak-resources** | deploys Gitea OIDC client in Sylva's Keycloak realm | Kustomization |
 | **gitea-secrets** | create random secret that will be used by gitea application. secrets are sync with vault. | Kustomization |
@@ -158,6 +159,7 @@
 | **logging-config** | Configures rancher-logging to ship logs to Loki | Kustomization |
 | **loki-credentials-secret** | create a secret containing tenant's loki credentials | Kustomization |
 | **loki-init** | sets up Loki certificate<br/><br/>it generate certificate | Kustomization |
+| **longhorn-encrypted-storageclass** | Defines an encrypted Longhorn storage class | Kustomization |
 | **longhorn-engine-image-cleanup** | kyverno cleanup policy to delete old Longhorn engineimages that are left-over after upgrade | Kustomization |
 | **longhorn-instance-manager-cleanup** | cronjob to cleanup Longhorn instance-manager pods that are preventing node drain | Kustomization |
 | **management-cluster-configs** | copies configuration object in management cluster during bootstrap | Kustomization |

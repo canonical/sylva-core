@@ -1089,6 +1089,12 @@ units:
     annotations:
       sylvactl/readyMessage: "Harbor UI can be reached at https://{{ .Values.external_hostnames.harbor }} ({{ .Values._internal.display_external_ip_msg }})"
     helm_repo_url: https://helm.goharbor.io
+    kustomization_spec:
+      _components:
+      - ../harbor-init/persistentvolumeclaims
+      postBuild:
+        substitute:
+          STORAGE_CLASS: '{{ .Values._internal.default_storage_class }}'
     helmrelease_spec:
       chart:
         spec:
@@ -1106,11 +1112,13 @@ units:
               storageClass: '{{ .Values._internal.default_storage_class }}'
               #size: 32Gi
               accessMode: '{{ .Values._internal.harbor_storage_access_mode }}'
+              existingClaim: "harbor-registry-pvc"                                 # creating pvc with diff name from that of secret which is needed for longhorn volume encryption
             jobservice:
               jobLog:
                 storageClass: '{{ .Values._internal.default_storage_class }}'
                 #size: 8Gi
                 accessMode: '{{ .Values._internal.harbor_storage_access_mode }}'
+                existingClaim: "harbor-jobservice-pvc"                             # creating pvc with diff name from that of secret which is needed for longhorn volume encryption
             redis:
               storageClass: '{{ .Values._internal.default_storage_class }}'
               #size: 8Gi
@@ -2852,6 +2860,7 @@ units:
           HTTP_PROXY: '{{ .Values.proxies.http_proxy }}'
           HTTPS_PROXY: '{{ .Values.proxies.https_proxy }}'
           NO_PROXY: '{{ include "sylva-units.no_proxy" (tuple .) }}'
+          STORAGE_CLASS: '{{ tuple . (tuple . "longhorn" | include "unit-enabled") "longhorn" .Values._internal.default_storage_class | include "interpret-ternary" }}'
       healthChecks:
         - apiVersion: apps/v1
           kind: StatefulSet
@@ -7938,6 +7947,51 @@ units:
             parameters:
               numberOfReplicas: "2"
 
+  longhorn-encrypted-storageclass:
+    info:
+      description: Defines an encrypted Longhorn storage class
+      internal: true
+    repo: sylva-core
+    unit_templates:
+    - base-deps
+    depends_on:
+      longhorn: true
+    enabled_conditions:
+      - '{{ .Values.security.enable_longhorn_volume_encryption }}'
+      - '{{ tuple . "longhorn" | include "unit-enabled" }}'
+    kustomization_spec:
+      path: ./kustomize-units/longhorn-encrypted-storageclass
+      wait: true
+      postBuild:
+        substitute:
+          NODE_COUNT: '{{ .Values._internal.longhorn_node_count_upper_bound | quote }}'
+      _patches:
+        - target:
+            kind: StorageClass
+          patch: |
+            kind: _unused_
+            metadata:
+              name: _unused_
+              annotations:
+                storageclass.kubernetes.io/is-default-class: '{{ .Values._internal.default_storage_class | eq "longhorn-encryption-per-volume" }}'
+
+  generate-secret-for-longhorn-encrypted-volume:
+    info:
+      description: generate the secret as per pvc name in the same namespace when a pvc using longhorn encrypted sc is used
+      internal: true
+    unit_templates:
+      - base-deps
+    enabled_conditions:
+      - '{{ tuple . "kyverno" | include "unit-enabled" }}'
+      - '{{ .Values.security.enable_longhorn_volume_encryption }}'
+      - '{{ tuple . "longhorn" | include "unit-enabled" }}'
+    depends_on:
+      kyverno: true
+    repo: sylva-core
+    kustomization_spec:
+      path: ./kustomize-units/kyverno-policies/generate-secret-for-longhorn-encrypted-volume
+      wait: true
+
   sylva-prometheus-rules:
     info:
       description: installs prometheus rules using external helm chart & rules git repo
@@ -8811,6 +8865,9 @@ os_images_default_download_storage_space: 30Gi
 get_openstack_images_per_image_timeout_minutes: 30
 
 security:
+  # enable the longhorn volume encryption
+  enable_longhorn_volume_encryption: true                 # set back to false after testing in CI
+
   external_x509_issuer: {}
    # issuer_type:  acme or vault
    # vault_token:  authent token for vault,
@@ -9322,7 +9379,15 @@ _internal:
 
   default_password: '{{ include "internalPersistentRandomPasswd" (tuple . "default_password") }}'
 
-  default_longhorn_storage_class: longhorn
+  default_longhorn_storage_class: >-
+    {{- if and .Values._internal.state.is_upgrade (tuple . "longhorn" | include "unit-enabled") -}}
+      {{- $current_sc := lookup "v1" "Secret" .Release.Namespace "sylva-units-values" | dig "data" "values" "" | b64dec | fromYaml | dig "_internal" "default_storage_class" "" -}}
+      {{- $current_sc -}}
+    {{- else if and (not .Values._internal.state.is_upgrade) .Values.security.enable_longhorn_volume_encryption -}}
+      longhorn-encryption-per-volume
+    {{- else -}}
+      longhorn
+    {{- end -}}
 
   default_storage_class: >-
     {{- if .Values.default_storage_class -}}
@@ -9358,6 +9423,7 @@ _internal:
     single-replica-storageclass: longhorn
     two-replicas-storageclass: longhorn
     longhorn: longhorn
+    longhorn-encryption-per-volume: longhorn
     vsphere-csi: vsphere-csi-driver
     '{{ .Values.openstack.storageClass.name }}': cinder-csi
     cephfs-csi: ceph-csi-cephfs

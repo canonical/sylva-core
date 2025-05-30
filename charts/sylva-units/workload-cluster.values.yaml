@@ -454,6 +454,19 @@ units:
     # can be enabled at runtime if desired
     enabled: '{{ .Values.cluster.capi_providers.infra_provider | eq "capm3" }}'
 
+  longhorn-encrypted-storageclass:
+    enabled: true
+    enabled_conditions:
+      - '{{ .Values.security.enable_longhorn_volume_encryption }}'
+      - '{{ tuple . "longhorn" | include "unit-enabled" }}'
+
+  generate-secret-for-longhorn-encrypted-volume:
+    enabled: true
+    enabled_conditions:
+      - '{{ tuple . "kyverno" | include "unit-enabled" }}'
+      - '{{ .Values.security.enable_longhorn_volume_encryption }}'
+      - '{{ tuple . "longhorn" | include "unit-enabled" }}'
+
   longhorn-engine-image-cleanup:
     enabled: true
 

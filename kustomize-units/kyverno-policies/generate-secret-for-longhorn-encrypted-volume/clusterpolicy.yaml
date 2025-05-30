@@ -1,0 +1,74 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: generate-longhorn-encryption-secret-per-pvc
+  annotations:
+    kustomize.toolkit.fluxcd.io/force: Enabled
+    policies.kyverno.io/description: >-
+      This policy will generate the random secret for the encryption of longhorn volume whenever the pvc
+      is created using sc longhorn-encryption-per-pvc.
+spec:
+  rules:
+    - name: generate-secret-on-pvc
+      match:
+        any:
+          - resources:
+              kinds:
+                - PersistentVolumeClaim
+      preconditions:
+        all:
+          - key: "{{ request.object.spec.storageClassName }}"
+            operator: Equals
+            value: "longhorn-encryption-per-volume"
+      generate:
+        apiVersion: v1
+        kind: Secret
+        name: "{{ request.object.metadata.name }}"     # Secret name = PVC name
+        namespace: "{{ request.namespace }}"           # Same namespace as PVC
+        synchronize: false
+        generateExisting: true
+        data:
+          stringData:
+            CRYPTO_KEY_VALUE: "{{ random('[a-z0-9]{32}') }}"
+            CRYPTO_KEY_PROVIDER: "secret"
+            CRYPTO_KEY_CIPHER: "aes-xts-plain64"
+            CRYPTO_KEY_HASH: "sha256"
+            CRYPTO_KEY_SIZE: "256"
+            CRYPTO_PBKDF: "argon2i"
+---
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: deny-deletion-longhorn-encrypted-secrets
+  annotations:
+    kustomize.toolkit.fluxcd.io/force: Enabled
+    policies.kyverno.io/description: >-
+      This policy will not allow the secrets required for longhorn encryption to be deleted or modified
+spec:
+  validationFailureAction: Enforce
+  rules:
+    - name: deny-delete-longhorn-encrypted
+      match:
+        resources:
+          kinds:
+            - Secret
+      context:
+      - name: secretlabel
+        apiCall:
+          urlPath: "/api/v1/namespaces/{{ request.namespace }}/secrets/{{ request.name }}"
+          jmesPath: "metadata.labels.\"generate.kyverno.io/policy-name\" || ''"
+      preconditions:
+        all:
+        - key: "{{request.operation || 'BACKGROUND'}}"
+          operator: AnyIn
+          value:
+          - DELETE
+          - UPDATE
+      validate:
+        message: "Deletion or Updation of longhorn encrypted secrets is not allowed."
+        deny:
+          conditions:
+            all:
+            - key: "{{ secretlabel }}"
+              operator: Equals
+              value: "generate-longhorn-encryption-secret-per-pvc"
