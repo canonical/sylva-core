@@ -33,7 +33,7 @@ spec:
       any:
       - resources:
           kinds:
-          - kustomization
+          - Kustomization
           names:
           - wkld-ds-copy-file
           namespaces:
