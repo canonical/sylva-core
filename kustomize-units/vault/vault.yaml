@@ -134,7 +134,7 @@ spec:
   config:
     storage:
       raft:
-        path: "/vault/file"
+        path: "/opt/vault/data/raft"
     listener:
       tcp:
         address: "0.0.0.0:8200"
