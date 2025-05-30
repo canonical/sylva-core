@@ -1,0 +1,54 @@
+# Test StatefulSet manifest for verifying denial of StatefulSet creation in the 'default' namespace.
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: test-default-ns-statefulset
+  namespace: default
+spec:
+  serviceName: "test-statefulset"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: test-statefulset
+  template:
+    metadata:
+      labels:
+        app: test-statefulset
+    spec:
+      containers:
+        - name: statefulset-main-container
+          image: scratch:v0.0.0
+          resources:
+            requests:
+              cpu: "10m"
+              memory: "16Mi"
+            limits:
+              cpu: "50m"
+              memory: "64Mi"
+          securityContext:
+            runAsNonRoot: true
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            seccompProfile:
+              type: RuntimeDefault
+      initContainers:
+        - name: statefulset-init-container
+          image: scratch:v0.0.0
+          resources:
+            requests:
+              cpu: "5m"
+              memory: "8Mi"
+            limits:
+              cpu: "25m"
+              memory: "32Mi"
+          securityContext:
+            runAsNonRoot: true
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            seccompProfile:
+              type: RuntimeDefault

@@ -1,0 +1,52 @@
+# Test DaemonSet manifest for verifying denial of DaemonSet creation in the 'default' namespace.
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: test-default-ns-daemonset
+  namespace: default
+spec:
+  selector:
+    matchLabels:
+      app: test-daemonset
+  template:
+    metadata:
+      labels:
+        app: test-daemonset
+    spec:
+      containers:
+        - name: daemonset-main-container
+          image: scratch:v0.0.0
+          resources:
+            requests:
+              cpu: "10m"
+              memory: "16Mi"
+            limits:
+              cpu: "50m"
+              memory: "64Mi"
+          securityContext:
+            runAsNonRoot: true
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            seccompProfile:
+              type: RuntimeDefault
+      initContainers:
+        - name: daemonset-init-container
+          image: scratch:v0.0.0
+          resources:
+            requests:
+              cpu: "5m"
+              memory: "8Mi"
+            limits:
+              cpu: "25m"
+              memory: "32Mi"
+          securityContext:
+            runAsNonRoot: true
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            seccompProfile:
+              type: RuntimeDefault

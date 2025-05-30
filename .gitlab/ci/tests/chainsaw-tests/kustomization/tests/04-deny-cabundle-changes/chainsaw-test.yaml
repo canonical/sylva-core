@@ -1,0 +1,65 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/kyverno/chainsaw/main/.schemas/json/test-chainsaw-v1alpha1.json
+# Validates that only cert-manager can mutate the caBundle field in CRDs, and other updaters are denied.
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  name: deny-cabundle-changes
+spec:
+  steps:
+  - name: "Setup CRD"
+    skipDelete: true
+    try:
+    - apply:
+        file: setup-crd-policy.yaml
+    - assert:
+        file: setup-crd-policy.yaml
+  - name: "Reject updater attempting to add caBundle"
+    try:
+      - script:
+          content: |
+            kubectl apply -f add-cabundle.yaml
+          check:
+            ($error != null): true
+            (contains($stderr, 'deny-cabundle-change')): true
+  - name: "Allow cert-manager to add caBundle"
+    skipDelete: true
+    try:
+      - script:
+          content: |
+            kubectl apply -f add-cabundle.yaml --as=system:serviceaccount:cert-manager:cert-manager-cainjector
+  - name: "Prevent updater modifying caBundle"
+    try:
+      - script:
+          content: |
+            kubectl apply -f modify-cabundle.yaml
+          check:
+            ($error != null): true
+            (contains($stderr, 'deny-cabundle-change')): true
+  - name: "Allow cert-manager to modify caBundle"
+    try:
+      - script:
+          content: |
+            kubectl apply -f modify-cabundle.yaml --as=system:serviceaccount:cert-manager:cert-manager-cainjector
+  - name: "Allow updater to modify CRD (not caBundle field)"
+    try:
+      - script:
+          content: |
+            kubectl apply -f update-crd.yaml
+  - name: "Allow updater to remove enforcement annotation"
+    try:
+      - script:
+          content: |
+            kubectl apply -f remove-annotation.yaml
+  - name: "Allow caBundle mutation after annotation removal"
+    try:
+      - script:
+          content: |
+            kubectl apply -f modify-post-annotation-removal.yaml
+  - name: "Cleanup"
+    try:
+    - delete:
+        file: setup-crd-policy.yaml
+  - name: "Sleep to prevent client rate limiter from blocking the next test"
+    try:
+    - script:
+        content: sleep 2

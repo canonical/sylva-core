@@ -1,0 +1,62 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/kyverno/chainsaw/main/.schemas/json/test-chainsaw-v1alpha1.json
+# Ensures that creating Pods and controllers in the 'default' namespace is denied by policy.
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  name: disallow-default-namespace
+spec:
+  steps:
+  - name: "Verify that pods in default namespace are denied"
+    try:
+    - apply:
+        file: disallow-default-namespace-pod.yaml
+        expect:
+        - check:
+            ($error != null): true
+            (contains($error, 'disallow-default-namespace')): true
+    - delete:
+        file: disallow-default-namespace-pod.yaml
+  - name: "Verify that deployments in default namespace are  denied"
+    try:
+    - apply:
+        file: disallow-default-namespace-deployment.yaml
+        expect:
+        - check:
+            ($error != null): true
+            (contains($error, 'disallow-default-namespace')): true
+    - delete:
+        file: disallow-default-namespace-deployment.yaml
+  - name: "Verify that jobs in default namespace are is denied"
+    try:
+    - apply:
+        file: disallow-default-namespace-job.yaml
+        expect:
+        - check:
+            ($error != null): true
+            (contains($error, 'disallow-default-namespace')): true
+    - delete:
+        file: disallow-default-namespace-job.yaml
+  - name: "Verify that daemonset in default namespace are denied"
+    try:
+    - apply:
+        file: disallow-default-namespace-daemonset.yaml
+        expect:
+        - check:
+            ($error != null): true
+            (contains($error, 'disallow-default-namespace')): true
+    - delete:
+        file: disallow-default-namespace-daemonset.yaml
+  - name: "Verify that statefulset in default namespace are denied"
+    try:
+    - apply:
+        file: disallow-default-namespace-statefulset.yaml
+        expect:
+        - check:
+            ($error != null): true
+            (contains($error, 'disallow-default-namespace')): true
+    - delete:
+        file: disallow-default-namespace-statefulset.yaml
+  - name: "Sleep to prevent client rate limiter from blocking the next test"
+    try:
+    - script:
+        content: sleep 2

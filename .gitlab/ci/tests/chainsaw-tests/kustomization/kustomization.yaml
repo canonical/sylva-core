@@ -1,0 +1,61 @@
+# This kustomization.yaml is at the project root.
+# Paths to files are relative to this root.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - run-chainsaw-job.yaml
+
+configMapGenerator:
+# If you have a global .chainsaw.yaml and want to package it too:
+- name: chainsaw-config
+  options:
+    disableNameSuffixHash: true
+  namespace: chainsaw-test
+  files:
+    - tests/.chainsaw.yaml
+# Add more configMapGenerator entries if you have multiple test suites
+# and want to keep their ConfigMaps separate, or group them logically.
+# For example, to package all tests into one ConfigMap (less granular):
+- name: chainsaw-01-disallow-latest-tag
+  options:
+    disableNameSuffixHash: true
+  namespace: chainsaw-test
+  files:
+    # Relative paths from the project root
+    - tests/01-disallow-latest-tag/chainsaw-test.yaml
+    - tests/01-disallow-latest-tag/allow-latest-tag-pod.yaml
+    - tests/01-disallow-latest-tag/disallow-latest-tag-pod.yaml
+    - tests/01-disallow-latest-tag/disallow-latest-tag-deployment.yaml
+    - tests/01-disallow-latest-tag/disallow-latest-tag-job.yaml
+    - tests/01-disallow-latest-tag/disallow-latest-tag-cronjob.yaml
+- name: chainsaw-02-disallow-default-namespace
+  options:
+    disableNameSuffixHash: true
+  namespace: chainsaw-test
+  files:
+    - tests/02-disallow-default-namespace/chainsaw-test.yaml
+    - tests/02-disallow-default-namespace/disallow-default-namespace-pod.yaml
+    - tests/02-disallow-default-namespace/disallow-default-namespace-deployment.yaml
+    - tests/02-disallow-default-namespace/disallow-default-namespace-job.yaml
+    - tests/02-disallow-default-namespace/disallow-default-namespace-daemonset.yaml
+    - tests/02-disallow-default-namespace/disallow-default-namespace-statefulset.yaml
+- name: chainsaw-03-ensure-force-cluster-policy
+  options:
+    disableNameSuffixHash: true
+  namespace: chainsaw-test
+  files:
+    - tests/03-ensure-force-cluster-policy/chainsaw-test.yaml
+    - tests/03-ensure-force-cluster-policy/ensure-force-cluster-policy.yaml
+- name: chainsaw-04-deny-cabundle-changes
+  options:
+    disableNameSuffixHash: true
+  namespace: chainsaw-test
+  files:
+    - tests/04-deny-cabundle-changes/chainsaw-test.yaml
+    - tests/04-deny-cabundle-changes/setup-crd-policy.yaml
+    - tests/04-deny-cabundle-changes/add-cabundle.yaml
+    - tests/04-deny-cabundle-changes/modify-post-annotation-removal.yaml
+    - tests/04-deny-cabundle-changes/modify-cabundle.yaml
+    - tests/04-deny-cabundle-changes/remove-annotation.yaml
+    - tests/04-deny-cabundle-changes/update-crd.yaml

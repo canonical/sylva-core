@@ -1,0 +1,38 @@
+# This test manifest is used to verify enforcement of the ValidatingAdmissionPolicy (VAP)
+# that requires Kyverno ClusterPolicy resources managed by Flux to include the annotation
+# 'kustomize.toolkit.fluxcd.io/force: Enabled'. This ensures Flux can force re-create
+# immutable ClusterPolicies on change, preventing upgrade failures.
+# The test simulates a policy missing this annotation to confirm it is denied as expected.
+---
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: test-flux-policy-fail
+  labels:
+    # These labels trigger the policy/VAP selectors
+    kustomize.toolkit.fluxcd.io/name: "some-flux-kustomization"
+    kustomize.toolkit.fluxcd.io/namespace: "flux-system"
+    kustomize.toolkit.fluxcd.io/force: Enabled
+  # --- VIOLATION ---
+  # Missing the required 'kustomize.toolkit.fluxcd.io/force: Enabled' annotation
+  annotations:
+    # other-annotation: "some-value" # Could have other annotations or none at all
+    {} # Or omit the annotations block entirely
+spec:
+  # A minimal valid spec for the ClusterPolicy resource itself
+  validationFailureAction: Audit
+  background: true
+  rules:
+  - name: dummy-rule
+    match:
+      any:
+      - resources:
+          kinds:
+          - Pod
+    validate:
+      message: "Dummy rule validation."
+      pattern:
+        metadata:
+          labels:
+            app: "must-have-this"
+

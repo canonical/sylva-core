@@ -1,0 +1,31 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/kyverno/chainsaw/main/.schemas/json/configuration-chainsaw-v1alpha2.json
+apiVersion: chainsaw.kyverno.io/v1alpha2
+kind: Configuration
+metadata:
+  name: configuration
+spec:
+  # Global test execution settings
+  timeouts:
+    apply: 20s
+    cleanup: 20s
+    delete: 20s
+  cleanup:
+    skipDelete: false
+    delayBeforeCleanup: 10s         # Wait time before cleanup starts (default: 5s)
+  execution:
+    failFast: true                # Stop on first test failure (default: false)
+    parallel: 1                   # Number of tests to run in parallel (default: 4)
+    repeatCount: 1              # Number of times to repeat each test (default: 2)
+    # forceTerminationGracePeriod: 10s  # Grace period for resource cleanup (default: 30s)
+  discovery:
+    excludeTestRegex: chainsaw/#01$
+  namespace:
+    name: chainsaw-test                 # Namespace to run tests in (default: default)
+    template:
+      metadata:
+        labels:
+          app: chainsaw-tests
+  report:
+    format: JSON
+    name: chainsaw-report
+    path: /tmp/chainsaw-report

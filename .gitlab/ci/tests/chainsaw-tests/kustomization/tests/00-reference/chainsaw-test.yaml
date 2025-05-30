@@ -1,0 +1,54 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/kyverno/chainsaw/main/.schemas/json/test-chainsaw-v1alpha1.json
+# Short description: This test verifies that <describe policy or behavior being tested>.
+
+# How to use this template:
+# 1. Copy this file and rename it for your new test.
+# 2. Update the short description at the top.
+# 3. Replace <test-name> with a unique name for your test. preferably to match the policy name tested.
+# 4. For each test step, update the name and reflect the intended scenario .
+# 5. Add or remove steps as needed for your policy or scenario.
+# 6. Use expect/check for denied cases, and assert for allowed cases.
+# 7. Always include a delete step for cleanup when using "skipDelete: true" option.
+# 8. add a sleep step at the end to avoid API rate limiting.
+
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  name: test-name
+spec:
+  # Do not run this test in parallel with others
+  # concurrent: false
+  # Optional: set custom timeouts for this test
+  # timeouts:
+  #   apply: 10s
+  #   assert: 10s
+  #   error: 10s
+
+  # Skip this test. This is useful for tests that are not ready yet or are temporarily disabled.not to be used in validating policies
+  skip: true
+  steps:
+    # Step: Allow resource with invalid definition
+    - name: "Allow resource with invalid definition"
+      # "name" field will be listed in the outputs
+      try:
+        - apply:
+            file: valid-resource.yaml
+        # Optional: assert resource exists for allowed cases
+        - assert:
+            file: valid-resource.yaml
+    # Step: Deny resource with invalid definition
+    - name: "Deny resource with invalid definition"
+      try:
+        - apply:
+            file: invalid-resource.yaml
+            expect:
+            - check:
+                # This checks that the result of the content was an error.
+                ($error != null): true
+                # This check below ensures that the string 'specific-string' is found in stderr or else fails
+                (contains($stderr, 'specific-string')): true
+
+    - name: "Sleep to prevent client rate limiter from blocking the next test"
+      try:
+        - script:
+            content: sleep 2

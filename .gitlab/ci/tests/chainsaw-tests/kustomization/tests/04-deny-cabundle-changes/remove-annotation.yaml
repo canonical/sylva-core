@@ -1,0 +1,45 @@
+---
+# Update that removes "cert-manager.io/inject-ca-from" annotation
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: tests.example.com
+  annotations:
+    # Annotation cert-manager.io/inject-ca-from: is REMOVED
+    another-annotation: "added"
+spec:
+  group: example.com
+  names:
+    kind: Test
+    listKind: TestList
+    plural: tests
+    singular: test
+  scope: Namespaced
+  versions:
+    - name: v1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              properties:
+                field:
+                  type: string
+                anotherField:
+                    type: integer
+  # Webhook conversion configuration required to trigger the policy check
+  conversion:
+    strategy: Webhook
+    webhook:
+      clientConfig:
+        # caBundle is UNCHANGED
+        caBundle: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURUekNDQWplZ0F3SUJBZ0lVY1BjYnBFbEQ3cW1TM0FMaHJRUmN5RVdUb1Brd0RRWUpLb1pJaHZjTkFRRUwKQlFBd056RVpNQmNHQTFVRUF3d1FhR0Z5WW05eUxteHZZMkZzTG14aFlqRUxNQWtHQTFVRUJoTUNVazh4RFRBTApCZ05WQkFjTUJFTkpVMU13SGhjTk1qUXdOREF4TVRJMU1qQTRXaGNOTWpVd016SXpNVEkxTWpBNFdqQTNNUmt3CkZ3WURWUVFEREJCb1lYSmliM0l1Ykc5allXd3ViR0ZpTVFzd0NRWURWUVFHRXdKU1R6RU5NQXNHQTFVRUJ3d0UKUTBsVFV6Q0NBU0l3RFFZSktvWklodmNOQVFFQkJRQURnZ0VQQURDQ0FRb0NnZ0VCQUtLM3kzSGtrdGVqUlc2ZAptdjVOdzV1U0hCQlFJSE8zdjgvWk1qV0t3WVlhMkoxaXJ3OFVEQlcyUW5RRzU0QWZLdFVMeGpMZzhVMVVIb2R5CnpCVklXcGtsNXc0bHhlR0hjZGtpMDJBL3Yydk9NT3A5L1RwWTA2MjV5bWFJRk5SOUY1WFBmUDVRWXRlQi91NzMKcjFLTDl6SmJVc3E5ZVdaRUdreXJINjhvUzNBSkFWdkZpTlpCcFE0b0JqTmFGY0xwOFM3cGd5NG4ydk9FL3N5cQpBanZXZkZGWWJqbnFKN05TUUwwaStUbEx0Snp4STlCZSszcStJMVZGYlJvWk9XRHRYaHI2YVNkMDNhd1A2OStwCktBNExLa3l3Ujl3TXdHYUhpUmFMVE15SGxRSmRvRzhhZ2w4UlVDUFZtbGE0STJvNTM5Z3c2QkUrOFV0aUgrVXcKZjlLQTZFY0NBd0VBQWFOVE1GRXdIUVlEVlIwT0JCWUVGR0l3bUtLYkQrUUpQRmYwMmluR3Nxc1JVQUlnTUI4RwpBMVVkSXdRWU1CYUFGR0l3bUtLYkQrUUpQRmYwMmluR3Nxc1JVQUlnTUE4R0ExVWRFd0VCL3dRRk1BTUJBZjh3CkRRWUpLb1pJaHZjTkFRRUxCUUFEZ2dFQkFCN0YvaHNFUWxNR3lUbFgyRGs1MUt0UUkwcDdUcUEyU2U4ZjhmcXUKaWNlMjFtUmFBb1hYeVJKZlU3dStVZlhlY0R3V3ZydVpYQklHR2xpRjdGczNBZmo5cUd2Y2RJTkpnekg2bENENwpiY0UySWdCb3FEMHJwWEJpNjVUSjhqL1hOUmx6UWdMd2ZsN1dENDAyNUo1Yy95cFlQMms3V252NDZWUVo2by9OCndkUWFCeWhSa2FEczErQTBxNnpYdmtkU3hGaWFIL1loREFCU245TVdLWFhxaitGUmpzT1Z5YVJYZ0lLYTRDV2sKbkV2UDFyakM5M1paQkdxK096NEtMRFB4M201WDJEdGpJZ090RGpqQXN5UGhHS0NDRm9zTFlRdjh1K3NEdGs3QwpFK1ZmamFOMU5xbmhCMlU4eFBZS1hUZWRPRWgwckw4QllKZnp0Q09HU2FjZ3NHbz0KLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo=
+        service:
+          name: test-webhook-service
+          namespace: chainsaw-test
+          path: /convert
+          port: 443
+      conversionReviewVersions: ["v1", "v1beta1"]

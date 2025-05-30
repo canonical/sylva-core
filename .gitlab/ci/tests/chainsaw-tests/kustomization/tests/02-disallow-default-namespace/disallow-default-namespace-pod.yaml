@@ -1,0 +1,44 @@
+# Test Pod manifest for verifying denial of Pod creation in the 'default' namespace.
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: test-default-ns-pod
+  namespace: default
+spec:
+  containers:
+    - name: main-container
+      image: scratch:v0.0.0
+      resources:
+        requests:
+          cpu: "10m"
+          memory: "16Mi"
+        limits:
+          cpu: "50m"
+          memory: "64Mi"
+      securityContext:
+        runAsNonRoot: true
+        readOnlyRootFilesystem: true
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop: ["ALL"]
+        seccompProfile:
+          type: RuntimeDefault
+  initContainers:
+    - name: init-container
+      image: scratch:v0.0.0
+      resources:
+        requests:
+          cpu: "5m"
+          memory: "8Mi"
+        limits:
+          cpu: "25m"
+          memory: "32Mi"
+      securityContext:
+        runAsNonRoot: true
+        readOnlyRootFilesystem: true
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop: ["ALL"]
+        seccompProfile:
+          type: RuntimeDefault

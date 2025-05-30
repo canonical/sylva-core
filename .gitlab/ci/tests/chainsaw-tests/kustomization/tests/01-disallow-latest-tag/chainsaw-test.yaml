@@ -1,0 +1,67 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/kyverno/chainsaw/main/.schemas/json/test-chainsaw-v1alpha1.json
+# Tests that resources using the ':latest' image tag are denied by policy, and only allowed tags are permitted.
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  name: disallow-latest-tag
+spec:
+  # state that this test should not be executed in parallel with other tests
+  concurrent: false
+  # timeouts for this specific test
+  timeouts:
+    apply: 10s
+    assert: 10s
+    error: 10s
+  steps:
+  - name: "Verify pod with specific tag is allowed"
+    try:
+    - apply:
+        file: allow-latest-tag-pod.yaml
+    - assert:
+        file: allow-latest-tag-pod.yaml
+    - delete:
+        file: allow-latest-tag-pod.yaml
+  - name: "Verify pod with ':latest' tag is denied"
+    try:
+    - apply:
+        file: disallow-latest-tag-pod.yaml
+        expect:
+        - check:
+            ($error != null): true
+            (contains($error, 'disallow-latest-and-main-tag')): true
+    - delete:
+        file: disallow-latest-tag-pod.yaml
+  - name: "Verify deployments with ':latest' tag is denied"
+    try:
+    - apply:
+        file: disallow-latest-tag-deployment.yaml
+        expect:
+        - check:
+            ($error != null): true
+            (contains($error, 'disallow-latest-and-main-tag')): true
+    - delete:
+        file: disallow-latest-tag-deployment.yaml
+  - name: "Verify job with ':latest' tag is denied"
+    try:
+    - apply:
+        file: disallow-latest-tag-job.yaml
+        expect:
+        - check:
+            ($error != null): true
+            (contains($error, 'disallow-latest-and-main-tag')): true
+    - delete:
+        file: disallow-latest-tag-job.yaml
+  - name: "Verify cronjob with ':latest' tag is denied"
+    try:
+    - apply:
+        file: disallow-latest-tag-cronjob.yaml
+        expect:
+        - check:
+            ($error != null): true
+            (contains($error, 'disallow-latest-and-main-tag')): true
+    - delete:
+        file: disallow-latest-tag-cronjob.yaml
+  - name: "Sleep to prevent client rate limiter from blocking the next test"
+    try:
+    - script:
+        content: sleep 2
