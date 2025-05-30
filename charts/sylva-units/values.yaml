@@ -4339,6 +4339,31 @@ units:
                             seccompProfile:
                               type: RuntimeDefault
 
+  monitoring-crd:
+    info:
+      description: installs prometheus operator CRDs
+      maturity: stable
+      hidden: true
+    unit_templates:
+    - base-deps
+    depends_on:
+      # this unit provides the monitoring CRDs which Kyverno unit consumes
+      # so it cannot depend on kyverno
+      kyverno: false
+      kyverno-policies: false
+      namespace-defs: true
+    enabled_conditions:
+    - '{{ tuple . "monitoring" | include "unit-enabled" }}'
+    helm_repo_url: https://prometheus-community.github.io/helm-charts
+    helmrelease_spec:
+      releaseName: prometheus-operator-crds
+      targetNamespace: cattle-monitoring-system
+      storageNamespace: cattle-monitoring-system # see https://gitlab.com/sylva-projects/sylva-core/-/issues/443
+      chart:
+        spec:
+          chart: prometheus-operator-crds
+          version: 18.0.0
+
   prometheus-custom-metrics:
     info:
       description: Prometheus configuration for custom resource metrics
@@ -4388,31 +4413,6 @@ units:
           kind: Secret
           name: grafana-tls
           namespace: cattle-monitoring-system
-
-  monitoring-crd:
-    info:
-      description: installs prometheus operator CRDs
-      maturity: stable
-      hidden: true
-    unit_templates:
-    - base-deps
-    depends_on:
-      # this unit provides the monitoring CRDs which Kyverno unit consumes
-      # so it cannot depend on kyverno
-      kyverno: false
-      kyverno-policies: false
-      namespace-defs: true
-    enabled_conditions:
-    - '{{ tuple . "monitoring" | include "unit-enabled" }}'
-    helm_repo_url: https://prometheus-community.github.io/helm-charts
-    helmrelease_spec:
-      releaseName: prometheus-operator-crds
-      targetNamespace: cattle-monitoring-system
-      storageNamespace: cattle-monitoring-system # see https://gitlab.com/sylva-projects/sylva-core/-/issues/443
-      chart:
-        spec:
-          chart: prometheus-operator-crds
-          version: 18.0.0
 
   prometheus-nginx:
     info:
@@ -4778,7 +4778,7 @@ units:
       chart:
         spec:
           chart: webhooks/jiralert
-      targetNamespace: '{{ tuple . (tuple . "monitoring" | include "unit-enabled") "cattle-monitoring-system" "cattle-monitoring-system" | include "interpret-ternary" }}'
+      targetNamespace: "cattle-monitoring-system"
     helm_secret_values:
       config: '{{ .Values.monitoring.alertmanager.webhooks.jiralert.config | include "preserve-type" }}'
 
@@ -4872,7 +4872,7 @@ units:
       chart:
         spec:
           chart: config
-      targetNamespace: '{{ tuple . (tuple . "monitoring" | include "unit-enabled") "cattle-monitoring-system" "cattle-monitoring-system" | include "interpret-ternary" }}'
+      targetNamespace: "cattle-monitoring-system"
     helm_secret_values:
       config: '{{ .Values.monitoring.alertmanager.config | include "preserve-type" }}'
 
@@ -4992,8 +4992,8 @@ units:
     unit_templates:
     - base-deps
     depends_on:
-      snmp-exporter-config: true
       monitoring: true
+      snmp-exporter-config: true
     helm_repo_url: https://prometheus-community.github.io/helm-charts
     helmrelease_spec:
       releaseName: snmp-exporter
@@ -5053,7 +5053,7 @@ units:
       description: adds Sylva-specific Grafana dashboards
       maturity: beta
     enabled_conditions:
-    - '{{ tuple . "monitoring" | include "unit-enabled" }}'
+      - '{{ tuple . "monitoring" | include "unit-enabled" }}'
     unit_templates:
     - base-deps
     depends_on:
