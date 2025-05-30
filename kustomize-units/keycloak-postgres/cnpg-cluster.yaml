@@ -10,6 +10,9 @@ spec:
   postgresql:
     parameters:
       shared_buffers: "512MB"
+      max_wal_size: "1GB"
+      min_wal_size: "80MB"
+      wal_keep_size: "128MB"
   # Sets the resources for Guaranteed QoS
   resources:
     requests:
@@ -25,6 +28,9 @@ spec:
   storage:
     size: 20Gi
     storageClass: ${storageClass}
+  walStorage:
+    size: 10Gi
+    storageClass: ${storageClass}  # use a faster class for WALs if needed
   affinity:
     podAntiAffinityType: ${podAntiAffinityType}
   enablePDB: false
