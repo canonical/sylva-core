@@ -19,7 +19,7 @@ cluster:
         nic1:
           mac_address: 52:54:00:44:44:04
         nic2:
-          inspection_name: ens5
+          mac_address: 52:54:00:55:55:04
       ip_preallocations:
         primary: 192.168.100.70
 
@@ -33,7 +33,7 @@ cluster:
         bootMACAddress: 52:54:00:44:44:05
       interface_mappings:
         nic1:
-          inspection_name: ens4
+          mac_address: 52:54:00:44:44:05
         nic2:
           mac_address: 52:54:00:55:55:05
       ip_preallocations:
