@@ -869,9 +869,6 @@ units:
     info:
       description: Deploys Daemonsets in workload cluster to copy certfiles in host nodes
       internal: true
-    depends_on:
-      kyverno-policies: true
-      cert-manager: true
     unit_templates:
     - base-deps
     repo: sylva-core
