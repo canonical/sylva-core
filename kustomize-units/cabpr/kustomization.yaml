@@ -1,8 +1,8 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
-  - https://gitlab.com/Orange-OpenSource/kanod/cluster-api-rke2.git/controlplane/config/default?ref=v0.1.0
-  - https://gitlab.com/Orange-OpenSource/kanod/cluster-api-rke2.git/bootstrap/config/default?ref=v0.1.0
+  - https://gitlab.com/Orange-OpenSource/kanod/cluster-api-rke2.git/controlplane/config/default?ref=v0.1.1
+  - https://gitlab.com/Orange-OpenSource/kanod/cluster-api-rke2.git/bootstrap/config/default?ref=v0.1.1
 # Add labels to enable clusterctl move to retrieve resources correponding to cabpr CRDs
 labels:
   - pairs:
