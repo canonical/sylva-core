@@ -1,0 +1,16 @@
+apiVersion: logging-extensions.banzaicloud.io/v1alpha1
+kind: HostTailer
+metadata:
+  name: rke2-tailer
+  namespace: cattle-logging-system
+spec:
+  fileTailers:
+  - name: kubelet-logs
+    path: /var/lib/rancher/rke2/agent/logs/kubelet.log
+  systemdTailers:
+  - maxEntries: 100
+    name: rke2-server-journal
+    systemdFilter: rke2-server.service
+  - maxEntries: 100
+    name: rke2-agent-journal
+    systemdFilter: rke2-agent.service

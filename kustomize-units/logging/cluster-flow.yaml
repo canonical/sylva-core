@@ -5,7 +5,67 @@ metadata:
   name: all-logs
   namespace: cattle-logging-system
 spec:
+  filters:
+    - grep:
+        exclude:
+          - key: log
+            pattern: "^(E|W|I|D)\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}.*"
+          - key: MESSAGE
+            pattern: "^time=.*"
+  match:
+    - exclude:
+        labels:
+          app.kubernetes.io/name: host-tailer
   globalOutputRefs:
   - loki
-
-
+---
+apiVersion: logging.banzaicloud.io/v1beta1
+kind: ClusterFlow
+metadata:
+  name: systemd-logs
+  namespace: cattle-logging-system
+spec:
+  filters:
+  - parser:
+      key_name: message
+      parse:
+        expression: time="(?<timestamp>[^"]+)" level=(?<level>[a-zA-Z]+) msg="(?<message>[^"]+)"
+        time_format: '%Y-%m-%dT%H:%M:%SZ'
+        time_key: timestamp
+        type: regexp
+      remove_key_name_field: true
+      reserve_data: true
+  globalOutputRefs:
+  - loki
+  match:
+  - select:
+      container_names:
+      - rke2-server-journal
+      - rke2-agent-journal
+      labels:
+        app.kubernetes.io/name: host-tailer
+---
+apiVersion: logging.banzaicloud.io/v1beta1
+kind: ClusterFlow
+metadata:
+  name: kubelet-logs
+  namespace: cattle-logging-system
+spec:
+  filters:
+  - parser:
+      key_name: log
+      parse:
+        expression: (?<level>[IWEF])(?<timestamp>\d{4} \d{2}:\d{2}:\d{2}\.\d{6})\s+(?<thread_id>\d+)\s+(?<source_file>[^:]+):(?<line_number>\d+)]\s+(?<message>.*?)(?:\s+err="(?<err>.*?)")?$
+        time_format: '%m%d %T'
+        time_key: timestamp
+        type: regexp
+      remove_key_name_field: true
+      reserve_data: true
+  globalOutputRefs:
+  - loki
+  match:
+  - select:
+      container_names:
+      - kubelet-logs
+      labels:
+        app.kubernetes.io/name: host-tailer

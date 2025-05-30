@@ -7565,7 +7565,7 @@ units:
         systemdLogPath: "/var/log/journal/"
         additionalLoggingSources:
           rke2:
-            enabled: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" | include "as-bool" }}'
+            enabled: false
           kubeAudit:
             # autdit log is currently only supported for rke2 see issue https://gitlab.com/sylva-projects/sylva-core/-/issues/1226
             auditFilename: '{{ .Values.cluster.capi_providers.bootstrap_provider | eq "cabpr" | ternary "/var/lib/rancher/rke2/server/logs/audit.log" "" }}'
