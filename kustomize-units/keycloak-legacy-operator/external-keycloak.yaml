@@ -10,7 +10,7 @@ spec:
   contextRoot: /
 ---
 #The Admin Credentials need to match those used/created by the new Keycloak Operator
-apiVersion: external-secrets.io/v1beta1
+apiVersion: external-secrets.io/v1
 kind: ExternalSecret
 metadata:
   name: credential-external-keycloak
