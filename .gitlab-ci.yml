@@ -1,7 +1,7 @@
 ---
 include:
   - project: "to-be-continuous/gitleaks"
-    ref: 2.7.1
+    ref: 2.7.3
     file: "templates/gitlab-ci-gitleaks.yml"
   - project: 'renovate-bot/renovate-runner'
     ref: v22.0.0
