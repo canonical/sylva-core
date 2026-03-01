@@ -109,7 +109,7 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
     spec:
       url: https://github.com/bank-vaults/vault-operator.git
       ref:
-        tag: v1.22.5
+        tag: v1.23.4
 
   sylva-dashboards:
     kind: GitRepository
