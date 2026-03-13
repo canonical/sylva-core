@@ -5371,7 +5371,7 @@ units:
       chart:
         spec:
           chart: ceph-csi-cephfs
-          version: 3.14.0
+          version: 3.16.2
       values:
         provisioner:
           replicaCount: '{{ .Values.cluster.control_plane_replicas }}'
