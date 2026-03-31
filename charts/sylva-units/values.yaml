@@ -5186,7 +5186,7 @@ units:
       chart:
         spec:
           chart: sriov-crd
-          version: 1.5.2+up1.5.0
+          version: 1.6.4+up1.6.0
 
   sriov-network-operator:
     info:
@@ -5206,7 +5206,7 @@ units:
       chart:
         spec:
           chart: sriov-network-operator
-          version: 1.5.2+up1.5.0
+          version: 1.6.4+up1.6.0
       values:
         operator:
           admissionControllers:
