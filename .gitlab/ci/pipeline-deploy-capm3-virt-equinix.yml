@@ -2,7 +2,7 @@
 include:
   - local: .gitlab/ci/pipeline-deploy-base.yml
   - project: 'sylva-projects/sylva-elements/ci-tooling/runner-aas'
-    ref: 1.2.0
+    ref: 2.1.6
     file:
       - ci-templates/equinix-runner-request-template.yml
     rules:
