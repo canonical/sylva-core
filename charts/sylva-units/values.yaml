@@ -4937,7 +4937,7 @@ units:
           - --persistence.interval=5m
         extraContainers:
           - name: prometheus-pushgateway-metrics-purger
-            image: curlimages/curl:8.13.0
+            image: curlimages/curl:8.20.0
             command:
             - sh
             - -c
