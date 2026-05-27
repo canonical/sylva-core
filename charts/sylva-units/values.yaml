@@ -81,7 +81,7 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
     spec:
       url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/metallb-resources.git
       ref:
-        tag: 0.2.1
+        tag: 0.3.1
 
   os-image-server:
     kind: GitRepository
