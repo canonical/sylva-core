@@ -3715,7 +3715,7 @@ units:
       chart:
         spec:
           chart: openstack-cinder-csi
-          version: 2.32.0
+          version: 2.36.0
       targetNamespace: cinder-csi
       install:
         createNamespace: false
