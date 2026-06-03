@@ -8040,7 +8040,7 @@ units:
       chart:
         spec:
           chart: descheduler
-          version: 0.33.0
+          version: 0.36.0
       values:
         kind: CronJob
         schedule: "*/10 * * * *"
