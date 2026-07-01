@@ -2,9 +2,9 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
 resources:
-- https://gitlab.com/sylva-projects/sylva-elements/sylva-units-operator.git/config/default?ref=v0.2.2
+- https://gitlab.com/sylva-projects/sylva-elements/sylva-units-operator.git/config/default?ref=v1.4.0
 
 images:
   - name: controller
     newName: registry.gitlab.com/sylva-projects/sylva-elements/sylva-units-operator
-    newTag: v0.2.2
+    newTag: v1.4.0
