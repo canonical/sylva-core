@@ -158,7 +158,7 @@ source_templates: # template to generate Flux GitRepository/OCIRepository resour
     spec:
       url: https://gitlab.com/sylva-projects/sylva-elements/helm-charts/sylva-thanos-rules.git
       ref:
-        tag: 0.1.4
+        tag: 0.5.0
 
   sylva-alertmanager-resources:
     kind: GitRepository
