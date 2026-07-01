@@ -42,7 +42,7 @@ variables:
 
 .docker-service:
   services:
-    - name: docker:27.5.1-dind
+    - name: docker:29.5.3-dind
       alias: docker
   variables:
     DOCKER_TLS_CERTDIR: ""
