@@ -4762,7 +4762,7 @@ units:
       chart:
         spec:
           chart: jiralert
-          version: 1.7.2
+          version: 1.9.0
       values:
         extraArgs:
           - -log.level=info
