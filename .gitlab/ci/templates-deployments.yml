@@ -561,7 +561,7 @@ include:
 # Used to generate summary comment in MRs
 .summary:
   image:
-    name: registry.gitlab.com/python-gitlab/python-gitlab:v5.6.0-alpine
+    name: registry.gitlab.com/python-gitlab/python-gitlab:v8.6.0-alpine
     entrypoint: [""]
   before_script: []
   tags:
