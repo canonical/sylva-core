@@ -22,7 +22,7 @@ prepare-deployment-jobs:
   stage: deploy
   extends: .deploy_rules
   image:
-    name: registry.gitlab.com/python-gitlab/python-gitlab:v5.6.0-alpine
+    name: registry.gitlab.com/python-gitlab/python-gitlab:v8.6.0-alpine
     entrypoint: [""]
   needs: []
   script:
