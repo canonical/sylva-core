@@ -2,7 +2,7 @@
 # External Secret responsible for creating a secret that holds the clientID and clientSecret
 # of the Keycloak client that will be used for gitea authentication.
 # Secret is then consumed by the 'gitea' unit.
-apiVersion: external-secrets.io/v1beta1
+apiVersion: external-secrets.io/v1
 kind: ExternalSecret
 metadata:
   name: eso-gitea-oidc
