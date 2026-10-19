@@ -4,7 +4,7 @@
     "gitlab>sylva-projects/sylva-elements/renovate-config:default"
   ],
   "ignorePaths": [],
-  "baseBranches": [
+  "baseBranchPatterns": [
     "main",
     "release-1.3"
   ],
