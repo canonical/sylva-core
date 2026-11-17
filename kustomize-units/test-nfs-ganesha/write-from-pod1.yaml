@@ -19,7 +19,7 @@ spec:
                 topologyKey: "kubernetes.io/hostname"
       containers:
         - name: test-container
-          image: busybox:1.37.0
+          image: busybox:1.38.0
           command:
             - sh
             - -c
