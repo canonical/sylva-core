@@ -4531,7 +4531,7 @@ units:
       chart:
         spec:
           chart: rancher-monitoring-crd
-          version: 105.2.0+up66.7.1-rancher.10
+          version: 105.2.1+up66.7.1-rancher.14
 
   grafana-init:
     info:
@@ -4604,7 +4604,7 @@ units:
       chart:
         spec:
           chart: rancher-monitoring
-          version: 105.2.0+up66.7.1-rancher.10
+          version: 105.2.1+up66.7.1-rancher.14
       install:
         createNamespace: false
       values:
